@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, viewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../../../../common/views/passwordchange-form/passwordchange-form.component';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
@@ -17,14 +17,14 @@ import {MatButton} from '@angular/material/button';
   ]
 })
 export class UserPasswordChangeComponent {
-  @ViewChild(PasswordChangeFormComponent) public form!: PasswordChangeFormComponent;
+  form = viewChild(PasswordChangeFormComponent);
 
   changePassword() {
-    this.form.changePassword().subscribe();
+    this.form()?.changePassword().subscribe();
   }
 
   isSaveDisabled(): boolean {
-    return !this.form?.passwordForm().valid();
+    return !this.form()?.passwordForm().valid();
   }
 
 }

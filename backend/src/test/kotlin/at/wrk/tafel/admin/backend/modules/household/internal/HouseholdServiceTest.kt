@@ -29,6 +29,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -75,6 +76,11 @@ class HouseholdServiceTest {
 
         every { countryRepository.findById(testCountry1.id!!) } returns Optional.of(testCountry1)
         every { userRepository.findByUsername(testUserEntity.username!!) } returns testUserEntity
+    }
+
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
     }
 
     @Test

@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { CustomerApiService, CustomerData, Gender } from '../../../api/customer-api.service';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { of } from 'rxjs';
 import { CustomerDataResolver } from './customerdata-resolver.component';
 import { ActivatedRouteSnapshot } from '@angular/router';
@@ -39,10 +39,10 @@ describe('CustomerDataResolver', () => {
                 firstname: 'first',
                 lastname: 'last'
             },
-            issuedAt: moment().startOf('day').utc().toDate(),
+            issuedAt: dayjs().startOf('day').toDate(),
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
             telephoneNumber: '00436644123123123',
             email: 'max.mustermann@gmail.com',
@@ -58,9 +58,9 @@ describe('CustomerDataResolver', () => {
 
             employer: 'test employer',
             income: 1000,
-            incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+            incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
 
-            validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(1, 'years').startOf('day').toDate(),
 
             additionalPersons: [
                 {
@@ -68,10 +68,10 @@ describe('CustomerDataResolver', () => {
                     id: 0,
                     lastname: 'Add',
                     firstname: 'Pers 1',
-                    birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+                    birthDate: dayjs().subtract(5, 'years').startOf('day').toDate(),
                     gender: Gender.FEMALE,
                     income: 50,
-                    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+                    incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
                     excludeFromHousehold: false,
                     receivesFamilyBonus: true
                 }

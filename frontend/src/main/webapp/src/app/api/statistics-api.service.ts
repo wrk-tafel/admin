@@ -1,7 +1,7 @@
 import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 @Service()
 export class StatisticsApiService {
@@ -13,16 +13,16 @@ export class StatisticsApiService {
 
   getData(fromDate: Date, toDate: Date): Observable<StatisticsData> {
     let queryParams = new HttpParams();
-    queryParams = queryParams.set('fromDate', moment(fromDate).format('YYYY-MM-DD'));
-    queryParams = queryParams.set('toDate', moment(toDate).format('YYYY-MM-DD'));
+    queryParams = queryParams.set('fromDate', dayjs(fromDate).format('YYYY-MM-DD'));
+    queryParams = queryParams.set('toDate', dayjs(toDate).format('YYYY-MM-DD'));
 
     return this.http.get<StatisticsData>('/statistics/data', {params: queryParams});
   }
 
   generateCsv(fromDate: Date, toDate: Date): Observable<HttpResponse<Blob>> {
     let queryParams = new HttpParams();
-    queryParams = queryParams.set('fromDate', moment(fromDate).format('YYYY-MM-DD'));
-    queryParams = queryParams.set('toDate', moment(toDate).format('YYYY-MM-DD'));
+    queryParams = queryParams.set('fromDate', dayjs(fromDate).format('YYYY-MM-DD'));
+    queryParams = queryParams.set('toDate', dayjs(toDate).format('YYYY-MM-DD'));
 
     return this.http.get('/statistics/generate-csv',
       {

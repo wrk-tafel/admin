@@ -3,7 +3,6 @@ import { UserPasswordChangeComponent } from './user-passwordchange.component';
 import { of } from 'rxjs';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { PasswordChangeFormComponent } from '../../../../common/views/passwordchange-form/passwordchange-form.component';
 
 describe('UserPasswordChangeComponent', () => {
     beforeEach(() => {
@@ -24,21 +23,26 @@ describe('UserPasswordChangeComponent', () => {
     it('changePassword', () => {
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
-        vi.spyOn(component.form, 'changePassword').mockReturnValue(of(true));
+        fixture.detectChanges(); // initializes the viewChild
+
+        const formComponent = component.form();
+        expect(formComponent).toBeDefined();
+        vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
 
         component.changePassword();
 
-        expect(component.form.changePassword).toHaveBeenCalled();
+        expect(formComponent!.changePassword).toHaveBeenCalled();
     });
 
     it('isSaveDisabled - form valid', () => {
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
+        fixture.detectChanges(); // initializes the viewChild
+
+        const formComponent = component.form();
 
         // Mock passwordForm to return a valid state
-        vi.spyOn(component.form, 'passwordForm').mockReturnValue({
+        vi.spyOn(formComponent!, 'passwordForm').mockReturnValue({
             valid: vi.fn().mockReturnValue(true)
         } as any);
 
@@ -48,10 +52,12 @@ describe('UserPasswordChangeComponent', () => {
     it('isSaveDisabled - form invalid', () => {
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
+        fixture.detectChanges(); // initializes the viewChild
+
+        const formComponent = component.form();
 
         // Mock passwordForm to return an invalid state
-        vi.spyOn(component.form, 'passwordForm').mockReturnValue({
+        vi.spyOn(formComponent!, 'passwordForm').mockReturnValue({
             valid: vi.fn().mockReturnValue(false)
         } as any);
 

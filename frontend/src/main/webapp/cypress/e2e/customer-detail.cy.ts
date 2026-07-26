@@ -1,5 +1,8 @@
 import * as path from 'path';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
 
 describe('Customer Detail', () => {
 
@@ -61,7 +64,7 @@ describe('Customer Detail', () => {
     let validDateString;
     cy.byTestId('validUntilText').then(($value) => {
       validDateString = $value.text();
-      const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
+      const expectedValidDate = dayjs(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
       cy.byTestId('prolongButton').click();
       cy.byTestId('prolongThreeMonthsButton').click();
@@ -76,7 +79,7 @@ describe('Customer Detail', () => {
     openEditMenu();
     cy.byTestId('invalidateCustomerButton').click();
 
-    cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
+    cy.byTestId('validUntilText').should('have.text', dayjs().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
   });
 
   it('lock and unlock customer', () => {

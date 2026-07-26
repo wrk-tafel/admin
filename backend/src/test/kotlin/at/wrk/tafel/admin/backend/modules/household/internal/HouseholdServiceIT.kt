@@ -12,10 +12,10 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
+import org.springframework.boot.jpa.test.autoconfigure.find
 import org.springframework.transaction.annotation.Transactional
 
 class HouseholdServiceIT : TafelBaseIntegrationTest() {
@@ -39,7 +39,6 @@ class HouseholdServiceIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    @Disabled // TODO re-enable when merge logic is enhanced
     @Transactional
     fun `merge households`() {
         val distribution1 = createDistribution(testUser)
@@ -75,12 +74,12 @@ class HouseholdServiceIT : TafelBaseIntegrationTest() {
         testEntityManager.clear()
 
         // targetHousehold still exists
-        assertThat(testEntityManager.find(HouseholdEntity::class.java, targetHousehold.id as Any)).isNotNull
+        assertThat(testEntityManager.find<HouseholdEntity>(targetHousehold.id!!)).isNotNull
 
         // sourceHouseholds are deleted
-        assertThat(testEntityManager.find(HouseholdEntity::class.java, sourceHousehold1.id as Any)).isNull()
-        assertThat(testEntityManager.find(HouseholdEntity::class.java, sourceHousehold2.id as Any)).isNull()
-        assertThat(testEntityManager.find(HouseholdEntity::class.java, sourceHousehold3.id as Any)).isNull()
+        assertThat(testEntityManager.find<HouseholdEntity>(sourceHousehold1.id!!)).isNull()
+        assertThat(testEntityManager.find<HouseholdEntity>(sourceHousehold2.id!!)).isNull()
+        assertThat(testEntityManager.find<HouseholdEntity>(sourceHousehold3.id!!)).isNull()
     }
 
     private fun persistHousehold(): HouseholdEntity {

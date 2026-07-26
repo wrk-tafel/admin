@@ -1,5 +1,5 @@
 import {ChildFieldContext} from '@angular/forms/signals';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 /**
  * Custom validators for Angular Signal Forms
@@ -20,12 +20,12 @@ export function minDate(date: Date, options?: { message?: string }) {
       return undefined;
     }
 
-    const controlDate = moment(value).startOf('day');
+    const controlDate = dayjs(value).startOf('day');
     if (!controlDate.isValid()) {
       return undefined;
     }
 
-    const validationDate = moment(date).startOf('day');
+    const validationDate = dayjs(date).startOf('day');
 
     if (!controlDate.isBefore(validationDate)) {
       return undefined;
@@ -56,12 +56,12 @@ export function maxDate(date: Date, options?: { message?: string }) {
       return undefined;
     }
 
-    const controlDate = moment(value).startOf('day');
+    const controlDate = dayjs(value).startOf('day');
     if (!controlDate.isValid()) {
       return undefined;
     }
 
-    const validationDate = moment(date).startOf('day');
+    const validationDate = dayjs(date).startOf('day');
 
     if (!controlDate.isAfter(validationDate)) {
       return undefined;

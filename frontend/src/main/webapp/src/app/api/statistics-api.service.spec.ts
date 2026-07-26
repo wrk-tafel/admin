@@ -2,7 +2,10 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {StatisticsApiService, StatisticsData, StatisticsSettings} from './statistics-api.service';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
 
 describe('StatisticsApiService', () => {
   let httpMock: HttpTestingController;
@@ -51,8 +54,8 @@ describe('StatisticsApiService', () => {
   });
 
   it('get data', () => {
-    const fromDate = moment('1234-01-02', 'YYYY-MM-DD').toDate();
-    const toDate = moment('4321-01-02', 'YYYY-MM-DD').toDate();
+    const fromDate = dayjs('1234-01-02', 'YYYY-MM-DD').toDate();
+    const toDate = dayjs('4321-01-02', 'YYYY-MM-DD').toDate();
     const testResponse: StatisticsData = {
       beneficiaryCustomers: {
         title: '5',
@@ -156,8 +159,8 @@ describe('StatisticsApiService', () => {
   });
 
   it('generate csv', () => {
-    const fromDate = moment('1234-01-02', 'YYYY-MM-DD').toDate();
-    const toDate = moment('4321-01-02', 'YYYY-MM-DD').toDate();
+    const fromDate = dayjs('1234-01-02', 'YYYY-MM-DD').toDate();
+    const toDate = dayjs('4321-01-02', 'YYYY-MM-DD').toDate();
     apiService.generateCsv(fromDate, toDate).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/statistics/generate-csv?fromDate=1234-01-02&toDate=4321-01-02'});

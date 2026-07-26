@@ -3,7 +3,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {CommonModule} from '@angular/common';
 import {switchMap} from 'rxjs';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
@@ -31,8 +31,8 @@ export class StatisticsComponent {
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
 
-  _dateRangeFrom = signal<Date>(moment().startOf('year').toDate());
-  _dateRangeTo = signal<Date>(moment().toDate());
+  _dateRangeFrom = signal<Date>(dayjs().startOf('year').toDate());
+  _dateRangeTo = signal<Date>(dayjs().toDate());
   dateRange = computed(() => ({
     from: this._dateRangeFrom(),
     to: this._dateRangeTo()
@@ -45,8 +45,8 @@ export class StatisticsComponent {
 
   onYearSelected(year: number | undefined) {
     if (year) {
-      this._dateRangeFrom.set(moment().year(year).startOf('year').toDate());
-      this._dateRangeTo.set(moment().year(year).endOf('year').toDate());
+      this._dateRangeFrom.set(dayjs().year(year).startOf('year').toDate());
+      this._dateRangeTo.set(dayjs().year(year).endOf('year').toDate());
     }
   }
 
@@ -58,17 +58,17 @@ export class StatisticsComponent {
   }
 
   onSelectCurrentYear(): void {
-    this._dateRangeFrom.set(moment().startOf('year').toDate());
-    this._dateRangeTo.set(moment().toDate());
+    this._dateRangeFrom.set(dayjs().startOf('year').toDate());
+    this._dateRangeTo.set(dayjs().toDate());
   }
 
   onSelectCurrentMonth(): void {
-    this._dateRangeFrom.set(moment().startOf('month').toDate());
-    this._dateRangeTo.set(moment().toDate());
+    this._dateRangeFrom.set(dayjs().startOf('month').toDate());
+    this._dateRangeTo.set(dayjs().toDate());
   }
 
   get dateRangeFrom(): string {
-    return moment(this._dateRangeFrom()).format('YYYY-MM-DD');
+    return dayjs(this._dateRangeFrom()).format('YYYY-MM-DD');
   }
 
   set dateRangeFrom(value: string) {
@@ -76,7 +76,7 @@ export class StatisticsComponent {
   }
 
   get dateRangeTo(): string {
-    return moment(this._dateRangeTo()).format('YYYY-MM-DD');
+    return dayjs(this._dateRangeTo()).format('YYYY-MM-DD');
   }
 
   set dateRangeTo(value: string) {

@@ -2,7 +2,7 @@ import type {MockedObject} from 'vitest';
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse} from '../../../../api/customer-api.service';
@@ -53,10 +53,10 @@ describe('CustomerDetailComponent', () => {
       firstname: 'first',
       lastname: 'last'
     },
-    issuedAt: moment().startOf('day').utc().toDate(),
+    issuedAt: dayjs().startOf('day').toDate(),
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+    birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
     gender: Gender.MALE,
     country: mockCountry,
     telephoneNumber: '00436644123123123',
@@ -73,10 +73,10 @@ describe('CustomerDetailComponent', () => {
 
     employer: 'test employer',
     income: 1000,
-    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
     pendingCostContribution: 123,
 
-    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
+    validUntil: dayjs().add(1, 'years').startOf('day').toDate(),
 
     additionalPersons: [
       {
@@ -84,11 +84,11 @@ describe('CustomerDetailComponent', () => {
         id: 0,
         lastname: 'Add',
         firstname: 'Pers 1',
-        birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        birthDate: dayjs().subtract(5, 'years').startOf('day').toDate(),
         gender: Gender.FEMALE,
         employer: 'test employer 2',
         income: 50,
-        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
         country: mockCountry,
         excludeFromHousehold: false,
         receivesFamilyBonus: true
@@ -98,7 +98,7 @@ describe('CustomerDetailComponent', () => {
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
+        birthDate: dayjs().subtract(10, 'years').startOf('day').toDate(),
         gender: Gender.MALE,
         country: mockCountry,
         excludeFromHousehold: true,
@@ -110,12 +110,12 @@ describe('CustomerDetailComponent', () => {
     items: [
       {
         author: 'author1',
-        timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
+        timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
         note: 'note from author 2'
       },
       {
         author: 'author2',
-        timestamp: moment('2023-03-20T19:45:25.615477+01:00').toDate(),
+        timestamp: dayjs('2023-03-20T19:45:25.615477+01:00').toDate(),
         note: 'note from author 1'
       }
     ],
@@ -258,7 +258,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'customerIdText')).toBe('133');
     expect(getTextByTestId(fixture, 'nameText')).toBe('Mustermann Max');
 
-    const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')';
+    const birthDateAge = dayjs(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + dayjs().diff(mockCustomer.birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'birthDateAgeText')).toBe(birthDateAge);
     expect(getTextByTestId(fixture, 'genderText')).toBe('Männlich');
     expect(getTextByTestId(fixture, 'countryText')).toBe('Österreich');
@@ -269,10 +269,10 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'employerText')).toBe('test employer');
     expect(getTextByTestId(fixture, 'incomeText')).toBe('€ 1.000,00');
 
-    expect(getTextByTestId(fixture, 'incomeDueText')).toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
-    expect(getTextByTestId(fixture, 'validUntilText')).toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
+    expect(getTextByTestId(fixture, 'incomeDueText')).toBe(dayjs(mockCustomer.incomeDue).format('DD.MM.YYYY'));
+    expect(getTextByTestId(fixture, 'validUntilText')).toBe(dayjs(mockCustomer.validUntil).format('DD.MM.YYYY'));
     expect(getTextByTestId(fixture, 'issuedInformation'))
-      .toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
+      .toBe('am ' + dayjs(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
     expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('€ 123,00');
 
     expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
@@ -288,8 +288,8 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
     expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyBonus')).toBe('Ja');
 
-    const birthDateAgePers1 = moment(mockCustomer.additionalPersons![0].birthDate).format('DD.MM.YYYY') +
-      ' (' + moment().diff(mockCustomer.additionalPersons![0].birthDate, 'years') + ')';
+    const birthDateAgePers1 = dayjs(mockCustomer.additionalPersons![0].birthDate).format('DD.MM.YYYY') +
+      ' (' + dayjs().diff(mockCustomer.additionalPersons![0].birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'addperson-0-birthDateAgeText')).toBe(birthDateAgePers1);
     expect(getTextByTestId(fixture, 'addperson-0-genderText')).toBe('Weiblich');
 
@@ -297,7 +297,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
     expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
     expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
-      .toBe(moment(mockCustomer.additionalPersons![0].incomeDue).format('DD.MM.YYYY'));
+      .toBe(dayjs(mockCustomer.additionalPersons![0].incomeDue).format('DD.MM.YYYY'));
 
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
@@ -385,7 +385,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', {
       ...mockCustomer,
-      validUntil: moment().subtract(1, 'days').toDate()
+      validUntil: dayjs().subtract(1, 'days').toDate()
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
     const component = fixture.componentInstance;
@@ -403,7 +403,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', {
       ...mockCustomer,
-      validUntil: moment().toDate()
+      validUntil: dayjs().toDate()
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
     const component = fixture.componentInstance;
@@ -421,7 +421,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', {
       ...mockCustomer,
-      validUntil: moment().add(1, 'days').toDate()
+      validUntil: dayjs().add(1, 'days').toDate()
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
     const component = fixture.componentInstance;
@@ -485,7 +485,7 @@ describe('CustomerDetailComponent', () => {
 
     const expectedCustomerData = {
       ...mockCustomer,
-      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+      validUntil: dayjs(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
@@ -508,7 +508,7 @@ describe('CustomerDetailComponent', () => {
 
     const expectedCustomerData = {
       ...mockCustomer,
-      validUntil: moment().subtract(1, 'day').endOf('day').toDate()
+      validUntil: dayjs().subtract(1, 'day').endOf('day').toDate()
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
@@ -600,7 +600,7 @@ describe('CustomerDetailComponent', () => {
     const sanitizedNoteText = 'new note<br/>text';
     const resultNote: CustomerNoteItem = {
       author: 'author1',
-      timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
+      timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
       note: sanitizedNoteText
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
@@ -624,7 +624,7 @@ describe('CustomerDetailComponent', () => {
 
     const resultNote: CustomerNoteItem = {
       author: 'newAuthor',
-      timestamp: moment('2024-01-15T10:00:00.000+01:00').toDate(),
+      timestamp: dayjs('2024-01-15T10:00:00.000+01:00').toDate(),
       note: noteText
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
@@ -804,7 +804,7 @@ describe('CustomerDetailComponent', () => {
   it('prolong customer with 409 conflict shows confirmation dialog', () => {
     const expectedCustomerData = {
       ...mockCustomer,
-      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+      validUntil: dayjs(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
     };
 
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
@@ -829,7 +829,7 @@ describe('CustomerDetailComponent', () => {
   it('prolong customer with non-409 error shows error toast', () => {
     const expectedCustomerData = {
       ...mockCustomer,
-      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+      validUntil: dayjs(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
     };
 
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({

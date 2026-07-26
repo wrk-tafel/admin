@@ -1,6 +1,6 @@
 import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
 import {Router} from '@angular/router';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
   CustomerAddressData,
@@ -151,7 +151,7 @@ export class CustomerDetailComponent {
   }
 
   isValid(): boolean {
-    return !moment(this.customerData().validUntil).startOf('day').isBefore(moment().startOf('day'));
+    return !dayjs(this.customerData().validUntil).startOf('day').isBefore(dayjs().startOf('day'));
   }
 
   openDeleteCustomerDialog() {
@@ -191,7 +191,7 @@ export class CustomerDetailComponent {
   }
 
   prolongCustomer(countMonths : number) {
-    const newValidUntilDate = moment(this.customerData().validUntil).add(countMonths, 'months').endOf('day').toDate();
+    const newValidUntilDate = dayjs(this.customerData().validUntil).add(countMonths, 'months').endOf('day').toDate();
     const updatedCustomerData = {
       ...this.customerData(),
       validUntil: newValidUntilDate
@@ -217,7 +217,7 @@ export class CustomerDetailComponent {
   disableCustomer() {
     const updatedCustomerData = {
       ...this.customerData(),
-      validUntil: moment().subtract(1, 'day').endOf('day').toDate()
+      validUntil: dayjs().subtract(1, 'day').endOf('day').toDate()
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {

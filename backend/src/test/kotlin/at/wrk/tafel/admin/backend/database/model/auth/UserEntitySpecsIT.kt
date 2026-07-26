@@ -11,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
+import org.springframework.boot.jpa.test.autoconfigure.find
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -129,10 +130,10 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         userRepository.delete(user)
         testEntityManager.flush()
 
-        val survivingEmployee = testEntityManager.find(EmployeeEntity::class.java, employeeId)
+        val survivingEmployee = testEntityManager.find<EmployeeEntity>(employeeId)
         assertThat(survivingEmployee).isNotNull()
 
-        val survivingHousehold = testEntityManager.find(HouseholdEntity::class.java, household.id!!)
+        val survivingHousehold = testEntityManager.find<HouseholdEntity>(household.id!!)
         assertThat(survivingHousehold?.issuer?.id).isEqualTo(employeeId)
     }
 

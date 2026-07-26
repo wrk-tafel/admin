@@ -5,7 +5,7 @@ import {CommonModule} from '@angular/common';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {EMPTY, of, throwError} from 'rxjs';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
@@ -284,7 +284,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -298,7 +298,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         customerApiService.getCustomer.mockReturnValue(of(mockCustomer));
@@ -339,7 +339,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -353,7 +353,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         customerApiService.getCustomer.mockReturnValue(of(mockCustomer));
@@ -395,7 +395,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -409,7 +409,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(2, 'weeks').startOf('day').utc().toDate()
+            validUntil: dayjs().add(2, 'weeks').startOf('day').toDate()
         };
         customerApiService.getCustomer.mockReturnValue(of(mockCustomer));
         const notesResponse: CustomerNotesResponse = {
@@ -445,7 +445,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -459,7 +459,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().subtract(2, 'weeks').startOf('day').utc().toDate()
+            validUntil: dayjs().subtract(2, 'weeks').startOf('day').toDate()
         };
         customerApiService.getCustomer.mockReturnValue(of(mockCustomer));
         const notesResponse: CustomerNotesResponse = {
@@ -495,7 +495,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -510,7 +510,7 @@ describe('CheckinComponent', () => {
             income: 1000,
             locked: true,
 
-            validUntil: moment().subtract(2, 'weeks').startOf('day').utc().toDate()
+            validUntil: dayjs().subtract(2, 'weeks').startOf('day').toDate()
         };
         customerApiService.getCustomer.mockReturnValue(of(mockCustomer));
         const notesResponse: CustomerNotesResponse = {
@@ -572,7 +572,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -586,7 +586,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         customerApiService.getCustomer.mockReturnValue(of(mockCustomer));
@@ -595,12 +595,12 @@ describe('CheckinComponent', () => {
             items: [
                 {
                     author: 'author1',
-                    timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
+                    timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
                     note: 'note from author 2'
                 },
                 {
                     author: 'author2',
-                    timestamp: moment('2023-03-20T19:45:25.615477+01:00').toDate(),
+                    timestamp: dayjs('2023-03-20T19:45:25.615477+01:00').toDate(),
                     note: 'note from author 1'
                 }
             ],
@@ -632,7 +632,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -646,7 +646,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         component.processCustomer(mockCustomer);
@@ -672,7 +672,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -686,7 +686,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         component.processCustomer(mockCustomer);
@@ -719,7 +719,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -733,7 +733,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         component.processCustomer(mockCustomer);
@@ -756,7 +756,7 @@ describe('CheckinComponent', () => {
             id: 133,
             lastname: 'Mustermann',
             firstname: 'Max',
-            birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
             gender: Gender.MALE,
 
             address: {
@@ -770,7 +770,7 @@ describe('CheckinComponent', () => {
             employer: 'test employer',
             income: 1000,
 
-            validUntil: moment().add(3, 'months').startOf('day').utc().toDate(),
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
             additionalPersons: []
         };
         component.processCustomer(mockCustomer);

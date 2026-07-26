@@ -33,7 +33,7 @@
             "allowedCommonJsDependencies": [
               "chart.js",
               "angular2-uuid",
-              "moment"
+              "dayjs"
             ],
             "browser": "src/main.ts",
             "stylePreprocessorOptions": {

@@ -3,7 +3,7 @@ import {of, throwError} from 'rxjs';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
@@ -23,7 +23,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     id: 123,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(40, 'years').startOf('day').utc().toDate(),
+    birthDate: dayjs().subtract(40, 'years').startOf('day').toDate(),
     gender: Gender.MALE,
     country: testCountry,
     telephoneNumber: '00436641231231',
@@ -38,19 +38,19 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     },
     employer: 'test employer',
     income: 1000,
-    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
+    incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
+    validUntil: dayjs().add(1, 'years').startOf('day').toDate(),
     additionalPersons: [
       {
         key: 0,
         id: 0,
         lastname: 'Add',
         firstname: 'Pers 1',
-        birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        birthDate: dayjs().subtract(5, 'years').startOf('day').toDate(),
         gender: Gender.FEMALE,
         country: testCountry,
         income: 50,
-        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
         excludeFromHousehold: false,
         receivesFamilyBonus: true
       },
@@ -59,7 +59,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
+        birthDate: dayjs().subtract(2, 'years').startOf('day').toDate(),
         gender: Gender.MALE,
         country: testCountry,
         excludeFromHousehold: true,

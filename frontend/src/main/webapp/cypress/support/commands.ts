@@ -25,7 +25,7 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import Chainable = Cypress.Chainable;
-import * as moment from 'moment/moment';
+import dayjs from 'dayjs';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -234,7 +234,7 @@ Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): 
     const data: CustomerData = {
       firstname: 'firstname-' + randomNumber,
       lastname: 'lastname-' + randomNumber,
-      birthDate: moment().subtract(25, 'year').toDate(),
+      birthDate: dayjs().subtract(25, 'year').toDate(),
       gender: Gender.MALE,
       telephoneNumber: '0123456789',
       email: 'firstname.lastname@test.com',
@@ -245,14 +245,14 @@ Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): 
         name: 'Österreich'
       },
       income: income ?? 1000,
-      incomeDue: moment().add(30, 'days').toDate(),
+      incomeDue: dayjs().add(30, 'days').toDate(),
       address: {
         street: 'street-' + randomNumber,
         houseNumber: '1A',
         city: 'city-' + randomNumber,
         postalCode: 1234
       },
-      validUntil: moment().add(1, 'year').toDate()
+      validUntil: dayjs().add(1, 'year').toDate()
     };
     return cy.createCustomer(data, force);
   });

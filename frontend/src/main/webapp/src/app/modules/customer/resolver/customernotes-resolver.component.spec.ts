@@ -1,6 +1,6 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { of } from 'rxjs';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { CustomerNotesResolver } from './customernotes-resolver.component';
@@ -37,12 +37,12 @@ describe('CustomerNotesResolver', () => {
             items: [
                 {
                     author: 'author1',
-                    timestamp: moment().subtract(1, 'hour').toDate(),
+                    timestamp: dayjs().subtract(1, 'hour').toDate(),
                     note: 'note from author 1'
                 },
                 {
                     author: 'author2',
-                    timestamp: moment().subtract(2, 'hour').toDate(),
+                    timestamp: dayjs().subtract(2, 'hour').toDate(),
                     note: 'note from author 2'
                 }
             ],

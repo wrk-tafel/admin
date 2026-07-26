@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
@@ -16,7 +16,7 @@ describe('CustomerDuplicatesComponent', () => {
     id: 133,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+    birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
     gender: Gender.MALE,
     address: {
       street: 'Teststraße',
@@ -33,7 +33,7 @@ describe('CustomerDuplicatesComponent', () => {
     id: 233,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+    birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
     gender: Gender.MALE,
     address: {
       street: 'Teststraße',
@@ -50,7 +50,7 @@ describe('CustomerDuplicatesComponent', () => {
     id: 333,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+    birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
     gender: Gender.MALE,
     address: {
       street: 'Teststraße',

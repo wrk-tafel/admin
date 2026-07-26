@@ -16,6 +16,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -100,6 +101,11 @@ internal class HouseholdNoteServiceTest {
             persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
             mainPerson = mainPersonEntity
         }
+    }
+
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
     }
 
     @Test

@@ -1,6 +1,6 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {CustomerApiService, CustomerData, Gender} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient, withXhr} from '@angular/common/http';
@@ -10,9 +10,9 @@ describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: CustomerApiService;
 
-  const birthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
-  const childBirthDate = moment().subtract(5, 'years').startOf('day').utc().toDate();
-  const incomeDue = moment().add(1, 'years').startOf('day').utc().toDate();
+  const birthDate = dayjs().subtract(30, 'years').startOf('day').toDate();
+  const childBirthDate = dayjs().subtract(5, 'years').startOf('day').toDate();
+  const incomeDue = dayjs().add(1, 'years').startOf('day').toDate();
 
   /** The flat shape the rest of the application works with. */
   const mockCustomer: CustomerData = {

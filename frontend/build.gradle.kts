@@ -7,7 +7,8 @@ val osName = System.getProperty("os.name")
 val isWindows = osName.lowercase().contains("windows")
 val npmCommand = if (isWindows) "npm.cmd" else "npm"
 
-val npmInstall by tasks.registering(Exec::class) {
+val npmInstall = tasks.register<Exec>("npmInstall") {
+    group = "build"
     description = "Install npm dependencies"
     workingDir(webappDir)
 
@@ -21,14 +22,16 @@ val npmInstall by tasks.registering(Exec::class) {
     outputs.dir("$webappDir/node_modules")
 }
 
-val npmTest by tasks.registering(Exec::class) {
+val npmTest = tasks.register<Exec>("npmTest") {
+    group = "verification"
     description = "Run frontend unit tests"
     workingDir(webappDir)
     commandLine(npmCommand, "run", "test-ci")
     dependsOn(npmInstall)
 }
 
-val npmBuild by tasks.registering(Exec::class) {
+val npmBuild = tasks.register<Exec>("npmBuild") {
+    group = "build"
     description = "Build frontend for production"
     workingDir(webappDir)
     commandLine(npmCommand, "run", "build-prod")
