@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.architecture
 
+import at.wrk.tafel.admin.backend.config.TafelApplicationModulesFactory
 import org.junit.jupiter.api.Test
 import org.springframework.modulith.core.ApplicationModules
 import org.springframework.modulith.docs.Documenter
@@ -8,7 +9,7 @@ import org.springframework.modulith.docs.Documenter.DiagramOptions
 
 internal class ModularityTest {
 
-    private val modules = ApplicationModules.of("at.wrk.tafel.admin.backend.modules")
+    private val modules = ApplicationModules.of(TafelApplicationModulesFactory.MODULES_BASE_PACKAGE)
 
     @Test
     fun verifiesModularStructure() {
