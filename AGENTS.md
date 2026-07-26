@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 21 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
+This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 22 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
 
 ## Build and Development Commands
 
@@ -138,7 +138,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 
 ### Frontend Architecture
 
-The frontend is an Angular 21 single-page application using CoreUI 5.6 as the UI framework.
+The frontend is an Angular 22 single-page application using Angular Material and Tailwind CSS as the UI framework.
 
 **Feature Modules:**
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
@@ -147,6 +147,7 @@ The frontend is an Angular 21 single-page application using CoreUI 5.6 as the UI
 - **logistics**: Food collection recording (desktop/responsive layouts), route management
 - **user**: User search, create, edit with password change functionality
 - **settings**: System settings and mail recipient configuration
+- **statistics**: Chart.js-powered distribution/demographic statistics panels
 
 **Architecture Patterns:**
 - Standalone components with lazy-loaded feature modules
@@ -167,11 +168,10 @@ modules/<feature>/
 ```
 
 **Key Technologies:**
-- Angular 21 with standalone components
-- Angular Material 21 (UI component library)
-- Angular CDK 21 (component dev kit)
+- Angular 22 with standalone components
+- Angular Material 22 (UI component library)
+- Angular CDK 22 (component dev kit)
 - Tailwind CSS 4 (utility-first CSS framework)
-- CoreUI 5.6 (Bootstrap-based UI library)
 - RxJS for reactive programming
 - html5-qrcode for scanner functionality
 - ngx-cookie-service for session management
@@ -255,7 +255,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Reactive forms for all form handling
 - Custom validators in `common/validator/`
 
-**Signal-Based Patterns (Angular 21):**
+**Signal-Based Patterns (Angular 22):**
 - Use `input()` / `input.required()` for component inputs (not `@Input`)
 - Use `output()` for component outputs (not `@Output`)
 - Use `signal()` for local component state

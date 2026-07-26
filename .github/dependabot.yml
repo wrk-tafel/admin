@@ -39,10 +39,9 @@ updates:
           - "rxjs*"                # Reactive extensions
           - "typescript"           # Language
           - "tslib"                # Runtime library
-      coreui:
+      charts:
         patterns:
-          - "@coreui/*"            # Keeps all CoreUI components/icons together
-          - "chart.js"             # Linked to @coreui/angular-chartjs
+          - "chart.js"
           - "ng2-charts"
       eslint:
         patterns:

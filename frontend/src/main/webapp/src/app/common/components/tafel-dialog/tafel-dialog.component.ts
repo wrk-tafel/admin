@@ -17,8 +17,8 @@ import {MatDialogModule} from '@angular/material/dialog';
  *     <p>Body content goes here.</p>
  *   </div>
  *   <div tafel-dialog-actions>
- *     <button cButton>OK</button>
- *     <button cButton color="secondary">Cancel</button>
+ *     <button matButton="filled">OK</button>
+ *     <button matButton>Cancel</button>
  *   </div>
  * </tafel-dialog>
  * ```
@@ -32,8 +32,7 @@ import {MatDialogModule} from '@angular/material/dialog';
 @Component({
   selector: 'tafel-dialog',
   imports: [MatDialogModule, NgClass, CommonModule],
-  templateUrl: 'tafel-dialog.component.html',
-  styleUrl: 'tafel-dialog.component.scss'
+  templateUrl: 'tafel-dialog.component.html'
 })
 export class TafelDialogComponent {
   @HostBinding('attr.testid') get hostTestId() {
