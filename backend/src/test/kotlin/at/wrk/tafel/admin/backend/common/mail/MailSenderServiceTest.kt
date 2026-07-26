@@ -15,6 +15,8 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import jakarta.mail.Message
+import jakarta.mail.Multipart
+import jakarta.mail.Part
 import jakarta.mail.internet.MimeMessage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -190,12 +192,18 @@ internal class MailSenderServiceTest {
                 .map { it.address }
         )
 
-        /*
-        TODO add asserts
-        // TODO assert html type
-        assertThat(mailMessage.content).isEqualTo(renderedContent)
-        assertThat(mailMessage.attachment).isEqualTo(TODO)
-         */
+        // Content-Type headers on the in-memory part tree are only populated from the
+        // DataHandler once updateHeaders() runs (normally triggered by writeTo() when the
+        // message is actually transmitted, which doesn't happen here since mailSender is mocked).
+        mailMessage.saveChanges()
+
+        val textPart = findPartByMimeType(mailMessage, "text/html")
+        assertThat(textPart).isNotNull
+        assertThat(textPart!!.content).isEqualTo(renderedContent)
+
+        val attachmentPart = findPartByFilename(mailMessage, attachment.filename)
+        assertThat(attachmentPart).isNotNull
+        assertThat(attachmentPart!!.contentType).contains(attachment.contentType)
     }
 
     @Test
@@ -235,6 +243,32 @@ internal class MailSenderServiceTest {
 
         val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
         assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(defaultRecipients)
+    }
+
+    private fun findPartByMimeType(part: Part, mimeType: String): Part? {
+        if (part.isMimeType(mimeType)) {
+            return part
+        }
+        val content = part.content
+        if (content is Multipart) {
+            for (i in 0 until content.count) {
+                findPartByMimeType(content.getBodyPart(i), mimeType)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    private fun findPartByFilename(part: Part, filename: String): Part? {
+        if (part.fileName == filename) {
+            return part
+        }
+        val content = part.content
+        if (content is Multipart) {
+            for (i in 0 until content.count) {
+                findPartByFilename(content.getBodyPart(i), filename)?.let { return it }
+            }
+        }
+        return null
     }
 
 }
