@@ -395,9 +395,16 @@ Rename/rework in lockstep with the schema (grouped by concern; file paths from c
 4. Smoke-test manually: search a household, view detail, edit (add/remove a household member),
    create a note, assign to a distribution, generate a PDF, run a statistics export.
 5. Observe for **1–2 weeks** (decision D) with the old tables left in place, unused.
-6. Ship the **cleanup migration**: drop `customers`, `customers_addpersons`, drop
-   `customer_id_sequence` if unused (or repurpose it for `households.household_id` generation
-   instead of introducing a new sequence — simpler, avoids gaps), drop now-dead code paths.
+6. Ship the **cleanup migration** — ✅ **prepared**, on branch `household-person-cleanup`, as
+   `backend/src/main/resources/db-migration/R__00068_household_person_cleanup.sql`: drops
+   `customers`/`customers_addpersons` (guarded by an abort-if-any-row-is-unmigrated check; no
+   `customer_id_sequence` drop needed, it was renamed to `household_id_sequence` in R__00067 step
+   7, not left behind). Validated against throwaway Postgres containers: fresh install, fresh
+   install + real `testdata.sql`, idempotent re-run after the tables are already gone, and an
+   explicit orphan-row case confirming the migration aborts (does not drop) instead of losing
+   data. **Deliberately not merged into `main` yet** — merge only after the 1–2 week production
+   observation window (step 5) has passed and the Phase 2 verification queries have been
+   re-checked against production, per Guiding principle 5 ("old tables stay until proven safe").
 
 ## 6. Risk register
 
