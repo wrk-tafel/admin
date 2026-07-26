@@ -10,7 +10,6 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
-import org.apache.commons.lang3.SystemUtils
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
@@ -37,27 +36,12 @@ class HouseholdPdfServiceTest {
             System.getProperty("user.dir"), "build/custom-test-results/customerpdf-comparison-results"
         )
 
-        private var masterReferencesPath = "/pdf-references/customer/master-references/"
+        private const val masterReferencesPath = "/pdf-references/customer/master-references"
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
             comparisonResultDirectory.mkdirs()
-
-            // TODO improve pdfbox rendering to be system-independent
-            /* pdfbox currently uses a different font on linux to render the pdf-pages to images.
-               Therefore, the image comparison fails.
-               So this is a workaround currently while there are the following possible improvements:
-               - Bigger tolerance level in the ImageComparison
-               --> setAllowingPercentOfDifferentPixels(40.0) but allowing 40% makes it also kind of obsolete
-               - Installing correct fonts in the linux pipeline (but also a different font in production)
-               - Find an OS-independent font
-             */
-            if (SystemUtils.IS_OS_WINDOWS) {
-                masterReferencesPath += "windows"
-            } else if (SystemUtils.IS_OS_LINUX) {
-                masterReferencesPath += "linux"
-            }
         }
     }
 

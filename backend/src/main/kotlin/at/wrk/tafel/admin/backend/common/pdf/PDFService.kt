@@ -1,12 +1,14 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
-import org.apache.fop.apps.FopFactoryBuilder
+import org.apache.fop.apps.FopConfParser
+import org.apache.fop.apps.FopFactory
 import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
 import tools.jackson.dataformat.xml.XmlMapper
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.file.Files
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -16,6 +18,37 @@ class PDFService {
 
     companion object {
         private val xmlMapper = XmlMapper()
+
+        private val fopFactory: FopFactory by lazy { buildFopFactory() }
+
+        private fun buildFopFactory(): FopFactory {
+            val fontsDirectory = extractBundledFonts()
+
+            val confParser = PDFService::class.java.getResourceAsStream("/fop/fop-config.xml")!!.use {
+                FopConfParser(it, fontsDirectory.toURI())
+            }
+            return confParser.fopFactoryBuilder.build()
+        }
+
+        private fun extractBundledFonts(): File {
+            val targetDirectory = Files.createTempDirectory("tafel-pdf-fonts").toFile()
+            targetDirectory.deleteOnExit()
+
+            listOf(
+                "LiberationSans-Regular.ttf",
+                "LiberationSans-Bold.ttf",
+                "LiberationSans-Italic.ttf",
+                "LiberationSans-BoldItalic.ttf",
+            ).forEach { fileName ->
+                val targetFile = File(targetDirectory, fileName)
+                PDFService::class.java.getResourceAsStream("/fonts/liberation-sans/$fileName")!!.use { input ->
+                    targetFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                targetFile.deleteOnExit()
+            }
+
+            return targetDirectory
+        }
     }
 
     fun generatePdf(data: Any, stylesheetPath: String): ByteArray {
@@ -28,8 +61,6 @@ class PDFService {
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
 
-            val fopBuilder = FopFactoryBuilder(File(".").toURI())
-            val fopFactory = fopBuilder.build()
             val foUserAgent = fopFactory.newFOUserAgent()
             val outStream = ByteArrayOutputStream()
 

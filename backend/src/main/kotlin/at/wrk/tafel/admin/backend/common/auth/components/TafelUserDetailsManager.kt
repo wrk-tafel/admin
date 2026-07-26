@@ -151,7 +151,6 @@ class TafelUserDetailsManager(
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
-    // TODO this could be reduced after the new security mechanism is implemented
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
             id = userEntity.id!!,
