@@ -110,7 +110,7 @@ tasks.named<Jar>("jar") {
     enabled = false
 }
 
-val copyFrontend by tasks.registering(Copy::class) {
+val copyFrontend = tasks.register<Copy>("copyFrontend") {
     description = "Copy frontend build output into backend static resources"
     from("${project.rootDir}/frontend/src/main/webapp/dist/browser")
     into("${layout.buildDirectory.get().asFile}/resources/main/static")
