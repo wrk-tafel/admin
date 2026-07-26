@@ -25,7 +25,6 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.AndRequestMatcher
@@ -80,18 +79,20 @@ class WebSecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        val authFilter = AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter())
-        authFilter.requestMatcher = AndRequestMatcher(
-            PathPatternRequestMatcher.pathPattern("/api/**"),
-            NegatedRequestMatcher(
-                OrRequestMatcher(
-                    publicEndpoints.map {
-                        PathPatternRequestMatcher.pathPattern(it)
-                    }
+        val authFilter = TafelJwtAuthenticationFilter(
+            authenticationManager = authenticationManager(),
+            authenticationConverter = tafelJwtAuthConverter(),
+            requestMatcher = AndRequestMatcher(
+                PathPatternRequestMatcher.pathPattern("/api/**"),
+                NegatedRequestMatcher(
+                    OrRequestMatcher(
+                        publicEndpoints.map {
+                            PathPatternRequestMatcher.pathPattern(it)
+                        }
+                    )
                 )
             )
         )
-        authFilter.successHandler = NoOpAuthenticationSuccessHandler()
 
         http
             .addFilter(
