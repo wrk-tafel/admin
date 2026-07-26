@@ -66,6 +66,8 @@ export class LoginComponent {
         } else {
           this.router.navigate(['uebersicht']);
         }
+      } else if (loginResult.locked) {
+        this.errorMessage.set('Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.');
       } else {
         this.errorMessage.set('Anmeldung fehlgeschlagen!');
       }

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.apache.commons.io.IOUtils
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -88,12 +89,18 @@ class TafelLoginFilter(
         }
     }
 
-    override fun unsuccessfulAuthentication(
+    public override fun unsuccessfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
         failed: AuthenticationException
     ) {
-        response.status = HttpStatus.FORBIDDEN.value()
+        // distinguishes a rate-limit lockout from wrong credentials so the SPA can tell the
+        // user to wait it out, rather than showing the generic "login failed" message
+        response.status = if (failed is LockedException) {
+            HttpStatus.LOCKED.value()
+        } else {
+            HttpStatus.FORBIDDEN.value()
+        }
         logger.info("Login failed - ${failed.message}")
     }
 
