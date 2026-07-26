@@ -23,6 +23,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -229,6 +230,11 @@ internal class HouseholdConverterTest {
         testHouseholdEntity1.persons.forEach { person ->
             every { personRepository.findById(person.id!!) } returns Optional.of(person)
         }
+    }
+
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
     }
 
     @Test

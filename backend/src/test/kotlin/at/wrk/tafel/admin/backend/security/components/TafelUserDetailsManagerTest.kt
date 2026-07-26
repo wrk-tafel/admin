@@ -78,6 +78,7 @@ class TafelUserDetailsManagerTest {
     @AfterEach
     fun afterEach() {
         testUserEntity.password = testUserEntityPassword
+        SecurityContextHolder.clearContext()
     }
 
     @Test

@@ -1,45 +1,33 @@
 package at.wrk.tafel.admin.backend.security
 
+import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.stereotype.Service
-import org.springframework.test.context.junit.jupiter.SpringExtension
 
-/**
- * TODO not sure if this really makes sense (if that tests the security configuration in any way)
- * TODO maybe better to replace by a mockmvc test
- */
-@ExtendWith(SpringExtension::class)
-@SpringBootTest
-@Disabled
-class GeneralMethodSecurityIT {
+class GeneralMethodSecurityIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var testService: TestService
 
     @Test
-    fun `public is secured by default`() {
-        assertThrows<AccessDeniedException> {
-            testService.getPublic()
-        }
+    fun `public method without a security annotation is callable without authentication`() {
+        val result = testService.getPublic()
+        assertThat(result).isEqualTo("public")
     }
 
     @Test
     @WithAnonymousUser
-    fun `public is also not accessible by anonymous user`() {
-        assertThrows<AccessDeniedException> {
-            testService.getPublic()
-        }
+    fun `public method without a security annotation is also callable as anonymous user`() {
+        val result = testService.getPublic()
+        assertThat(result).isEqualTo("public")
     }
 
     @Test

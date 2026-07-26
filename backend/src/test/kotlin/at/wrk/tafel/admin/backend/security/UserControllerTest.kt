@@ -13,6 +13,7 @@ import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -39,6 +40,11 @@ class UserControllerTest {
 
     @InjectMockKs
     private lateinit var controller: UserController
+
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
+    }
 
     @Test
     fun `get userinfo`() {
