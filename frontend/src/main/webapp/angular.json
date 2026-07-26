@@ -50,6 +50,11 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "6kb"
+                },
+                {
+                  "type": "initial",
+                  "maximumWarning": "1.3mb",
+                  "maximumError": "2mb"
                 }
               ],
               "optimization": {
