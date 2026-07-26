@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class DistributionStatisticService(
     private val distributionStatisticRepository: DistributionStatisticRepository,
-    private val customerRepository: CustomerRepository,
+    private val householdRepository: HouseholdRepository,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionStatisticService::class.java)
@@ -43,63 +43,63 @@ class DistributionStatisticService(
         val statisticEndTime = distribution.endedAt!!
         statistic.distribution = distribution
 
-        fillCustomerStatistics(distribution, statisticStartTime, statisticEndTime, statistic)
+        fillHouseholdStatistics(distribution, statisticStartTime, statisticEndTime, statistic)
         fillLogisticsStatistics(distribution, statistic)
 
         return statistic
     }
 
-    private fun fillCustomerStatistics(
+    private fun fillHouseholdStatistics(
         distribution: DistributionEntity,
         statisticStartTime: LocalDateTime,
         statisticEndTime: LocalDateTime,
         statistic: DistributionStatisticEntity,
     ) {
-        val countCustomers = distribution.customers.size
-        statistic.countCustomers = countCustomers
+        val countHouseholds = distribution.households.size
+        statistic.countCustomers = countHouseholds
 
         val countPersons =
-            distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
-                .filterNot { it.excludeFromHousehold!! }
-                .count() + countCustomers
+            distribution.households.flatMap { it.household?.additionalPersons() ?: emptyList() }
+                .filterNot { it.excludeFromHousehold }
+                .count() + countHouseholds
         statistic.countPersons = countPersons
 
-        val countInfants = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
-            .filterNot { it.excludeFromHousehold!! }
+        val countInfants = distribution.households.flatMap { it.household?.additionalPersons() ?: emptyList() }
+            .filterNot { it.excludeFromHousehold }
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
         statistic.countInfants = countInfants
 
-        val averagePersonsPerCustomer = if (countCustomers > 0)
+        val averagePersonsPerHousehold = if (countHouseholds > 0)
             BigDecimal(countPersons).setScale(2, RoundingMode.HALF_EVEN)
-                .div(BigDecimal(countCustomers)) else BigDecimal.ZERO
-        statistic.averagePersonsPerCustomer = averagePersonsPerCustomer
+                .div(BigDecimal(countHouseholds)) else BigDecimal.ZERO
+        statistic.averagePersonsPerCustomer = averagePersonsPerHousehold
 
-        val customersNew =
-            customerRepository.findAllByCreatedAtBetween(statisticStartTime, statisticEndTime)
-        val countCustomersNew = customersNew.size
-        statistic.countCustomersNew = countCustomersNew
+        val householdsNew =
+            householdRepository.findAllByCreatedAtBetween(statisticStartTime, statisticEndTime)
+        val countHouseholdsNew = householdsNew.size
+        statistic.countCustomersNew = countHouseholdsNew
 
         val countPersonsNew =
-            customersNew.flatMap { it.additionalPersons }
-                .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersNew
+            householdsNew.flatMap { it.additionalPersons() }
+                .filterNot { it.excludeFromHousehold }.size + countHouseholdsNew
         statistic.countPersonsNew = countPersonsNew
 
-        val customersProlonged =
-            customerRepository.findAllByProlongedAtBetween(statisticStartTime, statisticEndTime)
-        val countCustomersProlonged = customersProlonged.size
-        statistic.countCustomersProlonged = countCustomersProlonged
+        val householdsProlonged =
+            householdRepository.findAllByProlongedAtBetween(statisticStartTime, statisticEndTime)
+        val countHouseholdsProlonged = householdsProlonged.size
+        statistic.countCustomersProlonged = countHouseholdsProlonged
 
         val countPersonsProlonged =
-            customersProlonged.flatMap { it.additionalPersons }
-                .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersProlonged
+            householdsProlonged.flatMap { it.additionalPersons() }
+                .filterNot { it.excludeFromHousehold }.size + countHouseholdsProlonged
         statistic.countPersonsProlonged = countPersonsProlonged
 
-        val countCustomersUpdated =
-            customerRepository.countByUpdatedAtBetween(
+        val countHouseholdsUpdated =
+            householdRepository.countByUpdatedAtBetween(
                 statisticStartTime,
                 statisticEndTime
             )
-        statistic.countCustomersUpdated = countCustomersUpdated - countCustomersNew - countCustomersProlonged
+        statistic.countCustomersUpdated = countHouseholdsUpdated - countHouseholdsNew - countHouseholdsProlonged
     }
 
     private fun fillLogisticsStatistics(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {

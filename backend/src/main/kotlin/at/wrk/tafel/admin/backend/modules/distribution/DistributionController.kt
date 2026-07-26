@@ -111,24 +111,24 @@ class DistributionController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/distributions/customers")
+    @PostMapping("/distributions/households")
     @PreAuthorize("hasAuthority('CHECKIN')")
     @TafelActiveDistributionRequired
-    fun assignCustomerToDistribution(
-        @RequestBody assignCustomerRequest: AssignCustomerRequest,
+    fun assignHouseholdToDistribution(
+        @RequestBody assignHouseholdRequest: AssignHouseholdRequest,
     ): ResponseEntity<Unit> {
-        service.assignCustomerToDistribution(
-            assignCustomerRequest.customerId,
-            assignCustomerRequest.ticketNumber,
+        service.assignHouseholdToDistribution(
+            assignHouseholdRequest.householdId,
+            assignHouseholdRequest.ticketNumber,
         )
 
         return ResponseEntity.noContent().build()
     }
 
-    @GetMapping("/distributions/customers/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/distributions/households/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     @TafelActiveDistributionRequired
-    fun generateCustomerListPdf(): ResponseEntity<InputStreamResource> {
-        val pdfResult = service.generateCustomerListPdf()
+    fun generateHouseholdListPdf(): ResponseEntity<InputStreamResource> {
+        val pdfResult = service.generateHouseholdListPdf()
         pdfResult?.let {
             val headers = HttpHeaders()
             headers.add(

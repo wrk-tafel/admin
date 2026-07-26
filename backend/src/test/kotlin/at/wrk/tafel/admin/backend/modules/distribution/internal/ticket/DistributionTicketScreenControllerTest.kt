@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
 import io.mockk.every
@@ -53,7 +53,7 @@ internal class DistributionTicketScreenControllerTest {
     @Test
     fun `show current ticketNumber with active distribution`() {
         every { service.getCurrentDistribution() } returns testDistributionEntity
-        every { service.getCurrentTicketNumber(null) } returns testDistributionCustomerEntity1
+        every { service.getCurrentTicketNumber(null) } returns testDistributionHouseholdEntity1
 
         controller.showCurrentTicket()
 
@@ -71,7 +71,7 @@ internal class DistributionTicketScreenControllerTest {
     @Test
     fun `show current ticketNumber without active distribution`() {
         every { service.getCurrentDistribution() } returns null
-        every { service.getCurrentTicketNumber(null) } returns testDistributionCustomerEntity1
+        every { service.getCurrentTicketNumber(null) } returns testDistributionHouseholdEntity1
 
         controller.showCurrentTicket()
 
@@ -169,7 +169,7 @@ internal class DistributionTicketScreenControllerTest {
         val testValue = TicketScreenShowText(text = "Ticket", value = "50")
 
         every { service.getCurrentDistribution() } returns DistributionEntity()
-        every { service.getCurrentTicketNumber() } returns testDistributionCustomerEntity1
+        every { service.getCurrentTicketNumber() } returns testDistributionHouseholdEntity1
 
         val emitter = controller.listenForChanges()
         assertThat(emitter).isNotNull

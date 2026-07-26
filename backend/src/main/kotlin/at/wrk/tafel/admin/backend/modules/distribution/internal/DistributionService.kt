@@ -5,16 +5,16 @@ import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
@@ -37,8 +37,8 @@ import java.time.format.DateTimeFormatter
 class DistributionService(
     private val distributionRepository: DistributionRepository,
     private val userRepository: UserRepository,
-    private val distributionCustomerRepository: DistributionCustomerRepository,
-    private val customerRepository: CustomerRepository,
+    private val distributionHouseholdRepository: DistributionHouseholdRepository,
+    private val householdRepository: HouseholdRepository,
     private val pdfService: PDFService,
     private val distributionPostProcessorService: DistributionPostProcessorService,
     private val transactionTemplate: TransactionTemplate,
@@ -95,81 +95,81 @@ class DistributionService(
     }
 
     @Transactional
-    fun assignCustomerToDistribution(
-        customerId: Long,
+    fun assignHouseholdToDistribution(
+        householdId: Long,
         ticketNumber: Int
     ) {
         val distribution = getCurrentDistribution()!!
 
-        val customer = customerRepository.findByCustomerId(customerId)
-            ?: throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
-        val existingCustomer = distribution.customers.firstOrNull { it.customer?.customerId == customerId }
+        val household = householdRepository.findByHouseholdId(householdId)
+            ?: throw TafelValidationException("Kunde Nr. $householdId nicht vorhanden!")
+        val existingHousehold = distribution.households.firstOrNull { it.household?.householdId == householdId }
 
-        val existingTicket = distribution.customers.firstOrNull { it.ticketNumber == ticketNumber }
+        val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 
-        // Can't assign to another customer if already assigned but ok if it's the same customer (update costContributionPaid flag)
-        if (existingTicket != null && existingCustomer?.customer?.id != customerId) {
+        // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
+        if (existingTicket != null && existingHousehold?.household?.id != householdId) {
             throw TafelValidationException("Ticketnummer $ticketNumber bereits vergeben!")
         }
 
-        val entry = existingCustomer ?: DistributionCustomerEntity()
+        val entry = existingHousehold ?: DistributionHouseholdEntity()
         entry.distribution = distribution
-        entry.customer = customer
+        entry.household = household
         entry.ticketNumber = ticketNumber
         entry.processed = false
 
-        distributionCustomerRepository.save(entry)
+        distributionHouseholdRepository.save(entry)
     }
 
     @Transactional
-    fun generateCustomerListPdf(): CustomerListPdfResult? {
+    fun generateHouseholdListPdf(): HouseholdListPdfResult? {
         val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
-        val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
-        val countCustomers = sortedCustomers.size
+        val sortedHouseholds = currentDistribution.households.sortedBy { it.ticketNumber }
+        val countHouseholds = sortedHouseholds.size
 
-        val halftimeIndex = BigDecimal(countCustomers - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
-        val halftimeTicketNumber = if (countCustomers > 1) sortedCustomers[halftimeIndex].ticketNumber!! else null
-        val countAddPersons = sortedCustomers
-            .map { it.customer }
+        val halftimeIndex = BigDecimal(countHouseholds - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
+        val halftimeTicketNumber = if (countHouseholds > 1) sortedHouseholds[halftimeIndex].ticketNumber!! else null
+        val countAddPersons = sortedHouseholds
+            .map { it.household }
             .flatMap {
-                it?.additionalPersons?.filterNot { addPerson -> addPerson.excludeFromHousehold!! } ?: emptyList()
+                it?.additionalPersons()?.filterNot { addPerson -> addPerson.excludeFromHousehold } ?: emptyList()
             }
             .count()
 
-        val data = CustomerListPdfModel(
+        val data = HouseholdListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,
-            countCustomersOverall = countCustomers,
-            countPersonsOverall = countAddPersons + countCustomers,
-            customers = mapCustomersForPdf(sortedCustomers)
+            countHouseholdsOverall = countHouseholds,
+            countPersonsOverall = countAddPersons + countHouseholds,
+            households = mapHouseholdsForPdf(sortedHouseholds)
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
         val filename = "kundenliste-ausgabe-$formattedDate.pdf"
-        return CustomerListPdfResult(filename = filename, bytes = bytes)
+        return HouseholdListPdfResult(filename = filename, bytes = bytes)
     }
 
     @Transactional
-    fun getCurrentTicketNumber(customerId: Long? = null): DistributionCustomerEntity? {
+    fun getCurrentTicketNumber(householdId: Long? = null): DistributionHouseholdEntity? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getFirstUnprocessedDistributionCustomerEntity(distribution, customerId)
-        logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionCustomerEntity?.ticketNumber}")
-        return distributionCustomerEntity
+        val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
+        logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionHouseholdEntity?.ticketNumber}")
+        return distributionHouseholdEntity
     }
 
     @Transactional
     fun reopenAndGetPreviousTicket(): Int? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getLastProcessedDistributionCustomerEntity(distribution)
+        val distributionHouseholdEntity = getLastProcessedDistributionHouseholdEntity(distribution)
 
-        if (distributionCustomerEntity != null) {
-            distributionCustomerEntity.processed = false
-            distributionCustomerRepository.save(distributionCustomerEntity)
-            logger.info("Ticket-Log - Reopened ticket-number: ${distributionCustomerEntity.ticketNumber}")
+        if (distributionHouseholdEntity != null) {
+            distributionHouseholdEntity.processed = false
+            distributionHouseholdRepository.save(distributionHouseholdEntity)
+            logger.info("Ticket-Log - Reopened ticket-number: ${distributionHouseholdEntity.ticketNumber}")
         }
 
         val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
@@ -180,29 +180,29 @@ class DistributionService(
     fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): Int? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getFirstUnprocessedDistributionCustomerEntity(distribution)
+        val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
 
-        if (distributionCustomerEntity != null) {
-            distributionCustomerEntity.costContributionPaid = costContributionPaid
-            distributionCustomerEntity.processed = true
-            distributionCustomerRepository.save(distributionCustomerEntity)
+        if (distributionHouseholdEntity != null) {
+            distributionHouseholdEntity.costContributionPaid = costContributionPaid
+            distributionHouseholdEntity.processed = true
+            distributionHouseholdRepository.save(distributionHouseholdEntity)
 
             val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
-            logger.info("Ticket-Log - Processed ticket-number: ${distributionCustomerEntity.ticketNumber}, next one: $currentTicketNumber")
+            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: $currentTicketNumber")
             return currentTicketNumber
         }
         return null
     }
 
     @Transactional
-    fun deleteCurrentTicket(customerId: Long): Boolean {
+    fun deleteCurrentTicket(householdId: Long): Boolean {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getFirstUnprocessedDistributionCustomerEntity(distribution, customerId)
-        logger.info("Ticket-Log - Deleted ticket-number: ${distributionCustomerEntity?.ticketNumber}, customer ${distributionCustomerEntity?.customer?.customerId}")
+        val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
+        logger.info("Ticket-Log - Deleted ticket-number: ${distributionHouseholdEntity?.ticketNumber}, household ${distributionHouseholdEntity?.household?.householdId}")
 
-        return distributionCustomerEntity?.let {
-            distributionCustomerRepository.delete(it)
+        return distributionHouseholdEntity?.let {
+            distributionHouseholdRepository.delete(it)
             true
         } ?: false
     }
@@ -292,43 +292,43 @@ class DistributionService(
         return result!!
     }
 
-    private fun getLastProcessedDistributionCustomerEntity(
+    private fun getLastProcessedDistributionHouseholdEntity(
         distribution: DistributionEntity,
-        customerId: Long? = null,
-    ): DistributionCustomerEntity? {
-        return distribution.customers
+        householdId: Long? = null,
+    ): DistributionHouseholdEntity? {
+        return distribution.households
             .asSequence()
-            .filter { customerId == null || it.customer?.customerId == customerId }
+            .filter { householdId == null || it.household?.householdId == householdId }
             .filter { it.processed == true }
             .sortedBy { it.ticketNumber }
             .lastOrNull()
     }
 
-    private fun getFirstUnprocessedDistributionCustomerEntity(
+    private fun getFirstUnprocessedDistributionHouseholdEntity(
         distribution: DistributionEntity,
-        customerId: Long? = null,
-    ): DistributionCustomerEntity? {
-        return distribution.customers
+        householdId: Long? = null,
+    ): DistributionHouseholdEntity? {
+        return distribution.households
             .asSequence()
-            .filter { customerId == null || it.customer?.customerId == customerId }
+            .filter { householdId == null || it.household?.householdId == householdId }
             .filter { it.processed == false }
             .sortedBy { it.ticketNumber }
             .firstOrNull()
     }
 
-    private fun mapCustomersForPdf(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
-        return customers.map { distributionCustomerEntity ->
-            val customer = distributionCustomerEntity.customer
-            val countPersons = customer?.additionalPersons
-                ?.filterNot { it.excludeFromHousehold!! }
+    private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> {
+        return households.map { distributionHouseholdEntity ->
+            val household = distributionHouseholdEntity.household
+            val countPersons = household?.additionalPersons()
+                ?.filterNot { it.excludeFromHousehold }
                 ?.size?.plus(1) ?: 0
-            val countInfants = customer?.additionalPersons
-                ?.filterNot { it.excludeFromHousehold!! }
+            val countInfants = household?.additionalPersons()
+                ?.filterNot { it.excludeFromHousehold }
                 ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
 
-            CustomerListItem(
-                ticketNumber = distributionCustomerEntity.ticketNumber!!,
-                customerId = customer?.customerId!!,
+            HouseholdListItem(
+                ticketNumber = distributionHouseholdEntity.ticketNumber!!,
+                householdId = household?.householdId!!,
                 countPersons = countPersons,
                 countInfants = countInfants ?: 0
             )

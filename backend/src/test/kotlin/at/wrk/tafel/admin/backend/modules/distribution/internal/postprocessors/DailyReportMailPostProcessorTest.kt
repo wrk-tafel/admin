@@ -5,8 +5,8 @@ import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -47,9 +47,9 @@ class DailyReportMailPostProcessorTest {
         every { distribution.id } returns distributionId
         every { distribution.startedAt } returns distributionStartDate
         every { distribution.notes } returns distributionNotes
-        every { distribution.customers } returns listOf(
-            testDistributionCustomerEntity1,
-            testDistributionCustomerEntity2
+        every { distribution.households } returns listOf(
+            testDistributionHouseholdEntity1,
+            testDistributionHouseholdEntity2
         )
         val distributionStatistic = mockk<DistributionStatisticEntity>()
 
@@ -66,7 +66,7 @@ class DailyReportMailPostProcessorTest {
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.customers } returns emptyList()
+        every { distribution.households } returns emptyList()
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
 

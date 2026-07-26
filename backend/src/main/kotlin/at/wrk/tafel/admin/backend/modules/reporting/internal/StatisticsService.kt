@@ -140,13 +140,13 @@ class StatisticsService(
 
     fun countBeneficiaryCustomers(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
-            SELECT 
+            SELECT
                 format_by_resolution(t.start_date, t.res_code) as label,
                 (
                     SELECT COUNT(*)
-                    FROM customers c
-                    WHERE c.valid_until >= t.start_date
-                    AND c.locked is not true
+                    FROM households h
+                    WHERE h.valid_until >= t.start_date
+                    AND h.locked is not true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -157,15 +157,15 @@ class StatisticsService(
 
     fun countBeneficiaryPersons(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
-            SELECT 
+            SELECT
                 format_by_resolution(t.start_date, t.res_code) as label,
                 (
                     SELECT COUNT(*)
-                    FROM customers c
-                    -- Left join ensures we still count the customer even if they have 0 additional persons
-                    LEFT JOIN customers_addpersons ap ON c.id = ap.customer_id
-                    WHERE c.valid_until >= t.start_date
-                    AND c.locked is not true
+                    FROM households h
+                    -- every household member is a row in persons, including the main person
+                    JOIN persons p ON p.household_id = h.id
+                    WHERE h.valid_until >= t.start_date
+                    AND h.locked is not true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -176,15 +176,16 @@ class StatisticsService(
 
     fun countBeneficiaryCustomersWithChildren(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
-            SELECT 
+            SELECT
                 format_by_resolution(t.start_date, t.res_code) as label,
                 (
-                    SELECT COUNT(DISTINCT c.id)
-                    FROM customers c
-                    JOIN customers_addpersons ap ON c.id = ap.customer_id
-                    WHERE c.valid_until >= t.start_date
-                    AND c.locked IS NOT TRUE
-                    AND EXTRACT(YEAR FROM AGE(t.start_date, ap.birth_date)) <= 15
+                    SELECT COUNT(DISTINCT h.id)
+                    FROM households h
+                    JOIN persons p ON p.household_id = h.id
+                    WHERE h.valid_until >= t.start_date
+                    AND h.locked IS NOT TRUE
+                    AND p.is_main_person = false
+                    AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) <= 15
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC

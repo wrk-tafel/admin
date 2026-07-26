@@ -29,9 +29,10 @@ class CountryDistributionExporter : StatisticExporter {
 
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
         val rows = mutableListOf<List<String>>()
-        val customers = statistic.distribution?.customers?.mapNotNull { it.customer } ?: emptyList()
-        val countries =
-            customers.map { it.country } + customers.flatMap { it.additionalPersons }.mapNotNull { it.country }
+        val households = statistic.distribution?.households?.mapNotNull { it.household } ?: emptyList()
+        val countries = households.map { household ->
+            (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.country
+        } + households.flatMap { it.additionalPersons() }.mapNotNull { it.country }
         val countCountriesTotal = countries.size
 
         val countedByCountry = countries

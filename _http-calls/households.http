@@ -1,0 +1,193 @@
+### List households
+GET {{baseApiPath}}/households?pageIndex=3
+
+### Search for households (only firstname)
+GET {{baseApiPath}}/households?firstname=x
+
+### Search for households (only lastname)
+GET {{baseApiPath}}/households?lastname=x
+
+### Search for households (firstname and lastname)
+GET {{baseApiPath}}/households?firstname=x&lastname=x
+
+### Validate household
+POST {{baseApiPath}}/households/validate
+Content-Type: application/json
+
+{
+  "address": {
+    "street": "Erdberg",
+    "houseNumber": "2",
+    "stairway": "1",
+    "door": "20",
+    "postalCode": 1010,
+    "city": "Wien"
+  },
+  "telephoneNumber": "00436645678953",
+  "email": "eva.musterfrau@wrk.at",
+  "validUntil": "2999-12-31",
+  "persons": [
+    {
+      "isMainPerson": true,
+      "firstname": "Eva",
+      "lastname": "Musterfrau",
+      "birthDate": "1990-01-01",
+      "gender": "FEMALE",
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      },
+      "employer": "Rotes Kreuz Wien",
+      "income": 456.00,
+      "incomeDue": "2999-12-31"
+    },
+    {
+      "id": 1,
+      "isMainPerson": false,
+      "firstname": "Child 1",
+      "lastname": "Musterfrau",
+      "birthDate": "2000-01-01",
+      "gender": "MALE",
+      "income": 500,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
+    },
+    {
+      "id": 2,
+      "isMainPerson": false,
+      "firstname": "Child 2",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": 0,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
+    },
+    {
+      "id": 3,
+      "isMainPerson": false,
+      "firstname": "Child 3",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": null,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
+    }
+  ]
+}
+
+### Create household
+POST {{baseApiPath}}/households
+Content-Type: application/json
+
+{
+  "address": {
+    "street": "Erdberg",
+    "houseNumber": "2",
+    "stairway": "1",
+    "door": "20",
+    "postalCode": 1010,
+    "city": "Wien"
+  },
+  "telephoneNumber": "00436645678953",
+  "email": "eva.musterfrau@wrk.at",
+  "validUntil": "2999-12-31",
+  "persons": [
+    {
+      "isMainPerson": true,
+      "firstname": "Test",
+      "lastname": "Example",
+      "birthDate": "1990-01-01",
+      "gender": "FEMALE",
+      "country": {
+        "id": 2,
+        "code": "AT",
+        "name": "Österreich"
+      },
+      "employer": "Rotes Kreuz Wien",
+      "income": 456.00,
+      "incomeDue": "2999-12-31"
+    },
+    {
+      "isMainPerson": false,
+      "firstname": "Child 1",
+      "lastname": "Musterfrau",
+      "birthDate": "2000-01-01",
+      "employer": "Stadt Wien",
+      "income": 500,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
+    },
+    {
+      "isMainPerson": false,
+      "firstname": "Child 2",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": 0,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
+    },
+    {
+      "isMainPerson": false,
+      "firstname": "Child 3",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": null,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
+    }
+  ]
+}
+
+### Get household 100
+GET {{baseApiPath}}/households/100
+Content-Type: application/json
+
+### Delete household 100
+DELETE {{baseApiPath}}/households/100
+Content-Type: application/json
+
+### Get masterdata pdf
+GET {{baseApiPath}}/households/100/generate-pdf?type=MASTERDATA
+Content-Type: application/json
+
+### Get idcard pdf
+GET {{baseApiPath}}/households/100/generate-pdf?type=IDCARD
+Content-Type: application/json
+
+### Get combined pdf
+GET {{baseApiPath}}/households/100/generate-pdf?type=COMBINED
+Content-Type: application/json
+
+### Get duplicates
+GET {{baseApiPath}}/households/duplicates
+Content-Type: application/json
+
+### Merge households into another one
+GET {{baseApiPath}}/households/100/merge
+Content-Type: application/json
+
+{
+  "sourceHouseholdIds": [
+    102,
+    103
+  ]
+}

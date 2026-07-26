@@ -1,17 +1,17 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity4
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity4
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -29,7 +29,7 @@ import java.math.BigDecimal
 class MissingCostContributionPostProcessorTest {
 
     @RelaxedMockK
-    private lateinit var customerRepository: CustomerRepository
+    private lateinit var householdRepository: HouseholdRepository
 
     @RelaxedMockK
     private lateinit var staticValueRepository: StaticValueRepository
@@ -47,35 +47,35 @@ class MissingCostContributionPostProcessorTest {
         } returns mockStaticValue
 
         val distribution = mockk<DistributionEntity>()
-        val testDistributionCustomerEntities = listOf(
-            testDistributionCustomerEntity1,
-            testDistributionCustomerEntity2,
-            testDistributionCustomerEntity3,
-            testDistributionCustomerEntity4,
+        val testDistributionHouseholdEntities = listOf(
+            testDistributionHouseholdEntity1,
+            testDistributionHouseholdEntity2,
+            testDistributionHouseholdEntity3,
+            testDistributionHouseholdEntity4,
         )
-        every { distribution.customers } returns testDistributionCustomerEntities
-        every { customerRepository.findByIdOrNull(1L) } returns testDistributionCustomerEntity1.customer
-        every { customerRepository.findByIdOrNull(2L) } returns testDistributionCustomerEntity2.customer
-        every { customerRepository.findByIdOrNull(3L) } returns testDistributionCustomerEntity3.customer
+        every { distribution.households } returns testDistributionHouseholdEntities
+        every { householdRepository.findByIdOrNull(1L) } returns testDistributionHouseholdEntity1.household
+        every { householdRepository.findByIdOrNull(2L) } returns testDistributionHouseholdEntity2.household
+        every { householdRepository.findByIdOrNull(3L) } returns testDistributionHouseholdEntity3.household
 
-        every { customerRepository.save(any()) } returns mockk()
+        every { householdRepository.save(any()) } returns mockk()
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         postProcessor.process(distribution, distributionStatistic)
 
-        val capturedCustomers = mutableListOf<CustomerEntity>()
+        val capturedHouseholds = mutableListOf<HouseholdEntity>()
         verify {
-            customerRepository.save(capture(capturedCustomers))
+            householdRepository.save(capture(capturedHouseholds))
         }
 
-        val customer1 = capturedCustomers.first()
+        val customer1 = capturedHouseholds.first()
         assertThat(customer1.pendingCostContribution).isEqualTo(BigDecimal("17"))
-        val customer2 = capturedCustomers[1]
+        val customer2 = capturedHouseholds[1]
         assertThat(customer2.pendingCostContribution).isEqualTo(BigDecimal("5"))
 
         verify(exactly = 0) {
-            customerRepository.save(testDistributionCustomerEntity3.customer!!)
-            customerRepository.save(testDistributionCustomerEntity4.customer!!)
+            householdRepository.save(testDistributionHouseholdEntity3.household!!)
+            householdRepository.save(testDistributionHouseholdEntity4.household!!)
         }
     }
 

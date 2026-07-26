@@ -30,20 +30,22 @@ class AgeDistributionExporter : StatisticExporter {
     }
 
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
-        val customers = statistic.distribution
-            ?.customers
-            ?.mapNotNull { it.customer }
+        val households = statistic.distribution
+            ?.households
+            ?.mapNotNull { it.household }
             ?: emptyList()
-        val persons = customers.flatMap { it.additionalPersons }
-        val customersBirthDates = customers.map { it.birthDate }
-        val personsBirthDates = persons.map { it.birthDate } + customersBirthDates
+        val persons = households.flatMap { it.additionalPersons() }
+        val householdsBirthDates = households.map { household ->
+            (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.birthDate
+        }
+        val personsBirthDates = persons.map { it.birthDate } + householdsBirthDates
 
-        val countCustomers = customers.size
+        val countCustomers = households.size
         val countPersons = countCustomers + persons.size
         val averagePersonsPerHousehold = if (countCustomers > 0) countPersons / countCustomers else 0
 
-        val groupedCustomers = countByAgeRange(customersBirthDates)
-        val groupedPersons = countByAgeRange(personsBirthDates + customersBirthDates)
+        val groupedCustomers = countByAgeRange(householdsBirthDates)
+        val groupedPersons = countByAgeRange(personsBirthDates + householdsBirthDates)
 
         val rows = mutableListOf<List<String>>()
         AgeRange.entries.forEach { ageRange ->

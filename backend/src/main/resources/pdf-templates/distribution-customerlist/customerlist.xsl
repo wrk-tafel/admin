@@ -33,7 +33,7 @@
                                         <fo:table-row>
                                             <fo:table-cell>
                                                 <fo:block>
-                                                    <xsl:value-of select="'Anzahl Haushalte: '"/><xsl:value-of select="countCustomersOverall"/>
+                                                    <xsl:value-of select="'Anzahl Haushalte: '"/><xsl:value-of select="countHouseholdsOverall"/>
                                                 </fo:block>
                                             </fo:table-cell>
                                             <fo:table-cell>
@@ -79,8 +79,8 @@
                 </fo:table-header>
                 <fo:table-body>
                     <xsl:choose>
-                        <xsl:when test="customers/customers">
-                            <xsl:for-each select="customers/customers">
+                        <xsl:when test="households/households">
+                            <xsl:for-each select="households/households">
                                 <fo:table-row border-width="1pt" border-style="solid">
                                     <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
                                         <fo:block>
@@ -89,7 +89,7 @@
                                     </fo:table-cell>
                                     <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
                                         <fo:block>
-                                            <xsl:value-of select="customerId"/>
+                                            <xsl:value-of select="householdId"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
