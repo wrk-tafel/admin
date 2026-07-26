@@ -9,15 +9,13 @@ This is a food bank (Tafel) administration system built with a Spring Boot/Kotli
 ## Build and Development Commands
 
 ### Full Application Build
+Backend and frontend build independently - there's no Gradle cross-dependency between them.
 ```bash
-# Build both backend and frontend (from root)
-./gradlew build
-
-# Build only backend
+# Backend
 ./gradlew :backend:build
 
-# Build only frontend
-./gradlew :frontend:build
+# Frontend (from frontend/src/main/webapp)
+npm run build-prod
 ```
 
 ### Backend Development

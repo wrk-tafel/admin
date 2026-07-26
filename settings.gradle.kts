@@ -8,4 +8,3 @@ pluginManagement {
 rootProject.name = "admin"
 
 include("backend")
-include("frontend")
