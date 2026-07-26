@@ -1,8 +1,12 @@
 package at.wrk.tafel.admin.backend.database.model.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.generateRandomLong
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -109,6 +113,27 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         val result = userRepository.findAll(spec)
 
         assertThat(result.map { it.id }).containsExactly(second.id, first.id)
+    }
+
+    @Test
+    fun `deleting a user does not cascade-delete its shared employee`() {
+        val user = persistUser()
+        val country = createCountry()
+        testEntityManager.persist(country)
+        val household = createHousehold(user.employee!!, country)
+        testEntityManager.persist(household)
+        testEntityManager.flush()
+
+        val employeeId = user.employee!!.id!!
+
+        userRepository.delete(user)
+        testEntityManager.flush()
+
+        val survivingEmployee = testEntityManager.find(EmployeeEntity::class.java, employeeId)
+        assertThat(survivingEmployee).isNotNull()
+
+        val survivingHousehold = testEntityManager.find(HouseholdEntity::class.java, household.id!!)
+        assertThat(survivingHousehold?.issuer?.id).isEqualTo(employeeId)
     }
 
     private fun persistUser(customize: UserEntity.() -> Unit = {}): UserEntity {
