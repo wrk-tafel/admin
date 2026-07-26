@@ -1,0 +1,25 @@
+// Recolor the Material snack bar surface per severity to match the previous
+// toastr look (see tafel-snackbar.component.ts for the matching panelClass).
+.mat-mdc-snack-bar-container.tafel-snackbar-panel {
+  --mat-snack-bar-container-shape: 3px;
+
+  &-success {
+    --mat-snack-bar-container-color: #51a351;
+    --mat-snack-bar-supporting-text-color: #ffffff;
+  }
+
+  &-error {
+    --mat-snack-bar-container-color: #bd362f;
+    --mat-snack-bar-supporting-text-color: #ffffff;
+  }
+
+  &-info {
+    --mat-snack-bar-container-color: #2f96b4;
+    --mat-snack-bar-supporting-text-color: #ffffff;
+  }
+
+  &-warning {
+    --mat-snack-bar-container-color: #f89406;
+    --mat-snack-bar-supporting-text-color: #ffffff;
+  }
+}

@@ -82,37 +82,63 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
 
 ---
 
-## 2. `toastr` (frontend) — HIGH PRIORITY
+## 2. `toastr` (frontend) — HIGH PRIORITY — ✅ RESOLVED (2026-07-27)
 
 - **Status:** Last released 2022-06-27 (v2.1.4). 122 open issues, no visible
   recent commits, jQuery-era library. Already surfaces as a build warning
   ("Module 'toastr' used by ... is not ESM").
 - **Used in:** `src/app/common/components/tafel-toastr/tafel-toastr.service.ts`
   (wraps toastr), called app-wide for success/error/info/warning messages.
-- **Replacement:** `MatSnackBar` (`@angular/material`) — **already a
-  dependency**, so this removes a dependency rather than adding one, and
-  clears the CommonJS/ESM build warning.
-  - Alternative if toastr's specific stacked/colored toast visual style is
-    important to keep: `ngx-toastr` (actively maintained Angular-native
-    reimplementation, same visual behavior, easy near-drop-in for the
-    `.success()/.error()/.info()/.warning()` API).
-- **Steps (MatSnackBar path):**
-  1. Find all call sites of `TafelToastrService` (`success`/`error`/`info`/`warning`).
-  2. Rewrite `tafel-toastr.service.ts` internals to use `MatSnackBar.open(...)`
-     with a custom `panelClass` per severity (success/error/info/warning) for
-     styling, keeping the existing public method signatures so call sites
-     don't need to change.
-  3. Add SCSS for the 4 severity panel classes (color/icon) to roughly match
-     current toastr look, or accept Material's default snackbar look.
-  4. Remove `toastr` + `@types/toastr` from `package.json`, remove the now
-     redundant `toastr` entry from `angular.json`'s `allowedCommonJsDependencies`.
-  5. Update/adjust any Cypress e2e assertions that check for toastr-specific
-     DOM structure/classes (grep `cypress/` for `toast`).
-  6. `npm run lint && npm run test-ci && npm run build-prod` + a full Cypress
-     run.
-- **Risk:** Medium — touches a widely-used shared service; visual regression
-  risk is the main concern, functional risk is low since the service's public
-  API can stay the same.
+- **Resolution:** Replaced with `MatSnackBar` (`@angular/material`), which
+  was already a dependency — this removed a dependency (plus its transitive
+  `jquery`/`@types/jquery`) rather than adding one, and cleared the
+  CommonJS/ESM build warning.
+- **Changes made:**
+  1. Added `TafelSnackbarComponent`
+     (`src/app/common/components/tafel-snackbar/`) — a small standalone
+     component (icon + title + message + close button) rendered via
+     `MatSnackBar.openFromComponent(...)`, driven by a
+     `{message, title?, severity}` payload injected through
+     `MAT_SNACK_BAR_DATA`.
+  2. Rewrote `tafel-toastr.service.ts` to inject `MatSnackBar` instead of the
+     `toastr` module/`TOASTR_TOKEN`, keeping the public
+     `success/error/info/warning(message, title?)` method signatures
+     unchanged so none of the ~30 call sites needed to change. Each call
+     opens the snack bar with a 5s duration (matching toastr's old
+     `timeOut`), top-right position, and a `panelClass` of
+     `['tafel-snackbar-panel', 'tafel-snackbar-panel-<severity>']`.
+  3. Added `src/scss/components/tafel-snackbar.scss` (imported from
+     `angular-material-theme.scss`) that recolors the snack bar surface per
+     severity via Angular Material's own CSS custom properties
+     (`--mat-snack-bar-container-color`, `--mat-snack-bar-supporting-text-color`,
+     `--mat-snack-bar-container-shape`), using toastr's original palette
+     (`#51a351` success / `#bd362f` error / `#2f96b4` info / `#f89406`
+     warning, white text, 3px corners) so the visual look matches the old
+     toastr notifications. Removed the `@import "toastr"` line (and its
+     bundled CSS) from `styles.scss`.
+  4. Kept the `.toast-message` class name on the message element in
+     `TafelSnackbarComponent`'s template specifically so the existing
+     Cypress `cy.get('.toast-message')` assertions (7 spec files) keep
+     passing unmodified.
+  5. Removed `toastr` + `@types/toastr` from `package.json`; ran
+     `npm install`, which also pruned the now-unused transitive `jquery` +
+     `@types/jquery`. Removed the now-dead
+     `"scripts": ["node_modules/jquery/dist/jquery.min.js"]` entry from
+     `angular.json` (jquery was only ever loaded for toastr).
+  6. `npm run lint`, `npm run test-ci` (511/511 passing, including a
+     rewritten `tafel-toastr.service.spec.ts` that mocks `MatSnackBar`), and
+     `npm run build-prod` all pass cleanly with no CommonJS warning.
+- **Verification note:** Manually exercised the real
+  interceptor → `TafelToastrService.error()` → `MatSnackBar.openFromComponent()`
+  path in a running `ng serve` session (via a genuine UI-triggered HTTP 500)
+  and confirmed via instrumentation that it's invoked with the correct
+  data/panelClass/config every time. Rendering a live snack bar to a
+  screenshot inside the browser-automation session was inconclusive — no
+  Angular CDK overlay (including a pre-existing `MatDialog`, used as a
+  control) would attach to the DOM in that specific automated session,
+  which points to a dev-server/automation environment quirk rather than a
+  code issue. Recommend a quick manual/Cypress check in a normal browser
+  session before merging to eyeball the actual colors.
 
 ---
 
@@ -213,7 +239,7 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
 ## Suggested execution order
 
 1. ✅ `logback-jackson`/`logback-json-classic` → Spring Boot built-in structured logging (prod-facing, low risk, quick win) — done
-2. `toastr` → `MatSnackBar` (removes a dependency, clears a build warning)
+2. ✅ `toastr` → `MatSnackBar` (removes a dependency, clears a build warning) — done
 3. `cypress-browser-permissions` (check if even still needed — might be a pure deletion)
 4. `image-comparison` → in-house utility (contained, test-only)
 5. `html5-qrcode` → `qr-scanner` (needs physical hardware testing — schedule accordingly, don't rush)

@@ -1,0 +1,10 @@
+<fa-icon [icon]="icon" class="tafel-snackbar-icon" aria-hidden="true"></fa-icon>
+<div class="tafel-snackbar-text">
+  @if (data.title) {
+    <div class="toast-title">{{ data.title }}</div>
+  }
+  <div class="toast-message">{{ data.message }}</div>
+</div>
+<button mat-icon-button class="tafel-snackbar-close" (click)="dismiss()" aria-label="Schließen">
+  <fa-icon [icon]="faXmark"></fa-icon>
+</button>
