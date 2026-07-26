@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 
 describe('Dashboard', () => {
 
@@ -60,7 +60,7 @@ describe('Dashboard', () => {
     downloadCustomerListButton.click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
-    const formattedDate = moment().format('DD.MM.YYYY');
+    const formattedDate = dayjs().format('DD.MM.YYYY');
     const downloadedFilename = path.join(downloadsFolder, `kundenliste-ausgabe-${formattedDate}.pdf`);
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})

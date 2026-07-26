@@ -2,8 +2,11 @@ import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {EMPTY, of} from 'rxjs';
+
+dayjs.extend(customParseFormat);
 import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {By} from '@angular/platform-browser';
@@ -21,7 +24,7 @@ describe('CustomerSearchComponent', () => {
                 id: 0,
                 firstname: 'first',
                 lastname: 'last',
-                birthDate: moment('10.05.2000', 'DD.MM.YYYY').toDate(),
+                birthDate: dayjs('10.05.2000', 'DD.MM.YYYY').toDate(),
                 gender: Gender.MALE,
                 address: {
                     street: 'street',

@@ -1,5 +1,5 @@
 import {AbstractControl, ValidationErrors, ValidatorFn} from '@angular/forms';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export class CustomValidator {
 
@@ -9,12 +9,12 @@ export class CustomValidator {
         return null;
       }
 
-      const controlDate = moment(control.value).startOf('day');
+      const controlDate = dayjs(control.value).startOf('day');
       if (!controlDate.isValid()) {
         return null;
       }
 
-      const validationDate = moment(date).startOf('day');
+      const validationDate = dayjs(date).startOf('day');
 
       return !controlDate.isBefore(validationDate) ? null : {
         'mindate': {
@@ -31,12 +31,12 @@ export class CustomValidator {
         return null;
       }
 
-      const controlDate = moment(control.value).startOf('day');
+      const controlDate = dayjs(control.value).startOf('day');
       if (!controlDate.isValid()) {
         return null;
       }
 
-      const validationDate = moment(date).startOf('day');
+      const validationDate = dayjs(date).startOf('day');
 
       return !controlDate.isAfter(validationDate) ? null : {
         'maxdate': {

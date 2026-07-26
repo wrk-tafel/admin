@@ -1,6 +1,6 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { of } from 'rxjs';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -36,12 +36,12 @@ describe('StatisticsSettingsResolver', () => {
             availableYears: [2000, 2001],
             distributions: [
                 {
-                    startDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
-                    endDate: moment().subtract(1, 'years').add(4, 'hours').utc().toDate()
+                    startDate: dayjs().subtract(1, 'years').startOf('day').toDate(),
+                    endDate: dayjs().subtract(1, 'years').add(4, 'hours').toDate()
                 },
                 {
-                    startDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
-                    endDate: moment().subtract(2, 'years').add(4, 'hours').utc().toDate()
+                    startDate: dayjs().subtract(2, 'years').startOf('day').toDate(),
+                    endDate: dayjs().subtract(2, 'years').add(4, 'hours').toDate()
                 }
             ]
         };

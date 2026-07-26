@@ -2,7 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CreateCustomerNoteRequest, CustomerNoteApiService, CustomerNoteItem} from './customer-note-api.service';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('CustomerNoteApiService', () => {
@@ -46,7 +46,7 @@ describe('CustomerNoteApiService', () => {
     };
     const mockNoteItem: CustomerNoteItem = {
       author: 'author1',
-      timestamp: moment().subtract(1, 'hour').toDate(),
+      timestamp: dayjs().subtract(1, 'hour').toDate(),
       note: 'note from author 1'
     };
 

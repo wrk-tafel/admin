@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
@@ -137,7 +137,7 @@ export class CheckinComponent {
       return 0;
     }
 
-    return customer.additionalPersons.filter((person) => moment().diff(person.birthDate, 'years') < 3).length;
+    return customer.additionalPersons.filter((person) => dayjs().diff(person.birthDate, 'years') < 3).length;
   });
 
   trackByScannerId(scannerId: number) {
@@ -239,8 +239,8 @@ export class CheckinComponent {
     this.customer.set(customer);
 
     if (customer) {
-      const validUntil = moment(customer.validUntil).startOf('day');
-      const now = moment().startOf('day');
+      const validUntil = dayjs(customer.validUntil).startOf('day');
+      const now = dayjs().startOf('day');
 
       if (customer.locked) {
         this.customerState.set(CustomerState.LOCKED);

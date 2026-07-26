@@ -1,7 +1,10 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {of} from 'rxjs';
+
+dayjs.extend(customParseFormat);
 import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
@@ -19,7 +22,7 @@ describe('CustomerFormComponent', () => {
     id: 123,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
+    birthDate: dayjs().subtract(20, 'years').startOf('day').toDate(),
     gender: Gender.MALE,
     country: mockCountryList[0],
     telephoneNumber: '0043660123123',
@@ -34,20 +37,20 @@ describe('CustomerFormComponent', () => {
     },
     employer: 'WRK',
     income: 123.50,
-    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-    validUntil: moment().add(1, 'years').add(2, 'months').startOf('day').utc().toDate(),
+    incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
+    validUntil: dayjs().add(1, 'years').add(2, 'months').startOf('day').toDate(),
     additionalPersons: [
       {
         key: 0,
         id: 0,
         lastname: 'Last 1',
         firstname: 'First 1',
-        birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
+        birthDate: dayjs().subtract(1, 'years').startOf('day').toDate(),
         gender: Gender.FEMALE,
         country: mockCountryList[0],
         employer: 'test employer 2',
         income: 200,
-        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
         excludeFromHousehold: false,
         receivesFamilyBonus: true
       },
@@ -56,7 +59,7 @@ describe('CustomerFormComponent', () => {
         id: 1,
         lastname: 'Last 2',
         firstname: 'First 2',
-        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
+        birthDate: dayjs().subtract(4, 'years').startOf('day').toDate(),
         gender: Gender.MALE,
         country: mockCountryList[0],
         excludeFromHousehold: true,
@@ -160,10 +163,10 @@ describe('CustomerFormComponent', () => {
     fixture.detectChanges();
 
     const updatedLastname = 'updated';
-    const updatedBirthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
+    const updatedBirthDate = dayjs().subtract(30, 'years').startOf('day').toDate();
     const updatedGender = Gender.FEMALE;
     const updatedIncome = 54321;
-    const updatedIncomeDue = moment().add(2, 'years').startOf('day').utc().toDate();
+    const updatedIncomeDue = dayjs().add(2, 'years').startOf('day').toDate();
 
     component.customerForm.lastname().value.set(updatedLastname);
     component.customerForm.birthDate().value.set(updatedBirthDate);
@@ -201,7 +204,7 @@ describe('CustomerFormComponent', () => {
     component.customerForm.incomeDue().value.set('2000-01-01' as any);
     fixture.detectChanges(); // Trigger effect after value change
 
-    const validUntil = moment(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
+    const validUntil = dayjs(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
     expect(validUntil).toEqual('2000-03-01');
   });
 
@@ -213,16 +216,16 @@ describe('CustomerFormComponent', () => {
     fixture.detectChanges();
 
     // First set incomeDue
-    component.customerForm.incomeDue().value.set(moment('2000-01-01', 'YYYY-MM-DD').toDate());
+    component.customerForm.incomeDue().value.set(dayjs('2000-01-01', 'YYYY-MM-DD').toDate());
     fixture.detectChanges();
-    const validUntil = moment(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
+    const validUntil = dayjs(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
     expect(validUntil).toEqual('2000-03-01');
 
     // Change incomeDue - validUntil should update
-    component.customerForm.incomeDue().value.set(moment('2000-02-01', 'YYYY-MM-DD').toDate());
+    component.customerForm.incomeDue().value.set(dayjs('2000-02-01', 'YYYY-MM-DD').toDate());
     fixture.detectChanges();
 
-    const validUntilUpdated = moment(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
+    const validUntilUpdated = dayjs(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
     expect(validUntilUpdated).toEqual('2000-04-01');
   });
 

@@ -20,7 +20,7 @@ import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {getErrorMessages, shouldShowErrors} from '../../../../common/util/signal-form-helper';
 import {email, maxDate, min, minDate, pattern} from '../../../../common/validator/signal-form-validators';
 import {toSignal} from '@angular/core/rxjs-interop';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 @Component({
   selector: 'tafel-customer-form',
@@ -190,7 +190,7 @@ export class CustomerFormComponent {
     effect(() => {
       const incomeDue = this.customerForm.incomeDue().value();
       if (incomeDue) {
-        const validUntilDate = moment(incomeDue).add(2, 'months').toDate();
+        const validUntilDate = dayjs(incomeDue).add(2, 'months').toDate();
         this.customerForm.validUntil().value.set(validUntilDate);
       }
     });

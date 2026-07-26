@@ -1,5 +1,5 @@
 import {CustomerAddPersonData, Gender} from '../support/commands';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 
 describe('Customer Creation', () => {
 
@@ -166,7 +166,7 @@ describe('Customer Creation', () => {
   function enterCustomerData() {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
-    cy.byTestId('birthDateInput').type(moment(getBirthDateForAge(25)).format('YYYY-MM-DD'));
+    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(25)).format('YYYY-MM-DD'));
     cy.byTestId('genderInput').select('Männlich');
     cy.byTestId('countryInput').select('Österreich');
     cy.byTestId('telephoneNumberInput').type('0664123132123');
@@ -178,7 +178,7 @@ describe('Customer Creation', () => {
     cy.byTestId('postalCodeInput').type('1010');
     cy.byTestId('cityInput').type('Wien');
     cy.byTestId('employerInput').type('Test Employer');
-    cy.byTestId('validUntilInput').type(moment().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
+    cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
   }
 
   function enterAdditionalPersonData(index: number, data: CustomerAddPersonData) {
@@ -187,7 +187,7 @@ describe('Customer Creation', () => {
     cy.byTestId('personform-' + index).within(() => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
-      cy.byTestId('birthDateInput').type(moment(data.birthDate).format('YYYY-MM-DD'));
+      cy.byTestId('birthDateInput').type(dayjs(data.birthDate).format('YYYY-MM-DD'));
       cy.byTestId('genderInput').select(data.gender);
       cy.byTestId('countryInput').select(data.country.name);
       if (data.employer) {
@@ -203,7 +203,7 @@ describe('Customer Creation', () => {
   }
 
   function getBirthDateForAge(age: number): Date {
-    return moment().subtract(age, 'years').startOf('day').toDate();
+    return dayjs().subtract(age, 'years').startOf('day').toDate();
   }
 
 });

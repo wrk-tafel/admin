@@ -1,7 +1,7 @@
 import {Component, inject, input, linkedSignal} from '@angular/core';
 import {CustomerApiService, CustomerData, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatPaginatorModule} from '@angular/material/paginator';
@@ -43,7 +43,7 @@ export class CustomerDuplicatesComponent {
   }
 
   isValid(customer: CustomerData) {
-    return !moment(customer.validUntil).startOf('day').isBefore(moment().startOf('day'));
+    return !dayjs(customer.validUntil).startOf('day').isBefore(dayjs().startOf('day'));
   }
 
   showCustomerDetail(customerId: number) {
