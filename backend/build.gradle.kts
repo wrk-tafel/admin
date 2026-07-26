@@ -108,18 +108,6 @@ tasks.named<Jar>("jar") {
     enabled = false
 }
 
-val copyFrontend = tasks.register<Copy>("copyFrontend") {
-    group = "build"
-    description = "Copy frontend build output into backend static resources"
-    from("${project.rootDir}/frontend/src/main/webapp/dist/browser")
-    into("${layout.buildDirectory.get().asFile}/resources/main/static")
-    dependsOn(":frontend:npmBuild")
-}
-
-tasks.named("processResources") {
-    dependsOn(copyFrontend)
-}
-
 tasks.withType<Test> {
     useJUnitPlatform()
     include("**/*Test.class", "**/*IT.class")
