@@ -6,9 +6,11 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
+  test:
+    uses: ./.github/workflows/subflow_test.yml
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
-    needs: build
+    needs: test
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:

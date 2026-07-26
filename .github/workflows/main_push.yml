@@ -8,9 +8,11 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
+  test:
+    uses: ./.github/workflows/subflow_test.yml
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
-    needs: build
+    needs: test
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:
@@ -27,7 +29,10 @@ jobs:
     needs: build
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: build-push-image
+    # main is the "must be green" pipeline: unlike PRs, deployment requires
+    # backend+frontend unit tests AND e2e to have passed, not just a
+    # successful build
+    needs: [build-push-image, test, e2e-test]
     concurrency:
       group: test-environment
     secrets:

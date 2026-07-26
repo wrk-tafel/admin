@@ -1,4 +1,4 @@
-name: Build
+name: Test
 
 env:
   JAVA_VERSION: '26'
@@ -9,7 +9,7 @@ on:
   workflow_call:
 
 jobs:
-  build-backend:
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,16 +22,23 @@ jobs:
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
         with:
           cache-provider: basic
-      - name: Backend build
-        run: ./gradlew :backend:bootJar
+      - name: Backend test
+        run: ./gradlew :backend:test
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: backend-custom-test-results
+          path: ./backend/build/custom-test-results/
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: admin-jarfile
-          path: ./backend/build/libs/admin-backend.jar
+          name: backend-jacoco-report
+          path: ./backend/build/reports/jacoco/test/jacocoTestReport.xml
           if-no-files-found: error
           retention-days: 1
 
-  build-frontend:
+  test-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,12 +49,6 @@ jobs:
           cache-dependency-path: 'frontend/src/main/webapp/package-lock.json'
       - run: npm ci
         working-directory: frontend/src/main/webapp
-      - name: Frontend build
-        run: npm run build-prod
+      - name: Frontend test
+        run: npm run test-ci
         working-directory: frontend/src/main/webapp
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: frontend-dist
-          path: ./frontend/src/main/webapp/dist/browser
-          if-no-files-found: error
-          retention-days: 1
