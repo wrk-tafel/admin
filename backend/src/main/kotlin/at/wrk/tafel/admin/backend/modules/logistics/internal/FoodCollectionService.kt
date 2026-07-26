@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -21,7 +23,8 @@ class FoodCollectionService(
     private val employeeRepository: EmployeeRepository,
     private val shopRepository: ShopRepository,
     private val foodCategoryRepository: FoodCategoryRepository,
-    private val carRepository: CarRepository
+    private val carRepository: CarRepository,
+    private val advisoryLockService: AdvisoryLockService
 ) {
 
     @Transactional
@@ -112,19 +115,24 @@ class FoodCollectionService(
 
     @Transactional
     fun patchItem(routeId: Long, data: FoodCollectionItem) {
-        val distributionEntity = distributionRepository.getCurrentDistribution()!!
+        // concurrent auto-save requests for the same category/shop otherwise race on the
+        // read-modify-write below and can both try to insert the same item, violating the
+        // food_collections_items_pk unique constraint
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
-        val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
-        val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
-        updateItems(
-            items = items,
-            categoryId = data.categoryId,
-            shopId = data.shopId,
-            newAmount = data.amount
-        )
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
+            updateItems(
+                items = items,
+                categoryId = data.categoryId,
+                shopId = data.shopId,
+                newAmount = data.amount
+            )
 
-        foodCollectionEntity.items = items
-        foodCollectionRepository.save(foodCollectionEntity)
+            foodCollectionEntity.items = items
+            foodCollectionRepository.save(foodCollectionEntity)
+        }
     }
 
     private fun updateItems(
