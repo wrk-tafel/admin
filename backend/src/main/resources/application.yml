@@ -61,8 +61,8 @@ security:
     expirationTimeInSeconds: 36000 # 10 hours
     expirationTimePwdChangeInSeconds: 300 # 5 minutes
   loginAttempts:
-    maxFailures: 5
-    lockoutDurationInSeconds: 900 # 15 minutes
+    maxFailures: 10
+    lockoutDurationInSeconds: 300 # 5 minutes
 
 tafeladmin:
   server:
