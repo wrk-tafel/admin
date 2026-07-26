@@ -22,6 +22,9 @@ import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
+import com.github.romankh3.image.comparison.ImageComparison
+import com.github.romankh3.image.comparison.model.ImageComparisonState
+import com.github.romankh3.image.comparison.model.Rectangle
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -30,6 +33,10 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.apache.commons.io.FileUtils
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.rendering.ImageType
+import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -38,13 +45,28 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.transaction.support.TransactionTemplate
+import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.imageio.ImageIO
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionServiceTest {
+
+    companion object {
+        private val comparisonResultDirectory = File(
+            System.getProperty("user.dir"), "build/custom-test-results/distributionservice-customerlist-comparison-results"
+        )
+        private const val customerListReferencesPath = "/pdf-references/distribution/customerlist-references"
+
+        @JvmStatic
+        @BeforeAll
+        fun beforeAll() {
+            comparisonResultDirectory.mkdirs()
+        }
+    }
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
@@ -887,9 +909,44 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    @Disabled
-    // TODO maybe also add a pdf comparison (probably after OS problems fixed)
     fun `generate customerlist pdf - compare`() {
+        val pdfModel = HouseholdListPdfModel(
+            title = "Kundenliste zur Ausgabe vom 01.01.2026",
+            halftimeTicketNumber = 51,
+            countHouseholdsOverall = 3,
+            countPersonsOverall = 4,
+            households = listOf(
+                HouseholdListItem(ticketNumber = 50, householdId = 100, countPersons = 2, countInfants = 1),
+                HouseholdListItem(ticketNumber = 51, householdId = 200, countPersons = 1, countInfants = 0),
+                HouseholdListItem(ticketNumber = 52, householdId = 300, countPersons = 1, countInfants = 0)
+            )
+        )
+
+        val pdfBytes = PDFService().generatePdf(pdfModel, "/pdf-templates/distribution-customerlist/customerlist.xsl")
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "customerlist-result.pdf"), pdfBytes)
+
+        val document = Loader.loadPDF(pdfBytes)
+        val pdfRenderer = PDFRenderer(document)
+
+        assertThat(document.numberOfPages).isEqualTo(1)
+
+        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$customerListReferencesPath/customerlist-actual.png"))
+        ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "customerlist-expected.png"))
+        val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
+        ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "customerlist-actual.png"))
+
+        // The "Seite X von Y" footer (bottom-right, driven by fo:page-number-citation-last) renders
+        // at a small font size and its anti-aliasing differs slightly by OS font rasterizer, even with
+        // an embedded font - unlike the rest of the page, which renders pixel-identical across OSes.
+        val footerExclusionArea = Rectangle(0, actualImage.height - 120, actualImage.width, actualImage.height)
+        val comparisonResult = ImageComparison(expectedImage, actualImage)
+            .setExcludedAreas(listOf(footerExclusionArea))
+            .compareImages()
+        comparisonResult.writeResultTo(File(comparisonResultDirectory, "customerlist-diff.png"))
+
+        assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        document.close()
     }
 
     @Test

@@ -5,22 +5,58 @@ describe('Customer Edit', () => {
   });
 
   it('customer updated', () => {
-    cy.visit('/#/kunden/bearbeiten/102');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id;
+      cy.visit('/#/kunden/bearbeiten/' + customerId);
 
-    cy.byTestId('save-button').should('be.enabled');
+      cy.byTestId('save-button').should('be.enabled');
 
-    cy.byTestId('validate-button').click();
+      const updatedLastname = 'UpdatedLastname';
+      const updatedFirstname = 'UpdatedFirstname';
+      const updatedTelephoneNumber = '0699111222333';
+      const updatedEmail = 'updated.customer@test.com';
+      const updatedEmployer = 'Updated Employer';
+      const updatedStreet = 'Updated Street';
+      const updatedHouseNumber = '99B';
+      const updatedCity = 'Updated City';
+      const updatedPostalCode = '5678';
 
-    cy.byTestId('validationresult-dialog')
-      .should('be.visible')
-      .within(() => {
-        cy.byTestId('ok-button').click();
-      });
-    cy.byTestId('save-button').click();
+      const typeInto = (testId: string, value: string) => {
+        const input = cy.byTestId(testId);
+        input.clear();
+        input.type(value);
+      };
 
-    cy.url().should('contain', '/kunden/detail/102');
+      typeInto('lastnameInput', updatedLastname);
+      typeInto('firstnameInput', updatedFirstname);
+      typeInto('telephoneNumberInput', updatedTelephoneNumber);
+      typeInto('emailInput', updatedEmail);
+      typeInto('employerInput', updatedEmployer);
+      typeInto('streetInput', updatedStreet);
+      typeInto('houseNumberInput', updatedHouseNumber);
+      typeInto('cityInput', updatedCity);
+      typeInto('postalCodeInput', updatedPostalCode);
+      cy.byTestId('genderInput').select('Weiblich');
 
-    // TODO change actual data (but for that create a new dedicated customer beforehand)
+      cy.byTestId('validate-button').click();
+
+      cy.byTestId('validationresult-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/kunden/detail/' + customerId);
+
+      cy.byTestId('nameText').should('have.text', updatedLastname + ' ' + updatedFirstname);
+      cy.byTestId('genderText').should('have.text', 'Weiblich');
+      cy.byTestId('telephoneNumberText').should('have.text', updatedTelephoneNumber);
+      cy.byTestId('emailText').should('have.text', updatedEmail);
+      cy.byTestId('employerText').should('have.text', updatedEmployer);
+      cy.byTestId('addressLine1Text').should('have.text', updatedStreet + ' ' + updatedHouseNumber);
+      cy.byTestId('addressLine2Text').should('have.text', updatedPostalCode + ' ' + updatedCity);
+    });
   });
 
   it('customer invalid and saved but invalid', () => {

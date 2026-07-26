@@ -1,5 +1,3 @@
-// TODO optimize structure
-
 import {CustomerAddPersonData, Gender} from '../support/commands';
 import * as moment from 'moment';
 
@@ -73,15 +71,17 @@ describe('Customer Creation', () => {
     it('supervisor should be able to override with warning on customer creation', () => {
       enterCustomerData();
       cy.byTestId('incomeInput').type('10000');
-      cy.byTestId('addperson-button-bottom').click();
-
-      cy.byTestId('personform-0').within(() => {
-        cy.byTestId('lastnameInput').type('Add');
-        cy.byTestId('firstnameInput').type('Adult 1');
-        cy.byTestId('birthDateInput').type('1990-01-01');
-        cy.byTestId('genderInput').select('Männlich');
-        cy.byTestId('countryInput').select('Österreich');
-        cy.byTestId('employerInput').type('Test Employer');
+      enterAdditionalPersonData(0, {
+        id: 0,
+        key: 0,
+        receivesFamilyBonus: false,
+        lastname: 'Add',
+        firstname: 'Adult 1',
+        birthDate: getBirthDateForAge(30),
+        gender: Gender.MALE,
+        employer: 'Test Employer',
+        country: {id: 165, code: 'AT', name: 'Österreich'},
+        excludeFromHousehold: false
       });
 
       cy.byTestId('save-button').should('be.enabled');

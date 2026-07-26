@@ -25,7 +25,6 @@ export interface ITafelNavData {
   children?: ITafelNavData[];
 }
 
-// TODO permissions can be read via router and therefore save the duplication here
 export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',

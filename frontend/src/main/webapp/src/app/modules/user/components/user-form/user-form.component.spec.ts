@@ -70,15 +70,6 @@ describe('UserFormComponent', () => {
 
     fixture.detectChanges();
 
-    // TODO check dom elements - makes more sense
-    /*
-    fixture.detectChanges();
-
-    fixture.whenStable().then(() => {
-      expect(fixture.debugElement.query(By.css('[testid="idInput"]')).nativeElement.value).toBe(testData.id);
-    });
-    */
-
     expect(component.userForm.id().value()).toBe(mockUser.id);
     expect(component.userForm.username().value()).toBe(mockUser.username);
     expect(component.userForm.personnelNumber().value()).toBe(mockUser.personnelNumber);

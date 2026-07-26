@@ -101,15 +101,6 @@ describe('CustomerFormComponent', () => {
     fixture.componentRef.setInput('customerData', testCustomerData);
     fixture.detectChanges();
 
-    // TODO check dom elements - makes more sense
-    /*
-    fixture.detectChanges();
-
-    fixture.whenStable().then(() => {
-      expect(fixture.debugElement.query(By.css('[testid="idInput"]')).nativeElement.value).toBe(testData.id);
-    });
-    */
-
     expect(component.customerForm.lastname().value()).toBe(testCustomerData.lastname);
     expect(component.customerForm.firstname().value()).toBe(testCustomerData.firstname);
     expect(component.customerForm.birthDate().value()).toBe(testCustomerData.birthDate);
@@ -180,8 +171,8 @@ describe('CustomerFormComponent', () => {
     component.customerForm.income().value.set(updatedIncome);
     component.customerForm.incomeDue().value.set(updatedIncomeDue);
 
-    // TODO const updatedPers1Lastname = 'Pers1UpdatedLastName';
-    // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
+    const updatedPers1Lastname = 'Pers1UpdatedLastName';
+    component.personField(1).lastname().value.set(updatedPers1Lastname);
     fixture.detectChanges();
 
     expect(component.customerDataChange.emit).toHaveBeenCalledWith(expect.objectContaining({
@@ -191,16 +182,12 @@ describe('CustomerFormComponent', () => {
       income: updatedIncome
     }));
 
-    // TODO validate add person change
-    /*
     expect(component.customerDataChange.emit).toHaveBeenCalledWith(expect.objectContaining({
       additionalPersons: [
-        {},
-        {
-          lastname: updatedPers1Lastname
-        }]
+        expect.objectContaining({lastname: testCustomerData.additionalPersons![0].lastname}),
+        expect.objectContaining({lastname: updatedPers1Lastname})
+      ]
     }));
-     */
   });
 
   it('validUntil set when incomeDue is updated', () => {

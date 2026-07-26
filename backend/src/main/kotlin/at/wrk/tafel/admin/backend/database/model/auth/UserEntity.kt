@@ -32,8 +32,11 @@ class UserEntity : BaseChangeTrackingEntity() {
     @Column(name = "enabled")
     var enabled: Boolean? = false
 
-    // TODO remove cascade?
-    @OneToOne(cascade = [CascadeType.ALL])
+    // Employee rows are shared/independent (see EmployeeController) and can be referenced
+    // elsewhere (household issuer, household notes, food collection driver/co-driver) via plain,
+    // non-cascading FKs. PERSIST+MERGE keeps saving a user auto-saving its linked employee, but
+    // without REMOVE, deleting a user no longer cascades into deleting that shared employee record.
+    @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinColumn(name = "employee_id", referencedColumnName = "id")
     var employee: EmployeeEntity? = null
 
