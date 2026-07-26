@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class DashboardService(
     private val distributionRepository: DistributionRepository,
-    private val distributionCustomerRepository: DistributionCustomerRepository,
+    private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val routeRepository: RouteRepository,
 ) {
 
@@ -41,8 +41,8 @@ class DashboardService(
     }
 
     private fun getTicketsData(currentDistribution: DistributionEntity): DashboardTicketsData {
-        val countProcessedTickets = currentDistribution.customers.count { it.processed == true }
-        val countTotalTickets = currentDistribution.customers.size
+        val countProcessedTickets = currentDistribution.households.count { it.processed == true }
+        val countTotalTickets = currentDistribution.households.size
 
         return DashboardTicketsData(
             countProcessedTickets = countProcessedTickets,
@@ -51,7 +51,7 @@ class DashboardService(
     }
 
     private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int {
-        return distributionCustomerRepository.countAllByDistributionId(currentDistribution.id!!)
+        return distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
     }
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData {

@@ -40,7 +40,7 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     var statistic: DistributionStatisticEntity? = null
 
     @OneToMany(mappedBy = "distribution")
-    var customers: List<DistributionCustomerEntity> = emptyList()
+    var households: List<DistributionHouseholdEntity> = emptyList()
 
     @OneToMany(mappedBy = "distribution")
     var foodCollections: List<FoodCollectionEntity> = emptyList()

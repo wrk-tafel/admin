@@ -21,8 +21,8 @@ data class DistributionItem(
 )
 
 @ExcludeFromTestCoverage
-data class AssignCustomerRequest(
-    val customerId: Long,
+data class AssignHouseholdRequest(
+    val householdId: Long,
     val ticketNumber: Int,
 )
 

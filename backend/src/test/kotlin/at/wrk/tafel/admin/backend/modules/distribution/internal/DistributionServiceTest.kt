@@ -4,17 +4,17 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
@@ -53,10 +53,10 @@ internal class DistributionServiceTest {
     private lateinit var userRepository: UserRepository
 
     @RelaxedMockK
-    private lateinit var distributionCustomerRepository: DistributionCustomerRepository
+    private lateinit var distributionHouseholdRepository: DistributionHouseholdRepository
 
     @RelaxedMockK
-    private lateinit var customerRepository: CustomerRepository
+    private lateinit var householdRepository: HouseholdRepository
 
     @RelaxedMockK
     private lateinit var pdfService: PDFService
@@ -94,22 +94,18 @@ internal class DistributionServiceTest {
         authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
     )
 
-    private lateinit var testCustomerEntity1: CustomerEntity
-    private lateinit var testCustomerEntity2: CustomerEntity
+    private lateinit var testHouseholdEntity1: HouseholdEntity
+    private lateinit var testHouseholdEntity2: HouseholdEntity
 
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        testCustomerEntity1 = CustomerEntity().apply {
+        testHouseholdEntity1 = HouseholdEntity().apply {
             id = 1
             issuer = testUserEntity.employee
             createdAt = LocalDateTime.now()
-            customerId = 100
-            lastname = "Mustermann"
-            firstname = "Max"
-            birthDate = LocalDate.now().minusYears(30)
-            country = testCountry1
+            householdId = 100
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -118,14 +114,24 @@ internal class DistributionServiceTest {
             addressCity = "Wien"
             telephoneNumber = "0043660123123"
             email = "test@mail.com"
-            employer = "Employer 123"
-            income = BigDecimal("1000")
-            incomeDue = LocalDate.now()
             validUntil = LocalDate.now()
             locked = false
 
-            val addPerson1 = CustomerAddPersonEntity()
+            val mainPersonEntity = PersonEntity()
+            mainPersonEntity.id = 1
+            mainPersonEntity.household = this
+            mainPersonEntity.isMainPerson = true
+            mainPersonEntity.lastname = "Mustermann"
+            mainPersonEntity.firstname = "Max"
+            mainPersonEntity.birthDate = LocalDate.now().minusYears(30)
+            mainPersonEntity.country = testCountry1
+            mainPersonEntity.employer = "Employer 123"
+            mainPersonEntity.income = BigDecimal("1000")
+            mainPersonEntity.incomeDue = LocalDate.now()
+
+            val addPerson1 = PersonEntity()
             addPerson1.id = 2
+            addPerson1.household = this
             addPerson1.lastname = "Add pers 1"
             addPerson1.firstname = "Add pers 1"
             addPerson1.birthDate = LocalDate.now().minusYears(5)
@@ -134,25 +140,23 @@ internal class DistributionServiceTest {
             addPerson1.country = testCountry1
             addPerson1.excludeFromHousehold = false
 
-            val addPerson2 = CustomerAddPersonEntity()
+            val addPerson2 = PersonEntity()
             addPerson2.id = 3
+            addPerson2.household = this
             addPerson2.lastname = "Add pers 2"
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
             addPerson2.country = testCountry1
             addPerson2.excludeFromHousehold = true
 
-            additionalPersons = mutableListOf(addPerson1, addPerson2)
+            persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
+            mainPerson = mainPersonEntity
         }
 
-        testCustomerEntity2 = CustomerEntity().apply {
+        testHouseholdEntity2 = HouseholdEntity().apply {
             id = 2
             createdAt = LocalDateTime.now()
-            customerId = 200
-            lastname = "Mustermann"
-            firstname = "Max 2"
-            birthDate = LocalDate.now().minusYears(22)
-            country = testCountry1
+            householdId = 200
             addressStreet = "Test-Straße 2"
             addressHouseNumber = "200"
             addressStairway = "1-2"
@@ -161,11 +165,23 @@ internal class DistributionServiceTest {
             addressCity = "Wien 2"
             telephoneNumber = "0043660123123"
             email = "test2@mail.com"
-            employer = "Employer 123-2"
-            income = BigDecimal("2000")
-            incomeDue = LocalDate.now()
             validUntil = LocalDate.now()
             locked = false
+
+            val mainPersonEntity = PersonEntity()
+            mainPersonEntity.id = 20
+            mainPersonEntity.household = this
+            mainPersonEntity.isMainPerson = true
+            mainPersonEntity.lastname = "Mustermann"
+            mainPersonEntity.firstname = "Max 2"
+            mainPersonEntity.birthDate = LocalDate.now().minusYears(22)
+            mainPersonEntity.country = testCountry1
+            mainPersonEntity.employer = "Employer 123-2"
+            mainPersonEntity.income = BigDecimal("2000")
+            mainPersonEntity.incomeDue = LocalDate.now()
+
+            persons = mutableListOf(mainPersonEntity)
+            mainPerson = mainPersonEntity
         }
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
@@ -366,41 +382,41 @@ internal class DistributionServiceTest {
 
     @Test
     fun `assign customer without existing customer`() {
-        val customerId = 1L
+        val householdId = 1L
         val ticketNumber = 200
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
-        every { customerRepository.findByCustomerId(customerId) } returns null
+        every { householdRepository.findByHouseholdId(householdId) } returns null
 
         val exception = assertThrows<TafelValidationException> {
-            service.assignCustomerToDistribution(
-                customerId = customerId,
+            service.assignHouseholdToDistribution(
+                householdId = householdId,
                 ticketNumber = ticketNumber,
             )
         }
 
-        assertThat(exception.message).isEqualTo("Kunde Nr. $customerId nicht vorhanden!")
+        assertThat(exception.message).isEqualTo("Kunde Nr. $householdId nicht vorhanden!")
     }
 
     @Test
     fun `assign customer successful`() {
-        val customerId = 1L
+        val householdId = 1L
         val ticketNumber = 200
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
-        every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
-        every { distributionCustomerRepository.save(any()) } returns mockk()
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
 
-        service.assignCustomerToDistribution(
-            customerId = customerId,
+        service.assignHouseholdToDistribution(
+            householdId = householdId,
             ticketNumber = ticketNumber,
         )
 
         verify {
-            distributionCustomerRepository.save(withArg {
-                assertThat(it.customer).isEqualTo(testCustomerEntity1)
+            distributionHouseholdRepository.save(withArg {
+                assertThat(it.household).isEqualTo(testHouseholdEntity1)
                 assertThat(it.distribution).isEqualTo(activeDistribution)
                 assertThat(it.ticketNumber).isEqualTo(ticketNumber)
             })
@@ -412,25 +428,25 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1
+            households = listOf(
+                testDistributionHouseholdEntity1
             )
         }
-        val customerId = 1L
+        val householdId = 1L
         val updatedTicketNumber = 300
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
-        every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
-        every { distributionCustomerRepository.save(any()) } returns mockk()
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
 
-        service.assignCustomerToDistribution(
-            customerId = customerId,
+        service.assignHouseholdToDistribution(
+            householdId = householdId,
             ticketNumber = updatedTicketNumber,
         )
 
         verify {
-            distributionCustomerRepository.save(withArg {
-                assertThat(it.customer).isEqualTo(testCustomerEntity1)
+            distributionHouseholdRepository.save(withArg {
+                assertThat(it.household).isEqualTo(testHouseholdEntity1)
                 assertThat(it.distribution).isEqualTo(testDistributionEntity)
                 assertThat(it.ticketNumber).isEqualTo(updatedTicketNumber)
             })
@@ -442,19 +458,19 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1
+            households = listOf(
+                testDistributionHouseholdEntity1
             )
         }
-        val customerId = 2L
+        val householdId = 2L
         val ticketNumber = 50
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
-        every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity1
 
         val exception = assertThrows<TafelValidationException> {
-            service.assignCustomerToDistribution(
-                customerId = customerId,
+            service.assignHouseholdToDistribution(
+                householdId = householdId,
                 ticketNumber = ticketNumber,
             )
         }
@@ -468,10 +484,10 @@ internal class DistributionServiceTest {
             id = 123
             startedAt = date
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2,
-                testDistributionCustomerEntity3
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+                testDistributionHouseholdEntity3
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -479,45 +495,45 @@ internal class DistributionServiceTest {
         val bytes = ByteArray(0)
         every { pdfService.generatePdf(any(), any()) } returns bytes
 
-        val result = service.generateCustomerListPdf()
+        val result = service.generateHouseholdListPdf()
 
         val expectedFormattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy").format(date)
         assertThat(result?.filename).isEqualTo("kundenliste-ausgabe-$expectedFormattedDate.pdf")
         assertThat(result?.bytes).isEqualTo(bytes)
 
-        val customerListPdfModelSlot = slot<CustomerListPdfModel>()
+        val householdListPdfModelSlot = slot<HouseholdListPdfModel>()
         verify {
             pdfService.generatePdf(
-                capture(customerListPdfModelSlot),
+                capture(householdListPdfModelSlot),
                 withArg {
                     assertThat(it).isEqualTo("/pdf-templates/distribution-customerlist/customerlist.xsl")
                 }
             )
         }
 
-        val pdfModel = customerListPdfModelSlot.captured
+        val pdfModel = householdListPdfModelSlot.captured
         assertThat(pdfModel).isEqualTo(
-            CustomerListPdfModel(
+            HouseholdListPdfModel(
                 title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
                 halftimeTicketNumber = 51,
-                countCustomersOverall = 3,
+                countHouseholdsOverall = 3,
                 countPersonsOverall = 4,
-                customers = listOf(
-                    CustomerListItem(
+                households = listOf(
+                    HouseholdListItem(
                         ticketNumber = 50,
-                        customerId = 100,
+                        householdId = 100,
                         countPersons = 2,
                         countInfants = 1
                     ),
-                    CustomerListItem(
+                    HouseholdListItem(
                         ticketNumber = 51,
-                        customerId = 200,
+                        householdId = 200,
                         countPersons = 1,
                         countInfants = 0
                     ),
-                    CustomerListItem(
+                    HouseholdListItem(
                         ticketNumber = 52,
-                        customerId = 300,
+                        householdId = 300,
                         countPersons = 1,
                         countInfants = 0
                     )
@@ -541,16 +557,16 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
-        val distributionCustomerEntity = service.getCurrentTicketNumber()
+        val distributionHouseholdEntity = service.getCurrentTicketNumber()
 
-        assertThat(distributionCustomerEntity?.ticketNumber).isEqualTo(51)
+        assertThat(distributionHouseholdEntity?.ticketNumber).isEqualTo(51)
     }
 
     @Test
@@ -558,27 +574,27 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
-        val distributionCustomerEntity = service.getCurrentTicketNumber(
-            testDistributionCustomerEntity2.customer!!.customerId
+        val distributionHouseholdEntity = service.getCurrentTicketNumber(
+            testDistributionHouseholdEntity2.household!!.householdId
         )
 
-        assertThat(distributionCustomerEntity?.ticketNumber).isEqualTo(51)
+        assertThat(distributionHouseholdEntity?.ticketNumber).isEqualTo(51)
     }
 
     @Test
     fun `get current ticketNumber with all tickets resolved`() {
-        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             id = 1
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity1
+            household = testHouseholdEntity1
             ticketNumber = 1
             processed = true
         }
@@ -586,8 +602,8 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1
+            households = listOf(
+                testDistributionHouseholdEntity1
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -609,23 +625,23 @@ internal class DistributionServiceTest {
 
     @Test
     fun `reopen ticket and previous with open tickets before`() {
-        every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
+        every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
 
-        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             id = 1
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity1
+            household = testHouseholdEntity1
             ticketNumber = 1
             costContributionPaid = true
             processed = true
         }
 
-        val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
             id = 2
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity2
+            household = testHouseholdEntity2
             ticketNumber = 2
             processed = false
         }
@@ -633,9 +649,9 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -644,7 +660,7 @@ internal class DistributionServiceTest {
 
         assertThat(ticket).isEqualTo(1)
         verify {
-            distributionCustomerRepository.save(withArg {
+            distributionHouseholdRepository.save(withArg {
                 assertThat(it.costContributionPaid).isTrue()
                 assertThat(it.processed).isFalse()
             })
@@ -653,22 +669,22 @@ internal class DistributionServiceTest {
 
     @Test
     fun `reopen ticket and previous without open tickets before`() {
-        every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
+        every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
 
-        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             id = 1
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity1
+            household = testHouseholdEntity1
             ticketNumber = 1
             processed = false
         }
 
-        val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
             id = 2
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity2
+            household = testHouseholdEntity2
             ticketNumber = 2
             processed = false
         }
@@ -676,9 +692,9 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -687,7 +703,7 @@ internal class DistributionServiceTest {
 
         assertThat(ticket).isEqualTo(1)
         verify(exactly = 0) {
-            distributionCustomerRepository.save(any())
+            distributionHouseholdRepository.save(any())
         }
     }
 
@@ -705,23 +721,23 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close current ticket and next with open tickets left`() {
-        every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
+        every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
 
-        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             id = 1
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity1
+            household = testHouseholdEntity1
             ticketNumber = 1
             costContributionPaid = false
             processed = false
         }
 
-        val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
             id = 2
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity2
+            household = testHouseholdEntity2
             ticketNumber = 2
             costContributionPaid = false
             processed = false
@@ -730,9 +746,9 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -743,7 +759,7 @@ internal class DistributionServiceTest {
 
         assertThat(ticket).isEqualTo(2)
         verify {
-            distributionCustomerRepository.save(withArg {
+            distributionHouseholdRepository.save(withArg {
                 assertThat(it.costContributionPaid).isTrue()
                 assertThat(it.processed).isTrue()
             })
@@ -752,11 +768,11 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close current ticket and next with all tickets resolved`() {
-        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             id = 1
             createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
-            customer = testCustomerEntity1
+            household = testHouseholdEntity1
             ticketNumber = 1
             processed = true
         }
@@ -764,8 +780,8 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1
+            households = listOf(
+                testDistributionHouseholdEntity1
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -780,18 +796,18 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val result =
-            service.deleteCurrentTicket(testDistributionCustomerEntity2.customer!!.customerId!!)
+            service.deleteCurrentTicket(testDistributionHouseholdEntity2.household!!.householdId!!)
 
         assertThat(result).isTrue()
-        verify(exactly = 1) { distributionCustomerRepository.delete(testDistributionCustomerEntity2) }
+        verify(exactly = 1) { distributionHouseholdRepository.delete(testDistributionHouseholdEntity2) }
     }
 
     @Test

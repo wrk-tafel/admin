@@ -26,7 +26,7 @@ class DailyReportMailPostProcessor(
     }
 
     override fun process(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
-        if (distribution.customers.isNotEmpty()) {
+        if (distribution.households.isNotEmpty()) {
             val pdfReportBytes = dailyReportService.generateDailyReportPdf(statistic)
             sendMail(distribution, pdfReportBytes)
         } else {

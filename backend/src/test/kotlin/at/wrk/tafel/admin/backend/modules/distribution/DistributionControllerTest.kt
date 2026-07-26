@@ -327,37 +327,37 @@ internal class DistributionControllerTest {
     }
 
     @Test
-    fun `assign customer with invalid data`() {
+    fun `assign household with invalid data`() {
         every {
-            service.assignCustomerToDistribution(
+            service.assignHouseholdToDistribution(
                 any(),
                 any()
             )
         } throws TafelException("dummy error")
 
-        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
+        val requestBody = AssignHouseholdRequest(householdId = 1, ticketNumber = 100)
 
         val exception = assertThrows<TafelException> {
-            controller.assignCustomerToDistribution(requestBody)
+            controller.assignHouseholdToDistribution(requestBody)
         }
 
         assertThat(exception.message).isEqualTo("dummy error")
     }
 
     @Test
-    fun `assign customer with valid data`() {
-        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
-        val response = controller.assignCustomerToDistribution(requestBody)
+    fun `assign household with valid data`() {
+        val requestBody = AssignHouseholdRequest(householdId = 1, ticketNumber = 100)
+        val response = controller.assignHouseholdToDistribution(requestBody)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.body).isNull()
     }
 
     @Test
-    fun `generate customerlist pdf - no result`() {
-        every { service.generateCustomerListPdf() } returns null
+    fun `generate householdlist pdf - no result`() {
+        every { service.generateHouseholdListPdf() } returns null
 
-        val response = controller.generateCustomerListPdf()
+        val response = controller.generateHouseholdListPdf()
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.body).isNull()

@@ -71,7 +71,7 @@ create table if not exists households
     updated_at                 timestamp    not null,
     household_id               bigint       not null unique,   -- business number, was customers.customer_id (NOT the surrogate PK `id`)
     employee_id                bigint       null references employees(id),
-    main_person_id             bigint       null,              -- FK added after persons exists
+    main_person_id             bigint       null,              -- intentionally nullable, see note below
     address_street              varchar(100) null,
     address_housenumber         varchar(100) null,
     address_stairway            varchar(5)   null,
@@ -144,7 +144,13 @@ Since `households.id` == the old `customers.id` for every migrated row, these ar
 
 ## 5. Migration phases
 
-### Phase 1 — Additive schema + data migration (new Flyway script, e.g. `R__00067_household_person_refactor.sql`)
+### Phase 1 — Additive schema + data migration ✅ DONE
+
+Implemented as `backend/src/main/resources/db-migration/R__00067_household_person_refactor.sql`
+and validated against throwaway Postgres containers (never against the real dev DB): fresh
+install (no data), fresh install + `testdata.sql`, and 3x idempotent re-application, all with the
+Phase 2 verification queries below passing. Treat this file as ground truth; the SQL below is
+illustrative of what it does, not a separate draft to (re)implement.
 
 One idempotent script that:
 
@@ -186,7 +192,7 @@ One idempotent script that:
    from customers_addpersons cap
    where not exists (select 1 from persons p where p.id = cap.id);
    ```
-5. Backfills and locks in `main_person_id`:
+5. Backfills `main_person_id` (kept **nullable at the schema level** — see correction below):
    ```sql
    alter table households add column if not exists main_person_id bigint;
 
@@ -195,11 +201,27 @@ One idempotent script that:
    where p.household_id = h.id and p.is_main_person = true
      and h.main_person_id is distinct from p.id;
 
-   -- only after verifying every household got one (see verification queries below)
-   alter table households alter column main_person_id set not null;
+   -- assert (not enforce) the invariant for the migrated data specifically:
+   -- raise an exception if any migrated household ended up without a main person
    alter table households add constraint fk_households_main_person
        foreign key (main_person_id) references persons(id);
    ```
+
+   > **Correction found during implementation/validation**: `main_person_id` must **not** be
+   > made `NOT NULL`. `households` and `persons` have a mutual not-null-FK requirement in each
+   > direction (a household needs a main person; a person needs a household) — if both were
+   > enforced `NOT NULL`, it would be impossible to ever `INSERT` a *brand new* household/main-person
+   > pair, since neither row could be inserted first (Postgres `NOT NULL` cannot be deferred, unlike
+   > `FOREIGN KEY`/`UNIQUE`). The migrated rows are still verified non-null immediately after
+   > backfill (raise an exception if any migrated household lacks one), but the column stays
+   > nullable so the application can create a new household in two steps within one transaction:
+   > insert the household with `main_person_id = null` → insert its persons → update
+   > `main_person_id`. The "exactly one main person" invariant is instead enforced by the
+   > `uq_persons_household_main` partial unique index (Section 4) plus this create flow in
+   > `HouseholdService`. Validated end-to-end (fresh install, seeded data, 3x idempotent re-run)
+   > against a throwaway Postgres container — see migration file
+   > `backend/src/main/resources/db-migration/R__00067_household_person_refactor.sql`, which is
+   > already implemented, not just sketched.
 6. Redirects dependent tables (drop the old FK constraint by its real name first — look it up
    per environment, don't hardcode a guessed constraint name):
    ```sql
@@ -382,7 +404,8 @@ Rename/rework in lockstep with the schema (grouped by concern; file paths from c
 | Risk | Mitigation |
 |---|---|
 | Partial failure mid-migration on production | Every insert/update guarded by `where not exists` / `is distinct from`; script is safely re-runnable; take a backup regardless. |
-| `main_person_id` left null for some household (bad data upstream, e.g. a customer row with no matching person insert due to a constraint violation) | Phase 2 verification query catches this **before** making the column `not null`; fix data first, don't force the constraint. |
+| `main_person_id` left null for some *migrated* household (bad data upstream, e.g. a customer row with no matching person insert due to a constraint violation) | The migration itself asserts this via a `raise exception` right after backfill — a partial failure here aborts and rolls back the whole (transactional) migration rather than silently shipping a household with no main person. |
+| New household creation deadlocking on mutual `NOT NULL` FKs | Avoided by design: `households.main_person_id` stays nullable; `HouseholdService` creates household (null main person) → persons → then sets `main_person_id`, all in one transaction. |
 | Duplication detection / statistics silently wrong after cutover (raw SQL, not covered by JPA mapping) | `CustomerDuplicationService` and `StatisticsService` raw SQL are called out explicitly in Phase 3/4 — easy to miss since they don't go through the entity layer. |
 | Frontend/backend DTO drift during the transition | Keep backend + frontend changes in the same PR/branch; this is a monorepo, no independent deployability constraint forces splitting them. |
 

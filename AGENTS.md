@@ -29,10 +29,10 @@ This is a food bank (Tafel) administration system built with a Spring Boot/Kotli
 ./gradlew :backend:test
 
 # Run specific test class
-./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.customer.internal.CustomerServiceTest"
+./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.household.internal.HouseholdServiceTest"
 
-# Run specific test method
-./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.customer.internal.CustomerServiceTest.createCustomerSuccessful"
+# Run specific test class (wildcard, useful since test method names use backtick display names)
+./gradlew :backend:test --tests "*HouseholdServiceTest"
 
 # Run integration tests with timeout
 timeout 90 ./gradlew :backend:test --tests "*AdvisoryLockServiceIT"
@@ -104,7 +104,7 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 The backend uses **Spring Modulith** architecture with 7 core feature modules, each with explicit boundaries enforced via `package-info.java` annotations:
 
-- **customer**: Client management with income validation, duplicate detection, PDF generation (ID cards, master data)
+- **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management, statistics, and post-processors for emails/reports
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management
 - **checkin**: Scanner registration and customer check-in via QR codes
@@ -142,7 +142,7 @@ The frontend is an Angular 21 single-page application using CoreUI 5.6 as the UI
 
 **Feature Modules:**
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
-- **customer**: Search, create, edit, detail views with duplicate detection
+- **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
 - **logistics**: Food collection recording (desktop/responsive layouts), route management
 - **user**: User search, create, edit with password change functionality
@@ -192,11 +192,13 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 **Key Tables:**
 - `users`, `user_authorities`: User authentication and permissions
 - `employees`: Employee records referenced in change tracking
-- `customers`, `customers_addpersons`: Customer data with household members
-- `customer_notes`: Notes attached to customers
+- `households`: the case record (business number, address, contact, validity/lock/cost-contribution state); `main_person_id` points at its main person. Nullable at the DB level (not `NOT NULL`) because `households`/`persons` mutually reference each other — a brand-new household is always saved in two steps (household with `main_person_id = null` → its persons → set `main_person_id`), see `HouseholdService`
+- `persons`: every household member, including the main person, flagged via `is_main_person` (exactly one per household, enforced by a partial unique index)
+- `household_notes`: notes attached to a household
 - `distributions`: Food distribution events
-- `distribution_customers`: Customer participation in distributions
-- `distribution_statistics`: Statistics per distribution
+- `distributions_households`: household participation in distributions
+- `distributions_statistics`: Statistics per distribution
+- `customers`, `customers_addpersons`: legacy tables, superseded by `households`/`persons` above. Kept read-only/unused for a production observation window before a separate cleanup migration drops them — do not write to these, do not build new features against them
 - `routes`, `route_stops`, `shops`: Logistics route management
 - `food_categories`, `food_collections`, `food_collection_items`: Food recording
 - `shelters`, `shelter_contacts`: Shelter management
@@ -272,8 +274,8 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 
 The backend exposes REST APIs under `/api/` prefix:
 - `/api/users`: User management
-- `/api/customers`: Customer CRUD operations
-- `/api/customers/{id}/notes`: Customer notes
+- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`
+- `/api/households/{householdId}/notes`: Household notes
 - `/api/distributions`: Distribution management
 - `/api/distributions/{id}/tickets`: Ticket management
 - `/api/distributions/ticket-screen`: Ticket screen SSE endpoint

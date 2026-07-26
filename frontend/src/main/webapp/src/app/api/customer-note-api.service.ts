@@ -11,12 +11,12 @@ export class CustomerNoteApiService {
     if (page) {
       queryParams = queryParams.set('page', page);
     }
-    return this.http.get<CustomerNotesResponse>(`/customers/${customerId}/notes`, {params: queryParams});
+    return this.http.get<CustomerNotesResponse>(`/households/${customerId}/notes`, {params: queryParams});
   }
 
   createNewNote(customerId: number, note: string): Observable<CustomerNoteItem> {
     const request: CreateCustomerNoteRequest = {note: note};
-    return this.http.post<CustomerNoteItem>(`/customers/${customerId}/notes`, request);
+    return this.http.post<CustomerNoteItem>(`/households/${customerId}/notes`, request);
   }
 
 }

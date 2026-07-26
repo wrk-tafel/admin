@@ -2,10 +2,10 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity4
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity4
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -28,11 +28,11 @@ class HouseholdSizeDistributionExporterTest {
         testStatistic.distribution = DistributionEntity().apply {
             id = 123
             statistic = testStatistic
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2,
-                testDistributionCustomerEntity3,
-                testDistributionCustomerEntity4,
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+                testDistributionHouseholdEntity3,
+                testDistributionHouseholdEntity4,
             )
         }
         val exporter = HouseholdSizeDistributionExporter()

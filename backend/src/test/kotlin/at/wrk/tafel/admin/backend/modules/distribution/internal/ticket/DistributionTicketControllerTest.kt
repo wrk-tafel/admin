@@ -4,8 +4,8 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -27,11 +27,11 @@ internal class DistributionTicketControllerTest {
     private lateinit var controller: DistributionTicketController
 
     @Test
-    fun `get current ticket for customer 1`() {
-        val customerId = 123L
-        every { service.getCurrentTicketNumber(customerId) } returns testDistributionCustomerEntity1
+    fun `get current ticket for household 1`() {
+        val householdId = 123L
+        every { service.getCurrentTicketNumber(householdId) } returns testDistributionHouseholdEntity1
 
-        val response = controller.getCurrentTicketForCustomerId(customerId)
+        val response = controller.getCurrentTicketForHouseholdId(householdId)
 
         assertThat(response).isEqualTo(
             TicketNumberResponse(ticketNumber = 50),
@@ -39,11 +39,11 @@ internal class DistributionTicketControllerTest {
     }
 
     @Test
-    fun `get current ticket for customer 2`() {
-        val customerId = 123L
-        every { service.getCurrentTicketNumber(customerId) } returns testDistributionCustomerEntity3
+    fun `get current ticket for household 2`() {
+        val householdId = 123L
+        every { service.getCurrentTicketNumber(householdId) } returns testDistributionHouseholdEntity3
 
-        val response = controller.getCurrentTicketForCustomerId(customerId)
+        val response = controller.getCurrentTicketForHouseholdId(householdId)
 
         assertThat(response).isEqualTo(
             TicketNumberResponse(ticketNumber = 52),
@@ -51,32 +51,32 @@ internal class DistributionTicketControllerTest {
     }
 
     @Test
-    fun `delete current ticket for customer`() {
+    fun `delete current ticket for household`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
         every { service.deleteCurrentTicket(any()) } returns true
 
-        val customerId = 123L
-        val response = controller.deleteCurrentTicketForCustomer(customerId)
+        val householdId = 123L
+        val response = controller.deleteCurrentTicketForHousehold(householdId)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        verify { service.deleteCurrentTicket(customerId) }
+        verify { service.deleteCurrentTicket(householdId) }
     }
 
     @Test
-    fun `delete current ticket for customer failed`() {
+    fun `delete current ticket for household failed`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
         every { service.deleteCurrentTicket(any()) } returns false
 
-        val customerId = 123L
+        val householdId = 123L
 
-        val exception = assertThrows<TafelValidationException> { controller.deleteCurrentTicketForCustomer(customerId) }
+        val exception = assertThrows<TafelValidationException> { controller.deleteCurrentTicketForHousehold(householdId) }
         assertThat(exception.message).isEqualTo("Löschen des Tickets von Kunde Nr. 123 fehlgeschlagen!")
 
-        verify { service.deleteCurrentTicket(customerId) }
+        verify { service.deleteCurrentTicket(householdId) }
     }
 
 }

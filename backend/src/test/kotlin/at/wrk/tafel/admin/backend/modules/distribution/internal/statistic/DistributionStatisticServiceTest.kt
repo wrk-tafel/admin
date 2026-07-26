@@ -1,13 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
@@ -33,7 +33,7 @@ internal class DistributionStatisticServiceTest {
     private lateinit var distributionStatisticRepository: DistributionStatisticRepository
 
     @RelaxedMockK
-    private lateinit var customerRepository: CustomerRepository
+    private lateinit var householdRepository: HouseholdRepository
 
     @InjectMockKs
     private lateinit var service: DistributionStatisticService
@@ -47,10 +47,10 @@ internal class DistributionStatisticServiceTest {
             statistic = DistributionStatisticEntity().apply {
                 employeeCount = 100
             }
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2,
-                testDistributionCustomerEntity3
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+                testDistributionHouseholdEntity3
             )
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity,
@@ -62,9 +62,9 @@ internal class DistributionStatisticServiceTest {
         val statisticEndTime = testDistributionEntity.endedAt!!
 
         val testCustomersNew =
-            listOfNotNull(testDistributionCustomerEntity1.customer, testDistributionCustomerEntity2.customer)
+            listOfNotNull(testDistributionHouseholdEntity1.household, testDistributionHouseholdEntity2.household)
         every {
-            customerRepository.findAllByCreatedAtBetween(
+            householdRepository.findAllByCreatedAtBetween(
                 statisticStartTime,
                 statisticEndTime
             )
@@ -72,16 +72,16 @@ internal class DistributionStatisticServiceTest {
 
         val testCountCustomersUpdated = 456
         every {
-            customerRepository.countByUpdatedAtBetween(
+            householdRepository.countByUpdatedAtBetween(
                 statisticStartTime,
                 statisticEndTime
             )
         } returns testCountCustomersUpdated
 
         val testCustomersProlonged =
-            listOfNotNull(testDistributionCustomerEntity1.customer, testDistributionCustomerEntity2.customer)
+            listOfNotNull(testDistributionHouseholdEntity1.household, testDistributionHouseholdEntity2.household)
         every {
-            customerRepository.findAllByProlongedAtBetween(
+            householdRepository.findAllByProlongedAtBetween(
                 statisticStartTime,
                 statisticEndTime
             )
@@ -127,9 +127,9 @@ internal class DistributionStatisticServiceTest {
             statistic = DistributionStatisticEntity()
         }
 
-        every { customerRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
-        every { customerRepository.countByUpdatedAtBetween(any(), any()) } returns 0
-        every { customerRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
         service.saveStatistic(testDistributionEntity)

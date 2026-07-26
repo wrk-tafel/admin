@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 @Component
 class MissingCostContributionPostProcessor(
-    private val customerRepository: CustomerRepository,
+    private val householdRepository: HouseholdRepository,
     private val staticValueRepository: StaticValueRepository,
 ) : DistributionPostProcessor {
 
@@ -32,27 +32,27 @@ class MissingCostContributionPostProcessor(
             throw TafelValidationException("No cost contribution value found. Skipping missing cost contribution post processing.")
         }
 
-        val customersMissingCostContribution = distribution.customers
+        val householdsMissingCostContribution = distribution.households
             .filter { it.costContributionPaid == false }
-            .mapNotNull { it.customer }
+            .mapNotNull { it.household }
 
-        customersMissingCostContribution.forEach { customer ->
-            addPendingCostContribution(customer, costContributionValue)
+        householdsMissingCostContribution.forEach { household ->
+            addPendingCostContribution(household, costContributionValue)
         }
     }
 
     private fun addPendingCostContribution(
-        customer: CustomerEntity,
+        household: HouseholdEntity,
         costContributionValue: StaticValueEntity,
     ) {
-        val customerEntity = customerRepository.findByIdOrNull(customer.id!!)
-        if (customerEntity != null) {
-            val currentPendingCostContribution = customerEntity.pendingCostContribution
-            customerEntity.pendingCostContribution =
+        val householdEntity = householdRepository.findByIdOrNull(household.id!!)
+        if (householdEntity != null) {
+            val currentPendingCostContribution = householdEntity.pendingCostContribution
+            householdEntity.pendingCostContribution =
                 currentPendingCostContribution.add(costContributionValue.amount ?: BigDecimal.ZERO)
-            customerRepository.save(customerEntity)
+            householdRepository.save(householdEntity)
         } else {
-            logger.error("Customer with id ${customer.id} not found in database")
+            logger.error("Household with id ${household.id} not found in database")
         }
     }
 

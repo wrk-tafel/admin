@@ -11,12 +11,12 @@ POST {{baseApiPath}}/distributions/close
 GET {{baseApiPath}}/sse/distributions
 Accept: text/event-stream
 
-### Assign customer to distribution
-POST {{baseApiPath}}/distributions/customers
+### Assign household to distribution
+POST {{baseApiPath}}/distributions/households
 Content-Type: application/json
 
 {
-  "customerId": 100,
+  "householdId": 100,
   "ticketNumber": 100
 }
 
@@ -30,7 +30,7 @@ Content-Type: application/json
 }
 
 ### Get customer list (pdf)
-GET {{baseApiPath}}/distributions/customers/generate-pdf
+GET {{baseApiPath}}/distributions/households/generate-pdf
 
 ### Send mails for distribution
 POST {{baseApiPath}}/distributions/100/send-mails

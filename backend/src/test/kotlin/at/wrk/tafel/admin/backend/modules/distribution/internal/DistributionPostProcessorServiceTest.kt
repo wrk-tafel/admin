@@ -53,9 +53,9 @@ internal class DistributionPostProcessorServiceTest {
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.customers } returns listOf(
-            testDistributionCustomerEntity1,
-            testDistributionCustomerEntity2
+        every { distribution.households } returns listOf(
+            testDistributionHouseholdEntity1,
+            testDistributionHouseholdEntity2
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
@@ -84,9 +84,9 @@ internal class DistributionPostProcessorServiceTest {
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.customers } returns listOf(
-            testDistributionCustomerEntity1,
-            testDistributionCustomerEntity2
+        every { distribution.households } returns listOf(
+            testDistributionHouseholdEntity1,
+            testDistributionHouseholdEntity2
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()

@@ -1,15 +1,15 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute2
@@ -32,7 +32,7 @@ internal class DashboardServiceTest {
     private lateinit var distributionRepository: DistributionRepository
 
     @RelaxedMockK
-    private lateinit var distributionCustomerRepository: DistributionCustomerRepository
+    private lateinit var distributionHouseholdRepository: DistributionHouseholdRepository
 
     @RelaxedMockK
     private lateinit var routeRepository: RouteRepository
@@ -49,7 +49,7 @@ internal class DashboardServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
-        every { distributionCustomerRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
+        every { distributionHouseholdRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
 
         val data = service.getData()
 
@@ -61,10 +61,10 @@ internal class DashboardServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2,
-                testDistributionCustomerEntity3,
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+                testDistributionHouseholdEntity3,
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -97,7 +97,7 @@ internal class DashboardServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
-        every { distributionCustomerRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
+        every { distributionHouseholdRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
 
         val data = service.getData()
 
@@ -159,7 +159,7 @@ internal class DashboardServiceTest {
         assertThat(data.notes).isNull()
 
         verify { distributionRepository.findFirstByOrderByIdDesc() }
-        verify(exactly = 0) { distributionCustomerRepository.countAllByDistributionId(any()) }
+        verify(exactly = 0) { distributionHouseholdRepository.countAllByDistributionId(any()) }
     }
 
 }

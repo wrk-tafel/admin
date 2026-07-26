@@ -23,11 +23,12 @@ export class DistributionApiService {
   }
 
   assignCustomer(customerId: number, ticketNumber: number): Observable<void> {
-    const body: AssignCustomerRequest = {
-      customerId: customerId,
+    // the backend identifies the customer by its household id (same number as before)
+    const body: AssignHouseholdRequest = {
+      householdId: customerId,
       ticketNumber: ticketNumber,
     };
-    return this.http.post<void>('/distributions/customers', body);
+    return this.http.post<void>('/distributions/households', body);
   }
 
   saveStatistic(employeeCount: number, selectedShelterIds: number[]): Observable<void> {
@@ -46,7 +47,7 @@ export class DistributionApiService {
   }
 
   downloadCustomerList(): Observable<HttpResponse<Blob>> {
-    return this.http.get('/distributions/customers/generate-pdf',
+    return this.http.get('/distributions/households/generate-pdf',
       {
         responseType: 'blob',
         observe: 'response'
@@ -75,6 +76,12 @@ export interface DistributionItem {
 
 export interface AssignCustomerRequest {
   customerId: number;
+  ticketNumber: number;
+}
+
+/** Backend wire format for {@link AssignCustomerRequest} - intentionally not exported. */
+interface AssignHouseholdRequest {
+  householdId: number;
   ticketNumber: number;
 }
 

@@ -18,26 +18,26 @@ class DistributionTicketController(
         private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
     }
 
-    @GetMapping("/customers/{customerId}")
+    @GetMapping("/households/{householdId}")
     @TafelActiveDistributionRequired
-    fun getCurrentTicketForCustomerId(
-        @PathVariable customerId: Long,
+    fun getCurrentTicketForHouseholdId(
+        @PathVariable householdId: Long,
     ): TicketNumberResponse {
-        val distributionCustomerEntity = service.getCurrentTicketNumber(customerId)
-        logger.info("Ticket-Log - Fetched current ticket-number: $distributionCustomerEntity")
+        val distributionHouseholdEntity = service.getCurrentTicketNumber(householdId)
+        logger.info("Ticket-Log - Fetched current ticket-number: $distributionHouseholdEntity")
         return TicketNumberResponse(
-            ticketNumber = distributionCustomerEntity?.ticketNumber
+            ticketNumber = distributionHouseholdEntity?.ticketNumber
         )
     }
 
-    @DeleteMapping("/customers/{customerId}")
+    @DeleteMapping("/households/{householdId}")
     @TafelActiveDistributionRequired
-    fun deleteCurrentTicketForCustomer(
-        @PathVariable customerId: Long,
+    fun deleteCurrentTicketForHousehold(
+        @PathVariable householdId: Long,
     ): ResponseEntity<Unit> {
-        val deleted = service.deleteCurrentTicket(customerId)
+        val deleted = service.deleteCurrentTicket(householdId)
         if (!deleted) {
-            throw TafelValidationException("Löschen des Tickets von Kunde Nr. $customerId fehlgeschlagen!")
+            throw TafelValidationException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
         }
         return ResponseEntity.ok().build()
     }
