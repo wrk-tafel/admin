@@ -34,8 +34,16 @@ jobs:
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
         with:
           cache-provider: basic
-      - name: Build and Test
-        run: ./gradlew build
+      - run: npm ci
+        working-directory: frontend/src/main/webapp
+      - name: Frontend test
+        run: npm run test-ci
+        working-directory: frontend/src/main/webapp
+      - name: Frontend build
+        run: npm run build-prod
+        working-directory: frontend/src/main/webapp
+      - name: Backend build and test
+        run: ./gradlew :backend:build
       - name: Analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

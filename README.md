@@ -85,18 +85,18 @@ The frontend dev server starts on http://localhost:4200 and proxies API requests
 
 ## Building
 
+Backend and frontend are built independently, with no Gradle cross-dependency between them.
+
 ```bash
-# Full build (backend + frontend)
-./gradlew build
-
-# Backend only
+# Backend
 ./gradlew :backend:build
-
-# Frontend only
-./gradlew :frontend:build
 
 # Quick compile check (no tests)
 ./gradlew :backend:compileKotlin
+
+# Frontend
+cd frontend/src/main/webapp
+npm run build-prod
 ```
 
 ### Docker Image
@@ -104,7 +104,8 @@ The frontend dev server starts on http://localhost:4200 and proxies API requests
 The backend jar and frontend build are independent artifacts, combined only at image-build time:
 
 ```bash
-./gradlew build
+./gradlew :backend:build
+cd frontend/src/main/webapp && npm run build-prod && cd -
 mkdir -p artifact frontend-dist
 cp backend/build/libs/admin-backend.jar artifact/
 cp -r frontend/src/main/webapp/dist/browser/* frontend-dist/

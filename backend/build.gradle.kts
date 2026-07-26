@@ -132,12 +132,6 @@ tasks.jacocoTestReport {
 
 tasks.test {
     finalizedBy(tasks.jacocoTestReport)
-
-    // Avoid running at the same time as the frontend's headless-browser test run: on shared CI
-    // runners the combined load (JVM + Testcontainers Postgres + Chromium + Vite dev server) has
-    // intermittently starved the frontend's Vite dev server, causing spurious
-    // "Failed to fetch dynamically imported module" failures.
-    mustRunAfter(":frontend:npmTest")
 }
 
 sonar {
