@@ -275,6 +275,8 @@ describe('CustomerDetailComponent', () => {
       .toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
     expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('€ 123,00');
 
+    expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
+
     // Switch to the "Weitere Personen" tab to render its content
     const tabLabels = fixture.nativeElement.querySelectorAll('.mat-mdc-tab');
     tabLabels[1].click();
@@ -299,9 +301,6 @@ describe('CustomerDetailComponent', () => {
 
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
-
-    // TODO fix flaky assert
-    // expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
   });
 
   it('printMasterdata', () => {
@@ -395,6 +394,9 @@ describe('CustomerDetailComponent', () => {
     const valid = component.isValid();
 
     expect(valid).toBeFalsy();
+    const validUntilText = fixture.debugElement.query(By.css('[testid="validUntilText"]'));
+    expect(validUntilText.nativeElement.classList).toContain('bg-red-600');
+    expect(validUntilText.nativeElement.classList).not.toContain('bg-green-600');
   });
 
   it('isValid with date of today results in true', () => {
@@ -410,6 +412,9 @@ describe('CustomerDetailComponent', () => {
     const valid = component.isValid();
 
     expect(valid).toBe(true);
+    const validUntilText = fixture.debugElement.query(By.css('[testid="validUntilText"]'));
+    expect(validUntilText.nativeElement.classList).toContain('bg-green-600');
+    expect(validUntilText.nativeElement.classList).not.toContain('bg-red-600');
   });
 
   it('isValid with date of tomorrow results in true', () => {
@@ -424,8 +429,9 @@ describe('CustomerDetailComponent', () => {
 
     const valid = component.isValid();
     expect(valid).toBe(true);
-
-    // TODO expect(incomeDueText)-class success or danger
+    const validUntilText = fixture.debugElement.query(By.css('[testid="validUntilText"]'));
+    expect(validUntilText.nativeElement.classList).toContain('bg-green-600');
+    expect(validUntilText.nativeElement.classList).not.toContain('bg-red-600');
   });
 
   it('delete customer successful', async () => {
