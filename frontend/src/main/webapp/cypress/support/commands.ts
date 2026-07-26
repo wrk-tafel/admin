@@ -29,6 +29,37 @@ import * as moment from 'moment/moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
+// The backend requires the X-XSRF-TOKEN header (mirroring the XSRF-TOKEN cookie) on every
+// mutating request. The Angular app handles this via its xsrfInterceptor - direct cy.request
+// calls need the header injected here.
+Cypress.Commands.overwrite('request', (originalFn, ...args: any[]) => {
+  const options: Partial<Cypress.RequestOptions> = {};
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+    Object.assign(options, args[0]);
+  } else if (args.length === 1) {
+    options.url = args[0];
+  } else if (args.length === 2) {
+    options.method = args[0];
+    options.url = args[1];
+  } else if (args.length === 3) {
+    options.method = args[0];
+    options.url = args[1];
+    options.body = args[2];
+  }
+
+  const method = (options.method ?? 'GET').toString().toUpperCase();
+  if (method === 'GET' || method === 'HEAD') {
+    return originalFn(options as Cypress.RequestOptions);
+  }
+
+  return cy.getCookie('XSRF-TOKEN').then(cookie => {
+    if (cookie) {
+      options.headers = {'X-XSRF-TOKEN': cookie.value, ...options.headers};
+    }
+    return originalFn(options as Cypress.RequestOptions);
+  });
+});
+
 Cypress.Commands.add('loginDefault', () => {
   const username = 'e2etest';
   const password = 'e2etest';

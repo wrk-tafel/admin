@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
@@ -110,8 +111,32 @@ class WebSecurityConfig(
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
-            .csrf {
-                it.disable()
+            .csrf { csrf ->
+                val tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
+                tokenRepository.setCookieCustomizer { it.sameSite("Strict") }
+
+                csrf.csrfTokenRepository(tokenRepository)
+                csrf.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
+                // login authenticates via the Authorization header, which cross-site requests
+                // cannot set - and the client has no token yet at that point
+                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern("/api/login"))
+            }
+            .headers { headers ->
+                headers.contentSecurityPolicy {
+                    it.policyDirectives(
+                        "default-src 'self'; " +
+                                "script-src 'self'; " +
+                                // Angular injects component styles as inline <style> tags
+                                "style-src 'self' 'unsafe-inline'; " +
+                                "img-src 'self' data: blob:; " +
+                                "font-src 'self' data:; " +
+                                "connect-src 'self'; " +
+                                "object-src 'none'; " +
+                                "frame-ancestors 'none'; " +
+                                "base-uri 'self'; " +
+                                "form-action 'self'"
+                    )
+                }
             }
 
         return http.build()

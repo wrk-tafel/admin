@@ -20,6 +20,7 @@ import {CookieService} from 'ngx-cookie-service';
 import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
+import {xsrfInterceptor} from './common/http/xsrf-interceptor.service';
 import {AuthenticationService} from './common/security/authentication.service';
 import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
@@ -36,6 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withXhr(),
       withInterceptors([
         apiPathInterceptor,
+        xsrfInterceptor,
         errorHandlerInterceptor
       ])
     ),
