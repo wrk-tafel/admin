@@ -47,6 +47,8 @@ export class ShelterEditDialogComponent {
     personsCount: [this.data.shelter?.personsCount ?? '', [Validators.required]],
     enabled: [this.data.shelter?.enabled ?? true],
     contacts: this.fb.array((this.data.shelter?.contacts ?? []).map(c => this.createContactGroup(c)))
+  }, {
+    updateOn: 'blur'
   });
 
   createContactGroup(c?: ShelterContact) {
@@ -54,6 +56,8 @@ export class ShelterEditDialogComponent {
       firstname: [c?.firstname ?? ''],
       lastname: [c?.lastname ?? ''],
       phone: [c?.phone ?? '', [Validators.required]]
+    }, {
+      updateOn: 'blur'
     });
   }
 

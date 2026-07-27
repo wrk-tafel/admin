@@ -90,7 +90,7 @@ describe('Signal Form Helper', () => {
       expect(result).toBe(false);
     });
 
-    it('should return true when field is invalid and dirty', () => {
+    it('should return false when field is invalid and dirty but not touched', () => {
       const mockFieldState = {
         valid: () => false,
         dirty: () => true,
@@ -99,7 +99,7 @@ describe('Signal Form Helper', () => {
 
       const result = shouldShowErrors(mockFieldState);
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
     it('should return true when field is invalid and touched', () => {

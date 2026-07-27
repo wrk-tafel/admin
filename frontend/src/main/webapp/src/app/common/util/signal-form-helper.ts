@@ -33,7 +33,10 @@ export function getErrorMessages(fieldState: FieldState<any>): string[] {
 }
 
 /**
- * Check if a field should show errors (has errors and is touched or dirty)
+ * Check if a field should show errors (has errors and is touched)
+ *
+ * Only gates on `touched()` (set on blur) rather than `dirty()` so errors don't
+ * flash while the user is still typing - the signal-forms equivalent of `updateOn: 'blur'`.
  *
  * @param fieldState The field state from a signal form
  * @returns True if the field has errors and should display them
@@ -54,5 +57,5 @@ export function getErrorMessages(fieldState: FieldState<any>): string[] {
  * ```
  */
 export function shouldShowErrors(fieldState: FieldState<any>): boolean {
-  return !fieldState.valid() && (fieldState.dirty() || fieldState.touched());
+  return !fieldState.valid() && fieldState.touched();
 }

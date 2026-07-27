@@ -43,12 +43,16 @@ export class CustomerSearchComponent {
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({
-    customerId: this.fb.control<number | null>(null),
+    // Kept on 'change': read directly on (keydown.enter) and drives the search button's
+    // disabled state, so it must stay in sync with every keystroke rather than only on blur.
+    customerId: this.fb.control<number | null>(null, {updateOn: 'change'}),
     lastname: this.fb.control<string | null>(null),
     firstname: this.fb.control<string | null>(null),
     postProcessing: this.fb.control<boolean | null>(null),
     costContribution: this.fb.control<boolean | null>(null),
     valid: this.fb.control<boolean | null>(null),
+  }, {
+    updateOn: 'blur'
   });
 
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated

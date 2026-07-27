@@ -26,6 +26,8 @@ export class SelectSheltersDialogComponent {
 
   form = this.fb.group({
     selectedShelters: this.fb.array<FormControl<boolean>>([]),
+  }, {
+    updateOn: 'blur'
   });
 
   constructor() {

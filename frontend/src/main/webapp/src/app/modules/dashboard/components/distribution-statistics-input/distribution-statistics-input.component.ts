@@ -46,6 +46,8 @@ export class DistributionStatisticsInputComponent {
   form = this.fb.group({
     employeeCount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
     personsInShelterCount: this.fb.control<number | null>(null, [Validators.min(1)]),
+  }, {
+    updateOn: 'blur'
   });
 
   readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();
