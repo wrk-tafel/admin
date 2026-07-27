@@ -1,10 +1,12 @@
 import {TestBed} from '@angular/core/testing';
-import {CustomerAboveLimitItem, Gender} from '../../../../api/customer-api.service';
+import {CustomerAboveLimitItem, CustomerAboveLimitResponse, CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {CustomerAboveLimitComponent} from './customer-above-limit.component';
 import {Router} from '@angular/router';
+import {of} from 'rxjs';
 import type {MockedObject} from 'vitest';
 
 describe('CustomerAboveLimitComponent', () => {
+  let customerApiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
 
   const mockItem: CustomerAboveLimitItem = {
@@ -26,7 +28,18 @@ describe('CustomerAboveLimitComponent', () => {
     amountExceededLimit: 500
   };
 
+  const mockCustomerAboveLimitResponse: CustomerAboveLimitResponse = {
+    items: [mockItem],
+    totalCount: 100,
+    currentPage: 3,
+    totalPages: 10,
+    pageSize: 25
+  };
+
   beforeEach(() => {
+    const customerApiServiceSpy = {
+      getCustomersAboveLimit: vi.fn().mockName('CustomerApiService.getCustomersAboveLimit')
+    } as any;
     const routerSpy = {
       navigate: vi.fn().mockName('Router.navigate')
     } as any;
@@ -34,12 +47,17 @@ describe('CustomerAboveLimitComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         {
+          provide: CustomerApiService,
+          useValue: customerApiServiceSpy
+        },
+        {
           provide: Router,
           useValue: routerSpy
         }
       ]
     }).compileComponents();
 
+    customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
   });
 
@@ -53,10 +71,40 @@ describe('CustomerAboveLimitComponent', () => {
   it('input fills data correctly', () => {
     const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
     const component = fixture.componentInstance;
-    fixture.componentRef.setInput('customerAboveLimitData', [mockItem]);
+    fixture.componentRef.setInput('customerAboveLimitData', mockCustomerAboveLimitResponse);
     fixture.detectChanges();
 
-    expect(component.customerAboveLimitData()).toEqual([mockItem]);
+    expect(component.customerAboveLimitData()).toEqual(mockCustomerAboveLimitResponse);
+  });
+
+  it('get above limit with page', () => {
+    const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
+    const component = fixture.componentInstance;
+
+    const page = 5;
+    customerApiService.getCustomersAboveLimit.mockReturnValue(of(mockCustomerAboveLimitResponse));
+
+    component.getAboveLimit(page);
+
+    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(page);
+    expect(component.customerAboveLimitData()).toEqual(mockCustomerAboveLimitResponse);
+  });
+
+  it('get above limit with no results sets data to undefined', () => {
+    const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
+    const component = fixture.componentInstance;
+
+    customerApiService.getCustomersAboveLimit.mockReturnValue(of({
+      items: [],
+      totalCount: 0,
+      currentPage: 1,
+      totalPages: 0,
+      pageSize: 25
+    }));
+
+    component.getAboveLimit(1);
+
+    expect(component.customerAboveLimitData()).toBeUndefined();
   });
 
   it('show customer detail calls router navigation', () => {

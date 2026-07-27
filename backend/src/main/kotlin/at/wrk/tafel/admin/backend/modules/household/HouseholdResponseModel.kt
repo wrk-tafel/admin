@@ -128,7 +128,11 @@ data class HouseholdMergeRequest(
 
 @ExcludeFromTestCoverage
 data class HouseholdAboveLimitResponse(
-    val items: List<HouseholdAboveLimitItem>
+    val items: List<HouseholdAboveLimitItem>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
 )
 
 @ExcludeFromTestCoverage

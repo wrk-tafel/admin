@@ -148,8 +148,17 @@ class HouseholdController(
 
     @GetMapping("/above-limit")
     @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
-    fun getHouseholdsAboveLimit(): HouseholdAboveLimitResponse {
-        return HouseholdAboveLimitResponse(items = householdService.getHouseholdsAboveLimit())
+    fun getHouseholdsAboveLimit(
+        @RequestParam page: Int? = null,
+    ): HouseholdAboveLimitResponse {
+        val result = householdService.getHouseholdsAboveLimit(page)
+        return HouseholdAboveLimitResponse(
+            items = result.items,
+            totalCount = result.totalCount,
+            currentPage = result.currentPage,
+            totalPages = result.totalPages,
+            pageSize = result.pageSize
+        )
     }
 
     @GetMapping("/duplicates")

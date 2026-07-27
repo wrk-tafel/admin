@@ -1,6 +1,6 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { CustomerAboveLimitItem, CustomerApiService } from '../../../api/customer-api.service';
+import { CustomerAboveLimitResponse, CustomerApiService } from '../../../api/customer-api.service';
 import { of } from 'rxjs';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { CustomerAboveLimitDataResolver } from './customer-above-limit-data-resolver.component';
@@ -31,11 +31,17 @@ describe('CustomerAboveLimitDataResolver', () => {
     });
 
     it('resolve', () => {
-        const mockResponse: CustomerAboveLimitItem[] = [];
+        const mockResponse: CustomerAboveLimitResponse = {
+            items: [],
+            totalCount: 0,
+            currentPage: 1,
+            totalPages: 0,
+            pageSize: 25
+        };
         apiService.getCustomersAboveLimit.mockReturnValue(of(mockResponse));
 
         const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
-        resolver.resolve(activatedRoute).subscribe((response: CustomerAboveLimitItem[]) => {
+        resolver.resolve(activatedRoute).subscribe((response: CustomerAboveLimitResponse) => {
             expect(response).toEqual(mockResponse);
         });
 
