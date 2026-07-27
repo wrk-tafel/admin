@@ -33,3 +33,34 @@ describe('General', () => {
   });
 
 });
+
+describe('Navigation Progress Bar', () => {
+
+  it('shows a top-level loading bar while a resolver-gated page is loading, and hides it once loaded', () => {
+    cy.loginDefault();
+    cy.visit('/#/uebersicht');
+
+    // navigate once first so the app is fully settled before triggering the navigation under test
+    cy.contains('Kunden suchen').click();
+    cy.url().should('include', '/kunden/suchen');
+
+    // Route resolvers (e.g. the above-limit list's data fetch) block navigation before the target
+    // component even mounts, so delay the response to give the bar time to actually be observed.
+    cy.intercept('GET', '/api/households/above-limit*', (req) => {
+      req.on('response', (res) => {
+        res.setDelay(2000);
+      });
+    }).as('aboveLimit');
+
+    cy.byTestId('nav-progress-bar').should('not.exist');
+    cy.contains('Kunden über Limit').click();
+
+    cy.byTestId('nav-progress-bar').should('be.visible');
+
+    cy.wait('@aboveLimit');
+
+    cy.byTestId('nav-progress-bar').should('not.exist');
+    cy.url().should('include', '/kunden/ueber-limit');
+  });
+
+});
