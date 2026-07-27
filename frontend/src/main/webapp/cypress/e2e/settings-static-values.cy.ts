@@ -29,7 +29,7 @@ describe('Settings - Static Values', () => {
     cy.byTestId('static-value-save-button').click();
 
     cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
-    cy.byTestId('static-values-row-0').should('contain.text', '1500');
+    cy.byTestId('static-values-row-0').should('contain.text', '1.500,00');
   });
 
 });
