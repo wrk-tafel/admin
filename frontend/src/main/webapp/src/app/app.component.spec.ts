@@ -7,6 +7,7 @@ describe('AppComponent', () => {
   let routerEventsSubject: Subject<any>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     routerEventsSubject = new Subject();
 
     TestBed.configureTestingModule({
@@ -21,13 +22,17 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
-  it('sets navigating to true on NavigationStart', () => {
+  it('does not show the bar before the show-delay has elapsed', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const app = fixture.componentInstance;
@@ -35,7 +40,33 @@ describe('AppComponent', () => {
     routerEventsSubject.next(new NavigationStart(1, '/test'));
     fixture.detectChanges();
 
+    expect(app.navigating()).toBe(false);
+  });
+
+  it('sets navigating to true once the show-delay elapses for a still in-flight navigation', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const app = fixture.componentInstance;
+
+    routerEventsSubject.next(new NavigationStart(1, '/test'));
+    vi.advanceTimersByTime(500);
+    fixture.detectChanges();
+
     expect(app.navigating()).toBe(true);
+  });
+
+  it('never shows the bar for a navigation that settles before the show-delay elapses', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const app = fixture.componentInstance;
+
+    routerEventsSubject.next(new NavigationStart(1, '/test'));
+    routerEventsSubject.next(new NavigationEnd(1, '/test', '/test'));
+    fixture.detectChanges();
+    vi.advanceTimersByTime(500);
+    fixture.detectChanges();
+
+    expect(app.navigating()).toBe(false);
   });
 
   it('sets navigating to false on NavigationEnd', () => {
@@ -44,6 +75,7 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
 
     routerEventsSubject.next(new NavigationStart(1, '/test'));
+    vi.advanceTimersByTime(500);
     fixture.detectChanges();
     routerEventsSubject.next(new NavigationEnd(1, '/test', '/test'));
     fixture.detectChanges();
@@ -57,6 +89,7 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
 
     routerEventsSubject.next(new NavigationStart(1, '/test'));
+    vi.advanceTimersByTime(500);
     fixture.detectChanges();
     routerEventsSubject.next(new NavigationCancel(1, '/test', 'test'));
     fixture.detectChanges();
@@ -70,6 +103,7 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
 
     routerEventsSubject.next(new NavigationStart(1, '/test'));
+    vi.advanceTimersByTime(500);
     fixture.detectChanges();
     routerEventsSubject.next(new NavigationError(1, '/test', new Error('test')));
     fixture.detectChanges();
@@ -85,6 +119,7 @@ describe('AppComponent', () => {
     // navigation 1 starts, then navigation 2 starts and supersedes it before 1 settles
     routerEventsSubject.next(new NavigationStart(1, '/test'));
     routerEventsSubject.next(new NavigationStart(2, '/test-2'));
+    vi.advanceTimersByTime(500);
     fixture.detectChanges();
 
     // a late/stale End for the superseded navigation 1 must not clear the bar for navigation 2

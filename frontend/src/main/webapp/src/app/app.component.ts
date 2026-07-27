@@ -28,18 +28,32 @@ export class AppComponent {
   // processes every emission.
   readonly navigating = signal(false);
 
+  // Most navigations settle well under this, so showing the bar immediately would just flicker -
+  // only surface it once a navigation has actually been in flight long enough to be noticeable.
+  private static readonly SHOW_DELAY_MS = 500;
+
   // Tracks which navigation the bar is currently shown for, so an End/Cancel/Error belonging to
   // an unrelated, already-superseded navigation can't clear the bar while the navigation the user
   // actually triggered is still in flight.
   private currentNavigationId: number | null = null;
 
+  private showDelayTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe(evt => {
       if (evt instanceof NavigationStart) {
         this.currentNavigationId = evt.id;
-        this.navigating.set(true);
+        this.showDelayTimeoutId = setTimeout(() => {
+          if (evt.id === this.currentNavigationId) {
+            this.navigating.set(true);
+          }
+        }, AppComponent.SHOW_DELAY_MS);
       } else if (evt instanceof NavigationEnd || evt instanceof NavigationCancel || evt instanceof NavigationError) {
         if (evt.id === this.currentNavigationId) {
+          if (this.showDelayTimeoutId !== null) {
+            clearTimeout(this.showDelayTimeoutId);
+            this.showDelayTimeoutId = null;
+          }
           this.navigating.set(false);
         }
       }
