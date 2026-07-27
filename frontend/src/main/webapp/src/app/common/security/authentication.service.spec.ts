@@ -41,8 +41,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({ successful: true, passwordChangeRequired: false, locked: false });
-            expect(service.userInfo!.username).toBe(userInfoResponseBody.username);
-            expect(service.userInfo!.permissions).toEqual(userInfoResponseBody.permissions);
+            expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
+            expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
         });
 
         const mockLoginReq = httpMock.expectOne('/login');
@@ -69,8 +69,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({ successful: true, passwordChangeRequired: true, locked: false });
-            expect(service.userInfo!.username).toBe(userInfoResponseBody.username);
-            expect(service.userInfo!.permissions).toEqual(userInfoResponseBody.permissions);
+            expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
+            expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
         });
 
         const loginMockReq = httpMock.expectOne('/login');
@@ -90,12 +90,12 @@ describe('AuthenticationService', () => {
     });
 
     it('login failed', async () => {
-        service.userInfo = { username: 'test123', permissions: [] };
+        service.userInfo.set({ username: 'test123', permissions: [] });
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: false });
             // check if it's reset
-            expect(service.userInfo).toBeNull();
+            expect(service.userInfo()).toBeNull();
         });
 
         const loginMockReq = httpMock.expectOne('/login');
@@ -111,12 +111,12 @@ describe('AuthenticationService', () => {
     });
 
     it('login failed - account locked', async () => {
-        service.userInfo = { username: 'test123', permissions: [] };
+        service.userInfo.set({ username: 'test123', permissions: [] });
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: true });
             // check if it's reset
-            expect(service.userInfo).toBeNull();
+            expect(service.userInfo()).toBeNull();
         });
 
         const loginMockReq = httpMock.expectOne('/login');
@@ -144,7 +144,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasPermission - permission exists', () => {
-        service.userInfo = { username: 'test123', permissions: ['PERM1'] };
+        service.userInfo.set({ username: 'test123', permissions: ['PERM1'] });
 
         const hasPermission = service.hasPermission('PERM1');
 
@@ -152,7 +152,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasPermission - permission doesnt exist', () => {
-        service.userInfo = { username: 'test123', permissions: ['PERM2'] };
+        service.userInfo.set({ username: 'test123', permissions: ['PERM2'] });
 
         const hasPermission = service.hasPermission('PERM1');
 
@@ -160,7 +160,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasPermission - no permissions given', () => {
-        service.userInfo = { username: 'test123', permissions: [] };
+        service.userInfo.set({ username: 'test123', permissions: [] });
 
         const hasPermission = service.hasPermission('PERM1');
 
@@ -168,7 +168,7 @@ describe('AuthenticationService', () => {
     });
 
     it('getUsername - authenticated', () => {
-        service.userInfo = { username: 'test-user', permissions: [] };
+        service.userInfo.set({ username: 'test-user', permissions: [] });
 
         const username = service.getUsername();
 
@@ -182,7 +182,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermission - no permissions', () => {
-        service.userInfo = { username: 'test-user', permissions: [] };
+        service.userInfo.set({ username: 'test-user', permissions: [] });
 
         const hasAnyPermission = service.hasAnyPermission();
 
@@ -190,7 +190,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermission - given permissions', () => {
-        service.userInfo = { username: 'test-user', permissions: ['PERM1'] };
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
 
         const hasAnyPermission = service.hasAnyPermission();
 
@@ -198,11 +198,11 @@ describe('AuthenticationService', () => {
     });
 
     it('logout', () => {
-        service.userInfo = { username: 'test-user', permissions: ['PERM1'] };
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
 
         /* eslint-disable @typescript-eslint/no-unused-vars */
         service.logout().subscribe(response => {
-            expect(service.userInfo).toBeNull();
+            expect(service.userInfo()).toBeNull();
         });
 
         const mockReq = httpMock.expectOne('/users/logout');
@@ -214,7 +214,7 @@ describe('AuthenticationService', () => {
     });
 
     it('isAuthenticated true', () => {
-        service.userInfo = { username: 'test-user', permissions: ['PERM1'] };
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
 
         const isAuthenticated = service.isAuthenticated();
 
@@ -222,7 +222,7 @@ describe('AuthenticationService', () => {
     });
 
     it('isAuthenticated false', () => {
-        service.userInfo = null;
+        service.userInfo.set(null);
 
         const isAuthenticated = service.isAuthenticated();
 
@@ -230,7 +230,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermissionOf - single permission exists', () => {
-        service.userInfo = { username: 'test123', permissions: ['PERM1', 'PERM2'] };
+        service.userInfo.set({ username: 'test123', permissions: ['PERM1', 'PERM2'] });
 
         const hasPermission = service.hasAnyPermissionOf(['PERM1']);
 
@@ -238,7 +238,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermissionOf - multiple permissions exist and one does not exist', () => {
-        service.userInfo = { username: 'test123', permissions: ['PERM1', 'PERM2'] };
+        service.userInfo.set({ username: 'test123', permissions: ['PERM1', 'PERM2'] });
 
         const hasPermission = service.hasAnyPermissionOf(['PERM1', 'PERM2', 'PERM3']);
 
@@ -246,7 +246,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermissionOf - permission doesnt exist', () => {
-        service.userInfo = { username: 'test123', permissions: ['PERM2'] };
+        service.userInfo.set({ username: 'test123', permissions: ['PERM2'] });
 
         const hasPermission = service.hasAnyPermissionOf(['PERM1']);
 
@@ -254,7 +254,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermissionOf - no permissions given', () => {
-        service.userInfo = { username: 'test123', permissions: [] };
+        service.userInfo.set({ username: 'test123', permissions: [] });
 
         const hasPermission = service.hasAnyPermissionOf(['PERM1']);
 

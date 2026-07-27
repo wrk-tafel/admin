@@ -1,12 +1,12 @@
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
-import {inject, Service} from '@angular/core';
+import {inject, Service, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 
 @Service()
 export class AuthenticationService {
-  userInfo: UserInfo | null = null;
+  userInfo = signal<UserInfo | null>(null);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
@@ -18,13 +18,13 @@ export class AuthenticationService {
         }),
 
         catchError((error: HttpErrorResponse) => {
-          this.userInfo = null;
+          this.userInfo.set(null);
           return of({successful: false, passwordChangeRequired: false, locked: error.status === 423});
         })));
   }
 
   public isAuthenticated(): boolean {
-    return this.userInfo !== null;
+    return this.userInfo() !== null;
   }
 
   public redirectToLogin(msgKey?: string) {
@@ -32,7 +32,7 @@ export class AuthenticationService {
   }
 
   public hasAnyPermission(): boolean {
-    return (this.userInfo?.permissions.length ?? 0) > 0;
+    return (this.userInfo()?.permissions.length ?? 0) > 0;
   }
 
   public hasPermission(permission: string): boolean {
@@ -40,23 +40,23 @@ export class AuthenticationService {
   }
 
   public hasAnyPermissionOf(permissions: string[]): boolean {
-    const foundPermissions = this.userInfo?.permissions.filter(permission => permissions.indexOf(permission) > -1) ?? [];
+    const foundPermissions = this.userInfo()?.permissions.filter(permission => permissions.indexOf(permission) > -1) ?? [];
     return foundPermissions.length > 0;
   }
 
   public getUsername(): string | undefined {
-    return this.userInfo?.username;
+    return this.userInfo()?.username;
   }
 
   public logout(): Observable<void> {
-    this.userInfo = null;
+    this.userInfo.set(null);
     return this.http.post<void>('/users/logout', null);
   }
 
   public loadUserInfo(): Promise<UserInfo | null> {
     return firstValueFrom(this.http.get<UserInfo>('/users/info')
       .pipe(tap(userInfo => {
-          this.userInfo = userInfo;
+          this.userInfo.set(userInfo);
           return of(userInfo);
         }),
 
