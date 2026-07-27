@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, effect, inject, input, model, viewChild} from '@angular/core';
+import {Component, effect, inject, input, model, signal, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
@@ -40,10 +40,9 @@ export class FoodCollectionRecordingBasedataComponent {
   private readonly fb = inject(FormBuilder);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
-  private readonly cdr = inject(ChangeDetectorRef);
 
-  selectedDriver: EmployeeData | null = null;
-  selectedCoDriver: EmployeeData | null = null;
+  selectedDriver = signal<EmployeeData | null>(null);
+  selectedCoDriver = signal<EmployeeData | null>(null);
 
   form = this.fb.group({
       car: this.fb.control<CarData | null>(null, [Validators.required]),
@@ -51,14 +50,14 @@ export class FoodCollectionRecordingBasedataComponent {
         [
           Validators.required,
           Validators.maxLength(50),
-          CustomValidator.hasValue(() => this.selectedDriver, 'Bitte die Mitarbeiter-Suche starten')
+          CustomValidator.hasValue(() => this.selectedDriver(), 'Bitte die Mitarbeiter-Suche starten')
         ]
       ),
       coDriverSearchInput: this.fb.control<string | null>(null,
         [
           Validators.required,
           Validators.maxLength(50),
-          CustomValidator.hasValue(() => this.selectedCoDriver, 'Bitte die Mitarbeiter-Suche starten')
+          CustomValidator.hasValue(() => this.selectedCoDriver(), 'Bitte die Mitarbeiter-Suche starten')
         ]
       ),
       kmStart: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
@@ -77,9 +76,9 @@ export class FoodCollectionRecordingBasedataComponent {
     this.kmStart.reset();
     this.kmEnd.reset();
     this.driverSearchInput.reset();
-    this.selectedDriver = null;
+    this.selectedDriver.set(null);
     this.coDriverSearchInput.reset();
-    this.selectedCoDriver = null;
+    this.selectedCoDriver.set(null);
 
     if (foodCollectionData) {
       this.car.setValue(this.carList().cars.find(car => car.id === foodCollectionData.carId) ?? null);
@@ -108,8 +107,6 @@ export class FoodCollectionRecordingBasedataComponent {
       this.kmStart.setValue(foodCollectionData.kmStart);
       this.kmEnd.setValue(foodCollectionData.kmEnd);
     }
-
-    this.cdr.markForCheck();
   });
 
   private createKmValidation() {
@@ -144,17 +141,17 @@ export class FoodCollectionRecordingBasedataComponent {
   }
 
   setSelectedDriver(employee: EmployeeData) {
-    this.selectedDriver = employee;
+    this.selectedDriver.set(employee);
     this.driverSearchInput.updateValueAndValidity();
   }
 
   setSelectedCoDriver(employee: EmployeeData) {
-    this.selectedCoDriver = employee;
+    this.selectedCoDriver.set(employee);
     this.coDriverSearchInput.updateValueAndValidity();
   }
 
   isSaveDisabled(): boolean {
-    return this.form.invalid || !this.selectedDriver || !this.selectedCoDriver;
+    return this.form.invalid || !this.selectedDriver() || !this.selectedCoDriver();
   }
 
   save(overrideKmDiff: boolean = false) {
@@ -175,8 +172,8 @@ export class FoodCollectionRecordingBasedataComponent {
 
     const routeData: FoodCollectionSaveRouteDataRequest = {
       carId: this.car.value!.id,
-      driverId: this.selectedDriver!.id,
-      coDriverId: this.selectedCoDriver!.id,
+      driverId: this.selectedDriver()!.id,
+      coDriverId: this.selectedCoDriver()!.id,
       kmStart: kmStart,
       kmEnd: kmEnd
     };
@@ -189,12 +186,12 @@ export class FoodCollectionRecordingBasedataComponent {
 
   resetDriver() {
     this.driverSearchInput.setValue(null);
-    this.selectedDriver = null;
+    this.selectedDriver.set(null);
   }
 
   resetCoDriver() {
     this.coDriverSearchInput.setValue(null);
-    this.selectedCoDriver = null;
+    this.selectedCoDriver.set(null);
   }
 
   get car() {

@@ -62,7 +62,7 @@
   </div>
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
     <div class="md:col-span-5">
-      @if (!selectedDriver) {
+      @if (!selectedDriver()) {
         <label class="form-label">Fahrer *</label>
         <div class="flex items-center gap-2">
           <input testid="driverSearchInput" type="text" formControlName="driverSearchInput" class="form-control"
@@ -90,7 +90,7 @@
       } @else {
         <label class="form-label">Fahrer *</label>
         <div class="flex items-center justify-between gap-2">
-          <div testid="selectedDriverDescription">{{ selectedDriver.personnelNumber }} {{ selectedDriver.firstname }} {{ selectedDriver.lastname }}</div>
+          <div testid="selectedDriverDescription">{{ selectedDriver()!.personnelNumber }} {{ selectedDriver()!.firstname }} {{ selectedDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedDriverRemoveButton" class="button-danger"
                   (click)="resetDriver()">
             <fa-icon [icon]="faRemove"></fa-icon>
@@ -99,7 +99,7 @@
       }
     </div>
     <div class="md:col-span-5 mt-4 md:mt-0">
-      @if (!selectedCoDriver) {
+      @if (!selectedCoDriver()) {
         <label class="form-label">Beifahrer *</label>
         <div class="flex items-center gap-2">
           <input testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" class="form-control"
@@ -127,7 +127,7 @@
       } @else {
         <label class="form-label">Beifahrer *</label>
         <div class="flex items-center justify-between gap-2">
-          <div testid="selectedCoDriverDescription">{{ selectedCoDriver.personnelNumber }} {{ selectedCoDriver.firstname }} {{ selectedCoDriver.lastname }}</div>
+          <div testid="selectedCoDriverDescription">{{ selectedCoDriver()!.personnelNumber }} {{ selectedCoDriver()!.firstname }} {{ selectedCoDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedCoDriverRemoveButton" class="button-danger"
                   (click)="resetCoDriver()">
             <fa-icon [icon]="faRemove"></fa-icon>
