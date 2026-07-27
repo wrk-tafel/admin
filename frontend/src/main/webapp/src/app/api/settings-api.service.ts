@@ -14,6 +14,14 @@ export class SettingsApiService {
     return this.http.post<void>('/settings/mail-recipients', data);
   }
 
+  getStaticValues(): Observable<StaticValueListResponse> {
+    return this.http.get<StaticValueListResponse>('/settings/static-values');
+  }
+
+  updateStaticValue(staticValueId: number, staticValue: StaticValueItem): Observable<StaticValueItem> {
+    return this.http.post<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
+  }
+
 }
 
 export interface MailRecipients {
@@ -40,4 +48,30 @@ export enum RecipientTypeEnum {
   TO = 'TO',
   CC = 'CC',
   BCC = 'BCC'
+}
+
+export interface StaticValueListResponse {
+  staticValues: StaticValueItem[];
+}
+
+export interface StaticValueItem {
+  id: number | null;
+  type: StaticValueTypeEnum;
+  validFrom: string;
+  validTo: string;
+  amount: number | null;
+  countAdults: number | null;
+  countChildren: number | null;
+  age: number | null;
+}
+
+export enum StaticValueTypeEnum {
+  INCOME_LIMIT = 'INCOME_LIMIT',
+  ADDITIONAL_ADULT = 'ADDITIONAL_ADULT',
+  ADDITIONAL_CHILD = 'ADDITIONAL_CHILD',
+  TOLERANCE = 'TOLERANCE',
+  FAMILY_BONUS = 'FAMILY_BONUS',
+  CHILD_TAX_ALLOWANCE = 'CHILD_TAX_ALLOWANCE',
+  SIBLING_ADDITION = 'SIBLING_ADDITION',
+  COST_CONTRIBUTION = 'COST_CONTRIBUTION'
 }

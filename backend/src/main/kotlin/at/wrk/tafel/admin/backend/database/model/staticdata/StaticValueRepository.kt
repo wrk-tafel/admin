@@ -8,10 +8,12 @@ import java.time.LocalDate
 
 interface StaticValueRepository : JpaRepository<StaticValueEntity, Long> {
 
-    // static values only ever change via a DB migration shipped with a new deployment, never at
-    // runtime, so caching for the process lifetime (see CacheConfig) is safe and needs no eviction -
-    // each method gets its own cache name since the default key generator only considers arguments,
-    // not the method itself, and findSingleValueOfType/findValuesOfType share the same argument shape
+    // static values are cached for the process lifetime (see CacheConfig) since getHouseholdsAboveLimit()
+    // would otherwise re-query these same rows once per household validated - SettingsService evicts
+    // these caches on every static-value create/update, so this is safe despite values now being
+    // editable at runtime through the settings UI. Each method gets its own cache name since the
+    // default key generator only considers arguments, not the method itself, and
+    // findSingleValueOfType/findValuesOfType share the same argument shape
     @Cacheable("staticValueLatestForPersonCount")
     @Query("select il from StaticValue il where il.type = :type and il.countAdults = :countAdults and il.countChildren = :countChildren and :currentDate between il.validFrom and il.validTo")
     fun findLatestForPersonCount(

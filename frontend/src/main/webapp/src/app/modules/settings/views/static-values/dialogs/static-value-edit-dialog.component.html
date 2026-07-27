@@ -1,0 +1,30 @@
+<tafel-dialog title="Statischer Wert" testid="static-value-edit-dialog">
+  <div tafel-dialog-content>
+    <dl class="grid grid-cols-2 gap-x-4 gap-y-2 mb-4" testid="static-value-readonly-fields">
+      <dt class="font-semibold">Typ</dt>
+      <dd>{{ typeLabel }}</dd>
+
+      <dt class="font-semibold">Anzahl Erwachsene</dt>
+      <dd>{{ data.staticValue.countAdults }}</dd>
+
+      <dt class="font-semibold">Anzahl Kinder</dt>
+      <dd>{{ data.staticValue.countChildren }}</dd>
+
+      <dt class="font-semibold">Alter</dt>
+      <dd>{{ data.staticValue.age }}</dd>
+    </dl>
+
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Betrag</mat-label>
+        <input matInput type="number" step="0.01" formControlName="amount" testid="staticValueAmountInput"/>
+        <span matTextSuffix>&nbsp;€</span>
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" testid="static-value-save-button" (click)="save()">Speichern</button>
+    <button matButton (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

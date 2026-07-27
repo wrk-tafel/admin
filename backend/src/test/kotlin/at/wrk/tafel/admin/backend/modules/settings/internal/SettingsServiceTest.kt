@@ -10,25 +10,38 @@ import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_CC1
 import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_CC2
 import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO1
 import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO2
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
+import io.mockk.verify
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.repository.findByIdOrNull
+import java.math.BigDecimal
+import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class SettingsServiceTest {
 
     @RelaxedMockK
     private lateinit var mailRecipientRepository: MailRecipientRepository
+
+    @RelaxedMockK
+    private lateinit var staticValueRepository: StaticValueRepository
 
     @InjectMockKs
     private lateinit var service: SettingsService
@@ -181,6 +194,159 @@ class SettingsServiceTest {
                 address = "c c1"
             }
         )
+    }
+
+    @Test
+    fun `fetch static values only returns rows currently valid today`() {
+        val today = LocalDate.now()
+
+        val current = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.TOLERANCE
+            validFrom = today.minusDays(10)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("100.00")
+        }
+        val expired = StaticValueEntity().apply {
+            id = 2
+            type = StaticValueType.TOLERANCE
+            validFrom = LocalDate.of(1900, 1, 1)
+            validTo = today.minusDays(11)
+            amount = BigDecimal("50.00")
+        }
+        val notYetValid = StaticValueEntity().apply {
+            id = 3
+            type = StaticValueType.INCOME_LIMIT
+            validFrom = today.plusDays(1)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("1328.00")
+            countAdults = 1
+            countChildren = 0
+        }
+        every { staticValueRepository.findAll() } returns listOf(current, expired, notYetValid)
+
+        val response = service.getStaticValues()
+
+        assertThat(response.staticValues).containsExactly(
+            StaticValueItem(
+                id = 1,
+                type = "TOLERANCE",
+                validFrom = today.minusDays(10),
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("100.00"),
+                countAdults = null,
+                countChildren = null,
+                age = null,
+            ),
+        )
+    }
+
+    @Test
+    fun `update static value historizes - closes the current row yesterday and opens a new one today`() {
+        val today = LocalDate.now()
+        val existing = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.INCOME_LIMIT
+            validFrom = LocalDate.of(2022, 1, 1)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("1328.00")
+            countAdults = 1
+            countChildren = 0
+        }
+        every { staticValueRepository.findByIdOrNull(1L) } returns existing
+        val savedEntitySlot = slot<StaticValueEntity>()
+        every { staticValueRepository.save(capture(savedEntitySlot)) } answers {
+            savedEntitySlot.captured.apply { if (id == null) id = 2L }
+        }
+
+        // type/countAdults/countChildren/age differ from the existing row, but must be ignored - only
+        // amount is editable, so the new historized row keeps the existing row's own values
+        val requestedChanges = StaticValueItem(
+            id = 1,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2030, 1, 1),
+            validTo = LocalDate.of(2031, 1, 1),
+            amount = BigDecimal("1500.00"),
+            countAdults = 9,
+            countChildren = 9,
+            age = 99,
+        )
+
+        val response = service.updateStaticValue(1L, requestedChanges)
+
+        assertThat(existing.validTo).isEqualTo(today.minusDays(1))
+        assertThat(response).isEqualTo(
+            StaticValueItem(
+                id = 2,
+                type = "INCOME_LIMIT",
+                validFrom = today,
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("1500.00"),
+                countAdults = 1,
+                countChildren = 0,
+                age = null,
+            )
+        )
+    }
+
+    @Test
+    fun `update static value updates in place when the currently valid row already started today`() {
+        val today = LocalDate.now()
+        val existing = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.TOLERANCE
+            validFrom = today
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("100.00")
+        }
+        every { staticValueRepository.findByIdOrNull(1L) } returns existing
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        val requestedChanges = StaticValueItem(
+            id = 1,
+            type = "TOLERANCE",
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("999.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        val response = service.updateStaticValue(1L, requestedChanges)
+
+        verify(exactly = 1) { staticValueRepository.save(any()) }
+        assertThat(response).isEqualTo(
+            StaticValueItem(
+                id = 1,
+                type = "TOLERANCE",
+                validFrom = today,
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("999.00"),
+                countAdults = null,
+                countChildren = null,
+                age = null,
+            )
+        )
+    }
+
+    @Test
+    fun `update static value fails when id is not found`() {
+        every { staticValueRepository.findByIdOrNull(99L) } returns null
+
+        val updated = StaticValueItem(
+            id = 99,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2026, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("150.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        assertThatThrownBy { service.updateStaticValue(99L, updated) }
+            .isInstanceOf(TafelValidationException::class.java)
     }
 
 }
