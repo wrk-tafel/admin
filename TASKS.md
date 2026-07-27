@@ -8,11 +8,6 @@ listed under MAYBE with the specific open question instead of guessed at.
 ---
 # DO
 
-1. **Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber**
-   * `spring.jpa.open-in-view: false` (`application.yml:56`) and every `DistributionService` method is its own `@Transactional` — so this is *not* a persistence-context/L2-cache issue across separate HTTP requests (no Hibernate/Spring cache config exists anywhere in the backend). The one place staleness is actually possible: `assignHouseholdToDistribution`/`deleteCurrentTicket`/`generateHouseholdListPdf` all call `getCurrentDistribution()` fresh, but if two of these calls happen to land in one transaction (e.g. a future combined endpoint, or a retry within the same request), `currentDistribution.households` (a lazy `@OneToMany`, `DistributionEntity.kt:42-43`) would already be initialized in the persistence context and wouldn't reflect a `distributionHouseholdRepository.delete(...)` issued via a *different* entity reference in the same session.
-   * Fix: in `DistributionService.generateHouseholdListPdf()` (`DistributionService.kt:124-152`), replace `currentDistribution.households` with a direct fresh query, e.g. add `findByDistributionId(distributionId: Long): List<DistributionHouseholdEntity>` to `DistributionHouseholdRepository` and use that instead of the entity association — this removes any dependency on collection-caching semantics regardless of transaction boundaries.
-   * Files: `DistributionService.kt:129`, `DistributionHouseholdRepository.kt` (new query method).
-
 2. **Add overview "Customers above limit" + permission**
    * Add `CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit")` to `UserPermissions.kt:6-16` (same enum pattern as `CUSTOMER_DUPLICATES`/`SETTINGS`).
    * This can't be a JPA `Specification` like `HouseholdEntity.Specs.validHousehold()` (`HouseholdEntity.kt:205-213`) — "above limit" is a computed result, not a stored column. New endpoint in `HouseholdController.kt` (alongside `getDuplicates()` at line 149), e.g. `GET /api/households/above-limit`, backed by a new `HouseholdService` method that: loads households via the existing `validHousehold()` spec, for each loads its persons, calls `IncomeValidatorService.validate()` (same call already used in `createHousehold`/`updateHousehold`, `HouseholdService.kt:55/96`), and returns those where `result.valid == false`. This is what catches households that were fine at creation but now exceed the limit because a `StaticValueType.INCOME_LIMIT` row's amount changed since.
@@ -113,6 +108,7 @@ listed under MAYBE with the specific open question instead of guessed at.
 
 ---
 ## Done (validated 2026-07-27)
+* Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber - implemented 2026-07-27: generateHouseholdListPdf() now loads households via a fresh DistributionHouseholdRepository.findByDistributionId() query instead of the currentDistribution.households association; DistributionServiceTest updated accordingly
 * Route only needs a time and no separate order (sorting) - RouteStopEntity has no order field
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough) - RouteStopEntity is a real JPA entity (routes_stops table), separate from Route's free-text note
 * Validation necessary for KM Abfahrt < KM Ankunft - implemented (kmValidation error) and covered by tests in food-collection-recording-basedata
