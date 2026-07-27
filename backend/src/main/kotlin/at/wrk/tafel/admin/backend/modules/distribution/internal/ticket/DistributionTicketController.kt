@@ -28,7 +28,7 @@ class DistributionTicketController(
         val distributionHouseholdEntity = service.getCurrentTicketNumber(householdId)
         logger.info("Ticket-Log - Fetched current ticket-number: $distributionHouseholdEntity")
         return TicketNumberResponse(
-            ticketNumber = distributionHouseholdEntity?.ticketNumber
+            ticketNumber = distributionHouseholdEntity?.ticketNumber,
         )
     }
 
@@ -43,5 +43,4 @@ class DistributionTicketController(
         }
         return ResponseEntity.ok().build()
     }
-
 }

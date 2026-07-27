@@ -21,5 +21,4 @@ class ClasspathResourceURIResolverTest {
 
         assertThat(source).isNotNull
     }
-
 }

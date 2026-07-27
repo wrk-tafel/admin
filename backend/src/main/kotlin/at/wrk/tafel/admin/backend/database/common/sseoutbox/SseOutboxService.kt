@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.database.common.sse_outbox
+package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
-import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -145,5 +145,4 @@ class SseOutboxService(
             logger.debug("Attempted to send to already completed SSE emitter")
         }
     }
-
 }

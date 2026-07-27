@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @ExcludeFromTestCoverage
 class FlywayImportTestdataCallback(
     @param:Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean,
-    @param:Value("/db-migration-testdata/testdata.sql") val sqlFileClassPath: String? = null
+    @param:Value("/db-migration-testdata/testdata.sql") val sqlFileClassPath: String? = null,
 ) : BaseCallback() {
 
     companion object {
@@ -28,5 +28,4 @@ class FlywayImportTestdataCallback(
             LOGGER.info("Importing testdata finished!")
         }
     }
-
 }

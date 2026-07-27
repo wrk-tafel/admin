@@ -10,19 +10,17 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/countries")
 @PreAuthorize("isAuthenticated()")
 class CountryController(
-    private val countryRepository: CountryRepository
+    private val countryRepository: CountryRepository,
 ) {
 
     @GetMapping
-    fun listCountries(): CountryListResponse {
-        return CountryListResponse(
-            items = countryRepository.findAll().map {
-                Country(
-                    id = it.id!!,
-                    code = it.code!!,
-                    name = it.name!!
-                )
-            }
-        )
-    }
+    fun listCountries(): CountryListResponse = CountryListResponse(
+        items = countryRepository.findAll().map {
+            Country(
+                id = it.id!!,
+                code = it.code!!,
+                name = it.name!!,
+            )
+        },
+    )
 }

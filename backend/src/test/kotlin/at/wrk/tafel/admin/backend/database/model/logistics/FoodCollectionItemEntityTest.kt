@@ -36,5 +36,4 @@ class FoodCollectionItemEntityTest {
 
         assertThat(weight).isEqualTo(BigDecimal(2.5))
     }
-
 }

@@ -113,105 +113,92 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
 
     interface Specs {
         companion object {
-            fun firstnameContains(firstname: String?): Specification<HouseholdEntity>? {
-                return firstname?.let {
-                    Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                        val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
-                        cb.like(
-                            cb.lower(mainPerson["firstname"]),
-                            "%${firstname.lowercase()}%"
-                        )
-                    }
-                }
-            }
-
-            fun lastnameContains(lastname: String?): Specification<HouseholdEntity>? {
-                return lastname?.let {
-                    Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                        val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
-                        cb.like(
-                            cb.lower(mainPerson["lastname"]),
-                            "%${lastname.lowercase()}%"
-                        )
-                    }
-                }
-            }
-
-            fun postProcessingNecessary(): Specification<HouseholdEntity> {
-                return Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-
-                    // any person of the household with incomplete master data
-                    val subQuery: Subquery<Long> = cq!!.subquery(Long::class.java)
-                    val subRoot: Root<PersonEntity> = subQuery.from(PersonEntity::class.java)
-                    val subHousehold: Join<PersonEntity, HouseholdEntity> = subRoot.join("household")
-
-                    val subBirthDate: Expression<LocalDate> = subRoot["birthDate"]
-                    val subGender: Expression<Gender> = subRoot["gender"]
-
-                    subQuery.select(subHousehold["id"]).distinct(true)
-                        .where(
-                            cb.or(
-                                cb.isNull(subBirthDate),
-                                cb.isNull(subGender)
-                            )
-                        )
-
+            fun firstnameContains(firstname: String?): Specification<HouseholdEntity>? = firstname?.let {
+                Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                     val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
-                    val lastname: Expression<String> = mainPerson["lastname"]
-                    val firstname: Expression<String> = mainPerson["firstname"]
-                    val birthDate: Expression<LocalDate> = mainPerson["birthDate"]
-                    val gender: Expression<Gender> = mainPerson["gender"]
-                    val country: Expression<CountryEntity> = mainPerson["country"]
-                    val employer: Expression<String> = mainPerson["employer"]
-
-                    val addressStreet: Expression<String> = root["addressStreet"]
-                    val addressHouseNumber: Expression<String> = root["addressHouseNumber"]
-                    val addressPostalCode: Expression<String> = root["addressPostalCode"]
-                    val addressCity: Expression<String> = root["addressCity"]
-                    val id: Expression<Long> = root["id"]
-
-                    cb.or(
-                        cb.isNull(lastname),
-                        cb.isNull(firstname),
-                        cb.isNull(birthDate),
-                        cb.isNull(gender),
-                        cb.isNull(country),
-                        cb.isNull(addressStreet),
-                        cb.isNull(addressHouseNumber),
-                        cb.isNull(addressPostalCode),
-                        cb.isNull(addressCity),
-                        cb.isNull(employer),
-                        id.`in`(subQuery)
+                    cb.like(
+                        cb.lower(mainPerson["firstname"]),
+                        "%${firstname.lowercase()}%",
                     )
                 }
             }
 
-            fun pendingCostContribution(): Specification<HouseholdEntity> {
-                return Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val pendingCostContribution: Expression<BigDecimal> = root["pendingCostContribution"]
-                    cb.greaterThan(pendingCostContribution, BigDecimal.ZERO)
-                }
-            }
-
-            fun orderByUpdatedAtDesc(spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> {
-                return Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val updatedAt: Expression<LocalDate> = root["updatedAt"]
-
-                    cq!!.orderBy(cb.desc(updatedAt))
-                    spec.toPredicate(root, cq, cb)
-                }
-            }
-
-            fun validHousehold(): Specification<HouseholdEntity> {
-                return Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val validUntil: Expression<LocalDate> = root["validUntil"]
-                    cb.and(
-                        cb.isNotNull(validUntil),
-                        cb.greaterThanOrEqualTo(validUntil, LocalDate.now())
+            fun lastnameContains(lastname: String?): Specification<HouseholdEntity>? = lastname?.let {
+                Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                    val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
+                    cb.like(
+                        cb.lower(mainPerson["lastname"]),
+                        "%${lastname.lowercase()}%",
                     )
                 }
+            }
+
+            fun postProcessingNecessary(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+
+                // any person of the household with incomplete master data
+                val subQuery: Subquery<Long> = cq!!.subquery(Long::class.java)
+                val subRoot: Root<PersonEntity> = subQuery.from(PersonEntity::class.java)
+                val subHousehold: Join<PersonEntity, HouseholdEntity> = subRoot.join("household")
+
+                val subBirthDate: Expression<LocalDate> = subRoot["birthDate"]
+                val subGender: Expression<Gender> = subRoot["gender"]
+
+                subQuery.select(subHousehold["id"]).distinct(true)
+                    .where(
+                        cb.or(
+                            cb.isNull(subBirthDate),
+                            cb.isNull(subGender),
+                        ),
+                    )
+
+                val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
+                val lastname: Expression<String> = mainPerson["lastname"]
+                val firstname: Expression<String> = mainPerson["firstname"]
+                val birthDate: Expression<LocalDate> = mainPerson["birthDate"]
+                val gender: Expression<Gender> = mainPerson["gender"]
+                val country: Expression<CountryEntity> = mainPerson["country"]
+                val employer: Expression<String> = mainPerson["employer"]
+
+                val addressStreet: Expression<String> = root["addressStreet"]
+                val addressHouseNumber: Expression<String> = root["addressHouseNumber"]
+                val addressPostalCode: Expression<String> = root["addressPostalCode"]
+                val addressCity: Expression<String> = root["addressCity"]
+                val id: Expression<Long> = root["id"]
+
+                cb.or(
+                    cb.isNull(lastname),
+                    cb.isNull(firstname),
+                    cb.isNull(birthDate),
+                    cb.isNull(gender),
+                    cb.isNull(country),
+                    cb.isNull(addressStreet),
+                    cb.isNull(addressHouseNumber),
+                    cb.isNull(addressPostalCode),
+                    cb.isNull(addressCity),
+                    cb.isNull(employer),
+                    id.`in`(subQuery),
+                )
+            }
+
+            fun pendingCostContribution(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val pendingCostContribution: Expression<BigDecimal> = root["pendingCostContribution"]
+                cb.greaterThan(pendingCostContribution, BigDecimal.ZERO)
+            }
+
+            fun orderByUpdatedAtDesc(spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val updatedAt: Expression<LocalDate> = root["updatedAt"]
+
+                cq!!.orderBy(cb.desc(updatedAt))
+                spec.toPredicate(root, cq, cb)
+            }
+
+            fun validHousehold(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val validUntil: Expression<LocalDate> = root["validUntil"]
+                cb.and(
+                    cb.isNotNull(validUntil),
+                    cb.greaterThanOrEqualTo(validUntil, LocalDate.now()),
+                )
             }
         }
     }
-
 }

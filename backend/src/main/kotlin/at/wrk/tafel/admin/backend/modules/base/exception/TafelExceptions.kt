@@ -7,12 +7,12 @@ import org.springframework.http.HttpStatus
 class TafelException(
     override val message: String?,
     override val cause: Throwable? = null,
-    val status: HttpStatus? = null
+    val status: HttpStatus? = null,
 ) : RuntimeException()
 
 @ExcludeFromTestCoverage
 class TafelValidationException(
     override val message: String?,
     override val cause: Throwable? = null,
-    val status: HttpStatus? = null
+    val status: HttpStatus? = null,
 ) : RuntimeException()

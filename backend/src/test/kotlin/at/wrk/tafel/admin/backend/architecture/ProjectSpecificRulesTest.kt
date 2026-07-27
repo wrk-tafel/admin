@@ -27,7 +27,6 @@ internal class ProjectSpecificRulesTest {
         .should().haveRawReturnType(resideInAPackage("..database.model.."))
         .because(
             "controllers should map entities to DTOs instead of returning them directly from an endpoint - " +
-                "CountryController and EmployeeController are exempted for now as they still access repositories directly"
+                "CountryController and EmployeeController are exempted for now as they still access repositories directly",
         )
-
 }

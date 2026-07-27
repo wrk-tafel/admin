@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
@@ -50,12 +50,12 @@ internal class DistributionStatisticServiceTest {
             households = listOf(
                 testDistributionHouseholdEntity1,
                 testDistributionHouseholdEntity2,
-                testDistributionHouseholdEntity3
+                testDistributionHouseholdEntity3,
             )
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity,
                 testFoodCollectionRoute2Entity,
-                testFoodCollectionRoute3Entity
+                testFoodCollectionRoute3Entity,
             )
         }
         val statisticStartTime = testDistributionEntity.startedAt!!.toLocalDate().atStartOfDay()
@@ -66,7 +66,7 @@ internal class DistributionStatisticServiceTest {
         every {
             householdRepository.findAllByCreatedAtBetween(
                 statisticStartTime,
-                statisticEndTime
+                statisticEndTime,
             )
         } returns testCustomersNew
 
@@ -74,7 +74,7 @@ internal class DistributionStatisticServiceTest {
         every {
             householdRepository.countByUpdatedAtBetween(
                 statisticStartTime,
-                statisticEndTime
+                statisticEndTime,
             )
         } returns testCountCustomersUpdated
 
@@ -83,7 +83,7 @@ internal class DistributionStatisticServiceTest {
         every {
             householdRepository.findAllByProlongedAtBetween(
                 statisticStartTime,
-                statisticEndTime
+                statisticEndTime,
             )
         } returns testCustomersProlonged
 
@@ -103,7 +103,7 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countPersons).isEqualTo(4)
         assertThat(savedStatistic.countInfants).isEqualTo(1)
         assertThat(savedStatistic.averagePersonsPerCustomer).isEqualTo(
-            BigDecimal(1.33).setScale(2, RoundingMode.HALF_EVEN)
+            BigDecimal(1.33).setScale(2, RoundingMode.HALF_EVEN),
         )
         assertThat(savedStatistic.countCustomersNew).isEqualTo(testCustomersNew.size)
         assertThat(savedStatistic.countPersonsNew).isEqualTo(3)
@@ -167,5 +167,4 @@ internal class DistributionStatisticServiceTest {
         val message = assertThrows<TafelValidationException> { service.saveStatistic(testDistributionEntity) }
         assertThat(message.message).isEqualTo("Statistik-Daten nicht vorhanden!")
     }
-
 }

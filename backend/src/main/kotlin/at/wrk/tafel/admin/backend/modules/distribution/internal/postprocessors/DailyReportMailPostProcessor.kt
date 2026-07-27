@@ -39,13 +39,13 @@ class DailyReportMailPostProcessor(
         val dateFilenameFormatted = distribution.startedAt!!.format(DATE_FILENAME_FORMATTER)
 
         val mailSubject = "TÖ Tafel 1030 - Tagesreport vom $dateFormatted"
-        val filename = "tagesreport_${dateFilenameFormatted}.pdf"
+        val filename = "tagesreport_$dateFilenameFormatted.pdf"
         val attachment = listOf(
             MailAttachment(
                 filename = filename,
                 inputStreamSource = ByteArrayResource(pdfReportBytes),
-                contentType = MediaType.APPLICATION_PDF_VALUE
-            )
+                contentType = MediaType.APPLICATION_PDF_VALUE,
+            ),
         )
 
         val ctx = Context()
@@ -57,9 +57,8 @@ class DailyReportMailPostProcessor(
             mailSubject,
             attachment,
             "mails/daily-report-mail",
-            ctx
+            ctx,
         )
         logger.info("Mail with daily report '$mailSubject' - file: '$filename' sent!")
     }
-
 }

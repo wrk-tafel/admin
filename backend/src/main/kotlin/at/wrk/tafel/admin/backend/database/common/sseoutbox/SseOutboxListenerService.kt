@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.database.common.sse_outbox
+package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.annotation.PostConstruct
@@ -53,7 +53,7 @@ class SseOutboxListenerService(
             if (notification.parameter != null) {
                 val event = jsonMapper.readValue(
                     notification.parameter,
-                    SseOutboxNotificationEvent::class.java
+                    SseOutboxNotificationEvent::class.java,
                 )
 
                 callbacks[event.notificationName]?.forEach { it.invoke(event.payload) }
@@ -88,7 +88,6 @@ class SseOutboxListenerService(
         stmt.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;")
         stmt.close()
     }
-
 }
 
 @ExcludeFromTestCoverage

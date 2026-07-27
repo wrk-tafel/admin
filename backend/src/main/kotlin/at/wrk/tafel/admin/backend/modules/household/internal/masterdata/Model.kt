@@ -12,7 +12,7 @@ data class PdfData(
     val issuedAtDate: String,
     val customer: PdfCustomerData,
     val countPersons: Int,
-    val countInfants: Int
+    val countInfants: Int,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -56,7 +56,7 @@ data class PdfCustomerData(
     val income: String? = null,
     val incomeDueDate: String? = null,
     val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
-    val idCard: PdfIdCardData? = null
+    val idCard: PdfIdCardData? = null,
 )
 
 @ExcludeFromTestCoverage
@@ -66,7 +66,7 @@ data class PdfAddressData(
     val door: String? = null,
     val stairway: String? = null,
     val postalCode: Int?,
-    val city: String
+    val city: String,
 )
 
 @ExcludeFromTestCoverage
@@ -78,13 +78,13 @@ data class PdfAdditionalPersonData(
     val country: String,
     val employer: String? = null,
     val income: String? = null,
-    val incomeDueDate: String? = null
+    val incomeDueDate: String? = null,
 )
 
 @ExcludeFromTestCoverage
 data class PdfIdCardData(
     val qrCodeContentType: String,
-    val qrCodeBytes: ByteArray
+    val qrCodeBytes: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

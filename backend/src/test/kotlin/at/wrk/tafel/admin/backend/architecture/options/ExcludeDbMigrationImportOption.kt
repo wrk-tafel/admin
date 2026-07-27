@@ -5,8 +5,5 @@ import com.tngtech.archunit.core.importer.Location
 
 class ExcludeDbMigrationImportOption : ImportOption {
 
-    override fun includes(location: Location): Boolean {
-        return !location.contains("at/wrk/tafel/admin/backend/database/migration")
-    }
-
+    override fun includes(location: Location): Boolean = !location.contains("at/wrk/tafel/admin/backend/database/migration")
 }

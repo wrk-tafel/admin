@@ -18,7 +18,8 @@ internal class PDFServiceTest {
 
     companion object {
         private val comparisonResultDirectory = File(
-            System.getProperty("user.dir"), "build/custom-test-results/pdfservice-comparison-results"
+            System.getProperty("user.dir"),
+            "build/custom-test-results/pdfservice-comparison-results",
         )
 
         @JvmStatic
@@ -34,7 +35,7 @@ internal class PDFServiceTest {
 
         val pdfBytes = pdfService.generatePdf(
             data = DummyData(text = "Test 123"),
-            stylesheetPath = "/pdf-references/distribution/sample.xsl"
+            stylesheetPath = "/pdf-references/distribution/sample.xsl",
         )
         FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "sample-result.pdf"), pdfBytes)
 
@@ -55,11 +56,10 @@ internal class PDFServiceTest {
 
         document.close()
     }
-
 }
 
 @JsonRootName("data")
 @ExcludeFromTestCoverage
 data class DummyData(
-    val text: String
+    val text: String,
 )

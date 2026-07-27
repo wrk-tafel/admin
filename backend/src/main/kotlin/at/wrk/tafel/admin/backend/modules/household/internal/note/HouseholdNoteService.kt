@@ -26,7 +26,7 @@ class HouseholdNoteService(
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize
+            pageSize = pageRequest.pageSize,
         )
     }
 
@@ -39,7 +39,7 @@ class HouseholdNoteService(
         return HouseholdNoteItem(
             author = userDisplayString,
             timestamp = entity.createdAt!!,
-            note = entity.note!!
+            note = entity.note!!,
         )
     }
 
@@ -54,5 +54,4 @@ class HouseholdNoteService(
         val savedEntity = householdNoteRepository.save(noteEntity)
         return mapNote(savedEntity)
     }
-
 }

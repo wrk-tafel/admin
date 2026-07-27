@@ -21,5 +21,7 @@ data class MailRecipientAdresses(
 
 @ExcludeFromTestCoverage
 enum class MailRecipientType {
-    TO, CC, BCC
+    TO,
+    CC,
+    BCC,
 }

@@ -24,7 +24,7 @@ class FoodCollectionService(
     private val shopRepository: ShopRepository,
     private val foodCategoryRepository: FoodCategoryRepository,
     private val carRepository: CarRepository,
-    private val advisoryLockService: AdvisoryLockService
+    private val advisoryLockService: AdvisoryLockService,
 ) {
 
     @Transactional
@@ -51,7 +51,7 @@ class FoodCollectionService(
                 coDriver = coDriver,
                 kmStart = foodCollection.kmStart,
                 kmEnd = foodCollection.kmEnd,
-                items = mapItemsEntityToItems(foodCollection.items ?: emptyList())
+                items = mapItemsEntityToItems(foodCollection.items ?: emptyList()),
             )
         }
     }
@@ -74,7 +74,7 @@ class FoodCollectionService(
     fun saveItemsPerShop(
         routeId: Long,
         shopId: Long,
-        data: FoodCollectionSaveItemsPerShopData
+        data: FoodCollectionSaveItemsPerShopData,
     ) {
         val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
@@ -85,7 +85,7 @@ class FoodCollectionService(
                 items = items,
                 categoryId = item.categoryId,
                 shopId = shopId,
-                newAmount = item.amount
+                newAmount = item.amount,
             )
         }
 
@@ -106,7 +106,7 @@ class FoodCollectionService(
             } ?: emptyList()
 
             return FoodCollectionItems(
-                items = mapItemsEntityToItems(items)
+                items = mapItemsEntityToItems(items),
             )
         }
 
@@ -127,7 +127,7 @@ class FoodCollectionService(
                 items = items,
                 categoryId = data.categoryId,
                 shopId = data.shopId,
-                newAmount = data.amount
+                newAmount = data.amount,
             )
 
             foodCollectionEntity.items = items
@@ -139,7 +139,7 @@ class FoodCollectionService(
         items: MutableList<FoodCollectionItemEntity>,
         categoryId: Long,
         shopId: Long,
-        newAmount: Int
+        newAmount: Int,
     ) {
         val existingItem = items.firstOrNull {
             it.category?.id == categoryId && it.shop?.id == shopId
@@ -147,19 +147,21 @@ class FoodCollectionService(
         if (existingItem != null) {
             existingItem.amount = newAmount
         } else {
-            items.add(FoodCollectionItemEntity().apply {
-                category = foodCategoryRepository.findByIdOrNull(categoryId)
-                    ?: throw TafelValidationException("Kategorie ungültig!")
-                shop = shopRepository.findByIdOrNull(shopId)
-                    ?: throw TafelValidationException("Filiale ungültig!")
-                amount = newAmount
-            })
+            items.add(
+                FoodCollectionItemEntity().apply {
+                    category = foodCategoryRepository.findByIdOrNull(categoryId)
+                        ?: throw TafelValidationException("Kategorie ungültig!")
+                    shop = shopRepository.findByIdOrNull(shopId)
+                        ?: throw TafelValidationException("Filiale ungültig!")
+                    amount = newAmount
+                },
+            )
         }
     }
 
     private fun getOrCreateFoodCollectionEntity(
         distributionEntity: DistributionEntity,
-        routeId: Long
+        routeId: Long,
     ): FoodCollectionEntity = distributionEntity.foodCollections.firstOrNull {
         it.route?.id == routeId
     } ?: FoodCollectionEntity().apply {
@@ -168,19 +170,17 @@ class FoodCollectionService(
             ?: throw TafelValidationException("Route $routeId nicht gefunden!")
     }
 
-    private fun mapEmployee(employee: EmployeeEntity): Employee {
-        return Employee(
-            id = employee.id!!,
-            personnelNumber = employee.personnelNumber!!,
-            firstname = employee.firstname!!,
-            lastname = employee.lastname!!,
-        )
-    }
+    private fun mapEmployee(employee: EmployeeEntity): Employee = Employee(
+        id = employee.id!!,
+        personnelNumber = employee.personnelNumber!!,
+        firstname = employee.firstname!!,
+        lastname = employee.lastname!!,
+    )
 
     private fun mapRouteData(
         distributionEntity: DistributionEntity,
         routeId: Long,
-        data: FoodCollectionSaveRouteData
+        data: FoodCollectionSaveRouteData,
     ): FoodCollectionEntity {
         val entity = distributionEntity.foodCollections.firstOrNull {
             it.route?.id == routeId
@@ -204,7 +204,7 @@ class FoodCollectionService(
     private fun mapAllItems(
         distributionEntity: DistributionEntity,
         routeId: Long,
-        data: FoodCollectionItems
+        data: FoodCollectionItems,
     ): FoodCollectionEntity {
         val entity = distributionEntity.foodCollections.firstOrNull {
             it.route?.id == routeId
@@ -218,26 +218,21 @@ class FoodCollectionService(
         }
     }
 
-    private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> {
-        return items.map {
-            FoodCollectionItemEntity().apply {
-                category = foodCategoryRepository.findByIdOrNull(it.categoryId)
-                    ?: throw TafelValidationException("Kategorie ungültig!")
-                shop = shopRepository.findByIdOrNull(it.shopId)
-                    ?: throw TafelValidationException("Filiale ungültig!")
-                amount = it.amount
-            }
+    private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> = items.map {
+        FoodCollectionItemEntity().apply {
+            category = foodCategoryRepository.findByIdOrNull(it.categoryId)
+                ?: throw TafelValidationException("Kategorie ungültig!")
+            shop = shopRepository.findByIdOrNull(it.shopId)
+                ?: throw TafelValidationException("Filiale ungültig!")
+            amount = it.amount
         }
     }
 
-    private fun mapItemsEntityToItems(items: List<FoodCollectionItemEntity>): List<FoodCollectionItem> {
-        return items.map {
-            FoodCollectionItem(
-                categoryId = it.category!!.id!!,
-                shopId = it.shop!!.id!!,
-                amount = it.amount ?: 0
-            )
-        }
+    private fun mapItemsEntityToItems(items: List<FoodCollectionItemEntity>): List<FoodCollectionItem> = items.map {
+        FoodCollectionItem(
+            categoryId = it.category!!.id!!,
+            shopId = it.shop!!.id!!,
+            amount = it.amount ?: 0,
+        )
     }
-
 }

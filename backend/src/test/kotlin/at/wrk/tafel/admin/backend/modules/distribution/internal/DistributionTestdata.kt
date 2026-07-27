@@ -21,7 +21,7 @@ val testDistributionStatisticEntity = DistributionStatisticEntity().apply {
     employeeCount = 100
     shelters = listOf(
         testDistributionStatisticShelterEntity1,
-        testDistributionStatisticShelterEntity2
+        testDistributionStatisticShelterEntity2,
     ).toMutableList()
 }
 
@@ -110,7 +110,7 @@ val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             incomeDue = LocalDate.now()
             country = testCountry2
             excludeFromHousehold = false
-        }
+        },
     ).withAdditionalPerson(
         PersonEntity().apply {
             id = 3
@@ -119,7 +119,7 @@ val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
             birthDate = LocalDate.now().minusYears(21)
             country = testCountry3
             excludeFromHousehold = true
-        }
+        },
     )
     ticketNumber = 50
     processed = true
@@ -230,7 +230,7 @@ val testDistributionHouseholdEntity4 = DistributionHouseholdEntity().apply {
             incomeDue = LocalDate.now()
             country = testCountry3
             excludeFromHousehold = false
-        }
+        },
     ).withAdditionalPerson(
         PersonEntity().apply {
             id = 402
@@ -239,7 +239,7 @@ val testDistributionHouseholdEntity4 = DistributionHouseholdEntity().apply {
             birthDate = LocalDate.now().minusYears(65)
             country = testCountry1
             excludeFromHousehold = true
-        }
+        },
     ).withAdditionalPerson(
         PersonEntity().apply {
             id = 403
@@ -248,7 +248,7 @@ val testDistributionHouseholdEntity4 = DistributionHouseholdEntity().apply {
             birthDate = LocalDate.now().minusYears(35)
             country = testCountry1
             excludeFromHousehold = true
-        }
+        },
     )
     ticketNumber = 52
     processed = false

@@ -23,5 +23,4 @@ class LoginAttemptEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "locked_until")
     var lockedUntil: LocalDateTime? = null
-
 }

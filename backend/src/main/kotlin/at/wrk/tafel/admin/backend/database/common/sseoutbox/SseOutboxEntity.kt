@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.database.common.sse_outbox
+package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.base.BaseEntity
@@ -20,5 +20,4 @@ class SseOutboxEntity : BaseEntity() {
 
     @Column(name = "payload")
     var payload: String? = null
-
 }

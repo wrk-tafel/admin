@@ -10,15 +10,12 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/cars")
 class CarsController(
-    private val carService: CarService
+    private val carService: CarService,
 ) {
 
     @GetMapping
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    fun getCars(): CarListResponse {
-        return CarListResponse(
-            cars = carService.getCars()
-        )
-    }
-
+    fun getCars(): CarListResponse = CarListResponse(
+        cars = carService.getCars(),
+    )
 }

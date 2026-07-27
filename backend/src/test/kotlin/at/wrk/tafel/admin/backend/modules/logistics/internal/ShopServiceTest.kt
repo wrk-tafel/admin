@@ -51,10 +51,9 @@ class ShopServiceTest {
                         id = it.shop!!.id!!,
                         number = it.shop!!.number!!,
                         name = it.shop!!.name!!,
-                        address = "${it.shop!!.address!!.street}, ${it.shop!!.address!!.postalCode} ${it.shop!!.address!!.city}"
+                        address = "${it.shop!!.address!!.street}, ${it.shop!!.address!!.postalCode} ${it.shop!!.address!!.city}",
                     )
-                }
+                },
         )
     }
-
 }

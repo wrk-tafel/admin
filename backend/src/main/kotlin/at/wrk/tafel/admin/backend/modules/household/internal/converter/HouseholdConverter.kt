@@ -26,7 +26,7 @@ class HouseholdConverter(
     private val householdRepository: HouseholdRepository,
     private val personRepository: PersonRepository,
     private val countryRepository: CountryRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
 
     fun mapHouseholdToEntity(householdUpdate: Household, storedEntity: HouseholdEntity? = null): HouseholdEntity {
@@ -46,10 +46,14 @@ class HouseholdConverter(
         householdEntity.email = householdUpdate.email?.takeIf { it.isNotBlank() }?.trim()
 
         val prolongedAt =
-            if (storedEntity?.validUntil != null
-                && householdUpdate.validUntil != null
-                && householdUpdate.validUntil.isAfter(storedEntity.validUntil)
-            ) LocalDateTime.now() else null
+            if (storedEntity?.validUntil != null &&
+                householdUpdate.validUntil != null &&
+                householdUpdate.validUntil.isAfter(storedEntity.validUntil)
+            ) {
+                LocalDateTime.now()
+            } else {
+                null
+            }
         householdEntity.prolongedAt = prolongedAt
         householdEntity.validUntil = householdUpdate.validUntil
 
@@ -115,7 +119,7 @@ class HouseholdConverter(
                 HouseholdIssuer(
                     personnelNumber = it.personnelNumber!!,
                     firstname = it.firstname!!,
-                    lastname = it.lastname!!
+                    lastname = it.lastname!!,
                 )
             },
             issuedAt = householdEntity.createdAt!!.toLocalDate(),
@@ -125,7 +129,7 @@ class HouseholdConverter(
                 stairway = householdEntity.addressStairway,
                 door = householdEntity.addressDoor,
                 postalCode = householdEntity.addressPostalCode,
-                city = householdEntity.addressCity
+                city = householdEntity.addressCity,
             ),
             telephoneNumber = householdEntity.telephoneNumber,
             email = householdEntity.email,
@@ -135,7 +139,7 @@ class HouseholdConverter(
             lockedBy = householdEntity.lockedBy?.let { "${it.employee!!.personnelNumber} ${it.employee!!.firstname} ${it.employee!!.lastname}" },
             lockReason = householdEntity.lockReason,
             pendingCostContribution = householdEntity.pendingCostContribution,
-            persons = listOfNotNull(mainPersonEntity?.let { mapPerson(it) }) + additionalPersons
+            persons = listOfNotNull(mainPersonEntity?.let { mapPerson(it) }) + additionalPersons,
         )
     }
 
@@ -151,19 +155,14 @@ class HouseholdConverter(
         income = personEntity.income,
         incomeDue = personEntity.incomeDue,
         receivesFamilyBonus = personEntity.receivesFamilyBonus,
-        excludeFromHousehold = personEntity.excludeFromHousehold
+        excludeFromHousehold = personEntity.excludeFromHousehold,
     )
 
-    private fun mapGender(gender: Gender?): PersonGender? {
-        return gender?.let { PersonGender.valueOf(it.name) }
-    }
+    private fun mapGender(gender: Gender?): PersonGender? = gender?.let { PersonGender.valueOf(it.name) }
 
-    private fun mapCountryToResponse(country: CountryEntity): Country {
-        return Country(
-            id = country.id!!,
-            code = country.code!!,
-            name = country.name!!
-        )
-    }
-
+    private fun mapCountryToResponse(country: CountryEntity): Country = Country(
+        id = country.id!!,
+        code = country.code!!,
+        name = country.name!!,
+    )
 }

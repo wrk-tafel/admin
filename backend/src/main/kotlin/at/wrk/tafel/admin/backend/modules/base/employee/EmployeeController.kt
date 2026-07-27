@@ -26,15 +26,18 @@ class EmployeeController(
         @RequestParam page: Int? = null,
     ): EmployeeListResponse {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5)
-        val pagedResult = if (searchInput != null) employeeRepository.findBySearchInput(searchInput, pageRequest)
-        else employeeRepository.findAll(pageRequest)
+        val pagedResult = if (searchInput != null) {
+            employeeRepository.findBySearchInput(searchInput, pageRequest)
+        } else {
+            employeeRepository.findAll(pageRequest)
+        }
 
         return EmployeeListResponse(
             items = pagedResult.map { mapEntityToEmployee(it) }.toList(),
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize
+            pageSize = pageRequest.pageSize,
         )
     }
 
@@ -58,7 +61,6 @@ class EmployeeController(
         id = it.id!!,
         personnelNumber = it.personnelNumber!!,
         firstname = it.firstname!!,
-        lastname = it.lastname!!
+        lastname = it.lastname!!,
     )
-
 }

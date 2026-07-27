@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.Query
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface HouseholdRepository : JpaRepository<HouseholdEntity, Long>, JpaSpecificationExecutor<HouseholdEntity> {
+interface HouseholdRepository :
+    JpaRepository<HouseholdEntity, Long>,
+    JpaSpecificationExecutor<HouseholdEntity> {
 
     @Query("SELECT nextval('household_id_sequence')", nativeQuery = true)
     fun getNextHouseholdSequenceValue(): Long
@@ -35,5 +37,4 @@ interface HouseholdRepository : JpaRepository<HouseholdEntity, Long>, JpaSpecifi
     fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int
 
     fun findByValidUntilAfter(fromDate: LocalDate): List<HouseholdEntity>
-
 }

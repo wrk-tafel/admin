@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import org.springframework.stereotype.Component
@@ -14,14 +14,12 @@ class AgeDistributionExporter : StatisticExporter {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    override fun getName(): String {
-        return "TOeT_Verteilung_Alter"
-    }
+    override fun getName(): String = "TOeT_Verteilung_Alter"
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
-            listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt")
+            listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt"),
         )
         val dataRows = calculateDistribution(currentStatistic)
 
@@ -62,7 +60,7 @@ class AgeDistributionExporter : StatisticExporter {
                     String.format("%.2f", percentageCustomersPerRange.toFloat()),
                     countPersonsPerRange.toString(),
                     averagePersonsPerHousehold.toString(),
-                )
+                ),
             )
         }
 
@@ -71,7 +69,7 @@ class AgeDistributionExporter : StatisticExporter {
             countCustomers.toString(),
             "100,00",
             countPersons.toString(),
-            averagePersonsPerHousehold.toString()
+            averagePersonsPerHousehold.toString(),
         )
         rows.add(sumRow)
         return rows
@@ -95,12 +93,11 @@ enum class AgeRange(val rangeName: String, val minAge: Int, val maxAge: Int?) {
     RANGE_61_70("61-70", 61, 70),
     RANGE_71_80("71-80", 71, 80),
     RANGE_81_90("81-90", 81, 90),
-    RANGE_91_PLUS("91+", 91, null);
+    RANGE_91_PLUS("91+", 91, null),
+    ;
 
     companion object {
-        fun fromAge(age: Int): AgeRange {
-            return entries.find { age in it.minAge..(it.maxAge ?: Int.MAX_VALUE) }
-                ?: throw IllegalArgumentException("Invalid age: $age")
-        }
+        fun fromAge(age: Int): AgeRange = entries.find { age in it.minAge..(it.maxAge ?: Int.MAX_VALUE) }
+            ?: throw IllegalArgumentException("Invalid age: $age")
     }
 }

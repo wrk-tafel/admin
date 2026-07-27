@@ -83,7 +83,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.postProcessingNecessary().and(HouseholdEntity.Specs.firstnameContains(tag)!!)
+            HouseholdEntity.Specs.postProcessingNecessary().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
         )
 
         assertThat(result.map { it.id }).contains(incomplete.id).doesNotContain(complete.id)
@@ -111,7 +111,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.postProcessingNecessary().and(HouseholdEntity.Specs.firstnameContains(tag)!!)
+            HouseholdEntity.Specs.postProcessingNecessary().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
         )
 
         assertThat(result.map { it.id }).contains(withIncompleteAddPerson.id).doesNotContain(complete.id)
@@ -122,16 +122,16 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         val tag = "Findme${generateRandomLong()}"
         val pending = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { pendingCostContribution = BigDecimal("10") }
+            customize = { pendingCostContribution = BigDecimal("10") },
         )
         val notPending = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { pendingCostContribution = BigDecimal.ZERO }
+            customize = { pendingCostContribution = BigDecimal.ZERO },
         )
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.pendingCostContribution().and(HouseholdEntity.Specs.firstnameContains(tag)!!)
+            HouseholdEntity.Specs.pendingCostContribution().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
         )
 
         assertThat(result.map { it.id }).contains(pending.id).doesNotContain(notPending.id)
@@ -142,20 +142,20 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         val tag = "Findme${generateRandomLong()}"
         val valid = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now().plusDays(1) }
+            customize = { validUntil = LocalDate.now().plusDays(1) },
         )
         val validToday = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now() }
+            customize = { validUntil = LocalDate.now() },
         )
         val expired = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now().minusDays(1) }
+            customize = { validUntil = LocalDate.now().minusDays(1) },
         )
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.validHousehold().and(HouseholdEntity.Specs.firstnameContains(tag)!!)
+            HouseholdEntity.Specs.validHousehold().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
         )
 
         assertThat(result.map { it.id })
@@ -201,5 +201,4 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
 
         return household
     }
-
 }

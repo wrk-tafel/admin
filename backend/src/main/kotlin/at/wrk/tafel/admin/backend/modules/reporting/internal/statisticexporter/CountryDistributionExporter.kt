@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import org.springframework.stereotype.Component
@@ -12,14 +12,12 @@ class CountryDistributionExporter : StatisticExporter {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    override fun getName(): String {
-        return "TOeT_Verteilung_Nationalitaeten"
-    }
+    override fun getName(): String = "TOeT_Verteilung_Nationalitaeten"
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Verteilung Nationalitäten"),
-            listOf("Nationalität", "Haushalte", "Prozent")
+            listOf("Nationalität", "Haushalte", "Prozent"),
         )
         val dataRows = calculateDistribution(currentStatistic)
 
@@ -51,5 +49,4 @@ class CountryDistributionExporter : StatisticExporter {
 
         return rows
     }
-
 }

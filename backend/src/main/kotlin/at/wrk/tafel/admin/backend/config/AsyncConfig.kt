@@ -20,5 +20,4 @@ class AsyncConfig {
         executor.queueCapacity = 25
         return executor
     }
-
 }

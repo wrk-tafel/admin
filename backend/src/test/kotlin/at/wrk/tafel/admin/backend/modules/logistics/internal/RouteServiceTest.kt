@@ -33,14 +33,13 @@ class RouteServiceTest {
             listOf(
                 Route(
                     id = route1.id!!,
-                    name = route1.name!!
+                    name = route1.name!!,
                 ),
                 Route(
                     id = route2.id!!,
                     name = route2.name!!,
-                )
-            )
+                ),
+            ),
         )
     }
-
 }

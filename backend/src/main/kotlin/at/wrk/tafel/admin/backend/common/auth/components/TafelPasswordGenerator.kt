@@ -5,11 +5,8 @@ import org.passay.rule.CharacterRule
 
 class TafelPasswordGenerator(
     private val length: Int,
-    private val generatedPasswordCharactersRules: List<CharacterRule>
+    private val generatedPasswordCharactersRules: List<CharacterRule>,
 ) {
 
-    fun generatePassword(): String {
-        return PasswordGenerator(length, generatedPasswordCharactersRules).generate().toString()
-    }
-
+    fun generatePassword(): String = PasswordGenerator(length, generatedPasswordCharactersRules).generate().toString()
 }

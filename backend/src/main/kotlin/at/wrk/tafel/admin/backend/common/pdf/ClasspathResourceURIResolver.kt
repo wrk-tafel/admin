@@ -6,8 +6,5 @@ import javax.xml.transform.stream.StreamSource
 
 class ClasspathResourceURIResolver : URIResolver {
 
-    override fun resolve(href: String?, base: String?): Source {
-        return StreamSource(javaClass.getResourceAsStream(href))
-    }
-
+    override fun resolve(href: String?, base: String?): Source = StreamSource(javaClass.getResourceAsStream(href))
 }

@@ -10,5 +10,5 @@ data class DistributionStatisticItem(
     val countInfants: Int,
     val averagePersonsPerCustomer: BigDecimal,
     val countCustomersNew: Int,
-    val countCustomersUpdated: Int
+    val countCustomersUpdated: Int,
 )

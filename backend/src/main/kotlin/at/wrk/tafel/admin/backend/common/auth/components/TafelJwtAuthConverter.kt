@@ -15,5 +15,4 @@ class TafelJwtAuthConverter : AuthenticationConverter {
 
         return TafelJwtAuthentication(authCookie.value)
     }
-
 }

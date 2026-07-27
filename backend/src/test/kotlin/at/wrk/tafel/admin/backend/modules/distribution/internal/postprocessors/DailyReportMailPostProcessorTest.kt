@@ -49,7 +49,7 @@ class DailyReportMailPostProcessorTest {
         every { distribution.notes } returns distributionNotes
         every { distribution.households } returns listOf(
             testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2
+            testDistributionHouseholdEntity2,
         )
         val distributionStatistic = mockk<DistributionStatisticEntity>()
 
@@ -94,7 +94,7 @@ class DailyReportMailPostProcessorTest {
                 subject = dailyReportMailSubject,
                 attachments = capture(dailyReportMailAttachmentSlot),
                 templateName = "mails/daily-report-mail",
-                context = capture(contextSlot)
+                context = capture(contextSlot),
             )
         }
 
@@ -106,9 +106,8 @@ class DailyReportMailPostProcessorTest {
         assertThat(dailyReportAttachmentList).hasSize(1)
 
         val dailyReportAttachment = dailyReportAttachmentList[0]
-        assertThat(dailyReportAttachment.filename).isEqualTo("tagesreport_${dateFilename}.pdf")
+        assertThat(dailyReportAttachment.filename).isEqualTo("tagesreport_$dateFilename.pdf")
         assertThat(dailyReportAttachment.inputStreamSource).isNotNull
         assertThat(dailyReportAttachment.contentType).isEqualTo("application/pdf")
     }
-
 }

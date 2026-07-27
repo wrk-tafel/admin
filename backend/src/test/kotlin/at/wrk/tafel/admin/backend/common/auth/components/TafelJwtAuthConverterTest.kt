@@ -50,5 +50,4 @@ internal class TafelJwtAuthConverterTest {
         assertThat(result.tokenValue).isEqualTo(token)
         assertThat(result.isAuthenticated).isFalse
     }
-
 }

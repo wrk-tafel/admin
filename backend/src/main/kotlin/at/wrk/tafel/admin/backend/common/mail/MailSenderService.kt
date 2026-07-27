@@ -83,7 +83,6 @@ class MailSenderService(
         mailAddresses.filter { it.recipientType == RecipientType.BCC }
             .forEach { messageHelper.addBcc(it.address!!) }
     }
-
 }
 
 @ExcludeFromTestCoverage

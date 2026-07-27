@@ -11,9 +11,7 @@ import org.springframework.modulith.core.ApplicationModulesFactory
  */
 class TafelApplicationModulesFactory : ApplicationModulesFactory {
 
-    override fun of(applicationClass: Class<*>): ApplicationModules {
-        return ApplicationModules.of(MODULES_BASE_PACKAGE)
-    }
+    override fun of(applicationClass: Class<*>): ApplicationModules = ApplicationModules.of(MODULES_BASE_PACKAGE)
 
     companion object {
         const val MODULES_BASE_PACKAGE = "at.wrk.tafel.admin.backend.modules"

@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
 data class ShelterListResponse(
-    val shelters: List<Shelter>
+    val shelters: List<Shelter>,
 )
 
 @ExcludeFromTestCoverage

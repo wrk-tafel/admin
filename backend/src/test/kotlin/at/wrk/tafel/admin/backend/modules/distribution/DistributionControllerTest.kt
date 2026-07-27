@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
@@ -47,14 +47,14 @@ internal class DistributionControllerTest {
             distribution = DistributionItem(
                 id = distributionEntity.id!!,
                 startedAt = distributionEntity.startedAt!!,
-                endedAt = distributionEntity.endedAt
-            )
+                endedAt = distributionEntity.endedAt,
+            ),
         )
 
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                payload = distributionItemResponse
+                payload = distributionItemResponse,
             )
         }
     }
@@ -75,10 +75,10 @@ internal class DistributionControllerTest {
                     DistributionItem(
                         id = distributionEntity.id!!,
                         startedAt = distributionEntity.startedAt!!,
-                        endedAt = distributionEntity.endedAt
-                    )
-                )
-            )
+                        endedAt = distributionEntity.endedAt,
+                    ),
+                ),
+            ),
         )
     }
 
@@ -112,15 +112,15 @@ internal class DistributionControllerTest {
                     distribution = DistributionItem(
                         id = distributionEntity.id!!,
                         startedAt = distributionEntity.startedAt!!,
-                        endedAt = distributionEntity.endedAt
-                    )
-                )
+                        endedAt = distributionEntity.endedAt,
+                    ),
+                ),
             )
 
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = sseEmitter,
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                resultType = DistributionItemUpdate::class.java
+                resultType = DistributionItemUpdate::class.java,
             )
         }
     }
@@ -136,14 +136,14 @@ internal class DistributionControllerTest {
             sseOutboxService.sendEvent(
                 sseEmitter,
                 DistributionItemUpdate(
-                    distribution = null
-                )
+                    distribution = null,
+                ),
             )
 
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = sseEmitter,
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                resultType = DistributionItemUpdate::class.java
+                resultType = DistributionItemUpdate::class.java,
             )
         }
     }
@@ -152,7 +152,7 @@ internal class DistributionControllerTest {
     fun `save distribution statistic`() {
         val statisticData = DistributionStatisticData(
             employeeCount = 100,
-            selectedShelterIds = listOf(1, 2, 3)
+            selectedShelterIds = listOf(1, 2, 3),
         )
 
         val response = controller.saveDistributionStatistic(statisticData)
@@ -161,7 +161,7 @@ internal class DistributionControllerTest {
         verify(exactly = 1) {
             service.updateDistributionStatisticData(
                 statisticData.employeeCount,
-                statisticData.selectedShelterIds
+                statisticData.selectedShelterIds,
             )
         }
     }
@@ -169,7 +169,7 @@ internal class DistributionControllerTest {
     @Test
     fun `save distribution note`() {
         val noteData = DistributionNoteData(
-            notes = "dummy notes"
+            notes = "dummy notes",
         )
 
         val response = controller.saveDistributionNotes(noteData)
@@ -177,7 +177,7 @@ internal class DistributionControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         verify(exactly = 1) {
             service.updateDistributionNoteData(
-                noteData.notes
+                noteData.notes,
             )
         }
     }
@@ -189,7 +189,7 @@ internal class DistributionControllerTest {
         every { service.getCurrentDistribution() } returns distributionEntity
         every { service.validateClose() } returns DistributionCloseValidationResult(
             errors = emptyList(),
-            warnings = emptyList()
+            warnings = emptyList(),
         )
 
         val response = controller.closeDistribution(forceClose = false)
@@ -203,14 +203,14 @@ internal class DistributionControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                payload = capture(distributionItemResponseSlot)
+                payload = capture(distributionItemResponseSlot),
             )
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
             DistributionItemUpdate(
-                distribution = null
-            )
+                distribution = null,
+            ),
         )
     }
 
@@ -222,7 +222,7 @@ internal class DistributionControllerTest {
 
         val validationResult = DistributionCloseValidationResult(
             errors = listOf("Error 1", "Error 2"),
-            warnings = emptyList()
+            warnings = emptyList(),
         )
         every { service.validateClose() } returns validationResult
 
@@ -235,7 +235,7 @@ internal class DistributionControllerTest {
         verify(exactly = 0) {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                payload = any()
+                payload = any(),
             )
         }
     }
@@ -248,7 +248,7 @@ internal class DistributionControllerTest {
 
         val validationResult = DistributionCloseValidationResult(
             errors = emptyList(),
-            warnings = listOf("Warning 1", "Warning 2")
+            warnings = listOf("Warning 1", "Warning 2"),
         )
         every { service.validateClose() } returns validationResult
 
@@ -261,7 +261,7 @@ internal class DistributionControllerTest {
         verify(exactly = 0) {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                payload = any()
+                payload = any(),
             )
         }
     }
@@ -274,7 +274,7 @@ internal class DistributionControllerTest {
 
         val validationResult = DistributionCloseValidationResult(
             errors = emptyList(),
-            warnings = listOf("Warning 1", "Warning 2")
+            warnings = listOf("Warning 1", "Warning 2"),
         )
         every { service.validateClose() } returns validationResult
 
@@ -289,14 +289,14 @@ internal class DistributionControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                payload = capture(distributionItemResponseSlot)
+                payload = capture(distributionItemResponseSlot),
             )
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
             DistributionItemUpdate(
-                distribution = null
-            )
+                distribution = null,
+            ),
         )
     }
 
@@ -308,7 +308,7 @@ internal class DistributionControllerTest {
 
         val validationResult = DistributionCloseValidationResult(
             errors = listOf("Error 1", "Error 2"),
-            warnings = listOf("Warning 1", "Warning 2")
+            warnings = listOf("Warning 1", "Warning 2"),
         )
         every { service.validateClose() } returns validationResult
 
@@ -321,7 +321,7 @@ internal class DistributionControllerTest {
         verify(exactly = 0) {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                payload = any()
+                payload = any(),
             )
         }
     }
@@ -331,7 +331,7 @@ internal class DistributionControllerTest {
         every {
             service.assignHouseholdToDistribution(
                 any(),
-                any()
+                any(),
             )
         } throws TafelException("dummy error")
 
@@ -370,5 +370,4 @@ internal class DistributionControllerTest {
 
         verify { service.sendMails(distributionId) }
     }
-
 }

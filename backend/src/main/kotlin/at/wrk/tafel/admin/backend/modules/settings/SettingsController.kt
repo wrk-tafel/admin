@@ -20,9 +20,7 @@ class SettingsController(
 ) {
 
     @GetMapping("/mail-recipients")
-    fun getMailRecipientSettings(): MailRecipients {
-        return settingsService.getMailRecipients()
-    }
+    fun getMailRecipientSettings(): MailRecipients = settingsService.getMailRecipients()
 
     @PostMapping("/mail-recipients")
     fun updateMailRecipientSettings(@RequestBody settings: MailRecipients) {
@@ -30,16 +28,11 @@ class SettingsController(
     }
 
     @GetMapping("/static-values")
-    fun getStaticValues(): StaticValueListResponse {
-        return settingsService.getStaticValues()
-    }
+    fun getStaticValues(): StaticValueListResponse = settingsService.getStaticValues()
 
     @PostMapping("/static-values/{staticValueId}")
     fun updateStaticValue(
         @PathVariable staticValueId: Long,
         @RequestBody staticValue: StaticValueItem,
-    ): StaticValueItem {
-        return settingsService.updateStaticValue(staticValueId, staticValue)
-    }
-
+    ): StaticValueItem = settingsService.updateStaticValue(staticValueId, staticValue)
 }

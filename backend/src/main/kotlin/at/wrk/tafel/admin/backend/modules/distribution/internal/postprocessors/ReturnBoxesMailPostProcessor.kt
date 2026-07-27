@@ -36,7 +36,7 @@ class ReturnBoxesMailPostProcessor(
             subject = mailSubject,
             attachments = emptyList(),
             templateName = "mails/return-boxes-mail",
-            context = ctx
+            context = ctx,
         )
 
         logger.info("Mail for return boxes '$mailSubject' sent!")
@@ -80,7 +80,7 @@ class ReturnBoxesMailPostProcessor(
                     val address = listOfNotNull(
                         shop.address?.street,
                         shop.address?.postalCode,
-                        shop.address?.city
+                        shop.address?.city,
                     )
                         .joinToString(", ")
                         .ifEmpty { "" }
@@ -88,24 +88,27 @@ class ReturnBoxesMailPostProcessor(
                     ReturnBoxesShop(
                         name = "${shop.number} ${shop.name}",
                         address = address,
-                        returnBoxes = returnBoxes
+                        returnBoxes = returnBoxes,
                     )
-                } else null
+                } else {
+                    null
+                }
             }
 
             if (shops.isNotEmpty()) {
                 ReturnBoxesRoute(
                     name = route.name!!,
-                    shops = shops
+                    shops = shops,
                 )
-            } else null
+            } else {
+                null
+            }
         }
 
         return ReturnBoxesDataModel(
-            routes = routes
+            routes = routes,
         )
     }
-
 }
 
 @ExcludeFromTestCoverage

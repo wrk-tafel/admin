@@ -38,25 +38,25 @@ data class DailyReportPdfModel(
         other as DailyReportPdfModel
 
         return logoContentType == other.logoContentType &&
-                logoBytes.contentEquals(other.logoBytes) &&
-                date == other.date &&
-                employeeCount == other.employeeCount &&
-                countCustomers == other.countCustomers &&
-                countPersons == other.countPersons &&
-                countInfants == other.countInfants &&
-                averagePersonsPerCustomer == other.averagePersonsPerCustomer &&
-                countCustomersNew == other.countCustomersNew &&
-                countPersonsNew == other.countPersonsNew &&
-                countCustomersProlonged == other.countCustomersProlonged &&
-                countPersonsProlonged == other.countPersonsProlonged &&
-                countCustomersUpdated == other.countCustomersUpdated &&
-                shopsTotalCount == other.shopsTotalCount &&
-                shopsWithFoodCount == other.shopsWithFoodCount &&
-                foodTotalAmount == other.foodTotalAmount &&
-                foodPerShopAverage == other.foodPerShopAverage &&
-                routesLengthKm == other.routesLengthKm &&
-                shelters == other.shelters &&
-                personsInSheltersTotalCount == other.personsInSheltersTotalCount
+            logoBytes.contentEquals(other.logoBytes) &&
+            date == other.date &&
+            employeeCount == other.employeeCount &&
+            countCustomers == other.countCustomers &&
+            countPersons == other.countPersons &&
+            countInfants == other.countInfants &&
+            averagePersonsPerCustomer == other.averagePersonsPerCustomer &&
+            countCustomersNew == other.countCustomersNew &&
+            countPersonsNew == other.countPersonsNew &&
+            countCustomersProlonged == other.countCustomersProlonged &&
+            countPersonsProlonged == other.countPersonsProlonged &&
+            countCustomersUpdated == other.countCustomersUpdated &&
+            shopsTotalCount == other.shopsTotalCount &&
+            shopsWithFoodCount == other.shopsWithFoodCount &&
+            foodTotalAmount == other.foodTotalAmount &&
+            foodPerShopAverage == other.foodPerShopAverage &&
+            routesLengthKm == other.routesLengthKm &&
+            shelters == other.shelters &&
+            personsInSheltersTotalCount == other.personsInSheltersTotalCount
     }
 
     override fun hashCode(): Int {

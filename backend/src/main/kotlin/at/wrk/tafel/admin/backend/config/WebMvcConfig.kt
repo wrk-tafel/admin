@@ -7,11 +7,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 class WebMvcConfig(
-    private val tafelActiveDistributionRequiredInterceptor: TafelActiveDistributionRequiredInterceptor
+    private val tafelActiveDistributionRequiredInterceptor: TafelActiveDistributionRequiredInterceptor,
 ) : WebMvcConfigurer {
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(tafelActiveDistributionRequiredInterceptor)
     }
-
 }

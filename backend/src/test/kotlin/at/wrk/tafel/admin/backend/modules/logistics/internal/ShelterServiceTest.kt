@@ -49,8 +49,8 @@ class ShelterServiceTest {
                 note = testShelter1.note,
                 personsCount = testShelter1.personsCount!!,
                 enabled = testShelter1.enabled!!,
-                contacts = emptyList()
-            )
+                contacts = emptyList(),
+            ),
         )
     }
 
@@ -74,8 +74,8 @@ class ShelterServiceTest {
                 note = testShelter1.note,
                 personsCount = testShelter1.personsCount!!,
                 enabled = testShelter1.enabled!!,
-                contacts = emptyList()
-            )
+                contacts = emptyList(),
+            ),
         )
     }
 
@@ -93,7 +93,7 @@ class ShelterServiceTest {
             note = "Updated note",
             personsCount = 5,
             enabled = false,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
 
         every { shelterRepository.findByIdOrNull(testShelter3.id!!) } returns testShelter3
@@ -118,7 +118,7 @@ class ShelterServiceTest {
             note = "New note",
             personsCount = 5,
             enabled = true,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
 
         every { shelterRepository.save(any()) } answers {
@@ -142,8 +142,8 @@ class ShelterServiceTest {
                 note = createInput.note,
                 personsCount = createInput.personsCount,
                 enabled = createInput.enabled,
-                contacts = createInput.contacts
-            )
+                contacts = createInput.contacts,
+            ),
         )
 
         verify { shelterRepository.save(any()) }
@@ -164,8 +164,8 @@ class ShelterServiceTest {
             personsCount = 5,
             enabled = true,
             contacts = listOf(
-                ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789")
-            )
+                ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
+            ),
         )
 
         every { shelterRepository.save(any()) } answers {
@@ -177,7 +177,7 @@ class ShelterServiceTest {
         val result = service.createShelter(createInput)
 
         assertThat(result.contacts).containsExactly(
-            ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789")
+            ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
         )
 
         val savedEntitySlot = slot<ShelterEntity>()
@@ -201,8 +201,8 @@ class ShelterServiceTest {
             personsCount = 5,
             enabled = false,
             contacts = listOf(
-                ShelterContact(firstname = "Erika", lastname = "Musterfrau", phone = "0987654321")
-            )
+                ShelterContact(firstname = "Erika", lastname = "Musterfrau", phone = "0987654321"),
+            ),
         )
 
         every { shelterRepository.findByIdOrNull(testShelter3.id!!) } returns testShelter3
@@ -238,7 +238,6 @@ class ShelterServiceTest {
         note = testShelter3.note,
         personsCount = testShelter3.personsCount!!,
         enabled = testShelter3.enabled!!,
-        contacts = emptyList()
+        contacts = emptyList(),
     )
-
 }

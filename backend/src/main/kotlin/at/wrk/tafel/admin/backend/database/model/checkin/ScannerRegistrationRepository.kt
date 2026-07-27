@@ -28,7 +28,8 @@ interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntit
                 ),
                 (SELECT COALESCE(MAX(scanner_id), 0) + 1 FROM scanner_registrations)
                 ) AS next_available_scanner_id;
-                """, nativeQuery = true
+                """,
+        nativeQuery = true,
     )
     fun getNextScannerId(): Int
 
@@ -36,5 +37,4 @@ interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntit
 
     @Transactional
     fun deleteAllByRegistrationTimeBefore(registrationTime: LocalDateTime)
-
 }

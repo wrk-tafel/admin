@@ -150,12 +150,13 @@ internal class HouseholdNoteServiceTest {
             HouseholdNoteItem(
                 author = "test-personnelnumber test-firstname test-lastname",
                 timestamp = noteEntities[0].createdAt!!,
-                note = "note 2"
-            ), HouseholdNoteItem(
+                note = "note 2",
+            ),
+            HouseholdNoteItem(
                 author = "test-personnelnumber test-firstname test-lastname",
                 timestamp = noteEntities[1].createdAt!!,
-                note = "note 1"
-            )
+                note = "note 1",
+            ),
         )
 
         val selectedPage = 1
@@ -196,12 +197,13 @@ internal class HouseholdNoteServiceTest {
         assertThat(noteItem.note).isEqualTo(note)
 
         verify {
-            householdNoteRepository.save(withArg {
-                assertThat(it.employee).isEqualTo(testUserEntity.employee)
-                assertThat(it.household).isEqualTo(testHouseholdEntity1)
-                assertThat(it.note).isEqualTo(note)
-            })
+            householdNoteRepository.save(
+                withArg {
+                    assertThat(it.employee).isEqualTo(testUserEntity.employee)
+                    assertThat(it.household).isEqualTo(testHouseholdEntity1)
+                    assertThat(it.note).isEqualTo(note)
+                },
+            )
         }
     }
-
 }

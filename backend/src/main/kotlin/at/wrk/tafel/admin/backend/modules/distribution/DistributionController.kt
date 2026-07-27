@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
@@ -41,7 +41,7 @@ class DistributionController(
 
         sseOutboxService.saveOutboxEntry(
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            payload = update
+            payload = update,
         )
 
         return update
@@ -55,13 +55,13 @@ class DistributionController(
         val distribution = service.getCurrentDistribution()
         sseOutboxService.sendEvent(
             sseEmitter,
-            DistributionItemUpdate(distribution = distribution?.let { mapDistribution(it) })
+            DistributionItemUpdate(distribution = distribution?.let { mapDistribution(it) }),
         )
 
         sseOutboxService.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            resultType = DistributionItemUpdate::class.java
+            resultType = DistributionItemUpdate::class.java,
         )
 
         return sseEmitter
@@ -105,7 +105,7 @@ class DistributionController(
         // update clients about new state - no active distribution
         sseOutboxService.saveOutboxEntry(
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            payload = DistributionItemUpdate(distribution = null)
+            payload = DistributionItemUpdate(distribution = null),
         )
 
         return ResponseEntity.ok().build()
@@ -133,7 +133,7 @@ class DistributionController(
             val headers = HttpHeaders()
             headers.add(
                 HttpHeaders.CONTENT_DISPOSITION,
-                "inline; filename=${pdfResult.filename}"
+                "inline; filename=${pdfResult.filename}",
             )
 
             return ResponseEntity
@@ -152,12 +152,9 @@ class DistributionController(
         return ResponseEntity.ok().build()
     }
 
-    private fun mapDistribution(distribution: DistributionEntity): DistributionItem {
-        return DistributionItem(
-            id = distribution.id!!,
-            startedAt = distribution.startedAt!!,
-            endedAt = distribution.endedAt,
-        )
-    }
-
+    private fun mapDistribution(distribution: DistributionEntity): DistributionItem = DistributionItem(
+        id = distribution.id!!,
+        startedAt = distribution.startedAt!!,
+        endedAt = distribution.endedAt,
+    )
 }

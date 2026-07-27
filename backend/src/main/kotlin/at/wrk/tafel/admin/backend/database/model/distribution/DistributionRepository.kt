@@ -12,7 +12,6 @@ interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
     fun getDistributionsForYear(@Param("year") year: Int): List<DistributionEntity>
 
     fun getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc(): List<DistributionEntity>
-
 }
 
 fun DistributionRepository.getCurrentDistribution(): DistributionEntity? {

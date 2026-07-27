@@ -4,12 +4,12 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
 data class CarListResponse(
-    val cars: List<Car>
+    val cars: List<Car>,
 )
 
 @ExcludeFromTestCoverage
 data class Car(
     val id: Long,
     val licensePlate: String,
-    val name: String
+    val name: String,
 )

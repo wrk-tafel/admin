@@ -23,5 +23,4 @@ internal class ModularityTest {
         val canvasOptions = CanvasOptions.defaults()
         Documenter(modules).writeDocumentation(diagramOptions, canvasOptions)
     }
-
 }

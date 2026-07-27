@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/food-categories")
 class FoodCategoriesController(
-    private val foodCategoriesService: FoodCategoryService
+    private val foodCategoriesService: FoodCategoryService,
 ) {
 
     @GetMapping
@@ -19,5 +19,4 @@ class FoodCategoriesController(
         val categories = foodCategoriesService.getFoodCategories()
         return FoodCategoriesListResponse(categories = categories)
     }
-
 }

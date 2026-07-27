@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import kotlin.math.max
 import java.util.Locale
+import kotlin.math.max
 
 @Service
 class StatisticsService(
@@ -39,10 +39,10 @@ class StatisticsService(
             distributions = closedDistributions.map {
                 StatisticsDistribution(
                     startDate = it.startedAt!!,
-                    endDate = it.endedAt!!
+                    endDate = it.endedAt!!,
                 )
             }
-                .sortedByDescending { it.startDate }
+                .sortedByDescending { it.startDate },
         )
     }
 
@@ -53,7 +53,7 @@ class StatisticsService(
             title = INTEGER_FORMATTER.format(countBeneficiaryCustomers.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Haushalte",
             labels = countBeneficiaryCustomers.map { it.label },
-            dataPoints = countBeneficiaryCustomers.map { it.value }
+            dataPoints = countBeneficiaryCustomers.map { it.value },
         )
 
         val countBeneficiaryPersons = countBeneficiaryPersons(fromDate, toDate)
@@ -61,7 +61,7 @@ class StatisticsService(
             title = INTEGER_FORMATTER.format(countBeneficiaryPersons.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Personen",
             labels = countBeneficiaryPersons.map { it.label },
-            dataPoints = countBeneficiaryPersons.map { it.value }
+            dataPoints = countBeneficiaryPersons.map { it.value },
         )
 
         val countBeneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildren(fromDate, toDate)
@@ -69,7 +69,7 @@ class StatisticsService(
             title = INTEGER_FORMATTER.format(countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
             labels = countBeneficiaryCustomersWithChildren.map { it.label },
-            dataPoints = countBeneficiaryCustomersWithChildren.map { it.value }
+            dataPoints = countBeneficiaryCustomersWithChildren.map { it.value },
         )
 
         val countShelters = countShelters(fromDate, toDate)
@@ -77,18 +77,18 @@ class StatisticsService(
             title = INTEGER_FORMATTER.format(countShelters.sumOf { it.value.toLong() }),
             subTitle = "Notschlafstellen (Anzahl)",
             labels = countShelters.map { it.label },
-            dataPoints = countShelters.map { it.value }
+            dataPoints = countShelters.map { it.value },
         )
 
         val averageShelters = averageShelters(fromDate, toDate)
         val averageSheltersDivisor = max(averageShelters.count { it.value.toDouble() > 0 }, 1)
         val averageSheltersTotalAverage = (averageShelters.sumOf { it.value.toDouble() } / averageSheltersDivisor)
-                    .let { String.format("%.2f", it) }
+            .let { String.format("%.2f", it) }
         val averageSheltersData = StatisticsDetailData(
             title = averageSheltersTotalAverage,
             subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
             labels = averageShelters.map { it.label },
-            dataPoints = averageShelters.map { it.value }
+            dataPoints = averageShelters.map { it.value },
         )
 
         val countSheltersPersons = countSheltersPersons(fromDate, toDate)
@@ -96,7 +96,7 @@ class StatisticsService(
             title = INTEGER_FORMATTER.format(countSheltersPersons.sumOf { it.value.toLong() }),
             subTitle = "Versorgte Personen (Anzahl)",
             labels = countSheltersPersons.map { it.label },
-            dataPoints = countSheltersPersons.map { it.value }
+            dataPoints = countSheltersPersons.map { it.value },
         )
 
         val countShops = countShops(fromDate, toDate)
@@ -104,7 +104,7 @@ class StatisticsService(
             title = INTEGER_FORMATTER.format(countShops.sumOf { it.value.toLong() }),
             subTitle = "Spender (Anzahl)",
             labels = countShops.map { it.label },
-            dataPoints = countShops.map { it.value }
+            dataPoints = countShops.map { it.value },
         )
 
         val totalShopItems = totalShopItems(fromDate, toDate)
@@ -112,19 +112,19 @@ class StatisticsService(
             title = "${INTEGER_FORMATTER.format(totalShopItems.sumOf { it.value.toLong() })} kg",
             subTitle = "Warenmenge (Gesamt)",
             labels = totalShopItems.map { it.label },
-            dataPoints = totalShopItems.map { it.value }
+            dataPoints = totalShopItems.map { it.value },
         )
 
         val averageShopItems = averageShopItems(fromDate, toDate)
         val averageShopItemsDivisor = max(averageShopItems.count { it.value.toDouble() > 0 }, 1)
         val averageShopItemsTotalAverage =
             (averageShopItems.sumOf { it.value.toDouble() } / averageShopItemsDivisor)
-                            .let { String.format("%.2f", it) }
+                .let { String.format("%.2f", it) }
         val averageShopItemsData = StatisticsDetailData(
             title = "$averageShopItemsTotalAverage kg",
             subTitle = "Warenmenge (Durchschnitt pro Spender)",
             labels = averageShopItems.map { it.label },
-            dataPoints = averageShopItems.map { it.value }
+            dataPoints = averageShopItems.map { it.value },
         )
 
         return StatisticsData(
@@ -136,7 +136,7 @@ class StatisticsService(
             sheltersPersonsCount = countSheltersPersonsData,
             shopsCount = countShopsData,
             shopItemsTotal = totalShopItemsData,
-            shopItemsAverage = averageShopItemsData
+            shopItemsAverage = averageShopItemsData,
         )
     }
 
@@ -324,7 +324,7 @@ class StatisticsService(
 
             StatisticsResult(
                 label = label,
-                value = valueFormatted
+                value = valueFormatted,
             )
         }
     }
@@ -336,13 +336,13 @@ class StatisticsService(
         val rows: List<List<String>> = listOf(
             listOf(
                 "Statistik-Export",
-                "Zeitraum: ${DATE_TIME_FORMATTER.format(fromDate)} bis ${DATE_TIME_FORMATTER.format(toDate)}"
+                "Zeitraum: ${DATE_TIME_FORMATTER.format(fromDate)} bis ${DATE_TIME_FORMATTER.format(toDate)}",
             ),
             listOf("Bezugsberechtigte Haushalte", data.beneficiaryCustomers.title),
             listOf("Bezugsberechtigte Personen", data.beneficiaryPersons.title),
             listOf(
                 "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
-                data.beneficiaryCustomersWithChildren.title
+                data.beneficiaryCustomersWithChildren.title,
             ),
             listOf("Notschlafstellen (Anzahl)", data.sheltersCount.title),
             listOf("Notschlafstellen (Durchschnitt pro Ausgabe)", data.sheltersAverage.title),
@@ -354,21 +354,20 @@ class StatisticsService(
 
         return StatisticsCsvResult(
             filename = "statistik_export_${DATE_TIME_FORMATTER.format(fromDate)}_bis_${DATE_TIME_FORMATTER.format(toDate)}.csv",
-            bytes = CsvUtil.writeRowsToByteArray(rows)
+            bytes = CsvUtil.writeRowsToByteArray(rows),
         )
     }
-
 }
 
 data class StatisticsResult(
     val label: String,
-    val value: Number
+    val value: Number,
 )
 
 @ExcludeFromTestCoverage
 data class StatisticsCsvResult(
     val filename: String,
-    val bytes: ByteArray
+    val bytes: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -385,5 +384,4 @@ data class StatisticsCsvResult(
         result = 31 * result + bytes.contentHashCode()
         return result
     }
-
 }

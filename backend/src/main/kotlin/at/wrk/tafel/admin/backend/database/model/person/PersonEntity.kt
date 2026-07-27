@@ -63,5 +63,4 @@ class PersonEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "receives_familybonus", nullable = false)
     var receivesFamilyBonus: Boolean = false
-
 }

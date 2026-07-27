@@ -93,7 +93,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = userRepository.findAll(
-            UserEntity.Specs.enabledEquals(true)!!.and(UserEntity.Specs.usernameContains(tag)!!)
+            UserEntity.Specs.enabledEquals(true)!!.and(UserEntity.Specs.usernameContains(tag)!!),
         )
 
         assertThat(result.map { it.id }).contains(enabledUser.id).doesNotContain(disabledUser.id)
@@ -143,5 +143,4 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.persist(user)
         return user
     }
-
 }

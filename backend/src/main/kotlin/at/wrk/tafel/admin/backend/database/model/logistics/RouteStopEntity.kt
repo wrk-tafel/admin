@@ -27,5 +27,4 @@ class RouteStopEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "time")
     var time: LocalTime? = null
-
 }

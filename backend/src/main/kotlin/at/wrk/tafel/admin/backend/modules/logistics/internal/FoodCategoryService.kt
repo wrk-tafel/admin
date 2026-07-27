@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class FoodCategoryService(
-    private val foodCategoriesRepository: FoodCategoryRepository
+    private val foodCategoriesRepository: FoodCategoryRepository,
 ) {
 
     fun getFoodCategories(): List<FoodCategory> {
@@ -18,17 +18,14 @@ class FoodCategoryService(
                     { it.returnItem },
                     { it.sortOrder },
                     { it.name },
-                )
+                ),
             )
             .map { mapRoute(it) }
     }
 
-    private fun mapRoute(foodCategoryEntity: FoodCategoryEntity): FoodCategory {
-        return FoodCategory(
-            id = foodCategoryEntity.id!!,
-            name = foodCategoryEntity.name!!,
-            returnItem = foodCategoryEntity.returnItem ?: false
-        )
-    }
-
+    private fun mapRoute(foodCategoryEntity: FoodCategoryEntity): FoodCategory = FoodCategory(
+        id = foodCategoryEntity.id!!,
+        name = foodCategoryEntity.name!!,
+        returnItem = foodCategoryEntity.returnItem ?: false,
+    )
 }

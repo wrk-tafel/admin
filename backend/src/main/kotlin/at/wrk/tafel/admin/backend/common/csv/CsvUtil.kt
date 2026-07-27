@@ -23,5 +23,4 @@ object CsvUtil {
 
         return byteArrayOutputStream.toByteArray()
     }
-
 }

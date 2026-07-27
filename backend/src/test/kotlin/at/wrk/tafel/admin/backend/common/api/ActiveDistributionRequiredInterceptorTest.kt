@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.common.api
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
@@ -91,5 +90,4 @@ class ActiveDistributionRequiredInterceptorTest {
 
     @TafelActiveDistributionRequired
     class AnnotatedClass
-
 }

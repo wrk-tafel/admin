@@ -23,7 +23,7 @@ class MailTemplateRenderingTest {
                 suffix = ".html"
                 templateMode = TemplateMode.HTML
                 characterEncoding = "UTF-8"
-            }
+            },
         )
     }
 
@@ -32,11 +32,9 @@ class MailTemplateRenderingTest {
         return templateEngine.process("mail-layout", context)
     }
 
-    private fun loadReference(filename: String): String {
-        return javaClass.getResourceAsStream("/mail-references/$filename")!!
-            .bufferedReader(Charsets.UTF_8)
-            .readText()
-    }
+    private fun loadReference(filename: String): String = javaClass.getResourceAsStream("/mail-references/$filename")!!
+        .bufferedReader(Charsets.UTF_8)
+        .readText()
 
     @Test
     fun `daily-report-mail renders distribution date and notes`() {
@@ -84,12 +82,12 @@ class MailTemplateRenderingTest {
                             ReturnBoxesShop(
                                 name = "Shop 1",
                                 address = "Street 1, 1234, City",
-                                returnBoxes = "4x Category 2"
-                            )
-                        )
-                    )
-                )
-            )
+                                returnBoxes = "4x Category 2",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
         )
 
         val rendered = render("mails/return-boxes-mail", context)
@@ -108,5 +106,4 @@ class MailTemplateRenderingTest {
 
         assertThat(rendered).isEqualTo(loadReference("return-boxes-mail-without-routes.html"))
     }
-
 }

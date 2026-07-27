@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
@@ -89,5 +89,4 @@ class MissingCostContributionPostProcessorTest {
         val exception = assertThrows<TafelValidationException> { postProcessor.process(distribution, distributionStatistic) }
         assertThat(exception.message).isEqualTo("No cost contribution value found. Skipping missing cost contribution post processing.")
     }
-
 }

@@ -57,7 +57,7 @@ internal class StatisticsServiceTest {
             distribution1,
             distribution2,
             distribution3,
-            distribution4
+            distribution4,
         )
 
         val result = service.getSettings()
@@ -66,20 +66,20 @@ internal class StatisticsServiceTest {
         assertThat(result.distributions).containsExactly(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 8, 10, 11, 0),
-                endDate = LocalDateTime.of(2024, 8, 10, 13, 0)
+                endDate = LocalDateTime.of(2024, 8, 10, 13, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 3, 20, 9, 30),
-                endDate = LocalDateTime.of(2024, 3, 20, 11, 30)
+                endDate = LocalDateTime.of(2024, 3, 20, 11, 30),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2023, 5, 15, 10, 0),
-                endDate = LocalDateTime.of(2023, 5, 15, 12, 0)
+                endDate = LocalDateTime.of(2023, 5, 15, 12, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2022, 12, 5, 14, 0),
-                endDate = LocalDateTime.of(2022, 12, 5, 16, 0)
-            )
+                endDate = LocalDateTime.of(2022, 12, 5, 16, 0),
+            ),
         )
     }
 
@@ -114,7 +114,7 @@ internal class StatisticsServiceTest {
         every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
-            distribution3
+            distribution3,
         )
 
         val result = service.getSettings()
@@ -123,12 +123,12 @@ internal class StatisticsServiceTest {
         assertThat(result.distributions).containsExactly(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 5, 15, 10, 0),
-                endDate = LocalDateTime.of(2024, 5, 15, 12, 0)
+                endDate = LocalDateTime.of(2024, 5, 15, 12, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2023, 3, 20, 9, 30),
-                endDate = LocalDateTime.of(2023, 3, 20, 11, 30)
-            )
+                endDate = LocalDateTime.of(2023, 3, 20, 11, 30),
+            ),
         )
     }
 
@@ -153,7 +153,7 @@ internal class StatisticsServiceTest {
         every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
-            distribution3
+            distribution3,
         )
 
         val result = service.getSettings()
@@ -163,16 +163,16 @@ internal class StatisticsServiceTest {
         assertThat(result.distributions).containsExactly(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 12, 10, 11, 0),
-                endDate = LocalDateTime.of(2024, 12, 10, 13, 0)
+                endDate = LocalDateTime.of(2024, 12, 10, 13, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 5, 20, 9, 30),
-                endDate = LocalDateTime.of(2024, 5, 20, 11, 30)
+                endDate = LocalDateTime.of(2024, 5, 20, 11, 30),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 1, 15, 10, 0),
-                endDate = LocalDateTime.of(2024, 1, 15, 12, 0)
-            )
+                endDate = LocalDateTime.of(2024, 1, 15, 12, 0),
+            ),
         )
     }
 
@@ -203,7 +203,7 @@ internal class StatisticsServiceTest {
             distribution1,
             distribution2,
             distribution3,
-            distribution4
+            distribution4,
         )
 
         val result = service.getSettings()
@@ -232,7 +232,7 @@ internal class StatisticsServiceTest {
         every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
-            distribution3
+            distribution3,
         )
 
         val result = service.getSettings()
@@ -240,16 +240,16 @@ internal class StatisticsServiceTest {
         assertThat(result.distributions).containsExactly(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 1, 1, 14, 0),
-                endDate = LocalDateTime.of(2024, 1, 1, 16, 0)
+                endDate = LocalDateTime.of(2024, 1, 1, 16, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 1, 1, 11, 30),
-                endDate = LocalDateTime.of(2024, 1, 1, 13, 30)
+                endDate = LocalDateTime.of(2024, 1, 1, 13, 30),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 1, 1, 8, 0),
-                endDate = LocalDateTime.of(2024, 1, 1, 10, 0)
-            )
+                endDate = LocalDateTime.of(2024, 1, 1, 10, 0),
+            ),
         )
     }
 
@@ -269,8 +269,8 @@ internal class StatisticsServiceTest {
         assertThat(result.distributions).containsExactly(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 6, 15, 10, 0),
-                endDate = LocalDateTime.of(2024, 6, 15, 12, 0)
-            )
+                endDate = LocalDateTime.of(2024, 6, 15, 12, 0),
+            ),
         )
     }
 
@@ -316,7 +316,7 @@ internal class StatisticsServiceTest {
         every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             closedDistribution1,
             openDistribution,
-            closedDistribution2
+            closedDistribution2,
         )
 
         val result = service.getSettings()
@@ -325,12 +325,12 @@ internal class StatisticsServiceTest {
         assertThat(result.distributions).containsExactly(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 5, 15, 10, 0),
-                endDate = LocalDateTime.of(2024, 5, 15, 12, 0)
+                endDate = LocalDateTime.of(2024, 5, 15, 12, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2023, 3, 10, 11, 0),
-                endDate = LocalDateTime.of(2023, 3, 10, 13, 0)
-            )
+                endDate = LocalDateTime.of(2023, 3, 10, 13, 0),
+            ),
         )
     }
 
@@ -343,14 +343,14 @@ internal class StatisticsServiceTest {
         every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
         every { mockQuery.resultList } returns listOf(
             arrayOf<Any>("KW1", 0.0),
-            arrayOf<Any>("KW2", 1.5)
+            arrayOf<Any>("KW2", 1.5),
         )
 
         val result = service.averageShelters(fromDate, toDate)
 
         assertThat(result).containsExactly(
             StatisticsResult(label = "KW1", value = 0.0),
-            StatisticsResult(label = "KW2", value = 1.5)
+            StatisticsResult(label = "KW2", value = 1.5),
         )
     }
 
@@ -362,13 +362,13 @@ internal class StatisticsServiceTest {
         val mockQuery = mockk<Query>(relaxed = true)
         every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
         every { mockQuery.resultList } returns listOf(
-            arrayOf<Any?>("KW1", null)
+            arrayOf<Any?>("KW1", null),
         )
 
         val result = service.averageShelters(fromDate, toDate)
 
         assertThat(result).containsExactly(
-            StatisticsResult(label = "KW1", value = 0)
+            StatisticsResult(label = "KW1", value = 0),
         )
     }
 
@@ -382,7 +382,7 @@ internal class StatisticsServiceTest {
         every { mockQuery.resultList } returns listOf(
             arrayOf<Any>("Jänner", 10L),
             arrayOf<Any>("Februar", 20L),
-            arrayOf<Any>("März", 30L)
+            arrayOf<Any>("März", 30L),
         )
 
         val result = service.getData(fromDate, toDate)
@@ -396,57 +396,57 @@ internal class StatisticsServiceTest {
                     title = "30",
                     subTitle = "Bezugsberechtigte Haushalte",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 beneficiaryPersons = StatisticsDetailData(
                     title = "30",
                     subTitle = "Bezugsberechtigte Personen",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 beneficiaryCustomersWithChildren = StatisticsDetailData(
                     title = "30",
                     subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 sheltersCount = StatisticsDetailData(
                     title = "60",
                     subTitle = "Notschlafstellen (Anzahl)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 sheltersAverage = StatisticsDetailData(
                     title = "20,00",
                     subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 sheltersPersonsCount = StatisticsDetailData(
                     title = "60",
                     subTitle = "Versorgte Personen (Anzahl)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 shopsCount = StatisticsDetailData(
                     title = "60",
                     subTitle = "Spender (Anzahl)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 shopItemsTotal = StatisticsDetailData(
                     title = "60 kg",
                     subTitle = "Warenmenge (Gesamt)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
+                    dataPoints = expectedDataPoints,
                 ),
                 shopItemsAverage = StatisticsDetailData(
                     title = "20,00 kg",
                     subTitle = "Warenmenge (Durchschnitt pro Spender)",
                     labels = expectedLabels,
-                    dataPoints = expectedDataPoints
-                )
-            )
+                    dataPoints = expectedDataPoints,
+                ),
+            ),
         )
     }
 
@@ -460,7 +460,7 @@ internal class StatisticsServiceTest {
         every { mockQuery.resultList } returns listOf(
             arrayOf<Any>("Jänner", 10L),
             arrayOf<Any>("Februar", 20L),
-            arrayOf<Any>("März", 30L)
+            arrayOf<Any>("März", 30L),
         )
 
         val result = service.generateCsv(fromDate, toDate)
@@ -483,5 +483,4 @@ internal class StatisticsServiceTest {
         assertThat(lines[8]).isEqualTo("Warenmenge (Gesamt);60 kg")
         assertThat(lines[9]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20,00 kg")
     }
-
 }

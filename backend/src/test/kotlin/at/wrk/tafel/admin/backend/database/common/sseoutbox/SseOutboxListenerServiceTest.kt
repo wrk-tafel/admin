@@ -1,7 +1,7 @@
-package at.wrk.tafel.admin.backend.database.common.sse_outbox
+package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxListenerService.Companion.NOTIFICATIONS_POLL_TIMEOUT
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxListenerService.Companion.PG_NOTIFICATION_CHANNEL_NAME
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.NOTIFICATIONS_POLL_TIMEOUT
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.PG_NOTIFICATION_CHANNEL_NAME
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -40,7 +40,7 @@ class SseOutboxListenerServiceTest {
         "{\"notificationName\": \"test_notification\", \"payload\": {\"value\":123}}"
     private val testNotificationEvent = SseOutboxNotificationEvent(
         notificationName = "test_notification",
-        payload = "{\"value\":123}"
+        payload = "{\"value\":123}",
     )
     private val notificationName = "test_notification"
 
@@ -57,14 +57,14 @@ class SseOutboxListenerServiceTest {
         every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } returns arrayOf(
             mockk {
                 every { parameter } returns testNotificationEventString
-            }
+            },
         ) andThenThrows SQLException("No more notifications")
         every { mockConnection.unwrap(PGConnection::class.java) } returns mockPGConnection
 
         every {
             jsonMapper.readValue(
                 testNotificationEventString,
-                SseOutboxNotificationEvent::class.java
+                SseOutboxNotificationEvent::class.java,
             )
         } returns testNotificationEvent
     }
@@ -154,5 +154,4 @@ class SseOutboxListenerServiceTest {
         assertThat(service.callbacks[notificationName]).hasSize(1)
         assertThat(service.callbacks[notificationName]!!.first()).isEqualTo(eventCallback2)
     }
-
 }

@@ -50,5 +50,4 @@ class FlywayImportTestdataCallbackTest {
             ScriptUtils.executeSqlScript(context.connection, ClassPathResource(sqlPath))
         }
     }
-
 }

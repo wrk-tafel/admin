@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -17,9 +17,7 @@ class DailyReportsExporter(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    override fun getName(): String {
-        return "TOeT_Tagesreports"
-    }
+    override fun getName(): String = "TOeT_Tagesreports"
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val descriptionHeaderRow =
@@ -40,7 +38,7 @@ class DailyReportsExporter(
             "Spender mit Ware",
             "Warenmenge",
             "Kilometerleistung",
-            "Anz. MitarbeiterInnen"
+            "Anz. MitarbeiterInnen",
         )
 
         val previousDistributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
@@ -65,7 +63,8 @@ class DailyReportsExporter(
     }
 
     private fun generateStatisticColumns(
-        distribution: DistributionEntity, statistic: DistributionStatisticEntity,
+        distribution: DistributionEntity,
+        statistic: DistributionStatisticEntity,
     ): List<String> {
         val columns = mutableListOf<String>()
 
@@ -96,5 +95,4 @@ class DailyReportsExporter(
 
         return columns
     }
-
 }

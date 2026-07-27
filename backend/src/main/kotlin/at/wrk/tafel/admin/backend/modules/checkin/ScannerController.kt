@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.checkin
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService.Companion.SCANNER_RESULT_NOTIFICATION_NAME
 import org.springframework.security.access.prepost.PreAuthorize
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
-
 @RestController
 @RequestMapping("/api")
 @PreAuthorize("hasAnyAuthority('SCANNER', 'CHECKIN')")
@@ -24,9 +23,7 @@ class ScannerController(
 ) {
 
     @GetMapping("/scanners")
-    fun getScanners(): ScannersResponse {
-        return ScannersResponse(scannerIds = scannerService.getScannerIds())
-    }
+    fun getScanners(): ScannersResponse = ScannersResponse(scannerIds = scannerService.getScannerIds())
 
     @PostMapping("/scanners/register")
     fun registerScanner(@RequestParam("scannerId") existingScannerId: Int?): ScannerRegistration {
@@ -40,8 +37,8 @@ class ScannerController(
             notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
             payload = ScanResult(
                 scannerId = scannerId,
-                value = scanResult
-            )
+                value = scanResult,
+            ),
         )
     }
 
@@ -56,12 +53,11 @@ class ScannerController(
             sseEmitter = sseEmitter,
             notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
             resultType = ScanResult::class.java,
-            acceptFilter = acceptFilter
+            acceptFilter = acceptFilter,
         )
 
         return sseEmitter
     }
-
 }
 
 @ExcludeFromTestCoverage

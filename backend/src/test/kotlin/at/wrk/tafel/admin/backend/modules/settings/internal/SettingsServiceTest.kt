@@ -69,27 +69,27 @@ class SettingsServiceTest {
                                 recipientType = MailRecipientType.TO,
                                 addresses = listOf(
                                     testMailRecipient_DR_TO1.address!!,
-                                    testMailRecipient_DR_TO2.address!!
-                                )
+                                    testMailRecipient_DR_TO2.address!!,
+                                ),
                             ),
                             MailRecipientAdresses(
                                 recipientType = MailRecipientType.CC,
                                 addresses = listOf(
                                     testMailRecipient_DR_CC1.address!!,
-                                    testMailRecipient_DR_CC2.address!!
-                                )
+                                    testMailRecipient_DR_CC2.address!!,
+                                ),
                             ),
                             MailRecipientAdresses(
                                 recipientType = MailRecipientType.BCC,
                                 addresses = listOf(
                                     testMailRecipient_DR_BCC1.address!!,
-                                    testMailRecipient_DR_BCC2.address!!
-                                )
-                            )
-                        )
-                    )
-                )
-            )
+                                    testMailRecipient_DR_BCC2.address!!,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
         )
     }
 
@@ -102,19 +102,19 @@ class SettingsServiceTest {
                     recipients = listOf(
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.TO,
-                            addresses = listOf("to1", "to2")
+                            addresses = listOf("to1", "to2"),
                         ),
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.CC,
-                            addresses = listOf("cc1", "cc2")
+                            addresses = listOf("cc1", "cc2"),
                         ),
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.BCC,
-                            addresses = listOf("bcc1", "bcc2")
-                        )
-                    )
-                )
-            )
+                            addresses = listOf("bcc1", "bcc2"),
+                        ),
+                    ),
+                ),
+            ),
         )
 
         service.updateMailRecipients(updatedSettings)
@@ -168,15 +168,15 @@ class SettingsServiceTest {
                     recipients = listOf(
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.TO,
-                            addresses = listOf("     ")
+                            addresses = listOf("     "),
                         ),
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.CC,
-                            addresses = listOf("      c  c1         ")
-                        )
-                    )
-                )
-            )
+                            addresses = listOf("      c  c1         "),
+                        ),
+                    ),
+                ),
+            ),
         )
 
         service.updateMailRecipients(updatedSettings)
@@ -192,7 +192,7 @@ class SettingsServiceTest {
                 mailType = MailType.DAILY_REPORT
                 recipientType = RecipientType.CC
                 address = "c c1"
-            }
+            },
         )
     }
 
@@ -285,7 +285,7 @@ class SettingsServiceTest {
                 countAdults = 1,
                 countChildren = 0,
                 age = null,
-            )
+            ),
         )
     }
 
@@ -326,7 +326,7 @@ class SettingsServiceTest {
                 countAdults = null,
                 countChildren = null,
                 age = null,
-            )
+            ),
         )
     }
 
@@ -348,5 +348,4 @@ class SettingsServiceTest {
         assertThatThrownBy { service.updateStaticValue(99L, updated) }
             .isInstanceOf(TafelValidationException::class.java)
     }
-
 }

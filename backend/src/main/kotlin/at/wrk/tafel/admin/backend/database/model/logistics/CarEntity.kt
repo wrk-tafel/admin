@@ -16,5 +16,4 @@ class CarEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "name")
     var name: String? = null
-
 }

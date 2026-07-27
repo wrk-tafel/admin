@@ -33,17 +33,17 @@ class StatisticsControllerTest {
             distributions = listOf(
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2024, 8, 10, 11, 0),
-                    endDate = LocalDateTime.of(2024, 8, 10, 13, 0)
+                    endDate = LocalDateTime.of(2024, 8, 10, 13, 0),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2024, 3, 20, 9, 30),
-                    endDate = LocalDateTime.of(2024, 3, 20, 11, 30)
+                    endDate = LocalDateTime.of(2024, 3, 20, 11, 30),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2023, 5, 15, 10, 0),
-                    endDate = LocalDateTime.of(2023, 5, 15, 12, 0)
-                )
-            )
+                    endDate = LocalDateTime.of(2023, 5, 15, 12, 0),
+                ),
+            ),
         )
 
         every { service.getSettings() } returns expectedSettings
@@ -60,7 +60,7 @@ class StatisticsControllerTest {
     fun `getSettings returns empty lists when no distributions exist`() {
         val expectedSettings = StatisticsSettings(
             availableYears = emptyList(),
-            distributions = emptyList()
+            distributions = emptyList(),
         )
 
         every { service.getSettings() } returns expectedSettings
@@ -87,9 +87,9 @@ class StatisticsControllerTest {
             distributions = listOf(
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2024, 6, 15, 10, 0),
-                    endDate = LocalDateTime.of(2024, 6, 15, 12, 0)
-                )
-            )
+                    endDate = LocalDateTime.of(2024, 6, 15, 12, 0),
+                ),
+            ),
         )
 
         every { service.getSettings() } returns expectedSettings
@@ -101,8 +101,8 @@ class StatisticsControllerTest {
         assertThat(result.distributions[0]).isEqualTo(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 6, 15, 10, 0),
-                endDate = LocalDateTime.of(2024, 6, 15, 12, 0)
-            )
+                endDate = LocalDateTime.of(2024, 6, 15, 12, 0),
+            ),
         )
         verify(exactly = 1) { service.getSettings() }
     }
@@ -114,29 +114,29 @@ class StatisticsControllerTest {
             distributions = listOf(
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2025, 1, 15, 10, 0),
-                    endDate = LocalDateTime.of(2025, 1, 15, 12, 0)
+                    endDate = LocalDateTime.of(2025, 1, 15, 12, 0),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2024, 12, 31, 23, 59),
-                    endDate = LocalDateTime.of(2025, 1, 1, 1, 59)
+                    endDate = LocalDateTime.of(2025, 1, 1, 1, 59),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2024, 6, 15, 12, 0),
-                    endDate = LocalDateTime.of(2024, 6, 15, 14, 0)
+                    endDate = LocalDateTime.of(2024, 6, 15, 14, 0),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2023, 8, 20, 9, 30),
-                    endDate = LocalDateTime.of(2023, 8, 20, 11, 30)
+                    endDate = LocalDateTime.of(2023, 8, 20, 11, 30),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2022, 3, 10, 14, 15),
-                    endDate = LocalDateTime.of(2022, 3, 10, 16, 15)
+                    endDate = LocalDateTime.of(2022, 3, 10, 16, 15),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2021, 11, 5, 10, 0),
-                    endDate = LocalDateTime.of(2021, 11, 5, 12, 0)
-                )
-            )
+                    endDate = LocalDateTime.of(2021, 11, 5, 12, 0),
+                ),
+            ),
         )
 
         every { service.getSettings() } returns expectedSettings
@@ -155,17 +155,17 @@ class StatisticsControllerTest {
             distributions = listOf(
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2024, 8, 10, 11, 0),
-                    endDate = LocalDateTime.of(2024, 8, 10, 13, 0)
+                    endDate = LocalDateTime.of(2024, 8, 10, 13, 0),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2023, 5, 15, 10, 0),
-                    endDate = LocalDateTime.of(2023, 5, 15, 12, 0)
+                    endDate = LocalDateTime.of(2023, 5, 15, 12, 0),
                 ),
                 StatisticsDistribution(
                     startDate = LocalDateTime.of(2022, 12, 5, 14, 0),
-                    endDate = LocalDateTime.of(2022, 12, 5, 16, 0)
-                )
-            )
+                    endDate = LocalDateTime.of(2022, 12, 5, 16, 0),
+                ),
+            ),
         )
 
         every { service.getSettings() } returns expectedSettings
@@ -181,21 +181,21 @@ class StatisticsControllerTest {
         val expectedDistributions = listOf(
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 12, 31, 23, 59),
-                endDate = LocalDateTime.of(2025, 1, 1, 1, 59)
+                endDate = LocalDateTime.of(2025, 1, 1, 1, 59),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 6, 15, 12, 0),
-                endDate = LocalDateTime.of(2024, 6, 15, 14, 0)
+                endDate = LocalDateTime.of(2024, 6, 15, 14, 0),
             ),
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2024, 1, 1, 8, 0),
-                endDate = LocalDateTime.of(2024, 1, 1, 10, 0)
-            )
+                endDate = LocalDateTime.of(2024, 1, 1, 10, 0),
+            ),
         )
 
         val expectedSettings = StatisticsSettings(
             availableYears = listOf(2024),
-            distributions = expectedDistributions
+            distributions = expectedDistributions,
         )
 
         every { service.getSettings() } returns expectedSettings
@@ -225,23 +225,22 @@ class StatisticsControllerTest {
         val testFilename = "file.csv"
         every { service.generateCsv(any(), any()) } returns StatisticsCsvResult(
             filename = testFilename,
-            bytes = testFilename.toByteArray()
+            bytes = testFilename.toByteArray(),
         )
 
         val response = controller.generateCsv(
             fromDate = LocalDate.now().minusDays(2),
-            toDate = LocalDate.now()
+            toDate = LocalDate.now(),
         )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
 
         assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
         ).isEqualTo("inline; filename=$testFilename")
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
-
 }

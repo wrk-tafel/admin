@@ -59,8 +59,8 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
-            )
+                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1),
+            ),
         )
         every { userRepository.findByUsername(username) } returns UserEntity().apply { enabled = true }
 
@@ -84,8 +84,8 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
-            )
+                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1),
+            ),
         )
 
         assertThrows<CredentialsExpiredException> {
@@ -114,8 +114,8 @@ internal class TafelJwtAuthProviderTest {
         every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
             mapOf(
                 Claims.SUBJECT to username,
-                Claims.EXPIRATION to expiration
-            )
+                Claims.EXPIRATION to expiration,
+            ),
         )
         every { userRepository.findByUsername(username) } returns UserEntity().apply { enabled = false }
 
@@ -133,8 +133,8 @@ internal class TafelJwtAuthProviderTest {
         every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
             mapOf(
                 Claims.SUBJECT to username,
-                Claims.EXPIRATION to expiration
-            )
+                Claims.EXPIRATION to expiration,
+            ),
         )
         every { userRepository.findByUsername(username) } returns null
 
@@ -142,5 +142,4 @@ internal class TafelJwtAuthProviderTest {
             provider.authenticate(authentication)
         }
     }
-
 }

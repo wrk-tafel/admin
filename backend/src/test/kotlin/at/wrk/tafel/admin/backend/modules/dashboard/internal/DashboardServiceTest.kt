@@ -1,9 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
@@ -103,7 +102,7 @@ internal class DashboardServiceTest {
 
         assertThat(data.statistics!!.employeeCount).isEqualTo(100)
         assertThat(data.statistics.selectedShelterNames).hasSameElementsAs(
-            listOf(testShelter1.name, testShelter2.name)
+            listOf(testShelter1.name, testShelter2.name),
         )
     }
 
@@ -128,14 +127,14 @@ internal class DashboardServiceTest {
             id = 123
             endedAt = null
             foodCollections = listOf(
-                testFoodCollectionRoute1Entity
+                testFoodCollectionRoute1Entity,
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         every { routeRepository.findAll() } returns listOf(
             testRoute1,
-            testRoute2
+            testRoute2,
         )
 
         val data = service.getData()
@@ -161,5 +160,4 @@ internal class DashboardServiceTest {
         verify { distributionRepository.findFirstByOrderByIdDesc() }
         verify(exactly = 0) { distributionHouseholdRepository.countAllByDistributionId(any()) }
     }
-
 }

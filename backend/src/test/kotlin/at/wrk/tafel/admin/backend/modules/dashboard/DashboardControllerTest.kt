@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardController.Companion.DASHBOARD_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import io.mockk.every
@@ -32,18 +32,18 @@ internal class DashboardControllerTest {
             registeredCustomers = 2,
             tickets = DashboardTicketsData(
                 countProcessedTickets = 10,
-                countTotalTickets = 123
+                countTotalTickets = 123,
             ),
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
-                selectedShelterNames = listOf("Shelter 1", "Shelter 2")
+                selectedShelterNames = listOf("Shelter 1", "Shelter 2"),
             ),
             logistics = DashboardLogisticsData(
                 foodCollectionsRecordedCount = 1,
                 foodCollectionsTotalCount = 2,
-                foodAmountTotal = BigDecimal(3)
+                foodAmountTotal = BigDecimal(3),
             ),
-            notes = "test-notes"
+            notes = "test-notes",
         )
         every { service.getData() } returns data
 
@@ -58,7 +58,7 @@ internal class DashboardControllerTest {
                 sseEmitter = sseEmitter,
                 notificationName = DASHBOARD_UPDATE_NOTIFICATION_NAME,
                 resultType = null,
-                resultCallback = capture(callbackSlot)
+                resultCallback = capture(callbackSlot),
             )
         }
 
@@ -67,5 +67,4 @@ internal class DashboardControllerTest {
 
         verify { sseOutboxService.sendEvent(sseEmitter, data) }
     }
-
 }

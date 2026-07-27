@@ -53,7 +53,7 @@ class EmployeeControllerTest {
             listOf(
                 Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
                 Employee(id = 2, personnelNumber = "00002", firstname = "first 2", lastname = "last 2"),
-            )
+            ),
         )
     }
 
@@ -76,8 +76,8 @@ class EmployeeControllerTest {
 
         assertThat(response.items).hasSameElementsAs(
             listOf(
-                Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1")
-            )
+                Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+            ),
         )
     }
 
@@ -96,7 +96,7 @@ class EmployeeControllerTest {
         val employeeCreateRequest = EmployeeCreateRequest(
             personnelNumber = "   00001",
             firstname = "first 1  ",
-            lastname = "last 1    "
+            lastname = "last 1    ",
         )
         val entity = EmployeeEntity().apply {
             id = 1
@@ -117,5 +117,4 @@ class EmployeeControllerTest {
         assertThat(savedEntity.firstname).isEqualTo(employeeCreateRequest.firstname.trim())
         assertThat(savedEntity.lastname).isEqualTo(employeeCreateRequest.lastname.trim())
     }
-
 }

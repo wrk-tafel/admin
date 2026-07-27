@@ -10,5 +10,4 @@ interface LoginAttemptRepository : JpaRepository<LoginAttemptEntity, Long> {
     fun deleteByUsername(username: String)
 
     fun deleteAllByLastFailureAtBefore(date: LocalDateTime)
-
 }

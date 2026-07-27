@@ -8,7 +8,6 @@ interface HouseholdNoteRepository : JpaRepository<HouseholdNoteEntity, Long> {
 
     fun findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(
         householdId: Long,
-        pageRequest: PageRequest
+        pageRequest: PageRequest,
     ): Page<HouseholdNoteEntity>
-
 }

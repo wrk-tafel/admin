@@ -11,22 +11,20 @@ import javax.crypto.spec.SecretKeySpec
 
 @Service
 class JwtTokenService(
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
 ) {
     companion object {
         const val PERMISSIONS_CLAIM_KEY = "permissions"
     }
 
-    fun getClaimsFromToken(token: String): Claims {
-        return createJwtParser()
-            .parseSignedClaims(token)
-            .payload
-    }
+    fun getClaimsFromToken(token: String): Claims = createJwtParser()
+        .parseSignedClaims(token)
+        .payload
 
     fun generateToken(
         username: String,
         authorities: Collection<GrantedAuthority>,
-        expirationSeconds: Int
+        expirationSeconds: Int,
     ): String {
         val expirationMillis = Duration.ofSeconds(expirationSeconds.toLong()).toMillis()
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
@@ -50,10 +48,8 @@ class JwtTokenService(
         .requireAudience(applicationProperties.security.jwtToken.audience)
         .build()
 
-    private fun createSecretKeySpec() =
-        SecretKeySpec(
-            applicationProperties.security.jwtToken.secret.value.toByteArray(),
-            applicationProperties.security.jwtToken.secret.algorithm
-        )
-
+    private fun createSecretKeySpec() = SecretKeySpec(
+        applicationProperties.security.jwtToken.secret.value.toByteArray(),
+        applicationProperties.security.jwtToken.secret.algorithm,
+    )
 }

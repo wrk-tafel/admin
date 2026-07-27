@@ -55,7 +55,7 @@ class StatisticMailPostProcessorTest {
 
     private fun assertStatisticExportFiles(
         distributionStatistic: DistributionStatisticEntity,
-        dateFormatted: String
+        dateFormatted: String,
     ) {
         verify { statisticExportService.exportStatisticFiles(distributionStatistic) }
 
@@ -70,7 +70,7 @@ class StatisticMailPostProcessorTest {
                 subject = statisticExportMailSubject,
                 attachments = capture(statisticExportMailAttachmentSlot),
                 templateName = "mails/statistic-mail",
-                context = capture(contextSlot)
+                context = capture(contextSlot),
             )
         }
 
@@ -85,5 +85,4 @@ class StatisticMailPostProcessorTest {
         assertThat(statisticZipFileAttachment.inputStreamSource).isNotNull
         assertThat(statisticZipFileAttachment.contentType).isEqualTo("text/csv")
     }
-
 }

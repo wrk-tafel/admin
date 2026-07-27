@@ -32,13 +32,13 @@ class FoodCollectionsControllerTest {
                 id = 1,
                 personnelNumber = "111",
                 firstname = "employee firstname 1",
-                lastname = "employee lastname 1"
+                lastname = "employee lastname 1",
             ),
             coDriver = Employee(
                 id = 2,
                 personnelNumber = "222",
                 firstname = "employee firstname 2",
-                lastname = "employee lastname 2"
+                lastname = "employee lastname 2",
             ),
             kmStart = 1000,
             kmEnd = 2000,
@@ -46,9 +46,9 @@ class FoodCollectionsControllerTest {
                 FoodCollectionItem(
                     categoryId = 1,
                     shopId = 2,
-                    amount = 3
-                )
-            )
+                    amount = 3,
+                ),
+            ),
         )
 
         every { service.getFoodCollection(routeId) } returns testFoodCollectionData
@@ -78,7 +78,7 @@ class FoodCollectionsControllerTest {
             driverId = 1,
             coDriverId = 2,
             kmStart = 1000,
-            kmEnd = 2000
+            kmEnd = 2000,
         )
 
         controller.saveFoodCollectionRouteData(routeId = routeId, request = request)
@@ -94,9 +94,9 @@ class FoodCollectionsControllerTest {
                 FoodCollectionItem(
                     categoryId = 1,
                     shopId = 2,
-                    amount = 3
-                )
-            )
+                    amount = 3,
+                ),
+            ),
         )
 
         controller.saveFoodCollectionItems(routeId = routeId, request = request)
@@ -112,9 +112,9 @@ class FoodCollectionsControllerTest {
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = 1,
-                    amount = 3
-                )
-            )
+                    amount = 3,
+                ),
+            ),
         )
 
         controller.saveFoodCollectionItemsPerShop(routeId = routeId, shopId = shopId, request = request)
@@ -131,9 +131,9 @@ class FoodCollectionsControllerTest {
                 FoodCollectionItem(
                     categoryId = 1,
                     shopId = 2,
-                    amount = 3
-                )
-            )
+                    amount = 3,
+                ),
+            ),
         )
         every { service.getItemsPerShop(any(), any()) } returns responseBody
 
@@ -164,12 +164,11 @@ class FoodCollectionsControllerTest {
         val request = FoodCollectionItem(
             categoryId = 1,
             shopId = 2,
-            amount = 3
+            amount = 3,
         )
 
         controller.patchFoodCollectionItem(routeId = routeId, request = request)
 
         verify(exactly = 1) { service.patchItem(routeId = routeId, data = request) }
     }
-
 }

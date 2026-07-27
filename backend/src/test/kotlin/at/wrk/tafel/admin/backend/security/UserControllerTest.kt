@@ -56,7 +56,7 @@ class UserControllerTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
@@ -113,7 +113,7 @@ class UserControllerTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
@@ -122,13 +122,15 @@ class UserControllerTest {
         assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.OK.value())
 
         verify {
-            response.addCookie(withArg {
-                assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                assertThat(it.value).isNull()
-                assertThat(it.maxAge).isZero
-                assertThat(it.path).isEqualTo(relativeBaseUrl)
-                assertThat(it.attributes["SameSite"]).isEqualTo("strict")
-            })
+            response.addCookie(
+                withArg {
+                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                    assertThat(it.value).isNull()
+                    assertThat(it.maxAge).isZero
+                    assertThat(it.path).isEqualTo(relativeBaseUrl)
+                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                },
+            )
         }
     }
 
@@ -185,7 +187,7 @@ class UserControllerTest {
             totalCount = 20,
             currentPage = page,
             totalPages = 10,
-            pageSize = 2
+            pageSize = 2,
         )
 
         every {
@@ -194,7 +196,7 @@ class UserControllerTest {
                 firstname = firstname.trim(),
                 lastname = lastname.trim(),
                 enabled = enabled,
-                page = page
+                page = page,
             )
         } returns userSearchResult
 
@@ -204,7 +206,7 @@ class UserControllerTest {
                 lastname = lastname,
                 username = username,
                 enabled = enabled,
-                page = page
+                page = page,
             )
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
@@ -219,7 +221,7 @@ class UserControllerTest {
                 firstname = firstname.trim(),
                 lastname = lastname.trim(),
                 enabled = enabled,
-                page = page
+                page = page,
             )
         }
     }
@@ -271,7 +273,7 @@ class UserControllerTest {
 
         val newPermission = UserPermission(
             key = UserPermissions.CHECKIN.key,
-            title = UserPermissions.CHECKIN.title
+            title = UserPermissions.CHECKIN.title,
         )
         val updatedUser = User(
             id = 123,
@@ -281,7 +283,7 @@ class UserControllerTest {
             lastname = "updated-lastname",
             permissions = listOf(newPermission),
             passwordChangeRequired = true,
-            enabled = false
+            enabled = false,
         )
 
         val updatedUserResponse = controller.updateUser(userId = testUser.id!!, user = updatedUser)
@@ -311,7 +313,7 @@ class UserControllerTest {
         val newPassword = "123"
         val updatedUserResponse = controller.updateUser(
             userId = 123,
-            user = testUserApiResponse.copy(password = newPassword, passwordRepeat = newPassword)
+            user = testUserApiResponse.copy(password = newPassword, passwordRepeat = newPassword),
         )
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
@@ -326,7 +328,7 @@ class UserControllerTest {
         val exception = assertThrows<TafelValidationException> {
             controller.updateUser(
                 userId = 123,
-                user = testUserApiResponse.copy(password = "123", passwordRepeat = "456")
+                user = testUserApiResponse.copy(password = "123", passwordRepeat = "456"),
             )
         }
 
@@ -369,9 +371,8 @@ class UserControllerTest {
         assertThat(permissions?.first()).isEqualTo(
             UserPermission(
                 key = userPermissionEntries.first().key,
-                title = userPermissionEntries.first().title
-            )
+                title = userPermissionEntries.first().title,
+            ),
         )
     }
-
 }

@@ -51,7 +51,7 @@ internal class DailyReportServiceTest {
 
             shelters = listOf(
                 testDistributionStatisticShelterEntity1,
-                testDistributionStatisticShelterEntity2
+                testDistributionStatisticShelterEntity2,
             ).toMutableList()
         }
 
@@ -98,8 +98,8 @@ internal class DailyReportServiceTest {
             DailyReportShelterPdfModel(
                 name = "Shelter 1",
                 addressFormatted = "Street 1, Stiege A, Top 1, 1234 City 1",
-                personCount = 1
-            )
+                personCount = 1,
+            ),
         )
 
         val secondShelter = pdfModel.shelters[1]
@@ -107,9 +107,8 @@ internal class DailyReportServiceTest {
             DailyReportShelterPdfModel(
                 name = "Shelter 2",
                 addressFormatted = "Street 2, Stiege A, Top 2, 4321 City 2",
-                personCount = 2
-            )
+                personCount = 2,
+            ),
         )
     }
-
 }

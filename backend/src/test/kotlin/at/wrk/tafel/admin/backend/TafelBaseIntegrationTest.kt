@@ -31,5 +31,4 @@ class TafelBaseIntegrationTest {
             registry.add("spring.datasource.password", postgreSQLContainer::getPassword)
         }
     }
-
 }

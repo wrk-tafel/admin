@@ -14,19 +14,13 @@ data class IncomeValidatorPerson(
     val monthlyIncome: BigDecimal? = null,
     val birthDate: LocalDate?,
     val excludeFromIncomeCalculation: Boolean = false,
-    val receivesFamilyBonus: Boolean = false
+    val receivesFamilyBonus: Boolean = false,
 ) {
-    fun isChild(): Boolean {
-        return getAge() < 15
-    }
+    fun isChild(): Boolean = getAge() < 15
 
-    fun isChildForFamilyBonus(): Boolean {
-        return getAge() <= 24
-    }
+    fun isChildForFamilyBonus(): Boolean = getAge() <= 24
 
-    fun getAge(): Int {
-        return Period.between(birthDate, LocalDate.now()).years
-    }
+    fun getAge(): Int = Period.between(birthDate, LocalDate.now()).years
 }
 
 @ExcludeFromTestCoverage
@@ -35,5 +29,5 @@ data class IncomeValidatorResult(
     val totalSum: BigDecimal,
     val limit: BigDecimal,
     val toleranceValue: BigDecimal,
-    val amountExceededLimit: BigDecimal
+    val amountExceededLimit: BigDecimal,
 )

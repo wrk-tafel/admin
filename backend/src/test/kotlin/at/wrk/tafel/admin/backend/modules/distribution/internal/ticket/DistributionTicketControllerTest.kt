@@ -78,5 +78,4 @@ internal class DistributionTicketControllerTest {
 
         verify { service.deleteCurrentTicket(householdId) }
     }
-
 }

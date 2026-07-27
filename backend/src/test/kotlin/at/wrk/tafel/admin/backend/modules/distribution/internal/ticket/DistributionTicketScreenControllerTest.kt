@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -34,7 +34,7 @@ internal class DistributionTicketScreenControllerTest {
         val testValue = "123213"
         val requestBody = TicketScreenShowText(
             text = testText,
-            value = testValue
+            value = testValue,
         )
 
         controller.showText(requestBody)
@@ -44,8 +44,8 @@ internal class DistributionTicketScreenControllerTest {
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
                     text = testText,
-                    value = testValue
-                )
+                    value = testValue,
+                ),
             )
         }
     }
@@ -62,8 +62,8 @@ internal class DistributionTicketScreenControllerTest {
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
                     text = "Ticket",
-                    value = "50"
-                )
+                    value = "50",
+                ),
             )
         }
     }
@@ -80,8 +80,8 @@ internal class DistributionTicketScreenControllerTest {
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
                     text = "Ticket",
-                    value = null
-                )
+                    value = null,
+                ),
             )
         }
     }
@@ -99,8 +99,8 @@ internal class DistributionTicketScreenControllerTest {
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
                     text = "Ticket",
-                    value = previousTicketNumber.toString()
-                )
+                    value = previousTicketNumber.toString(),
+                ),
             )
         }
     }
@@ -116,7 +116,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                payload = capture(payloadSlot)
+                payload = capture(payloadSlot),
             )
         }
 
@@ -138,8 +138,8 @@ internal class DistributionTicketScreenControllerTest {
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
                     text = "Ticket",
-                    value = nextTicketNumber.toString()
-                )
+                    value = nextTicketNumber.toString(),
+                ),
             )
         }
     }
@@ -155,7 +155,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                payload = capture(payloadSlot)
+                payload = capture(payloadSlot),
             )
         }
 
@@ -178,7 +178,7 @@ internal class DistributionTicketScreenControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java
+                resultType = TicketScreenShowText::class.java,
             )
         }
 
@@ -187,7 +187,7 @@ internal class DistributionTicketScreenControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java
+                resultType = TicketScreenShowText::class.java,
             )
         }
     }
@@ -205,7 +205,7 @@ internal class DistributionTicketScreenControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java
+                resultType = TicketScreenShowText::class.java,
             )
         }
 
@@ -214,9 +214,8 @@ internal class DistributionTicketScreenControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java
+                resultType = TicketScreenShowText::class.java,
             )
         }
     }
-
 }

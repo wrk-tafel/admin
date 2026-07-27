@@ -33,5 +33,4 @@ class FoodCollectionItemEntity {
             BigDecimal(amount) * weightPerUnit
         }
     }
-
 }

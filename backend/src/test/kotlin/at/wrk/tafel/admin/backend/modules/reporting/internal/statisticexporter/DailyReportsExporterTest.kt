@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -78,7 +78,7 @@ class DailyReportsExporterTest {
                 employeeCount = 13
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -86,7 +86,7 @@ class DailyReportsExporterTest {
             id = 222
             startedAt = LocalDateTime.now().minusDays(7)
             foodCollections = listOf(
-                testFoodCollectionRoute2Entity
+                testFoodCollectionRoute2Entity,
             )
             statistic = DistributionStatisticEntity().apply {
                 countPersons = 12
@@ -103,14 +103,14 @@ class DailyReportsExporterTest {
                 employeeCount = 1
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
 
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
             previousDistribution1,
-            previousDistribution2
+            previousDistribution2,
         )
 
         val filename = exporter.getName()
@@ -124,12 +124,12 @@ class DailyReportsExporterTest {
                 listOf(
                     "Datum", "KW", "Versorgte Personen", "davon in NOST", "davon in Ausgabestelle", "davon Kinder < 3 Jahre", "Haushalte",
                     "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Ges. Spender", "Spender mit Ware",
-                    "Warenmenge", "Kilometerleistung", "Anz. MitarbeiterInnen"
+                    "Warenmenge", "Kilometerleistung", "Anz. MitarbeiterInnen",
                 ),
                 listOf(
                     previousDistribution2.startedAt!!.format(DATE_FORMATTER),
                     previousDistribution2.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1"
+                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1",
                 ),
                 listOf(
                     previousDistribution1.startedAt!!.format(DATE_FORMATTER),
@@ -141,7 +141,7 @@ class DailyReportsExporterTest {
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
                     "22", "0", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1",
                 ),
-            )
+            ),
         )
     }
 
@@ -168,11 +168,11 @@ class DailyReportsExporterTest {
 
             shelters = listOf(
                 testDistributionStatisticShelterEntity1,
-                testDistributionStatisticShelterEntity2
+                testDistributionStatisticShelterEntity2,
             ).toMutableList()
         }
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
-            currentDistribution
+            currentDistribution,
         )
 
         val filename = exporter.getName()
@@ -185,15 +185,14 @@ class DailyReportsExporterTest {
                 listOf(
                     "Datum", "KW", "Versorgte Personen", "davon in NOST", "davon in Ausgabestelle", "davon Kinder < 3 Jahre", "Haushalte",
                     "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Ges. Spender", "Spender mit Ware",
-                    "Warenmenge", "Kilometerleistung", "Anz. MitarbeiterInnen"
+                    "Warenmenge", "Kilometerleistung", "Anz. MitarbeiterInnen",
                 ),
                 listOf(
                     currentDistribution.startedAt!!.format(DATE_FORMATTER),
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
                     "25", "3", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1",
                 ),
-            )
+            ),
         )
     }
-
 }

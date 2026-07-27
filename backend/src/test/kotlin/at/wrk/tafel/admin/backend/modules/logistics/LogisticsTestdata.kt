@@ -63,7 +63,7 @@ val testRoute1 = RouteEntity().apply {
             id = 11
             shop = testShop2
             time = LocalTime.MIDNIGHT.plusMinutes(15)
-        }
+        },
     )
 }
 
@@ -90,7 +90,6 @@ val testRoute4 = RouteEntity().apply {
     note = null
     stops = emptyList()
 }
-
 
 val testFoodCategory1 = FoodCategoryEntity().apply {
     id = 1
@@ -155,7 +154,7 @@ val testFoodCollectionRoute1Entity = FoodCollectionEntity().apply {
             category = testFoodCategory2
             shop = testShop2
             amount = 4
-        }
+        },
     )
 }
 
@@ -169,7 +168,7 @@ val testFoodCollectionRoute2Entity = FoodCollectionEntity().apply {
             category = testFoodCategory2
             shop = testShop3
             amount = 5
-        }
+        },
     )
 }
 
@@ -189,7 +188,7 @@ val testFoodCollectionRoute4Entity = FoodCollectionEntity().apply {
             category = testFoodCategory1
             shop = testShop3
             amount = 5
-        }
+        },
     )
 }
 

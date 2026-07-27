@@ -14,12 +14,10 @@ enum class UserPermissions(val key: String, val title: String) {
     SCANNER("SCANNER", "Scanner"),
     SETTINGS("SETTINGS", "Einstellungen"),
     STATISTICS("STATISTICS", "Statistiken"),
-    SUPERVISOR("SUPERVISOR", "Supervisor");
+    SUPERVISOR("SUPERVISOR", "Supervisor"),
+    ;
 
     companion object {
-        fun valueOfKey(key: String): UserPermissions {
-            return entries.first { it.key == key }
-        }
+        fun valueOfKey(key: String): UserPermissions = entries.first { it.key == key }
     }
-
 }

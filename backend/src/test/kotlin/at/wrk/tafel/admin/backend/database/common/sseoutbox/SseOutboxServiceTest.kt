@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.database.common.sse_outbox
+package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
@@ -87,7 +87,7 @@ class SseOutboxServiceTest {
         service.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = TestJsonPayload::class.java
+            resultType = TestJsonPayload::class.java,
         )
         delay(1000)
 
@@ -95,7 +95,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
         val callback = callbackSlot.captured
@@ -112,7 +112,7 @@ class SseOutboxServiceTest {
             sseEmitter = sseEmitter,
             notificationName = notificationName,
             resultType = TestJsonPayload::class.java,
-            acceptFilter = acceptFilter
+            acceptFilter = acceptFilter,
         )
         delay(1000)
 
@@ -120,7 +120,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
         val callback = callbackSlot.captured
@@ -135,7 +135,7 @@ class SseOutboxServiceTest {
         service.listenForNotificationEvents(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = TestJsonPayload::class.java
+            resultType = TestJsonPayload::class.java,
         ) { value ->
             eventReceived = value
         }
@@ -145,7 +145,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
         val callback = callbackSlot.captured
@@ -160,7 +160,7 @@ class SseOutboxServiceTest {
         service.listenForNotificationEvents<Unit>(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = null
+            resultType = null,
         ) { value ->
             eventReceived = value
         }
@@ -170,7 +170,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
         val callback = callbackSlot.captured
@@ -202,7 +202,7 @@ class SseOutboxServiceTest {
         service.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = TestJsonPayload::class.java
+            resultType = TestJsonPayload::class.java,
         )
         delay(1000)
 
@@ -220,7 +220,7 @@ class SseOutboxServiceTest {
         service.listenForNotificationEvents<Unit>(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = null
+            resultType = null,
         ) { }
         delay(1000)
 
@@ -275,7 +275,7 @@ class SseOutboxServiceTest {
         service.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = TestJsonPayload::class.java
+            resultType = TestJsonPayload::class.java,
         )
         delay(1000)
 
@@ -283,7 +283,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
 
@@ -293,7 +293,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.unregisterCallback(
                 notificationName = notificationName,
-                eventCallback = callbackSlot.captured
+                eventCallback = callbackSlot.captured,
             )
         }
     }
@@ -308,7 +308,7 @@ class SseOutboxServiceTest {
         service.listenForNotificationEvents<Unit>(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = null
+            resultType = null,
         ) { }
         delay(1000)
 
@@ -316,7 +316,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
 
@@ -326,7 +326,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.unregisterCallback(
                 notificationName = notificationName,
-                eventCallback = callbackSlot.captured
+                eventCallback = callbackSlot.captured,
             )
         }
     }
@@ -341,7 +341,7 @@ class SseOutboxServiceTest {
         service.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
-            resultType = TestJsonPayload::class.java
+            resultType = TestJsonPayload::class.java,
         )
         delay(1000)
 
@@ -349,7 +349,7 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.registerCallback(
                 notificationName = notificationName,
-                eventCallback = capture(callbackSlot)
+                eventCallback = capture(callbackSlot),
             )
         }
 
@@ -359,11 +359,10 @@ class SseOutboxServiceTest {
         verify {
             sseOutboxListenerService.unregisterCallback(
                 notificationName = notificationName,
-                eventCallback = callbackSlot.captured
+                eventCallback = callbackSlot.captured,
             )
         }
     }
-
 }
 
 @ExcludeFromTestCoverage

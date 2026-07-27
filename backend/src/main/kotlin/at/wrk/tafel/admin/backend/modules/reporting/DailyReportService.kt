@@ -58,9 +58,9 @@ class DailyReportService(
                     DailyReportShelterPdfModel(
                         name = it.name!!,
                         addressFormatted = formatShelterAddress(it),
-                        personCount = it.personsCount!!
+                        personCount = it.personsCount!!,
                     )
-                }
+                },
         )
     }
 
@@ -69,7 +69,7 @@ class DailyReportService(
             listOfNotNull(shelter.addressStreet, shelter.addressHouseNumber).joinToString(" ").trim(),
             shelter.addressStairway?.let { "Stiege $it" },
             shelter.addressDoor?.let { "Top $it" },
-            listOfNotNull(shelter.addressPostalCode, shelter.addressCity).joinToString(" ").trim()
+            listOfNotNull(shelter.addressPostalCode, shelter.addressCity).joinToString(" ").trim(),
         )
             .filter { it.isNotBlank() }
             .joinToString(", ")
@@ -83,5 +83,4 @@ class DailyReportService(
         val endTime = statistic.distribution?.endedAt?.format(DATE_TIME_FORMATTER)
         return "$date $startTime - $endTime"
     }
-
 }

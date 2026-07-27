@@ -7,5 +7,4 @@ class AdminBackendApplicationIT : TafelBaseIntegrationTest() {
     @Test
     fun contextLoads() {
     }
-
 }

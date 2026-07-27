@@ -78,5 +78,4 @@ class LoginAttemptService(
     private fun normalize(username: String) = username.trim().lowercase()
 
     private fun now(): LocalDateTime = LocalDateTime.now(clock)
-
 }

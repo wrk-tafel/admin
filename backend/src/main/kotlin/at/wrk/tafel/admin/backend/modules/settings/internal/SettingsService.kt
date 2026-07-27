@@ -53,9 +53,9 @@ class SettingsService(
             recipients = groupedByType.entries.map { recipientsPerType ->
                 MailRecipientAdresses(
                     recipientType = MailRecipientType.valueOf(recipientsPerType.key!!.name.uppercase()),
-                    addresses = recipientsPerType.value.map { it.address!! }
+                    addresses = recipientsPerType.value.map { it.address!! },
                 )
-            }
+            },
         )
     }
 
@@ -137,17 +137,14 @@ class SettingsService(
         return validFrom != null && validTo != null && !today.isBefore(validFrom) && !today.isAfter(validTo)
     }
 
-    private fun mapStaticValue(entity: StaticValueEntity): StaticValueItem {
-        return StaticValueItem(
-            id = entity.id,
-            type = entity.type!!.name,
-            validFrom = entity.validFrom!!,
-            validTo = entity.validTo!!,
-            amount = entity.amount,
-            countAdults = entity.countAdults,
-            countChildren = entity.countChildren,
-            age = entity.age,
-        )
-    }
-
+    private fun mapStaticValue(entity: StaticValueEntity): StaticValueItem = StaticValueItem(
+        id = entity.id,
+        type = entity.type!!.name,
+        validFrom = entity.validFrom!!,
+        validTo = entity.validTo!!,
+        amount = entity.amount,
+        countAdults = entity.countAdults,
+        countChildren = entity.countChildren,
+        age = entity.age,
+    )
 }

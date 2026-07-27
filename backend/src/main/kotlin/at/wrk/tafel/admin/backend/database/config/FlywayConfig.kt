@@ -12,21 +12,18 @@ import javax.sql.DataSource
 @Configuration
 @ExcludeFromTestCoverage
 class FlywayConfig(
-    @param:Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean
+    @param:Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean,
 ) {
 
     @Bean
     fun flywayMigrationStrategy(
         dataSource: DataSource,
-        applicationContext: ApplicationContext
-    ): FlywayMigrationStrategy {
-        return FlywayMigrationStrategy { flyway: Flyway ->
-            if (testdataEnabled) {
-                flyway.clean()
-            }
-
-            flyway.migrate()
+        applicationContext: ApplicationContext,
+    ): FlywayMigrationStrategy = FlywayMigrationStrategy { flyway: Flyway ->
+        if (testdataEnabled) {
+            flyway.clean()
         }
-    }
 
+        flyway.migrate()
+    }
 }

@@ -30,11 +30,11 @@ class RouteControllerTest {
     fun `get routes`() {
         val route1 = Route(
             id = 1,
-            name = "Route 1"
+            name = "Route 1",
         )
         val route2 = Route(
             id = 2,
-            name = "Route 2"
+            name = "Route 2",
         )
         every { routeService.getRoutes() } returns listOf(route1, route2)
 
@@ -44,9 +44,9 @@ class RouteControllerTest {
             RouteListResponse(
                 routes = listOf(
                     route1,
-                    route2
-                )
-            )
+                    route2,
+                ),
+            ),
         )
     }
 
@@ -55,7 +55,7 @@ class RouteControllerTest {
         val routeId = testRoute1.id!!
         val shopList = listOf(
             Shop(id = 1, number = 111, name = "Billa", address = "Street 1, 1010 City"),
-            Shop(id = 2, number = 222, name = "Hofer", address = "Street 2, 1020 City")
+            Shop(id = 2, number = 222, name = "Hofer", address = "Street 2, 1020 City"),
         )
         every { shopService.getShopsForRouteId(routeId) } returns shopList
 
@@ -63,9 +63,8 @@ class RouteControllerTest {
 
         assertThat(routeShopsResponse).isEqualTo(
             RouteShopsResponse(
-                shops = shopList
-            )
+                shops = shopList,
+            ),
         )
     }
-
 }

@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AdvisoryLockService(
-    private val advisoryLockRepository: AdvisoryLockRepository
+    private val advisoryLockRepository: AdvisoryLockRepository,
 ) {
 
     @Transactional
@@ -37,13 +37,10 @@ class AdvisoryLockService(
     }
 
     @Transactional
-    fun tryAcquireLock(lockKey: AdvisoryLockKey): Boolean {
-        return advisoryLockRepository.tryAcquireLock(lockKey.lockId) ?: false
-    }
+    fun tryAcquireLock(lockKey: AdvisoryLockKey): Boolean = advisoryLockRepository.tryAcquireLock(lockKey.lockId) ?: false
 
     @Transactional
     fun releaseLock(lockKey: AdvisoryLockKey) {
         advisoryLockRepository.releaseLock(lockKey.lockId)
     }
-
 }

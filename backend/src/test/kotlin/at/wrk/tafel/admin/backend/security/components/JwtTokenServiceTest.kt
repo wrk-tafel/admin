@@ -36,10 +36,10 @@ class JwtTokenServiceTest {
                     expirationTimePwdChangeInSeconds = 100,
                     secret = SecurityJwtTokenSecretProperties(
                         value = "test-dummy".padEnd(50, 'A'),
-                        algorithm = "HMACSHA256"
-                    )
-                )
-            )
+                        algorithm = "HMACSHA256",
+                    ),
+                ),
+            ),
         )
         jwtTokenService = JwtTokenService(properties)
     }
@@ -49,9 +49,9 @@ class JwtTokenServiceTest {
         val token = jwtTokenService.generateToken(
             "test-user",
             listOf(
-                SimpleGrantedAuthority("dummy-role")
+                SimpleGrantedAuthority("dummy-role"),
             ),
-            expirationSeconds = 100
+            expirationSeconds = 100,
         )
 
         val claims = jwtTokenService.getClaimsFromToken(token)
@@ -125,7 +125,7 @@ class JwtTokenServiceTest {
         val decodedBody = String(Base64.getDecoder().decode(tokenBody))
         val modifiedBody = decodedBody.replace(
             originalExpirationDate.atZone(ZoneId.systemDefault()).toEpochSecond().toString(),
-            LocalDateTime.now().plusYears(1).atZone(ZoneId.systemDefault()).toEpochSecond().toString()
+            LocalDateTime.now().plusYears(1).atZone(ZoneId.systemDefault()).toEpochSecond().toString(),
         )
         val modifiedBodyEncoded = Base64.getEncoder().encodeToString(modifiedBody.encodeToByteArray())
 
@@ -142,14 +142,14 @@ class JwtTokenServiceTest {
         overrideIssuer: String? = null,
         issuerNull: Boolean? = false,
         overrideAudience: String? = null,
-        audienceNull: Boolean? = false
+        audienceNull: Boolean? = false,
     ): String {
         val tokenProperties = properties.security.jwtToken
 
         val secretKeySpec =
             SecretKeySpec(
                 (overrideSecretKey ?: tokenProperties.secret.value).toByteArray(),
-                tokenProperties.secret.algorithm
+                tokenProperties.secret.algorithm,
             )
         val expirationTime = overrideExpirationTime ?: LocalDateTime.now().plusHours(1)
         val issuer = if (issuerNull == true) null else overrideIssuer ?: tokenProperties.issuer

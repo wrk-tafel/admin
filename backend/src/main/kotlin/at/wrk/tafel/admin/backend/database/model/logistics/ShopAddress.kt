@@ -16,5 +16,4 @@ class ShopAddress {
 
     @Column(name = "address_city")
     var city: String? = null
-
 }
