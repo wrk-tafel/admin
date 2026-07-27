@@ -5,62 +5,60 @@
         <h5>Statistik</h5>
       </mat-card-header>
       <mat-card-content>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div class="font-bold mb-2">Schnellauswahl</div>
-            <div>
-              <button matButton="filled" class="mt-2 md:mt-0" (click)="onSelectCurrentYear()">Aktuelles Jahr</button>
-              <button matButton="filled" class="ms-2 md:ms-0 lg:ms-2 mt-2 lg:mt-0" (click)="onSelectCurrentMonth()">Aktuelles Monat</button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-4">
+        <div class="font-bold mb-2">Zeitraum</div>
+        <mat-button-toggle-group testid="dateRangeModeInput" [value]="selectedMode()"
+                                  (change)="onModeChange($event.value)">
+          <mat-button-toggle value="year">Jahr</mat-button-toggle>
+          <mat-button-toggle value="currentMonth">Aktuelles Monat</mat-button-toggle>
+          <mat-button-toggle value="distribution">Ausgabe</mat-button-toggle>
+          <mat-button-toggle value="custom">Benutzerdefiniert</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-4">
+          @switch (selectedMode()) {
+            @case ('year') {
               <div class="sm:col-span-2">
                 <label class="form-label">Jahr</label>
               </div>
               <div class="sm:col-span-5">
-                <select testid="yearInput" #yearSelect class="form-control" [ngModel]="undefined"
-                        (ngModelChange)="onYearSelected($event); yearSelect.value = '';">
-                  <option [ngValue]="undefined"></option>
-                  @for (year of settings()?.availableYears; track year) {
+                <select testid="yearInput" class="form-control" [ngModel]="selectedYear()"
+                        (ngModelChange)="onYearSelected($event)">
+                  @for (year of yearOptions(); track year) {
                     <option [ngValue]="year">{{ year }}</option>
                   }
                 </select>
               </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-2">
+            }
+            @case ('distribution') {
               <div class="sm:col-span-2">
                 <label class="form-label">Ausgabe</label>
               </div>
               <div class="sm:col-span-5">
-                <select testid="distributionDateInput" #distributionSelect class="form-control"
-                        [ngModel]="undefined"
-                        (ngModelChange)="onDistributionSelected($event); distributionSelect.value = '';">
+                <select testid="distributionDateInput" class="form-control"
+                        [ngModel]="selectedDistribution()"
+                        (ngModelChange)="onDistributionSelected($event)">
                   <option [ngValue]="undefined"></option>
                   @for (distribution of settings()?.distributions; track distribution.startDate) {
                     <option [ngValue]="distribution">{{ distribution.startDate | date : 'dd.MM.yyyy' }}</option>
                   }
                 </select>
               </div>
-            </div>
-          </div>
-          <div>
-            <div class="font-bold mb-2 mt-4 md:mt-0">Zeitraum</div>
-            <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center">
+            }
+            @case ('custom') {
               <div class="sm:col-span-2">
                 <label class="form-label">von</label>
               </div>
               <div class="sm:col-span-5">
                 <input testid="dataRangeFromInput" type="date" class="form-control" [(ngModel)]="dateRangeFrom">
               </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-2">
-              <div class="sm:col-span-2">
+              <div class="sm:col-span-2 mt-2 sm:mt-0">
                 <label class="form-label">bis</label>
               </div>
-              <div class="sm:col-span-5">
+              <div class="sm:col-span-5 mt-2 sm:mt-0">
                 <input testid="dataRangeToInput" type="date" class="form-control" [(ngModel)]="dateRangeTo">
               </div>
-            </div>
-          </div>
+            }
+          }
         </div>
       </mat-card-content>
     </mat-card>

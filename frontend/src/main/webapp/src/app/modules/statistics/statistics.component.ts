@@ -1,6 +1,7 @@
 import {Component, computed, inject, input, signal} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
@@ -22,6 +23,7 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
     StatisticsPanelComponent,
     FaIconComponent
   ]
@@ -43,28 +45,43 @@ export class StatisticsComponent {
     )
   );
 
-  onYearSelected(year: number | undefined) {
-    if (year) {
-      this._dateRangeFrom.set(dayjs().year(year).startOf('year').toDate());
-      this._dateRangeTo.set(dayjs().year(year).endOf('year').toDate());
+  selectedMode = signal<DateRangeMode>('year');
+  selectedYear = signal<number>(dayjs().year());
+  selectedDistribution = signal<StatisticsDistribution | undefined>(undefined);
+
+  yearOptions = computed(() => {
+    const years = new Set(this.settings()?.availableYears ?? []);
+    years.add(dayjs().year());
+    return Array.from(years).sort((a, b) => b - a);
+  });
+
+  onModeChange(mode: DateRangeMode): void {
+    this.selectedMode.set(mode);
+    if (mode === 'year') {
+      this.applyYear(this.selectedYear());
+    } else if (mode === 'currentMonth') {
+      this._dateRangeFrom.set(dayjs().startOf('month').toDate());
+      this._dateRangeTo.set(dayjs().toDate());
     }
   }
 
+  onYearSelected(year: number): void {
+    this.selectedYear.set(year);
+    this.applyYear(year);
+  }
+
+  private applyYear(year: number): void {
+    const isCurrentYear = year === dayjs().year();
+    this._dateRangeFrom.set(dayjs().year(year).startOf('year').toDate());
+    this._dateRangeTo.set(isCurrentYear ? dayjs().toDate() : dayjs().year(year).endOf('year').toDate());
+  }
+
   onDistributionSelected(distribution: StatisticsDistribution | undefined): void {
+    this.selectedDistribution.set(distribution);
     if (distribution) {
       this._dateRangeFrom.set(distribution.startDate);
       this._dateRangeTo.set(distribution.endDate);
     }
-  }
-
-  onSelectCurrentYear(): void {
-    this._dateRangeFrom.set(dayjs().startOf('year').toDate());
-    this._dateRangeTo.set(dayjs().toDate());
-  }
-
-  onSelectCurrentMonth(): void {
-    this._dateRangeFrom.set(dayjs().startOf('month').toDate());
-    this._dateRangeTo.set(dayjs().toDate());
   }
 
   get dateRangeFrom(): string {
@@ -96,3 +113,5 @@ export class StatisticsComponent {
 
   protected readonly faSave = faSave;
 }
+
+type DateRangeMode = 'year' | 'currentMonth' | 'distribution' | 'custom';
