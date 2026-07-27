@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -83,6 +84,10 @@ class SettingsService(
     }
 
     @Transactional
+    @CacheEvict(
+        cacheNames = ["staticValueLatestForPersonCount", "staticValueSingle", "staticValueList"],
+        allEntries = true,
+    )
     fun createStaticValue(item: StaticValueItem): StaticValueItem {
         val type = parseType(item.type)
         validateDateRange(item.validFrom, item.validTo)
@@ -102,6 +107,10 @@ class SettingsService(
     }
 
     @Transactional
+    @CacheEvict(
+        cacheNames = ["staticValueLatestForPersonCount", "staticValueSingle", "staticValueList"],
+        allEntries = true,
+    )
     fun updateStaticValue(staticValueId: Long, item: StaticValueItem): StaticValueItem {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
             ?: throw TafelValidationException("Statischer Wert mit ID $staticValueId nicht gefunden")
@@ -148,9 +157,14 @@ class SettingsService(
         }
     }
 
-    // Guards the invariant StaticValueRepository.findSingleValueOfType/findLatestForPersonCount rely on: at most one
-    // row may match a given (type, countAdults, countChildren) combination for any given date, since both methods
-    // return a single entity rather than a list.
+    // Guards the invariant the single-result repository lookups rely on: at most one row may match
+    // per date for a given type, since Spring Data throws IncorrectResultSizeDataAccessException if
+    // more than one row matches a query whose return type is a single entity. The exact key differs
+    // per lookup method: findLatestForPersonCount (INCOME_LIMIT only) additionally filters by
+    // countAdults/countChildren, so only same-count rows conflict; findSingleValueOfType (TOLERANCE,
+    // ADDITIONAL_ADULT, ADDITIONAL_CHILD, CHILD_TAX_ALLOWANCE, COST_CONTRIBUTION) filters only by
+    // type, so ANY overlapping row of that type conflicts regardless of counts. FAMILY_BONUS/
+    // SIBLING_ADDITION are read via findValuesOfType (a list), so overlaps there are never a problem.
     private fun validateNoOverlap(
         type: StaticValueType,
         countAdults: Int?,
@@ -162,10 +176,13 @@ class SettingsService(
         val overlaps = staticValueRepository.findAll().any { existing ->
             existing.id != excludeId &&
                 existing.type == type &&
-                existing.countAdults == countAdults &&
-                existing.countChildren == countChildren &&
                 existing.validFrom != null && existing.validTo != null &&
-                !(validTo.isBefore(existing.validFrom) || validFrom.isAfter(existing.validTo))
+                !(validTo.isBefore(existing.validFrom) || validFrom.isAfter(existing.validTo)) &&
+                when (type) {
+                    StaticValueType.FAMILY_BONUS, StaticValueType.SIBLING_ADDITION -> false
+                    StaticValueType.INCOME_LIMIT -> existing.countAdults == countAdults && existing.countChildren == countChildren
+                    else -> true
+                }
         }
 
         if (overlaps) {
