@@ -111,13 +111,23 @@ export class ScannerComponent {
     return camera.id;
   }
 
+  // Scanner registration and camera startup happen concurrently, so a scan can be decoded
+  // before scannerId() resolves. Route through this effect (instead of sending directly from
+  // the callback) so it fires once scannerId becomes available too, instead of dropping the
+  // scan or posting to `/scanners/undefined/results`.
+  sendScanResultEffect = effect(() => {
+    const scannerId = this.scannerId();
+    const lastScanResult = this.lastScanResult();
+    if (scannerId !== undefined && lastScanResult !== undefined) {
+      this.scannerApiService.sendScanResult(scannerId, lastScanResult).subscribe();
+    }
+  });
+
   qrCodeReaderSuccessCallback = (decodedText: string, _?: Html5QrcodeResult) => {
     const scanResult: ScanResult = {value: +decodedText};
     console.log('SCANNED', scanResult);
-    const scannedValue = scanResult.value;
-    if (!this.lastScanResult() || this.lastScanResult() !== scannedValue) {
+    if (this.lastScanResult() !== scanResult.value) {
       this.lastScanResult.set(scanResult.value);
-      this.scannerApiService.sendScanResult(this.scannerId()!, scanResult.value).subscribe();
     }
   };
 

@@ -39,7 +39,7 @@ declare namespace Cypress {
      * Custom command to select DOM element by testId attribute.
      * @example cy.byTestId('saveButton');
      */
-    byTestId<K extends keyof HTMLElementTagNameMap>(value: string): Chainable<JQuery<HTMLElementTagNameMap[K]>>;
+    byTestId<K extends keyof HTMLElementTagNameMap>(value: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<JQuery<HTMLElementTagNameMap[K]>>;
 
     /**
      * Custom command to create a distribution.

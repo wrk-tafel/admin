@@ -1,4 +1,5 @@
 import {defineConfig} from 'cypress';
+import * as path from 'path';
 
 export default defineConfig({
   builder: '@cypress/schematic:cypress',
@@ -7,39 +8,22 @@ export default defineConfig({
   videoCompression: false,
   video: true,
   allowCypressEnv: false,
-  env: {
-    'browserPermissions': {
-      'camera': 'allow'
-    }
-  },
   e2e: {
     experimentalRunAllSpecs: true,
-    // We've imported your old cypress plugins here.
-    // You may want to clean this up later by importing these.
-    setupNodeEvents(on, config) {
+    setupNodeEvents(on) {
       on('before:browser:launch', (browser, launchOptions) => {
-
+        // Cypress already grants fake camera/mic access for chromium browsers
+        // (--use-fake-ui-for-media-stream / --use-fake-device-for-media-stream),
+        // so no permissions plugin is needed. We just point the fake camera at
+        // a video containing a real QR code, so scanner.cy.ts can exercise the
+        // actual scan/decode pipeline instead of only checking readiness.
         if (browser.family === 'chromium' && browser.name !== 'electron') {
-          /*
-          if (Cypress.platform === 'linux') {
-          }
-           */
-
-          /*
-          // Linux
-          launchOptions.args.push(
-            '--use-file-for-fake-video-capture=cypress/fixtures/webcam/qr-code.y4m'
-          );
-          */
-
-          // Windows
-          // launchOptions.args.push('--use-file-for-fake-video-capture=D:\\development\\repos\\wrk-admin\\frontend\\src\\main\\webapp\\cypress\\fixtures\\webcam\\qr-code.y4m');
+          const qrCodeVideoPath = path.resolve(__dirname, 'cypress/fixtures/webcam/qr-code.y4m');
+          launchOptions.args.push(`--use-file-for-fake-video-capture=${qrCodeVideoPath}`);
         }
 
-        // return launchOptions;
+        return launchOptions;
       });
-
-      return require('./cypress/plugins/index.ts')(on, config);
     },
     baseUrl: 'http://localhost:4200/',
     defaultCommandTimeout: 10000,
