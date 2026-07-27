@@ -2,6 +2,7 @@ const eslint = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 const prettierConfig = require('eslint-config-prettier');
+const boundaries = require('eslint-plugin-boundaries');
 
 module.exports = tseslint.config(
   {
@@ -22,7 +23,43 @@ module.exports = tseslint.config(
       }
     },
     processor: angular.processInlineTemplates,
+    plugins: {
+      boundaries
+    },
+    settings: {
+      'import/resolver': {
+        node: {
+          extensions: ['.ts', '.js']
+        }
+      },
+      'boundaries/elements': [
+        {type: 'module', pattern: 'src/app/modules/*', capture: ['module']},
+        {type: 'common', pattern: 'src/app/common'},
+        {type: 'api', pattern: 'src/app/api'}
+      ]
+    },
     rules: {
+      // feature modules may only depend on common/api and their own module - never on a sibling module
+      'boundaries/dependencies': [
+        'error',
+        {
+          default: 'disallow',
+          policies: [
+            {
+              from: {element: {type: 'module'}},
+              allow: {to: {element: {types: ['common', 'api']}}}
+            },
+            {
+              from: {element: {type: 'module'}},
+              allow: {to: {element: {type: 'module', captured: {module: '{{ from.element.captured.module }}'}}}}
+            },
+            {
+              from: {element: {types: ['common', 'api']}},
+              allow: {to: {element: {types: ['common', 'api']}}}
+            }
+          ]
+        }
+      ],
       '@angular-eslint/component-selector': [
         'error',
         {
@@ -88,6 +125,26 @@ module.exports = tseslint.config(
       radix: 'error',
       semi: ['error', 'always'],
       'spaced-comment': ['error', 'always', {markers: ['/']}]
+    }
+  },
+  {
+    // HTTP calls must go through a dedicated service in app/api, not HttpClient directly
+    files: ['src/app/modules/**/*.ts', 'src/app/common/**/*.ts'],
+    ignores: ['src/app/common/security/authentication.service.ts', '**/*.spec.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@angular/common/http',
+              importNames: ['HttpClient'],
+              message: 'Inject the dedicated *ApiService from app/api instead of using HttpClient directly.'
+            }
+          ],
+          patterns: ['rxjs/Rx']
+        }
+      ]
     }
   },
   {
