@@ -73,8 +73,11 @@ class FoodCollectionsExporter(
                     columns.add(currentShop.number.toString())
 
                     sortedFoodCategories.forEach { foodCategory ->
+                        // Kotlin types category/shop as nullable, but Sonar's JPA-aware analysis assumes the
+                        // @JoinColumn(nullable = false) guarantee and flags null-handling here as redundant either
+                        // way (!! or ?.) - keep the safe call, it's still correct if that assumption is ever wrong.
                         val itemPerCategory =
-                            items.firstOrNull { it.category?.id == foodCategory.id && it.shop?.id == currentShop.id }
+                            items.firstOrNull { it.category?.id == foodCategory.id && it.shop?.id == currentShop.id } // NOSONAR
                         val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }
