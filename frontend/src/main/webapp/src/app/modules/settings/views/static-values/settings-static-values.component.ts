@@ -1,4 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
+import {CurrencyPipe, DatePipe} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {StaticValueEditDialogComponent} from './dialogs/static-value-edit-dialog.component';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
@@ -45,7 +46,9 @@ import {staticValueTypeLabels} from './static-value-type-labels';
     MatTable,
     MatHeaderCellDef,
     FaIconComponent,
-    MatButton
+    MatButton,
+    DatePipe,
+    CurrencyPipe
   ]
 })
 export class SettingsStaticValuesComponent {
