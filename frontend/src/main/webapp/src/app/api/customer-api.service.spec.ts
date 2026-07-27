@@ -374,6 +374,44 @@ describe('CustomerApiService', () => {
     expect(result!.items[0].similarCustomers[0].id).toEqual(133);
   });
 
+  it('get customers above limit without page', () => {
+    apiService.getCustomersAboveLimit().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get customers above limit with page', () => {
+    apiService.getCustomersAboveLimit(3).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit?page=3'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get customers above limit maps household to customer', () => {
+    let result;
+    apiService.getCustomersAboveLimit(1).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit?page=1'});
+    req.flush({
+      items: [{household: mockHousehold, totalSum: 1500, limit: 1000, amountExceededLimit: 500}],
+      totalCount: 1,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 25
+    });
+    httpMock.verify();
+
+    expect(result!.items).toHaveLength(1);
+    expect(result!.items[0].customer.lastname).toEqual('Mustermann');
+    expect(result!.items[0].totalSum).toEqual(1500);
+    expect(result!.items[0].limit).toEqual(1000);
+    expect(result!.items[0].amountExceededLimit).toEqual(500);
+    expect(result!.totalCount).toEqual(1);
+  });
+
   it('merge customers', () => {
     const targetCustomerId = 123;
     const sourceCustomerIds = [456, 789];

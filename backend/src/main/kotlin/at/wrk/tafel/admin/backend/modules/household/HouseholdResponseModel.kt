@@ -125,3 +125,20 @@ data class HouseholdDuplicationItem(
 data class HouseholdMergeRequest(
     val sourceHouseholdIds: List<Long>
 )
+
+@ExcludeFromTestCoverage
+data class HouseholdAboveLimitResponse(
+    val items: List<HouseholdAboveLimitItem>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
+)
+
+@ExcludeFromTestCoverage
+data class HouseholdAboveLimitItem(
+    val household: Household,
+    val totalSum: BigDecimal,
+    val limit: BigDecimal,
+    val amountExceededLimit: BigDecimal
+)

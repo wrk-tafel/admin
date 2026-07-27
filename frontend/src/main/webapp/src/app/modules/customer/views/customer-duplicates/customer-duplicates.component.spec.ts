@@ -134,7 +134,7 @@ describe('CustomerDuplicatesComponent', () => {
   it('init fills data correctly', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
-    fixture.componentRef.setInput('customerDuplicatesDataInput', mockCustomerDuplicatesDataResponse);
+    fixture.componentRef.setInput('customerDuplicatesData', mockCustomerDuplicatesDataResponse);
     fixture.detectChanges();
 
     expect(component.customerDuplicatesData()).toEqual(mockCustomerDuplicatesDataResponse);

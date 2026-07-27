@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.household.Household
+import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
@@ -19,6 +20,7 @@ import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValida
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
@@ -184,6 +186,44 @@ class HouseholdService(
     }
 
     @Transactional
+    fun getHouseholdsAboveLimit(page: Int? = null): HouseholdAboveLimitSearchResult {
+        // households needing post-processing (missing birthDate/gender/country/address/... - see
+        // HouseholdEntity.Specs.postProcessingNecessary()) can't be income-validated
+        val spec = where(Specification.allOf(listOf(validHousehold(), Specification.not(postProcessingNecessary()))))
+        val households = householdRepository.findAll(spec)
+            .map { householdConverter.mapEntityToHousehold(it) }
+
+        val itemsAboveLimit = households.mapNotNull { household ->
+            val result = incomeValidatorService.validate(mapToValidationPersons(household))
+            if (!result.valid) {
+                HouseholdAboveLimitItem(
+                    household = household,
+                    totalSum = result.totalSum,
+                    limit = result.limit,
+                    amountExceededLimit = result.amountExceededLimit
+                )
+            } else {
+                null
+            }
+        }
+
+        // the "above limit" filter can't be expressed in SQL (it depends on IncomeValidatorService,
+        // not stored columns), so pagination is applied in-memory on the already-computed result
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val fromIndex = pageRequest.offset.toInt().coerceAtMost(itemsAboveLimit.size)
+        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(itemsAboveLimit.size)
+        val pagedResult = PageImpl(itemsAboveLimit.subList(fromIndex, toIndex), pageRequest, itemsAboveLimit.size.toLong())
+
+        return HouseholdAboveLimitSearchResult(
+            items = pagedResult.content,
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize
+        )
+    }
+
+    @Transactional
     fun generatePdf(householdId: Long, type: HouseholdPdfType): HouseholdPdfResult? {
         val household = householdRepository.findByHouseholdId(householdId)
         if (household != null) {
@@ -266,6 +306,15 @@ class HouseholdService(
 @ExcludeFromTestCoverage
 data class HouseholdSearchResult(
     val items: List<Household>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
+)
+
+@ExcludeFromTestCoverage
+data class HouseholdAboveLimitSearchResult(
+    val items: List<HouseholdAboveLimitItem>,
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,

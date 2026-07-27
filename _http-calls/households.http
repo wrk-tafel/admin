@@ -181,8 +181,12 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/duplicates
 Content-Type: application/json
 
+### Get households above limit
+GET {{baseApiPath}}/households/above-limit
+Content-Type: application/json
+
 ### Merge households into another one
-GET {{baseApiPath}}/households/100/merge
+POST {{baseApiPath}}/households/100/merge
 Content-Type: application/json
 
 {

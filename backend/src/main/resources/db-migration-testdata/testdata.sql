@@ -49,6 +49,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1009, NOW(), NOW(), 100, 'STATISTICS');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 100, 'SUPERVISOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1011, NOW(), NOW(), 100, 'CUSTOMERS_ABOVE_LIMIT');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -68,6 +70,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2005, NOW(), NOW(), 200, 'CUSTOMER_DUPLICATES');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2006, NOW(), NOW(), 200, 'CUSTOMERS_ABOVE_LIMIT');
 
 -- user: admin
 -- pwd: 12345
@@ -97,6 +101,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3009, NOW(), NOW(), 300, 'STATISTICS');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3010, NOW(), NOW(), 300, 'SUPERVISOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3011, NOW(), NOW(), 300, 'CUSTOMERS_ABOVE_LIMIT');
 
 -- user: scanner1
 -- pwd: 12345
@@ -337,6 +343,42 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      income, income_due, country_id, receives_familybonus, exclude_household)
 values (1064, NOW(), NOW(), 106, false, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
 UPDATE households SET main_person_id = 106 WHERE id = 106;
+
+-- household above the income limit (couple, 2 children) - complete master data, shows up in
+-- "Kunden über Limit": income 2200+1600=3800 vs. limit 2788.00 for 2 adults/2 children
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (110, NOW(), NOW(), 110, 100, null, 'Teststraße', '10', null, null,
+        '1030', 'Wien', '0043660111000', 'ueberlimit.paar@wrk.at', '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+values (110, NOW(), NOW(), 110, true, 'Anna', 'Vielverdiener', '1988-05-10', 'FEMALE', 1, 'Firma A', 2200.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+values (1101, NOW(), NOW(), 110, false, 'Peter', 'Vielverdiener', '1985-03-15', 'MALE', 1, 'Firma B', 1600.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_familybonus)
+values (1102, NOW(), NOW(), 110, false, 'Lisa', 'Vielverdiener', CURRENT_DATE - interval '8 year', 'FEMALE', 1, false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_familybonus)
+values (1103, NOW(), NOW(), 110, false, 'Tom', 'Vielverdiener', CURRENT_DATE - interval '5 year', 'MALE', 1, false, false);
+UPDATE households SET main_person_id = 110 WHERE id = 110;
+
+-- household above the income limit (single adult) - complete master data, shows up in
+-- "Kunden über Limit": income 2200 vs. limit 1328.00 for 1 adult/0 children
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (111, NOW(), NOW(), 111, 100, null, 'Teststraße', '11', null, null,
+        '1030', 'Wien', '0043660111111', 'ueberlimit.single@wrk.at', '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+values (111, NOW(), NOW(), 111, true, 'Sabine', 'Grossverdiener', '1975-11-20', 'FEMALE', 1, 'Firma C', 2200.00,
+        '2999-12-31', false, false);
+UPDATE households SET main_person_id = 111 WHERE id = 111;
 
 -- static values
 DELETE FROM static_values;

@@ -23,6 +23,9 @@ Content-Type: application/json
 ### Logout
 POST {{baseApiPath}}/users/logout
 
+### Get info of the currently authenticated user
+GET {{baseApiPath}}/users/info
+
 ### Search for users (personnelNumber)
 GET {{baseApiPath}}/users?personnelnumber=x
 
@@ -40,6 +43,22 @@ Content-Type: application/json
 GET {{baseApiPath}}/users/personnel-number/admin-persnr
 Content-Type: application/json
 
+### Create user
+POST {{baseApiPath}}/users
+Content-Type: application/json
+
+{
+  "personnelNumber": "0400",
+  "username": "new-user",
+  "firstname": "New",
+  "lastname": "User",
+  "enabled": true,
+  "password": "12345",
+  "passwordRepeat": "12345",
+  "passwordChangeRequired": true,
+  "permissions": []
+}
+
 ### Update user
 POST {{baseApiPath}}/users/300
 Content-Type: application/json
@@ -56,6 +75,9 @@ Content-Type: application/json
   "passwordChangeRequired": true,
   "permissions": []
 }
+
+### Delete user
+DELETE {{baseApiPath}}/users/300
 
 ### Generate a random password
 GET {{baseApiPath}}/users/generate-password

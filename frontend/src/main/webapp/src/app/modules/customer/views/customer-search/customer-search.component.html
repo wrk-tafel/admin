@@ -57,7 +57,7 @@
         <div class="mt-6" testid="searchresult-table">
           <div class="mb-6">
             <h5 class="mb-6">Suchergebnis ({{searchResult()!.totalCount}} Kunden)</h5>
-            <mat-paginator [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+            <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
                            [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                            (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
           </div>
@@ -131,7 +131,7 @@
             </table>
 
             <div class="mt-6">
-              <mat-paginator [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+              <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
                              [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                              (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
             </div>
@@ -165,8 +165,8 @@
                 </mat-card>
               }
             </div>
-            <div class="mt-2 tafel-paginator-center">
-              <mat-paginator [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+            <div class="mt-2">
+              <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
                              [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                              (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
             </div>

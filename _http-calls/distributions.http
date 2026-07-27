@@ -29,6 +29,14 @@ Content-Type: application/json
   "selectedShelterIds": [1, 2, 3]
 }
 
+### Save notes for distribution
+POST {{baseApiPath}}/distributions/notes
+Content-Type: application/json
+
+{
+  "notes": "Everything went well!"
+}
+
 ### Get customer list (pdf)
 GET {{baseApiPath}}/distributions/households/generate-pdf
 
