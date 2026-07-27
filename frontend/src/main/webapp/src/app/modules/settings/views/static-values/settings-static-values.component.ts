@@ -1,7 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 import {CurrencyPipe} from '@angular/common';
-import {MatDialog} from '@angular/material/dialog';
-import {StaticValueEditDialogComponent} from './dialogs/static-value-edit-dialog.component';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
@@ -23,7 +22,9 @@ import {
 } from '../../../../api/settings-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faPencil} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faPencil, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {staticValueTypeLabels} from './static-value-type-labels';
 
@@ -47,17 +48,22 @@ import {staticValueTypeLabels} from './static-value-type-labels';
     MatHeaderCellDef,
     FaIconComponent,
     MatButton,
-    CurrencyPipe
+    CurrencyPipe,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule
   ]
 })
 export class SettingsStaticValuesComponent {
   private readonly settingsApiService = inject(SettingsApiService);
   private readonly toastr = inject(TafelToastrService);
-  private readonly dialog = inject(MatDialog);
 
   private _staticValues = signal<StaticValueListResponse | null>(null);
   protected staticValues = this._staticValues;
   displayedColumns = ['type', 'amount', 'countAdults', 'countChildren', 'age', 'actions'];
+
+  protected editingId = signal<number | null>(null);
+  protected amountControl = new FormControl<number | null>(null);
 
   protected typeLabel(type: StaticValueTypeEnum): string {
     return staticValueTypeLabels[type];
@@ -74,24 +80,32 @@ export class SettingsStaticValuesComponent {
     });
   }
 
-  protected editStaticValue(staticValue: StaticValueItem) {
-    const dialogRef = this.dialog.open(StaticValueEditDialogComponent, {
-      data: {staticValue},
-      width: '500px'
-    });
+  protected startEdit(staticValue: StaticValueItem) {
+    this.editingId.set(staticValue.id!);
+    this.amountControl.setValue(staticValue.amount);
+  }
 
-    dialogRef.afterClosed().subscribe((updated: StaticValueItem | undefined) => {
-      if (updated) {
-        this.settingsApiService.updateStaticValue(updated.id!, updated).subscribe({
-          next: () => {
-            this.toastr.success('Statischer Wert gespeichert', 'Erfolgreich');
-            this.loadStaticValues();
-          },
-          error: (error) => this.toastr.error(error.error?.message ?? 'Speichern fehlgeschlagen', 'Fehler')
-        });
-      }
+  protected cancelEdit() {
+    this.editingId.set(null);
+  }
+
+  protected saveEdit(staticValue: StaticValueItem) {
+    const updated: StaticValueItem = {
+      ...staticValue,
+      amount: this.amountControl.value
+    };
+
+    this.settingsApiService.updateStaticValue(updated.id!, updated).subscribe({
+      next: () => {
+        this.toastr.success('Statischer Wert gespeichert', 'Erfolgreich');
+        this.editingId.set(null);
+        this.loadStaticValues();
+      },
+      error: (error) => this.toastr.error(error.error?.message ?? 'Speichern fehlgeschlagen', 'Fehler')
     });
   }
 
   protected readonly faPencil = faPencil;
+  protected readonly faCheck = faCheck;
+  protected readonly faXmark = faXmark;
 }
