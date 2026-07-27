@@ -10,10 +10,15 @@ import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_CC1
 import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_CC2
 import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO1
 import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO2
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -21,14 +26,21 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.repository.findByIdOrNull
+import java.math.BigDecimal
+import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class SettingsServiceTest {
 
     @RelaxedMockK
     private lateinit var mailRecipientRepository: MailRecipientRepository
+
+    @RelaxedMockK
+    private lateinit var staticValueRepository: StaticValueRepository
 
     @InjectMockKs
     private lateinit var service: SettingsService
@@ -181,6 +193,185 @@ class SettingsServiceTest {
                 address = "c c1"
             }
         )
+    }
+
+    @Test
+    fun `fetch static values sorted by type and validFrom`() {
+        val tolerance = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.TOLERANCE
+            validFrom = LocalDate.of(2026, 1, 1)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("100.00")
+        }
+        val incomeLimit = StaticValueEntity().apply {
+            id = 2
+            type = StaticValueType.INCOME_LIMIT
+            validFrom = LocalDate.of(2022, 1, 1)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("1328.00")
+            countAdults = 1
+            countChildren = 0
+        }
+        every { staticValueRepository.findAll() } returns listOf(tolerance, incomeLimit)
+
+        val response = service.getStaticValues()
+
+        assertThat(response.staticValues).containsExactly(
+            StaticValueItem(
+                id = 2,
+                type = "INCOME_LIMIT",
+                validFrom = LocalDate.of(2022, 1, 1),
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("1328.00"),
+                countAdults = 1,
+                countChildren = 0,
+                age = null,
+            ),
+            StaticValueItem(
+                id = 1,
+                type = "TOLERANCE",
+                validFrom = LocalDate.of(2026, 1, 1),
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("100.00"),
+                countAdults = null,
+                countChildren = null,
+                age = null,
+            ),
+        )
+    }
+
+    @Test
+    fun `create static value`() {
+        every { staticValueRepository.findAll() } returns emptyList()
+        val savedEntitySlot = slot<StaticValueEntity>()
+        every { staticValueRepository.save(capture(savedEntitySlot)) } answers {
+            savedEntitySlot.captured.apply { id = 42L }
+        }
+
+        val newStaticValue = StaticValueItem(
+            id = null,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2026, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("100.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        val response = service.createStaticValue(newStaticValue)
+
+        assertThat(response).isEqualTo(newStaticValue.copy(id = 42L))
+        assertThat(savedEntitySlot.captured.type).isEqualTo(StaticValueType.TOLERANCE)
+    }
+
+    @Test
+    fun `create static value fails for unknown type`() {
+        val newStaticValue = StaticValueItem(
+            id = null,
+            type = "NOT_A_TYPE",
+            validFrom = LocalDate.of(2026, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = null,
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        assertThatThrownBy { service.createStaticValue(newStaticValue) }
+            .isInstanceOf(TafelValidationException::class.java)
+    }
+
+    @Test
+    fun `create static value fails when validFrom is after validTo`() {
+        val newStaticValue = StaticValueItem(
+            id = null,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2026, 12, 31),
+            validTo = LocalDate.of(2026, 1, 1),
+            amount = null,
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        assertThatThrownBy { service.createStaticValue(newStaticValue) }
+            .isInstanceOf(TafelValidationException::class.java)
+    }
+
+    @Test
+    fun `create static value fails when it overlaps an existing value of the same type and person count`() {
+        val existing = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.TOLERANCE
+            validFrom = LocalDate.of(2026, 1, 1)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("100.00")
+        }
+        every { staticValueRepository.findAll() } returns listOf(existing)
+
+        val overlapping = StaticValueItem(
+            id = null,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2026, 6, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("150.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        assertThatThrownBy { service.createStaticValue(overlapping) }
+            .isInstanceOf(TafelValidationException::class.java)
+    }
+
+    @Test
+    fun `update static value does not conflict with itself`() {
+        val existing = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.TOLERANCE
+            validFrom = LocalDate.of(2026, 1, 1)
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("100.00")
+        }
+        every { staticValueRepository.findAll() } returns listOf(existing)
+        every { staticValueRepository.findByIdOrNull(1L) } returns existing
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        val updated = StaticValueItem(
+            id = 1,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2026, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("150.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        val response = service.updateStaticValue(1L, updated)
+
+        assertThat(response).isEqualTo(updated)
+    }
+
+    @Test
+    fun `update static value fails when id is not found`() {
+        every { staticValueRepository.findByIdOrNull(99L) } returns null
+
+        val updated = StaticValueItem(
+            id = 99,
+            type = "TOLERANCE",
+            validFrom = LocalDate.of(2026, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("150.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        assertThatThrownBy { service.updateStaticValue(99L, updated) }
+            .isInstanceOf(TafelValidationException::class.java)
     }
 
 }

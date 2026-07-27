@@ -405,7 +405,7 @@ VALUES (9, 'ADDITIONAL_CHILD', '1900-01-01', '2999-12-31', 398.00);
 
 -- income tolerance
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
-VALUES (10, 'INCOME_TOLERANCE', '1900-01-01', '2999-12-31', 100.00);
+VALUES (10, 'TOLERANCE', '1900-01-01', '2999-12-31', 100.00);
 
 -- family bonus
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)

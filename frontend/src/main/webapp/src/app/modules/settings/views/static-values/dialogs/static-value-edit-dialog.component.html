@@ -1,0 +1,49 @@
+<tafel-dialog title="Statischer Wert" testid="static-value-edit-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Typ</mat-label>
+        <mat-select formControlName="type" testid="staticValueTypeSelect">
+          @for (option of typeOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Gültig von</mat-label>
+        <input matInput type="date" formControlName="validFrom"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Gültig bis</mat-label>
+        <input matInput type="date" formControlName="validTo"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Betrag</mat-label>
+        <input matInput type="number" step="0.01" formControlName="amount"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Anzahl Erwachsene</mat-label>
+        <input matInput type="number" formControlName="countAdults"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Anzahl Kinder</mat-label>
+        <input matInput type="number" formControlName="countChildren"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Alter</mat-label>
+        <input matInput type="number" formControlName="age"/>
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" testid="static-value-save-button" (click)="save()">Speichern</button>
+    <button matButton (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

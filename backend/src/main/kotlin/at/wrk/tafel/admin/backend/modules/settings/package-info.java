@@ -1,4 +1,4 @@
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {}
+        allowedDependencies = {"base::exception"}
 )
 package at.wrk.tafel.admin.backend.modules.settings;

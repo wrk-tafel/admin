@@ -4,16 +4,25 @@ import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class SettingsService(
     private val mailRecipientRepository: MailRecipientRepository,
+    private val staticValueRepository: StaticValueRepository,
 ) {
 
     fun getMailRecipients(): MailRecipients {
@@ -63,6 +72,107 @@ class SettingsService(
 
         mailRecipientRepository.deleteAll()
         mailRecipientRepository.saveAll(recipients)
+    }
+
+    fun getStaticValues(): StaticValueListResponse {
+        val staticValues = staticValueRepository.findAll()
+            .sortedWith(compareBy({ it.type }, { it.validFrom }, { it.countAdults }, { it.countChildren }, { it.age }, { it.id }))
+            .map { mapStaticValue(it) }
+
+        return StaticValueListResponse(staticValues = staticValues)
+    }
+
+    @Transactional
+    fun createStaticValue(item: StaticValueItem): StaticValueItem {
+        val type = parseType(item.type)
+        validateDateRange(item.validFrom, item.validTo)
+        validateNoOverlap(type, item.countAdults, item.countChildren, item.validFrom, item.validTo, excludeId = null)
+
+        val entity = StaticValueEntity().apply {
+            this.type = type
+            validFrom = item.validFrom
+            validTo = item.validTo
+            amount = item.amount
+            countAdults = item.countAdults
+            countChildren = item.countChildren
+            age = item.age
+        }
+
+        return mapStaticValue(staticValueRepository.save(entity))
+    }
+
+    @Transactional
+    fun updateStaticValue(staticValueId: Long, item: StaticValueItem): StaticValueItem {
+        val entity = staticValueRepository.findByIdOrNull(staticValueId)
+            ?: throw TafelValidationException("Statischer Wert mit ID $staticValueId nicht gefunden")
+
+        val type = parseType(item.type)
+        validateDateRange(item.validFrom, item.validTo)
+        validateNoOverlap(type, item.countAdults, item.countChildren, item.validFrom, item.validTo, excludeId = staticValueId)
+
+        entity.type = type
+        entity.validFrom = item.validFrom
+        entity.validTo = item.validTo
+        entity.amount = item.amount
+        entity.countAdults = item.countAdults
+        entity.countChildren = item.countChildren
+        entity.age = item.age
+
+        return mapStaticValue(staticValueRepository.save(entity))
+    }
+
+    private fun mapStaticValue(entity: StaticValueEntity): StaticValueItem {
+        return StaticValueItem(
+            id = entity.id,
+            type = entity.type!!.name,
+            validFrom = entity.validFrom!!,
+            validTo = entity.validTo!!,
+            amount = entity.amount,
+            countAdults = entity.countAdults,
+            countChildren = entity.countChildren,
+            age = entity.age,
+        )
+    }
+
+    private fun parseType(type: String): StaticValueType {
+        return try {
+            StaticValueType.valueOf(type)
+        } catch (e: IllegalArgumentException) {
+            throw TafelValidationException("Unbekannter Typ: $type")
+        }
+    }
+
+    private fun validateDateRange(validFrom: LocalDate, validTo: LocalDate) {
+        if (validFrom.isAfter(validTo)) {
+            throw TafelValidationException("\"Gültig von\" darf nicht nach \"Gültig bis\" liegen")
+        }
+    }
+
+    // Guards the invariant StaticValueRepository.findSingleValueOfType/findLatestForPersonCount rely on: at most one
+    // row may match a given (type, countAdults, countChildren) combination for any given date, since both methods
+    // return a single entity rather than a list.
+    private fun validateNoOverlap(
+        type: StaticValueType,
+        countAdults: Int?,
+        countChildren: Int?,
+        validFrom: LocalDate,
+        validTo: LocalDate,
+        excludeId: Long?,
+    ) {
+        val overlaps = staticValueRepository.findAll().any { existing ->
+            existing.id != excludeId &&
+                existing.type == type &&
+                existing.countAdults == countAdults &&
+                existing.countChildren == countChildren &&
+                existing.validFrom != null && existing.validTo != null &&
+                !(validTo.isBefore(existing.validFrom) || validFrom.isAfter(existing.validTo))
+        }
+
+        if (overlaps) {
+            throw TafelValidationException(
+                "Es existiert bereits ein Wert für diesen Typ mit überschneidendem Gültigkeitszeitraum"
+            )
+        }
     }
 
 }
