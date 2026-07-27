@@ -17,7 +17,7 @@ import {
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
-import {getErrorMessages, shouldShowErrors} from '../../../../common/util/signal-form-helper';
+import {fieldStateClasses, visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {email, maxDate, min, minDate, pattern} from '../../../../common/validator/signal-form-validators';
 import {toSignal} from '@angular/core/rxjs-interop';
 import dayjs from 'dayjs';
@@ -279,42 +279,13 @@ export class CustomerFormComponent {
   }
 
   markAllAsTouched() {
-    // Mark all signal form fields as touched
-    this.customerForm.lastname().markAsTouched();
-    this.customerForm.firstname().markAsTouched();
-    this.customerForm.birthDate().markAsTouched();
-    this.customerForm.gender().markAsTouched();
-    this.customerForm.country().markAsTouched();
-    this.customerForm.telephoneNumber().markAsTouched();
-    this.customerForm.email().markAsTouched();
-    this.customerForm.address.street().markAsTouched();
-    this.customerForm.address.houseNumber().markAsTouched();
-    this.customerForm.address.stairway().markAsTouched();
-    this.customerForm.address.door().markAsTouched();
-    this.customerForm.address.postalCode().markAsTouched();
-    this.customerForm.address.city().markAsTouched();
-    this.customerForm.employer().markAsTouched();
-    this.customerForm.income().markAsTouched();
-    this.customerForm.incomeDue().markAsTouched();
-    this.customerForm.validUntil().markAsTouched();
-
-    // Mark all additional persons fields as touched using bracket notation
-    const additionalPersons = this.formModel().additionalPersons;
-    for (let i = 0; i < additionalPersons.length; i++) {
-      this.personField(i).lastname().markAsTouched();
-      this.personField(i).firstname().markAsTouched();
-      this.personField(i).birthDate().markAsTouched();
-      this.personField(i).gender().markAsTouched();
-      this.personField(i).country().markAsTouched();
-      this.personField(i).employer().markAsTouched();
-      this.personField(i).income().markAsTouched();
-      this.personField(i).incomeDue().markAsTouched();
-    }
+    // markAsTouched() cascades to all descendant fields, including additionalPersons entries
+    this.customerForm().markAsTouched();
   }
 
   // Expose utility functions for template use
-  protected readonly getErrorMessages = getErrorMessages;
-  protected readonly shouldShowErrors = shouldShowErrors;
+  protected readonly visibleErrorMessages = visibleErrorMessages;
+  protected readonly fieldStateClasses = fieldStateClasses;
 
   protected readonly faVenusMars = faVenusMars;
   protected readonly faFlag = faFlag;

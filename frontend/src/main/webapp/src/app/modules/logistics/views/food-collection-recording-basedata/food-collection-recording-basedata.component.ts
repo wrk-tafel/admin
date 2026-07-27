@@ -16,6 +16,7 @@ import {
 import {CarData, CarList} from '../../../../api/car-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {controlStateClasses} from '../../../../common/util/reactive-form-helper';
 
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
@@ -217,4 +218,5 @@ export class FoodCollectionRecordingBasedataComponent {
   protected readonly faTruck = faTruck;
   protected readonly faGauge = faGauge;
   protected readonly faRemove = faRemove;
+  protected readonly controlStateClasses = controlStateClasses;
 }

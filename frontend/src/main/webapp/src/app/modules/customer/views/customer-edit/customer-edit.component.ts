@@ -54,18 +54,15 @@ export class CustomerEditComponent {
   }
 
   validate() {
-    const formComponent = this.customerFormComponent();
-    formComponent.markAllAsTouched();
-
-    if (!this.customerFormComponent().valid()) {
-      this.toastr.error('Bitte Eingaben überprüfen!');
-    } else {
-      this.customerApiService.validate(this.customerUpdated()).subscribe((result) => {
-        this.dialog.open(ValidationResultDialogComponent, {
-          data: {validationResult: result}
-        }).afterClosed().subscribe();
-      });
+    if (!this.validateForm()) {
+      return;
     }
+
+    this.customerApiService.validate(this.customerUpdated()).subscribe((result) => {
+      this.dialog.open(ValidationResultDialogComponent, {
+        data: {validationResult: result}
+      }).afterClosed().subscribe();
+    });
   }
 
   openConfirmCustomerSaveDialog(message: string, confirmationCallback = () => {
@@ -82,69 +79,77 @@ export class CustomerEditComponent {
   }
 
   save() {
+    if (!this.validateForm()) {
+      return;
+    }
+
+    if (!this.editMode()) {
+      const observer = {
+        next: (response: CustomerCreationResponse) => {
+          const customer = response.data;
+          this.router.navigate(['/kunden/detail', customer.id]);
+        },
+        error: (error: any) => {
+          const errorMessage = error.error.message;
+          if (error.status === 409) {
+            this.openConfirmCustomerSaveDialog(errorMessage, () => {
+              this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
+                next: (response: CustomerCreationResponse) => {
+                  const customer = response.data;
+                  this.toastr.success('Kunde wurde gespeichert!');
+                  this.router.navigate(['/kunden/detail', customer.id]);
+                },
+                error: () => {
+                  this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
+                },
+              });
+            });
+          } else {
+            this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
+          }
+        },
+      };
+
+      this.customerApiService.createCustomer(this.customerUpdated(), false).subscribe(observer);
+    } else {
+      const observer = {
+        next: (response: CustomerUpdateResponse) => {
+          const customer = response.data;
+          this.router.navigate(['/kunden/detail', customer.id]);
+        },
+        error: (error: any) => {
+          const errorMessage = error.error.message;
+          if (error.status === 409) {
+            this.openConfirmCustomerSaveDialog(errorMessage, () => {
+              this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
+                next: (response: CustomerUpdateResponse) => {
+                  const customer = response.data;
+                  this.toastr.success('Kunde wurde gespeichert!');
+                  this.router.navigate(['/kunden/detail', customer.id]);
+                },
+                error: () => {
+                  this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
+                },
+              });
+            });
+          } else {
+            this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
+          }
+        },
+      };
+      this.customerApiService.updateCustomer(this.customerUpdated(), false).subscribe(observer);
+    }
+  }
+
+  private validateForm(): boolean {
     const formComponent = this.customerFormComponent();
     formComponent.markAllAsTouched();
 
-    if (!this.customerFormComponent().valid()) {
+    if (!formComponent.valid()) {
       this.toastr.error('Bitte Eingaben überprüfen!');
-    } else {
-      if (!this.editMode()) {
-        const observer = {
-          next: (response: CustomerCreationResponse) => {
-            const customer = response.data;
-            this.router.navigate(['/kunden/detail', customer.id]);
-          },
-          error: (error: any) => {
-            const errorMessage = error.error.message;
-            if (error.status === 409) {
-              this.openConfirmCustomerSaveDialog(errorMessage, () => {
-                this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
-                  next: (response: CustomerCreationResponse) => {
-                    const customer = response.data;
-                    this.toastr.success('Kunde wurde gespeichert!');
-                    this.router.navigate(['/kunden/detail', customer.id]);
-                  },
-                  error: () => {
-                    this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
-                  },
-                });
-              });
-            } else {
-              this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
-            }
-          },
-        };
-
-        this.customerApiService.createCustomer(this.customerUpdated(), false).subscribe(observer);
-      } else {
-        const observer = {
-          next: (response: CustomerUpdateResponse) => {
-            const customer = response.data;
-            this.router.navigate(['/kunden/detail', customer.id]);
-          },
-          error: (error: any) => {
-            const errorMessage = error.error.message;
-            if (error.status === 409) {
-              this.openConfirmCustomerSaveDialog(errorMessage, () => {
-                this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
-                  next: (response: CustomerUpdateResponse) => {
-                    const customer = response.data;
-                    this.toastr.success('Kunde wurde gespeichert!');
-                    this.router.navigate(['/kunden/detail', customer.id]);
-                  },
-                  error: () => {
-                    this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
-                  },
-                });
-              });
-            } else {
-              this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
-            }
-          },
-        };
-        this.customerApiService.updateCustomer(this.customerUpdated(), false).subscribe(observer);
-      }
+      return false;
     }
+    return true;
   }
 
 }

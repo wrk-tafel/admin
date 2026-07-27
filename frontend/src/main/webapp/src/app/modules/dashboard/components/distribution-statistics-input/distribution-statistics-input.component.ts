@@ -104,6 +104,8 @@ export class DistributionStatisticsInputComponent {
   }
 
   save() {
+    this.form.markAllAsTouched();
+
     const observer = {
       next: () => {
         this.toastr.success('Statistik-Daten gespeichert!');

@@ -9,6 +9,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {CommonModule} from '@angular/common';
 import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../api/settings-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
 
 @Component({
   selector: 'tafel-mail-recipients',
@@ -146,4 +147,6 @@ export class MailRecipientsComponent {
   protected readonly faTrashCan = faTrashCan;
   protected readonly faPlus = faPlus;
   protected readonly faEnvelope = faEnvelope;
+  protected readonly isControlInvalid = isControlInvalid;
+  protected readonly isControlValid = isControlValid;
 }
