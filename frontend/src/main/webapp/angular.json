@@ -27,9 +27,6 @@
               "node_modules/@fontsource/roboto/500.css",
               "src/scss/styles.scss"
             ],
-            "scripts": [
-              "node_modules/jquery/dist/jquery.min.js"
-            ],
             "allowedCommonJsDependencies": [
               "chart.js",
               "angular2-uuid",

@@ -1,41 +1,38 @@
-import {Injectable, InjectionToken, inject} from '@angular/core';
-import * as toastr from 'toastr';
+import {Injectable, inject} from '@angular/core';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {TafelSnackbarComponent, TafelSnackbarSeverity} from '../tafel-snackbar/tafel-snackbar.component';
 
-// 1. Define an Injection Token for toastr
-export const TOASTR_TOKEN = new InjectionToken<any>('toastr');
+const DURATION_MS = 5000;
 
 @Injectable({
   providedIn: 'root',
-  // @Service()'s typed factory option requires the return type to match the class shape,
-  // which doesn't hold here (the factory substitutes the raw toastr module instead of an instance)
-  useFactory: () => toastr,
 })
 export class TafelToastrService {
-  private readonly toastrInstance = inject(TOASTR_TOKEN);
-
-  constructor() {
-    // Configure default options
-    this.toastrInstance.options.timeOut = 5000;
-    this.toastrInstance.options.closeButton = true;
-    this.toastrInstance.options.preventDuplicates = true;
-    this.toastrInstance.options.tapToDismiss = true;
-    this.toastrInstance.options.progressBar = true;
-    this.toastrInstance.options.positionClass = 'toast-top-right';
-  }
+  private readonly snackBar = inject(MatSnackBar);
 
   success(message: string, title?: string) {
-    this.toastrInstance.success(message, title);
+    this.show('success', message, title);
   }
 
   error(message: string, title?: string) {
-    this.toastrInstance.error(message, title);
+    this.show('error', message, title);
   }
 
   info(message: string, title?: string) {
-    this.toastrInstance.info(message, title);
+    this.show('info', message, title);
   }
 
   warning(message: string, title?: string) {
-    this.toastrInstance.warning(message, title);
+    this.show('warning', message, title);
+  }
+
+  private show(severity: TafelSnackbarSeverity, message: string, title?: string) {
+    this.snackBar.openFromComponent(TafelSnackbarComponent, {
+      data: {message, title, severity},
+      duration: DURATION_MS,
+      panelClass: ['tafel-snackbar-panel', `tafel-snackbar-panel-${severity}`],
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+    });
   }
 }
