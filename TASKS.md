@@ -8,11 +8,6 @@ listed under MAYBE with the specific open question instead of guessed at.
 ---
 # DO
 
-1. **Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber**
-   * `spring.jpa.open-in-view: false` (`application.yml:56`) and every `DistributionService` method is its own `@Transactional` — so this is *not* a persistence-context/L2-cache issue across separate HTTP requests (no Hibernate/Spring cache config exists anywhere in the backend). The one place staleness is actually possible: `assignHouseholdToDistribution`/`deleteCurrentTicket`/`generateHouseholdListPdf` all call `getCurrentDistribution()` fresh, but if two of these calls happen to land in one transaction (e.g. a future combined endpoint, or a retry within the same request), `currentDistribution.households` (a lazy `@OneToMany`, `DistributionEntity.kt:42-43`) would already be initialized in the persistence context and wouldn't reflect a `distributionHouseholdRepository.delete(...)` issued via a *different* entity reference in the same session.
-   * Fix: in `DistributionService.generateHouseholdListPdf()` (`DistributionService.kt:124-152`), replace `currentDistribution.households` with a direct fresh query, e.g. add `findByDistributionId(distributionId: Long): List<DistributionHouseholdEntity>` to `DistributionHouseholdRepository` and use that instead of the entity association — this removes any dependency on collection-caching semantics regardless of transaction boundaries.
-   * Files: `DistributionService.kt:129`, `DistributionHouseholdRepository.kt` (new query method).
-
 3. **Add file upload / documents to customer details** (merges both TODO occurrences)
    * Storage: local disk/volume (per user decision, 2026-07-27). Add `documentsPath: String` to a new nested properties class under `TafelAdminProperties` (`TafelAdminProperties.kt`, same pattern as its existing `mail` property), bound as `tafeladmin.storage.documentsPath`.
    * New `DocumentEntity` (own table `household_documents`, `@ManyToOne` to `HouseholdEntity`, matching the `BaseChangeTrackingEntity` pattern used everywhere else): `household`, `person` (nullable `@ManyToOne` to `PersonEntity`, for per-person docs like school enrollment), `documentType` (`@Enumerated(EnumType.STRING)`: `PROOF_OF_INCOME`, `ID`, `SCHOOL_ENROLLMENT`, `OTHER`), `fileName`, `contentType`, `storagePath`, `uploadedByUser` (`@ManyToOne UserEntity`).
@@ -108,6 +103,7 @@ listed under MAYBE with the specific open question instead of guessed at.
 ---
 ## Done (validated 2026-07-27)
 * Add overview "Customers above limit" + permission - implemented 2026-07-27: CUSTOMERS_ABOVE_LIMIT permission added; GET /api/households/above-limit (HouseholdService.getHouseholdsAboveLimit()) re-validates every currently-valid household against IncomeValidatorService and returns those over the limit with totalSum/limit/amountExceededLimit; new "Kunden über Limit" frontend view + nav entry
+* Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber - implemented 2026-07-27: generateHouseholdListPdf() now loads households via a fresh DistributionHouseholdRepository.findByDistributionId() query instead of the currentDistribution.households association; DistributionServiceTest updated accordingly
 * Route only needs a time and no separate order (sorting) - RouteStopEntity has no order field
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough) - RouteStopEntity is a real JPA entity (routes_stops table), separate from Route's free-text note
 * Validation necessary for KM Abfahrt < KM Ankunft - implemented (kmValidation error) and covered by tests in food-collection-recording-basedata
