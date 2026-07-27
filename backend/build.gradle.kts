@@ -97,6 +97,7 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.apache.pdfbox)
     testImplementation(libs.image.comparison)
+    testImplementation(libs.awaitility)
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
