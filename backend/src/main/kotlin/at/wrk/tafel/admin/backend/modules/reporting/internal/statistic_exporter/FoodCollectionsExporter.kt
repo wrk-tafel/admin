@@ -10,7 +10,6 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Component
 class FoodCollectionsExporter(
@@ -20,7 +19,7 @@ class FoodCollectionsExporter(
 
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance(Locale.GERMANY)
+        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance()
     }
 
     override fun getName(): String {

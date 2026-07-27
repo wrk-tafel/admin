@@ -1,18 +1,18 @@
 <tafel-dialog testId="validationresult-dialog" [type]="dialogType()" [title]="dialogTitle()">
   <div tafel-dialog-content>
     <div class="flex justify-between py-1">
-      <span class="font-bold">Limit (inkl. Toleranz von {{ data.validationResult.toleranceValue }}&nbsp;&euro;):</span>
-      <span>{{ data.validationResult.limit | number : '1.2-2' }}&nbsp;&euro;</span>
+      <span class="font-bold">Limit (inkl. Toleranz von {{ data.validationResult.toleranceValue | currency }}):</span>
+      <span>{{ data.validationResult.limit | currency }}</span>
     </div>
     <div class="flex justify-between py-1">
       <span class="font-bold">Einkommen gesamt:</span>
-      <span>{{ data.validationResult.totalSum | number : '1.2-2' }}&nbsp;&euro;</span>
+      <span>{{ data.validationResult.totalSum | currency }}</span>
     </div>
     <hr>
     <div class="flex justify-between py-1">
       <span class="font-bold">Einkommen über Limit:</span>
       <span [ngClass]="{'text-[#e55353]': !data.validationResult.valid}">
-        {{ data.validationResult.amountExceededLimit | number : '1.2-2' }}&nbsp;&euro;
+        {{ data.validationResult.amountExceededLimit | currency }}
       </span>
     </div>
   </div>

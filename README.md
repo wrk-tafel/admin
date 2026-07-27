@@ -1,6 +1,6 @@
 # Tafel Admin
 
-Administration system for food banks (Tafel) to manage customer registrations, food distributions, logistics operations, and reporting. Built for Austrian food bank operations with German locale (de-AT) and Euro currency.
+Administration system for food banks (Tafel) to manage customer registrations, food distributions, logistics operations, and reporting. Built for Austrian food bank operations with German locale (de-DE) and Euro currency.
 
 [![CI](https://github.com/wrk-tafel/admin/actions/workflows/main_push.yml/badge.svg)](https://github.com/wrk-tafel/admin/actions/workflows/main_push.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.txt)

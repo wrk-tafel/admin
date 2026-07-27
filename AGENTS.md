@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 22 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
+This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 22 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German locale (de-DE) with Euro currency.
 
 ## Build and Development Commands
 

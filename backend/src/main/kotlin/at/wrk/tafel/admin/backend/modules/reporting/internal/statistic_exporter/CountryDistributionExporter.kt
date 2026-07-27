@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Component
 class CountryDistributionExporter : StatisticExporter {
@@ -47,7 +46,7 @@ class CountryDistributionExporter : StatisticExporter {
             val percentage =
                 if (countCountriesTotal > 0) (countPerCountry.toDouble() / countCountriesTotal) * 100 else 0
 
-            rows.add(listOf(it.key!!.name.toString(), countPerCountry.toString(), String.format(Locale.GERMAN, "%.2f", percentage)))
+            rows.add(listOf(it.key!!.name.toString(), countPerCountry.toString(), String.format("%.2f", percentage)))
         }
 
         return rows

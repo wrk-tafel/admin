@@ -14,7 +14,6 @@ import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Service
 class HouseholdPdfService(
@@ -104,7 +103,7 @@ class HouseholdPdfService(
         income
             ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
             ?.let {
-                NumberFormat.getCurrencyInstance(Locale.GERMANY).format(it.setScale(2, RoundingMode.HALF_EVEN))
+                NumberFormat.getCurrencyInstance().format(it.setScale(2, RoundingMode.HALF_EVEN))
             }
             ?: "-"
 

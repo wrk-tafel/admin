@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="e2e,testdata" />
     <module name="admin.backend.main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="at.wrk.tafel.admin.backend.AdminBackendApplication" />
-    <option name="VM_PARAMETERS" value="-Duser.timezone=Europe/Vienna -Duser.language=de -Duser.country=AT" />
+    <option name="VM_PARAMETERS" value="-Duser.timezone=Europe/Vienna -Duser.language=de -Duser.country=DE" />
     <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
       <option name="credential" />
       <option name="region" />

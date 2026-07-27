@@ -3,12 +3,6 @@ import {FoodAmountComponent} from './food-amount.component';
 import {By} from '@angular/platform-browser';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
-import {registerLocaleData} from '@angular/common';
-import localeDeAt from '@angular/common/locales/de-AT';
-
-// Register de-AT locale
-registerLocaleData(localeDeAt);
 
 describe('FoodAmountComponent', () => {
 
@@ -17,14 +11,6 @@ describe('FoodAmountComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        {
-          provide: LOCALE_ID,
-          useValue: 'de-AT'
-        },
-        {
-          provide: DEFAULT_CURRENCY_CODE,
-          useValue: 'EUR'
-        },
       ]
     }).compileComponents();
   }));
@@ -41,7 +27,7 @@ describe('FoodAmountComponent', () => {
     componentRef.setInput('amount', 1234);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe('1 234,00 kg');
+    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe('1.234,00 kg');
   });
 
   it('food amount rendered without active distribution', () => {

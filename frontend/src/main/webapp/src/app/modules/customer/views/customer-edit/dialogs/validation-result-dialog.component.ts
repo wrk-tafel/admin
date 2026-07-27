@@ -1,7 +1,7 @@
 import {Component, computed, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
-import {DecimalPipe, NgClass} from '@angular/common';
+import {CurrencyPipe, NgClass} from '@angular/common';
 import {ValidateCustomerResponse} from '../../../../../api/customer-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 
@@ -11,7 +11,7 @@ export interface ValidationResultDialogData {
 
 @Component({
   selector: 'tafel-validation-result-dialog',
-  imports: [TafelDialogComponent, MatDialogModule, MatButtonModule, DecimalPipe, NgClass],
+  imports: [TafelDialogComponent, MatDialogModule, MatButtonModule, CurrencyPipe, NgClass],
   templateUrl: 'validation-result-dialog.component.html',
 })
 export class ValidationResultDialogComponent {
