@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class CarService(
-    private val carRepository: CarRepository
+    private val carRepository: CarRepository,
 ) {
 
     fun getCars(): List<Car> {
@@ -15,12 +15,9 @@ class CarService(
         return cars.map { mapCar(it) }
     }
 
-    private fun mapCar(carEntity: CarEntity): Car {
-        return Car(
-            id = carEntity.id!!,
-            licensePlate = carEntity.licensePlate!!,
-            name = carEntity.name!!,
-        )
-    }
-
+    private fun mapCar(carEntity: CarEntity): Car = Car(
+        id = carEntity.id!!,
+        licensePlate = carEntity.licensePlate!!,
+        name = carEntity.name!!,
+    )
 }

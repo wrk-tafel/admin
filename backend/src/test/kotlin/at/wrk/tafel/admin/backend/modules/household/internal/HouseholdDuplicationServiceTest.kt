@@ -59,8 +59,8 @@ internal class HouseholdDuplicationServiceTest {
         every { jdbcTemplate.query(any<String>(), any<RowMapper<*>>()) } returns listOf(totalCount) andThen listOf(
             HouseholdDuplicateEntry(
                 householdId = 1,
-                compareHouseholdIdList = "2,3,4"
-            )
+                compareHouseholdIdList = "2,3,4",
+            ),
         )
 
         val result = service.findDuplicates(page)
@@ -69,14 +69,13 @@ internal class HouseholdDuplicationServiceTest {
             listOf(
                 HouseholdDuplicateSearchResultItem(
                     household = household1,
-                    similarHouseholds = listOf(household2, household3, household4)
-                )
-            )
+                    similarHouseholds = listOf(household2, household3, household4),
+                ),
+            ),
         )
         assertThat(result.totalCount).isEqualTo(totalCount)
         assertThat(result.pageSize).isEqualTo(pageSize)
         assertThat(result.currentPage).isEqualTo(page)
         assertThat(result.totalPages).isEqualTo(totalCount / pageSize)
     }
-
 }

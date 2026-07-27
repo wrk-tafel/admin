@@ -9,5 +9,4 @@ interface DistributionHouseholdRepository : JpaRepository<DistributionHouseholdE
     fun findByHouseholdHouseholdId(householdId: Long): List<DistributionHouseholdEntity>
 
     fun findByDistributionId(distributionId: Long): List<DistributionHouseholdEntity>
-
 }

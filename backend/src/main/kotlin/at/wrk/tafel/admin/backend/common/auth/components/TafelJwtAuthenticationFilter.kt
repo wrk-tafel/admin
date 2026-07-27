@@ -36,5 +36,4 @@ class TafelJwtAuthenticationFilter(
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
         }
     }
-
 }

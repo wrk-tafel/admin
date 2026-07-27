@@ -13,11 +13,10 @@ internal class TafelPasswordGeneratorTest {
         val generatedPasswordCharactersRules = listOf(
             CharacterRule(GermanCharacterData.LowerCase),
             CharacterRule(GermanCharacterData.UpperCase),
-            CharacterRule(EnglishCharacterData.Digit)
+            CharacterRule(EnglishCharacterData.Digit),
         )
 
         val password = TafelPasswordGenerator(10, generatedPasswordCharactersRules).generatePassword()
         assertThat(password).hasSize(10)
     }
-
 }

@@ -32,9 +32,8 @@ class CarServiceTest {
             Car(
                 id = testCar1.id!!,
                 licensePlate = testCar1.licensePlate!!,
-                name = testCar1.name!!
-            )
+                name = testCar1.name!!,
+            ),
         )
     }
-
 }

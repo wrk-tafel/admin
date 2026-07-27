@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
@@ -85,16 +84,16 @@ class FoodCollectionServiceTest {
                 id = testFoodCollectionRoute1Entity.driver!!.id!!,
                 personnelNumber = testEmployee1.personnelNumber!!,
                 firstname = testEmployee1.firstname!!,
-                lastname = testEmployee1.lastname!!
-            )
+                lastname = testEmployee1.lastname!!,
+            ),
         )
         assertThat(data.coDriver).isEqualTo(
             Employee(
                 id = testFoodCollectionRoute1Entity.coDriver!!.id!!,
                 personnelNumber = testEmployee2.personnelNumber!!,
                 firstname = testEmployee2.firstname!!,
-                lastname = testEmployee2.lastname!!
-            )
+                lastname = testEmployee2.lastname!!,
+            ),
         )
         assertThat(data.kmStart).isEqualTo(testFoodCollectionRoute1Entity.kmStart)
         assertThat(data.kmEnd).isEqualTo(testFoodCollectionRoute1Entity.kmEnd)
@@ -104,15 +103,15 @@ class FoodCollectionServiceTest {
             FoodCollectionItem(
                 categoryId = 1,
                 shopId = 2,
-                amount = 2
-            )
+                amount = 2,
+            ),
         )
         assertThat(data.items[2]).isEqualTo(
             FoodCollectionItem(
                 categoryId = 2,
                 shopId = 1,
-                amount = 0
-            )
+                amount = 0,
+            ),
         )
     }
 
@@ -180,7 +179,7 @@ class FoodCollectionServiceTest {
     fun `save items with invalid route`() {
         val routeId = 123L
         val data = FoodCollectionItems(
-            items = emptyList()
+            items = emptyList(),
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -198,24 +197,24 @@ class FoodCollectionServiceTest {
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,
                     shopId = testShop1.id!!,
-                    amount = 1
+                    amount = 1,
                 ),
                 FoodCollectionItem(
                     categoryId = testFoodCategory2.id!!,
                     shopId = testShop1.id!!,
-                    amount = 2
+                    amount = 2,
                 ),
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,
                     shopId = testShop2.id!!,
-                    amount = 3
+                    amount = 3,
                 ),
                 FoodCollectionItem(
                     categoryId = testFoodCategory2.id!!,
                     shopId = testShop2.id!!,
-                    amount = 4
-                )
-            )
+                    amount = 4,
+                ),
+            ),
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -261,13 +260,13 @@ class FoodCollectionServiceTest {
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory1.id!!,
-                    amount = 1
+                    amount = 1,
                 ),
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory2.id!!,
-                    amount = 2
-                )
-            )
+                    amount = 2,
+                ),
+            ),
         )
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
@@ -309,7 +308,7 @@ class FoodCollectionServiceTest {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -338,9 +337,9 @@ class FoodCollectionServiceTest {
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory2.id!!,
-                    amount = 2
-                )
-            )
+                    amount = 2,
+                ),
+            ),
         )
 
         service.saveItemsPerShop(routeId = routeId, shopId = testShop1.id!!, data = newData)
@@ -374,7 +373,7 @@ class FoodCollectionServiceTest {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -388,7 +387,7 @@ class FoodCollectionServiceTest {
                 category = testFoodCategory2
                 shop = testShop1
                 amount = 22
-            }
+            },
         )
         val existingFoodCollection = FoodCollectionEntity().apply {
             id = 1
@@ -402,13 +401,13 @@ class FoodCollectionServiceTest {
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory1.id!!,
-                    amount = 1
+                    amount = 1,
                 ),
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory2.id!!,
-                    amount = 2
-                )
-            )
+                    amount = 2,
+                ),
+            ),
         )
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
@@ -448,7 +447,7 @@ class FoodCollectionServiceTest {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -474,7 +473,7 @@ class FoodCollectionServiceTest {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -488,7 +487,7 @@ class FoodCollectionServiceTest {
                 category = testFoodCategory2
                 shop = testShop1
                 amount = 22
-            }
+            },
         )
         val existingFoodCollection = FoodCollectionEntity().apply {
             id = 1
@@ -523,7 +522,7 @@ class FoodCollectionServiceTest {
         val data = FoodCollectionItem(
             categoryId = testFoodCategory1.id!!,
             shopId = testShop1.id!!,
-            amount = 44
+            amount = 44,
         )
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
@@ -559,7 +558,7 @@ class FoodCollectionServiceTest {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -579,7 +578,7 @@ class FoodCollectionServiceTest {
         val newData = FoodCollectionItem(
             categoryId = testFoodCategory2.id!!,
             shopId = testShop2.id!!,
-            amount = 22
+            amount = 22,
         )
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
@@ -621,7 +620,7 @@ class FoodCollectionServiceTest {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2
+                    testDistributionStatisticShelterEntity2,
                 ).toMutableList()
             }
         }
@@ -641,7 +640,7 @@ class FoodCollectionServiceTest {
         val newAmount = FoodCollectionItem(
             categoryId = testFoodCategory1.id!!,
             shopId = testShop1.id!!,
-            amount = 22
+            amount = 22,
         )
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
@@ -695,9 +694,12 @@ class FoodCollectionServiceTest {
         val data = FoodCollectionItem(
             categoryId = testFoodCategory1.id!!,
             shopId = testShop1.id!!,
-            amount = 1
+            amount = 1,
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
@@ -711,9 +713,12 @@ class FoodCollectionServiceTest {
         val data = FoodCollectionItem(
             categoryId = 999L,
             shopId = testShop1.id!!,
-            amount = 1
+            amount = 1,
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(999L) } returns null
@@ -728,9 +733,12 @@ class FoodCollectionServiceTest {
         val data = FoodCollectionItem(
             categoryId = testFoodCategory1.id!!,
             shopId = 999L,
-            amount = 1
+            amount = 1,
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -789,7 +797,10 @@ class FoodCollectionServiceTest {
             kmStart = 1000,
             kmEnd = 2000,
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(999L) } returns null
@@ -810,7 +821,10 @@ class FoodCollectionServiceTest {
             kmStart = 1000,
             kmEnd = 2000,
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
@@ -832,7 +846,10 @@ class FoodCollectionServiceTest {
             kmStart = 1000,
             kmEnd = 2000,
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
@@ -853,9 +870,9 @@ class FoodCollectionServiceTest {
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,
                     shopId = testShop1.id!!,
-                    amount = 1
-                )
-            )
+                    amount = 1,
+                ),
+            ),
         )
         val otherRouteCollection = FoodCollectionEntity().apply {
             id = 1
@@ -891,11 +908,14 @@ class FoodCollectionServiceTest {
                 FoodCollectionItem(
                     categoryId = 999L,
                     shopId = testShop1.id!!,
-                    amount = 1
-                )
-            )
+                    amount = 1,
+                ),
+            ),
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(999L) } returns null
@@ -912,11 +932,14 @@ class FoodCollectionServiceTest {
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,
                     shopId = 999L,
-                    amount = 1
-                )
-            )
+                    amount = 1,
+                ),
+            ),
         )
-        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -925,5 +948,4 @@ class FoodCollectionServiceTest {
         val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
         assertThat(exception.message).isEqualTo("Filiale ungültig!")
     }
-
 }

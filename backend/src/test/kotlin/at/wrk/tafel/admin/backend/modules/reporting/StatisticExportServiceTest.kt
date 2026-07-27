@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter.StatisticExporter
+import at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter.StatisticExporter
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -30,7 +30,7 @@ class StatisticExportServiceTest {
         )
 
         val service = StatisticExportService(
-            statisticExporter = listOf(exporter1, exporter2)
+            statisticExporter = listOf(exporter1, exporter2),
         )
 
         val statisticExportFiles = service.exportStatisticFiles(statistic)
@@ -51,5 +51,4 @@ class StatisticExportServiceTest {
             exporter2.getRows(statistic)
         }
     }
-
 }

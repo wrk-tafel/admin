@@ -28,7 +28,7 @@ data class AssignHouseholdRequest(
 
 @ExcludeFromTestCoverage
 data class TicketNumberResponse(
-    val ticketNumber: Int?
+    val ticketNumber: Int?,
 )
 
 @ExcludeFromTestCoverage

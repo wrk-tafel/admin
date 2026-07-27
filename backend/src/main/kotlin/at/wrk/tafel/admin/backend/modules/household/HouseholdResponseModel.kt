@@ -12,7 +12,7 @@ data class HouseholdListResponse(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
@@ -41,7 +41,7 @@ data class Household(
     val lockedBy: String? = null,
     val lockReason: String? = null,
     val pendingCostContribution: BigDecimal? = null,
-    val persons: List<Person> = emptyList()
+    val persons: List<Person> = emptyList(),
 ) {
     /**
      * The single person of this household flagged as main person.
@@ -58,7 +58,7 @@ data class Household(
 data class HouseholdIssuer(
     val personnelNumber: String,
     val firstname: String,
-    val lastname: String
+    val lastname: String,
 )
 
 @ExcludeFromTestCoverage
@@ -68,7 +68,7 @@ data class HouseholdAddress(
     val stairway: String? = null,
     val door: String? = null,
     val postalCode: Int?,
-    val city: String?
+    val city: String?,
 )
 
 @ExcludeFromTestCoverage
@@ -84,7 +84,7 @@ data class Person(
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
     val receivesFamilyBonus: Boolean = false,
-    val excludeFromHousehold: Boolean = false
+    val excludeFromHousehold: Boolean = false,
 )
 
 @ExcludeFromTestCoverage
@@ -93,17 +93,20 @@ data class ValidateHouseholdResponse(
     val totalSum: BigDecimal,
     val limit: BigDecimal,
     val toleranceValue: BigDecimal,
-    val amountExceededLimit: BigDecimal
+    val amountExceededLimit: BigDecimal,
 )
 
 @ExcludeFromTestCoverage
 enum class HouseholdPdfType {
-    MASTERDATA, IDCARD, COMBINED;
+    MASTERDATA,
+    IDCARD,
+    COMBINED,
 }
 
 @ExcludeFromTestCoverage
 enum class PersonGender {
-    MALE, FEMALE;
+    MALE,
+    FEMALE,
 }
 
 @ExcludeFromTestCoverage
@@ -112,18 +115,18 @@ data class HouseholdDuplicatesResponse(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
 data class HouseholdDuplicationItem(
     val household: Household,
-    val similarHouseholds: List<Household>
+    val similarHouseholds: List<Household>,
 )
 
 @ExcludeFromTestCoverage
 data class HouseholdMergeRequest(
-    val sourceHouseholdIds: List<Long>
+    val sourceHouseholdIds: List<Long>,
 )
 
 @ExcludeFromTestCoverage
@@ -132,7 +135,7 @@ data class HouseholdAboveLimitResponse(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
@@ -140,5 +143,5 @@ data class HouseholdAboveLimitItem(
     val household: Household,
     val totalSum: BigDecimal,
     val limit: BigDecimal,
-    val amountExceededLimit: BigDecimal
+    val amountExceededLimit: BigDecimal,
 )

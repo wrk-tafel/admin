@@ -27,15 +27,18 @@ class ScannerService(
 
         val nextScannerId = scannerRegisteredRepository.getNextScannerId()
         var scannerRegistration =
-            if (existingScannerId != null) scannerRegisteredRepository.findByScannerId(existingScannerId)
-            else scannerRegisteredRepository.findByScannerId(nextScannerId)
+            if (existingScannerId != null) {
+                scannerRegisteredRepository.findByScannerId(existingScannerId)
+            } else {
+                scannerRegisteredRepository.findByScannerId(nextScannerId)
+            }
 
         if (scannerRegistration == null) {
             scannerRegistration = scannerRegisteredRepository.save(
                 ScannerRegistrationEntity().apply {
                     registrationTime = LocalDateTime.now()
                     scannerId = nextScannerId
-                }
+                },
             )
             logger.info("Registered new scanner with id: {}", nextScannerId)
         } else {
@@ -49,14 +52,11 @@ class ScannerService(
         return scannerRegistration.scannerId!!
     }
 
-    fun getScannerIds(): List<Int> {
-        return scannerRegisteredRepository.findAll().mapNotNull { it.scannerId }.sorted()
-    }
+    fun getScannerIds(): List<Int> = scannerRegisteredRepository.findAll().mapNotNull { it.scannerId }.sorted()
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupScannerRegistrations() {
         val date = LocalDateTime.now().minusDays(SCANNER_REGISTRATIONS_KEEP_DAYS)
         scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(date)
     }
-
 }

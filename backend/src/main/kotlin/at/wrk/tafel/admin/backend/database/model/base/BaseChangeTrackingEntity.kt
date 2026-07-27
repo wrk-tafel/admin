@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
-
 @MappedSuperclass
 @ExcludeFromTestCoverage
 abstract class BaseChangeTrackingEntity : BaseEntity() {
@@ -20,8 +19,5 @@ abstract class BaseChangeTrackingEntity : BaseEntity() {
     @UpdateTimestamp
     open var updatedAt: LocalDateTime? = null
 
-    override fun toString(): String {
-        return "BaseChangeTrackingEntity(id=$id, createdAt=$createdAt, updatedAt=$updatedAt)"
-    }
-
+    override fun toString(): String = "BaseChangeTrackingEntity(id=$id, createdAt=$createdAt, updatedAt=$updatedAt)"
 }

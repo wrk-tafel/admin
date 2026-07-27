@@ -30,5 +30,4 @@ class SpaCsrfTokenRequestHandler : CsrfTokenRequestHandler {
         val headerValue = request.getHeader(csrfToken.headerName)
         return (if (!headerValue.isNullOrBlank()) plain else xor).resolveCsrfTokenValue(request, csrfToken)
     }
-
 }

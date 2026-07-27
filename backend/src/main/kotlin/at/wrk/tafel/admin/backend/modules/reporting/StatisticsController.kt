@@ -18,21 +18,17 @@ import java.time.LocalDateTime
 @RequestMapping("/api/statistics")
 @PreAuthorize("hasAuthority('STATISTICS')")
 class StatisticsController(
-    private val statisticsService: StatisticsService
+    private val statisticsService: StatisticsService,
 ) {
 
     @GetMapping("/settings")
-    fun getSettings(): StatisticsSettings {
-        return statisticsService.getSettings()
-    }
+    fun getSettings(): StatisticsSettings = statisticsService.getSettings()
 
     @GetMapping("/data")
     fun getData(
         @RequestParam fromDate: LocalDate,
         @RequestParam toDate: LocalDate,
-    ): StatisticsData {
-        return statisticsService.getData(fromDate, toDate)
-    }
+    ): StatisticsData = statisticsService.getData(fromDate, toDate)
 
     @GetMapping("/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun generateCsv(
@@ -43,7 +39,7 @@ class StatisticsController(
         val headers = HttpHeaders()
         headers.add(
             HttpHeaders.CONTENT_DISPOSITION,
-            "inline; filename=${csvResult.filename}"
+            "inline; filename=${csvResult.filename}",
         )
 
         return ResponseEntity
@@ -52,7 +48,6 @@ class StatisticsController(
             .contentType(MediaType.TEXT_PLAIN)
             .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
     }
-
 }
 
 data class StatisticsSettings(

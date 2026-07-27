@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.checkin
 
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService.Companion.SCANNER_RESULT_NOTIFICATION_NAME
 import io.mockk.every
@@ -71,8 +71,8 @@ internal class ScannerControllerTest {
                 notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
                 payload = ScanResult(
                     scannerId = scannerId,
-                    value = scanResult
-                )
+                    value = scanResult,
+                ),
             )
         }
     }
@@ -91,7 +91,7 @@ internal class ScannerControllerTest {
                 sseEmitter = any(),
                 notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
                 resultType = ScanResult::class.java,
-                acceptFilter = capture(filterSlot)
+                acceptFilter = capture(filterSlot),
             )
         }
 
@@ -99,5 +99,4 @@ internal class ScannerControllerTest {
         val filterResult = filter(ScanResult(scannerId = scannerId, value = customerId))
         assertThat(filterResult).isTrue
     }
-
 }

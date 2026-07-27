@@ -54,9 +54,7 @@ class DistributionService(
         private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
     }
 
-    fun getDistributions(): List<DistributionEntity> {
-        return distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
-    }
+    fun getDistributions(): List<DistributionEntity> = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
 
     @Transactional
     fun createNewDistribution(): DistributionEntity {
@@ -90,14 +88,12 @@ class DistributionService(
     }
 
     @Transactional
-    fun getCurrentDistribution(): DistributionEntity? {
-        return distributionRepository.getCurrentDistribution()
-    }
+    fun getCurrentDistribution(): DistributionEntity? = distributionRepository.getCurrentDistribution()
 
     @Transactional
     fun assignHouseholdToDistribution(
         householdId: Long,
-        ticketNumber: Int
+        ticketNumber: Int,
     ) {
         val distribution = getCurrentDistribution()!!
 
@@ -144,7 +140,7 @@ class DistributionService(
             halftimeTicketNumber = halftimeTicketNumber,
             countHouseholdsOverall = countHouseholds,
             countPersonsOverall = countAddPersons + countHouseholds,
-            households = mapHouseholdsForPdf(sortedHouseholds)
+            households = mapHouseholdsForPdf(sortedHouseholds),
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -279,7 +275,7 @@ class DistributionService(
             val startDateFormatted = currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
             val endDateFormatted = currentDistribution.endedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
             logger.info(
-                "Closed distribution: ID ${currentDistribution.id} (started at: $startDateFormatted, ended at: $endDateFormatted)"
+                "Closed distribution: ID ${currentDistribution.id} (started at: $startDateFormatted, ended at: $endDateFormatted)",
             )
 
             distributionPostProcessorService.process(currentDistribution.id!!)
@@ -296,44 +292,38 @@ class DistributionService(
     private fun getLastProcessedDistributionHouseholdEntity(
         distribution: DistributionEntity,
         householdId: Long? = null,
-    ): DistributionHouseholdEntity? {
-        return distribution.households
-            .asSequence()
-            .filter { householdId == null || it.household?.householdId == householdId }
-            .filter { it.processed == true }
-            .sortedBy { it.ticketNumber }
-            .lastOrNull()
-    }
+    ): DistributionHouseholdEntity? = distribution.households
+        .asSequence()
+        .filter { householdId == null || it.household?.householdId == householdId }
+        .filter { it.processed == true }
+        .sortedBy { it.ticketNumber }
+        .lastOrNull()
 
     private fun getFirstUnprocessedDistributionHouseholdEntity(
         distribution: DistributionEntity,
         householdId: Long? = null,
-    ): DistributionHouseholdEntity? {
-        return distribution.households
-            .asSequence()
-            .filter { householdId == null || it.household?.householdId == householdId }
-            .filter { it.processed == false }
-            .sortedBy { it.ticketNumber }
-            .firstOrNull()
-    }
+    ): DistributionHouseholdEntity? = distribution.households
+        .asSequence()
+        .filter { householdId == null || it.household?.householdId == householdId }
+        .filter { it.processed == false }
+        .sortedBy { it.ticketNumber }
+        .firstOrNull()
 
-    private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> {
-        return households.map { distributionHouseholdEntity ->
-            val household = distributionHouseholdEntity.household
-            val countPersons = household?.additionalPersons()
-                ?.filterNot { it.excludeFromHousehold }
-                ?.size?.plus(1) ?: 0
-            val countInfants = household?.additionalPersons()
-                ?.filterNot { it.excludeFromHousehold }
-                ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+    private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
+        val household = distributionHouseholdEntity.household
+        val countPersons = household?.additionalPersons()
+            ?.filterNot { it.excludeFromHousehold }
+            ?.size?.plus(1) ?: 0
+        val countInfants = household?.additionalPersons()
+            ?.filterNot { it.excludeFromHousehold }
+            ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
 
-            HouseholdListItem(
-                ticketNumber = distributionHouseholdEntity.ticketNumber!!,
-                householdId = household?.householdId!!,
-                countPersons = countPersons,
-                countInfants = countInfants ?: 0
-            )
-        }
+        HouseholdListItem(
+            ticketNumber = distributionHouseholdEntity.ticketNumber!!,
+            householdId = household?.householdId!!,
+            countPersons = countPersons,
+            countInfants = countInfants ?: 0,
+        )
     }
 
     fun updateDistributionStatisticData(
@@ -387,5 +377,4 @@ class DistributionService(
         returnBoxesMailPostProcessor.process(distribution, distribution.statistic!!)
         statisticMailPostProcessor.process(distribution, distribution.statistic!!)
     }
-
 }

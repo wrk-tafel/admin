@@ -31,7 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.passay.FailureValidationResult
 import org.passay.PasswordData
 import org.passay.PasswordValidator
-import org.passay.RuleResult
 import org.passay.RuleResultDetail
 import org.passay.RuleResultMetadata
 import org.passay.SuccessValidationResult
@@ -134,8 +133,8 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.authorities).hasSameElementsAs(
             listOf(
                 SimpleGrantedAuthority(userAuthorityEntity1.name!!),
-                SimpleGrantedAuthority(userAuthorityEntity2.name!!)
-            )
+                SimpleGrantedAuthority(userAuthorityEntity2.name!!),
+            ),
         )
 
         verify(exactly = 1) {
@@ -175,10 +174,12 @@ class TafelUserDetailsManagerTest {
         verify { passwordEncoder.matches(currentPassword, currentPasswordHash) }
         verify { passwordEncoder.encode(newPassword) }
         verify(exactly = 1) {
-            userRepository.save(withArg {
-                assertThat(it.password).isEqualTo(newPasswordEncoded)
-                assertThat(it.passwordChangeRequired).isFalse()
-            })
+            userRepository.save(
+                withArg {
+                    assertThat(it.password).isEqualTo(newPasswordEncoded)
+                    assertThat(it.passwordChangeRequired).isFalse()
+                },
+            )
         }
     }
 
@@ -208,7 +209,7 @@ class TafelUserDetailsManagerTest {
     fun `changePassword - new password invalid with unrecognized error code produces no detail message`() {
         every { passwordValidator.validate(any()) } returns FailureValidationResult(
             RuleResultMetadata(),
-            listOf(RuleResultDetail("SOME_UNRECOGNIZED_ERROR_CODE", emptyMap()))
+            listOf(RuleResultDetail("SOME_UNRECOGNIZED_ERROR_CODE", emptyMap())),
         )
 
         val currentPassword = "12345"
@@ -253,10 +254,12 @@ class TafelUserDetailsManagerTest {
         verify { userRepository.findByUsername(testUser.username) }
         verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
         verify {
-            passwordValidator.validate(withArg {
-                assertThat(it.username.toString()).isEqualTo(testUserEntity.username)
-                assertThat(it.password.toString()).isEqualTo(newPassword)
-            })
+            passwordValidator.validate(
+                withArg {
+                    assertThat(it.username.toString()).isEqualTo(testUserEntity.username)
+                    assertThat(it.password.toString()).isEqualTo(newPassword)
+                },
+            )
         }
         verify(exactly = 0) { userRepository.save(testUserEntity) }
     }
@@ -271,8 +274,8 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Mindestlänge: 8, Maximale Länge: 50"
-            )
+                "Mindestlänge: 8, Maximale Länge: 50",
+            ),
         )
     }
 
@@ -286,8 +289,8 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Mindestlänge: 8, Maximale Länge: 50"
-            )
+                "Mindestlänge: 8, Maximale Länge: 50",
+            ),
         )
     }
 
@@ -301,8 +304,8 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Der Benutzername darf nicht Teil des Passworts sein"
-            )
+                "Der Benutzername darf nicht Teil des Passworts sein",
+            ),
         )
     }
 
@@ -316,8 +319,8 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Leerzeichen sind nicht erlaubt"
-            )
+                "Leerzeichen sind nicht erlaubt",
+            ),
         )
     }
 
@@ -331,8 +334,8 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Folgende Wörter dürfen nicht enhalten sein: wrk"
-            )
+                "Folgende Wörter dürfen nicht enhalten sein: wrk",
+            ),
         )
     }
 
@@ -473,7 +476,7 @@ class TafelUserDetailsManagerTest {
             firstname = testFirstname,
             lastname = testLastname,
             enabled = enabled,
-            page = selectedPage
+            page = selectedPage,
         )
 
         assertThat(searchResult).isNotNull
@@ -528,7 +531,7 @@ class TafelUserDetailsManagerTest {
                 UserAuthorityEntity().apply {
                     user = testUserEntity
                     name = UserPermissions.DISTRIBUTION_LCM.key
-                }
+                },
             )
         }
 
@@ -543,8 +546,8 @@ class TafelUserDetailsManagerTest {
             enabled = false,
             passwordChangeRequired = true,
             authorities = listOf(
-                SimpleGrantedAuthority(UserPermissions.CHECKIN.key)
-            )
+                SimpleGrantedAuthority(UserPermissions.CHECKIN.key),
+            ),
         )
         manager.updateUser(userUpdate)
 
@@ -602,7 +605,7 @@ class TafelUserDetailsManagerTest {
             lastname = "new-lastname",
             enabled = false,
             password = newPassword,
-            passwordChangeRequired = true
+            passwordChangeRequired = true,
         )
         manager.updateUser(userUpdate)
 
@@ -657,7 +660,7 @@ class TafelUserDetailsManagerTest {
             lastname = "new-lastname",
             enabled = false,
             password = newPassword,
-            passwordChangeRequired = true
+            passwordChangeRequired = true,
         )
 
         val exception = assertThrows<PasswordChangeException> { manager.updateUser(userUpdate) }
@@ -689,5 +692,4 @@ class TafelUserDetailsManagerTest {
 
         verify { userRepository.delete(testUserEntity) }
     }
-
 }

@@ -72,8 +72,8 @@ class PDFService {
 
                 val transformer = factory.newTransformer(
                     StreamSource(
-                        javaClass.getResourceAsStream(stylesheetPath)
-                    )
+                        javaClass.getResourceAsStream(stylesheetPath),
+                    ),
                 )
 
                 val res = SAXResult(fop.defaultHandler)
@@ -83,5 +83,4 @@ class PDFService {
             return outStream.toByteArray()
         }
     }
-
 }

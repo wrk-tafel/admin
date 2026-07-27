@@ -32,5 +32,4 @@ class RouteController(
         val shops = shopService.getShopsForRouteId(routeId)
         return RouteShopsResponse(shops = shops)
     }
-
 }

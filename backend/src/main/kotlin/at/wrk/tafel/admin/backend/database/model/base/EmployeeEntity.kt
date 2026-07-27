@@ -18,5 +18,4 @@ class EmployeeEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "lastname")
     var lastname: String? = null
-
 }

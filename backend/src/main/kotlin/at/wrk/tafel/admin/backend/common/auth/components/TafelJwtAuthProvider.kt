@@ -16,9 +16,7 @@ class TafelJwtAuthProvider(
     private val userRepository: UserRepository,
 ) : AuthenticationProvider {
 
-    override fun supports(authentication: Class<*>): Boolean {
-        return authentication == TafelJwtAuthentication::class.java
-    }
+    override fun supports(authentication: Class<*>): Boolean = authentication == TafelJwtAuthentication::class.java
 
     override fun authenticate(authentication: Authentication): TafelJwtAuthentication {
         try {
@@ -46,5 +44,4 @@ class TafelJwtAuthProvider(
             throw BadCredentialsException(e.message, e)
         }
     }
-
 }

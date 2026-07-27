@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -41,7 +41,7 @@ class FoodCollectionsExporterTest {
         every { foodCategoryRepository.findAll() } returns listOf(
             testFoodCategory3,
             testFoodCategory2,
-            testFoodCategory1
+            testFoodCategory1,
         )
 
         val distribution1 = DistributionEntity().apply {
@@ -57,7 +57,7 @@ class FoodCollectionsExporterTest {
             id = 222
             startedAt = LocalDateTime.now().minusDays(7)
             foodCollections = listOf(
-                testFoodCollectionRoute2Entity
+                testFoodCollectionRoute2Entity,
             )
         }
 
@@ -65,7 +65,7 @@ class FoodCollectionsExporterTest {
             id = 123
             startedAt = LocalDateTime.now()
             foodCollections = listOf(
-                testFoodCollectionRoute2Entity
+                testFoodCollectionRoute2Entity,
             )
         }
         val currentStatistic = DistributionStatisticEntity().apply {
@@ -74,7 +74,7 @@ class FoodCollectionsExporterTest {
 
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
             distribution1,
-            distribution2
+            distribution2,
         )
 
         val filename = exporter.getName()
@@ -91,7 +91,7 @@ class FoodCollectionsExporterTest {
                 listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "20", "0", "80"),
                 listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
                 listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
-            )
+            ),
         )
     }
 
@@ -100,7 +100,7 @@ class FoodCollectionsExporterTest {
         every { foodCategoryRepository.findAll() } returns listOf(
             testFoodCategory3,
             testFoodCategory2,
-            testFoodCategory1
+            testFoodCategory1,
         )
 
         val currentDistribution = DistributionEntity().apply {
@@ -111,7 +111,7 @@ class FoodCollectionsExporterTest {
             distribution = currentDistribution
         }
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
-            currentDistribution
+            currentDistribution,
         )
 
         val filename = exporter.getName()
@@ -121,11 +121,10 @@ class FoodCollectionsExporterTest {
         assertThat(rows).isEqualTo(
             listOf(
                 listOf(
-                    "TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)"
+                    "TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)",
                 ),
                 listOf("Datum", "Route", "Spender", "Category 1", "Category 3", "Category 2"),
-            )
+            ),
         )
     }
-
 }

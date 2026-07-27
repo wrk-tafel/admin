@@ -38,7 +38,9 @@ internal class GenericExceptionHandlerTest {
     fun `handles Exception properly`() {
         every {
             messageSource.getMessage(
-                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title", arrayOf<Any>(), any()
+                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title",
+                arrayOf<Any>(),
+                any(),
             )
         } returns "localized-title"
         val exception = IllegalArgumentException("test-msg")
@@ -59,7 +61,9 @@ internal class GenericExceptionHandlerTest {
     fun `handles TafelException properly`() {
         every {
             messageSource.getMessage(
-                "http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), any()
+                "http-error.${HttpStatus.BAD_REQUEST.value()}.title",
+                arrayOf<Any>(),
+                any(),
             )
         } returns "localized-title"
         val exception = TafelException("tafelexception-msg")
@@ -80,7 +84,9 @@ internal class GenericExceptionHandlerTest {
     fun `handles TafelException and status overrides defaultvalue`() {
         every {
             messageSource.getMessage(
-                "http-error.${HttpStatus.NOT_FOUND.value()}.title", arrayOf<Any>(), any()
+                "http-error.${HttpStatus.NOT_FOUND.value()}.title",
+                arrayOf<Any>(),
+                any(),
             )
         } returns "localized-title"
         val exception = TafelException(message = "tafelexception-msg", status = HttpStatus.NOT_FOUND)
@@ -101,7 +107,9 @@ internal class GenericExceptionHandlerTest {
     fun `handles TafelValidationException properly`() {
         every {
             messageSource.getMessage(
-                "http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), any()
+                "http-error.${HttpStatus.BAD_REQUEST.value()}.title",
+                arrayOf<Any>(),
+                any(),
             )
         } returns "localized-title"
 
@@ -123,7 +131,9 @@ internal class GenericExceptionHandlerTest {
         every { request.getHeader("Accept") } returns "text/event-stream"
         every {
             messageSource.getMessage(
-                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title", arrayOf<Any>(), any()
+                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title",
+                arrayOf<Any>(),
+                any(),
             )
         } returns "localized-title"
         val exception = IllegalArgumentException("test-msg")
@@ -135,5 +145,4 @@ internal class GenericExceptionHandlerTest {
         val errorBody = response.body as String
         assertThat(errorBody).isEqualTo("event: error\ndata: ${exception.message}\n\n")
     }
-
 }

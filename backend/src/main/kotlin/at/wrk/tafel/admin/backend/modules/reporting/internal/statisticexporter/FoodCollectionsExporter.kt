@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -22,9 +22,7 @@ class FoodCollectionsExporter(
         private val NUMBER_FORMATTER = NumberFormat.getNumberInstance()
     }
 
-    override fun getName(): String {
-        return "TOeT_Spenden"
-    }
+    override fun getName(): String = "TOeT_Spenden"
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val descriptionHeaderRow =
@@ -33,7 +31,7 @@ class FoodCollectionsExporter(
         val sortedFoodCategories = foodCategoryRepository.findAll()
             .sortedWith(
                 compareBy<FoodCategoryEntity> { it.returnItem ?: false }
-                    .thenBy { it.name }
+                    .thenBy { it.name },
             )
         val columnsHeaderRow = generateHeaderFromCategories(sortedFoodCategories)
 
@@ -48,9 +46,7 @@ class FoodCollectionsExporter(
         return listOf(descriptionHeaderRow, columnsHeaderRow) + previousRows + currentRows
     }
 
-    private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> {
-        return listOf("Datum", "Route", "Spender") + sortedFoodCategories.mapNotNull { it.name }
-    }
+    private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> = listOf("Datum", "Route", "Spender") + sortedFoodCategories.mapNotNull { it.name }
 
     private fun calculateFoodCollections(
         sortedFoodCategories: List<FoodCategoryEntity>,
@@ -89,5 +85,4 @@ class FoodCollectionsExporter(
 
         return rows
     }
-
 }

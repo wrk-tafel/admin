@@ -68,7 +68,7 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
         val result = staticValueRepository.findLatestForPersonCount(
             currentDate = today,
             countAdults = 3,
-            countChildren = 3
+            countChildren = 3,
         )
 
         assertThat(result).isNotNull
@@ -94,7 +94,7 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
             type = StaticValueType.INCOME_LIMIT,
             currentDate = today,
             countAdults = 4,
-            countChildren = 4
+            countChildren = 4,
         )
 
         assertThat(result).isNotNull
@@ -119,10 +119,9 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
         val result = staticValueRepository.findLatestForPersonCount(
             currentDate = today,
             countAdults = 7,
-            countChildren = 7
+            countChildren = 7,
         )
 
         assertThat(result).isNull()
     }
-
 }

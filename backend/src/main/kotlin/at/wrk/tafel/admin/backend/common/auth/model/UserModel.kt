@@ -5,13 +5,13 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 @ExcludeFromTestCoverage
 data class ChangePasswordRequest(
     val passwordCurrent: String,
-    val passwordNew: String
+    val passwordNew: String,
 )
 
 @ExcludeFromTestCoverage
 data class ChangePasswordResponse(
     val message: String,
-    val details: List<String>? = emptyList()
+    val details: List<String>? = emptyList(),
 )
 
 @ExcludeFromTestCoverage
@@ -25,13 +25,13 @@ data class User(
     val password: String? = null,
     val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean,
-    val permissions: List<UserPermission>
+    val permissions: List<UserPermission>,
 )
 
 @ExcludeFromTestCoverage
 data class UserPermission(
     val key: String,
-    val title: String
+    val title: String,
 )
 
 @ExcludeFromTestCoverage
@@ -40,21 +40,21 @@ data class UserListResponse(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
 data class GeneratedPasswordResponse(
-    val password: String
+    val password: String,
 )
 
 @ExcludeFromTestCoverage
 data class UserInfo(
     val username: String,
-    val permissions: List<String>
+    val permissions: List<String>,
 )
 
 @ExcludeFromTestCoverage
 data class PermissionsListResponse(
-    val permissions: List<UserPermission>
+    val permissions: List<UserPermission>,
 )

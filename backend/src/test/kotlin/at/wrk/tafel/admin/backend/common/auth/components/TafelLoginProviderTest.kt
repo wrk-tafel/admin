@@ -33,7 +33,7 @@ internal class TafelLoginProviderTest {
         firstname = "First",
         lastname = "Last",
         authorities = emptyList(),
-        passwordChangeRequired = false
+        passwordChangeRequired = false,
     )
 
     @BeforeEach
@@ -118,5 +118,4 @@ internal class TafelLoginProviderTest {
         verify { passwordEncoder.matches("pwd", "fallback-hash") }
         verify { loginAttemptService.recordFailure("unknown") }
     }
-
 }

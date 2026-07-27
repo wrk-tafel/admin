@@ -46,8 +46,8 @@ internal class DistributionPostProcessorServiceTest {
             distributionRepository,
             listOf(
                 successfulPostProcessor,
-                successfulPostProcessor
-            )
+                successfulPostProcessor,
+            ),
         )
 
         val distributionId = 123L
@@ -55,7 +55,7 @@ internal class DistributionPostProcessorServiceTest {
         every { distribution.id } returns distributionId
         every { distribution.households } returns listOf(
             testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2
+            testDistributionHouseholdEntity2,
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
@@ -77,8 +77,8 @@ internal class DistributionPostProcessorServiceTest {
             distributionRepository,
             listOf(
                 failingPostProcessor,
-                successfulPostProcessor
-            )
+                successfulPostProcessor,
+            ),
         )
 
         val distributionId = 123L
@@ -86,7 +86,7 @@ internal class DistributionPostProcessorServiceTest {
         every { distribution.id } returns distributionId
         every { distribution.households } returns listOf(
             testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2
+            testDistributionHouseholdEntity2,
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
@@ -98,5 +98,4 @@ internal class DistributionPostProcessorServiceTest {
         verify(exactly = 1) { failingPostProcessor.process(distribution, distributionStatistic) }
         verify(exactly = 1) { successfulPostProcessor.process(distribution, distributionStatistic) }
     }
-
 }

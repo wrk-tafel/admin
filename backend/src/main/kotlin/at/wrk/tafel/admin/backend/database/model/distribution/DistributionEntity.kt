@@ -44,5 +44,4 @@ class DistributionEntity : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "distribution")
     var foodCollections: List<FoodCollectionEntity> = emptyList()
-
 }

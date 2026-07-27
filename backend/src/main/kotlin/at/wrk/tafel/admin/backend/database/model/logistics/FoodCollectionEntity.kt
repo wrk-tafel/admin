@@ -45,8 +45,7 @@ class FoodCollectionEntity : BaseChangeTrackingEntity() {
     @ElementCollection
     @CollectionTable(
         name = "food_collections_items",
-        joinColumns = [JoinColumn(name = "food_collection_id")]
+        joinColumns = [JoinColumn(name = "food_collection_id")],
     )
     var items: List<FoodCollectionItemEntity>? = null
-
 }

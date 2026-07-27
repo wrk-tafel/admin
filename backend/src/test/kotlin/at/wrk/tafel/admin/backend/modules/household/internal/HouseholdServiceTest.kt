@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
+import at.wrk.tafel.admin.backend.modules.base.country.Country
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.household.Household
@@ -19,7 +20,6 @@ import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValida
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService
-import at.wrk.tafel.admin.backend.modules.base.country.Country
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -91,7 +91,7 @@ class HouseholdServiceTest {
                 street = "street",
                 houseNumber = "1",
                 postalCode = 1010,
-                city = "Wien"
+                city = "Wien",
             ),
             persons = listOf(
                 Person(
@@ -102,7 +102,7 @@ class HouseholdServiceTest {
                     birthDate = LocalDate.now().minusYears(30),
                     gender = null,
                     country = testCountry,
-                    income = BigDecimal("1000")
+                    income = BigDecimal("1000"),
                 ),
                 Person(
                     id = 2,
@@ -114,7 +114,7 @@ class HouseholdServiceTest {
                     country = testCountry,
                     income = BigDecimal("100"),
                     excludeFromHousehold = false,
-                    receivesFamilyBonus = false
+                    receivesFamilyBonus = false,
                 ),
                 Person(
                     id = 3,
@@ -126,9 +126,9 @@ class HouseholdServiceTest {
                     country = testCountry,
                     income = null,
                     excludeFromHousehold = true,
-                    receivesFamilyBonus = true
-                )
-            )
+                    receivesFamilyBonus = true,
+                ),
+            ),
         )
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -136,7 +136,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result = service.validate(testHousehold)
@@ -147,8 +147,8 @@ class HouseholdServiceTest {
                 totalSum = BigDecimal("1"),
                 limit = BigDecimal("2"),
                 toleranceValue = BigDecimal("3"),
-                amountExceededLimit = BigDecimal("4")
-            )
+                amountExceededLimit = BigDecimal("4"),
+            ),
         )
 
         val incomeValidatorPersonsSlot = slot<List<IncomeValidatorPerson>>()
@@ -161,24 +161,24 @@ class HouseholdServiceTest {
                 birthDate = LocalDate.now().minusYears(5),
                 monthlyIncome = BigDecimal("100"),
                 excludeFromIncomeCalculation = false,
-                receivesFamilyBonus = false
-            )
+                receivesFamilyBonus = false,
+            ),
         )
 
         assertThat(incomeValidatorPersons[1]).isEqualTo(
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(2),
                 excludeFromIncomeCalculation = true,
-                receivesFamilyBonus = true
-            )
+                receivesFamilyBonus = true,
+            ),
         )
 
         assertThat(incomeValidatorPersons[2]).isEqualTo(
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(30),
                 monthlyIncome = BigDecimal("1000"),
-                excludeFromIncomeCalculation = false
-            )
+                excludeFromIncomeCalculation = false,
+            ),
         )
     }
 
@@ -228,7 +228,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result = service.createHousehold(testHousehold, force = false, isSupervisor = false)
@@ -254,7 +254,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result = service.createHousehold(testHousehold, true, true)
@@ -277,7 +277,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val exception = assertThrows<TafelValidationException> {
@@ -303,7 +303,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result = service.createHousehold(testHousehold, force = false, isSupervisor = false)
@@ -311,8 +311,8 @@ class HouseholdServiceTest {
         assertThat(result).isEqualTo(
             HouseholdCreationResponse(
                 data = testHousehold,
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
-            )
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+            ),
         )
         assertThat(testHouseholdEntity.validUntil).isEqualTo(LocalDate.now().minusDays(1))
         verify(exactly = 2) { householdRepository.saveAndFlush(testHouseholdEntity) }
@@ -340,7 +340,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val force = false
@@ -371,7 +371,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result =
@@ -380,8 +380,8 @@ class HouseholdServiceTest {
         assertThat(result).isEqualTo(
             HouseholdUpdateResponse(
                 data = testHouseholdUpdate,
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
-            )
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+            ),
         )
         assertThat(testHouseholdEntity.validUntil).isEqualTo(LocalDate.now().minusDays(1))
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(any(), any()) }
@@ -403,7 +403,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val exception = assertThrows<TafelValidationException> {
@@ -436,7 +436,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result = service.updateHousehold(testHousehold.id!!, testHouseholdUpdate, true, true)
@@ -483,7 +483,7 @@ class HouseholdServiceTest {
 
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
             testHouseholdEntity1,
-            testHouseholdEntity2
+            testHouseholdEntity2,
         )
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity1) } returns validHousehold
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity2) } returns invalidHousehold
@@ -494,15 +494,15 @@ class HouseholdServiceTest {
                 totalSum = BigDecimal("500"),
                 limit = BigDecimal("1000"),
                 toleranceValue = BigDecimal.ZERO,
-                amountExceededLimit = BigDecimal.ZERO
+                amountExceededLimit = BigDecimal.ZERO,
             ),
             IncomeValidatorResult(
                 valid = false,
                 totalSum = BigDecimal("1500"),
                 limit = BigDecimal("1000"),
                 toleranceValue = BigDecimal.ZERO,
-                amountExceededLimit = BigDecimal("500")
-            )
+                amountExceededLimit = BigDecimal("500"),
+            ),
         )
 
         val result = service.getHouseholdsAboveLimit()
@@ -533,7 +533,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1500"),
             limit = BigDecimal("1000"),
             toleranceValue = BigDecimal.ZERO,
-            amountExceededLimit = BigDecimal("500")
+            amountExceededLimit = BigDecimal("500"),
         )
 
         val firstPage = service.getHouseholdsAboveLimit(page = 1)
@@ -650,7 +650,7 @@ class HouseholdServiceTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val result =
@@ -659,8 +659,8 @@ class HouseholdServiceTest {
         assertThat(result).isEqualTo(
             HouseholdUpdateResponse(
                 data = testHouseholdUpdate,
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
-            )
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+            ),
         )
         assertThat(testHouseholdEntity.validUntil).isEqualTo(LocalDate.now().minusDays(1))
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(any(), any()) }
@@ -700,5 +700,4 @@ class HouseholdServiceTest {
         household.mainPerson = mainPerson
         return household
     }
-
 }

@@ -22,13 +22,16 @@ class MailRecipientEntity : BaseEntity() {
 
     @Column(name = "address")
     var address: String? = null
-
 }
 
 enum class MailType {
-    DAILY_REPORT, STATISTICS, RETURN_BOXES
+    DAILY_REPORT,
+    STATISTICS,
+    RETURN_BOXES,
 }
 
 enum class RecipientType {
-    TO, CC, BCC
+    TO,
+    CC,
+    BCC,
 }

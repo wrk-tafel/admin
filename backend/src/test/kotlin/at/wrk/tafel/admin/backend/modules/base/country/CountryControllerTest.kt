@@ -41,8 +41,8 @@ class CountryControllerTest {
         assertThat(response.items).hasSameElementsAs(
             listOf(
                 Country(id = 1, code = "AA", name = "Name A"),
-                Country(id = 2, code = "BB", name = "Name B")
-            )
+                Country(id = 2, code = "BB", name = "Name B"),
+            ),
         )
     }
 }

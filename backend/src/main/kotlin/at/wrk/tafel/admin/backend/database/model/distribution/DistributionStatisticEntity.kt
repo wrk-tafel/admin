@@ -74,23 +74,25 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
     var personsInShelterCount: Int = 0
 
     fun isEmpty(): Boolean {
-        return countCustomers == 0 &&
-                countPersons == 0 &&
-                countInfants == 0 &&
-                BigDecimal.ZERO.compareTo(averagePersonsPerCustomer) == 0 &&
-                countCustomersNew == 0 &&
-                countPersonsNew == 0 &&
-                countCustomersProlonged == 0 &&
-                countPersonsProlonged == 0 &&
-                countCustomersUpdated == 0 &&
-                shopsTotalCount == 0 &&
-                shopsWithFoodCount == 0 &&
-                BigDecimal.ZERO.compareTo(foodTotalAmount) == 0 &&
-                BigDecimal.ZERO.compareTo(foodPerShopAverage) == 0 &&
-                routesLengthKm == 0 &&
-                employeeCount == 0 &&
-                @Suppress("DEPRECATION") personsInShelterCount == 0 &&
-                shelters.isEmpty()
-    }
+        @Suppress("DEPRECATION")
+        val personsInShelterCountIsEmpty = personsInShelterCount == 0
 
+        return countCustomers == 0 &&
+            countPersons == 0 &&
+            countInfants == 0 &&
+            BigDecimal.ZERO.compareTo(averagePersonsPerCustomer) == 0 &&
+            countCustomersNew == 0 &&
+            countPersonsNew == 0 &&
+            countCustomersProlonged == 0 &&
+            countPersonsProlonged == 0 &&
+            countCustomersUpdated == 0 &&
+            shopsTotalCount == 0 &&
+            shopsWithFoodCount == 0 &&
+            BigDecimal.ZERO.compareTo(foodTotalAmount) == 0 &&
+            BigDecimal.ZERO.compareTo(foodPerShopAverage) == 0 &&
+            routesLengthKm == 0 &&
+            employeeCount == 0 &&
+            personsInShelterCountIsEmpty &&
+            shelters.isEmpty()
+    }
 }

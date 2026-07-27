@@ -51,7 +51,7 @@ class IncomeValidatorServiceImpl(
 
         val siblingAdditionLimits = staticValueRepository.findValuesOfType(
             type = StaticValueType.SIBLING_ADDITION,
-            currentDate = LocalDate.now()
+            currentDate = LocalDate.now(),
         )
         val siblingAdditionValue: BigDecimal = if (countChildren >= 7) {
             siblingAdditionLimits.sortedBy { it.countChildren }.last().amount
@@ -66,17 +66,15 @@ class IncomeValidatorServiceImpl(
         return siblingAdditionValue.multiply(countChildren.toBigDecimal())
     }
 
-    private fun getFamilyBonusForAge(age: Int): BigDecimal? {
-        return staticValueRepository.findValuesOfType(
-            type = StaticValueType.FAMILY_BONUS,
-            currentDate = LocalDate.now()
-        )
-            .asSequence()
-            .sortedByDescending { it.age }
-            .filter { (it.age ?: 0) >= age }
-            .map { it.amount }
-            .firstOrNull()
-    }
+    private fun getFamilyBonusForAge(age: Int): BigDecimal? = staticValueRepository.findValuesOfType(
+        type = StaticValueType.FAMILY_BONUS,
+        currentDate = LocalDate.now(),
+    )
+        .asSequence()
+        .sortedByDescending { it.age }
+        .filter { (it.age ?: 0) >= age }
+        .map { it.amount }
+        .firstOrNull()
 
     private fun calculateOverallResult(
         persons: List<IncomeValidatorPerson>,
@@ -100,7 +98,7 @@ class IncomeValidatorServiceImpl(
             totalSum = monthlyIncomeSum,
             limit = limit,
             toleranceValue = toleranceValue?.amount ?: BigDecimal.ZERO,
-            amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO
+            amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO,
         )
     }
 
@@ -118,25 +116,24 @@ class IncomeValidatorServiceImpl(
             staticValueRepository.findLatestForPersonCount(
                 currentDate = LocalDate.now(),
                 countAdults = (countPersons - countAdditionalPersons),
-                countChildren = (countChildren - countAdditionalChildren)
+                countChildren = (countChildren - countAdditionalChildren),
             )
         staticValueType?.let { overallLimit = overallLimit.add(it.amount ?: BigDecimal.ZERO) }
 
         val additionalAdultLimit =
             staticValueRepository.findSingleValueOfType(
                 type = StaticValueType.ADDITIONAL_ADULT,
-                currentDate = LocalDate.now()
+                currentDate = LocalDate.now(),
             )?.amount ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
         val additionalChildrenLimit =
             staticValueRepository.findSingleValueOfType(
                 type = StaticValueType.ADDITIONAL_CHILD,
-                currentDate = LocalDate.now()
+                currentDate = LocalDate.now(),
             )?.amount ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit
     }
-
 }

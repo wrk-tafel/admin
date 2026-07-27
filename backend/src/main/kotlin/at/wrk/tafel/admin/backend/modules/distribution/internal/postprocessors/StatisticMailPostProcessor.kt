@@ -37,7 +37,7 @@ class StatisticMailPostProcessor(
             MailAttachment(
                 filename = it.name,
                 inputStreamSource = ByteArrayResource(it.content),
-                contentType = "text/csv"
+                contentType = "text/csv",
             )
         }
 
@@ -49,10 +49,9 @@ class StatisticMailPostProcessor(
             subject = mailSubject,
             attachments = attachments,
             templateName = "mails/statistic-mail",
-            context = ctx
+            context = ctx,
         )
 
         logger.info("Mail with statistic files '$mailSubject' sent!")
     }
-
 }

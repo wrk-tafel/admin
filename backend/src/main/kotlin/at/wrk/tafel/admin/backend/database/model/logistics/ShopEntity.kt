@@ -35,5 +35,4 @@ class ShopEntity : BaseChangeTrackingEntity() {
     @Column(name = "food_unit")
     @Enumerated(EnumType.STRING)
     var foodUnit: FoodUnit? = null
-
 }

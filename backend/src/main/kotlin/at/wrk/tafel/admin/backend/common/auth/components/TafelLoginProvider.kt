@@ -22,9 +22,7 @@ class TafelLoginProvider(
     // Comparing against this throwaway hash equalizes both paths.
     private val unknownUserFallbackHash: String = passwordEncoder.encode(UUID.randomUUID().toString())!!
 
-    override fun supports(authenticationClass: Class<*>): Boolean {
-        return authenticationClass == UsernamePasswordAuthenticationToken::class.java
-    }
+    override fun supports(authenticationClass: Class<*>): Boolean = authenticationClass == UsernamePasswordAuthenticationToken::class.java
 
     override fun authenticate(authentication: Authentication): Authentication {
         val username = authentication.name ?: ""
@@ -53,11 +51,10 @@ class TafelLoginProvider(
 
     override fun additionalAuthenticationChecks(
         userDetails: UserDetails,
-        authentication: UsernamePasswordAuthenticationToken
+        authentication: UsernamePasswordAuthenticationToken,
     ) {
         if (!passwordEncoder.matches(authentication.credentials as String, userDetails.password)) {
             throw BadCredentialsException("Password wrong for user '${authentication.name}'")
         }
     }
-
 }

@@ -23,5 +23,4 @@ class RouteEntity : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "route")
     var stops: List<RouteStopEntity> = emptyList()
-
 }

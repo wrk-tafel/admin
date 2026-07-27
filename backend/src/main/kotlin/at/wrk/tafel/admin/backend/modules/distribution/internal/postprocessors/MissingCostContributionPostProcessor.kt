@@ -26,7 +26,8 @@ class MissingCostContributionPostProcessor(
 
     override fun process(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
         val costContributionValue = staticValueRepository.findSingleValueOfType(
-            StaticValueType.COST_CONTRIBUTION, LocalDate.now()
+            StaticValueType.COST_CONTRIBUTION,
+            LocalDate.now(),
         )
         if (costContributionValue == null) {
             throw TafelValidationException("No cost contribution value found. Skipping missing cost contribution post processing.")
@@ -55,5 +56,4 @@ class MissingCostContributionPostProcessor(
             logger.error("Household with id ${household.id} not found in database")
         }
     }
-
 }

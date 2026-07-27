@@ -90,7 +90,7 @@ internal class ScannerServiceTest {
             ScannerRegistrationEntity().apply {
                 registrationTime = LocalDateTime.now()
                 scannerId = 1
-            }
+            },
         )
 
         val scannerIds = service.getScannerIds()
@@ -105,5 +105,4 @@ internal class ScannerServiceTest {
             scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(any())
         }
     }
-
 }

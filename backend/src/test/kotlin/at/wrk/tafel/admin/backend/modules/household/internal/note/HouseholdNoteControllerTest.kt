@@ -13,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import java.time.LocalDateTime
 
-
 @ExtendWith(MockKExtension::class)
 internal class HouseholdNoteControllerTest {
 
@@ -31,7 +30,7 @@ internal class HouseholdNoteControllerTest {
             totalCount = 0,
             currentPage = 1,
             totalPages = 1,
-            pageSize = 10
+            pageSize = 10,
         )
         every { service.getNotes(householdId, any()) } returns testSearchResult
 
@@ -48,13 +47,13 @@ internal class HouseholdNoteControllerTest {
             HouseholdNoteItem(
                 author = "author 2",
                 timestamp = LocalDateTime.now().minusDays(1),
-                note = "note 2"
+                note = "note 2",
             ),
             HouseholdNoteItem(
                 author = "author 1",
                 timestamp = LocalDateTime.now().minusDays(2),
-                note = "note 1"
-            )
+                note = "note 1",
+            ),
         )
 
         val testSearchResult = HouseholdNoteSearchResult(
@@ -62,7 +61,7 @@ internal class HouseholdNoteControllerTest {
             totalCount = 2,
             currentPage = selectedPage,
             totalPages = 1,
-            pageSize = 5
+            pageSize = 5,
         )
         every { service.getNotes(householdId, any()) } returns testSearchResult
 
@@ -75,7 +74,6 @@ internal class HouseholdNoteControllerTest {
         assertThat(response.totalCount).isEqualTo(2)
         assertThat(response.totalPages).isEqualTo(1)
 
-
         verify { service.getNotes(householdId, selectedPage) }
     }
 
@@ -86,7 +84,7 @@ internal class HouseholdNoteControllerTest {
         val exception = assertThrows<TafelValidationException> {
             controller.createNewNote(
                 householdId = householdId,
-                request = CreateHouseholdNoteRequest(note = "")
+                request = CreateHouseholdNoteRequest(note = ""),
             )
         }
 
@@ -101,18 +99,17 @@ internal class HouseholdNoteControllerTest {
         val noteItem = HouseholdNoteItem(
             author = "author 2",
             timestamp = LocalDateTime.now().minusDays(1),
-            note = "note 2"
+            note = "note 2",
         )
         every { service.createNewNote(householdId, note) } returns noteItem
 
         val response = controller.createNewNote(
             householdId = householdId,
-            request = CreateHouseholdNoteRequest(note = note)
+            request = CreateHouseholdNoteRequest(note = note),
         )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(noteItem)
         verify { service.createNewNote(householdId, note) }
     }
-
 }

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -32,12 +32,11 @@ class DashboardController(
         sseOutboxService.listenForNotificationEvents<Unit>(
             sseEmitter = sseEmitter,
             notificationName = DASHBOARD_UPDATE_NOTIFICATION_NAME,
-            resultType = null
+            resultType = null,
         ) {
             sseOutboxService.sendEvent(sseEmitter, dashboardService.getData())
         }
 
         return sseEmitter
     }
-
 }

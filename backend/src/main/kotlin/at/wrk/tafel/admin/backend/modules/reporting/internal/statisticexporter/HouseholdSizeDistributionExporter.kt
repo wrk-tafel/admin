@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -13,14 +13,12 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    override fun getName(): String {
-        return "TOeT_Verteilung_Haushaltsgroesse"
-    }
+    override fun getName(): String = "TOeT_Verteilung_Haushaltsgroesse"
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Haushaltsgrößen"),
-            listOf("Personen", "Haushalte", "Prozent")
+            listOf("Personen", "Haushalte", "Prozent"),
         )
         val dataRows = calculateDistribution(currentStatistic)
 
@@ -43,8 +41,5 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
         return rows
     }
 
-    private fun getPersonCount(household: HouseholdEntity): Int {
-        return household.additionalPersons().size + 1
-    }
-
+    private fun getPersonCount(household: HouseholdEntity): Int = household.additionalPersons().size + 1
 }

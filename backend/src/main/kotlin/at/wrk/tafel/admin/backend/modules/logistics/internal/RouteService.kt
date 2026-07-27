@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class RouteService(
-    private val routeRepository: RouteRepository
+    private val routeRepository: RouteRepository,
 ) {
 
     @Transactional
@@ -17,11 +17,8 @@ class RouteService(
         return routes.map { mapRoute(it) }
     }
 
-    private fun mapRoute(routeEntity: RouteEntity): Route {
-        return Route(
-            id = routeEntity.id!!,
-            name = routeEntity.name!!
-        )
-    }
-
+    private fun mapRoute(routeEntity: RouteEntity): Route = Route(
+        id = routeEntity.id!!,
+        name = routeEntity.name!!,
+    )
 }

@@ -75,13 +75,13 @@ internal class LoginAttemptServiceTest {
                     audience = "test",
                     secret = SecurityJwtTokenSecretProperties(value = "secret", algorithm = "HMACSHA256"),
                     expirationTimeInSeconds = 3600,
-                    expirationTimePwdChangeInSeconds = 300
+                    expirationTimePwdChangeInSeconds = 300,
                 ),
                 loginAttempts = SecurityLoginAttemptsProperties(
                     maxFailures = MAX_FAILURES,
-                    lockoutDurationInSeconds = LOCKOUT_DURATION_SECONDS
-                )
-            )
+                    lockoutDurationInSeconds = LOCKOUT_DURATION_SECONDS,
+                ),
+            ),
         )
 
         service = LoginAttemptService(loginAttemptRepository, advisoryLockService, applicationProperties, clock)
@@ -175,5 +175,4 @@ internal class LoginAttemptServiceTest {
 
         assertThat(entries).containsOnlyKeys("recent-user")
     }
-
 }

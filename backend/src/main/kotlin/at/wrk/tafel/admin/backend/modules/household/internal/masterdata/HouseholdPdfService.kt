@@ -72,7 +72,7 @@ class HouseholdPdfService(
                     door = household.addressDoor ?: "-",
                     stairway = household.addressStairway ?: "-",
                     postalCode = household.addressPostalCode,
-                    city = household.addressCity ?: "-"
+                    city = household.addressCity ?: "-",
                 ),
                 employer = mainPerson.employer ?: "-",
                 income = formatIncome(mainPerson.income),
@@ -80,11 +80,11 @@ class HouseholdPdfService(
                 additionalPersons = additionalPersons.map { mapAdditionalPerson(it) },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                    qrCodeBytes = generateQRCode(household.householdId.toString())
-                )
+                    qrCodeBytes = generateQRCode(household.householdId.toString()),
+                ),
             ),
             countPersons = countPersons,
-            countInfants = countInfants
+            countInfants = countInfants,
         )
     }
 
@@ -99,13 +99,12 @@ class HouseholdPdfService(
         incomeDueDate = person.incomeDue?.format(DATE_FORMATTER) ?: "-",
     )
 
-    private fun formatIncome(income: BigDecimal?): String =
-        income
-            ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
-            ?.let {
-                NumberFormat.getCurrencyInstance().format(it.setScale(2, RoundingMode.HALF_EVEN))
-            }
-            ?: "-"
+    private fun formatIncome(income: BigDecimal?): String = income
+        ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
+        ?.let {
+            NumberFormat.getCurrencyInstance().format(it.setScale(2, RoundingMode.HALF_EVEN))
+        }
+        ?: "-"
 
     private fun generateQRCode(data: String): ByteArray {
         val logoBytes =
@@ -118,5 +117,4 @@ class HouseholdPdfService(
             .build(data)
         return qrCode.renderToBytes()
     }
-
 }

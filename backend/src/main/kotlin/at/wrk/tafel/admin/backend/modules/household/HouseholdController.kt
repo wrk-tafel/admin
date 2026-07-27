@@ -29,7 +29,7 @@ class HouseholdController(
             totalSum = result.totalSum,
             limit = result.limit,
             toleranceValue = result.toleranceValue,
-            amountExceededLimit = result.amountExceededLimit
+            amountExceededLimit = result.amountExceededLimit,
         )
     }
 
@@ -37,7 +37,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun createHousehold(
         @RequestParam force: Boolean = false,
-        @RequestBody household: Household
+        @RequestBody household: Household,
     ): HouseholdCreationResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
@@ -64,7 +64,7 @@ class HouseholdController(
         if (!householdService.existsByHouseholdId(householdId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $householdId nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND
+                status = HttpStatus.NOT_FOUND,
             )
         }
 
@@ -73,13 +73,11 @@ class HouseholdController(
 
     @GetMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getHousehold(@PathVariable householdId: Long): Household {
-        return householdService.findByHouseholdId(householdId)
-            ?: throw TafelValidationException(
-                message = "Kunde Nr. $householdId nicht gefunden!",
-                status = HttpStatus.NOT_FOUND
-            )
-    }
+    fun getHousehold(@PathVariable householdId: Long): Household = householdService.findByHouseholdId(householdId)
+        ?: throw TafelValidationException(
+            message = "Kunde Nr. $householdId nicht gefunden!",
+            status = HttpStatus.NOT_FOUND,
+        )
 
     @GetMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -97,14 +95,14 @@ class HouseholdController(
             page = page,
             postProcessing = postProcessing,
             costContribution = costContribution,
-            valid = valid
+            valid = valid,
         )
         return HouseholdListResponse(
             items = householdSearchResult.items,
             totalCount = householdSearchResult.totalCount,
             currentPage = householdSearchResult.currentPage,
             totalPages = householdSearchResult.totalPages,
-            pageSize = householdSearchResult.pageSize
+            pageSize = householdSearchResult.pageSize,
         )
     }
 
@@ -114,7 +112,7 @@ class HouseholdController(
         if (!householdService.existsByHouseholdId(householdId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $householdId nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND
+                status = HttpStatus.NOT_FOUND,
             )
         }
 
@@ -132,7 +130,7 @@ class HouseholdController(
             val headers = HttpHeaders()
             headers.add(
                 HttpHeaders.CONTENT_DISPOSITION,
-                "inline; filename=${pdfResult.filename}"
+                "inline; filename=${pdfResult.filename}",
             )
 
             return ResponseEntity
@@ -142,7 +140,7 @@ class HouseholdController(
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
         } ?: throw TafelValidationException(
             message = "Kunde Nr. $householdId nicht vorhanden!",
-            status = HttpStatus.NOT_FOUND
+            status = HttpStatus.NOT_FOUND,
         )
     }
 
@@ -157,7 +155,7 @@ class HouseholdController(
             totalCount = result.totalCount,
             currentPage = result.currentPage,
             totalPages = result.totalPages,
-            pageSize = result.pageSize
+            pageSize = result.pageSize,
         )
     }
 
@@ -171,13 +169,13 @@ class HouseholdController(
             items = duplicateSearchResult.items.map {
                 HouseholdDuplicationItem(
                     household = it.household,
-                    similarHouseholds = it.similarHouseholds
+                    similarHouseholds = it.similarHouseholds,
                 )
             },
             totalCount = duplicateSearchResult.totalCount,
             currentPage = duplicateSearchResult.currentPage,
             totalPages = duplicateSearchResult.totalPages,
-            pageSize = duplicateSearchResult.pageSize
+            pageSize = duplicateSearchResult.pageSize,
         )
     }
 
@@ -190,5 +188,4 @@ class HouseholdController(
         householdService.mergeHouseholds(householdId, request.sourceHouseholdIds)
         return ResponseEntity.ok().build()
     }
-
 }

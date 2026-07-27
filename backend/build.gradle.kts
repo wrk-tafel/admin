@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.allopen)
     alias(libs.plugins.spring.boot)
+    alias(libs.plugins.ktlint.gradle)
     jacoco
 }
 
@@ -139,7 +140,7 @@ sonar {
     properties {
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
-            "${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml"
+            "${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml",
         )
         property("sonar.kotlin.source.version", libs.versions.kotlin.get())
     }

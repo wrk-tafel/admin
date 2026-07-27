@@ -23,5 +23,4 @@ class ShelterContactEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "phone")
     var phone: String? = null
-
 }

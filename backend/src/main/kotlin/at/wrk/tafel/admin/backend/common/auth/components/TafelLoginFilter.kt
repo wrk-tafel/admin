@@ -27,7 +27,7 @@ class TafelLoginFilter(
     private val jwtTokenService: JwtTokenService,
     private val applicationProperties: ApplicationProperties,
     private val tafelAdminProperties: TafelAdminProperties,
-    private val jsonMapper: JsonMapper
+    private val jsonMapper: JsonMapper,
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     companion object {
@@ -49,32 +49,31 @@ class TafelLoginFilter(
         this.setFilterProcessesUrl("/api/login")
     }
 
-    public override fun obtainUsername(request: HttpServletRequest): String {
-        return basicAuthConverter.convert(request)?.name as String
-    }
+    public override fun obtainUsername(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.name as String
 
-    public override fun obtainPassword(request: HttpServletRequest): String {
-        return basicAuthConverter.convert(request)?.credentials as String
-    }
+    public override fun obtainPassword(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.credentials as String
 
     public override fun successfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
-        authResult: Authentication
+        authResult: Authentication,
     ) {
         val principal = authResult.principal
         if (principal is TafelUser) {
             val user = authResult.principal as TafelUser
             val expirationTimeInSeconds =
-                if (user.passwordChangeRequired) applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds
-                else applicationProperties.security.jwtToken.expirationTimeInSeconds
+                if (user.passwordChangeRequired) {
+                    applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds
+                } else {
+                    applicationProperties.security.jwtToken.expirationTimeInSeconds
+                }
             val authorities = if (user.passwordChangeRequired) emptyList() else user.authorities
 
             val token: String = jwtTokenService.generateToken(
                 username = user.username,
                 authorities = authorities,
-                expirationSeconds = expirationTimeInSeconds
+                expirationSeconds = expirationTimeInSeconds,
             )
 
             logger.info("Login successful via user '${user.username}' on '${request.requestURL}' (password-change required: ${user.passwordChangeRequired})")
@@ -94,7 +93,7 @@ class TafelLoginFilter(
     public override fun unsuccessfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        failed: AuthenticationException
+        failed: AuthenticationException,
     ) {
         // distinguishes a rate-limit lockout from wrong credentials so the SPA can tell the
         // user to wait it out, rather than showing the generic "login failed" message
@@ -105,5 +104,4 @@ class TafelLoginFilter(
         }
         logger.info("Login failed - ${failed.message}")
     }
-
 }

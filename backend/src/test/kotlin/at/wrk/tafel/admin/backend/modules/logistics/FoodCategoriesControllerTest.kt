@@ -40,10 +40,9 @@ class FoodCategoriesControllerTest {
             FoodCategoriesListResponse(
                 categories = listOf(
                     category1,
-                    category2
-                )
-            )
+                    category2,
+                ),
+            ),
         )
     }
-
 }

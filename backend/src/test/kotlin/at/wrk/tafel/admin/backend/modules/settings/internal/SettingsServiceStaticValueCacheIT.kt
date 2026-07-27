@@ -65,11 +65,10 @@ class SettingsServiceStaticValueCacheIT : TafelBaseIntegrationTest() {
                 countAdults = null,
                 countChildren = null,
                 age = null,
-            )
+            ),
         )
 
         val afterUpdate = staticValueRepository.findSingleValueOfType(StaticValueType.TOLERANCE, today)
         assertThat(afterUpdate?.amount).isEqualByComparingTo("54321.00")
     }
-
 }

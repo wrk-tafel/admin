@@ -146,7 +146,6 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         testEntityManager.persist(distributionHouseholdEntity)
         return distributionHouseholdEntity
     }
-
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

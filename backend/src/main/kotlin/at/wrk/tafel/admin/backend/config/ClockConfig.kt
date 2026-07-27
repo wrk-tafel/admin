@@ -8,8 +8,5 @@ import java.time.Clock
 class ClockConfig {
 
     @Bean
-    fun clock(): Clock {
-        return Clock.systemDefaultZone()
-    }
-
+    fun clock(): Clock = Clock.systemDefaultZone()
 }

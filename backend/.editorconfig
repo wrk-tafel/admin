@@ -1,0 +1,11 @@
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = intellij_idea
+ktlint_ignore_back_ticked_identifier = true
+# matches this codebase's existing convention (IntelliJ's default formatter collapses to
+# star imports past a name-count threshold), so don't fight it by forcing explicit imports
+ktlint_standard_no-wildcard-imports = disabled
+# ArchUnit tests use natural-language backtick property names (e.g. `rest controllers should ...`)
+# which this rule flags despite ktlint_ignore_back_ticked_identifier not covering property-naming
+ktlint_standard_property-naming = disabled

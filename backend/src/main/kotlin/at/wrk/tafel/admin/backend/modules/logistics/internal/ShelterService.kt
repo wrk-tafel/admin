@@ -1,33 +1,29 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContact
-import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
 class ShelterService(
-    private val shelterRepository: ShelterRepository
+    private val shelterRepository: ShelterRepository,
 ) {
 
     @Transactional
-    fun getActiveShelters(): List<Shelter> {
-        return shelterRepository.findByEnabledIsTrue()
-            .map { mapShelter(it) }
-            .sortedBy { it.name }
-    }
+    fun getActiveShelters(): List<Shelter> = shelterRepository.findByEnabledIsTrue()
+        .map { mapShelter(it) }
+        .sortedBy { it.name }
 
     @Transactional
-    fun getAllShelters(): List<Shelter> {
-        return shelterRepository.findAll()
-            .map { mapShelter(it) }
-            .sortedBy { it.name }
-    }
+    fun getAllShelters(): List<Shelter> = shelterRepository.findAll()
+        .map { mapShelter(it) }
+        .sortedBy { it.name }
 
     fun createShelter(shelter: Shelter): Shelter {
         val shelterEntity = ShelterEntity().apply {
@@ -57,28 +53,26 @@ class ShelterService(
         return mapShelter(savedEntity)
     }
 
-    private fun mapShelter(shelterEntity: ShelterEntity): Shelter {
-        return Shelter(
-            id = shelterEntity.id!!,
-            name = shelterEntity.name!!,
-            addressStreet = shelterEntity.addressStreet!!,
-            addressHouseNumber = shelterEntity.addressHouseNumber!!,
-            addressStairway = shelterEntity.addressStairway,
-            addressPostalCode = shelterEntity.addressPostalCode!!,
-            addressCity = shelterEntity.addressCity!!,
-            addressDoor = shelterEntity.addressDoor,
-            note = shelterEntity.note,
-            personsCount = shelterEntity.personsCount!!,
-            enabled = shelterEntity.enabled!!,
-            contacts = shelterEntity.contacts.map {
-                ShelterContact(
-                    firstname = it.firstname,
-                    lastname = it.lastname,
-                    phone = it.phone!!
-                )
-            }
-        )
-    }
+    private fun mapShelter(shelterEntity: ShelterEntity): Shelter = Shelter(
+        id = shelterEntity.id!!,
+        name = shelterEntity.name!!,
+        addressStreet = shelterEntity.addressStreet!!,
+        addressHouseNumber = shelterEntity.addressHouseNumber!!,
+        addressStairway = shelterEntity.addressStairway,
+        addressPostalCode = shelterEntity.addressPostalCode!!,
+        addressCity = shelterEntity.addressCity!!,
+        addressDoor = shelterEntity.addressDoor,
+        note = shelterEntity.note,
+        personsCount = shelterEntity.personsCount!!,
+        enabled = shelterEntity.enabled!!,
+        contacts = shelterEntity.contacts.map {
+            ShelterContact(
+                firstname = it.firstname,
+                lastname = it.lastname,
+                phone = it.phone!!,
+            )
+        },
+    )
 
     fun updateShelter(shelterId: Long, updatedShelter: Shelter): Shelter {
         val shelterEntity = shelterRepository.findByIdOrNull(shelterId)
@@ -108,5 +102,4 @@ class ShelterService(
         val savedEntity = shelterRepository.save(shelterEntity)
         return mapShelter(savedEntity)
     }
-
 }

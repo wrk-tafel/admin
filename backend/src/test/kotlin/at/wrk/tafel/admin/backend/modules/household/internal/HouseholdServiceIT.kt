@@ -66,8 +66,8 @@ class HouseholdServiceIT : TafelBaseIntegrationTest() {
             listOf(
                 sourceHousehold1.householdId!!,
                 sourceHousehold2.householdId!!,
-                sourceHousehold3.householdId!!
-            )
+                sourceHousehold3.householdId!!,
+            ),
         )
 
         testEntityManager.flush()
@@ -97,7 +97,7 @@ class HouseholdServiceIT : TafelBaseIntegrationTest() {
     private fun createDistributionHouseholdEntity(
         household: HouseholdEntity,
         distribution: DistributionEntity,
-        ticketNumber: Int
+        ticketNumber: Int,
     ): DistributionHouseholdEntity {
         val distributionHouseholdEntity = DistributionHouseholdEntity()
 
@@ -109,5 +109,4 @@ class HouseholdServiceIT : TafelBaseIntegrationTest() {
         testEntityManager.persist(distributionHouseholdEntity)
         return distributionHouseholdEntity
     }
-
 }

@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class HouseholdDuplicationService(
     private val householdRepository: HouseholdRepository,
     private val householdConverter: HouseholdConverter,
-    private val jdbcTemplate: JdbcTemplate
+    private val jdbcTemplate: JdbcTemplate,
 ) {
 
     companion object {
@@ -86,12 +86,12 @@ class HouseholdDuplicationService(
 
             HouseholdDuplicateSearchResultItem(
                 household = householdConverter.mapEntityToHousehold(
-                    householdRepository.findByHouseholdId(householdId)!!
+                    householdRepository.findByHouseholdId(householdId)!!,
                 ),
                 similarHouseholds = similarHouseholds.mapNotNull { similarHouseholdId ->
                     householdRepository.findByHouseholdId(similarHouseholdId.toLong())
                         ?.let { householdConverter.mapEntityToHousehold(it) }
-                }
+                },
             )
         }.toList()
 
@@ -100,7 +100,7 @@ class HouseholdDuplicationService(
             totalCount = duplicatesPage.totalElements,
             currentPage = page ?: 1,
             totalPages = duplicatesPage.totalPages,
-            pageSize = pageRequest.pageSize
+            pageSize = pageRequest.pageSize,
         )
     }
 
@@ -129,13 +129,12 @@ class HouseholdDuplicationService(
         val rows = jdbcTemplate.query(sql, DataClassRowMapper(HouseholdDuplicateEntry::class.java))
         return PageImpl(rows, pageable, totalCount)
     }
-
 }
 
 @ExcludeFromTestCoverage
 data class HouseholdDuplicateEntry(
     val householdId: Long,
-    val compareHouseholdIdList: String
+    val compareHouseholdIdList: String,
 )
 
 @ExcludeFromTestCoverage
@@ -144,11 +143,11 @@ data class HouseholdDuplicateSearchResult(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
 data class HouseholdDuplicateSearchResultItem(
     val household: Household,
-    val similarHouseholds: List<Household>
+    val similarHouseholds: List<Household>,
 )

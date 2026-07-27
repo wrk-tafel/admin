@@ -24,5 +24,4 @@ internal class NamingConventionsTest {
         .or().areAssignableTo(TafelBaseIntegrationTest::class.java)
         .and().doNotHaveSimpleName(TafelBaseIntegrationTest::class.java.simpleName)
         .should().haveSimpleNameEndingWith("IT")
-
 }

@@ -17,5 +17,4 @@ class ScannerRegistrationEntity : BaseEntity() {
 
     @Column(name = "scanner_id")
     var scannerId: Int? = null
-
 }

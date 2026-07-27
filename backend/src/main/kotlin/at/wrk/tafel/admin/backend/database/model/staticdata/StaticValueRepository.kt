@@ -36,5 +36,4 @@ interface StaticValueRepository : JpaRepository<StaticValueEntity, Long> {
         @Param("type") type: StaticValueType,
         @Param("currentDate") currentDate: LocalDate,
     ): List<StaticValueEntity>
-
 }

@@ -30,9 +30,9 @@ class DistributionStatisticService(
         logger.info(
             "Created statistic entry for distribution id: ${distribution.id}, end-date: ${
                 distribution.endedAt!!.format(
-                    DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                    DateTimeFormatter.ofPattern("dd.MM.yyyy"),
                 )
-            }"
+            }",
         )
         return savedStatisticEntry
     }
@@ -69,9 +69,12 @@ class DistributionStatisticService(
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
         statistic.countInfants = countInfants
 
-        val averagePersonsPerHousehold = if (countHouseholds > 0)
+        val averagePersonsPerHousehold = if (countHouseholds > 0) {
             BigDecimal(countPersons).setScale(2, RoundingMode.HALF_EVEN)
-                .div(BigDecimal(countHouseholds)) else BigDecimal.ZERO
+                .div(BigDecimal(countHouseholds))
+        } else {
+            BigDecimal.ZERO
+        }
         statistic.averagePersonsPerCustomer = averagePersonsPerHousehold
 
         val householdsNew =
@@ -97,7 +100,7 @@ class DistributionStatisticService(
         val countHouseholdsUpdated =
             householdRepository.countByUpdatedAtBetween(
                 statisticStartTime,
-                statisticEndTime
+                statisticEndTime,
             )
         statistic.countCustomersUpdated = countHouseholdsUpdated - countHouseholdsNew - countHouseholdsProlonged
     }
@@ -126,17 +129,19 @@ class DistributionStatisticService(
         statistic.foodTotalAmount = foodTotalAmount
 
         val foodPerShopAverage =
-            if (shopsWithFoodCount > 0) foodTotalAmount.divide(
-                BigDecimal(shopsWithFoodCount),
-                2,
-                RoundingMode.HALF_EVEN
-            )
-            else BigDecimal.ZERO
+            if (shopsWithFoodCount > 0) {
+                foodTotalAmount.divide(
+                    BigDecimal(shopsWithFoodCount),
+                    2,
+                    RoundingMode.HALF_EVEN,
+                )
+            } else {
+                BigDecimal.ZERO
+            }
         statistic.foodPerShopAverage = foodPerShopAverage
 
         val routesLengthKm = distribution.foodCollections
             .sumOf { (it.kmEnd ?: 0) - (it.kmStart ?: 0) }
         statistic.routesLengthKm = routesLengthKm
     }
-
 }

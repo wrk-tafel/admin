@@ -34,21 +34,15 @@ class HouseholdService(
     private val incomeValidatorService: IncomeValidatorService,
     private val householdRepository: HouseholdRepository,
     private val householdPdfService: HouseholdPdfService,
-    private val householdConverter: HouseholdConverter
+    private val householdConverter: HouseholdConverter,
 ) {
 
-    fun validate(household: Household): IncomeValidatorResult {
-        return incomeValidatorService.validate(mapToValidationPersons(household))
-    }
+    fun validate(household: Household): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household))
 
-    fun existsByHouseholdId(householdId: Long): Boolean {
-        return householdRepository.existsByHouseholdId(householdId)
-    }
+    fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 
     @Transactional
-    fun findByHouseholdId(householdId: Long): Household? {
-        return householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
-    }
+    fun findByHouseholdId(householdId: Long): Household? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
 
     @Transactional
     fun createHousehold(household: Household, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
@@ -59,13 +53,13 @@ class HouseholdService(
             if (!force) {
                 throw TafelValidationException(
                     message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
-                    status = HttpStatus.CONFLICT
+                    status = HttpStatus.CONFLICT,
                 )
             } else {
                 val savedEntity = saveWithMainPerson(entity)
                 return HouseholdCreationResponse(
                     data = householdConverter.mapEntityToHousehold(savedEntity),
-                    errorMsg = null
+                    errorMsg = null,
                 )
             }
         } else if (!valid) {
@@ -74,14 +68,14 @@ class HouseholdService(
             val savedEntity = saveWithMainPerson(entity)
             return HouseholdCreationResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
             )
         }
 
         val savedEntity = saveWithMainPerson(entity)
         return HouseholdCreationResponse(
             data = householdConverter.mapEntityToHousehold(savedEntity),
-            errorMsg = null
+            errorMsg = null,
         )
     }
 
@@ -90,7 +84,7 @@ class HouseholdService(
         householdId: Long,
         household: Household,
         force: Boolean,
-        isSupervisor: Boolean
+        isSupervisor: Boolean,
     ): HouseholdUpdateResponse {
         val existingEntity = householdRepository.getReferenceByHouseholdId(householdId)
         val mappedEntity = householdConverter.mapHouseholdToEntity(household, existingEntity)
@@ -100,13 +94,13 @@ class HouseholdService(
             if (!force) {
                 throw TafelValidationException(
                     message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
-                    status = HttpStatus.CONFLICT
+                    status = HttpStatus.CONFLICT,
                 )
             } else {
                 val savedEntity = saveWithMainPerson(mappedEntity)
                 return HouseholdUpdateResponse(
                     data = householdConverter.mapEntityToHousehold(savedEntity),
-                    errorMsg = null
+                    errorMsg = null,
                 )
             }
         } else if (!valid) {
@@ -115,14 +109,14 @@ class HouseholdService(
             val savedEntity = saveWithMainPerson(mappedEntity)
             return HouseholdUpdateResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
             )
         }
 
         val savedEntity = saveWithMainPerson(mappedEntity)
         return HouseholdUpdateResponse(
             data = householdConverter.mapEntityToHousehold(savedEntity),
-            errorMsg = null
+            errorMsg = null,
         )
     }
 
@@ -169,8 +163,8 @@ class HouseholdService(
                     if (postProcessing != null) postProcessingNecessary() else null,
                     if (costContribution != null) pendingCostContribution() else null,
                     if (valid != null) validHousehold() else null,
-                ).mapNotNull { it }
-            )
+                ).mapNotNull { it },
+            ),
         )
 
         val spec = orderByUpdatedAtDesc(where)
@@ -181,7 +175,7 @@ class HouseholdService(
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize
+            pageSize = pageRequest.pageSize,
         )
     }
 
@@ -200,7 +194,7 @@ class HouseholdService(
                     household = household,
                     totalSum = result.totalSum,
                     limit = result.limit,
-                    amountExceededLimit = result.amountExceededLimit
+                    amountExceededLimit = result.amountExceededLimit,
                 )
             } else {
                 null
@@ -219,7 +213,7 @@ class HouseholdService(
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize
+            pageSize = pageRequest.pageSize,
         )
     }
 
@@ -252,7 +246,7 @@ class HouseholdService(
                 listOfNotNull(
                     household.householdId,
                     mainPerson?.lastname,
-                    mainPerson?.firstname
+                    mainPerson?.firstname,
                 ).joinToString("-") { it.toString() }
             val filename = "$filenamePrefix-$householdName".lowercase().replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
             return HouseholdPdfResult(filename = filename, bytes = bytes)
@@ -278,7 +272,7 @@ class HouseholdService(
             IncomeValidatorPerson(
                 birthDate = it.birthDate!!,
                 monthlyIncome = it.income,
-                excludeFromIncomeCalculation = false
+                excludeFromIncomeCalculation = false,
             )
         }
 
@@ -287,7 +281,7 @@ class HouseholdService(
                 birthDate = it.birthDate,
                 monthlyIncome = it.income,
                 excludeFromIncomeCalculation = it.excludeFromHousehold,
-                receivesFamilyBonus = it.receivesFamilyBonus
+                receivesFamilyBonus = it.receivesFamilyBonus,
             )
         }
 
@@ -300,7 +294,6 @@ class HouseholdService(
             deleteHouseholdByHouseholdId(householdId)
         }
     }
-
 }
 
 @ExcludeFromTestCoverage
@@ -309,7 +302,7 @@ data class HouseholdSearchResult(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
@@ -318,13 +311,13 @@ data class HouseholdAboveLimitSearchResult(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
 data class HouseholdPdfResult(
     val filename: String,
-    val bytes: ByteArray
+    val bytes: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -341,5 +334,4 @@ data class HouseholdPdfResult(
         result = 31 * result + bytes.contentHashCode()
         return result
     }
-
 }

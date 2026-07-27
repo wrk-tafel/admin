@@ -33,10 +33,11 @@ class HouseholdPdfServiceTest {
 
     companion object {
         private val comparisonResultDirectory = File(
-            System.getProperty("user.dir"), "build/custom-test-results/customerpdf-comparison-results"
+            System.getProperty("user.dir"),
+            "build/custom-test-results/customerpdf-comparison-results",
         )
 
-        private const val masterReferencesPath = "/pdf-references/customer/master-references"
+        private const val MASTER_REFERENCES_PATH = "/pdf-references/customer/master-references"
 
         @JvmStatic
         @BeforeAll
@@ -60,7 +61,8 @@ class HouseholdPdfServiceTest {
 
         testHousehold = HouseholdEntity()
         testHousehold.createdAt = LocalDateTime.of(
-            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10)
+            LocalDate.of(2022, 10, 3),
+            LocalTime.of(10, 10),
         )
         testHousehold.householdId = 123
         testHousehold.issuer = testUserEntity.employee
@@ -116,7 +118,8 @@ class HouseholdPdfServiceTest {
 
         testHouseholdMinimal = HouseholdEntity()
         testHouseholdMinimal.createdAt = LocalDateTime.of(
-            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10)
+            LocalDate.of(2022, 10, 3),
+            LocalTime.of(10, 10),
         )
         testHouseholdMinimal.householdId = 456
         testHouseholdMinimal.addressStreet = "Karl-Schäfer-Straße"
@@ -150,7 +153,7 @@ class HouseholdPdfServiceTest {
 
         assertThat(document.numberOfPages).isEqualTo(1)
 
-        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/masterdata-actual.png"))
+        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/masterdata-actual.png"))
         ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "masterdata-expected.png"))
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "masterdata-actual.png"))
@@ -174,13 +177,13 @@ class HouseholdPdfServiceTest {
         assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page0-actual.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/idcard-page0-actual.png"))
         ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "idcard-page0-expected.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "idcard-page0-actual.png"))
 
         val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page1-actual.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/idcard-page1-actual.png"))
         ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-expected.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-actual.png"))
@@ -207,13 +210,13 @@ class HouseholdPdfServiceTest {
         assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page0-actual.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/combined-page0-actual.png"))
         ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-expected.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-actual.png"))
 
         val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page1-actual.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/combined-page1-actual.png"))
         ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-expected.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-actual.png"))
@@ -238,5 +241,4 @@ class HouseholdPdfServiceTest {
         assertThat(document.numberOfPages).isEqualTo(2)
         document.close()
     }
-
 }

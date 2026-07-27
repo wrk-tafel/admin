@@ -61,23 +61,21 @@ class WebSecurityConfig(
                         ArrayWordList(
                             listOf("wrk", "örk", "oerk", "tafel", "roteskreuz", "toet", "töt", "1030").toTypedArray(),
                             false,
-                            ArraysSort()
-                        )
-                    )
-                )
-            )
+                            ArraysSort(),
+                        ),
+                    ),
+                ),
+            ),
         )
         val generatedPasswordCharactersRules = listOf(
             CharacterRule(GermanCharacterData.LowerCase),
             CharacterRule(GermanCharacterData.UpperCase),
-            CharacterRule(EnglishCharacterData.Digit)
+            CharacterRule(EnglishCharacterData.Digit),
         )
     }
 
     @Bean
-    fun tafelPasswordGenerator(): TafelPasswordGenerator {
-        return TafelPasswordGenerator(passwordLengthRule.minimumLength + 2, generatedPasswordCharactersRules)
-    }
+    fun tafelPasswordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(passwordLengthRule.minimumLength + 2, generatedPasswordCharactersRules)
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -90,10 +88,10 @@ class WebSecurityConfig(
                     OrRequestMatcher(
                         publicEndpoints.map {
                             PathPatternRequestMatcher.pathPattern(it)
-                        }
-                    )
-                )
-            )
+                        },
+                    ),
+                ),
+            ),
         )
 
         http
@@ -103,8 +101,8 @@ class WebSecurityConfig(
                     jwtTokenService = jwtTokenService,
                     applicationProperties = applicationProperties,
                     tafelAdminProperties = tafelAdminProperties,
-                    jsonMapper = jsonMapper
-                )
+                    jsonMapper = jsonMapper,
+                ),
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
             .authorizeHttpRequests { auth ->
@@ -156,33 +154,20 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun userDetailsManager(): UserDetailsManager {
-        return tafelUserDetailsManager()
-    }
+    fun userDetailsManager(): UserDetailsManager = tafelUserDetailsManager()
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager {
-        return TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
-    }
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
 
     @Bean
-    fun authenticationManager(): AuthenticationManager {
-        return ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
-    }
+    fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
 
     @Bean
-    fun tafelLoginProvider(): TafelLoginProvider {
-        return TafelLoginProvider(userDetailsManager(), passwordEncoder(), loginAttemptService)
-    }
+    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(userDetailsManager(), passwordEncoder(), loginAttemptService)
 
     @Bean
-    fun tafelJwtAuthProvider(): TafelJwtAuthProvider {
-        return TafelJwtAuthProvider(jwtTokenService, userRepository)
-    }
+    fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)
 
     @Bean
-    fun tafelJwtAuthConverter(): TafelJwtAuthConverter {
-        return TafelJwtAuthConverter()
-    }
-
+    fun tafelJwtAuthConverter(): TafelJwtAuthConverter = TafelJwtAuthConverter()
 }

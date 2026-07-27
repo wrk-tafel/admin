@@ -25,10 +25,9 @@ object HaveApiRequestMappingPathCondition : ArchCondition<JavaClass>("have a @Re
             events.add(
                 SimpleConditionEvent.violated(
                     item,
-                    "${item.name} has @RequestMapping path(s) ${paths.toList()} not starting with /api"
-                )
+                    "${item.name} has @RequestMapping path(s) ${paths.toList()} not starting with /api",
+                ),
             )
         }
     }
-
 }

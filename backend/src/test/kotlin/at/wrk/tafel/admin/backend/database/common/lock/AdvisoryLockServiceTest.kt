@@ -150,5 +150,4 @@ class AdvisoryLockServiceTest {
         verify { repository.acquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
         verify { repository.acquireLock(AdvisoryLockKey.CLOSE_DISTRIBUTION.lockId) }
     }
-
 }

@@ -77,7 +77,7 @@ internal class MailSenderServiceTest {
         val attachment = MailAttachment(
             filename = "test.pdf",
             inputStreamSource = ByteArrayResource(ByteArray(10)),
-            contentType = "application/pdf"
+            contentType = "application/pdf",
         )
         every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
@@ -97,7 +97,7 @@ internal class MailSenderServiceTest {
         assertThat(toRecipients.map { it.toString() }).hasSameElementsAs(
             recipientAddresses
                 .filter { it.recipientType == RecipientType.TO }
-                .map { it.address }
+                .map { it.address },
         )
 
         val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
@@ -107,7 +107,7 @@ internal class MailSenderServiceTest {
         assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(
             recipientAddresses
                 .filter { it.recipientType == RecipientType.BCC }
-                .map { it.address }
+                .map { it.address },
         )
     }
 
@@ -121,7 +121,7 @@ internal class MailSenderServiceTest {
             subject = "subject",
             attachments = emptyList(),
             templateName = "templateName",
-            context = Context()
+            context = Context(),
         )
 
         verify(exactly = 0) { mailSender.send(any<MimeMessage>()) }
@@ -154,7 +154,7 @@ internal class MailSenderServiceTest {
         val attachment = MailAttachment(
             filename = "test.pdf",
             inputStreamSource = ByteArrayResource(ByteArray(10)),
-            contentType = "application/pdf"
+            contentType = "application/pdf",
         )
         every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
@@ -177,7 +177,7 @@ internal class MailSenderServiceTest {
         assertThat(toRecipients.map { it.toString() }).hasSameElementsAs(
             recipientAddresses
                 .filter { it.recipientType == RecipientType.TO }
-                .map { it.address }
+                .map { it.address },
         )
 
         val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
@@ -187,7 +187,7 @@ internal class MailSenderServiceTest {
         assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(
             recipientAddresses
                 .filter { it.recipientType == RecipientType.BCC }
-                .map { it.address }
+                .map { it.address },
         )
 
         // Content-Type headers on the in-memory part tree are only populated from the
@@ -210,7 +210,8 @@ internal class MailSenderServiceTest {
         every { properties.mail!!.from } returns fromAddress
 
         val defaultRecipients = listOf(
-            "default1", "default2"
+            "default1",
+            "default2",
         )
         every { properties.mail?.defaultRecipientsBcc } returns defaultRecipients
 
@@ -233,7 +234,7 @@ internal class MailSenderServiceTest {
             listOf(
                 testMailRecipient_DR_TO1,
                 testMailRecipient_DR_TO2,
-            ).map { it.address }
+            ).map { it.address },
         )
 
         val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
@@ -268,5 +269,4 @@ internal class MailSenderServiceTest {
         }
         return null
     }
-
 }

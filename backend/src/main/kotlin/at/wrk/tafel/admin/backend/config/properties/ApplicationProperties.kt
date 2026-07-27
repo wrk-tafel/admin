@@ -4,17 +4,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties
 data class ApplicationProperties(
-    val security: SecurityProperties
+    val security: SecurityProperties,
 )
 
 data class SecurityProperties(
     val jwtToken: SecurityJwtTokenProperties,
-    val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties()
+    val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties(),
 )
 
 data class SecurityLoginAttemptsProperties(
     val maxFailures: Int = 5,
-    val lockoutDurationInSeconds: Long = 900
+    val lockoutDurationInSeconds: Long = 900,
 )
 
 data class SecurityJwtTokenProperties(
@@ -22,10 +22,10 @@ data class SecurityJwtTokenProperties(
     val audience: String,
     val secret: SecurityJwtTokenSecretProperties,
     val expirationTimeInSeconds: Int,
-    val expirationTimePwdChangeInSeconds: Int
+    val expirationTimePwdChangeInSeconds: Int,
 )
 
 data class SecurityJwtTokenSecretProperties(
     val value: String,
-    val algorithm: String
+    val algorithm: String,
 )

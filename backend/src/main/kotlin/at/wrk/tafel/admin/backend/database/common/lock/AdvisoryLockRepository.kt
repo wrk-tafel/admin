@@ -16,5 +16,4 @@ interface AdvisoryLockRepository : JpaRepository<AdvisoryLockEntity, Long> {
 
     @Query(value = "SELECT pg_advisory_unlock(:lockId)", nativeQuery = true)
     fun releaseLock(@Param("lockId") lockId: Long): Any?
-
 }

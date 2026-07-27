@@ -14,9 +14,7 @@ import kotlin.random.Random
 
 object TestdataGenerator {
 
-    fun generateRandomLong(): Long {
-        return Random.nextLong(0, 9999999999999)
-    }
+    fun generateRandomLong(): Long = Random.nextLong(0, 9999999999999)
 
     fun createUser(): UserEntity {
         val randomNumber = generateRandomLong()
@@ -99,5 +97,4 @@ object TestdataGenerator {
 
         return country
     }
-
 }

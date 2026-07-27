@@ -34,7 +34,7 @@ class SheltersControllerTest {
             note = "Note 1",
             personsCount = 1,
             enabled = true,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
         val shelter2 = shelter1.copy(id = 2, name = "Shelter 2")
 
@@ -60,7 +60,7 @@ class SheltersControllerTest {
             note = "Note 1",
             personsCount = 1,
             enabled = true,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
         val shelter2 = shelter1.copy(id = 2, name = "Shelter 2")
 
@@ -86,7 +86,7 @@ class SheltersControllerTest {
             note = "Note 1",
             personsCount = 1,
             enabled = true,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
         val updatedShelter = Shelter(
             id = 1,
@@ -100,7 +100,7 @@ class SheltersControllerTest {
             note = "Note 2",
             personsCount = 2,
             enabled = false,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
         every { service.updateShelter(any(), any()) } returns updatedShelter
 
@@ -126,7 +126,7 @@ class SheltersControllerTest {
             note = "New note",
             personsCount = 5,
             enabled = true,
-            contacts = emptyList()
+            contacts = emptyList(),
         )
 
         val createdShelter = newShelter.copy(id = 42L)
@@ -140,5 +140,4 @@ class SheltersControllerTest {
             service.createShelter(newShelter)
         }
     }
-
 }

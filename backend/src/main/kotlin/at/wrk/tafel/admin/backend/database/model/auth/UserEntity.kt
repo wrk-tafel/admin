@@ -48,63 +48,49 @@ class UserEntity : BaseChangeTrackingEntity() {
 
     interface Specs {
         companion object {
-            fun usernameContains(username: String?): Specification<UserEntity>? {
-                return username?.let {
-                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                        cb.like(
-                            cb.lower(root["username"]),
-                            "%${username.lowercase()}%"
-                        )
-                    }
+            fun usernameContains(username: String?): Specification<UserEntity>? = username?.let {
+                Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                    cb.like(
+                        cb.lower(root["username"]),
+                        "%${username.lowercase()}%",
+                    )
                 }
             }
 
-            fun firstnameContains(firstname: String?): Specification<UserEntity>? {
-                return firstname?.let {
-                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                        val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
-                        cb.like(
-                            cb.lower(employee["firstname"]),
-                            "%${firstname.lowercase()}%"
-                        )
-                    }
+            fun firstnameContains(firstname: String?): Specification<UserEntity>? = firstname?.let {
+                Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                    val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
+                    cb.like(
+                        cb.lower(employee["firstname"]),
+                        "%${firstname.lowercase()}%",
+                    )
                 }
             }
 
-            fun lastnameContains(lastname: String?): Specification<UserEntity>? {
-                return lastname?.let {
-                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                        val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
-                        cb.like(
-                            cb.lower(employee["lastname"]),
-                            "%${lastname.lowercase()}%"
-                        )
-                    }
+            fun lastnameContains(lastname: String?): Specification<UserEntity>? = lastname?.let {
+                Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                    val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
+                    cb.like(
+                        cb.lower(employee["lastname"]),
+                        "%${lastname.lowercase()}%",
+                    )
                 }
             }
 
-            fun enabledEquals(paramEnabled: Boolean?): Specification<UserEntity>? {
-                return paramEnabled?.let {
-                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            fun enabledEquals(paramEnabled: Boolean?): Specification<UserEntity>? = paramEnabled?.let {
+                Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
 
-                        val enabled: Expression<Boolean> = root["enabled"]
-                        cb.equal(enabled, paramEnabled)
-
-                    }
+                    val enabled: Expression<Boolean> = root["enabled"]
+                    cb.equal(enabled, paramEnabled)
                 }
             }
 
-            fun orderByUpdatedAtDesc(spec: Specification<UserEntity>): Specification<UserEntity> {
-                return Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            fun orderByUpdatedAtDesc(spec: Specification<UserEntity>): Specification<UserEntity> = Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
 
-                    val updatedAt: Expression<LocalDateTime> = root["updatedAt"]
-                    cq!!.orderBy(cb.desc(updatedAt))
-                    spec.toPredicate(root, cq, cb)
-
-                }
+                val updatedAt: Expression<LocalDateTime> = root["updatedAt"]
+                cq!!.orderBy(cb.desc(updatedAt))
+                spec.toPredicate(root, cq, cb)
             }
-
         }
     }
-
 }

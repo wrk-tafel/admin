@@ -5,5 +5,4 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
     fun findAllByHouseholdId(householdId: Long): List<PersonEntity>
-
 }

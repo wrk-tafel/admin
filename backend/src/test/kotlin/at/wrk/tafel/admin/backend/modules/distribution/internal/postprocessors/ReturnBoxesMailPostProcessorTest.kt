@@ -46,7 +46,7 @@ class ReturnBoxesMailPostProcessorTest {
             testFoodCollectionRoute1Entity,
             testFoodCollectionRoute2Entity,
             testFoodCollectionRoute3Entity,
-            testFoodCollectionRoute4Entity
+            testFoodCollectionRoute4Entity,
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
@@ -65,7 +65,7 @@ class ReturnBoxesMailPostProcessorTest {
                 subject = mailSubject,
                 attachments = emptyList(),
                 templateName = "mails/return-boxes-mail",
-                context = capture(contextSlot)
+                context = capture(contextSlot),
             )
         }
 
@@ -84,10 +84,10 @@ class ReturnBoxesMailPostProcessorTest {
                     ReturnBoxesShop(
                         name = "2 Hofer",
                         address = "Street 1, 1234, City",
-                        returnBoxes = "4x Category 2"
-                    )
-                )
-            )
+                        returnBoxes = "4x Category 2",
+                    ),
+                ),
+            ),
         )
 
         val secondReturnBox = returnBoxes.routes[1]
@@ -98,11 +98,10 @@ class ReturnBoxesMailPostProcessorTest {
                     ReturnBoxesShop(
                         name = "3 Hofer 2",
                         address = "Street 1, 1234, City",
-                        returnBoxes = "5x Category 2"
-                    )
-                )
-            )
+                        returnBoxes = "5x Category 2",
+                    ),
+                ),
+            ),
         )
     }
-
 }

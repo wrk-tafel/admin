@@ -36,20 +36,19 @@ class FoodCategoryServiceTest {
                 FoodCategory(
                     id = category3.id!!,
                     name = category3.name!!,
-                    returnItem = category3.returnItem!!
+                    returnItem = category3.returnItem!!,
                 ),
                 FoodCategory(
                     id = category1.id!!,
                     name = category1.name!!,
-                    returnItem = category1.returnItem!!
+                    returnItem = category1.returnItem!!,
                 ),
                 FoodCategory(
                     id = category2.id!!,
                     name = category2.name!!,
-                    returnItem = category2.returnItem!!
-                )
-            )
+                    returnItem = category2.returnItem!!,
+                ),
+            ),
         )
     }
-
 }

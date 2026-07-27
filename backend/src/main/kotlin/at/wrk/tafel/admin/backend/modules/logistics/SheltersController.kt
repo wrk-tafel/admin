@@ -14,32 +14,23 @@ class SheltersController(
 ) {
 
     @GetMapping("/active")
-    fun getActiveShelters(): ShelterListResponse {
-        return ShelterListResponse(
-            shelters = shelterService.getActiveShelters()
-        )
-    }
+    fun getActiveShelters(): ShelterListResponse = ShelterListResponse(
+        shelters = shelterService.getActiveShelters(),
+    )
 
     @GetMapping
-    fun getAllShelters(): ShelterListResponse {
-        return ShelterListResponse(
-            shelters = shelterService.getAllShelters()
-        )
-    }
+    fun getAllShelters(): ShelterListResponse = ShelterListResponse(
+        shelters = shelterService.getAllShelters(),
+    )
 
     @PostMapping
     fun createShelter(
-        @RequestBody shelter: Shelter
-    ): Shelter {
-        return shelterService.createShelter(shelter)
-    }
+        @RequestBody shelter: Shelter,
+    ): Shelter = shelterService.createShelter(shelter)
 
     @PostMapping("/{shelterId}")
     fun updateShelter(
         @PathVariable shelterId: Long,
-        @RequestBody updatedShelter: Shelter
-    ): Shelter {
-        return shelterService.updateShelter(shelterId, updatedShelter)
-    }
-
+        @RequestBody updatedShelter: Shelter,
+    ): Shelter = shelterService.updateShelter(shelterId, updatedShelter)
 }

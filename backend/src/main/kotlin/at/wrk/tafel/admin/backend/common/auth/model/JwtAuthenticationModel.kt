@@ -9,42 +9,28 @@ class TafelJwtAuthentication(
     val tokenValue: String,
     val username: String? = null,
     private var authenticated: Boolean = false,
-    private val authorities: List<GrantedAuthority> = emptyList()
+    private val authorities: List<GrantedAuthority> = emptyList(),
 ) : Authentication {
-    override fun getName(): String? {
-        return username
-    }
+    override fun getName(): String? = username
 
-    override fun getAuthorities(): Collection<GrantedAuthority> {
-        return authorities
-    }
+    override fun getAuthorities(): Collection<GrantedAuthority> = authorities
 
-    override fun getCredentials(): Any? {
-        return null
-    }
+    override fun getCredentials(): Any? = null
 
-    override fun getDetails(): Any? {
-        return null
-    }
+    override fun getDetails(): Any? = null
 
-    override fun getPrincipal(): Any? {
-        return null
-    }
+    override fun getPrincipal(): Any? = null
 
-    override fun isAuthenticated(): Boolean {
-        return authenticated
-    }
+    override fun isAuthenticated(): Boolean = authenticated
 
     override fun setAuthenticated(isAuthenticated: Boolean) {
         authenticated = isAuthenticated
     }
 
-    fun hasRole(role: String): Boolean {
-        return authorities.map { it.authority }.contains(role)
-    }
+    fun hasRole(role: String): Boolean = authorities.map { it.authority }.contains(role)
 }
 
 @ExcludeFromTestCoverage
 data class LoginResponse(
-    val passwordChangeRequired: Boolean? = false
+    val passwordChangeRequired: Boolean? = false,
 )

@@ -30,5 +30,4 @@ class DistributionHouseholdEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "cost_contribution_paid")
     var costContributionPaid: Boolean? = true
-
 }

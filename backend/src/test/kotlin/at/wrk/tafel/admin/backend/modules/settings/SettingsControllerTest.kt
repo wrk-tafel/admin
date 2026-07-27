@@ -64,5 +64,4 @@ class SettingsControllerTest {
         assertThat(response).isEqualTo(staticValue)
         verify(exactly = 1) { settingsService.updateStaticValue(42L, staticValue) }
     }
-
 }

@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
@@ -46,14 +46,14 @@ class CountryDistributionExporterTest {
                 listOf(
                     "TOeT Auswertung Stand: ${
                         LocalDateTime.now().format(DATE_FORMATTER)
-                    } - Verteilung Nationalitäten"
+                    } - Verteilung Nationalitäten",
                 ),
                 listOf("Nationalität", "Haushalte", "Prozent"),
                 listOf("Österreich", "4", "44,44"),
                 listOf("Deutschland", "2", "22,22"),
                 listOf("Schweiz", "2", "22,22"),
                 listOf("Frankreich", "1", "11,11"),
-            )
+            ),
         )
     }
 
@@ -77,11 +77,10 @@ class CountryDistributionExporterTest {
                 listOf(
                     "TOeT Auswertung Stand: ${
                         LocalDateTime.now().format(DATE_FORMATTER)
-                    } - Verteilung Nationalitäten"
+                    } - Verteilung Nationalitäten",
                 ),
                 listOf("Nationalität", "Haushalte", "Prozent"),
-            )
+            ),
         )
     }
-
 }

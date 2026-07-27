@@ -38,7 +38,7 @@ class UserController(
 
         val userInfo = UserInfo(
             username = authenticatedUser.username!!,
-            permissions = authenticatedUser.authorities.mapNotNull { it.authority }
+            permissions = authenticatedUser.authorities.mapNotNull { it.authority },
         )
 
         return ResponseEntity.ok(userInfo)
@@ -80,7 +80,7 @@ class UserController(
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht gefunden!",
-                status = HttpStatus.NOT_FOUND
+                status = HttpStatus.NOT_FOUND,
             )
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
@@ -92,7 +92,7 @@ class UserController(
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
             ?: throw TafelValidationException(
                 message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
-                status = HttpStatus.NOT_FOUND
+                status = HttpStatus.NOT_FOUND,
             )
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
@@ -112,14 +112,14 @@ class UserController(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
             enabled = enabled,
-            page = page
+            page = page,
         )
         return UserListResponse(
             items = userSearchResult.items.map { mapToResponse(it) },
             totalCount = userSearchResult.totalCount,
             currentPage = userSearchResult.currentPage,
             totalPages = userSearchResult.totalPages,
-            pageSize = userSearchResult.pageSize
+            pageSize = userSearchResult.pageSize,
         )
     }
 
@@ -161,13 +161,13 @@ class UserController(
         userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND
+                status = HttpStatus.NOT_FOUND,
             )
 
         if (user.password != user.passwordRepeat) {
             throw TafelValidationException(
                 message = "Passwörter stimmen nicht überein!",
-                status = HttpStatus.BAD_REQUEST
+                status = HttpStatus.BAD_REQUEST,
             )
         }
 
@@ -191,7 +191,7 @@ class UserController(
         val tafelUser = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND
+                status = HttpStatus.NOT_FOUND,
             )
 
         userDetailsManager.deleteUser(tafelUser.username)
@@ -207,44 +207,39 @@ class UserController(
         return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
     }
 
-    private fun mapToTafelUser(user: User): TafelUser {
-        return TafelUser(
-            id = user.id,
-            username = user.username,
-            personnelNumber = user.personnelNumber,
-            firstname = user.firstname,
-            lastname = user.lastname,
-            enabled = user.enabled,
-            password = user.password,
-            passwordChangeRequired = user.passwordChangeRequired,
-            authorities = user.permissions.map { SimpleGrantedAuthority(it.key) }
-        )
-    }
+    private fun mapToTafelUser(user: User): TafelUser = TafelUser(
+        id = user.id,
+        username = user.username,
+        personnelNumber = user.personnelNumber,
+        firstname = user.firstname,
+        lastname = user.lastname,
+        enabled = user.enabled,
+        password = user.password,
+        passwordChangeRequired = user.passwordChangeRequired,
+        authorities = user.permissions.map { SimpleGrantedAuthority(it.key) },
+    )
 
-    private fun mapToResponse(user: TafelUser): User {
-        return User(
-            id = user.id,
-            username = user.username,
-            personnelNumber = user.personnelNumber,
-            firstname = user.firstname,
-            lastname = user.lastname,
-            enabled = user.isEnabled,
-            password = null,
-            passwordRepeat = null,
-            passwordChangeRequired = user.passwordChangeRequired,
-            permissions = user.authorities
-                .filter { it.authority != null }
-                .map { authority -> mapToUserPermission(authority.authority!!) }
-                .sortedBy { it.title }
-        )
-    }
+    private fun mapToResponse(user: TafelUser): User = User(
+        id = user.id,
+        username = user.username,
+        personnelNumber = user.personnelNumber,
+        firstname = user.firstname,
+        lastname = user.lastname,
+        enabled = user.isEnabled,
+        password = null,
+        passwordRepeat = null,
+        passwordChangeRequired = user.passwordChangeRequired,
+        permissions = user.authorities
+            .filter { it.authority != null }
+            .map { authority -> mapToUserPermission(authority.authority!!) }
+            .sortedBy { it.title },
+    )
 
     private fun mapToUserPermission(key: String): UserPermission {
         val permissionEnum = UserPermissions.valueOfKey(key)
         return UserPermission(
             key = permissionEnum.key,
-            title = permissionEnum.title
+            title = permissionEnum.title,
         )
     }
-
 }

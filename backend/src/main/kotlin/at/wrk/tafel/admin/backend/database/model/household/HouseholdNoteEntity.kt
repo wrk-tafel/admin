@@ -24,5 +24,4 @@ class HouseholdNoteEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "note")
     var note: String? = null
-
 }

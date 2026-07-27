@@ -2,11 +2,11 @@ package at.wrk.tafel.admin.backend.database.model.logistics
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import jakarta.persistence.CascadeType
 
 @Entity(name = "Shelter")
 @Table(name = "shelters")
@@ -45,5 +45,4 @@ class ShelterEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "enabled")
     var enabled: Boolean? = null
-
 }

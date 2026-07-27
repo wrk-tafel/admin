@@ -31,5 +31,4 @@ class CarsControllerTest {
         assertThat(response.cars).hasSize(2)
         assertThat(response.cars.first()).isEqualTo(car1)
     }
-
 }

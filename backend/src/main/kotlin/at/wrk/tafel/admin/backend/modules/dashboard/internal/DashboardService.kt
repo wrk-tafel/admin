@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
@@ -29,14 +29,14 @@ class DashboardService(
                 tickets = getTicketsData(currentDistribution),
                 statistics = getStatisticsData(currentDistribution),
                 logistics = getLogisticsData(currentDistribution),
-                notes = currentDistribution.notes
+                notes = currentDistribution.notes,
             )
         } ?: DashboardData(
             registeredCustomers = null,
             tickets = null,
             statistics = null,
             logistics = null,
-            notes = null
+            notes = null,
         )
     }
 
@@ -46,31 +46,24 @@ class DashboardService(
 
         return DashboardTicketsData(
             countProcessedTickets = countProcessedTickets,
-            countTotalTickets = countTotalTickets
+            countTotalTickets = countTotalTickets,
         )
     }
 
-    private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int {
-        return distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
-    }
+    private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int = distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
 
-    private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData {
-        return DashboardStatisticsData(
-            employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
-            // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
-            selectedShelterNames = currentDistribution?.statistic?.shelters?.mapNotNull { it.name } ?: emptyList()
-        )
-    }
+    private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
+        employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
+        // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
+        selectedShelterNames = currentDistribution?.statistic?.shelters?.mapNotNull { it.name } ?: emptyList(),
+    )
 
-    private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {
-        return DashboardLogisticsData(
-            foodCollectionsRecordedCount = currentDistribution.foodCollections.size,
-            foodCollectionsTotalCount = routeRepository.findAll().size,
-            foodAmountTotal = currentDistribution.foodCollections
-                .flatMap { it.items ?: emptyList() }
-                .map { it.calculateWeight() }
-                .sumOf { it }
-        )
-    }
-
+    private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData = DashboardLogisticsData(
+        foodCollectionsRecordedCount = currentDistribution.foodCollections.size,
+        foodCollectionsTotalCount = routeRepository.findAll().size,
+        foodAmountTotal = currentDistribution.foodCollections
+            .flatMap { it.items ?: emptyList() }
+            .map { it.calculateWeight() }
+            .sumOf { it },
+    )
 }

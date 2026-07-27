@@ -19,5 +19,4 @@ class UserAuthorityEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "name")
     var name: String? = null
-
 }

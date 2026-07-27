@@ -11,7 +11,7 @@ data class FoodCollectionData(
     val coDriver: Employee?,
     val kmStart: Int?,
     val kmEnd: Int?,
-    val items: List<FoodCollectionItem>
+    val items: List<FoodCollectionItem>,
 )
 
 @ExcludeFromTestCoverage
@@ -25,23 +25,23 @@ data class FoodCollectionSaveRouteData(
 
 @ExcludeFromTestCoverage
 data class FoodCollectionItems(
-    val items: List<FoodCollectionItem>
+    val items: List<FoodCollectionItem>,
 )
 
 @ExcludeFromTestCoverage
 data class FoodCollectionItem(
     val categoryId: Long,
     val shopId: Long,
-    val amount: Int
+    val amount: Int,
 )
 
 @ExcludeFromTestCoverage
 data class FoodCollectionSaveItemsPerShopData(
-    val items: List<FoodCollectionCategoryAmount>
+    val items: List<FoodCollectionCategoryAmount>,
 )
 
 @ExcludeFromTestCoverage
 data class FoodCollectionCategoryAmount(
     val categoryId: Long,
-    val amount: Int
+    val amount: Int,
 )

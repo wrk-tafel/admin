@@ -95,19 +95,23 @@ class TafelLoginFilterTest {
         verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, testUser.authorities, expirationTime) }
 
         verify {
-            jsonMapper.writeValueAsString(withArg<LoginResponse> { response ->
-                assertThat(response.passwordChangeRequired).isFalse()
-            })
+            jsonMapper.writeValueAsString(
+                withArg<LoginResponse> { response ->
+                    assertThat(response.passwordChangeRequired).isFalse()
+                },
+            )
         }
 
         verify {
-            response.addCookie(withArg {
-                assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                assertThat(it.value).isEqualTo(token)
-                assertThat(it.maxAge).isEqualTo(expirationTime)
-                assertThat(it.path).isEqualTo(relativeBaseUrl)
-                assertThat(it.attributes["SameSite"]).isEqualTo("strict")
-            })
+            response.addCookie(
+                withArg {
+                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                    assertThat(it.value).isEqualTo(token)
+                    assertThat(it.maxAge).isEqualTo(expirationTime)
+                    assertThat(it.path).isEqualTo(relativeBaseUrl)
+                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                },
+            )
         }
     }
 
@@ -126,19 +130,23 @@ class TafelLoginFilterTest {
 
         verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), expirationTime) }
         verify {
-            jsonMapper.writeValueAsString(withArg<LoginResponse> { response ->
-                assertThat(response.passwordChangeRequired).isTrue()
-            })
+            jsonMapper.writeValueAsString(
+                withArg<LoginResponse> { response ->
+                    assertThat(response.passwordChangeRequired).isTrue()
+                },
+            )
         }
 
         verify {
-            response.addCookie(withArg {
-                assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                assertThat(it.value).isEqualTo(token)
-                assertThat(it.maxAge).isEqualTo(expirationTime)
-                assertThat(it.path).isEqualTo(relativeBaseUrl)
-                assertThat(it.attributes["SameSite"]).isEqualTo("strict")
-            })
+            response.addCookie(
+                withArg {
+                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                    assertThat(it.value).isEqualTo(token)
+                    assertThat(it.maxAge).isEqualTo(expirationTime)
+                    assertThat(it.path).isEqualTo(relativeBaseUrl)
+                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                },
+            )
         }
     }
 
@@ -155,5 +163,4 @@ class TafelLoginFilterTest {
 
         verify { response.status = HttpStatus.LOCKED.value() }
     }
-
 }

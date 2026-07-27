@@ -56,7 +56,7 @@ internal class HouseholdConverterTest {
     private val testCountry = Country(
         id = 1,
         code = "AT",
-        name = "Österreich"
+        name = "Österreich",
     )
 
     private val testMainPerson = Person(
@@ -69,7 +69,7 @@ internal class HouseholdConverterTest {
         country = testCountry,
         employer = "Employer 123",
         income = BigDecimal("1000"),
-        incomeDue = LocalDate.now()
+        incomeDue = LocalDate.now(),
     )
 
     private val testHousehold = Household(
@@ -77,7 +77,7 @@ internal class HouseholdConverterTest {
         issuer = HouseholdIssuer(
             personnelNumber = "test-personnelnumber",
             firstname = "test-firstname",
-            lastname = "test-lastname"
+            lastname = "test-lastname",
         ),
         issuedAt = LocalDate.now(),
         telephoneNumber = "0043660123123",
@@ -88,7 +88,7 @@ internal class HouseholdConverterTest {
             stairway = "1",
             door = "21",
             postalCode = 1010,
-            city = "Wien"
+            city = "Wien",
         ),
         validUntil = LocalDate.now(),
         locked = false,
@@ -106,7 +106,7 @@ internal class HouseholdConverterTest {
                 incomeDue = LocalDate.now(),
                 receivesFamilyBonus = false,
                 country = testCountry,
-                excludeFromHousehold = false
+                excludeFromHousehold = false,
             ),
             Person(
                 id = 3,
@@ -117,9 +117,9 @@ internal class HouseholdConverterTest {
                 gender = PersonGender.FEMALE,
                 receivesFamilyBonus = true,
                 country = testCountry,
-                excludeFromHousehold = true
-            )
-        )
+                excludeFromHousehold = true,
+            ),
+        ),
     )
 
     private val testHouseholdEntity1 = HouseholdEntity().apply {
@@ -219,7 +219,7 @@ internal class HouseholdConverterTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
@@ -246,8 +246,8 @@ internal class HouseholdConverterTest {
             HouseholdIssuer(
                 personnelNumber = testUser.personnelNumber,
                 firstname = testUser.firstname,
-                lastname = testUser.lastname
-            )
+                lastname = testUser.lastname,
+            ),
         )
         assertThat(household.address.street).isEqualTo(testHousehold.address.street)
         assertThat(household.address.houseNumber).isEqualTo(testHousehold.address.houseNumber)
@@ -278,8 +278,8 @@ internal class HouseholdConverterTest {
             Country(
                 id = testCountry1.id!!,
                 code = testCountry1.code!!,
-                name = testCountry1.name!!
-            )
+                name = testCountry1.name!!,
+            ),
         )
 
         assertThat(household.mainPerson()).isEqualTo(mainPerson)
@@ -322,13 +322,13 @@ internal class HouseholdConverterTest {
                     birthDate = LocalDate.now(),
                     gender = PersonGender.MALE,
                     employer = "updated-employer",
-                    income = BigDecimal.TEN
+                    income = BigDecimal.TEN,
                 ),
                 testHousehold.additionalPersons()[0].copy(
                     gender = PersonGender.FEMALE,
-                    excludeFromHousehold = true
-                )
-            )
+                    excludeFromHousehold = true,
+                ),
+            ),
         )
 
         val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
@@ -353,7 +353,7 @@ internal class HouseholdConverterTest {
     fun `update household and prolongedAt is filled`() {
         val validUntil = LocalDate.now().plusYears(1)
         val updatedHousehold = testHousehold.copy(
-            validUntil = validUntil
+            validUntil = validUntil,
         )
 
         val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
@@ -366,7 +366,7 @@ internal class HouseholdConverterTest {
         val updatedHousehold = testHousehold.copy(
             locked = true,
             lockReason = "locked due to lorem ipsum",
-            persons = listOf(testMainPerson)
+            persons = listOf(testMainPerson),
         )
 
         val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
@@ -381,7 +381,7 @@ internal class HouseholdConverterTest {
     fun `update household and unlock`() {
         val updatedHousehold = testHousehold.copy(
             locked = false,
-            lockReason = null
+            lockReason = null,
         )
 
         val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity2)
@@ -398,8 +398,8 @@ internal class HouseholdConverterTest {
             persons = listOf(
                 testMainPerson.copy(income = BigDecimal.ZERO),
                 testHousehold.additionalPersons()[0].copy(income = BigDecimal.ZERO),
-                testHousehold.additionalPersons()[1]
-            )
+                testHousehold.additionalPersons()[1],
+            ),
         )
 
         val result = converter.mapHouseholdToEntity(household)
@@ -407,5 +407,4 @@ internal class HouseholdConverterTest {
         assertThat(result.persons.first { it.isMainPerson }.income).isNull()
         assertThat(result.persons.first { !it.isMainPerson }.income).isNull()
     }
-
 }

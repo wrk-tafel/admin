@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/households/{householdId}/notes")
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class HouseholdNoteController(
-    private val service: HouseholdNoteService
+    private val service: HouseholdNoteService,
 ) {
 
     @GetMapping
     fun getNotes(
         @PathVariable householdId: Long,
-        @RequestParam("page") page: Int?
+        @RequestParam("page") page: Int?,
     ): HouseholdNotesResponse {
         val searchResult = service.getNotes(householdId = householdId, page = page)
         return HouseholdNotesResponse(
@@ -29,18 +29,17 @@ class HouseholdNoteController(
             totalCount = searchResult.totalCount,
             currentPage = searchResult.currentPage,
             totalPages = searchResult.totalPages,
-            pageSize = searchResult.pageSize
+            pageSize = searchResult.pageSize,
         )
     }
 
     @PostMapping
     fun createNewNote(
         @PathVariable householdId: Long,
-        @RequestBody request: CreateHouseholdNoteRequest
+        @RequestBody request: CreateHouseholdNoteRequest,
     ): ResponseEntity<HouseholdNoteItem> {
         val note = request.note.ifBlank { throw TafelValidationException("Notiz darf nicht leer sein!") }
         val persistedNote = service.createNewNote(householdId, note)
         return ResponseEntity.ok(persistedNote)
     }
-
 }

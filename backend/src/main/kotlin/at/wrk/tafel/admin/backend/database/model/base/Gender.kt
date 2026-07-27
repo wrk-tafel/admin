@@ -4,7 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
 enum class Gender(
-    val title: String
+    val title: String,
 ) {
-    MALE("Männlich"), FEMALE("Weiblich");
+    MALE("Männlich"),
+    FEMALE("Weiblich"),
 }

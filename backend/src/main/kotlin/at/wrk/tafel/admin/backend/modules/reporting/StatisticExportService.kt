@@ -2,12 +2,12 @@ package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter.StatisticExporter
+import at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter.StatisticExporter
 import org.springframework.stereotype.Service
 
 @Service
 class StatisticExportService(
-    private val statisticExporter: List<StatisticExporter>
+    private val statisticExporter: List<StatisticExporter>,
 ) {
 
     fun exportStatisticFiles(statistic: DistributionStatisticEntity): List<StatisticExportFile> {
@@ -18,9 +18,8 @@ class StatisticExportService(
         return statisticExports.map {
             StatisticExportFile(
                 name = it.key,
-                content = it.value
+                content = it.value,
             )
         }
     }
-
 }

@@ -5,7 +5,7 @@ data class EmployeeListResponse(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )
 
 data class Employee(

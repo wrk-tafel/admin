@@ -12,11 +12,9 @@ abstract class BaseEntity(
     @Id
     @GeneratedValue
     @Column(name = "id", nullable = false)
-    open var id: Long? = null
+    open var id: Long? = null,
 ) {
-    override fun toString(): String {
-        return "BaseEntity(id=$id)"
-    }
+    override fun toString(): String = "BaseEntity(id=$id)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -25,7 +23,5 @@ abstract class BaseEntity(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id?.hashCode() ?: 0
-    }
+    override fun hashCode(): Int = id?.hashCode() ?: 0
 }

@@ -15,7 +15,6 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import org.passay.PasswordData
 import org.passay.PasswordValidator
-import org.passay.RuleResult
 import org.passay.ValidationResult
 import org.passay.rule.DictionarySubstringRule
 import org.passay.rule.LengthRule
@@ -38,11 +37,9 @@ class TafelUserDetailsManager(
     private val passwordValidator: PasswordValidator,
 ) : UserDetailsManager {
 
-    fun loadUserById(userId: Long): TafelUser? {
-        return userRepository.findById(userId)
-            .map { userEntity -> mapToUserDetails(userEntity) }
-            .orElse(null)
-    }
+    fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
+        .map { userEntity -> mapToUserDetails(userEntity) }
+        .orElse(null)
 
     override fun loadUserByUsername(username: String): TafelUser {
         val user = userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
@@ -70,10 +67,10 @@ class TafelUserDetailsManager(
                         usernameContains(username),
                         firstnameContains(firstname),
                         lastnameContains(lastname),
-                        enabledEquals(enabled)
-                    ).mapNotNull { it }
-                )
-            )
+                        enabledEquals(enabled),
+                    ).mapNotNull { it },
+                ),
+            ),
         )
         val pagedResult = userRepository.findAll(spec, pageRequest)
 
@@ -82,7 +79,7 @@ class TafelUserDetailsManager(
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize
+            pageSize = pageRequest.pageSize,
         )
     }
 
@@ -109,23 +106,23 @@ class TafelUserDetailsManager(
     }
 
     override fun changePassword(oldPassword: String?, newPassword: String?) {
-            if (oldPassword == null || newPassword == null) {
-                throw PasswordChangeException("Aktuelles Passwort ist falsch!")
-            }
-
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-            var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
-
-            if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
-                throw PasswordChangeException("Aktuelles Passwort ist falsch!")
-            }
-
-            if (isPasswordValid(storedUser.username!!, newPassword)) {
-                storedUser.password = passwordEncoder.encode(newPassword)
-                storedUser.passwordChangeRequired = false
-                userRepository.save(storedUser)
-            }
+        if (oldPassword == null || newPassword == null) {
+            throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
+
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
+
+        if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
+            throw PasswordChangeException("Aktuelles Passwort ist falsch!")
+        }
+
+        if (isPasswordValid(storedUser.username!!, newPassword)) {
+            storedUser.password = passwordEncoder.encode(newPassword)
+            storedUser.passwordChangeRequired = false
+            userRepository.save(storedUser)
+        }
+    }
 
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
         val data = PasswordData(username, newPassword)
@@ -136,34 +133,30 @@ class TafelUserDetailsManager(
         return true
     }
 
-    private fun translateViolationsToMessages(result: ValidationResult): List<String> {
-        return result.details.mapNotNull {
-            when (it.errorCode) {
-                LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
-                LengthRule.ERROR_CODE_MAX -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
-                WhitespaceRule.ERROR_CODE -> """Leerzeichen sind nicht erlaubt"""
-                UsernameRule.ERROR_CODE, UsernameRule.ERROR_CODE_REVERSED -> "Der Benutzername darf nicht Teil des Passworts sein"
-                DictionarySubstringRule.ERROR_CODE, DictionarySubstringRule.ERROR_CODE_REVERSED -> "Folgende Wörter dürfen nicht enhalten sein: ${it.parameters["matchingWord"]}"
-                else -> null
-            }
+    private fun translateViolationsToMessages(result: ValidationResult): List<String> = result.details.mapNotNull {
+        when (it.errorCode) {
+            LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
+            LengthRule.ERROR_CODE_MAX -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
+            WhitespaceRule.ERROR_CODE -> """Leerzeichen sind nicht erlaubt"""
+            UsernameRule.ERROR_CODE, UsernameRule.ERROR_CODE_REVERSED -> "Der Benutzername darf nicht Teil des Passworts sein"
+            DictionarySubstringRule.ERROR_CODE, DictionarySubstringRule.ERROR_CODE_REVERSED -> "Folgende Wörter dürfen nicht enhalten sein: ${it.parameters["matchingWord"]}"
+            else -> null
         }
     }
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
-    private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
-        return TafelUser(
-            id = userEntity.id!!,
-            username = userEntity.username!!,
-            password = userEntity.password!!,
-            enabled = userEntity.enabled!!,
-            personnelNumber = userEntity.employee!!.personnelNumber!!,
-            firstname = userEntity.employee!!.firstname!!,
-            lastname = userEntity.employee!!.lastname!!,
-            authorities = userEntity.authorities.filter { it.name != null }.map { SimpleGrantedAuthority(it.name!!) },
-            passwordChangeRequired = userEntity.passwordChangeRequired!!
-        )
-    }
+    private fun mapToUserDetails(userEntity: UserEntity): TafelUser = TafelUser(
+        id = userEntity.id!!,
+        username = userEntity.username!!,
+        password = userEntity.password!!,
+        enabled = userEntity.enabled!!,
+        personnelNumber = userEntity.employee!!.personnelNumber!!,
+        firstname = userEntity.employee!!.firstname!!,
+        lastname = userEntity.employee!!.lastname!!,
+        authorities = userEntity.authorities.filter { it.name != null }.map { SimpleGrantedAuthority(it.name!!) },
+        passwordChangeRequired = userEntity.passwordChangeRequired!!,
+    )
 
     private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
         val existingEmployee = employeeRepository.findByPersonnelNumber(tafelUser.personnelNumber) ?: EmployeeEntity()
@@ -195,14 +188,12 @@ class TafelUserDetailsManager(
                 userAuthorityEntity.user = userEntity
                 userAuthorityEntity.name = name
                 userAuthorityEntity
-            }.toMutableList()
+            }.toMutableList(),
         )
     }
-
 }
 
-class PasswordChangeException(override val message: String, val validationDetails: List<String>? = emptyList()) :
-    RuntimeException(message)
+class PasswordChangeException(override val message: String, val validationDetails: List<String>? = emptyList()) : RuntimeException(message)
 
 @ExcludeFromTestCoverage
 data class UserSearchResult(

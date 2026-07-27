@@ -71,17 +71,11 @@ class GeneralMethodSecurityIT : TafelBaseIntegrationTest() {
 @Service
 class TestService {
 
-    fun getPublic(): String {
-        return "public"
-    }
+    fun getPublic(): String = "public"
 
     @PreAuthorize("isAuthenticated()")
-    fun getAuthenticated(): String {
-        return "authenticated"
-    }
+    fun getAuthenticated(): String = "authenticated"
 
     @PreAuthorize("hasRole('ROLE1')")
-    fun getRole1(): String {
-        return "role1"
-    }
+    fun getRole1(): String = "role1"
 }

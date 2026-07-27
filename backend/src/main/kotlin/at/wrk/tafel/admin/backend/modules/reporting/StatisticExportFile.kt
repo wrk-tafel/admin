@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 @ExcludeFromTestCoverage
 data class StatisticExportFile(
     val name: String,
-    val content: ByteArray
+    val content: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

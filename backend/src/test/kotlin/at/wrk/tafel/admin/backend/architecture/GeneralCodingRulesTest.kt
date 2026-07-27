@@ -1,8 +1,6 @@
 package at.wrk.tafel.admin.backend.architecture
 
 import at.wrk.tafel.admin.backend.architecture.options.ExcludeDbMigrationImportOption
-import com.tngtech.archunit.base.DescribedPredicate
-import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
@@ -34,5 +32,4 @@ internal class GeneralCodingRulesTest {
 
     @ArchTest
     val `java-util-logging shouldn't be used anymore` = GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING
-
 }

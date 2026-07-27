@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ShopService(
-    private val routeRepository: RouteRepository
+    private val routeRepository: RouteRepository,
 ) {
 
     @Transactional
@@ -29,5 +29,4 @@ class ShopService(
                 )
             }
     }
-
 }

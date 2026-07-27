@@ -46,14 +46,14 @@ class HouseholdControllerTest {
             at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication(
                 "TOKEN",
                 testUserEntity.username,
-                true
+                true,
             )
         testHousehold = Household(
             id = 100,
             issuer = HouseholdIssuer(
                 personnelNumber = "test-personnelnumber",
                 firstname = "test-firstname",
-                lastname = "test-lastname"
+                lastname = "test-lastname",
             ),
             issuedAt = LocalDate.now(),
             telephoneNumber = "0043660123123",
@@ -64,7 +64,7 @@ class HouseholdControllerTest {
                 stairway = "1",
                 door = "21",
                 postalCode = 1010,
-                city = "Wien"
+                city = "Wien",
             ),
             validUntil = LocalDate.now(),
             locked = false,
@@ -79,11 +79,11 @@ class HouseholdControllerTest {
                     country = Country(
                         id = 1,
                         code = "AT",
-                        name = "Österreich"
+                        name = "Österreich",
                     ),
                     employer = "Employer 123",
                     income = BigDecimal("1000"),
-                    incomeDue = LocalDate.now()
+                    incomeDue = LocalDate.now(),
                 ),
                 Person(
                     id = 2,
@@ -98,9 +98,9 @@ class HouseholdControllerTest {
                     country = Country(
                         id = 1,
                         code = "AT",
-                        name = "Österreich"
+                        name = "Österreich",
                     ),
-                    excludeFromHousehold = false
+                    excludeFromHousehold = false,
                 ),
                 Person(
                     id = 3,
@@ -113,11 +113,11 @@ class HouseholdControllerTest {
                     country = Country(
                         id = 1,
                         code = "AT",
-                        name = "Österreich"
+                        name = "Österreich",
                     ),
-                    excludeFromHousehold = true
-                )
-            )
+                    excludeFromHousehold = true,
+                ),
+            ),
         )
     }
 
@@ -133,7 +133,7 @@ class HouseholdControllerTest {
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
-            amountExceededLimit = BigDecimal("4")
+            amountExceededLimit = BigDecimal("4"),
         )
 
         val response = controller.validate(testHousehold)
@@ -144,8 +144,8 @@ class HouseholdControllerTest {
                 totalSum = BigDecimal("1"),
                 limit = BigDecimal("2"),
                 toleranceValue = BigDecimal("3"),
-                amountExceededLimit = BigDecimal("4")
-            )
+                amountExceededLimit = BigDecimal("4"),
+            ),
         )
 
         verify {
@@ -177,7 +177,7 @@ class HouseholdControllerTest {
             "TOKEN",
             testUserEntity.username,
             true,
-            authorities = listOf(SimpleGrantedAuthority("SUPERVISOR"))
+            authorities = listOf(SimpleGrantedAuthority("SUPERVISOR")),
         )
         SecurityContextHolder.getContext().authentication = supervisorAuth
 
@@ -218,7 +218,7 @@ class HouseholdControllerTest {
                 testHousehold.id!!,
                 testHousehold,
                 false,
-                isSupervisor
+                isSupervisor,
             )
         } returns HouseholdUpdateResponse(data = testHousehold, errorMsg = null)
 
@@ -236,7 +236,7 @@ class HouseholdControllerTest {
                 testHousehold.id!!,
                 testHousehold,
                 true,
-                isSupervisor
+                isSupervisor,
             )
         } returns HouseholdUpdateResponse(data = testHousehold, errorMsg = null)
 
@@ -254,7 +254,7 @@ class HouseholdControllerTest {
                 testHousehold.id!!,
                 testHousehold,
                 false,
-                isSupervisor
+                isSupervisor,
             )
         } returns HouseholdUpdateResponse(data = testHousehold, errorMsg = null)
 
@@ -314,7 +314,7 @@ class HouseholdControllerTest {
             totalCount = 123,
             currentPage = 2,
             totalPages = 10,
-            pageSize = 10
+            pageSize = 10,
         )
         every {
             householdService.getHouseholds(
@@ -323,7 +323,7 @@ class HouseholdControllerTest {
                 testSearchResult.currentPage,
                 true,
                 true,
-                true
+                true,
             )
         } returns testSearchResult
 
@@ -356,7 +356,7 @@ class HouseholdControllerTest {
             totalCount = 123,
             currentPage = 1,
             totalPages = 10,
-            pageSize = 10
+            pageSize = 10,
         )
         every {
             householdService.getHouseholds(null, null, null, null, null, null)
@@ -392,7 +392,7 @@ class HouseholdControllerTest {
         val testFilename = "file.pdf"
         every { householdService.generatePdf(any(), any()) } returns HouseholdPdfResult(
             filename = testFilename,
-            bytes = testFilename.toByteArray()
+            bytes = testFilename.toByteArray(),
         )
 
         val response = controller.generatePdf(123, HouseholdPdfType.COMBINED)
@@ -401,7 +401,7 @@ class HouseholdControllerTest {
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
 
         assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
         ).isEqualTo("inline; filename=$testFilename")
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
@@ -415,14 +415,14 @@ class HouseholdControllerTest {
             household = mockk(relaxed = true),
             totalSum = BigDecimal("1500"),
             limit = BigDecimal("1000"),
-            amountExceededLimit = BigDecimal("500")
+            amountExceededLimit = BigDecimal("500"),
         )
         val searchResult = HouseholdAboveLimitSearchResult(
             items = listOf(aboveLimitItem),
             totalCount = 26,
             currentPage = page,
             totalPages = 2,
-            pageSize = 25
+            pageSize = 25,
         )
         every { householdService.getHouseholdsAboveLimit(page) } returns searchResult
 
@@ -440,7 +440,7 @@ class HouseholdControllerTest {
         val page = 4
         val duplicationItem = HouseholdDuplicateSearchResultItem(
             household = mockk(relaxed = true),
-            similarHouseholds = mockk(relaxed = true)
+            similarHouseholds = mockk(relaxed = true),
         )
 
         val searchResult = HouseholdDuplicateSearchResult(
@@ -448,7 +448,7 @@ class HouseholdControllerTest {
             totalCount = 100,
             currentPage = page,
             totalPages = 20,
-            pageSize = 5
+            pageSize = 5,
         )
         every { householdDuplicationService.findDuplicates(page) } returns searchResult
 
@@ -471,7 +471,7 @@ class HouseholdControllerTest {
             totalCount = 0,
             currentPage = 1,
             totalPages = 0,
-            pageSize = 5
+            pageSize = 5,
         )
         every { householdDuplicationService.findDuplicates(null) } returns searchResult
 
@@ -491,5 +491,4 @@ class HouseholdControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         verify { householdService.mergeHouseholds(householdId, request.sourceHouseholdIds) }
     }
-
 }

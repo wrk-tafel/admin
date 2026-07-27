@@ -5,5 +5,4 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface ShelterRepository : JpaRepository<ShelterEntity, Long> {
 
     fun findByEnabledIsTrue(): List<ShelterEntity>
-
 }

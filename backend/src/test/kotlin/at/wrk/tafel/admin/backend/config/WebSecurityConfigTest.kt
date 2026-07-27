@@ -19,5 +19,4 @@ class WebSecurityConfigTest {
         assertThat(rules).hasSize(3)
         assertThat(rules).allSatisfy { rule -> assertThat(rule).isInstanceOf(CharacterRule::class.java) }
     }
-
 }

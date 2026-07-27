@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView
 
 @Component
 class TafelActiveDistributionRequiredInterceptor(
-    private val distributionRepository: DistributionRepository
+    private val distributionRepository: DistributionRepository,
 ) : HandlerInterceptor {
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
@@ -33,7 +33,7 @@ class TafelActiveDistributionRequiredInterceptor(
         request: HttpServletRequest,
         response: HttpServletResponse,
         handler: Any,
-        modelAndView: ModelAndView?
+        modelAndView: ModelAndView?,
     ) {
         // Nothing to do here
     }
@@ -42,9 +42,8 @@ class TafelActiveDistributionRequiredInterceptor(
         request: HttpServletRequest,
         response: HttpServletResponse,
         handler: Any,
-        ex: Exception?
+        ex: Exception?,
     ) {
         // Nothing to do here
     }
-
 }

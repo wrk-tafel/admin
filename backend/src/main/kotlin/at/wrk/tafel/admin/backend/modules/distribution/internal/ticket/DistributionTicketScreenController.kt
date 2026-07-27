@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
@@ -91,11 +91,10 @@ class DistributionTicketScreenController(
             TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
             TicketScreenShowText(
                 text = text,
-                value = value
-            )
+                value = value,
+            ),
         )
     }
-
 }
 
 @ExcludeFromTestCoverage
@@ -106,5 +105,5 @@ data class TicketScreenShowText(
 
 @ExcludeFromTestCoverage
 data class TicketScreenShowNextTicketRequest(
-    val costContributionPaid: Boolean
+    val costContributionPaid: Boolean,
 )
