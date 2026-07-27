@@ -56,7 +56,7 @@ export class TicketScreenControlComponent {
     this.startTimeForm.startTime().markAsTouched();
 
     const time = this.startTimeForm.startTime().value();
-    if (time) {
+    if (time && !this.isShowingStartTime()) {
       this.isShowingStartTime.set(true);
       this.distributionTicketScreenApiService.showText('Startzeit', time)
         .pipe(finalize(() => this.isShowingStartTime.set(false)))
@@ -69,6 +69,9 @@ export class TicketScreenControlComponent {
   }
 
   showCurrentTicket() {
+    if (this.isShowingCurrentTicket()) {
+      return;
+    }
     this.isShowingCurrentTicket.set(true);
     this.distributionTicketScreenApiService.showCurrentTicket()
       .pipe(finalize(() => this.isShowingCurrentTicket.set(false)))
@@ -80,6 +83,9 @@ export class TicketScreenControlComponent {
   }
 
   showPreviousTicket() {
+    if (this.isShowingPreviousTicket()) {
+      return;
+    }
     this.isShowingPreviousTicket.set(true);
     this.distributionTicketScreenApiService.showPreviousTicket()
       .pipe(finalize(() => this.isShowingPreviousTicket.set(false)))
@@ -91,6 +97,9 @@ export class TicketScreenControlComponent {
   }
 
   showNextTicket(costContributionPaid: boolean) {
+    if (this.isShowingNextTicket()) {
+      return;
+    }
     this.isShowingNextTicket.set(true);
     this.distributionTicketScreenApiService.showNextTicket(costContributionPaid)
       .pipe(finalize(() => this.isShowingNextTicket.set(false)))
