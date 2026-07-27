@@ -186,7 +186,10 @@ class HouseholdService(
 
     @Transactional
     fun getHouseholdsAboveLimit(): List<HouseholdAboveLimitItem> {
-        val households = householdRepository.findAll(validHousehold())
+        // households needing post-processing (missing birthDate/gender/country/address/... - see
+        // HouseholdEntity.Specs.postProcessingNecessary()) can't be income-validated
+        val spec = where(Specification.allOf(listOf(validHousehold(), Specification.not(postProcessingNecessary()))))
+        val households = householdRepository.findAll(spec)
             .map { householdConverter.mapEntityToHousehold(it) }
 
         return households.mapNotNull { household ->
