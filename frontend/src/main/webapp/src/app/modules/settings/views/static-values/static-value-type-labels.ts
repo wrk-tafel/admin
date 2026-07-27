@@ -10,8 +10,3 @@ export const staticValueTypeLabels: Record<StaticValueTypeEnum, string> = {
   [StaticValueTypeEnum.SIBLING_ADDITION]: 'Geschwisterstaffel',
   [StaticValueTypeEnum.COST_CONTRIBUTION]: 'Kostenbeitrag'
 };
-
-export const staticValueTypeOptions = Object.values(StaticValueTypeEnum).map(type => ({
-  value: type,
-  label: staticValueTypeLabels[type]
-}));

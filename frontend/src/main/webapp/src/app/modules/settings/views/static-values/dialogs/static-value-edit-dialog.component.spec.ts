@@ -37,24 +37,17 @@ describe('StaticValueEditDialogComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initializes form with provided static value data', () => {
+  it('initializes the form with only the amount, and exposes the rest as read-only data', () => {
     const fixture = TestBed.createComponent(StaticValueEditDialogComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(component.form.value).toMatchObject({
-      id: testStaticValue.id,
-      type: testStaticValue.type,
-      validFrom: testStaticValue.validFrom,
-      validTo: testStaticValue.validTo,
-      amount: testStaticValue.amount,
-      countAdults: null,
-      countChildren: null,
-      age: null
-    });
+    expect(component.form.value).toEqual({amount: testStaticValue.amount});
+    expect(Object.keys(component.form.controls)).toEqual(['amount']);
+    expect(component.data.staticValue).toEqual(testStaticValue);
   });
 
-  it('save() closes dialog with form value when valid', () => {
+  it('save() closes dialog with only the amount changed, everything else untouched', () => {
     const fixture = TestBed.createComponent(StaticValueEditDialogComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -62,18 +55,10 @@ describe('StaticValueEditDialogComponent', () => {
     component.form.patchValue({amount: 200});
     component.save();
 
-    expect(dialogRef.close).toHaveBeenCalledWith(component.form.value);
-  });
-
-  it('save() does not close dialog when required fields are missing', () => {
-    const fixture = TestBed.createComponent(StaticValueEditDialogComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
-    component.form.patchValue({validFrom: ''});
-    component.save();
-
-    expect(dialogRef.close).not.toHaveBeenCalled();
+    expect(dialogRef.close).toHaveBeenCalledWith({
+      ...testStaticValue,
+      amount: 200
+    });
   });
 
   it('cancel() closes dialog without data', () => {

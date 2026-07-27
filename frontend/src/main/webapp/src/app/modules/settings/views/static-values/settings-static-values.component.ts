@@ -22,7 +22,7 @@ import {
 } from '../../../../api/settings-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faPencil} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {staticValueTypeLabels} from './static-value-type-labels';
 
@@ -72,25 +72,6 @@ export class SettingsStaticValuesComponent {
     });
   }
 
-  protected addStaticValue() {
-    const dialogRef = this.dialog.open(StaticValueEditDialogComponent, {
-      data: {staticValue: undefined as any},
-      width: '500px'
-    });
-
-    dialogRef.afterClosed().subscribe((created: StaticValueItem | undefined) => {
-      if (created) {
-        this.settingsApiService.createStaticValue(created).subscribe({
-          next: () => {
-            this.toastr.success('Statischer Wert erstellt', 'Erfolgreich');
-            this.loadStaticValues();
-          },
-          error: (error) => this.toastr.error(error.error?.message ?? 'Erstellen fehlgeschlagen', 'Fehler')
-        });
-      }
-    });
-  }
-
   protected editStaticValue(staticValue: StaticValueItem) {
     const dialogRef = this.dialog.open(StaticValueEditDialogComponent, {
       data: {staticValue},
@@ -111,5 +92,4 @@ export class SettingsStaticValuesComponent {
   }
 
   protected readonly faPencil = faPencil;
-  protected readonly faPlus = faPlus;
 }

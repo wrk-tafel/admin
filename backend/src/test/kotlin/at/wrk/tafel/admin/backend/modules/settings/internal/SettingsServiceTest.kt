@@ -242,215 +242,46 @@ class SettingsServiceTest {
     }
 
     @Test
-    fun `create static value`() {
-        every { staticValueRepository.findAll() } returns emptyList()
-        val savedEntitySlot = slot<StaticValueEntity>()
-        every { staticValueRepository.save(capture(savedEntitySlot)) } answers {
-            savedEntitySlot.captured.apply { id = 42L }
-        }
-
-        val newStaticValue = StaticValueItem(
-            id = null,
-            type = "TOLERANCE",
-            validFrom = LocalDate.of(2026, 1, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("100.00"),
-            countAdults = null,
-            countChildren = null,
-            age = null,
-        )
-
-        val response = service.createStaticValue(newStaticValue)
-
-        assertThat(response).isEqualTo(newStaticValue.copy(id = 42L))
-        assertThat(savedEntitySlot.captured.type).isEqualTo(StaticValueType.TOLERANCE)
-    }
-
-    @Test
-    fun `create static value fails for unknown type`() {
-        val newStaticValue = StaticValueItem(
-            id = null,
-            type = "NOT_A_TYPE",
-            validFrom = LocalDate.of(2026, 1, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = null,
-            countAdults = null,
-            countChildren = null,
-            age = null,
-        )
-
-        assertThatThrownBy { service.createStaticValue(newStaticValue) }
-            .isInstanceOf(TafelValidationException::class.java)
-    }
-
-    @Test
-    fun `create static value fails when validFrom is after validTo`() {
-        val newStaticValue = StaticValueItem(
-            id = null,
-            type = "TOLERANCE",
-            validFrom = LocalDate.of(2026, 12, 31),
-            validTo = LocalDate.of(2026, 1, 1),
-            amount = null,
-            countAdults = null,
-            countChildren = null,
-            age = null,
-        )
-
-        assertThatThrownBy { service.createStaticValue(newStaticValue) }
-            .isInstanceOf(TafelValidationException::class.java)
-    }
-
-    @Test
-    fun `create static value fails when it overlaps an existing value of the same type and person count`() {
-        val existing = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = LocalDate.of(2026, 1, 1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-        }
-        every { staticValueRepository.findAll() } returns listOf(existing)
-
-        val overlapping = StaticValueItem(
-            id = null,
-            type = "TOLERANCE",
-            validFrom = LocalDate.of(2026, 6, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("150.00"),
-            countAdults = null,
-            countChildren = null,
-            age = null,
-        )
-
-        assertThatThrownBy { service.createStaticValue(overlapping) }
-            .isInstanceOf(TafelValidationException::class.java)
-    }
-
-    @Test
-    fun `create static value of a single-result type conflicts even with different person counts`() {
-        // TOLERANCE is read via findSingleValueOfType(type, date), which ignores countAdults/
-        // countChildren entirely - so two overlapping TOLERANCE rows would break that lookup even if
-        // their counts differ, unlike INCOME_LIMIT which is genuinely keyed by person count.
-        val existing = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = LocalDate.of(2026, 1, 1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-            countAdults = 1
-            countChildren = 0
-        }
-        every { staticValueRepository.findAll() } returns listOf(existing)
-
-        val overlapping = StaticValueItem(
-            id = null,
-            type = "TOLERANCE",
-            validFrom = LocalDate.of(2026, 6, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("150.00"),
-            countAdults = 5,
-            countChildren = 5,
-            age = null,
-        )
-
-        assertThatThrownBy { service.createStaticValue(overlapping) }
-            .isInstanceOf(TafelValidationException::class.java)
-    }
-
-    @Test
-    fun `create static value of INCOME_LIMIT only conflicts when person counts also match`() {
+    fun `update static value changes only the amount`() {
         val existing = StaticValueEntity().apply {
             id = 1
             type = StaticValueType.INCOME_LIMIT
-            validFrom = LocalDate.of(2026, 1, 1)
+            validFrom = LocalDate.of(2022, 1, 1)
             validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("1000.00")
+            amount = BigDecimal("1328.00")
             countAdults = 1
             countChildren = 0
         }
-        every { staticValueRepository.findAll() } returns listOf(existing)
-        val savedEntitySlot = slot<StaticValueEntity>()
-        every { staticValueRepository.save(capture(savedEntitySlot)) } answers {
-            savedEntitySlot.captured.apply { id = 2L }
-        }
-
-        val differentPersonCount = StaticValueItem(
-            id = null,
-            type = "INCOME_LIMIT",
-            validFrom = LocalDate.of(2026, 6, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("2000.00"),
-            countAdults = 2,
-            countChildren = 1,
-            age = null,
-        )
-
-        val response = service.createStaticValue(differentPersonCount)
-
-        assertThat(response.id).isEqualTo(2L)
-    }
-
-    @Test
-    fun `create static value of FAMILY_BONUS never conflicts, even with identical overlapping data`() {
-        // FAMILY_BONUS is read via findValuesOfType (a list), so multiple overlapping age brackets
-        // are expected and never break the lookup.
-        val existing = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.FAMILY_BONUS
-            validFrom = LocalDate.of(2026, 1, 1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-            age = 0
-        }
-        every { staticValueRepository.findAll() } returns listOf(existing)
-        val savedEntitySlot = slot<StaticValueEntity>()
-        every { staticValueRepository.save(capture(savedEntitySlot)) } answers {
-            savedEntitySlot.captured.apply { id = 2L }
-        }
-
-        val overlapping = StaticValueItem(
-            id = null,
-            type = "FAMILY_BONUS",
-            validFrom = LocalDate.of(2026, 1, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("120.00"),
-            countAdults = null,
-            countChildren = null,
-            age = 0,
-        )
-
-        val response = service.createStaticValue(overlapping)
-
-        assertThat(response.id).isEqualTo(2L)
-    }
-
-    @Test
-    fun `update static value does not conflict with itself`() {
-        val existing = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = LocalDate.of(2026, 1, 1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-        }
-        every { staticValueRepository.findAll() } returns listOf(existing)
         every { staticValueRepository.findByIdOrNull(1L) } returns existing
         every { staticValueRepository.save(any()) } answers { firstArg() }
 
-        val updated = StaticValueItem(
+        // type/validFrom/validTo/countAdults/countChildren/age differ from the existing row, but must
+        // be ignored - only amount is editable, so the response reflects the existing row's own values
+        val requestedChanges = StaticValueItem(
             id = 1,
             type = "TOLERANCE",
-            validFrom = LocalDate.of(2026, 1, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("150.00"),
-            countAdults = null,
-            countChildren = null,
-            age = null,
+            validFrom = LocalDate.of(2030, 1, 1),
+            validTo = LocalDate.of(2031, 1, 1),
+            amount = BigDecimal("1500.00"),
+            countAdults = 9,
+            countChildren = 9,
+            age = 99,
         )
 
-        val response = service.updateStaticValue(1L, updated)
+        val response = service.updateStaticValue(1L, requestedChanges)
 
-        assertThat(response).isEqualTo(updated)
+        assertThat(response).isEqualTo(
+            StaticValueItem(
+                id = 1,
+                type = "INCOME_LIMIT",
+                validFrom = LocalDate.of(2022, 1, 1),
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("1500.00"),
+                countAdults = 1,
+                countChildren = 0,
+                age = null,
+            )
+        )
     }
 
     @Test

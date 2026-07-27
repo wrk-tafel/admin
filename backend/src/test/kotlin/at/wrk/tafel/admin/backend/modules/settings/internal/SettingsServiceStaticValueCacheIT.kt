@@ -14,8 +14,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 // getHouseholdsAboveLimit() relies on StaticValueRepository's lookups being @Cacheable for the
-// process lifetime (see CacheConfig) - this verifies that SettingsService's create/update paths
-// still evict that cache, so admin edits via the settings UI take effect immediately rather than
+// process lifetime (see CacheConfig) - this verifies that SettingsService's updateStaticValue()
+// still evicts that cache, so admin edits via the settings UI take effect immediately rather than
 // only after a process restart.
 @Transactional
 class SettingsServiceStaticValueCacheIT : TafelBaseIntegrationTest() {
@@ -33,8 +33,9 @@ class SettingsServiceStaticValueCacheIT : TafelBaseIntegrationTest() {
     fun `updating a static value evicts the cache used by findSingleValueOfType`() {
         val today = LocalDate.now()
 
-        // clean slate: the real migrations already seed a TOLERANCE row spanning 2000-2999, which
-        // would otherwise conflict with the one this test creates
+        // clean slate: the real migrations already seed a TOLERANCE row spanning 2000-2999 - since
+        // findSingleValueOfType returns a single entity, two rows both valid "today" would make this
+        // test's own lookups throw IncorrectResultSizeDataAccessException
         staticValueRepository.findAll()
             .filter { it.type == StaticValueType.TOLERANCE }
             .forEach { staticValueRepository.delete(it) }

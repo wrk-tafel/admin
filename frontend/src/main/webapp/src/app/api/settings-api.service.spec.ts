@@ -77,27 +77,6 @@ describe('SettingsApiService', () => {
     httpMock.verify();
   });
 
-  it('create static value', () => {
-    const testData: StaticValueItem = {
-      id: null,
-      type: StaticValueTypeEnum.TOLERANCE,
-      validFrom: '2026-01-01',
-      validTo: '2999-12-31',
-      amount: 100,
-      countAdults: null,
-      countChildren: null,
-      age: null
-    };
-
-    apiService.createStaticValue(testData).subscribe();
-
-    const req = httpMock.expectOne({method: 'POST', url: '/settings/static-values'});
-    req.flush(null);
-    httpMock.verify();
-
-    expect(req.request.body).toEqual(testData);
-  });
-
   it('update static value', () => {
     const testData: StaticValueItem = {
       id: 1,

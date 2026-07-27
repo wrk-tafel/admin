@@ -18,10 +18,6 @@ export class SettingsApiService {
     return this.http.get<StaticValueListResponse>('/settings/static-values');
   }
 
-  createStaticValue(staticValue: StaticValueItem): Observable<StaticValueItem> {
-    return this.http.post<StaticValueItem>('/settings/static-values', staticValue);
-  }
-
   updateStaticValue(staticValueId: number, staticValue: StaticValueItem): Observable<StaticValueItem> {
     return this.http.post<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
   }

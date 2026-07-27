@@ -34,11 +34,6 @@ class SettingsController(
         return settingsService.getStaticValues()
     }
 
-    @PostMapping("/static-values")
-    fun createStaticValue(@RequestBody staticValue: StaticValueItem): StaticValueItem {
-        return settingsService.createStaticValue(staticValue)
-    }
-
     @PostMapping("/static-values/{staticValueId}")
     fun updateStaticValue(
         @PathVariable staticValueId: Long,

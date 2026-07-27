@@ -1,43 +1,29 @@
 <tafel-dialog title="Statischer Wert" testid="static-value-edit-dialog">
   <div tafel-dialog-content>
+    <dl class="grid grid-cols-2 gap-x-4 gap-y-2 mb-4" testid="static-value-readonly-fields">
+      <dt class="font-semibold">Typ</dt>
+      <dd>{{ typeLabel }}</dd>
+
+      <dt class="font-semibold">Gültig von</dt>
+      <dd>{{ data.staticValue.validFrom }}</dd>
+
+      <dt class="font-semibold">Gültig bis</dt>
+      <dd>{{ data.staticValue.validTo }}</dd>
+
+      <dt class="font-semibold">Anzahl Erwachsene</dt>
+      <dd>{{ data.staticValue.countAdults }}</dd>
+
+      <dt class="font-semibold">Anzahl Kinder</dt>
+      <dd>{{ data.staticValue.countChildren }}</dd>
+
+      <dt class="font-semibold">Alter</dt>
+      <dd>{{ data.staticValue.age }}</dd>
+    </dl>
+
     <form [formGroup]="form" class="grid grid-cols-1">
       <mat-form-field>
-        <mat-label>Typ</mat-label>
-        <mat-select formControlName="type" testid="staticValueTypeSelect">
-          @for (option of typeOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field>
-        <mat-label>Gültig von</mat-label>
-        <input matInput type="date" formControlName="validFrom"/>
-      </mat-form-field>
-
-      <mat-form-field>
-        <mat-label>Gültig bis</mat-label>
-        <input matInput type="date" formControlName="validTo"/>
-      </mat-form-field>
-
-      <mat-form-field>
         <mat-label>Betrag</mat-label>
-        <input matInput type="number" step="0.01" formControlName="amount"/>
-      </mat-form-field>
-
-      <mat-form-field>
-        <mat-label>Anzahl Erwachsene</mat-label>
-        <input matInput type="number" formControlName="countAdults"/>
-      </mat-form-field>
-
-      <mat-form-field>
-        <mat-label>Anzahl Kinder</mat-label>
-        <input matInput type="number" formControlName="countChildren"/>
-      </mat-form-field>
-
-      <mat-form-field>
-        <mat-label>Alter</mat-label>
-        <input matInput type="number" formControlName="age"/>
+        <input matInput type="number" step="0.01" formControlName="amount" testid="staticValueAmountInput"/>
       </mat-form-field>
     </form>
   </div>

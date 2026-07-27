@@ -46,27 +46,6 @@ class SettingsControllerTest {
     }
 
     @Test
-    fun `create static value`() {
-        val staticValue = StaticValueItem(
-            id = null,
-            type = "TOLERANCE",
-            validFrom = LocalDate.of(2026, 1, 1),
-            validTo = LocalDate.of(2999, 12, 31),
-            amount = BigDecimal("100.00"),
-            countAdults = null,
-            countChildren = null,
-            age = null,
-        )
-        val createdStaticValue = staticValue.copy(id = 42L)
-        every { settingsService.createStaticValue(any()) } returns createdStaticValue
-
-        val response = settingsController.createStaticValue(staticValue)
-
-        assertThat(response).isEqualTo(createdStaticValue)
-        verify(exactly = 1) { settingsService.createStaticValue(staticValue) }
-    }
-
-    @Test
     fun `update static value`() {
         val staticValue = StaticValueItem(
             id = 42L,
