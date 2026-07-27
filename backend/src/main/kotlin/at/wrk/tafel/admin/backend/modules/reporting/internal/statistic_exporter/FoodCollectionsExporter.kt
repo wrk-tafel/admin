@@ -74,7 +74,7 @@ class FoodCollectionsExporter(
 
                     sortedFoodCategories.forEach { category ->
                         val itemPerCategory =
-                            items.firstOrNull { it.category!!.id == category.id && it.shop!!.id == shop.id }
+                            items.firstOrNull { it.category?.id == category.id && it.shop?.id == shop.id }
                         val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }
