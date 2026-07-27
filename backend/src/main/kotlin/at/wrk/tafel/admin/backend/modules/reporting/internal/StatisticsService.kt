@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.modules.reporting.StatisticsSettings
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
@@ -23,6 +24,7 @@ class StatisticsService(
 
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
     }
 
     fun getSettings(): StatisticsSettings {
@@ -48,7 +50,7 @@ class StatisticsService(
     fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsData {
         val countBeneficiaryCustomers = countBeneficiaryCustomers(fromDate, toDate)
         val countBeneficiaryCustomersData = StatisticsDetailData(
-            title = countBeneficiaryCustomers.lastOrNull()?.value?.toString() ?: "0",
+            title = INTEGER_FORMATTER.format(countBeneficiaryCustomers.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Haushalte",
             labels = countBeneficiaryCustomers.map { it.label },
             dataPoints = countBeneficiaryCustomers.map { it.value }
@@ -56,7 +58,7 @@ class StatisticsService(
 
         val countBeneficiaryPersons = countBeneficiaryPersons(fromDate, toDate)
         val countBeneficiaryPersonsData = StatisticsDetailData(
-            title = countBeneficiaryPersons.lastOrNull()?.value?.toString() ?: "0",
+            title = INTEGER_FORMATTER.format(countBeneficiaryPersons.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Personen",
             labels = countBeneficiaryPersons.map { it.label },
             dataPoints = countBeneficiaryPersons.map { it.value }
@@ -64,7 +66,7 @@ class StatisticsService(
 
         val countBeneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildren(fromDate, toDate)
         val countBeneficiaryCustomersWithChildrenData = StatisticsDetailData(
-            title = countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toString() ?: "0",
+            title = INTEGER_FORMATTER.format(countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
             labels = countBeneficiaryCustomersWithChildren.map { it.label },
             dataPoints = countBeneficiaryCustomersWithChildren.map { it.value }
@@ -72,7 +74,7 @@ class StatisticsService(
 
         val countShelters = countShelters(fromDate, toDate)
         val countSheltersData = StatisticsDetailData(
-            title = countShelters.sumOf { it.value.toLong() }.toString(),
+            title = INTEGER_FORMATTER.format(countShelters.sumOf { it.value.toLong() }),
             subTitle = "Notschlafstellen (Anzahl)",
             labels = countShelters.map { it.label },
             dataPoints = countShelters.map { it.value }
@@ -91,7 +93,7 @@ class StatisticsService(
 
         val countSheltersPersons = countSheltersPersons(fromDate, toDate)
         val countSheltersPersonsData = StatisticsDetailData(
-            title = countSheltersPersons.sumOf { it.value.toLong() }.toString(),
+            title = INTEGER_FORMATTER.format(countSheltersPersons.sumOf { it.value.toLong() }),
             subTitle = "Versorgte Personen (Anzahl)",
             labels = countSheltersPersons.map { it.label },
             dataPoints = countSheltersPersons.map { it.value }
@@ -99,7 +101,7 @@ class StatisticsService(
 
         val countShops = countShops(fromDate, toDate)
         val countShopsData = StatisticsDetailData(
-            title = countShops.sumOf { it.value.toLong() }.toString(),
+            title = INTEGER_FORMATTER.format(countShops.sumOf { it.value.toLong() }),
             subTitle = "Spender (Anzahl)",
             labels = countShops.map { it.label },
             dataPoints = countShops.map { it.value }
@@ -107,7 +109,7 @@ class StatisticsService(
 
         val totalShopItems = totalShopItems(fromDate, toDate)
         val totalShopItemsData = StatisticsDetailData(
-            title = "${totalShopItems.sumOf { it.value.toInt() }} kg",
+            title = "${INTEGER_FORMATTER.format(totalShopItems.sumOf { it.value.toLong() })} kg",
             subTitle = "Warenmenge (Gesamt)",
             labels = totalShopItems.map { it.label },
             dataPoints = totalShopItems.map { it.value }
