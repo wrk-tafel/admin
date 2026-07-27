@@ -24,6 +24,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
+import io.mockk.verify
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -196,42 +197,41 @@ class SettingsServiceTest {
     }
 
     @Test
-    fun `fetch static values sorted by type and validFrom`() {
-        val tolerance = StaticValueEntity().apply {
+    fun `fetch static values only returns rows currently valid today`() {
+        val today = LocalDate.now()
+
+        val current = StaticValueEntity().apply {
             id = 1
             type = StaticValueType.TOLERANCE
-            validFrom = LocalDate.of(2026, 1, 1)
+            validFrom = today.minusDays(10)
             validTo = LocalDate.of(2999, 12, 31)
             amount = BigDecimal("100.00")
         }
-        val incomeLimit = StaticValueEntity().apply {
+        val expired = StaticValueEntity().apply {
             id = 2
+            type = StaticValueType.TOLERANCE
+            validFrom = LocalDate.of(1900, 1, 1)
+            validTo = today.minusDays(11)
+            amount = BigDecimal("50.00")
+        }
+        val notYetValid = StaticValueEntity().apply {
+            id = 3
             type = StaticValueType.INCOME_LIMIT
-            validFrom = LocalDate.of(2022, 1, 1)
+            validFrom = today.plusDays(1)
             validTo = LocalDate.of(2999, 12, 31)
             amount = BigDecimal("1328.00")
             countAdults = 1
             countChildren = 0
         }
-        every { staticValueRepository.findAll() } returns listOf(tolerance, incomeLimit)
+        every { staticValueRepository.findAll() } returns listOf(current, expired, notYetValid)
 
         val response = service.getStaticValues()
 
         assertThat(response.staticValues).containsExactly(
             StaticValueItem(
-                id = 2,
-                type = "INCOME_LIMIT",
-                validFrom = LocalDate.of(2022, 1, 1),
-                validTo = LocalDate.of(2999, 12, 31),
-                amount = BigDecimal("1328.00"),
-                countAdults = 1,
-                countChildren = 0,
-                age = null,
-            ),
-            StaticValueItem(
                 id = 1,
                 type = "TOLERANCE",
-                validFrom = LocalDate.of(2026, 1, 1),
+                validFrom = today.minusDays(10),
                 validTo = LocalDate.of(2999, 12, 31),
                 amount = BigDecimal("100.00"),
                 countAdults = null,
@@ -242,7 +242,8 @@ class SettingsServiceTest {
     }
 
     @Test
-    fun `update static value changes only the amount`() {
+    fun `update static value historizes - closes the current row yesterday and opens a new one today`() {
+        val today = LocalDate.now()
         val existing = StaticValueEntity().apply {
             id = 1
             type = StaticValueType.INCOME_LIMIT
@@ -253,10 +254,13 @@ class SettingsServiceTest {
             countChildren = 0
         }
         every { staticValueRepository.findByIdOrNull(1L) } returns existing
-        every { staticValueRepository.save(any()) } answers { firstArg() }
+        val savedEntitySlot = slot<StaticValueEntity>()
+        every { staticValueRepository.save(capture(savedEntitySlot)) } answers {
+            savedEntitySlot.captured.apply { if (id == null) id = 2L }
+        }
 
-        // type/validFrom/validTo/countAdults/countChildren/age differ from the existing row, but must
-        // be ignored - only amount is editable, so the response reflects the existing row's own values
+        // type/countAdults/countChildren/age differ from the existing row, but must be ignored - only
+        // amount is editable, so the new historized row keeps the existing row's own values
         val requestedChanges = StaticValueItem(
             id = 1,
             type = "TOLERANCE",
@@ -270,15 +274,57 @@ class SettingsServiceTest {
 
         val response = service.updateStaticValue(1L, requestedChanges)
 
+        assertThat(existing.validTo).isEqualTo(today.minusDays(1))
         assertThat(response).isEqualTo(
             StaticValueItem(
-                id = 1,
+                id = 2,
                 type = "INCOME_LIMIT",
-                validFrom = LocalDate.of(2022, 1, 1),
+                validFrom = today,
                 validTo = LocalDate.of(2999, 12, 31),
                 amount = BigDecimal("1500.00"),
                 countAdults = 1,
                 countChildren = 0,
+                age = null,
+            )
+        )
+    }
+
+    @Test
+    fun `update static value updates in place when the currently valid row already started today`() {
+        val today = LocalDate.now()
+        val existing = StaticValueEntity().apply {
+            id = 1
+            type = StaticValueType.TOLERANCE
+            validFrom = today
+            validTo = LocalDate.of(2999, 12, 31)
+            amount = BigDecimal("100.00")
+        }
+        every { staticValueRepository.findByIdOrNull(1L) } returns existing
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        val requestedChanges = StaticValueItem(
+            id = 1,
+            type = "TOLERANCE",
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("999.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        val response = service.updateStaticValue(1L, requestedChanges)
+
+        verify(exactly = 1) { staticValueRepository.save(any()) }
+        assertThat(response).isEqualTo(
+            StaticValueItem(
+                id = 1,
+                type = "TOLERANCE",
+                validFrom = today,
+                validTo = LocalDate.of(2999, 12, 31),
+                amount = BigDecimal("999.00"),
+                countAdults = null,
+                countChildren = null,
                 age = null,
             )
         )

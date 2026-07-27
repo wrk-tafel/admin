@@ -1,5 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
-import {CurrencyPipe, DatePipe} from '@angular/common';
+import {CurrencyPipe} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {StaticValueEditDialogComponent} from './dialogs/static-value-edit-dialog.component';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
@@ -47,7 +47,6 @@ import {staticValueTypeLabels} from './static-value-type-labels';
     MatHeaderCellDef,
     FaIconComponent,
     MatButton,
-    DatePipe,
     CurrencyPipe
   ]
 })
@@ -58,7 +57,7 @@ export class SettingsStaticValuesComponent {
 
   private _staticValues = signal<StaticValueListResponse | null>(null);
   protected staticValues = this._staticValues;
-  displayedColumns = ['type', 'validFrom', 'validTo', 'amount', 'countAdults', 'countChildren', 'age', 'actions'];
+  displayedColumns = ['type', 'amount', 'countAdults', 'countChildren', 'age', 'actions'];
 
   protected typeLabel(type: StaticValueTypeEnum): string {
     return staticValueTypeLabels[type];

@@ -14,7 +14,7 @@ describe('Settings - Static Values', () => {
     cy.byTestId('addStaticValueButton').should('not.exist');
   });
 
-  it('shows type/dates/counts as read-only and only allows changing the amount', () => {
+  it('shows type/counts as read-only (no date range shown) and only allows changing the amount', () => {
     cy.get('[testid^="editStaticValueButton-"]').first().click();
 
     cy.byTestId('static-value-readonly-fields').should('contain.text', 'Einkommensgrenze');

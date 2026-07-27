@@ -2,7 +2,6 @@ import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
@@ -17,7 +16,6 @@ export interface StaticValueEditDialogData {
   selector: 'tafel-static-value-edit-dialog',
   templateUrl: 'static-value-edit-dialog.component.html',
   imports: [
-    CommonModule,
     TafelDialogComponent,
     ReactiveFormsModule,
     MatFormFieldModule,
