@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.security.testUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -49,6 +51,9 @@ class TafelLoginFilterTest {
     private lateinit var applicationProperties: ApplicationProperties
 
     @RelaxedMockK
+    private lateinit var tafelAdminProperties: TafelAdminProperties
+
+    @RelaxedMockK
     private lateinit var jsonMapper: JsonMapper
 
     @InjectMockKs
@@ -78,10 +83,12 @@ class TafelLoginFilterTest {
     fun `successfulAuthentication when login is successful`() {
         val token = "TOKEN"
         val expirationTime = 10000
+        val relativeBaseUrl = "/test-base/"
 
         every { authResult.principal } returns testUser
         every { jwtTokenService.generateToken(any(), any(), any()) } returns token
         every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationTime
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties(relativeBaseUrl = relativeBaseUrl)
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
@@ -98,7 +105,7 @@ class TafelLoginFilterTest {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isEqualTo(token)
                 assertThat(it.maxAge).isEqualTo(expirationTime)
-                assertThat(it.path).isEqualTo("/")
+                assertThat(it.path).isEqualTo(relativeBaseUrl)
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
@@ -108,10 +115,12 @@ class TafelLoginFilterTest {
     fun `successfulAuthentication when passwordChange is required`() {
         val token = "TOKEN"
         val expirationTime = 5000
+        val relativeBaseUrl = "/test-base/"
 
         every { authResult.principal } returns testUser.copy(passwordChangeRequired = true)
         every { jwtTokenService.generateToken(any(), any(), any()) } returns token
         every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties(relativeBaseUrl = relativeBaseUrl)
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
@@ -127,7 +136,7 @@ class TafelLoginFilterTest {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isEqualTo(token)
                 assertThat(it.maxAge).isEqualTo(expirationTime)
-                assertThat(it.path).isEqualTo("/")
+                assertThat(it.path).isEqualTo(relativeBaseUrl)
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }

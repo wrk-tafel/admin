@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.config
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import org.passay.DefaultPasswordValidator
@@ -41,6 +42,7 @@ class WebSecurityConfig(
     private val userRepository: UserRepository,
     private val employeeRepository: EmployeeRepository,
     private val applicationProperties: ApplicationProperties,
+    private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
 ) {
@@ -100,6 +102,7 @@ class WebSecurityConfig(
                     authenticationManager = authenticationManager(),
                     jwtTokenService = jwtTokenService,
                     applicationProperties = applicationProperties,
+                    tafelAdminProperties = tafelAdminProperties,
                     jsonMapper = jsonMapper
                 )
             )

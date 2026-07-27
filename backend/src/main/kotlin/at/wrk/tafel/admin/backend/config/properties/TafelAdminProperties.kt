@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ExcludeFromTestCoverage
 data class TafelAdminProperties(
     val mail: TafelAdminMailProperties? = null,
+    val server: TafelAdminServerProperties = TafelAdminServerProperties(),
 )
 
 @ExcludeFromTestCoverage
@@ -14,4 +15,9 @@ data class TafelAdminMailProperties(
     val from: String,
     val subjectPrefix: String? = null,
     val defaultRecipientsBcc: List<String>? = emptyList(),
+)
+
+@ExcludeFromTestCoverage
+data class TafelAdminServerProperties(
+    val relativeBaseUrl: String = "/",
 )

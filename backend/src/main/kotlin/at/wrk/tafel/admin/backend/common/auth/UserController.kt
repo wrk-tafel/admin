@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*
 class UserController(
     private val userDetailsManager: TafelUserDetailsManager,
     private val tafelPasswordGenerator: TafelPasswordGenerator,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
@@ -65,7 +67,7 @@ class UserController(
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Unit> {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
-        val cookie = TafelLoginFilter.createTokenCookie(null, 0, request)
+        val cookie = TafelLoginFilter.createTokenCookie(null, 0, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)
 
         logger.info("User ${user.username} logged out!")

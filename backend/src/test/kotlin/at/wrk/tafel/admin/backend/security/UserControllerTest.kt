@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.security
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -31,6 +33,9 @@ class UserControllerTest {
 
     @RelaxedMockK
     private lateinit var tafelPasswordGenerator: TafelPasswordGenerator
+
+    @RelaxedMockK
+    private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -102,6 +107,9 @@ class UserControllerTest {
 
     @Test
     fun `logout`() {
+        val relativeBaseUrl = "/test-base/"
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties(relativeBaseUrl = relativeBaseUrl)
+
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
@@ -118,6 +126,7 @@ class UserControllerTest {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isNull()
                 assertThat(it.maxAge).isZero
+                assertThat(it.path).isEqualTo(relativeBaseUrl)
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
