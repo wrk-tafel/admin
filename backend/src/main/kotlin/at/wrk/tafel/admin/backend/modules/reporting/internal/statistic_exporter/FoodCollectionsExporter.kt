@@ -66,15 +66,15 @@ class FoodCollectionsExporter(
                     .sortedBy { it.number }
                     .distinctBy { it.id }
 
-                shops.forEach { shop ->
+                shops.forEach { currentShop ->
                     val columns = mutableListOf<String>()
                     columns.add(distribution.startedAt!!.format(DATE_FORMATTER))
                     columns.add(foodCollection.route!!.number!!.toString())
-                    columns.add(shop.number.toString())
+                    columns.add(currentShop.number.toString())
 
-                    sortedFoodCategories.forEach { category ->
+                    sortedFoodCategories.forEach { foodCategory ->
                         val itemPerCategory =
-                            items.firstOrNull { it.category?.id == category.id && it.shop?.id == shop.id }
+                            items.firstOrNull { it.category?.id == foodCategory.id && it.shop?.id == currentShop.id }
                         val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }
