@@ -27,7 +27,7 @@
 import Chainable = Cypress.Chainable;
 import dayjs from 'dayjs';
 
-Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
+Cypress.Commands.add('byTestId', (id, options?: Partial<Cypress.Loggable & Cypress.Timeoutable & Cypress.Withinable & Cypress.Shadow>) => cy.get(`[testid="${id}"]`, options));
 
 // The backend requires the X-XSRF-TOKEN header (mirroring the XSRF-TOKEN cookie) on every
 // mutating request. The Angular app handles this via its xsrfInterceptor - direct cy.request

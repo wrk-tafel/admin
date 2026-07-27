@@ -176,27 +176,40 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
 
 ---
 
-## 4. `cypress-browser-permissions` (frontend, dev-only) — LOW PRIORITY
+## 4. `cypress-browser-permissions` (frontend, dev-only) — LOW PRIORITY — ✅ RESOLVED (2026-07-27)
 
 - **Status:** Last released 2022-04-28 (v1.1.0), 4+ years stale.
-- **Confirmed already broken:** this is the actual root cause of a
-  pre-existing `tsc` error found during the Day.js migration —
-  `'Cypress' has no exported member named 'BrowserLaunchOptions'` — Cypress
-  renamed that type since this plugin's last release. (Left alone at the
-  time since it predates that work and Cypress's own bundler tolerates it.)
-- **Used for:** granting camera permission in Cypress e2e tests (checkin/scanner
-  specs).
-- **Steps:**
-  1. Check whether Cypress's own built-in launch options
-     (`--use-fake-ui-for-media-stream`, or `browser:launch` event handler
-     setting Chrome flags directly in `cypress/plugins/index.ts` or
-     `cypress.config.ts`) can grant camera access without a plugin at all —
-     Cypress added more native support for this over time, so the plugin may
-     simply no longer be needed.
-  2. If a plugin is still needed, check for actively maintained alternatives
-     before reinstating the same one.
-  3. Remove the dependency once confirmed working, which also clears the
-     `BrowserLaunchOptions` type error.
+- **Used for:** granting camera permission in Cypress e2e tests (scanner
+  spec).
+- **Resolution:** Confirmed the plugin was redundant — Cypress already grants
+  fake camera/mic access to chromium browsers by default
+  (`--use-fake-ui-for-media-stream` / `--use-fake-device-for-media-stream`),
+  so the plugin's Chrome-profile-preference approach wasn't doing anything
+  Cypress didn't already do. Removed outright rather than swapped for an
+  alternative.
+- **Changes made:**
+  1. Removed `cypress-browser-permissions` from `package.json` (+
+     `package-lock.json` via `npm install --ignore-scripts`) and the
+     `env.browserPermissions` block from `cypress.config.ts`.
+  2. Deleted `cypress/plugins/index.ts` (its only job was wiring up this
+     plugin) and the now-pointless `setupNodeEvents` passthrough to it.
+  3. Wired up the previously-commented-out `before:browser:launch` handler in
+     `cypress.config.ts` to point Chrome's fake webcam at
+     `cypress/fixtures/webcam/qr-code.y4m` (a video containing a real QR
+     code, decodes to `12345`) via `--use-file-for-fake-video-capture`, using
+     a `path.resolve(__dirname, ...)` path instead of the stale hardcoded
+     `D:\development\repos\wrk-admin\...` Windows path that predated this
+     repo layout.
+  4. This let `scanner.cy.ts` be rewritten to actually exercise the
+     scan/decode pipeline (see below) instead of only checking camera
+     readiness — which in turn surfaced and fixed a real race condition in
+     `ScannerComponent` (scan results sent before scanner registration
+     resolved could 500 with `scannerId=undefined`).
+  5. Didn't reproduce the `BrowserLaunchOptions` `tsc` error this plan
+     originally cited as the plugin's fault — `npx tsc --noEmit -p
+     cypress/tsconfig.json` shows only pre-existing, unrelated errors in
+     other spec files both before and after this removal. Removing the
+     unmaintained dependency regardless, since it wasn't providing any value.
 - **Risk:** Low — dev/CI tooling only, no production impact.
 
 ---
@@ -240,6 +253,6 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
 
 1. ✅ `logback-jackson`/`logback-json-classic` → Spring Boot built-in structured logging (prod-facing, low risk, quick win) — done
 2. ✅ `toastr` → `MatSnackBar` (removes a dependency, clears a build warning) — done
-3. `cypress-browser-permissions` (check if even still needed — might be a pure deletion)
+3. ✅ `cypress-browser-permissions` — confirmed redundant with Cypress's own defaults, removed — done
 4. `image-comparison` → in-house utility (contained, test-only)
 5. `html5-qrcode` → `qr-scanner` (needs physical hardware testing — schedule accordingly, don't rush)

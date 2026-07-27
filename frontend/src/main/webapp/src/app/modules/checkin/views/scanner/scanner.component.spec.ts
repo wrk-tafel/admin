@@ -80,34 +80,61 @@ describe('ScannerComponent', () => {
         expect(component.readyState()).toBe(false);
     });
 
-    it('qrCodeReaderSuccessCallback rejects duplicate scans', () => {
+    it('qrCodeReaderSuccessCallback rejects duplicate scans', async () => {
         component.lastScanResult.set(12345);
         component.scannerId.set(111);
+        await fixture.whenStable();
+        scannerApiService.sendScanResult.mockClear();
 
         component.qrCodeReaderSuccessCallback('12345', undefined);
+        await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).not.toHaveBeenCalled();
         expect(component.lastScanResult()).toBe(12345);
     });
 
-    it('qrCodeReaderSuccessCallback processes new scan', () => {
+    it('qrCodeReaderSuccessCallback processes new scan', async () => {
         component.lastScanResult.set(undefined);
         component.scannerId.set(111);
 
         component.qrCodeReaderSuccessCallback('12345', undefined);
+        await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
         expect(component.lastScanResult()).toBe(12345);
     });
 
-    it('qrCodeReaderSuccessCallback processes different scan', () => {
+    it('qrCodeReaderSuccessCallback processes different scan', async () => {
         component.lastScanResult.set(67890);
         component.scannerId.set(111);
+        await fixture.whenStable();
+        scannerApiService.sendScanResult.mockClear();
 
         component.qrCodeReaderSuccessCallback('12345', undefined);
+        await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
         expect(component.lastScanResult()).toBe(12345);
+    });
+
+    it('scan decoded before scannerId resolves is still sent once scannerId becomes available', async () => {
+        // Regression test: camera startup and scanner registration run concurrently, so a QR
+        // code can be decoded before scannerId() resolves. The send must not be dropped, and
+        // must not fire with an undefined scannerId (which 500s the backend).
+        component.scannerId.set(undefined);
+        component.lastScanResult.set(undefined);
+        await fixture.whenStable();
+
+        component.qrCodeReaderSuccessCallback('12345', undefined);
+        await fixture.whenStable();
+
+        expect(scannerApiService.sendScanResult).not.toHaveBeenCalled();
+        expect(component.lastScanResult()).toBe(12345);
+
+        component.scannerId.set(111);
+        await fixture.whenStable();
+
+        expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
     });
 
     it('destroy cleanup stops QR code reader', async () => {
