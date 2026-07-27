@@ -19,7 +19,6 @@ export class UserEditComponent {
 
   // Writable signal linked to input - resets when userData changes, locally writable from form updates
   userUpdated = linkedSignal<UserData | undefined>(() => this.userData());
-  userValidForSave = false;
   userFormComponent = viewChild<UserFormComponent>(UserFormComponent);
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
@@ -40,7 +39,6 @@ export class UserEditComponent {
 
   userDataUpdated(event: UserData) {
     this.userUpdated.set(event);
-    this.userValidForSave = false;
   }
 
   save() {
