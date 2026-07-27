@@ -184,6 +184,52 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     );
   });
 
+  it('should queue patchItems requests so a rapid second value change is not sent until the first completes', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {items: []}
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    component.currentShop.set(mockShops[0]);
+
+    const pendingObservers: any[] = [];
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const patchItemsSpy = vi.spyOn(apiService, 'patchItems').mockImplementation(() => ({
+      subscribe: (observer: any) => {
+        pendingObservers.push(observer);
+      }
+    } as any));
+
+    // Simulates typing "12": two keystrokes fire two value changes back to back,
+    // before either patch request's response has come back.
+    component.onValueChange({key: mockFoodCategories[0].id, value: 1});
+    component.onValueChange({key: mockFoodCategories[0].id, value: 12});
+
+    // Only the first request is in flight - the second must wait, otherwise a
+    // slower response to the first request could overwrite the second's value.
+    expect(patchItemsSpy).toHaveBeenCalledTimes(1);
+    expect(patchItemsSpy).toHaveBeenCalledWith(
+      mockRoute.id,
+      {categoryId: mockFoodCategories[0].id, shopId: mockShops[0].id, amount: 1}
+    );
+
+    pendingObservers[0].next();
+
+    expect(patchItemsSpy).toHaveBeenCalledTimes(2);
+    expect(patchItemsSpy).toHaveBeenCalledWith(
+      mockRoute.id,
+      {categoryId: mockFoodCategories[0].id, shopId: mockShops[0].id, amount: 12}
+    );
+  });
+
   it('should load shop data and initialize categoryValues when selectShop is called', () => {
     const mockRouteData = {
       route: mockRoute,

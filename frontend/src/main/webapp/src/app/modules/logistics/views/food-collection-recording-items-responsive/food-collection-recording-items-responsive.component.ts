@@ -44,6 +44,12 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly toastr = inject(TafelToastrService);
 
+  // Keystroke-driven value changes fire one patch request each; queuing them one at a
+  // time (instead of firing them all in parallel) guarantees a slower earlier response
+  // can never overwrite a value typed afterwards.
+  private itemPatchQueue: { routeId: number; data: FoodCollectionItem }[] = [];
+  private itemPatchInFlight = false;
+
   loadEffect = effect(() => {
     if (this.selectedRouteData()) {
       const shop = this.findNextUnfilledShop();
@@ -122,7 +128,31 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       shopId: shopId,
       amount: valueChange.value
     };
-    this.foodCollectionsApiService.patchItems(routeId, data).subscribe();
+    this.itemPatchQueue.push({routeId, data});
+    this.processItemPatchQueue();
+  }
+
+  private processItemPatchQueue() {
+    if (this.itemPatchInFlight) {
+      return;
+    }
+
+    const next = this.itemPatchQueue.shift();
+    if (!next) {
+      return;
+    }
+
+    this.itemPatchInFlight = true;
+    this.foodCollectionsApiService.patchItems(next.routeId, next.data).subscribe({
+      next: () => {
+        this.itemPatchInFlight = false;
+        this.processItemPatchQueue();
+      },
+      error: () => {
+        this.itemPatchInFlight = false;
+        this.processItemPatchQueue();
+      }
+    });
   }
 
   selectShop(shop: Shop) {
