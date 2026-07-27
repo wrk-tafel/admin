@@ -60,7 +60,7 @@ export class SettingsStaticValuesComponent {
 
   private _staticValues = signal<StaticValueListResponse | null>(null);
   protected staticValues = this._staticValues;
-  displayedColumns = ['type', 'amount', 'countAdults', 'countChildren', 'age', 'actions'];
+  displayedColumns = ['type', 'countAdults', 'countChildren', 'age', 'amount', 'actions'];
 
   protected editingId = signal<number | null>(null);
   protected amountControl = new FormControl<number | null>(null);
