@@ -4,7 +4,6 @@ import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ScannerComponent } from './scanner.component';
-import { CameraDevice } from 'html5-qrcode/esm/camera/core';
 import { QRCodeReaderService } from '../../services/qrcode-reader/qrcode-reader.service';
 import { ScannerApiService } from '../../../../api/scanner-api.service';
 import { EMPTY, of } from 'rxjs';
@@ -29,13 +28,13 @@ describe('ScannerComponent', () => {
                 {
                     provide: QRCodeReaderService,
                     useValue: {
-                        stop: vi.fn().mockResolvedValue(null),
+                        stop: vi.fn().mockResolvedValue(undefined),
                         saveCurrentCamera: vi.fn(),
-                        restart: vi.fn().mockResolvedValue(null),
+                        restart: vi.fn().mockResolvedValue(undefined),
                         getCameras: vi.fn().mockResolvedValue([]),
-                        getCurrentCamera: vi.fn().mockReturnValue({ id: 'default', label: 'Default Camera' }),
+                        getCurrentCamera: vi.fn().mockReturnValue({ deviceId: 'default', label: 'Default Camera' } as MediaDeviceInfo),
                         init: vi.fn(),
-                        start: vi.fn().mockResolvedValue(null)
+                        start: vi.fn().mockResolvedValue(undefined)
                     }
                 }
             ]
@@ -67,7 +66,7 @@ describe('ScannerComponent', () => {
     it('processQrCodeReaderPromise handles success', async () => {
         component.readyState.set(false);
 
-        await component.processQrCodeReaderPromise(Promise.resolve(null));
+        await component.processQrCodeReaderPromise(Promise.resolve());
 
         expect(component.readyState()).toBe(true);
     });
@@ -86,7 +85,7 @@ describe('ScannerComponent', () => {
         await fixture.whenStable();
         scannerApiService.sendScanResult.mockClear();
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345');
         await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).not.toHaveBeenCalled();
@@ -97,7 +96,7 @@ describe('ScannerComponent', () => {
         component.lastScanResult.set(undefined);
         component.scannerId.set(111);
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345');
         await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
@@ -110,7 +109,7 @@ describe('ScannerComponent', () => {
         await fixture.whenStable();
         scannerApiService.sendScanResult.mockClear();
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345');
         await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
@@ -125,7 +124,7 @@ describe('ScannerComponent', () => {
         component.lastScanResult.set(undefined);
         await fixture.whenStable();
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345');
         await fixture.whenStable();
 
         expect(scannerApiService.sendScanResult).not.toHaveBeenCalled();
@@ -145,7 +144,7 @@ describe('ScannerComponent', () => {
     });
 
     it('setSelectedCamera setter changes currentCamera', () => {
-        const testCamera: CameraDevice = { id: 'cam1', label: 'Camera 1 Front' };
+        const testCamera = { deviceId: 'cam1', label: 'Camera 1 Front' } as MediaDeviceInfo;
 
         component.currentCamera.set(testCamera);
 
@@ -153,7 +152,7 @@ describe('ScannerComponent', () => {
     });
 
     it('trackByCameraId returns camera ID', () => {
-        const testCamera: CameraDevice = { id: 'cam1', label: 'Camera 1' };
+        const testCamera = { deviceId: 'cam1', label: 'Camera 1' } as MediaDeviceInfo;
         const result = component.trackByCameraId(testCamera);
 
         expect(result).toBe('cam1');
