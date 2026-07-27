@@ -13,7 +13,7 @@
 
     @if ((customerAboveLimitData()?.items?.length ?? 0) > 0) {
       <div class="mt-4">
-        <mat-paginator [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
+        <mat-paginator class="tafel-paginator-responsive" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
                        [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                        (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
       </div>
@@ -78,7 +78,7 @@
           <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="abovelimit-row"></tr>
         </table>
 
-        <mat-paginator class="mt-4" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
+        <mat-paginator class="tafel-paginator-responsive mt-4" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
                        [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                        (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
       </div>
@@ -110,8 +110,8 @@
             </mat-card>
           }
         </div>
-        <div class="mt-2 tafel-paginator-center">
-          <mat-paginator [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
+        <div class="mt-2">
+          <mat-paginator class="tafel-paginator-responsive" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
                          [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                          (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
         </div>

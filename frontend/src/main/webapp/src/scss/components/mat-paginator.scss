@@ -2,3 +2,15 @@
 .tafel-paginator-center .mat-mdc-paginator-container {
   justify-content: center;
 }
+
+// same right-aligned default, but centers below the md breakpoint (matches the desktop-table /
+// mobile-card layout switch used across the search & list views) instead of always centering
+.tafel-paginator-responsive .mat-mdc-paginator-container {
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .tafel-paginator-responsive .mat-mdc-paginator-container {
+    justify-content: flex-end;
+  }
+}
