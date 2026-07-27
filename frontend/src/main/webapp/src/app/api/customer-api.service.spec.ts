@@ -374,6 +374,23 @@ describe('CustomerApiService', () => {
     expect(result!.items[0].similarCustomers[0].id).toEqual(133);
   });
 
+  it('get customers above limit', () => {
+    let result;
+    apiService.getCustomersAboveLimit().subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit'});
+    req.flush({
+      items: [{household: mockHousehold, totalSum: 1500, limit: 1000, amountExceededLimit: 500}]
+    });
+    httpMock.verify();
+
+    expect(result!).toHaveLength(1);
+    expect(result![0].customer.lastname).toEqual('Mustermann');
+    expect(result![0].totalSum).toEqual(1500);
+    expect(result![0].limit).toEqual(1000);
+    expect(result![0].amountExceededLimit).toEqual(500);
+  });
+
   it('merge customers', () => {
     const targetCustomerId = 123;
     const sourceCustomerIds = [456, 789];

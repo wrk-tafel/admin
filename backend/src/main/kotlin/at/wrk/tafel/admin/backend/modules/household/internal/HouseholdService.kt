@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.household.Household
+import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
@@ -181,6 +182,26 @@ class HouseholdService(
             totalPages = pagedResult.totalPages,
             pageSize = pageRequest.pageSize
         )
+    }
+
+    @Transactional
+    fun getHouseholdsAboveLimit(): List<HouseholdAboveLimitItem> {
+        val households = householdRepository.findAll(validHousehold())
+            .map { householdConverter.mapEntityToHousehold(it) }
+
+        return households.mapNotNull { household ->
+            val result = incomeValidatorService.validate(mapToValidationPersons(household))
+            if (!result.valid) {
+                HouseholdAboveLimitItem(
+                    household = household,
+                    totalSum = result.totalSum,
+                    limit = result.limit,
+                    amountExceededLimit = result.amountExceededLimit
+                )
+            } else {
+                null
+            }
+        }
     }
 
     @Transactional

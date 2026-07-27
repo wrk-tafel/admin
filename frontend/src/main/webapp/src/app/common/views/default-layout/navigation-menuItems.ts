@@ -9,6 +9,7 @@ import {
   faGear,
   faMagnifyingGlass,
   faPlus,
+  faTriangleExclamation,
   faTruck,
   faUser
 } from '@fortawesome/free-solid-svg-icons';
@@ -75,6 +76,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     url: '/kunden/duplikate',
     icon: faCopy,
     permissions: ['CUSTOMER_DUPLICATES']
+  },
+  {
+    name: 'Kunden über Limit',
+    url: '/kunden/ueber-limit',
+    icon: faTriangleExclamation,
+    permissions: ['CUSTOMERS_ABOVE_LIMIT']
   },
   {
     name: 'Logistik',

@@ -9,6 +9,7 @@ enum class UserPermissions(val key: String, val title: String) {
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
     CUSTOMER("CUSTOMER", "Kundenverwaltung"),
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate"),
+    CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit"),
     LOGISTICS("LOGISTICS", "Transport/Logistik"),
     SCANNER("SCANNER", "Scanner"),
     SETTINGS("SETTINGS", "Einstellungen"),

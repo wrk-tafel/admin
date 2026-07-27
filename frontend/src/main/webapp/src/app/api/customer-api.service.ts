@@ -115,6 +115,17 @@ export class CustomerApiService {
     );
   }
 
+  getCustomersAboveLimit(): Observable<CustomerAboveLimitItem[]> {
+    return this.http.get<HouseholdAboveLimitResponse>('/households/above-limit').pipe(
+      map(response => (response?.items ?? []).map(item => ({
+        customer: mapHouseholdToCustomer(item.household),
+        totalSum: item.totalSum,
+        limit: item.limit,
+        amountExceededLimit: item.amountExceededLimit
+      })))
+    );
+  }
+
   mergeCustomers(targetCustomerId: number, sourceCustomerIds: number[]): Observable<void> {
     const request: CustomerMergeRequest = {sourceCustomerIds: sourceCustomerIds};
     const body: HouseholdMergeRequest = {sourceHouseholdIds: request.sourceCustomerIds};
@@ -227,6 +238,13 @@ export interface CustomerDuplicatesItem {
   similarCustomers: CustomerData[];
 }
 
+export interface CustomerAboveLimitItem {
+  customer: CustomerData;
+  totalSum: number;
+  limit: number;
+  amountExceededLimit: number;
+}
+
 export interface CustomerMergeRequest {
   sourceCustomerIds: number[];
 }
@@ -302,6 +320,17 @@ interface HouseholdDuplicatesItem {
 
 interface HouseholdMergeRequest {
   sourceHouseholdIds: number[];
+}
+
+interface HouseholdAboveLimitResponse {
+  items: HouseholdAboveLimitItem[];
+}
+
+interface HouseholdAboveLimitItem {
+  household: HouseholdData;
+  totalSum: number;
+  limit: number;
+  amountExceededLimit: number;
 }
 
 /**

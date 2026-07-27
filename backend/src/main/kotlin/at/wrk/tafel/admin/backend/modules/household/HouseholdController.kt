@@ -146,6 +146,12 @@ class HouseholdController(
         )
     }
 
+    @GetMapping("/above-limit")
+    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    fun getHouseholdsAboveLimit(): HouseholdAboveLimitResponse {
+        return HouseholdAboveLimitResponse(items = householdService.getHouseholdsAboveLimit())
+    }
+
     @GetMapping("/duplicates")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(

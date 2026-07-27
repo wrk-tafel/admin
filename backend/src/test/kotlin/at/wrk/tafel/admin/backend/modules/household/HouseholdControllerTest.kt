@@ -409,6 +409,21 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `get households above limit`() {
+        val aboveLimitItem = HouseholdAboveLimitItem(
+            household = mockk(relaxed = true),
+            totalSum = BigDecimal("1500"),
+            limit = BigDecimal("1000"),
+            amountExceededLimit = BigDecimal("500")
+        )
+        every { householdService.getHouseholdsAboveLimit() } returns listOf(aboveLimitItem)
+
+        val response = controller.getHouseholdsAboveLimit()
+
+        assertThat(response.items).isEqualTo(listOf(aboveLimitItem))
+    }
+
+    @Test
     fun `get duplicates - result mapped`() {
         val page = 4
         val duplicationItem = HouseholdDuplicateSearchResultItem(

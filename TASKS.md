@@ -13,12 +13,6 @@ listed under MAYBE with the specific open question instead of guessed at.
    * Fix: in `DistributionService.generateHouseholdListPdf()` (`DistributionService.kt:124-152`), replace `currentDistribution.households` with a direct fresh query, e.g. add `findByDistributionId(distributionId: Long): List<DistributionHouseholdEntity>` to `DistributionHouseholdRepository` and use that instead of the entity association — this removes any dependency on collection-caching semantics regardless of transaction boundaries.
    * Files: `DistributionService.kt:129`, `DistributionHouseholdRepository.kt` (new query method).
 
-2. **Add overview "Customers above limit" + permission**
-   * Add `CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit")` to `UserPermissions.kt:6-16` (same enum pattern as `CUSTOMER_DUPLICATES`/`SETTINGS`).
-   * This can't be a JPA `Specification` like `HouseholdEntity.Specs.validHousehold()` (`HouseholdEntity.kt:205-213`) — "above limit" is a computed result, not a stored column. New endpoint in `HouseholdController.kt` (alongside `getDuplicates()` at line 149), e.g. `GET /api/households/above-limit`, backed by a new `HouseholdService` method that: loads households via the existing `validHousehold()` spec, for each loads its persons, calls `IncomeValidatorService.validate()` (same call already used in `createHousehold`/`updateHousehold`, `HouseholdService.kt:55/96`), and returns those where `result.valid == false`. This is what catches households that were fine at creation but now exceed the limit because a `StaticValueType.INCOME_LIMIT` row's amount changed since.
-   * Frontend: new view reusing the `customer-duplicates` view's table/pagination pattern, gated by the new permission, with a nav entry in `navigation-menuItems.ts`.
-   * Files: `UserPermissions.kt`, `HouseholdController.kt`, `HouseholdService.kt`, `IncomeValidatorService`, frontend `modules/household`.
-
 3. **Add file upload / documents to customer details** (merges both TODO occurrences)
    * Storage: local disk/volume (per user decision, 2026-07-27). Add `documentsPath: String` to a new nested properties class under `TafelAdminProperties` (`TafelAdminProperties.kt`, same pattern as its existing `mail` property), bound as `tafeladmin.storage.documentsPath`.
    * New `DocumentEntity` (own table `household_documents`, `@ManyToOne` to `HouseholdEntity`, matching the `BaseChangeTrackingEntity` pattern used everywhere else): `household`, `person` (nullable `@ManyToOne` to `PersonEntity`, for per-person docs like school enrollment), `documentType` (`@Enumerated(EnumType.STRING)`: `PROOF_OF_INCOME`, `ID`, `SCHOOL_ENROLLMENT`, `OTHER`), `fileName`, `contentType`, `storagePath`, `uploadedByUser` (`@ManyToOne UserEntity`).
@@ -113,6 +107,7 @@ listed under MAYBE with the specific open question instead of guessed at.
 
 ---
 ## Done (validated 2026-07-27)
+* Add overview "Customers above limit" + permission - implemented 2026-07-27: CUSTOMERS_ABOVE_LIMIT permission added; GET /api/households/above-limit (HouseholdService.getHouseholdsAboveLimit()) re-validates every currently-valid household against IncomeValidatorService and returns those over the limit with totalSum/limit/amountExceededLimit; new "Kunden über Limit" frontend view + nav entry
 * Route only needs a time and no separate order (sorting) - RouteStopEntity has no order field
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough) - RouteStopEntity is a real JPA entity (routes_stops table), separate from Route's free-text note
 * Validation necessary for KM Abfahrt < KM Ankunft - implemented (kmValidation error) and covered by tests in food-collection-recording-basedata

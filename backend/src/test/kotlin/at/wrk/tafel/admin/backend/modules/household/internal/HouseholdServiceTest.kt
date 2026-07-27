@@ -474,6 +474,47 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `get households above limit - only invalid households are returned`() {
+        val testHouseholdEntity1 = mockk<HouseholdEntity>(relaxed = true)
+        val testHouseholdEntity2 = mockk<HouseholdEntity>(relaxed = true)
+
+        val validHousehold = mockk<Household>(relaxed = true)
+        val invalidHousehold = mockk<Household>(relaxed = true)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            testHouseholdEntity1,
+            testHouseholdEntity2
+        )
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity1) } returns validHousehold
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity2) } returns invalidHousehold
+
+        every { incomeValidatorService.validate(any()) } returnsMany listOf(
+            IncomeValidatorResult(
+                valid = true,
+                totalSum = BigDecimal("500"),
+                limit = BigDecimal("1000"),
+                toleranceValue = BigDecimal.ZERO,
+                amountExceededLimit = BigDecimal.ZERO
+            ),
+            IncomeValidatorResult(
+                valid = false,
+                totalSum = BigDecimal("1500"),
+                limit = BigDecimal("1000"),
+                toleranceValue = BigDecimal.ZERO,
+                amountExceededLimit = BigDecimal("500")
+            )
+        )
+
+        val result = service.getHouseholdsAboveLimit()
+
+        assertThat(result).hasSize(1)
+        assertThat(result.first().household).isEqualTo(invalidHousehold)
+        assertThat(result.first().totalSum).isEqualTo(BigDecimal("1500"))
+        assertThat(result.first().limit).isEqualTo(BigDecimal("1000"))
+        assertThat(result.first().amountExceededLimit).isEqualTo(BigDecimal("500"))
+    }
+
+    @Test
     fun `generate pdf household - not found`() {
         every { householdRepository.findByHouseholdId(any()) } returns null
 
