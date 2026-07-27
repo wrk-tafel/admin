@@ -506,13 +506,13 @@ internal class DistributionServiceTest {
             id = 123
             startedAt = date
             endedAt = null
-            households = listOf(
-                testDistributionHouseholdEntity1,
-                testDistributionHouseholdEntity2,
-                testDistributionHouseholdEntity3
-            )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionHouseholdRepository.findByDistributionId(123) } returns listOf(
+            testDistributionHouseholdEntity1,
+            testDistributionHouseholdEntity2,
+            testDistributionHouseholdEntity3
+        )
 
         val bytes = ByteArray(0)
         every { pdfService.generatePdf(any(), any()) } returns bytes

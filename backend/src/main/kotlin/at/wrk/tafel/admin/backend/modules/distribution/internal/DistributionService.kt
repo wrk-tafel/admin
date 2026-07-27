@@ -126,7 +126,8 @@ class DistributionService(
         val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
-        val sortedHouseholds = currentDistribution.households.sortedBy { it.ticketNumber }
+        val sortedHouseholds = distributionHouseholdRepository.findByDistributionId(currentDistribution.id!!)
+            .sortedBy { it.ticketNumber }
         val countHouseholds = sortedHouseholds.size
 
         val halftimeIndex = BigDecimal(countHouseholds - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
