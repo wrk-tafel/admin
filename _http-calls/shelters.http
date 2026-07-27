@@ -1,2 +1,54 @@
+### Fetch all active shelters
+GET {{baseApiPath}}/shelters/active
+
 ### Fetch all shelters
 GET {{baseApiPath}}/shelters
+
+### Create shelter
+POST {{baseApiPath}}/shelters
+Content-Type: application/json
+
+{
+  "name": "Test-Shelter",
+  "addressStreet": "Erdberg",
+  "addressHouseNumber": "2",
+  "addressStairway": "1",
+  "addressDoor": "20",
+  "addressPostalCode": 1030,
+  "addressCity": "Wien",
+  "note": null,
+  "personsCount": 10,
+  "enabled": true,
+  "contacts": [
+    {
+      "firstname": "Max",
+      "lastname": "Mustermann",
+      "phone": "0043660123123"
+    }
+  ]
+}
+
+### Update shelter 1
+POST {{baseApiPath}}/shelters/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Test-Shelter-Updated",
+  "addressStreet": "Erdberg",
+  "addressHouseNumber": "2",
+  "addressStairway": "1",
+  "addressDoor": "20",
+  "addressPostalCode": 1030,
+  "addressCity": "Wien",
+  "note": null,
+  "personsCount": 10,
+  "enabled": true,
+  "contacts": [
+    {
+      "firstname": "Max",
+      "lastname": "Mustermann",
+      "phone": "0043660123123"
+    }
+  ]
+}
