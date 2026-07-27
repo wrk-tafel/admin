@@ -1,34 +1,38 @@
 import { QRCodeReaderService } from './qrcode-reader.service';
-import { Html5Qrcode } from 'html5-qrcode';
-import { CameraDevice } from 'html5-qrcode/esm/camera/core';
-import { Html5QrcodeScannerState } from 'html5-qrcode/esm/state-manager';
+import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
+import { Result } from '@zxing/library';
 
 describe('QRCodeReaderService', () => {
     const LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
-    const testCameras: CameraDevice[] = [{ id: '1', label: 'cam1' }, { id: '2', label: 'a cam2' }];
+    const testCameras = [
+        { deviceId: '1', label: 'cam1' } as MediaDeviceInfo,
+        { deviceId: '2', label: 'a cam2' } as MediaDeviceInfo
+    ];
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
 
     function setup() {
         localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
 
-        const html5QrCodeSpy = vi.spyOn(Html5Qrcode, 'getCameras').mockReturnValue(Promise.resolve(testCameras));
+        const listDevicesSpy = vi.spyOn(BrowserQRCodeReader, 'listVideoInputDevices').mockResolvedValue(testCameras);
+
+        const controlsStopSpy = vi.fn();
+        const controls: IScannerControls = { stop: controlsStopSpy };
+        const decodeSpy = vi.spyOn(BrowserQRCodeReader.prototype, 'decodeFromVideoDevice').mockResolvedValue(controls);
 
         const service = new QRCodeReaderService();
-        const qrCodeReaderSpy = {
-            start: vi.fn().mockName('QRCodeReader.start'),
-            getState: vi.fn().mockName('QRCodeReader.getState'),
-            stop: vi.fn().mockName('QRCodeReader.stop')
-        } as any;
-        service.qrCodeReader = qrCodeReaderSpy;
 
-        return { service, html5QrCodeSpy, qrCodeReaderSpy };
+        return { service, listDevicesSpy, decodeSpy, controlsStopSpy };
     }
 
     it('getCameras returns result sorted by label ascending', async () => {
-        const { service, html5QrCodeSpy } = setup();
+        const { service, listDevicesSpy } = setup();
 
         const cameras = await service.getCameras();
 
-        expect(html5QrCodeSpy).toHaveBeenCalled();
+        expect(listDevicesSpy).toHaveBeenCalled();
         expect(cameras).toEqual([testCameras[1], testCameras[0]]);
     });
 
@@ -43,7 +47,7 @@ describe('QRCodeReaderService', () => {
 
     it('getCurrentCamera with a saved cameraId', () => {
         const { service } = setup();
-        localStorage.setItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY, testCameras[1].id);
+        localStorage.setItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY, testCameras[1].deviceId);
 
         const currentCamera = service.getCurrentCamera(testCameras);
 
@@ -65,80 +69,81 @@ describe('QRCodeReaderService', () => {
 
         service.saveCurrentCamera(testCameras[0]);
 
-        expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toEqual(testCameras[0].id);
+        expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toEqual(testCameras[0].deviceId);
     });
 
-    it('start called correctly', () => {
-        const { service, qrCodeReaderSpy } = setup();
-        qrCodeReaderSpy.start.mockReturnValue(Promise.resolve());
+    it('start called correctly', async () => {
+        const { service, decodeSpy } = setup();
+        service.init('videoElementId', vi.fn());
 
         const testCameraId = '123';
-        const promise = service.start(testCameraId);
+        await service.start(testCameraId);
 
-        expect(promise).toBeDefined();
-        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
+        expect(decodeSpy).toHaveBeenCalledWith(testCameraId, 'videoElementId', expect.any(Function));
     });
 
-    it('restart while scanning is not active', () => {
-        const { service, qrCodeReaderSpy } = setup();
-        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.UNKNOWN);
-        qrCodeReaderSpy.start.mockReturnValue(Promise.resolve());
+    it('restart while scanning is not active starts scanning', async () => {
+        const { service, decodeSpy } = setup();
+        service.init('videoElementId', vi.fn());
 
         const testCameraId = '123';
-        const promise = service.restart(testCameraId);
+        await service.restart(testCameraId);
 
-        expect(promise).toBeDefined();
-        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
+        expect(decodeSpy).toHaveBeenCalledWith(testCameraId, 'videoElementId', expect.any(Function));
     });
 
-    it('restart while scanning is active and stop was successful', async () => {
-        const { service, qrCodeReaderSpy } = setup();
-        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.SCANNING);
-        qrCodeReaderSpy.stop.mockReturnValue(Promise.resolve());
-        qrCodeReaderSpy.start.mockReturnValue(Promise.resolve());
+    it('restart while scanning is active stops the previous scan before starting a new one', async () => {
+        const { service, decodeSpy, controlsStopSpy } = setup();
+        service.init('videoElementId', vi.fn());
 
         const testCameraId = '123';
-        const promise = service.restart(testCameraId);
+        await service.start(testCameraId);
+        await service.restart(testCameraId);
 
-        expect(promise).toBeDefined();
-        await promise;
-        expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
-        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
+        expect(controlsStopSpy).toHaveBeenCalledTimes(1);
+        expect(decodeSpy).toHaveBeenCalledTimes(2);
     });
 
-    it('restart while scanning is active and stop failed', async () => {
-        const { service, qrCodeReaderSpy } = setup();
-        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.SCANNING);
-        qrCodeReaderSpy.stop.mockReturnValue(Promise.reject());
+    it('stop while scanning is not active does nothing', async () => {
+        const { service, controlsStopSpy } = setup();
 
-        const testCameraId = '123';
-        const promise = service.restart(testCameraId);
+        await service.stop();
 
-        expect(promise).toBeDefined();
-        await expect(promise).rejects.toBeUndefined();
-        expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
-        expect(qrCodeReaderSpy.start).not.toHaveBeenCalled();
+        expect(controlsStopSpy).not.toHaveBeenCalled();
     });
 
-    it('stop while scanning is not active', () => {
-        const { service, qrCodeReaderSpy } = setup();
-        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.UNKNOWN);
+    it('stop while scanning is active stops the reader', async () => {
+        const { service, controlsStopSpy } = setup();
+        service.init('videoElementId', vi.fn());
+        await service.start('123');
 
-        const promise = service.stop();
+        await service.stop();
 
-        expect(promise).toBeDefined();
-        expect(qrCodeReaderSpy.stop).not.toHaveBeenCalled();
+        expect(controlsStopSpy).toHaveBeenCalled();
     });
 
-    it('stop while scanning is active', () => {
-        const { service, qrCodeReaderSpy } = setup();
-        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.SCANNING);
-        qrCodeReaderSpy.stop.mockReturnValue(Promise.resolve());
+    it('invokes the success callback with the decoded text on a scan result', async () => {
+        const { service, decodeSpy } = setup();
+        const successCallback = vi.fn();
+        service.init('videoElementId', successCallback);
 
-        const promise = service.stop();
+        await service.start('123');
+        const scanCallback = decodeSpy.mock.calls[0][2];
+        scanCallback({ getText: () => '12345' } as Result, undefined, {} as IScannerControls);
 
-        expect(promise).toBeDefined();
-        expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
+        expect(successCallback).toHaveBeenCalledWith('12345');
+    });
+
+    it('does not invoke the success callback when no code was found in a frame', async () => {
+        const { service, decodeSpy } = setup();
+        const successCallback = vi.fn();
+        service.init('videoElementId', successCallback);
+
+        await service.start('123');
+        const scanCallback = decodeSpy.mock.calls[0][2];
+        scanCallback(undefined, undefined, {} as IScannerControls);
+
+        expect(successCallback).not.toHaveBeenCalled();
     });
 
 });

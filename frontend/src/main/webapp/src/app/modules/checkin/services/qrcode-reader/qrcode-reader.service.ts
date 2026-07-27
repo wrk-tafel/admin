@@ -1,44 +1,33 @@
-import {Html5Qrcode, Html5QrcodeSupportedFormats} from 'html5-qrcode';
-import {QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
-import {CameraDevice} from 'html5-qrcode/esm/camera/core';
-import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from 'html5-qrcode/esm/html5-qrcode';
-import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
+import {BrowserQRCodeReader, IScannerControls} from '@zxing/browser';
 import {Service} from '@angular/core';
 
 @Service()
 export class QRCodeReaderService {
 
-  qrCodeReader!: Html5Qrcode;
+  private readonly reader = new BrowserQRCodeReader(undefined, {
+    delayBetweenScanAttempts: 100,
+    delayBetweenScanSuccess: 100
+  });
   private readonly LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
-  private successCallback!: QrcodeSuccessCallback;
 
-  private readonly basicConfig: Html5QrcodeFullConfig = {
-    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-    verbose: false
-  };
+  private videoElementId!: string;
+  private successCallback!: (decodedText: string) => void;
+  controls?: IScannerControls;
 
-  private readonly cameraConfig: Html5QrcodeCameraScanConfig = {
-    fps: 10,
-    qrbox: (viewfinderWidth, viewfinderHeight) => ({
-        width: viewfinderWidth * 0.96,
-        height: viewfinderHeight * 0.96
-      })
-  };
-
-  async getCameras(): Promise<CameraDevice[]> {
+  async getCameras(): Promise<MediaDeviceInfo[]> {
     try {
-      const cameras = await Html5Qrcode.getCameras();
-      const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => c1.label.localeCompare(c2.label));
+      const cameras = await BrowserQRCodeReader.listVideoInputDevices();
+      const sorted = Object.assign([], cameras).sort((c1: MediaDeviceInfo, c2: MediaDeviceInfo) => c1.label.localeCompare(c2.label));
       return Promise.resolve(sorted);
     } catch (reason) {
       return await Promise.reject(reason);
     }
   }
 
-  getCurrentCamera(cameras: CameraDevice[]) {
+  getCurrentCamera(cameras: MediaDeviceInfo[]) {
     const savedCameraId = this.getLastUsedCameraId();
     if (savedCameraId) {
-      const camera = cameras.find(foundCamera => foundCamera.id === savedCameraId);
+      const camera = cameras.find(foundCamera => foundCamera.deviceId === savedCameraId);
       if (camera) {
         return camera;
       }
@@ -46,34 +35,40 @@ export class QRCodeReaderService {
     return cameras[0];
   }
 
-  saveCurrentCamera(camera: CameraDevice) {
-    localStorage.setItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY, camera.id);
+  saveCurrentCamera(camera: MediaDeviceInfo) {
+    localStorage.setItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY, camera.deviceId);
   }
 
-  init(elementId: string, successCallback: QrcodeSuccessCallback) {
+  init(elementId: string, successCallback: (decodedText: string) => void) {
+    this.videoElementId = elementId;
     this.successCallback = successCallback;
-    this.qrCodeReader = new Html5Qrcode(elementId, this.basicConfig);
   }
 
-  start(cameraId: string): Promise<null> {
-    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, undefined);
+  start(cameraId: string): Promise<void> {
+    return this.startScanning(cameraId);
   }
 
-  async restart(cameraId: string): Promise<null> {
-    if (this.qrCodeReader.getState() === Html5QrcodeScannerState.SCANNING) {
-      return await this.qrCodeReader.stop().then(
-        () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, undefined),
-        () => Promise.reject()
-      );
+  async restart(cameraId: string): Promise<void> {
+    if (this.controls) {
+      this.controls.stop();
+      this.controls = undefined;
     }
-    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, undefined);
+    return this.startScanning(cameraId);
   }
 
-  stop(): Promise<void> {
-    if (this.qrCodeReader.getState() === Html5QrcodeScannerState.SCANNING) {
-      return this.qrCodeReader.stop();
+  async stop(): Promise<void> {
+    if (this.controls) {
+      this.controls.stop();
+      this.controls = undefined;
     }
-    return Promise.resolve();
+  }
+
+  private async startScanning(cameraId: string): Promise<void> {
+    this.controls = await this.reader.decodeFromVideoDevice(cameraId, this.videoElementId, (result) => {
+      if (result) {
+        this.successCallback(result.getText());
+      }
+    });
   }
 
   private getLastUsedCameraId(): string | null {

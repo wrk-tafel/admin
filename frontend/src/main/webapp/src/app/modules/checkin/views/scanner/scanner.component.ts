@@ -1,7 +1,5 @@
 import {Component, computed, DestroyRef, effect, inject, signal, WritableSignal} from '@angular/core';
 import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.service';
-import {CameraDevice} from 'html5-qrcode/esm/camera/core';
-import {Html5QrcodeResult} from 'html5-qrcode/core';
 import {MatBadgeModule} from '@angular/material/badge';
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
@@ -36,8 +34,8 @@ export class ScannerComponent {
 
   readonly scannerId = signal<number | undefined>(undefined);
   lastScanResult = signal<number | undefined>(undefined);
-  availableCameras = signal<CameraDevice[] | undefined>(undefined);
-  currentCamera = signal<CameraDevice | undefined>(undefined);
+  availableCameras = signal<MediaDeviceInfo[] | undefined>(undefined);
+  currentCamera = signal<MediaDeviceInfo | undefined>(undefined);
 
   readonly readyState: WritableSignal<boolean> = signal(false);
   readonly readyStateColor = computed(() => this.readyState() ? 'success' : 'danger');
@@ -63,8 +61,8 @@ export class ScannerComponent {
       const currentCamera = this.qrCodeReaderService.getCurrentCamera(availableCameras);
       this.currentCamera.set(currentCamera);
 
-      this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
-      const promise = this.qrCodeReaderService.start(currentCamera.id);
+      this.qrCodeReaderService.init('qrCodeReaderVideo', this.qrCodeReaderSuccessCallback);
+      const promise = this.qrCodeReaderService.start(currentCamera.deviceId);
       await this.processQrCodeReaderPromise(promise);
     }
   });
@@ -74,7 +72,7 @@ export class ScannerComponent {
     if (currentCamera) {
       this.qrCodeReaderService.saveCurrentCamera(currentCamera);
 
-      const promise = this.qrCodeReaderService.restart(currentCamera.id);
+      const promise = this.qrCodeReaderService.restart(currentCamera.deviceId);
       this.processQrCodeReaderPromise(promise);
     }
   });
@@ -96,7 +94,7 @@ export class ScannerComponent {
     );
   }
 
-  async processQrCodeReaderPromise(promise: Promise<null>) {
+  async processQrCodeReaderPromise(promise: Promise<void>) {
     await promise.then(
       () => {
         this.readyState.set(true);
@@ -107,8 +105,8 @@ export class ScannerComponent {
     );
   }
 
-  trackByCameraId(camera: CameraDevice): string {
-    return camera.id;
+  trackByCameraId(camera: MediaDeviceInfo): string {
+    return camera.deviceId;
   }
 
   // Scanner registration and camera startup happen concurrently, so a scan can be decoded
@@ -123,7 +121,7 @@ export class ScannerComponent {
     }
   });
 
-  qrCodeReaderSuccessCallback = (decodedText: string, _?: Html5QrcodeResult) => {
+  qrCodeReaderSuccessCallback = (decodedText: string) => {
     const scanResult: ScanResult = {value: +decodedText};
     console.log('SCANNED', scanResult);
     if (this.lastScanResult() !== scanResult.value) {
@@ -131,11 +129,11 @@ export class ScannerComponent {
     }
   };
 
-  get selectedCamera(): CameraDevice | undefined {
+  get selectedCamera(): MediaDeviceInfo | undefined {
     return this.currentCamera();
   }
 
-  set selectedCamera(camera: CameraDevice) {
+  set selectedCamera(camera: MediaDeviceInfo) {
     this.currentCamera.set(camera);
   }
 
