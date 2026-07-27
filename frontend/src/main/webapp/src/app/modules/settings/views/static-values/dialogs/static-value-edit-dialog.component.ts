@@ -34,8 +34,6 @@ export class StaticValueEditDialogComponent {
   // which row a lookup matches, so they're shown for context but not editable.
   form = this.fb.group({
     amount: [this.data.staticValue.amount]
-  }, {
-    updateOn: 'blur'
   });
 
   save() {

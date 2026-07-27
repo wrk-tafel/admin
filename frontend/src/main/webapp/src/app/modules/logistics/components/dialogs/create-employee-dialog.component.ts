@@ -28,8 +28,6 @@ export class CreateEmployeeDialogComponent {
     personnelNumber: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
     firstname: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
     lastname: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
-  }, {
-    updateOn: 'blur'
   });
 
   saveNewEmployee() {

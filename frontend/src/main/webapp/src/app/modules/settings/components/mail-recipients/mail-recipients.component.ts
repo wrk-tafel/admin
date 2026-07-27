@@ -35,8 +35,6 @@ export class MailRecipientsComponent {
 
   form: FormGroup = this.fb.group({
     mailRecipients: this.fb.array([])
-  }, {
-    updateOn: 'blur'
   });
 
   constructor() {
@@ -58,8 +56,6 @@ export class MailRecipientsComponent {
                   return this.createAddressesPerTypeGroup(recipientType, addressesOfType);
                 })
               )
-            }, {
-              updateOn: 'blur'
             })
           );
         });
@@ -76,8 +72,6 @@ export class MailRecipientsComponent {
       addresses: this.fb.array(
         addresses.map(address => this.createAddressControl(address))
       )
-    }, {
-      updateOn: 'blur'
     });
   }
 

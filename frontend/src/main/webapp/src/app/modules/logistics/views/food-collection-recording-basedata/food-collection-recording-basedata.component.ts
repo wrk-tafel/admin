@@ -46,34 +46,25 @@ export class FoodCollectionRecordingBasedataComponent {
 
   form = this.fb.group({
       car: this.fb.control<CarData | null>(null, [Validators.required]),
-      // Kept on 'change': the search input's value is read directly on (keyup.enter) to trigger
-      // an employee lookup, so it must stay in sync with every keystroke rather than only on blur.
       driverSearchInput: this.fb.control<string | null>(null,
-        {
-          validators: [
-            Validators.required,
-            Validators.maxLength(50),
-            CustomValidator.hasValue(() => this.selectedDriver(), 'Bitte die Mitarbeiter-Suche starten')
-          ],
-          updateOn: 'change'
-        }
+        [
+          Validators.required,
+          Validators.maxLength(50),
+          CustomValidator.hasValue(() => this.selectedDriver(), 'Bitte die Mitarbeiter-Suche starten')
+        ]
       ),
       coDriverSearchInput: this.fb.control<string | null>(null,
-        {
-          validators: [
-            Validators.required,
-            Validators.maxLength(50),
-            CustomValidator.hasValue(() => this.selectedCoDriver(), 'Bitte die Mitarbeiter-Suche starten')
-          ],
-          updateOn: 'change'
-        }
+        [
+          Validators.required,
+          Validators.maxLength(50),
+          CustomValidator.hasValue(() => this.selectedCoDriver(), 'Bitte die Mitarbeiter-Suche starten')
+        ]
       ),
       kmStart: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
       kmEnd: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
     },
     {
-      validators: [this.createKmValidation()],
-      updateOn: 'blur'
+      validators: [this.createKmValidation()]
     }
   );
 

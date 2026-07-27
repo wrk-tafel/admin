@@ -45,10 +45,10 @@
                               type="email"
                               [formControlName]="k"
                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                              [class.border-red-500]="address.invalid && (address.dirty || address.touched)"
+                              [class.border-red-500]="address.invalid && address.touched"
                               [class.border-green-500]="address.valid && (address.dirty || address.touched)"
                             >
-                            @if (address.errors && (address.dirty || address.touched)) {
+                            @if (address.errors && address.touched) {
                               <div class="mt-1 text-sm text-red-600">
                                 Ungültige E-Mail Adresse
                               </div>

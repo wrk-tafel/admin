@@ -33,9 +33,6 @@ export class FoodCollectionRecordingItemsDesktopComponent {
 
   form = this.fb.group({
       categories: this.fb.array([]),
-    },
-    {
-      updateOn: 'blur'
     }
   );
 
@@ -70,13 +67,9 @@ export class FoodCollectionRecordingItemsDesktopComponent {
             this.fb.group({
               shopId: this.fb.control<number>(shop.id, {nonNullable: true}),
               amount: this.fb.control<number>(this.getCurrentValue(items, category, shop), [Validators.required, Validators.min(0)]),
-            }, {
-              updateOn: 'blur'
             })
           )
         ),
-      }, {
-        updateOn: 'blur'
       })
     );
 

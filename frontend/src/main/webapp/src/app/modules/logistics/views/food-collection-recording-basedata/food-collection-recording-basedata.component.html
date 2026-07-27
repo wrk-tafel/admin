@@ -12,7 +12,7 @@
         </select>
         <fa-icon [icon]="faTruck"></fa-icon>
       </div>
-      @if (car.errors?.required && (car.dirty || car.touched)) {
+      @if (car.errors?.required && car.touched) {
         <div class="invalid-feedback">
           Pflichtfeld
         </div>
@@ -22,15 +22,15 @@
       <label class="form-label">KM Start *</label>
       <div class="flex items-center gap-2">
         <input testid="kmStartInput" type="number" formControlName="kmStart" class="form-control"
-               [ngClass]="{'is-invalid': kmStart.invalid && (kmStart.dirty || kmStart.touched), 'is-valid': kmStart.valid && (kmStart.dirty || kmStart.touched)}">
+               [ngClass]="{'is-invalid': kmStart.invalid && kmStart.touched, 'is-valid': kmStart.valid && (kmStart.dirty || kmStart.touched)}">
         <fa-icon [icon]="faGauge"></fa-icon>
       </div>
-      @if (kmStart.errors?.required && (kmStart.dirty || kmStart.touched)) {
+      @if (kmStart.errors?.required && kmStart.touched) {
         <div class="invalid-feedback">
           Pflichtfeld
         </div>
       }
-      @if (kmStart.errors?.min && (kmStart.dirty || kmStart.touched)) {
+      @if (kmStart.errors?.min && kmStart.touched) {
         <div class="invalid-feedback">
           Muss mindestens 1 sein
         </div>
@@ -40,20 +40,20 @@
       <label class="form-label">KM Ende *</label>
       <div class="flex items-center gap-2">
         <input testid="kmEndInput" type="number" formControlName="kmEnd" class="form-control"
-               [ngClass]="{'is-invalid': kmEnd.invalid && (kmEnd.dirty || kmEnd.touched), 'is-valid': kmEnd.valid && (kmEnd.dirty || kmEnd.touched)}">
+               [ngClass]="{'is-invalid': kmEnd.invalid && kmEnd.touched, 'is-valid': kmEnd.valid && (kmEnd.dirty || kmEnd.touched)}">
         <fa-icon [icon]="faGauge"></fa-icon>
       </div>
-      @if (kmEnd.errors?.required && (kmEnd.dirty || kmEnd.touched)) {
+      @if (kmEnd.errors?.required && kmEnd.touched) {
         <div class="invalid-feedback">
           Pflichtfeld
         </div>
       }
-      @if (kmEnd.errors?.min && (kmEnd.dirty || kmEnd.touched)) {
+      @if (kmEnd.errors?.min && kmEnd.touched) {
         <div class="invalid-feedback">
           Muss mindestens 1 sein
         </div>
       }
-      @if (kmEnd.errors?.kmValidation && (kmEnd.dirty || kmEnd.touched)) {
+      @if (kmEnd.errors?.kmValidation && kmEnd.touched) {
         <div class="invalid-feedback">
           KM Ende muss größer als KM Start sein
         </div>
@@ -67,22 +67,22 @@
         <div class="flex items-center gap-2">
           <input testid="driverSearchInput" type="text" formControlName="driverSearchInput" class="form-control"
                  placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()"
-                 [ngClass]="{'is-invalid': driverSearchInput.invalid && (driverSearchInput.dirty || driverSearchInput.touched), 'is-valid': driverSearchInput.valid && (driverSearchInput.dirty || driverSearchInput.touched)}">
+                 [ngClass]="{'is-invalid': driverSearchInput.invalid && driverSearchInput.touched, 'is-valid': driverSearchInput.valid && (driverSearchInput.dirty || driverSearchInput.touched)}">
           <tafel-employee-search-create #driverEmployeeSearchCreate [testIdPrefix]="'driver'"
                                         [searchInput]="driverSearchInput.value ?? ''"
                                         (selectedEmployee)="setSelectedDriver($event)"/>
         </div>
-        @if (driverSearchInput.errors?.required && (driverSearchInput.dirty || driverSearchInput.touched)) {
+        @if (driverSearchInput.errors?.required && driverSearchInput.touched) {
           <div class="invalid-feedback">
             Pflichtfeld
           </div>
         }
-        @if (driverSearchInput.errors?.maxlength && (driverSearchInput.dirty || driverSearchInput.touched)) {
+        @if (driverSearchInput.errors?.maxlength && driverSearchInput.touched) {
           <div class="invalid-feedback">
             Fahrer zu lang (Limit: {{ driverSearchInput.errors?.maxlength.requiredLength }})
           </div>
         }
-        @if (driverSearchInput.errors?.hasValue && (driverSearchInput.dirty || driverSearchInput.touched)) {
+        @if (driverSearchInput.errors?.hasValue && driverSearchInput.touched) {
           <div class="invalid-feedback">
             {{ driverSearchInput.errors?.hasValue.message }}
           </div>
@@ -104,22 +104,22 @@
         <div class="flex items-center gap-2">
           <input testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" class="form-control"
                  placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()"
-                 [ngClass]="{'is-invalid': coDriverSearchInput.invalid && (coDriverSearchInput.dirty || coDriverSearchInput.touched), 'is-valid': coDriverSearchInput.valid && (coDriverSearchInput.dirty || coDriverSearchInput.touched)}">
+                 [ngClass]="{'is-invalid': coDriverSearchInput.invalid && coDriverSearchInput.touched, 'is-valid': coDriverSearchInput.valid && (coDriverSearchInput.dirty || coDriverSearchInput.touched)}">
           <tafel-employee-search-create #coDriverEmployeeSearchCreate [testIdPrefix]="'codriver'"
                                         [searchInput]="coDriverSearchInput.value ?? ''"
                                         (selectedEmployee)="setSelectedCoDriver($event)"/>
         </div>
-        @if (coDriverSearchInput.errors?.required && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
+        @if (coDriverSearchInput.errors?.required && coDriverSearchInput.touched) {
           <div class="invalid-feedback">
             Pflichtfeld
           </div>
         }
-        @if (coDriverSearchInput.errors?.maxlength && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
+        @if (coDriverSearchInput.errors?.maxlength && coDriverSearchInput.touched) {
           <div class="invalid-feedback">
             Beifahrer zu lang (Limit: {{ coDriverSearchInput.errors?.maxlength.requiredLength }})
           </div>
         }
-        @if (coDriverSearchInput.errors?.hasValue && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
+        @if (coDriverSearchInput.errors?.hasValue && coDriverSearchInput.touched) {
           <div class="invalid-feedback">
             {{ coDriverSearchInput.errors?.hasValue.message }}
           </div>

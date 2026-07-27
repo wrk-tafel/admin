@@ -7,11 +7,11 @@
         <input [attr.testid]="data.testIdPrefix + 'personnelnumber-input'" type="text"
                formControlName="personnelNumber"
                class="form-control"
-               [ngClass]="{'is-invalid': personnelNumber.invalid && (personnelNumber.dirty || personnelNumber.touched), 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
-        @if (personnelNumber.errors?.required && (personnelNumber.dirty || personnelNumber.touched)) {
+               [ngClass]="{'is-invalid': personnelNumber.invalid && personnelNumber.touched, 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
+        @if (personnelNumber.errors?.required && personnelNumber.touched) {
           <div class="invalid-feedback">Pflichtfeld</div>
         }
-        @if (personnelNumber.errors?.maxlength && (personnelNumber.dirty || personnelNumber.touched)) {
+        @if (personnelNumber.errors?.maxlength && personnelNumber.touched) {
           <div class="invalid-feedback">
             Personalnummer zu lang (Limit: {{ personnelNumber.errors?.maxlength.requiredLength }})
           </div>
@@ -21,11 +21,11 @@
         <label class="form-label">Vorname *</label>
         <input [attr.testid]="data.testIdPrefix + 'firstname-input'" type="text" formControlName="firstname"
                class="form-control"
-               [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
-        @if (firstname.errors?.required && (firstname.dirty || firstname.touched)) {
+               [ngClass]="{'is-invalid': firstname.invalid && firstname.touched, 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+        @if (firstname.errors?.required && firstname.touched) {
           <div class="invalid-feedback">Pflichtfeld</div>
         }
-        @if (firstname.errors?.maxlength && (firstname.dirty || firstname.touched)) {
+        @if (firstname.errors?.maxlength && firstname.touched) {
           <div class="invalid-feedback">
             Vorname zu lang (Limit: {{ firstname.errors?.maxlength.requiredLength }})
           </div>
@@ -35,11 +35,11 @@
         <label class="form-label">Nachname *</label>
         <input [attr.testid]="data.testIdPrefix + 'lastname-input'" type="text" formControlName="lastname"
                class="form-control"
-               [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
-        @if (lastname.errors?.required && (lastname.dirty || lastname.touched)) {
+               [ngClass]="{'is-invalid': lastname.invalid && lastname.touched, 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
+        @if (lastname.errors?.required && lastname.touched) {
           <div class="invalid-feedback">Pflichtfeld</div>
         }
-        @if (lastname.errors?.maxlength && (lastname.dirty || lastname.touched)) {
+        @if (lastname.errors?.maxlength && lastname.touched) {
           <div class="invalid-feedback">
             Nachname zu lang (Limit: {{ lastname.errors?.maxlength.requiredLength }})
           </div>

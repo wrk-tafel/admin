@@ -14,12 +14,12 @@
           formControlName="employeeCount"
           placeholder="Anzahl der Mitarbeiter"
         />
-        @if (employeeCount.errors?.required) {
+        @if (employeeCount.errors?.required && employeeCount.touched) {
           <mat-error>
             Pflichtfeld
           </mat-error>
         }
-        @if (employeeCount.errors?.min) {
+        @if (employeeCount.errors?.min && employeeCount.touched) {
           <mat-error>
             Muss mindestens 1 sein
           </mat-error>
@@ -37,12 +37,12 @@
             [readonly]="true"
             [disabled]="panelDisabled()"
           />
-          @if (personsInShelterCount.errors?.required) {
+          @if (personsInShelterCount.errors?.required && personsInShelterCount.touched) {
             <mat-error>
               Pflichtfeld
             </mat-error>
           }
-          @if (personsInShelterCount.errors?.min) {
+          @if (personsInShelterCount.errors?.min && personsInShelterCount.touched) {
             <mat-error>
               Muss mindestens 1 sein
             </mat-error>
