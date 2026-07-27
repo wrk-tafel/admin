@@ -13,10 +13,7 @@
 
     @if ((customerAboveLimitData()?.items?.length ?? 0) > 0) {
       <div class="mt-4">
-        <mat-paginator class="hidden sm:block" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
-                       [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
-                       (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
-        <mat-paginator class="block sm:hidden tafel-paginator-center" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
+        <mat-paginator [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
                        [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                        (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
       </div>
