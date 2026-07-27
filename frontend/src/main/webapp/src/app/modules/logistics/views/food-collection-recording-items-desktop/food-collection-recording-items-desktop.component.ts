@@ -12,6 +12,7 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-desktop',
@@ -121,5 +122,8 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   getShops(categoryIndex: number): FormArray {
     return this.categories.at(categoryIndex).get('shops') as FormArray;
   }
+
+  protected readonly isControlInvalid = isControlInvalid;
+  protected readonly isControlValid = isControlValid;
 
 }

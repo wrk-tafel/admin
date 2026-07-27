@@ -14,7 +14,7 @@
           <mat-tab>
             <ng-template mat-tab-label>
               <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
-                    [class.text-red-600]="recipientOfMailType.invalid">
+                    [class.text-red-600]="isControlInvalid(recipientOfMailType)">
                 {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
               </span>
             </ng-template>
@@ -45,10 +45,10 @@
                               type="email"
                               [formControlName]="k"
                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                              [class.border-red-500]="address.invalid && address.touched"
-                              [class.border-green-500]="address.valid && (address.dirty || address.touched)"
+                              [class.border-red-500]="isControlInvalid(address)"
+                              [class.border-green-500]="isControlValid(address)"
                             >
-                            @if (address.errors && address.touched) {
+                            @if (isControlInvalid(address)) {
                               <div class="mt-1 text-sm text-red-600">
                                 Ungültige E-Mail Adresse
                               </div>

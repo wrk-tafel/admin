@@ -13,7 +13,7 @@
         <tbody formArrayName="categories">
           @for (category of categories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex"
-                [ngClass]="{'bg-red-100': !category.untouched && category.invalid, 'bg-green-100': !category.untouched && !category.invalid}">
+                [ngClass]="{'bg-red-100': isControlInvalid(category), 'bg-green-100': isControlValid(category)}">
               <td class="font-bold">{{ foodCategories()?.[categoryIndex]?.name }}</td>
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
