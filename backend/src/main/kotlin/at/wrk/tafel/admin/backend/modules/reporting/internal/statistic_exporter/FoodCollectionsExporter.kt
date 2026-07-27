@@ -10,7 +10,6 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Component
 class FoodCollectionsExporter(
@@ -20,7 +19,7 @@ class FoodCollectionsExporter(
 
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance(Locale.GERMANY)
+        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance()
     }
 
     override fun getName(): String {
@@ -67,15 +66,18 @@ class FoodCollectionsExporter(
                     .sortedBy { it.number }
                     .distinctBy { it.id }
 
-                shops.forEach { shop ->
+                shops.forEach { currentShop ->
                     val columns = mutableListOf<String>()
                     columns.add(distribution.startedAt!!.format(DATE_FORMATTER))
                     columns.add(foodCollection.route!!.number!!.toString())
-                    columns.add(shop.number.toString())
+                    columns.add(currentShop.number.toString())
 
-                    sortedFoodCategories.forEach { category ->
+                    sortedFoodCategories.forEach { foodCategory ->
+                        // Kotlin types category/shop as nullable, but Sonar's JPA-aware analysis assumes the
+                        // @JoinColumn(nullable = false) guarantee and flags null-handling here as redundant either
+                        // way (!! or ?.) - keep the safe call, it's still correct if that assumption is ever wrong.
                         val itemPerCategory =
-                            items.firstOrNull { it.category!!.id == category.id && it.shop!!.id == shop.id }
+                            items.firstOrNull { it.category?.id == foodCategory.id && it.shop?.id == currentShop.id } // NOSONAR
                         val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }

@@ -6,7 +6,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 @Component
 class AgeDistributionExporter : StatisticExporter {
@@ -60,7 +59,7 @@ class AgeDistributionExporter : StatisticExporter {
                 listOf(
                     ageRange.rangeName,
                     countCustomersPerRange.toString(),
-                    String.format(Locale.GERMAN,"%.2f", percentageCustomersPerRange.toFloat()),
+                    String.format("%.2f", percentageCustomersPerRange.toFloat()),
                     countPersonsPerRange.toString(),
                     averagePersonsPerHousehold.toString(),
                 )

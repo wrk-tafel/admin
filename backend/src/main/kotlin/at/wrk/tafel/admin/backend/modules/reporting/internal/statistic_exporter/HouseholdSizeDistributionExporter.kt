@@ -5,7 +5,6 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Component
 class HouseholdSizeDistributionExporter : StatisticExporter {
@@ -38,7 +37,7 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
             val percentage =
                 if (householdsCount > 0) (personCountPerSize.toDouble() / householdsCount) * 100 else 0
 
-            rows.add(listOf(personSize.toString(), personCountPerSize.toString(), String.format(Locale.GERMAN,"%.2f", percentage.toFloat())))
+            rows.add(listOf(personSize.toString(), personCountPerSize.toString(), String.format("%.2f", percentage.toFloat())))
         }
 
         return rows

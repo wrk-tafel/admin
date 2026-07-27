@@ -57,7 +57,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     {
       provide: LOCALE_ID,
-      useValue: 'de-AT'
+      useValue: 'de-DE'
     },
     {
       provide: DEFAULT_CURRENCY_CODE,

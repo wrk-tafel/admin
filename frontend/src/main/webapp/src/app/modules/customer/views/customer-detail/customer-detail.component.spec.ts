@@ -7,8 +7,8 @@ import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule, Location, registerLocaleData} from '@angular/common';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID, signal} from '@angular/core';
+import {CommonModule, Location} from '@angular/common';
+import {signal} from '@angular/core';
 import {
   CustomerNoteApiService,
   CustomerNoteItem,
@@ -20,7 +20,6 @@ import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
 import {provideLocationMocks} from '@angular/common/testing';
 import {CustomerSearchComponent} from '../customer-search/customer-search.component';
-import localeDeAt from '@angular/common/locales/de-AT';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -28,9 +27,6 @@ import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-
-// Register de-AT locale
-registerLocaleData(localeDeAt);
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
@@ -172,14 +168,6 @@ describe('CustomerDetailComponent', () => {
       ],
       providers: [
         {
-          provide: LOCALE_ID,
-          useValue: 'de-AT'
-        },
-        {
-          provide: DEFAULT_CURRENCY_CODE,
-          useValue: 'EUR'
-        },
-        {
           provide: CustomerApiService,
           useValue: customerApiServiceSpy
         },
@@ -267,13 +255,13 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addressLine1Text')).toBe('Teststraße 123A, Stiege 1, Top 21');
     expect(getTextByTestId(fixture, 'addressLine2Text')).toBe('1020 Wien');
     expect(getTextByTestId(fixture, 'employerText')).toBe('test employer');
-    expect(getTextByTestId(fixture, 'incomeText')).toBe('€ 1.000,00');
+    expect(getTextByTestId(fixture, 'incomeText')).toBe('1.000,00 €');
 
     expect(getTextByTestId(fixture, 'incomeDueText')).toBe(dayjs(mockCustomer.incomeDue).format('DD.MM.YYYY'));
     expect(getTextByTestId(fixture, 'validUntilText')).toBe(dayjs(mockCustomer.validUntil).format('DD.MM.YYYY'));
     expect(getTextByTestId(fixture, 'issuedInformation'))
       .toBe('am ' + dayjs(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
-    expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('€ 123,00');
+    expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('123,00 €');
 
     expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
 
@@ -295,7 +283,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(getTextByTestId(fixture, 'addperson-0-countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
-    expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
+    expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('50,00 €');
     expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
       .toBe(dayjs(mockCustomer.additionalPersons![0].incomeDue).format('DD.MM.YYYY'));
 

@@ -317,7 +317,7 @@ class StatisticsService(
             val cols = row as Array<*>
             val label = cols[0] as String
             val value = cols[1] as? Number ?: 0
-            // Locale.ROOT (dot decimal separator) here, not the JVM default (de-AT, comma separator) - this
+            // Locale.ROOT (dot decimal separator) here, not the JVM default (de-DE, comma separator) - this
             // round-trips through Kotlin's locale-independent String.toDouble(), which would throw
             // NumberFormatException on a comma-formatted string like "0,00".
             val valueFormatted = if (value is Double) String.format(Locale.ROOT, "%.2f", value).toDouble() else value

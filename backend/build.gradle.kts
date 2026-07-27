@@ -112,9 +112,9 @@ tasks.withType<Test> {
     useJUnitPlatform()
     include("**/*Test.class", "**/*IT.class")
 
-    // Use German (Austria) locale for tests in CI so CSV/date/number formatting matches local dev
+    // Use German (Germany) locale for tests in CI so CSV/date/number formatting matches local dev
     systemProperty("user.language", "de")
-    systemProperty("user.country", "AT")
+    systemProperty("user.country", "DE")
     systemProperty("user.timezone", "Europe/Vienna")
 }
 
