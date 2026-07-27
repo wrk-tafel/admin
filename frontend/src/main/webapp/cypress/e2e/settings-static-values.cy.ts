@@ -14,22 +14,54 @@ describe('Settings - Static Values', () => {
     cy.byTestId('addStaticValueButton').should('not.exist');
   });
 
-  it('shows type/counts as read-only (no date range shown) and only allows changing the amount', () => {
-    cy.get('[testid^="editStaticValueButton-"]').first().click();
+  it('shows an inline input for the amount only, other columns stay read-only', () => {
+    cy.byTestId('editStaticValueButton-0').click();
 
-    cy.byTestId('static-value-readonly-fields').should('contain.text', 'Einkommensgrenze');
-    cy.get('input[formControlName]').should('have.length', 1);
-    cy.get('input[formControlName="amount"]').should('be.visible');
+    cy.byTestId('static-values-row-0').find('input[type="number"]').should('have.length', 1);
   });
 
-  it('edits the amount of a static value', () => {
-    cy.get('[testid^="editStaticValueButton-"]').first().click();
+  it('focuses the amount input when starting an inline edit', () => {
+    cy.byTestId('editStaticValueButton-0').click();
 
-    cy.byTestId('staticValueAmountInput').should('be.visible').clear().type('1500');
-    cy.byTestId('static-value-save-button').click();
+    cy.byTestId('staticValueAmountInput-0').should('be.focused');
+  });
+
+  it('edits the amount of a static value inline', () => {
+    cy.byTestId('editStaticValueButton-0').click();
+
+    cy.byTestId('staticValueAmountInput-0').should('be.visible').clear().type('1500');
+    cy.byTestId('saveStaticValueButton-0').click();
 
     cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
     cy.byTestId('static-values-row-0').should('contain.text', '1.500,00');
+  });
+
+  it('discards changes when cancelling an inline edit', () => {
+    cy.byTestId('static-values-row-0').invoke('text').then((originalText) => {
+      cy.byTestId('editStaticValueButton-0').click();
+      cy.byTestId('staticValueAmountInput-0').clear().type('999999');
+      cy.byTestId('cancelStaticValueButton-0').click();
+
+      cy.byTestId('static-values-row-0').should('have.text', originalText);
+    });
+  });
+
+  it('saves the inline edit when pressing Enter', () => {
+    cy.byTestId('editStaticValueButton-0').click();
+
+    cy.byTestId('staticValueAmountInput-0').should('be.visible').clear().type('1600{enter}');
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+    cy.byTestId('static-values-row-0').should('contain.text', '1.600,00');
+  });
+
+  it('discards changes when pressing Escape', () => {
+    cy.byTestId('static-values-row-0').invoke('text').then((originalText) => {
+      cy.byTestId('editStaticValueButton-0').click();
+      cy.byTestId('staticValueAmountInput-0').clear().type('999999{esc}');
+
+      cy.byTestId('static-values-row-0').should('have.text', originalText);
+    });
   });
 
 });
