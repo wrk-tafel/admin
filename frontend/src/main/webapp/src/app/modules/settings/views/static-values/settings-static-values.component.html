@@ -32,7 +32,8 @@
           @if (editingId() === staticValue.id) {
             <mat-form-field subscriptSizing="dynamic">
               <input matInput type="number" step="0.01" [formControl]="amountControl"
-                     [attr.testid]="'staticValueAmountInput-' + i"/>
+                     [attr.testid]="'staticValueAmountInput-' + i"
+                     (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
               <span matTextSuffix>&nbsp;€</span>
             </mat-form-field>
           } @else {
