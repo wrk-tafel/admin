@@ -77,6 +77,28 @@ describe('AppComponent', () => {
     expect(app.navigating()).toBe(false);
   });
 
+  it('ignores a stale End event from a navigation already superseded by a newer one', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const app = fixture.componentInstance;
+
+    // navigation 1 starts, then navigation 2 starts and supersedes it before 1 settles
+    routerEventsSubject.next(new NavigationStart(1, '/test'));
+    routerEventsSubject.next(new NavigationStart(2, '/test-2'));
+    fixture.detectChanges();
+
+    // a late/stale End for the superseded navigation 1 must not clear the bar for navigation 2
+    routerEventsSubject.next(new NavigationEnd(1, '/test', '/test'));
+    fixture.detectChanges();
+
+    expect(app.navigating()).toBe(true);
+
+    routerEventsSubject.next(new NavigationEnd(2, '/test-2', '/test-2'));
+    fixture.detectChanges();
+
+    expect(app.navigating()).toBe(false);
+  });
+
   it('scrolls to top on NavigationEnd', () => {
     const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {
     });

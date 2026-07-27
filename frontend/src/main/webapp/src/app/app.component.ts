@@ -1,8 +1,7 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterOutlet} from '@angular/router';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
-
-import {toSignal} from '@angular/core/rxjs-interop';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -17,20 +16,32 @@ import {toSignal} from '@angular/core/rxjs-interop';
 export class AppComponent {
   private readonly router = inject(Router);
 
-  private readonly routerEvents = toSignal(this.router.events);
-
   // Route resolvers (e.g. list-page data fetches) block navigation before the target component
   // even mounts, so a component-level spinner can't cover that window - this shows a top-level
   // bar for the whole navigation instead, from NavigationStart until it settles either way.
+  //
+  // Subscribes directly to router.events rather than going through toSignal()/effect(): a single
+  // navigation fires many events synchronously in quick succession (NavigationStart,
+  // RouteConfigLoadStart, ResolveStart, ...), and toSignal() only guarantees the latest value to
+  // its consumers - effect() can and does miss an intermediate event (verified: NavigationStart
+  // was silently dropped this way when a slow resolver was involved), where a plain subscription
+  // processes every emission.
   readonly navigating = signal(false);
 
+  // Tracks which navigation the bar is currently shown for, so an End/Cancel/Error belonging to
+  // an unrelated, already-superseded navigation can't clear the bar while the navigation the user
+  // actually triggered is still in flight.
+  private currentNavigationId: number | null = null;
+
   constructor() {
-    effect(() => {
-      const evt = this.routerEvents();
+    this.router.events.pipe(takeUntilDestroyed()).subscribe(evt => {
       if (evt instanceof NavigationStart) {
+        this.currentNavigationId = evt.id;
         this.navigating.set(true);
       } else if (evt instanceof NavigationEnd || evt instanceof NavigationCancel || evt instanceof NavigationError) {
-        this.navigating.set(false);
+        if (evt.id === this.currentNavigationId) {
+          this.navigating.set(false);
+        }
       }
 
       if (evt instanceof NavigationEnd) {
