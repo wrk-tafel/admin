@@ -31,7 +31,7 @@
         <td mat-cell *matCellDef="let staticValue; let i = index">
           @if (editingId() === staticValue.id) {
             <mat-form-field subscriptSizing="dynamic">
-              <input matInput type="number" step="0.01" [formControl]="amountControl"
+              <input #amountInput matInput type="number" step="0.01" [formControl]="amountControl"
                      [attr.testid]="'staticValueAmountInput-' + i"
                      (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
               <span matTextSuffix>&nbsp;€</span>

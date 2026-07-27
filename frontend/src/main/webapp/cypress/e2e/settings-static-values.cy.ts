@@ -20,6 +20,12 @@ describe('Settings - Static Values', () => {
     cy.byTestId('static-values-row-0').find('input[type="number"]').should('have.length', 1);
   });
 
+  it('focuses the amount input when starting an inline edit', () => {
+    cy.byTestId('editStaticValueButton-0').click();
+
+    cy.byTestId('staticValueAmountInput-0').should('be.focused');
+  });
+
   it('edits the amount of a static value inline', () => {
     cy.byTestId('editStaticValueButton-0').click();
 
