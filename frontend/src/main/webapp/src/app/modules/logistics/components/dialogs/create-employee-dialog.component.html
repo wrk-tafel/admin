@@ -7,7 +7,7 @@
         <input [attr.testid]="data.testIdPrefix + 'personnelnumber-input'" type="text"
                formControlName="personnelNumber"
                class="form-control"
-               [ngClass]="{'is-invalid': personnelNumber.invalid && personnelNumber.touched, 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
+               [ngClass]="controlStateClasses(personnelNumber)">
         @if (personnelNumber.errors?.required && personnelNumber.touched) {
           <div class="invalid-feedback">Pflichtfeld</div>
         }
@@ -21,7 +21,7 @@
         <label class="form-label">Vorname *</label>
         <input [attr.testid]="data.testIdPrefix + 'firstname-input'" type="text" formControlName="firstname"
                class="form-control"
-               [ngClass]="{'is-invalid': firstname.invalid && firstname.touched, 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+               [ngClass]="controlStateClasses(firstname)">
         @if (firstname.errors?.required && firstname.touched) {
           <div class="invalid-feedback">Pflichtfeld</div>
         }
@@ -35,7 +35,7 @@
         <label class="form-label">Nachname *</label>
         <input [attr.testid]="data.testIdPrefix + 'lastname-input'" type="text" formControlName="lastname"
                class="form-control"
-               [ngClass]="{'is-invalid': lastname.invalid && lastname.touched, 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
+               [ngClass]="controlStateClasses(lastname)">
         @if (lastname.errors?.required && lastname.touched) {
           <div class="invalid-feedback">Pflichtfeld</div>
         }

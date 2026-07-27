@@ -59,3 +59,43 @@ export function getErrorMessages(fieldState: FieldState<any>): string[] {
 export function shouldShowErrors(fieldState: FieldState<any>): boolean {
   return !fieldState.valid() && fieldState.touched();
 }
+
+/**
+ * Get the error messages that should currently be displayed for a field.
+ *
+ * Combines {@link shouldShowErrors} and {@link getErrorMessages} so templates don't need
+ * to repeat both the visibility check and the message lookup for every field.
+ *
+ * @param fieldState The field state from a signal form
+ * @returns The error messages to display, or an empty array if none should be shown yet
+ *
+ * @example
+ * ```html
+ * <!-- In template -->
+ * @for (errorMessage of visibleErrorMessages(userForm.username()); track $index) {
+ *   <div class="invalid-feedback">{{errorMessage}}</div>
+ * }
+ * ```
+ */
+export function visibleErrorMessages(fieldState: FieldState<any>): string[] {
+  return shouldShowErrors(fieldState) ? getErrorMessages(fieldState) : [];
+}
+
+/**
+ * Get the `is-invalid`/`is-valid` CSS classes for a field, for use with `[ngClass]`.
+ *
+ * @param fieldState The field state from a signal form
+ * @returns An object suitable for binding to `[ngClass]`
+ *
+ * @example
+ * ```html
+ * <!-- In template -->
+ * <input [ngClass]="fieldStateClasses(userForm.username())">
+ * ```
+ */
+export function fieldStateClasses(fieldState: FieldState<any>): Record<string, boolean> {
+  return {
+    'is-invalid': shouldShowErrors(fieldState),
+    'is-valid': fieldState.valid() && (fieldState.dirty() || fieldState.touched())
+  };
+}

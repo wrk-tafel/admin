@@ -6,6 +6,7 @@ import {CommonModule} from '@angular/common';
 import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {controlStateClasses} from '../../../../common/util/reactive-form-helper';
 
 export interface CreateEmployeeDialogData {
   testId: string;
@@ -58,4 +59,6 @@ export class CreateEmployeeDialogComponent {
   get lastname() {
     return this.createEmployeeForm.get('lastname')!;
   }
+
+  protected readonly controlStateClasses = controlStateClasses;
 }

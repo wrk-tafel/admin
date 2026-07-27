@@ -11,6 +11,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {MatDivider} from '@angular/material/list';
 import {MatIcon} from '@angular/material/icon';
+import {visibleErrorMessages} from '../../util/signal-form-helper';
 
 @Component({
   selector: 'tafel-passwordchange-form',
@@ -135,4 +136,5 @@ export class PasswordChangeFormComponent {
 
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
+  protected readonly visibleErrorMessages = visibleErrorMessages;
 }

@@ -7,7 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
-import {getErrorMessages, shouldShowErrors} from '../../../../common/util/signal-form-helper';
+import {fieldStateClasses, visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
@@ -139,15 +139,8 @@ export class UserFormComponent {
   }
 
   public markAllAsTouched() {
-    // Manually mark all fields as touched in signal forms
-    this.userForm.personnelNumber().markAsTouched();
-    this.userForm.username().markAsTouched();
-    this.userForm.lastname().markAsTouched();
-    this.userForm.firstname().markAsTouched();
-    this.userForm.password().markAsTouched();
-    this.userForm.passwordRepeat().markAsTouched();
-    this.userForm.enabled().markAsTouched();
-    this.userForm.passwordChangeRequired().markAsTouched();
+    // markAsTouched() cascades to all descendant fields
+    this.userForm().markAsTouched();
   }
 
   public isValid(): boolean {
@@ -194,8 +187,8 @@ export class UserFormComponent {
   }
 
   // Expose utility functions for template use
-  protected readonly getErrorMessages = getErrorMessages;
-  protected readonly shouldShowErrors = shouldShowErrors;
+  protected readonly visibleErrorMessages = visibleErrorMessages;
+  protected readonly fieldStateClasses = fieldStateClasses;
 
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faEye = faEye;

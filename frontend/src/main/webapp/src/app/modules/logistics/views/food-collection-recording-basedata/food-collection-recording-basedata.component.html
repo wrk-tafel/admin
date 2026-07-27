@@ -22,7 +22,7 @@
       <label class="form-label">KM Start *</label>
       <div class="flex items-center gap-2">
         <input testid="kmStartInput" type="number" formControlName="kmStart" class="form-control"
-               [ngClass]="{'is-invalid': kmStart.invalid && kmStart.touched, 'is-valid': kmStart.valid && (kmStart.dirty || kmStart.touched)}">
+               [ngClass]="controlStateClasses(kmStart)">
         <fa-icon [icon]="faGauge"></fa-icon>
       </div>
       @if (kmStart.errors?.required && kmStart.touched) {
@@ -40,7 +40,7 @@
       <label class="form-label">KM Ende *</label>
       <div class="flex items-center gap-2">
         <input testid="kmEndInput" type="number" formControlName="kmEnd" class="form-control"
-               [ngClass]="{'is-invalid': kmEnd.invalid && kmEnd.touched, 'is-valid': kmEnd.valid && (kmEnd.dirty || kmEnd.touched)}">
+               [ngClass]="controlStateClasses(kmEnd)">
         <fa-icon [icon]="faGauge"></fa-icon>
       </div>
       @if (kmEnd.errors?.required && kmEnd.touched) {
@@ -67,7 +67,7 @@
         <div class="flex items-center gap-2">
           <input testid="driverSearchInput" type="text" formControlName="driverSearchInput" class="form-control"
                  placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()"
-                 [ngClass]="{'is-invalid': driverSearchInput.invalid && driverSearchInput.touched, 'is-valid': driverSearchInput.valid && (driverSearchInput.dirty || driverSearchInput.touched)}">
+                 [ngClass]="controlStateClasses(driverSearchInput)">
           <tafel-employee-search-create #driverEmployeeSearchCreate [testIdPrefix]="'driver'"
                                         [searchInput]="driverSearchInput.value ?? ''"
                                         (selectedEmployee)="setSelectedDriver($event)"/>
@@ -104,7 +104,7 @@
         <div class="flex items-center gap-2">
           <input testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" class="form-control"
                  placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()"
-                 [ngClass]="{'is-invalid': coDriverSearchInput.invalid && coDriverSearchInput.touched, 'is-valid': coDriverSearchInput.valid && (coDriverSearchInput.dirty || coDriverSearchInput.touched)}">
+                 [ngClass]="controlStateClasses(coDriverSearchInput)">
           <tafel-employee-search-create #coDriverEmployeeSearchCreate [testIdPrefix]="'codriver'"
                                         [searchInput]="coDriverSearchInput.value ?? ''"
                                         (selectedEmployee)="setSelectedCoDriver($event)"/>

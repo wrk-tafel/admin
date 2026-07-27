@@ -8,21 +8,17 @@
         <div>
           <label class="form-label">Benutzername *</label>
           <input [formField]="userForm.username" testid="usernameInput" type="text" class="form-control" tafelAutofocus
-                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.username()), 'is-valid': userForm.username().valid() && (userForm.username().dirty() || userForm.username().touched())}">
-          @if (shouldShowErrors(userForm.username())) {
-            @for (errorMessage of getErrorMessages(userForm.username()); track errorMessage) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+                 [ngClass]="fieldStateClasses(userForm.username())">
+          @for (errorMessage of visibleErrorMessages(userForm.username()); track errorMessage) {
+            <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
         <div>
           <label class="form-label">Personalnummer *</label>
           <input testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber" class="form-control"
-                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.personnelNumber()), 'is-valid': userForm.personnelNumber().valid() && (userForm.personnelNumber().dirty() || userForm.personnelNumber().touched())}">
-          @if (shouldShowErrors(userForm.personnelNumber())) {
-            @for (errorMessage of getErrorMessages(userForm.personnelNumber()); track errorMessage) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+                 [ngClass]="fieldStateClasses(userForm.personnelNumber())">
+          @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
+            <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
       </div>
@@ -30,22 +26,18 @@
         <div>
           <label class="form-label">Nachname *</label>
           <input testid="lastnameInput" type="text" [formField]="userForm.lastname" class="form-control"
-                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.lastname()), 'is-valid': userForm.lastname().valid() && (userForm.lastname().dirty() || userForm.lastname().touched())}">
-          @if (shouldShowErrors(userForm.lastname())) {
-            @for (errorMessage of getErrorMessages(userForm.lastname()); track errorMessage) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+                 [ngClass]="fieldStateClasses(userForm.lastname())">
+          @for (errorMessage of visibleErrorMessages(userForm.lastname()); track errorMessage) {
+            <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
         <div>
           <label class="form-label">Vorname *</label>
           <input testid="firstnameInput" type="text" [formField]="userForm.firstname" class="form-control"
                  autocomplete="new-password"
-                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.firstname()), 'is-valid': userForm.firstname().valid() && (userForm.firstname().dirty() || userForm.firstname().touched())}">
-          @if (shouldShowErrors(userForm.firstname())) {
-            @for (errorMessage of getErrorMessages(userForm.firstname()); track errorMessage) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+                 [ngClass]="fieldStateClasses(userForm.firstname())">
+          @for (errorMessage of visibleErrorMessages(userForm.firstname()); track errorMessage) {
+            <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
       </div>
@@ -58,7 +50,7 @@
                    autocomplete="new-password"
                    [type]="passwordTextVisible() ? 'text' : 'password'"
                    [formField]="userForm.password" class="form-control"
-                   [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.password().valid() && (userForm.password().dirty() || userForm.password().touched())}">
+                   [ngClass]="fieldStateClasses(userForm.password())">
             <span (click)="togglePasswordVisibility()" class="cursor-pointer">
                   @if (!passwordTextVisible()) {
                     <fa-icon [icon]="faEyeSlash"></fa-icon>
@@ -68,10 +60,8 @@
                   }
             </span>
           </div>
-          @if (shouldShowErrors(userForm.passwordRepeat())) {
-            @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+          @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
+            <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
         <div>
@@ -81,7 +71,7 @@
                    autocomplete="new-password"
                    [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
                    [formField]="userForm.passwordRepeat" class="form-control"
-                   [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.passwordRepeat().valid() && (userForm.passwordRepeat().dirty() || userForm.passwordRepeat().touched())}">
+                   [ngClass]="fieldStateClasses(userForm.passwordRepeat())">
             <span (click)="togglePasswordRepeatVisibility()" class="cursor-pointer">
                   @if (!passwordRepeatTextVisible()) {
                     <fa-icon [icon]="faEyeSlash"></fa-icon>
@@ -91,10 +81,8 @@
                   }
             </span>
           </div>
-          @if (shouldShowErrors(userForm.passwordRepeat())) {
-            @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+          @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {
+            <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
       </div>
