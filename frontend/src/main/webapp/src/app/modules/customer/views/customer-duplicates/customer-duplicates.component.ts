@@ -25,8 +25,10 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   ]
 })
 export class CustomerDuplicatesComponent {
-  // Signal input from resolver - read-only input
-  readonly customerDuplicatesDataInput = input<CustomerDuplicatesResponse>();
+  // Input signal - aliased to match the route resolver data key (see customer.routes.ts) since the
+  // unaliased name below is already used for the locally-writable linkedSignal counterpart
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  readonly customerDuplicatesDataInput = input<CustomerDuplicatesResponse>(undefined, {alias: 'customerDuplicatesData'});
 
   // Writable signal linked to input - resets when input changes, locally writable for pagination/updates
   readonly customerDuplicatesData = linkedSignal(() => this.customerDuplicatesDataInput());
