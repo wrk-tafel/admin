@@ -292,13 +292,13 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     component.setSelectedDriver(mockEmployees[0]);
 
     expect(component.driverSearchInput.value).toEqual('D1');
-    expect(component.selectedDriver).toEqual(mockEmployees[0]);
+    expect(component.selectedDriver()).toEqual(mockEmployees[0]);
 
     // Reset driver
     component.resetDriver();
 
     expect(component.driverSearchInput.value).toBeNull();
-    expect(component.selectedDriver).toBeNull();
+    expect(component.selectedDriver()).toBeNull();
   });
 
   it('should reset co-driver when resetCoDriver is called', () => {
@@ -318,13 +318,13 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     component.setSelectedCoDriver(mockEmployees[1]);
 
     expect(component.coDriverSearchInput.value).toEqual('D2');
-    expect(component.selectedCoDriver).toEqual(mockEmployees[1]);
+    expect(component.selectedCoDriver()).toEqual(mockEmployees[1]);
 
     // Reset co-driver
     component.resetCoDriver();
 
     expect(component.coDriverSearchInput.value).toBeNull();
-    expect(component.selectedCoDriver).toBeNull();
+    expect(component.selectedCoDriver()).toBeNull();
   });
 
   it('should save route data when km difference is <= 350', () => {

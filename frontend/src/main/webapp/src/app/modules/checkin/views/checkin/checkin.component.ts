@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import dayjs from 'dayjs';
@@ -59,23 +59,22 @@ export class CheckinComponent {
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
   customerIdInputRef = viewChild<ElementRef>('customerIdInput');
   ticketNumberInputRef = viewChild<ElementRef>('ticketNumberInput');
   cancelButtonRef = viewChild<ElementRef>('cancelButton');
 
-  scannerIds: number[] = [];
-  currentScannerId: number | undefined;
-  scannerReadyState: boolean | undefined;
+  scannerIds = signal<number[]>([]);
+  currentScannerId = signal<number | undefined>(undefined);
+  scannerReadyState = signal<boolean | undefined>(undefined);
   scannerSubscription: Subscription | undefined;
-  customerId: number | undefined;
+  customerId = signal<number | undefined>(undefined);
   customer = signal<CustomerData | undefined>(undefined);
   customerState = signal<CustomerState | undefined>(undefined);
-  customerNotes: CustomerNoteItem[] | undefined;
-  ticketNumber: number | undefined;
-  ticketNumberEdit: boolean | undefined = false;
+  customerNotes = signal<CustomerNoteItem[] | undefined>(undefined);
+  ticketNumber = signal<number | undefined>(undefined);
+  ticketNumberEdit = signal<boolean | undefined>(false);
 
   customerStateColor = computed<string | null>(() => {
     switch (this.customerState()) {
@@ -145,30 +144,29 @@ export class CheckinComponent {
   }
 
   get selectedScannerId(): number | undefined {
-    return this.currentScannerId;
+    return this.currentScannerId();
   }
 
   set selectedScannerId(scannerId: number | undefined) {
-    this.currentScannerId = scannerId;
+    this.currentScannerId.set(scannerId);
     if (this.scannerSubscription) {
       this.scannerSubscription.unsubscribe();
     }
-    this.scannerReadyState = false;
+    this.scannerReadyState.set(false);
 
     if (scannerId) {
-      this.scannerSubscription = this.sseService.listen<ScanResult>(`/sse/scanners/${this.currentScannerId}/results`)
+      this.scannerSubscription = this.sseService.listen<ScanResult>(`/sse/scanners/${scannerId}/results`)
         .subscribe((result: ScanResult) => {
-          this.customerId = result.value;
+          this.customerId.set(result.value);
           this.searchForCustomerId();
-          this.cdr.markForCheck();
         });
 
-      this.scannerReadyState = true;
+      this.scannerReadyState.set(true);
     }
   }
 
   get scannerReadyStateColor(): string {
-    return this.scannerReadyState ? 'success' : 'danger';
+    return this.scannerReadyState() ? 'success' : 'danger';
   }
 
   readonly currentDistribution = this.globalStateService.getCurrentDistribution();
@@ -185,8 +183,7 @@ export class CheckinComponent {
     // Load scanners on init
     effect(() => {
       this.scannerApiService.getScanners().subscribe((response: ScannerList) => {
-        this.scannerIds = response.scannerIds;
-        this.cdr.markForCheck();
+        this.scannerIds.set(response.scannerIds);
       });
     });
 
@@ -203,39 +200,36 @@ export class CheckinComponent {
       next: (customerData: CustomerData) => {
         this.processCustomer(customerData);
 
-        this.customerNoteApiService.getNotesForCustomer(this.customerId!).subscribe(notesResponse => {
-          this.customerNotes = notesResponse.items;
-          this.cdr.markForCheck();
+        this.customerNoteApiService.getNotesForCustomer(this.customerId()!).subscribe(notesResponse => {
+          this.customerNotes.set(notesResponse.items);
         });
 
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!)
           .subscribe((ticketNumberResponse: TicketNumberResponse) => {
             if (ticketNumberResponse.ticketNumber) {
-              this.ticketNumber = ticketNumberResponse.ticketNumber;
+              this.ticketNumber.set(ticketNumberResponse.ticketNumber);
             }
-            this.ticketNumberEdit = this.ticketNumber != null;
-            this.cdr.markForCheck();
+            this.ticketNumberEdit.set(this.ticketNumber() != null);
           });
       },
       error: (error: any) => {
         if (error.status === 404) {
           this.processCustomer(undefined);
-          this.customerNotes = [];
-          this.toastr.info(`Kunde ${this.customerId} nicht gefunden!`);
-          this.cdr.markForCheck();
+          this.customerNotes.set([]);
+          this.toastr.info(`Kunde ${this.customerId()} nicht gefunden!`);
         }
       },
     };
 
-    if (this.customerId) {
-      this.customerApiService.getCustomer(this.customerId).subscribe(observer);
+    if (this.customerId()) {
+      this.customerApiService.getCustomer(this.customerId()!).subscribe(observer);
     } else {
       this.toastr.warning('Keine Kundennummer angegeben!');
     }
   }
 
   processCustomer(customer: CustomerData | undefined) {
-    this.ticketNumber = undefined;
+    this.ticketNumber.set(undefined);
     this.customer.set(customer);
 
     if (customer) {
@@ -265,16 +259,15 @@ export class CheckinComponent {
 
   cancel() {
     this.processCustomer(undefined);
-    this.customerNotes = [];
-    this.customerId = undefined;
-    this.ticketNumber = undefined;
-    this.ticketNumberEdit = undefined;
+    this.customerNotes.set([]);
+    this.customerId.set(undefined);
+    this.ticketNumber.set(undefined);
+    this.ticketNumberEdit.set(undefined);
     this.customerIdInputRef()?.nativeElement?.focus?.();
-    this.cdr.markForCheck();
   }
 
   assignCustomer() {
-    const ticketNumber = this.ticketNumber;
+    const ticketNumber = this.ticketNumber();
     if (ticketNumber !== undefined && ticketNumber > 0) {
 
       const observer = {
@@ -288,11 +281,10 @@ export class CheckinComponent {
   deleteTicket() {
     const observer = {
       next: () => {
-        this.ticketNumber = undefined;
-        this.ticketNumberEdit = undefined;
+        this.ticketNumber.set(undefined);
+        this.ticketNumberEdit.set(undefined);
         this.toastr.success('Ticket-Nummer gelöscht!');
         this.ticketNumberInputRef()?.nativeElement?.focus?.();
-        this.cdr.markForCheck();
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);

@@ -150,7 +150,7 @@ describe('CheckinComponent', () => {
     it('component can be created', () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         expect(component).toBeTruthy();
     });
@@ -167,11 +167,11 @@ describe('CheckinComponent', () => {
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         await fixture.whenStable();
 
-        expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
+        expect(component.scannerIds()).toEqual(scannersResponse.scannerIds);
     });
 
     it('ngOnInit without ongoing distribution navigates to dashboard', () => {
@@ -180,7 +180,7 @@ describe('CheckinComponent', () => {
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
         fixture.detectChanges();
 
         expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
@@ -193,7 +193,7 @@ describe('CheckinComponent', () => {
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
         component.scannerSubscription = testSubscription;
 
         // Trigger destroyRef cleanup by destroying the fixture
@@ -212,18 +212,18 @@ describe('CheckinComponent', () => {
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
-        expect(component.currentScannerId).toBeUndefined();
-        expect(component.customerId).toBeUndefined();
-        expect(component.scannerReadyState).toBeFalsy();
+        expect(component.currentScannerId()).toBeUndefined();
+        expect(component.customerId()).toBeUndefined();
+        expect(component.scannerReadyState()).toBeFalsy();
 
         const newScannerId = 123;
         component.selectedScannerId = newScannerId;
 
-        expect(component.currentScannerId).toBe(newScannerId);
-        expect(component.customerId).toBe(customerId);
-        expect(component.scannerReadyState).toBeTruthy();
+        expect(component.currentScannerId()).toBe(newScannerId);
+        expect(component.customerId()).toBe(customerId);
+        expect(component.scannerReadyState()).toBeTruthy();
         expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`);
         expect(customerApiService.getCustomer).toHaveBeenCalled();
     });
@@ -235,17 +235,17 @@ describe('CheckinComponent', () => {
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
-        component.currentScannerId = 123;
-        component.customerId = 1111;
-        component.scannerReadyState = true;
+        component.customerNotes.set([]);
+        component.currentScannerId.set(123);
+        component.customerId.set(1111);
+        component.scannerReadyState.set(true);
         component.scannerSubscription = testSubscription;
 
         component.selectedScannerId = undefined;
 
-        expect(component.currentScannerId).toBeUndefined();
-        expect(component.customerId).not.toBeUndefined();
-        expect(component.scannerReadyState).toBeFalsy();
+        expect(component.currentScannerId()).toBeUndefined();
+        expect(component.customerId()).not.toBeUndefined();
+        expect(component.scannerReadyState()).toBeFalsy();
         expect(testSubscription.unsubscribe).toHaveBeenCalled();
         expect(sseService.listen).not.toHaveBeenCalled();
         expect(customerApiService.getCustomer).not.toHaveBeenCalled();
@@ -259,17 +259,17 @@ describe('CheckinComponent', () => {
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
-        component.currentScannerId = 123;
-        component.customerId = 1111;
-        component.scannerReadyState = true;
+        component.customerNotes.set([]);
+        component.currentScannerId.set(123);
+        component.customerId.set(1111);
+        component.scannerReadyState.set(true);
         component.scannerSubscription = testSubscription;
 
         const newScannerId = 456;
         component.selectedScannerId = newScannerId;
 
-        expect(component.currentScannerId).toBe(newScannerId);
-        expect(component.scannerReadyState).toBeTruthy();
+        expect(component.currentScannerId()).toBe(newScannerId);
+        expect(component.scannerReadyState()).toBeTruthy();
         expect(testSubscription.unsubscribe).toHaveBeenCalled();
         expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`);
     });
@@ -277,8 +277,8 @@ describe('CheckinComponent', () => {
     it('searchForCustomerId found valid customer', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
-        component.ticketNumber = 123;
+        component.customerNotes.set([]);
+        component.ticketNumber.set(123);
 
         const mockCustomer = {
             id: 133,
@@ -310,7 +310,7 @@ describe('CheckinComponent', () => {
             pageSize: 5
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
-        component.customerId = mockCustomer.id;
+        component.customerId.set(mockCustomer.id);
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
             ticketNumber: null
         }));
@@ -325,15 +325,15 @@ describe('CheckinComponent', () => {
         expect(component.customerState()).toBe(CustomerState.VALID);
         expect(component.customerStateText()).toBe('GÜLTIG');
 
-        expect(component.ticketNumber).toBeUndefined();
-        expect(component.ticketNumberEdit).toBe(false);
+        expect(component.ticketNumber()).toBeUndefined();
+        expect(component.ticketNumberEdit()).toBe(false);
     });
 
     it('searchForCustomerId found valid customer with assigned ticket', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
-        component.ticketNumber = 123;
+        component.customerNotes.set([]);
+        component.ticketNumber.set(123);
 
         const mockCustomer = {
             id: 133,
@@ -365,7 +365,7 @@ describe('CheckinComponent', () => {
             pageSize: 5
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
-        component.customerId = mockCustomer.id;
+        component.customerId.set(mockCustomer.id);
 
         const testTicketNumber = 123;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
@@ -382,14 +382,14 @@ describe('CheckinComponent', () => {
         expect(component.customerState()).toBe(CustomerState.VALID);
         expect(component.customerStateText()).toBe('GÜLTIG');
 
-        expect(component.ticketNumber).toBe(testTicketNumber);
-        expect(component.ticketNumberEdit).toBe(true);
+        expect(component.ticketNumber()).toBe(testTicketNumber);
+        expect(component.ticketNumberEdit()).toBe(true);
     });
 
     it('searchForCustomerId found valid customer but expires soon', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         const mockCustomer = {
             id: 133,
@@ -420,7 +420,7 @@ describe('CheckinComponent', () => {
             pageSize: 5
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
-        component.customerId = mockCustomer.id;
+        component.customerId.set(mockCustomer.id);
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
             ticketNumber: null
         }));
@@ -439,7 +439,7 @@ describe('CheckinComponent', () => {
     it('searchForCustomerId found invalid customer', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         const mockCustomer = {
             id: 133,
@@ -470,7 +470,7 @@ describe('CheckinComponent', () => {
             pageSize: 5
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
-        component.customerId = mockCustomer.id;
+        component.customerId.set(mockCustomer.id);
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
             ticketNumber: null
         }));
@@ -489,7 +489,7 @@ describe('CheckinComponent', () => {
     it('searchForCustomerId found locked customer', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         const mockCustomer = {
             id: 133,
@@ -521,7 +521,7 @@ describe('CheckinComponent', () => {
             pageSize: 5
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
-        component.customerId = mockCustomer.id;
+        component.customerId.set(mockCustomer.id);
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
             ticketNumber: null
         }));
@@ -540,7 +540,7 @@ describe('CheckinComponent', () => {
     it('searchForCustomerId customer not found shows toast', () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         customerApiService.getCustomer.mockReturnValue(throwError(() => ({ status: 404 })));
         const notesResponse: CustomerNotesResponse = {
@@ -552,13 +552,13 @@ describe('CheckinComponent', () => {
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         const testCustomerId = 1234;
-        component.customerId = testCustomerId;
+        component.customerId.set(testCustomerId);
 
         component.searchForCustomerId();
 
         expect(component.customer()).toBeUndefined();
         expect(component.customerState()).toBeUndefined();
-        expect(component.customerNotes).toEqual([]);
+        expect(component.customerNotes()).toEqual([]);
         expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
         expect(toastr.info).toHaveBeenCalledWith(`Kunde ${testCustomerId} nicht gefunden!`);
     });
@@ -566,7 +566,7 @@ describe('CheckinComponent', () => {
     it('searchForCustomerId found notes', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         const mockCustomer = {
             id: 133,
@@ -614,18 +614,18 @@ describe('CheckinComponent', () => {
             ticketNumber: null
         }));
 
-        component.customerId = mockCustomer.id;
+        component.customerId.set(mockCustomer.id);
         component.searchForCustomerId();
         await fixture.whenStable();
         fixture.detectChanges();
 
-        expect(component.customerNotes).toEqual(mockNotesResponse.items);
+        expect(component.customerNotes()).toEqual(mockNotesResponse.items);
     });
 
     it('reset customer', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
         fixture.detectChanges();  // Populate ViewChildren from template
 
         const mockCustomer = {
@@ -655,17 +655,17 @@ describe('CheckinComponent', () => {
         await fixture.whenStable();
         fixture.detectChanges();
 
-        expect(component.customerId).toBeUndefined();
+        expect(component.customerId()).toBeUndefined();
         expect(component.customerState()).toBeUndefined();
         expect(component.customerStateText()).toBeNull();
-        expect(component.customerNotes).toBeDefined();
-        expect(component.customerNotes.length).toBe(0);
+        expect(component.customerNotes()).toBeDefined();
+        expect(component.customerNotes()!.length).toBe(0);
     });
 
     it('assign customer', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
         fixture.detectChanges();  // Populate ViewChildren from template
 
         const mockCustomer = {
@@ -692,7 +692,7 @@ describe('CheckinComponent', () => {
         component.processCustomer(mockCustomer);
 
         const ticketNumber = 55;
-        component.ticketNumber = ticketNumber;
+        component.ticketNumber.set(ticketNumber);
 
         distributionApiService.assignCustomer.mockReturnValue(of(undefined));
 
@@ -702,18 +702,18 @@ describe('CheckinComponent', () => {
 
         expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
 
-        expect(component.customerId).toBeUndefined();
+        expect(component.customerId()).toBeUndefined();
         expect(component.customerState()).toBeUndefined();
         expect(component.customerStateText()).toBeNull();
-        expect(component.customerNotes).toBeDefined();
-        expect(component.customerNotes.length).toBe(0);
-        expect(component.ticketNumber).toBeUndefined();
+        expect(component.customerNotes()).toBeDefined();
+        expect(component.customerNotes()!.length).toBe(0);
+        expect(component.ticketNumber()).toBeUndefined();
     });
 
     it('assign customer ignored without proper value', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         const mockCustomer = {
             id: 133,
@@ -738,7 +738,7 @@ describe('CheckinComponent', () => {
         };
         component.processCustomer(mockCustomer);
 
-        component.ticketNumber = undefined;
+        component.ticketNumber.set(undefined);
 
         component.assignCustomer();
         await fixture.whenStable();
@@ -750,7 +750,7 @@ describe('CheckinComponent', () => {
     it('delete ticket successful', async () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
-        component.customerNotes = [];
+        component.customerNotes.set([]);
 
         const mockCustomer = {
             id: 133,
@@ -783,8 +783,8 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
-        expect(component.ticketNumber).toBeUndefined();
-        expect(component.ticketNumberEdit).toBeUndefined();
+        expect(component.ticketNumber()).toBeUndefined();
+        expect(component.ticketNumberEdit()).toBeUndefined();
         expect(toastr.success).toHaveBeenCalledWith('Ticket-Nummer gelöscht!');
     });
 
