@@ -1,7 +1,15 @@
 <mat-sidenav-container class="h-screen print:hidden">
   <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
-               class="!border-r-0 transition-all duration-200 flex flex-col"
+               class="!border-r-0 transition-all duration-200"
                [class.w-64]="!collapsed()" [class.w-16]="collapsed()">
+   <!--
+     Angular Material projects everything below into a single `.mat-drawer-inner-container` child
+     of `mat-sidenav`, so `flex flex-col` on `mat-sidenav` itself has no effect (a flex container
+     needs multiple items to distribute space between) - the nav not actually growing and the
+     footer not actually being pinned to the bottom were both symptoms of this. This wrapper is the
+     real flex container instead.
+   -->
+   <div class="h-full flex flex-col">
     <div class="flex items-center justify-center h-16 w-full bg-white shrink-0">
       <a routerLink="/uebersicht">
         @if (collapsed()) {
@@ -23,6 +31,7 @@
             @if (item.children) {
               <a (click)="toggleExpanded(item.name)"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                 [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -38,6 +47,7 @@
               <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
                  (click)="isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                 [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -68,12 +78,22 @@
       }
     </nav>
 
-    <div class="hidden lg:flex border-t border-gray-800 justify-end px-2 py-2 shrink-0">
+    <div class="hidden lg:flex border-t border-gray-800 px-2 py-2 shrink-0"
+         [class.justify-end]="!collapsed()" [class.justify-center]="collapsed()">
       <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
+    @if (!collapsed() && versionInfo(); as info) {
+      <div class="border-t border-gray-800 px-4 pt-2 pb-4 text-xs text-gray-500 shrink-0 text-center">
+        <div class="truncate">{{ info.version }}</div>
+        @if (info.buildTime !== 'unknown') {
+          <div class="truncate">{{ info.buildTime | date: 'dd.MM.yyyy HH:mm' }}</div>
+        }
+      </div>
+    }
+   </div>
   </mat-sidenav>
 
   <mat-sidenav-content class="flex flex-col min-h-screen">

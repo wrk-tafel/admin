@@ -9,6 +9,7 @@ plugins {
 }
 
 group = "at.wrk.tafel"
+// Local/dev builds only — release versions are computed from git tags in release.yml, not from this field.
 version = "0.0.1-SNAPSHOT"
 
 java {

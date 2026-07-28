@@ -21,7 +21,8 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     with:
-      imageTag: test
+      imageTags: test
+      version: ${{ github.sha }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:

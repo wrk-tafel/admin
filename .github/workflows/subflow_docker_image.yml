@@ -6,7 +6,12 @@ env:
 on:
   workflow_call:
     inputs:
-      imageTag:
+      imageTags:
+        description: 'Newline-separated list of tags to push the image as, e.g. "latest\n1.0.0"'
+        type: string
+        required: true
+      version:
+        description: 'Baked into the image as TAFELADMIN_VERSION and shown in the frontend UI, e.g. "1.0.0", or a full commit SHA for non-release builds (auto-shortened to 7 chars below)'
         type: string
         required: true
     secrets:
@@ -37,12 +42,40 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.githubToken }}
+      - name: Build full image tags
+        id: tags
+        env:
+          IMAGE_TAGS: ${{ inputs.imageTags }}
+        run: |
+          {
+            echo 'tags<<EOF'
+            while IFS= read -r tag; do
+              [ -n "$tag" ] && echo "${REGISTRY}/wrk-tafel/admin:${tag}"
+            done <<< "${IMAGE_TAGS}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+      - name: Determine build metadata
+        id: metadata
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          version="$VERSION_INPUT"
+          # A full git commit SHA (40 hex chars) is shortened to the conventional 7 for
+          # display; a release semver (e.g. "1.0.0") never matches this and passes through as-is.
+          if [[ "$version" =~ ^[0-9a-f]{40}$ ]]; then
+            version="${version:0:7}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
       - name: Build and push docker image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           file: _build/Dockerfile
-          tags: "${{ env.REGISTRY }}/wrk-tafel/admin:${{ inputs.imageTag }}"
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            VERSION=${{ steps.metadata.outputs.version }}
+            BUILD_TIME=${{ steps.metadata.outputs.buildTime }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max

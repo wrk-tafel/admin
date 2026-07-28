@@ -6,12 +6,13 @@ import {BreakpointObserver} from '@angular/cdk/layout';
 import {map} from 'rxjs';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faAngleDown, faAngleRight, faAnglesLeft, faAnglesRight} from '@fortawesome/free-solid-svg-icons';
-import {NgClass} from '@angular/common';
+import {DatePipe, NgClass} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
 import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
+import {VersionApiService} from '../../../api/version-api.service';
 
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
@@ -28,6 +29,7 @@ const MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
     MatSidenavModule,
     FaIconComponent,
     NgClass,
+    DatePipe,
     DefaultHeaderComponent
   ]
 })
@@ -35,8 +37,10 @@ export class DefaultLayoutComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly versionApiService = inject(VersionApiService);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
+  readonly versionInfo = toSignal(this.versionApiService.getVersion(), {initialValue: null});
 
   readonly collapsed = signal(false);
   readonly expandedItems = signal<Set<string>>(new Set());

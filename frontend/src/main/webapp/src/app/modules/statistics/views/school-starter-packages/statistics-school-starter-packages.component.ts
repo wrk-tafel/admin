@@ -22,8 +22,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faSave} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'tafel-statistics-misc',
-  templateUrl: 'statistics-misc.component.html',
+  selector: 'tafel-statistics-school-starter-packages',
+  templateUrl: 'statistics-school-starter-packages.component.html',
   imports: [
     MatCardModule,
     FormsModule,
@@ -42,7 +42,7 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     MatPaginatorModule
   ]
 })
-export class StatisticsMiscComponent {
+export class StatisticsSchoolStarterPackagesComponent {
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
 

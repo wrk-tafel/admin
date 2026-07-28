@@ -1,14 +1,15 @@
 # Base Module
 
-`base` is a grab-bag of small, shared concerns: countries, employees, and generic exception
-handling. Unlike every other feature module, **there is no `modules/base/package-info.java`** — the
-`base` package itself is not a Spring Modulith `@ApplicationModule`. Instead, each subpackage
-(`country`, `employee`, `exception`) has its own `package-info.java` annotated with
-`@org.springframework.modulith.NamedInterface("...")`, making each one an independently
-addressable, explicitly exported slice that other modules can declare a dependency on individually
-(e.g. `allowedDependencies = {"base::exception", "base::employee"}` in `logistics`'s
-`package-info.java`). Do not add a blanket `base` module dependency anywhere — always depend on the
-specific named interface (`base::country`, `base::employee`, or `base::exception`) you actually need.
+`base` is a grab-bag of small, shared concerns: countries, employees, generic exception handling,
+and the running version. Unlike every other feature module, **there is no
+`modules/base/package-info.java`** — the `base` package itself is not a Spring Modulith
+`@ApplicationModule`. Instead, each subpackage (`country`, `employee`, `exception`, `version`) has
+its own `package-info.java` annotated with `@org.springframework.modulith.NamedInterface("...")`,
+making each one an independently addressable, explicitly exported slice that other modules can
+declare a dependency on individually (e.g. `allowedDependencies = {"base::exception",
+"base::employee"}` in `logistics`'s `package-info.java`). Do not add a blanket `base` module
+dependency anywhere — always depend on the specific named interface (`base::country`,
+`base::employee`, `base::exception`, or `base::version`) you actually need.
 
 Entities backing this module are **not** colocated with it: they live under `database/model/base`
 (`EmployeeEntity`, `EmployeeRepository`) and `database/model/staticdata` (`CountryEntity`,
@@ -66,6 +67,19 @@ Entities backing this module are **not** colocated with it: they live under `dat
   business-rule violations (e.g. "Kunde Nr. X bereits vorhanden!" in `HouseholdController`). This is
   the module to reach for whenever a service needs to reject a request with a clear HTTP status and
   a user-facing message.
+
+### `version` — `@NamedInterface("version")`
+- [`VersionController`](version/VersionController.kt): `GET /api/version`, requires only
+  `isAuthenticated()` — returns the currently running release version and when the image was built.
+- [`VersionResponse.kt`](version/VersionResponse.kt): `VersionResponse(version, buildTime)`.
+- No entity/repository — both values come from `TafelAdminProperties`
+  (`config/properties/TafelAdminProperties.kt`), which default to `"dev"`/`"unknown"` and are
+  overridden by the `TAFELADMIN_VERSION`/`TAFELADMIN_BUILD_TIME` env vars baked into the Docker
+  image at build time — the former from the git tag computed in `.github/workflows/release.yml`,
+  the latter a UTC timestamp computed at the moment the image is built in
+  `.github/workflows/subflow_docker_image.yml` (see `_build/Dockerfile`).
+- **Only consumer:** the frontend, via `VersionApiService` — displayed at the bottom of the sidebar
+  (`DefaultLayoutComponent`). No other backend module depends on `base::version`.
 
 ## Adding to this module
 

@@ -7,9 +7,10 @@ sub-pages:
 - **Allgemein** (`/statistiken/allgemein`) — pick a date range (or a specific past distribution,
   or "current month", or a whole year), fetch aggregated counters for that range from the
   backend, render them as small Chart.js line charts, and offer a CSV export of the same range.
-- **Sonstige** (`/statistiken/sonstige`) — one-off reports that don't fit the date-range shape
-  above; currently just the "Schulstartpakete" (school starter package) report, a
-  min/max-age-filtered household member listing with its own CSV export.
+- **Schulstartpakete** (`/statistiken/schulstartpakete`) — the school starter package report, a
+  min/max-age-filtered household member listing with its own CSV export. Not date-range-driven
+  like Allgemein; this page was originally named "Sonstige" (misc) as a generic catch-all, but was
+  renamed once it became clear it only ever held this one report.
 
 It is unrelated to the `dashboard` module's "statistics" input card (`distribution-statistics-input`,
 which records *today's* employee count / shelter occupancy for the currently open distribution).
@@ -20,12 +21,12 @@ The **Allgemein** page reports on *closed* distributions over arbitrary time ran
 
 ```
 statistics/
-  statistics.routes.ts                         # 'allgemein' + 'sonstige' child routes (redirects '' -> 'allgemein')
+  statistics.routes.ts                         # 'allgemein' + 'schulstartpakete' child routes (redirects '' -> 'allgemein')
   views/
     general/
       statistics-general.component.ts / .html / .spec.ts  # date-range picker + CSV export + panels
-    misc/
-      statistics-misc.component.ts / .html / .spec.ts      # school starter package report + CSV export
+    school-starter-packages/
+      statistics-school-starter-packages.component.ts / .html / .spec.ts  # school starter package report + CSV export
   resolver/
     statistics-settings-resolver.component.ts  # StatisticsSettingsResolver -> StatisticsSettings (Allgemein only)
   components/
@@ -34,7 +35,8 @@ statistics/
 
 The two pages are deliberately separate components/routes, not tabs inside one component - they
 have unrelated data shapes and lifecycles (date-range-driven charts vs. a fixed report), and the
-nav renders them as `Statistiken > Allgemein / Sonstige` sub-items (see `navigation-menuItems.ts`).
+nav renders them as `Statistiken > Allgemein / Schulstartpakete` sub-items (see
+`navigation-menuItems.ts`).
 
 ## Allgemein: how the date range drives data
 
@@ -96,10 +98,10 @@ past-distribution date ranges) before the `allgemein` route activates, so
 `StatisticsGeneralComponent.settings` is populated as a route-resolved `input()` before first
 render — used to populate the year dropdown (`yearOptions`, deduplicated + sorted descending,
 always includes the current year even if the backend hasn't recorded it yet) and the distribution
-dropdown. `sonstige` has no resolver — `StatisticsMiscComponent` has no settings dependency, it
-just fetches its report data directly.
+dropdown. `schulstartpakete` has no resolver — `StatisticsSchoolStarterPackagesComponent` has no
+settings dependency, it just fetches its report data directly.
 
-## Sonstige: `StatisticsMiscComponent`
+## Schulstartpakete: `StatisticsSchoolStarterPackagesComponent`
 
 Unlike `Allgemein`'s reactive `toSignal`/`switchMap` pipeline, this page follows the imperative
 load-on-demand pattern used by the app's other paginated lists (`UserSearchComponent`,
@@ -162,12 +164,14 @@ dashboard vs. `StatisticsApiService` here). The naming overlap is coincidental:
   **currently open** distribution (employee count, shelter occupancy), pushed live via
   `/sse/dashboard`.
 - `statistics` module (this one) = historical/one-off *reporting*, fetched via plain HTTP,
-  visualized as Chart.js line charts (Allgemein) or a plain table (Sonstige), exportable as CSV.
+  visualized as Chart.js line charts (Allgemein) or a plain table (Schulstartpakete), exportable as
+  CSV.
 
 If you're looking for where an "average shelter occupancy over the last quarter" type feature
-would go, it belongs in Allgemein, not `dashboard`. A new one-off report with its own filter
-shape belongs in Sonstige, as its own card/section in `statistics-misc.component.html` (or a new
-view alongside it, if it grows enough to warrant its own page).
+would go, it belongs in Allgemein, not `dashboard`. A new one-off report with a different filter
+shape than Schulstartpakete's age range does **not** belong on this page — give it its own view
+and route alongside `school-starter-packages/`, rather than growing this one into a multi-report
+grab-bag again (that's what it used to be, back when this page was named "Sonstige"/misc).
 
 ## Gotchas
 
@@ -180,7 +184,7 @@ view alongside it, if it grows enough to warrant its own page).
 - `statisticsData()` is `undefined` until the first response arrives; the results card
   (`@if (statisticsData())`) is entirely absent from the DOM until then — there's no loading
   spinner, so a slow `/statistics/data` response just shows nothing below the range picker. Same
-  applies to `schoolStarterPackageData()` on the Sonstige page.
+  applies to `schoolStarterPackageData()` on the Schulstartpakete page.
 - The nav item "Statistiken" has no `url` of its own anymore (see `navigation-menuItems.ts`) — it
   only renders as an expandable group with the two children, matching the existing
   `Benutzer`/`Einstellungen` pattern. Navigating straight to `/statistiken` still works via the
