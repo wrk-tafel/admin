@@ -32,22 +32,3 @@ export function isControlInvalid(control: AbstractControl): boolean {
 export function isControlValid(control: AbstractControl): boolean {
   return control.valid && (control.dirty || control.touched);
 }
-
-/**
- * Get the `is-invalid`/`is-valid` CSS classes for a reactive form control, for use with `[ngClass]`.
- *
- * @param control The reactive form control
- * @returns An object suitable for binding to `[ngClass]`
- *
- * @example
- * ```html
- * <!-- In template -->
- * <input formControlName="lastname" [ngClass]="controlStateClasses(lastname)">
- * ```
- */
-export function controlStateClasses(control: AbstractControl): Record<string, boolean> {
-  return {
-    'is-invalid': isControlInvalid(control),
-    'is-valid': isControlValid(control)
-  };
-}

@@ -80,22 +80,3 @@ export function shouldShowErrors(fieldState: FieldState<any>): boolean {
 export function visibleErrorMessages(fieldState: FieldState<any>): string[] {
   return shouldShowErrors(fieldState) ? getErrorMessages(fieldState) : [];
 }
-
-/**
- * Get the `is-invalid`/`is-valid` CSS classes for a field, for use with `[ngClass]`.
- *
- * @param fieldState The field state from a signal form
- * @returns An object suitable for binding to `[ngClass]`
- *
- * @example
- * ```html
- * <!-- In template -->
- * <input [ngClass]="fieldStateClasses(userForm.username())">
- * ```
- */
-export function fieldStateClasses(fieldState: FieldState<any>): Record<string, boolean> {
-  return {
-    'is-invalid': shouldShowErrors(fieldState),
-    'is-valid': fieldState.valid() && (fieldState.dirty() || fieldState.touched())
-  };
-}
