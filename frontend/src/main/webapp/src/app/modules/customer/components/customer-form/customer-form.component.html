@@ -6,200 +6,173 @@
       </mat-card-header>
       <mat-card-content>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-          <div>
-            <label class="form-label">Nachname *</label>
-            <input testid="lastnameInput" type="text" [formField]="customerForm.lastname" class="form-control" tafelAutofocus
-                   [ngClass]="fieldStateClasses(customerForm.lastname())">
+          <mat-form-field>
+            <mat-label>Nachname *</mat-label>
+            <input matInput testid="lastnameInput" type="text" [formField]="customerForm.lastname" tafelAutofocus>
             @for (errorMessage of visibleErrorMessages(customerForm.lastname()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
+              <mat-error>{{errorMessage}}</mat-error>
             }
-          </div>
-          <div>
-            <label class="form-label">Vorname *</label>
-            <input testid="firstnameInput" type="text" [formField]="customerForm.firstname" class="form-control"
-                   [ngClass]="fieldStateClasses(customerForm.firstname())">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Vorname *</mat-label>
+            <input matInput testid="firstnameInput" type="text" [formField]="customerForm.firstname">
             @for (errorMessage of visibleErrorMessages(customerForm.firstname()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
+              <mat-error>{{errorMessage}}</mat-error>
             }
-          </div>
+          </mat-form-field>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-          <div>
-            <label class="form-label">Geburtsdatum *</label>
-            <input testid="birthDateInput" type="date" [formField]="customerForm.birthDate" class="form-control"
-                   [ngClass]="fieldStateClasses(customerForm.birthDate())">
+          <mat-form-field>
+            <mat-label>Geburtsdatum *</mat-label>
+            <input matInput testid="birthDateInput" type="date" [formField]="customerForm.birthDate">
             @for (errorMessage of visibleErrorMessages(customerForm.birthDate()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
+              <mat-error>{{errorMessage}}</mat-error>
             }
-          </div>
-          <div>
-            <label class="form-label">Geschlecht *</label>
-            <div class="flex items-center gap-2">
-              <select testid="genderInput" (change)="onGenderChange($event)" class="form-control"
-                      [ngClass]="fieldStateClasses(customerForm.gender())">
-                <option value="" [selected]="!customerForm.gender().value()">Bitte wählen...</option>
+          </mat-form-field>
+          <div class="flex items-center gap-2">
+            <mat-form-field class="w-full">
+              <mat-label>Geschlecht *</mat-label>
+              <mat-select testid="genderInput" [formField]="customerForm.gender">
                 @for (genderOption of genders; track genderOption) {
-                  <option [value]="genderOption" [selected]="genderOption === customerForm.gender().value()">
-                    {{genderOption | genderLabel}}</option>
+                  <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
+                    {{genderOption | genderLabel}}</mat-option>
                 }
-              </select>
-              <fa-icon [icon]="faVenusMars"></fa-icon>
-            </div>
-            @for (errorMessage of visibleErrorMessages(customerForm.gender()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+              </mat-select>
+              @for (errorMessage of visibleErrorMessages(customerForm.gender()); track $index) {
+                <mat-error>{{errorMessage}}</mat-error>
+              }
+            </mat-form-field>
+            <fa-icon [icon]="faVenusMars"></fa-icon>
           </div>
         </div>
-        <div class="mb-2">
-          <label class="form-label">Nationalität *</label>
-          <div class="flex items-center gap-2">
-            <select testid="countryInput" (change)="onCountryChange($event)" class="form-control"
-                    [ngClass]="fieldStateClasses(customerForm.country())">
-              <option value="" [selected]="!customerForm.country().value()">Bitte wählen...</option>
+        <div class="mb-2 flex items-center gap-2">
+          <mat-form-field class="w-full">
+            <mat-label>Nationalität *</mat-label>
+            <mat-select testid="countryInput" [formField]="customerForm.country" [compareWith]="compareCountry">
               @for (countryItem of countries(); track countryItem.id) {
-                <option [value]="countryItem.id" [selected]="countryItem.id === customerForm.country().value()?.id">
-                  {{countryItem.name}}</option>
+                <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                  {{countryItem.name}}</mat-option>
               }
-            </select>
-            <fa-icon [icon]="faFlag"></fa-icon>
-          </div>
-          @for (errorMessage of visibleErrorMessages(customerForm.country()); track $index) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
-          }
+            </mat-select>
+            @for (errorMessage of visibleErrorMessages(customerForm.country()); track $index) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
+          <fa-icon [icon]="faFlag"></fa-icon>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-          <div>
-            <label class="form-label">Telefonnummer *</label>
-            <div class="flex items-center gap-2">
-              <input testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber"
-                     class="form-control"
-                     [ngClass]="fieldStateClasses(customerForm.telephoneNumber())">
-              <fa-icon [icon]="faPhone"></fa-icon>
-            </div>
-            @for (errorMessage of visibleErrorMessages(customerForm.telephoneNumber()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+          <div class="flex items-center gap-2">
+            <mat-form-field class="w-full">
+              <mat-label>Telefonnummer *</mat-label>
+              <input matInput testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber">
+              @for (errorMessage of visibleErrorMessages(customerForm.telephoneNumber()); track $index) {
+                <mat-error>{{errorMessage}}</mat-error>
+              }
+            </mat-form-field>
+            <fa-icon [icon]="faPhone"></fa-icon>
           </div>
-          <div>
-            <label class="form-label">E-Mail</label>
-            <div class="flex items-center gap-2">
-              <input testid="emailInput" type="text" [formField]="customerForm.email" class="form-control"
-                     [ngClass]="fieldStateClasses(customerForm.email())">
-              <fa-icon [icon]="faEnvelope"></fa-icon>
-            </div>
-            @for (errorMessage of visibleErrorMessages(customerForm.email()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+          <div class="flex items-center gap-2">
+            <mat-form-field class="w-full">
+              <mat-label>E-Mail</mat-label>
+              <input matInput testid="emailInput" type="text" [formField]="customerForm.email">
+              @for (errorMessage of visibleErrorMessages(customerForm.email()); track $index) {
+                <mat-error>{{errorMessage}}</mat-error>
+              }
+            </mat-form-field>
+            <fa-icon [icon]="faEnvelope"></fa-icon>
           </div>
         </div>
         <hr>
         <div>
-          <div class="mb-2">
-            <label class="form-label">Straße *</label>
-            <input testid="streetInput" type="text" [formField]="customerForm.address.street" class="form-control"
-                   [ngClass]="fieldStateClasses(customerForm.address.street())">
+          <mat-form-field class="w-full mb-2">
+            <mat-label>Straße *</mat-label>
+            <input matInput testid="streetInput" type="text" [formField]="customerForm.address.street">
             @for (errorMessage of visibleErrorMessages(customerForm.address.street()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
+              <mat-error>{{errorMessage}}</mat-error>
             }
-          </div>
+          </mat-form-field>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-2">
-            <div>
-              <label class="form-label">Hausnummer *</label>
-              <input testid="houseNumberInput" type="text" [formField]="customerForm.address.houseNumber"
-                     class="form-control"
-                     [ngClass]="fieldStateClasses(customerForm.address.houseNumber())">
+            <mat-form-field>
+              <mat-label>Hausnummer *</mat-label>
+              <input matInput testid="houseNumberInput" type="text" [formField]="customerForm.address.houseNumber">
               @for (errorMessage of visibleErrorMessages(customerForm.address.houseNumber()); track $index) {
-                <div class="invalid-feedback">{{errorMessage}}</div>
+                <mat-error>{{errorMessage}}</mat-error>
               }
-            </div>
-            <div>
-              <label class="form-label">Stiege</label>
-              <input testid="stairwayInput" type="number" [formField]="customerForm.address.stairway"
-                     class="form-control"
-                     [ngClass]="fieldStateClasses(customerForm.address.stairway())">
-            </div>
-            <div>
-              <label class="form-label">Top</label>
-              <input testid="doorInput" type="number" [formField]="customerForm.address.door" class="form-control"
-                     [ngClass]="fieldStateClasses(customerForm.address.door())">
-            </div>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Stiege</mat-label>
+              <input matInput testid="stairwayInput" type="number" [formField]="customerForm.address.stairway">
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Top</mat-label>
+              <input matInput testid="doorInput" type="number" [formField]="customerForm.address.door">
+            </mat-form-field>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-            <div>
-              <label class="form-label">PLZ *</label>
-              <div class="flex items-center gap-2">
-                <input testid="postalCodeInput" type="number" [formField]="customerForm.address.postalCode"
-                       class="form-control"
-                       [ngClass]="fieldStateClasses(customerForm.address.postalCode())">
-                <fa-icon [icon]="faLocationDot"></fa-icon>
-              </div>
-              @for (errorMessage of visibleErrorMessages(customerForm.address.postalCode()); track $index) {
-                <div class="invalid-feedback">{{errorMessage}}</div>
-              }
+            <div class="flex items-center gap-2">
+              <mat-form-field class="w-full">
+                <mat-label>PLZ *</mat-label>
+                <input matInput testid="postalCodeInput" type="number" [formField]="customerForm.address.postalCode">
+                @for (errorMessage of visibleErrorMessages(customerForm.address.postalCode()); track $index) {
+                  <mat-error>{{errorMessage}}</mat-error>
+                }
+              </mat-form-field>
+              <fa-icon [icon]="faLocationDot"></fa-icon>
             </div>
-            <div>
-              <label class="form-label">Ort *</label>
-              <div class="flex items-center gap-2">
-                <input testid="cityInput" type="text" [formField]="customerForm.address.city" class="form-control"
-                       [ngClass]="fieldStateClasses(customerForm.address.city())">
-                <fa-icon [icon]="faLocationDot"></fa-icon>
-              </div>
-              @for (errorMessage of visibleErrorMessages(customerForm.address.city()); track $index) {
-                <div class="invalid-feedback">{{errorMessage}}</div>
-              }
+            <div class="flex items-center gap-2">
+              <mat-form-field class="w-full">
+                <mat-label>Ort *</mat-label>
+                <input matInput testid="cityInput" type="text" [formField]="customerForm.address.city">
+                @for (errorMessage of visibleErrorMessages(customerForm.address.city()); track $index) {
+                  <mat-error>{{errorMessage}}</mat-error>
+                }
+              </mat-form-field>
+              <fa-icon [icon]="faLocationDot"></fa-icon>
             </div>
           </div>
         </div>
         <hr>
-        <div class="mb-2">
-          <label class="form-label">Arbeitgeber *</label>
-          <div class="flex items-center gap-2">
-            <input testid="employerInput" type="text" [formField]="customerForm.employer"
-                   class="form-control"
-                   [ngClass]="fieldStateClasses(customerForm.employer())">
-            <fa-icon [icon]="faBuilding"></fa-icon>
-          </div>
-          @for (errorMessage of visibleErrorMessages(customerForm.employer()); track $index) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
-          }
+        <div class="mb-2 flex items-center gap-2">
+          <mat-form-field class="w-full">
+            <mat-label>Arbeitgeber *</mat-label>
+            <input matInput testid="employerInput" type="text" [formField]="customerForm.employer">
+            @for (errorMessage of visibleErrorMessages(customerForm.employer()); track $index) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
+          <fa-icon [icon]="faBuilding"></fa-icon>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-          <div>
-            <label class="form-label">Einkommen (monatl.)</label>
-            <div class="flex items-center gap-2">
-              <input testid="incomeInput" type="number" [formField]="customerForm.income" class="form-control"
-                     [ngClass]="fieldStateClasses(customerForm.income())">
-              <fa-icon [icon]="faEuroSign"></fa-icon>
-            </div>
-            @for (errorMessage of visibleErrorMessages(customerForm.income()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
-            }
+          <div class="flex items-center gap-2">
+            <mat-form-field class="w-full">
+              <mat-label>Einkommen (monatl.)</mat-label>
+              <input matInput testid="incomeInput" type="number" [formField]="customerForm.income">
+              @for (errorMessage of visibleErrorMessages(customerForm.income()); track $index) {
+                <mat-error>{{errorMessage}}</mat-error>
+              }
+            </mat-form-field>
+            <fa-icon [icon]="faEuroSign"></fa-icon>
           </div>
-          <div>
-            <label class="form-label">nachgewiesen bis</label>
-            <input testid="incomeDueInput" type="date" [formField]="customerForm.incomeDue" class="form-control"
-                   [ngClass]="fieldStateClasses(customerForm.incomeDue())">
+          <mat-form-field>
+            <mat-label>nachgewiesen bis</mat-label>
+            <input matInput testid="incomeDueInput" type="date" [formField]="customerForm.incomeDue">
             @for (errorMessage of visibleErrorMessages(customerForm.incomeDue()); track $index) {
-              <div class="invalid-feedback">{{errorMessage}}</div>
+              <mat-error>{{errorMessage}}</mat-error>
             }
-          </div>
+          </mat-form-field>
         </div>
         <hr/>
         <div class="mb-2">
-          <label class="form-label">Alleinerzieher</label>
-          <div>
-            <input testid="singleParentInput" type="checkbox" [formField]="customerForm.singleParent">
-          </div>
+          <mat-checkbox [formField]="customerForm.singleParent" testid="singleParentInput">Alleinerzieher</mat-checkbox>
         </div>
         <hr/>
-        <div class="mb-2">
-          <label class="form-label">Gültig bis *</label>
-          <input testid="validUntilInput" type="date" [formField]="customerForm.validUntil" class="form-control"
-                 [ngClass]="fieldStateClasses(customerForm.validUntil())">
+        <mat-form-field class="w-full mb-2">
+          <mat-label>Gültig bis *</mat-label>
+          <input matInput testid="validUntilInput" type="date" [formField]="customerForm.validUntil">
           @for (errorMessage of visibleErrorMessages(customerForm.validUntil()); track $index) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
+        </mat-form-field>
       </mat-card-content>
     </mat-card>
     <div class="mt-4 md:mt-0">
@@ -221,126 +194,100 @@
               <mat-card>
                 <mat-card-content [attr.testid]="'personform-' + i">
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <label class="form-label">Nachname *</label>
-                      <input testid="lastnameInput" type="text" [formField]="personField(i).lastname"
-                             class="form-control" tafelAutofocus
-                             [ngClass]="fieldStateClasses(personField(i).lastname())">
+                    <mat-form-field>
+                      <mat-label>Nachname *</mat-label>
+                      <input matInput testid="lastnameInput" type="text" [formField]="personField(i).lastname"
+                             tafelAutofocus>
                       @for (errorMessage of visibleErrorMessages(personField(i).lastname()); track $index) {
-                        <div class="invalid-feedback">{{errorMessage}}</div>
+                        <mat-error>{{errorMessage}}</mat-error>
                       }
-                    </div>
-                    <div>
-                      <label class="form-label">Vorname *</label>
-                      <input testid="firstnameInput" type="text" [formField]="personField(i).firstname"
-                             class="form-control"
-                             [ngClass]="fieldStateClasses(personField(i).firstname())">
+                    </mat-form-field>
+                    <mat-form-field>
+                      <mat-label>Vorname *</mat-label>
+                      <input matInput testid="firstnameInput" type="text" [formField]="personField(i).firstname">
                       @for (errorMessage of visibleErrorMessages(personField(i).firstname()); track $index) {
-                        <div class="invalid-feedback">{{errorMessage}}</div>
+                        <mat-error>{{errorMessage}}</mat-error>
                       }
-                    </div>
+                    </mat-form-field>
                   </div>
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <div>
-                      <label class="form-label">Geburtsdatum *</label>
-                      <input testid="birthDateInput" type="date" [formField]="personField(i).birthDate"
-                             class="form-control"
-                             [ngClass]="fieldStateClasses(personField(i).birthDate())">
+                    <mat-form-field>
+                      <mat-label>Geburtsdatum *</mat-label>
+                      <input matInput testid="birthDateInput" type="date" [formField]="personField(i).birthDate">
                       @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
-                        <div class="invalid-feedback">{{errorMessage}}</div>
+                        <mat-error>{{errorMessage}}</mat-error>
                       }
-                    </div>
-                    <div>
-                      <label class="form-label">Geschlecht *</label>
-                      <div class="flex items-center gap-2">
-                        <select testid="genderInput"
-                                (change)="onPersonGenderChange(i, $event)"
-                                (blur)="onPersonGenderBlur(i)"
-                                class="form-control"
-                                [ngClass]="fieldStateClasses(personField(i).gender())">
-                          <option value="" [selected]="!personField(i).gender().value()">Bitte wählen...</option>
-                          @for (genderOption of genders; track genderOption) {
-                            <option [value]="genderOption" [selected]="genderOption === personField(i).gender().value()">
-                              {{genderOption | genderLabel}}</option>
-                          }
-                        </select>
-                        <fa-icon [icon]="faVenusMars"></fa-icon>
-                      </div>
-                      @for (errorMessage of visibleErrorMessages(personField(i).gender()); track $index) {
-                        <div class="invalid-feedback">{{errorMessage}}</div>
-                      }
-                    </div>
-                  </div>
-                  <div class="mt-2">
-                    <label class="form-label">Nationalität *</label>
+                    </mat-form-field>
                     <div class="flex items-center gap-2">
-                      <select testid="countryInput"
-                              (change)="onPersonCountryChange(i, $event)"
-                              (blur)="onPersonCountryBlur(i)"
-                              class="form-control"
-                              [ngClass]="fieldStateClasses(personField(i).country())">
-                        <option value="" [selected]="!personField(i).country().value()">Bitte wählen...</option>
-                        @for (countryItem of countries(); track countryItem.id) {
-                          <option [value]="countryItem.id" [selected]="countryItem.id === personField(i).country().value()?.id">
-                            {{countryItem.name}}</option>
+                      <mat-form-field class="w-full">
+                        <mat-label>Geschlecht *</mat-label>
+                        <mat-select testid="genderInput" [formField]="personField(i).gender">
+                          @for (genderOption of genders; track genderOption) {
+                            <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
+                              {{genderOption | genderLabel}}</mat-option>
+                          }
+                        </mat-select>
+                        @for (errorMessage of visibleErrorMessages(personField(i).gender()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
                         }
-                      </select>
-                      <fa-icon [icon]="faFlag"></fa-icon>
+                      </mat-form-field>
+                      <fa-icon [icon]="faVenusMars"></fa-icon>
                     </div>
-                    @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
-                      <div class="invalid-feedback">{{errorMessage}}</div>
-                    }
+                  </div>
+                  <div class="mt-2 flex items-center gap-2">
+                    <mat-form-field class="w-full">
+                      <mat-label>Nationalität *</mat-label>
+                      <mat-select testid="countryInput" [formField]="personField(i).country"
+                                  [compareWith]="compareCountry">
+                        @for (countryItem of countries(); track countryItem.id) {
+                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                            {{countryItem.name}}</mat-option>
+                        }
+                      </mat-select>
+                      @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
+                        <mat-error>{{errorMessage}}</mat-error>
+                      }
+                    </mat-form-field>
+                    <fa-icon [icon]="faFlag"></fa-icon>
                   </div>
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <div>
-                      <label class="form-label">Arbeitgeber</label>
-                      <div class="flex items-center gap-2">
-                        <input testid="employerInput" type="text" [formField]="personField(i).employer"
-                               class="form-control"
-                               [ngClass]="fieldStateClasses(personField(i).employer())">
-                        <fa-icon [icon]="faBuilding"></fa-icon>
-                      </div>
-                      @for (errorMessage of visibleErrorMessages(personField(i).employer()); track $index) {
-                        <div class="invalid-feedback">{{errorMessage}}</div>
-                      }
+                    <div class="flex items-center gap-2">
+                      <mat-form-field class="w-full">
+                        <mat-label>Arbeitgeber</mat-label>
+                        <input matInput testid="employerInput" type="text" [formField]="personField(i).employer">
+                        @for (errorMessage of visibleErrorMessages(personField(i).employer()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                      <fa-icon [icon]="faBuilding"></fa-icon>
                     </div>
-                    <div>
-                      <label class="form-label">Einkommen (monatl.)</label>
-                      <div class="flex items-center gap-2">
-                        <input testid="incomeInput" type="number" [formField]="personField(i).income"
-                               class="form-control"
-                               [ngClass]="fieldStateClasses(personField(i).income())">
-                        <fa-icon [icon]="faEuroSign"></fa-icon>
-                      </div>
-                      @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
-                        <div class="invalid-feedback">{{errorMessage}}</div>
-                      }
+                    <div class="flex items-center gap-2">
+                      <mat-form-field class="w-full">
+                        <mat-label>Einkommen (monatl.)</mat-label>
+                        <input matInput testid="incomeInput" type="number" [formField]="personField(i).income">
+                        @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                      <fa-icon [icon]="faEuroSign"></fa-icon>
                     </div>
                   </div>
-                  <div class="mt-2">
-                    <label class="form-label">nachgewiesen bis</label>
-                    <input testid="incomeDueInput" type="date" [formField]="personField(i).incomeDue"
-                           class="form-control"
-                           [ngClass]="fieldStateClasses(personField(i).incomeDue())">
+                  <mat-form-field class="w-full mt-2">
+                    <mat-label>nachgewiesen bis</mat-label>
+                    <input matInput testid="incomeDueInput" type="date" [formField]="personField(i).incomeDue">
                     @for (errorMessage of visibleErrorMessages(personField(i).incomeDue()); track $index) {
-                      <div class="invalid-feedback">{{errorMessage}}</div>
+                      <mat-error>{{errorMessage}}</mat-error>
                     }
-                  </div>
+                  </mat-form-field>
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <div>
-                      <label class="form-label">Bezieht Familienbeihilfe</label>
-                      <div>
-                        <input testid="receivesFamilyAllowanceInput" type="checkbox"
-                               [formField]="personField(i).receivesFamilyAllowance">
-                      </div>
-                    </div>
-                    <div>
-                      <label class="form-label">Nicht im selben Haushalt (keine Berechnung)</label>
-                      <div>
-                        <input testid="excludeFromHouseholdInput" type="checkbox"
-                               [formField]="personField(i).excludeFromHousehold">
-                      </div>
-                    </div>
+                    <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
+                                  testid="receivesFamilyAllowanceInput">
+                      Bezieht Familienbeihilfe
+                    </mat-checkbox>
+                    <mat-checkbox [formField]="personField(i).excludeFromHousehold"
+                                  testid="excludeFromHouseholdInput">
+                      Nicht im selben Haushalt (keine Berechnung)
+                    </mat-checkbox>
                   </div>
                   <div class="mt-4">
                     <button type="button" [attr.testid]="'remove-personform-' + i" matButton="filled"

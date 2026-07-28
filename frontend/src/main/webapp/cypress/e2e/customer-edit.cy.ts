@@ -36,7 +36,8 @@ describe('Customer Edit', () => {
       typeInto('houseNumberInput', updatedHouseNumber);
       typeInto('cityInput', updatedCity);
       typeInto('postalCodeInput', updatedPostalCode);
-      cy.byTestId('genderInput').select('Weiblich');
+      cy.byTestId('genderInput').click();
+      cy.byTestId('genderInput-option-FEMALE').click();
 
       cy.byTestId('validate-button').click();
 

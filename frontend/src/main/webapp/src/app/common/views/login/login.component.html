@@ -14,13 +14,19 @@
         <div class="flex flex-col gap-2 m-6">
           <div class="flex flex-row items-center">
             <fa-icon [icon]="faUser" class="mr-2"></fa-icon>
-            <input [formField]="loginForm.username" matInput testid="username" type="text" class="form-control"
-                   placeholder="Benutzername" autocomplete="username" tafelAutofocus>
+            <mat-form-field>
+              <mat-label>Benutzername</mat-label>
+              <input [formField]="loginForm.username" matInput testid="username" type="text"
+                     autocomplete="username" tafelAutofocus>
+            </mat-form-field>
           </div>
           <div class="flex flex-row items-center">
             <fa-icon [icon]="faKey" class="mr-2"></fa-icon>
-            <input [formField]="loginForm.password" matInput testid="password" type="password"
-                   class="form-control" placeholder="Passwort" autocomplete="current-password">
+            <mat-form-field>
+              <mat-label>Passwort</mat-label>
+              <input [formField]="loginForm.password" matInput testid="password" type="password"
+                     autocomplete="current-password">
+            </mat-form-field>
           </div>
         </div>
 

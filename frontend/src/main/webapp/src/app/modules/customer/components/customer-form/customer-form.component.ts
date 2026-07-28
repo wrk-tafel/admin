@@ -5,6 +5,10 @@ import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 import {
   faBuilding,
   faEnvelope,
@@ -17,7 +21,7 @@ import {
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
-import {fieldStateClasses, visibleErrorMessages} from '../../../../common/util/signal-form-helper';
+import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {email, maxDate, min, minDate, pattern} from '../../../../common/validator/signal-form-validators';
 import {toSignal} from '@angular/core/rxjs-interop';
 import dayjs from 'dayjs';
@@ -30,6 +34,10 @@ import dayjs from 'dayjs';
     MatCardModule,
     CommonModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
     FaIconComponent,
     TafelAutofocusDirective,
     GenderLabelPipe
@@ -206,44 +214,8 @@ export class CustomerFormComponent {
     });
   }
 
-  onCountryChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const selectedId = select.value;
-    const country = this.countries().find(c => c.id.toString() === selectedId);
-    this.customerForm.country().value.set(country ?? null);
-    this.customerForm.country().markAsTouched();
-  }
-
-  onGenderChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const selectedGender = select.value as Gender;
-    this.customerForm.gender().value.set(selectedGender || null);
-    this.customerForm.gender().markAsTouched();
-  }
-
-  onPersonCountryChange(index: number, event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const selectedId = select.value;
-    const country = this.countries().find(c => c.id.toString() === selectedId);
-
-    this.personField(index).country().value.set(country ?? null);
-    this.personField(index).country().markAsTouched();
-  }
-
-  onPersonGenderChange(index: number, event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const selectedGender = select.value as Gender;
-
-    this.personField(index).gender().value.set(selectedGender || null);
-    this.personField(index).gender().markAsTouched();
-  }
-
-  onPersonGenderBlur(index: number) {
-    this.personField(index).gender().markAsTouched();
-  }
-
-  onPersonCountryBlur(index: number) {
-    this.personField(index).country().markAsTouched();
+  compareCountry(a: CountryData | null, b: CountryData | null): boolean {
+    return a?.id === b?.id;
   }
 
   personField(index: number) {
@@ -287,7 +259,6 @@ export class CustomerFormComponent {
 
   // Expose utility functions for template use
   protected readonly visibleErrorMessages = visibleErrorMessages;
-  protected readonly fieldStateClasses = fieldStateClasses;
 
   protected readonly faVenusMars = faVenusMars;
   protected readonly faFlag = faFlag;

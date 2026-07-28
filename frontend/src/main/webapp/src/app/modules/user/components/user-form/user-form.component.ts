@@ -1,13 +1,16 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
-import {CommonModule, NgClass} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
-import {fieldStateClasses, visibleErrorMessages} from '../../../../common/util/signal-form-helper';
+import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
@@ -15,10 +18,12 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     templateUrl: 'user-form.component.html',
     imports: [
         FormField,
-        NgClass,
         CommonModule,
         MatCardModule,
         MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatCheckboxModule,
         FaIconComponent,
         TafelAutofocusDirective
     ]
@@ -188,7 +193,6 @@ export class UserFormComponent {
 
   // Expose utility functions for template use
   protected readonly visibleErrorMessages = visibleErrorMessages;
-  protected readonly fieldStateClasses = fieldStateClasses;
 
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faEye = faEye;

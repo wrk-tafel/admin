@@ -1,6 +1,9 @@
 import {Component, effect, inject, input, model, signal, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
 import {MatDialog} from '@angular/material/dialog';
 import {KmDiffDialogComponent} from './dialogs/km-diff-dialog.component';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -16,7 +19,6 @@ import {
 import {CarData, CarList} from '../../../../api/car-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {controlStateClasses} from '../../../../common/util/reactive-form-helper';
 
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
@@ -26,6 +28,9 @@ import {controlStateClasses} from '../../../../common/util/reactive-form-helper'
         ReactiveFormsModule,
         FormsModule,
         MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
         FaIconComponent,
         TafelEmployeeSearchCreateComponent
     ]
@@ -215,8 +220,11 @@ export class FoodCollectionRecordingBasedataComponent {
     return this.form.get('kmEnd')!;
   }
 
+  compareCar(a: CarData | null, b: CarData | null): boolean {
+    return a?.id === b?.id;
+  }
+
   protected readonly faTruck = faTruck;
   protected readonly faGauge = faGauge;
   protected readonly faRemove = faRemove;
-  protected readonly controlStateClasses = controlStateClasses;
 }

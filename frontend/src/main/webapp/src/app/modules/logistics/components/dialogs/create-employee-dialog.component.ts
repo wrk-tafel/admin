@@ -1,12 +1,13 @@
 import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {controlStateClasses} from '../../../../common/util/reactive-form-helper';
 
 export interface CreateEmployeeDialogData {
   testId: string;
@@ -15,7 +16,7 @@ export interface CreateEmployeeDialogData {
 
 @Component({
   selector: 'tafel-create-employee-dialog',
-  imports: [TafelDialogComponent, MatButtonModule, ReactiveFormsModule, CommonModule],
+  imports: [TafelDialogComponent, MatButtonModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, CommonModule],
   templateUrl: 'create-employee-dialog.component.html',
 })
 export class CreateEmployeeDialogComponent {
@@ -59,6 +60,4 @@ export class CreateEmployeeDialogComponent {
   get lastname() {
     return this.createEmployeeForm.get('lastname')!;
   }
-
-  protected readonly controlStateClasses = controlStateClasses;
 }

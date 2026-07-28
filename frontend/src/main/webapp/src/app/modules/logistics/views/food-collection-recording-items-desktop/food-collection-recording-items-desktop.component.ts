@@ -3,6 +3,8 @@ import {NgClass} from '@angular/common';
 import {Shop} from '../../../../api/route-api.service';
 
 import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
@@ -21,6 +23,8 @@ import {isControlInvalid, isControlValid} from '../../../../common/util/reactive
     ReactiveFormsModule,
     FormsModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
     NgClass
   ]
 })
