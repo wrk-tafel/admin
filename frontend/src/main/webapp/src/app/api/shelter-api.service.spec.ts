@@ -33,7 +33,8 @@ describe('ShelterApiService', () => {
           addressCity: 'Test City',
           note: 'Test Note',
           personsCount: 100,
-          enabled: true
+          enabled: true,
+          sortOrder: 1
         },
         {
           id: 2,
@@ -46,7 +47,8 @@ describe('ShelterApiService', () => {
           addressCity: 'Test City',
           note: 'Test Note 2',
           personsCount: 200,
-          enabled: true
+          enabled: true,
+          sortOrder: 2
         }
       ]
     };
@@ -74,7 +76,8 @@ describe('ShelterApiService', () => {
           addressCity: 'Test City',
           note: 'Test Note',
           personsCount: 100,
-          enabled: true
+          enabled: true,
+          sortOrder: 1
         },
         {
           id: 2,
@@ -87,7 +90,8 @@ describe('ShelterApiService', () => {
           addressCity: 'Test City',
           note: 'Test Note 2',
           personsCount: 200,
-          enabled: true
+          enabled: true,
+          sortOrder: 2
         }
       ]
     };
@@ -121,6 +125,50 @@ describe('ShelterApiService', () => {
 
     const req = httpMock.expectOne({method: 'POST', url: '/shelters/1'});
     req.flush(updatedShelter);
+    httpMock.verify();
+  });
+
+  it('reorder shelters', () => {
+    const testResponse: ShelterListResponse = {
+      shelters: [
+        {
+          id: 2,
+          name: 'Test Shelter 2',
+          addressStreet: 'Test Street',
+          addressHouseNumber: '1',
+          addressStairway: 'A',
+          addressDoor: 'B',
+          addressPostalCode: 12345,
+          addressCity: 'Test City',
+          note: 'Test Note 2',
+          personsCount: 200,
+          enabled: true,
+          sortOrder: 1
+        },
+        {
+          id: 1,
+          name: 'Test Shelter 1',
+          addressStreet: 'Test Street',
+          addressHouseNumber: '1',
+          addressStairway: 'A',
+          addressDoor: 'B',
+          addressPostalCode: 12345,
+          addressCity: 'Test City',
+          note: 'Test Note',
+          personsCount: 100,
+          enabled: true,
+          sortOrder: 2
+        }
+      ]
+    };
+
+    apiService.reorderShelters([2, 1]).subscribe((data: ShelterListResponse) => {
+      expect(data).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({method: 'POST', url: '/shelters/reorder'});
+    expect(req.request.body).toEqual({shelterIds: [2, 1]});
+    req.flush(testResponse);
     httpMock.verify();
   });
 

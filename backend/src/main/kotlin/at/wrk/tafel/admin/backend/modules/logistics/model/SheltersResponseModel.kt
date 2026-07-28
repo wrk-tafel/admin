@@ -20,7 +20,13 @@ data class Shelter(
     val note: String?,
     val personsCount: Int,
     val enabled: Boolean,
+    val sortOrder: Int,
     val contacts: List<ShelterContact>,
+)
+
+@ExcludeFromTestCoverage
+data class ShelterReorderRequest(
+    val shelterIds: List<Long>,
 )
 
 @ExcludeFromTestCoverage

@@ -16,10 +16,11 @@ import {
   MatRowDef,
   MatTable
 } from '@angular/material/table';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {ShelterApiService, ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faEye, faEyeSlash, faMagnifyingGlass, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faEye, faEyeSlash, faGripVertical, faMagnifyingGlass, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
@@ -42,7 +43,10 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatTable,
     MatHeaderCellDef,
     FaIconComponent,
-    MatButton
+    MatButton,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle
   ]
 })
 export class SettingsSheltersComponent {
@@ -52,7 +56,7 @@ export class SettingsSheltersComponent {
 
   private _shelters = signal<ShelterListResponse | null>(null);
   protected shelters = this._shelters;
-  displayedColumns = ['active', 'name', 'address', 'persons', 'actions'];
+  displayedColumns = ['drag', 'active', 'name', 'address', 'persons', 'actions'];
 
   constructor() {
     this.loadShelters();
@@ -128,9 +132,24 @@ export class SettingsSheltersComponent {
     });
   }
 
+  protected drop(event: CdkDragDrop<ShelterItem[]>) {
+    const reordered = [...(this.shelters()?.shelters ?? [])];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    this._shelters.set({shelters: reordered}); // optimistic, updates in the background
+
+    this.shelterApiService.reorderShelters(reordered.map(shelter => shelter.id)).subscribe({
+      next: data => this._shelters.set(data),
+      error: () => {
+        this.toastr.error('Fehler beim Ändern der Reihenfolge', 'Fehler');
+        this.loadShelters();
+      }
+    });
+  }
+
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
   protected readonly faPencil = faPencil;
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
+  protected readonly faGripVertical = faGripVertical;
 }

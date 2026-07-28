@@ -45,4 +45,7 @@ class ShelterEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "enabled")
     var enabled: Boolean? = null
+
+    @Column(name = "sort_order")
+    var sortOrder: Int? = null
 }

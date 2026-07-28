@@ -22,6 +22,10 @@ export class ShelterApiService {
     return this.http.post<ShelterItem>('/shelters', shelter);
   }
 
+  reorderShelters(shelterIds: number[]): Observable<ShelterListResponse> {
+    return this.http.post<ShelterListResponse>('/shelters/reorder', {shelterIds});
+  }
+
 }
 
 export interface ShelterListResponse {
@@ -40,6 +44,7 @@ export interface ShelterItem {
   note: string;
   personsCount: number;
   enabled: boolean;
+  sortOrder: number;
   contacts?: ShelterContact[];
 }
 

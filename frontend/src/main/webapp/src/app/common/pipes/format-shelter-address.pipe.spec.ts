@@ -24,7 +24,8 @@ describe('FormatShelterAddressPipe', () => {
       addressDoor: '21',
       addressPostalCode: 1020,
       addressCity: 'Wien',
-      enabled: true
+      enabled: true,
+      sortOrder: 1
     };
 
     const result = pipe.transform(shelter);
@@ -42,7 +43,8 @@ describe('FormatShelterAddressPipe', () => {
       addressHouseNumber: '10',
       addressPostalCode: 1030,
       addressCity: 'Wien',
-      enabled: true
+      enabled: true,
+      sortOrder: 1
     };
 
     const result = pipe.transform(shelter);
@@ -61,7 +63,8 @@ describe('FormatShelterAddressPipe', () => {
       addressHouseNumber: '88',
       addressPostalCode: 1070,
       addressCity: 'Wien',
-      enabled: true
+      enabled: true,
+      sortOrder: 1
     };
 
     const result = pipe.transform(shelter);
@@ -79,7 +82,8 @@ describe('FormatShelterAddressPipe', () => {
       addressHouseNumber: '1',
       addressPostalCode: 1010,
       addressCity: 'Wien',
-      enabled: true
+      enabled: true,
+      sortOrder: 1
     };
 
     const result = pipe.transform(shelter);
@@ -111,7 +115,8 @@ describe('FormatShelterAddressPipe', () => {
       addressDoor: '',
       addressPostalCode: 1050,
       addressCity: 'Wien',
-      enabled: true
+      enabled: true,
+      sortOrder: 1
     };
 
     const result = pipe.transform(shelter);
@@ -131,7 +136,8 @@ describe('FormatShelterAddressPipe', () => {
       addressDoor: '   ',
       addressPostalCode: 1090,
       addressCity: 'Wien',
-      enabled: true
+      enabled: true,
+      sortOrder: 1
     };
 
     const result = pipe.transform(shelter);
