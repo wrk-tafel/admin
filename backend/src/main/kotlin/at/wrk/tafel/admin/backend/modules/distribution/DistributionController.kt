@@ -83,6 +83,12 @@ class DistributionController(
         return ResponseEntity.ok().build()
     }
 
+    /**
+     * `forceClose` only overrides validation *warnings*, never hard errors: if
+     * [DistributionCloseValidationResult.hasOnlyWarnings] is false (i.e. there's at least one real
+     * error), the distribution is not closed regardless of `forceClose`, and the validation
+     * result is returned instead so the caller can see why.
+     */
     @PostMapping("/distributions/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     @TafelActiveDistributionRequired

@@ -53,6 +53,12 @@ class TafelLoginFilter(
 
     public override fun obtainPassword(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.credentials as String
 
+    /**
+     * When [TafelUser.passwordChangeRequired] is true, the issued JWT is deliberately weaker: no
+     * authorities at all, and a shorter `expirationTimePwdChangeInSeconds` expiration instead of
+     * the normal one - a security gate that forces the user through the change-password flow
+     * before any real permissions are granted.
+     */
     public override fun successfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,

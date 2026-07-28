@@ -158,6 +158,13 @@ class TafelUserDetailsManager(
         passwordChangeRequired = userEntity.passwordChangeRequired!!,
     )
 
+    /**
+     * Diffs `userEntity.authorities` against `tafelUser.authorities` (remove-then-add) instead of
+     * replacing the collection outright, because JPA's `orphanRemoval` on that relation only
+     * deletes stale [UserAuthorityEntity] rows when they're mutated out of the existing managed
+     * collection - swapping in a brand-new list would leave the old rows orphaned in the DB rather
+     * than removed.
+     */
     private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
         val existingEmployee = employeeRepository.findByPersonnelNumber(tafelUser.personnelNumber) ?: EmployeeEntity()
 

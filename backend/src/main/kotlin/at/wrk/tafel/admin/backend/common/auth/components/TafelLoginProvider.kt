@@ -17,9 +17,11 @@ class TafelLoginProvider(
     private val loginAttemptService: LoginAttemptService,
 ) : AbstractUserDetailsAuthenticationProvider() {
 
-    // A login for an unknown username would fail without running Argon2 and therefore respond
-    // measurably faster than a wrong password, allowing username enumeration via timing.
-    // Comparing against this throwaway hash equalizes both paths.
+    /**
+     * A login for an unknown username would fail without running Argon2 and therefore respond
+     * measurably faster than a wrong password, allowing username enumeration via timing.
+     * Comparing against this throwaway hash in [retrieveUser] equalizes both paths.
+     */
     private val unknownUserFallbackHash: String = passwordEncoder.encode(UUID.randomUUID().toString())!!
 
     override fun supports(authenticationClass: Class<*>): Boolean = authenticationClass == UsernamePasswordAuthenticationToken::class.java

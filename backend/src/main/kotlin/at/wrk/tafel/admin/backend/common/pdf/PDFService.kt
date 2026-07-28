@@ -30,6 +30,11 @@ class PDFService {
             return confParser.fopFactoryBuilder.build()
         }
 
+        /**
+         * Apache FOP needs real filesystem paths for font registration, not classpath streams, so
+         * the bundled Liberation Sans fonts are copied out to a temp directory at factory-build
+         * time (once, since [fopFactory] is lazy) purely to satisfy that requirement.
+         */
         private fun extractBundledFonts(): File {
             val targetDirectory = Files.createTempDirectory("tafel-pdf-fonts").toFile()
             targetDirectory.deleteOnExit()

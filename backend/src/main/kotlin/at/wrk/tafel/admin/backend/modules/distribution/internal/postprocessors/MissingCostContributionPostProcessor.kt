@@ -14,6 +14,16 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
 
+/**
+ * Unlike its sibling [DistributionPostProcessor]s, which only send mail, this one mutates
+ * persistent household state as a side effect of closing a distribution: for every household
+ * whose [at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity.costContributionPaid]
+ * is false, it adds the current [StaticValueType.COST_CONTRIBUTION] amount to
+ * [HouseholdEntity.pendingCostContribution] so it can be collected next time. Deliberately not
+ * re-run by [at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService.sendMails]
+ * (the manual mail re-send), since re-running it would double-count pending contributions for
+ * households that already had them added when the distribution originally closed.
+ */
 @Component
 class MissingCostContributionPostProcessor(
     private val householdRepository: HouseholdRepository,
