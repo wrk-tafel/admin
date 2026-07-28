@@ -6,14 +6,14 @@
     <mat-card-content>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <mat-form-field>
-          <mat-label>Benutzername *</mat-label>
+          <mat-label>Benutzername</mat-label>
           <input matInput [formField]="userForm.username" testid="usernameInput" type="text" tafelAutofocus>
           @for (errorMessage of visibleErrorMessages(userForm.username()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
           }
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Personalnummer *</mat-label>
+          <mat-label>Personalnummer</mat-label>
           <input matInput testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber">
           @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
@@ -22,14 +22,14 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
         <mat-form-field>
-          <mat-label>Nachname *</mat-label>
+          <mat-label>Nachname</mat-label>
           <input matInput testid="lastnameInput" type="text" [formField]="userForm.lastname">
           @for (errorMessage of visibleErrorMessages(userForm.lastname()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
           }
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Vorname *</mat-label>
+          <mat-label>Vorname</mat-label>
           <input matInput testid="firstnameInput" type="text" [formField]="userForm.firstname"
                  autocomplete="new-password">
           @for (errorMessage of visibleErrorMessages(userForm.firstname()); track errorMessage) {
