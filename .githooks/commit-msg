@@ -1,0 +1,73 @@
+#!/usr/bin/env sh
+# Enforces Conventional Commits (https://www.conventionalcommits.org) on the commit subject.
+# release.yml derives the next release version (patch/minor/major) from these commit types
+# since the last tag (see paulhatch/semantic-version), so a malformed subject here means
+# a future release either mis-bumps or silently falls back to a patch bump.
+#
+# Kept in sync by hand with the two CI checks in pull_request.yml:
+#   - commitlint (wagoid/commitlint-github-action, falls back to @commitlint/config-conventional)
+#   - pr-title-lint (amannn/action-semantic-pull-request)
+# Same 11 types, same "no leading uppercase" / "no trailing period" rules, same ~100 char cap,
+# so nothing that passes here can fail those in CI (mod config-conventional's fuzzier case
+# detection, which this approximates with a simple "doesn't start with an uppercase letter" check).
+#
+# Enable this hook once per clone with:
+#   git config core.hooksPath .githooks
+set -eu
+
+commit_msg_file="$1"
+header=$(grep -v '^#' "$commit_msg_file" | grep -v '^[[:space:]]*$' | head -n 1 || true)
+
+# Let git's own auto-generated messages through untouched.
+case "$header" in
+  "Merge "*|'Revert "'*|"fixup! "*|"squash! "*|"amend! "*)
+    exit 0
+    ;;
+esac
+
+fail() {
+  cat >&2 <<EOF
+Commit message does not follow Conventional Commits:
+
+    $header
+
+$1
+
+Expected: <type>[optional scope][!]: <description>
+  types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+  description: starts lowercase, no trailing period, header <= 100 chars
+
+Examples:
+  feat: add sortOrder support to Shelters
+  fix(customer-pdf): correct address block overflow
+  feat!: drop legacy /api/v1 endpoints
+
+See https://www.conventionalcommits.org
+EOF
+  exit 1
+}
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9/_.-]+\))?!?: (.+)$'
+
+if ! printf '%s' "$header" | grep -qE "$pattern"; then
+  fail "Missing/unknown type, or no ': <description>' after it."
+fi
+
+description=$(printf '%s' "$header" | sed -E "s/$pattern/\3/")
+
+case "$description" in
+  [A-Z]*)
+    fail "Description starts with an uppercase letter — use lowercase after 'type: '."
+    ;;
+esac
+
+case "$description" in
+  *.)
+    fail "Description must not end with a period."
+    ;;
+esac
+
+header_length=$(printf '%s' "$header" | wc -m | tr -d '[:space:]')
+if [ "$header_length" -gt 100 ]; then
+  fail "Header is $header_length characters, must be <= 100."
+fi

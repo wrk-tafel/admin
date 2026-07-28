@@ -6,7 +6,8 @@ env:
 on:
   workflow_call:
     inputs:
-      imageTag:
+      imageTags:
+        description: 'Newline-separated list of tags to push the image as, e.g. "latest\n1.0.0"'
         type: string
         required: true
     secrets:
@@ -37,12 +38,24 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.githubToken }}
+      - name: Build full image tags
+        id: tags
+        env:
+          IMAGE_TAGS: ${{ inputs.imageTags }}
+        run: |
+          {
+            echo 'tags<<EOF'
+            while IFS= read -r tag; do
+              [ -n "$tag" ] && echo "${REGISTRY}/wrk-tafel/admin:${tag}"
+            done <<< "${IMAGE_TAGS}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
       - name: Build and push docker image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           file: _build/Dockerfile
-          tags: "${{ env.REGISTRY }}/wrk-tafel/admin:${{ inputs.imageTag }}"
+          tags: ${{ steps.tags.outputs.tags }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max

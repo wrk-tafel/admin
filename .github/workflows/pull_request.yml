@@ -2,8 +2,42 @@ name: Pull Request
 
 on:
   pull_request:
+    types: [ opened, edited, reopened, synchronize ]
 
 jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+        with:
+          helpURL: https://www.conventionalcommits.org
+  pr-title-lint:
+    # Squash-merged PRs (squash_merge_commit_title: PR_TITLE in repo settings) use the PR title as
+    # the final commit on the target branch, so the title needs the same Conventional Commits check
+    # as individual commits above — otherwise release.yml's version bump can't see the intent.
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    permissions:
+      pull-requests: read
+    steps:
+      # subjectPattern mirrors the commitlint job's config-conventional rules (no leading
+      # uppercase, no trailing period) so a title can't pass this check and fail that one.
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # No leading uppercase, no trailing period, and a length cap that keeps the full
+          # "type(scope)!: description" header under commitlint's 100-char header-max-length
+          # even with a long type+scope prefix.
+          subjectPattern: ^(?![A-Z]).{0,79}[^.]$
+          subjectPatternError: |
+            The description "{subject}" found in title "{title}" must start with a lowercase
+            letter, must not end with a period, and (with its type/scope prefix) must keep the
+            whole title under 100 characters — matches the commitlint check on commits.
   build:
     uses: ./.github/workflows/subflow_build.yml
   test:
@@ -19,7 +53,7 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     with:
-      imageTag: dev
+      imageTags: dev
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:

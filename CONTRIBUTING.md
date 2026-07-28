@@ -12,6 +12,13 @@ prerequisites (Java 26, Node.js, Docker) and the local dev loop (start infra wit
 `docker compose up -d`, backend with `./gradlew :backend:bootRun --args='--spring.profiles.active=local'`,
 frontend with `npm run dev`).
 
+Also enable the repo's git hooks once per clone, which enforce the commit message convention
+below before you commit rather than only finding out in CI:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Before opening a PR
 
 Run the checks locally that CI will otherwise catch:
@@ -61,8 +68,25 @@ Angular signal-based patterns, template flow-control syntax). The short version:
 
 ## Commit / PR style
 
-- Commit subjects and PR titles are short, imperative, present tense (e.g. "Add sortOrder support
-  to Shelters", "Fix ktlint violation in FoodCategoryServiceTest").
+- Commit subjects and PR titles follow [Conventional Commits](https://www.conventionalcommits.org):
+  `<type>[optional scope][!]: <description>`, e.g. `feat: add sortOrder support to Shelters`,
+  `fix(customer-pdf): correct address block overflow`. Rules, identical across all three checks
+  below so nothing that passes one fails another:
+  - type is one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`,
+    `chore`, `revert`
+  - description doesn't start with an uppercase letter and doesn't end with a period
+  - full header is at most 100 characters
+  This isn't just style — `release.yml`'s `version` job (`paulhatch/semantic-version`) derives the
+  next release's version (patch/minor/major) straight from these commit types since the last tag
+  (`feat`→minor, `!`/`BREAKING CHANGE`→major, anything else→patch), so a malformed subject means
+  a release mis-bumps or silently falls back to a patch bump.
+  - Enforced locally by a `commit-msg` hook; enable it once per clone with
+    `git config core.hooksPath .githooks`. Also checked in CI on every PR: the `commitlint` job
+    lints individual commits (via `@commitlint/config-conventional`, same rules), and
+    `pr-title-lint` lints the PR title itself (via `amannn/action-semantic-pull-request`, same
+    rules through its `subjectPattern`) — needed because a squash merge (this repo's
+    title-as-commit-message default) uses the title, not the underlying commits, as what actually
+    lands on `release`. Any of the three catches a bypassed local hook (`--no-verify`).
 - Keep PRs focused on one change; incidental fixes found along the way are welcome as separate
   small commits but call them out in the PR description.
 - Database schema changes go in a new Flyway migration under

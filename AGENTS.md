@@ -265,6 +265,35 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Read signals in templates with `()` - e.g., `@if (loading())`
 - Application runs in **zoneless mode** - no `ngZone.run()` needed
 
+## Commit Conventions
+
+Commit subjects and PR titles **must** follow [Conventional Commits](https://www.conventionalcommits.org):
+`<type>[optional scope][!]: <description>`, e.g. `feat: add sortOrder support to Shelters`,
+`fix(customer-pdf): correct address block overflow`.
+
+- type is one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`,
+  `chore`, `revert`
+- description doesn't start with an uppercase letter and doesn't end with a period
+- full header (the whole subject line) is at most 100 characters
+- use `!` after type/scope (e.g. `feat!:`) for a breaking change, not a `BREAKING CHANGE:` footer
+
+This is not just style: `.github/workflows/release.yml`'s `version` job
+(`paulhatch/semantic-version`) derives the next release's version (patch/minor/major) straight
+from these commit types since the last git tag — `feat`→minor, `!`/`BREAKING CHANGE:`→major,
+anything else (including `fix`/`perf`)→patch, which is that action's implicit default level.
+A malformed subject means a release mis-bumps or silently falls back to a patch bump.
+
+It's enforced three ways, all with identical rules, so nothing that passes one fails another:
+a `commit-msg` hook (`.githooks/commit-msg`, active once `git config core.hooksPath .githooks`
+has been run in this clone), the `commitlint` CI job on every PR (lints individual commits), and
+the `pr-title-lint` CI job on every PR (lints the PR title itself — needed because this repo
+squash-merges with the PR title becoming the final commit, per `squash_merge_commit_title:
+PR_TITLE` in the repo settings, so the title is what `release.yml` actually sees, not the PR's
+individual commits).
+
+When committing on this repo's behalf, write commit messages and PR titles in this format
+without being asked.
+
 ## API Structure
 
 **HTTP Requests Collection (`_http-calls/`):** Before inspecting controller source code, check the `_http-calls/` folder for sample HTTP calls (`.http` files) organized by feature area (customers, distributions, routes, users, etc.). These provide quick insight into request/response shapes, query parameters, and authentication patterns. Use them as a first reference, but always verify against the actual controller endpoints when needed — the `.http` files may not cover every endpoint or edge case.
