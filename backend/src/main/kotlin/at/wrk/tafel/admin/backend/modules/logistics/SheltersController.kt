@@ -9,33 +9,37 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/shelters")
-@PreAuthorize("isAuthenticated()")
 class SheltersController(
     private val shelterService: ShelterService,
 ) {
 
     @GetMapping("/active")
+    @PreAuthorize("isAuthenticated()")
     fun getActiveShelters(): ShelterListResponse = ShelterListResponse(
         shelters = shelterService.getActiveShelters(),
     )
 
     @GetMapping
+    @PreAuthorize("hasAuthority('SETTINGS')")
     fun getAllShelters(): ShelterListResponse = ShelterListResponse(
         shelters = shelterService.getAllShelters(),
     )
 
     @PostMapping
+    @PreAuthorize("hasAuthority('SETTINGS')")
     fun createShelter(
         @RequestBody shelter: Shelter,
     ): Shelter = shelterService.createShelter(shelter)
 
     @PostMapping("/{shelterId}")
+    @PreAuthorize("hasAuthority('SETTINGS')")
     fun updateShelter(
         @PathVariable shelterId: Long,
         @RequestBody updatedShelter: Shelter,
     ): Shelter = shelterService.updateShelter(shelterId, updatedShelter)
 
     @PostMapping("/reorder")
+    @PreAuthorize("hasAuthority('SETTINGS')")
     fun reorderShelters(
         @RequestBody request: ShelterReorderRequest,
     ): ShelterListResponse {

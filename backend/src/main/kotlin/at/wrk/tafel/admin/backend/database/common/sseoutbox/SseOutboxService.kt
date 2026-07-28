@@ -15,6 +15,16 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
+/**
+ * Publishing side of the SSE outbox pattern: persists an event as a row in `sse_outbox` and lets
+ * emitters subscribe to named notifications for real-time push to the frontend.
+ *
+ * Writing the row (not calling `pg_notify` directly) is what makes this an outbox: the insert
+ * commits atomically with the business transaction that produced the event, and a Postgres
+ * trigger (see migration `R__00057_added_notification_procedure.sql`) fires `pg_notify('sse_outbox', ...)`
+ * only after that commit. [SseOutboxListenerService] is the other half - it holds the single
+ * `LISTEN` connection and fans notifications back out to the callbacks registered here.
+ */
 @Service
 class SseOutboxService(
     private val jsonMapper: JsonMapper,

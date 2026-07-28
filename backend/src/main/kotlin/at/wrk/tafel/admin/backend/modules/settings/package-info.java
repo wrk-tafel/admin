@@ -1,3 +1,6 @@
+/**
+ * Application configuration and mail recipient management.
+ */
 @org.springframework.modulith.ApplicationModule(
         allowedDependencies = {"base::exception"}
 )

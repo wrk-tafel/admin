@@ -10,4 +10,8 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // serializes read-modify-write updates to a food collection's items to avoid
     // duplicate-key races when multiple patches for the same route/shop overlap
     PATCH_FOOD_COLLECTION_ITEM(4000L),
+
+    // serializes scanner registration's gap-filling scanner-id lookup to avoid
+    // two concurrent registrations computing and inserting the same id
+    SCANNER_REGISTRATION(5000L),
 }

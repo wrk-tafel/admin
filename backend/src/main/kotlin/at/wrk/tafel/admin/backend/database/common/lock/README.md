@@ -10,6 +10,9 @@ Enum defining all available lock keys in the system. Each key has a unique numer
 Available lock keys:
 - `CREATE_DISTRIBUTION` (1000L) - For creating new distribution events
 - `CLOSE_DISTRIBUTION` (2000L) - For closing distribution events
+- `LOGIN_ATTEMPT_TRACKING` (3000L) - Serializes concurrent login-failure updates across instances
+- `PATCH_FOOD_COLLECTION_ITEM` (4000L) - Serializes read-modify-write updates to a food collection's items to avoid duplicate-key races when multiple patches for the same route/shop overlap
+- `SCANNER_REGISTRATION` (5000L) - Serializes scanner registration's gap-filling scanner-id lookup to avoid two concurrent registrations computing and inserting the same id
 
 ### AdvisoryLockRepository
 Spring Data JPA repository providing native query methods for PostgreSQL advisory lock functions.
@@ -19,17 +22,20 @@ Service providing high-level methods to acquire and release advisory locks using
 
 ## Usage
 
-### Basic Lock Usage
+### Basic Lock Usage (`withLock`)
+
+Blocks until the lock is acquired, always releases it afterwards (even on exception), and
+returns the block's result:
 
 ```kotlin
 @Service
 class MyService(
     private val advisoryLockService: AdvisoryLockService
 ) {
-    
+
     @Transactional
-    fun criticalOperation() {
-        advisoryLockService.withLock(AdvisoryLockKey.DISTRIBUTION_MANAGEMENT) {
+    fun criticalOperation(): SomeResult {
+        return advisoryLockService.withLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
             // Critical section - only one transaction can execute this at a time
             doSomethingCritical()
         }
@@ -37,42 +43,50 @@ class MyService(
 }
 ```
 
-### Try-Lock Pattern
+### Try-Lock Pattern (`tryWithLock`)
+
+Never blocks: returns `false` immediately if the lock is already held elsewhere, `true` if it
+acquired the lock, ran the block, and released it. Real usage from `DistributionService`:
 
 ```kotlin
 @Transactional
-fun tryOperation(): Boolean {
-    return advisoryLockService.tryWithLock(AdvisoryLockKey.CUSTOMER_TICKET_ASSIGNMENT) {
-        // Execute if lock is available
-        doOperation()
+fun createNewDistribution(): DistributionEntity {
+    var result: DistributionEntity? = null
+
+    val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
+        val currentDistribution = distributionRepository.getCurrentDistribution()
+        if (currentDistribution != null) {
+            throw TafelValidationException("Ausgabe bereits gestartet!")
+        }
+        result = /* ... create and save the distribution ... */
     }
+
+    if (!acquired) {
+        throw TafelValidationException("Ausgabe wird bereits erstellt!")
+    }
+    return result!!
 }
 ```
+
+Note `tryWithLock`'s block returns `Unit`, not a value - assign to an outer `var` (as above) to
+get a result out of it, unlike `withLock` which returns the block's value directly.
 
 ### Manual Lock Management
 
 ```kotlin
 @Transactional
 fun manualLockOperation() {
-    advisoryLockService.acquireLock(AdvisoryLockKey.FOOD_COLLECTION_UPDATE)
+    advisoryLockService.acquireLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)
     try {
         doOperation()
     } finally {
-        advisoryLockService.releaseLock(AdvisoryLockKey.FOOD_COLLECTION_UPDATE)
+        advisoryLockService.releaseLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)
     }
 }
 ```
 
-### Check Lock Status
-
-```kotlin
-@Transactional
-fun checkLock() {
-    if (advisoryLockService.isLockHeld(AdvisoryLockKey.DISTRIBUTION_MANAGEMENT)) {
-        // Lock is currently held by this transaction
-    }
-}
-```
+There is also a non-blocking variant of manual acquisition, `tryAcquireLock(lockKey): Boolean`,
+which `tryWithLock` is built on top of.
 
 ## Lock Types
 
@@ -93,10 +107,12 @@ To add a new lock key:
 
 ```kotlin
 enum class AdvisoryLockKey(val lockId: Long) {
-    DISTRIBUTION_MANAGEMENT(1L),
-    CUSTOMER_TICKET_ASSIGNMENT(2L),
-    FOOD_COLLECTION_UPDATE(3L),
-    MY_NEW_LOCK(4L);  // Add new lock key here
+    CREATE_DISTRIBUTION(1000L),
+    CLOSE_DISTRIBUTION(2000L),
+    LOGIN_ATTEMPT_TRACKING(3000L),
+    PATCH_FOOD_COLLECTION_ITEM(4000L),
+    SCANNER_REGISTRATION(5000L),
+    MY_NEW_LOCK(6000L), // Add new lock key here - existing keys are spaced 1000 apart by convention
 }
 ```
 
