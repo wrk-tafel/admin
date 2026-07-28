@@ -95,7 +95,7 @@
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Allgemeine Daten">
-        <div class="mt-4 px-4">
+        <div class="mt-4">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
             <div>
               <mat-card>
@@ -227,7 +227,7 @@
         <ng-template mat-tab-label>
           <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
         </ng-template>
-        <div class="px-4">
+        <div class="mt-4">
           @if (customerData()?.additionalPersons?.length === 0) {
             <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
           }

@@ -18,7 +18,7 @@
                 {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
               </span>
             </ng-template>
-            <div class="p-4" [formGroupName]="i">
+            <div class="py-4" [formGroupName]="i">
               <div formArrayName="recipients" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 @for (recipient of getRecipientsForMailTypeIndex(i).controls; track recipient; let j = $index; ) {
                   <div [formGroupName]="j">
