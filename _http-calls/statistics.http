@@ -6,3 +6,6 @@ GET {{baseApiPath}}/statistics/data?fromDate=2000-01-01&toDate=2999-12-31
 
 ### Generate CSV export
 GET {{baseApiPath}}/statistics/generate-csv?fromDate=2000-01-01&toDate=2999-12-31
+
+### Generate Schulstartpakete report CSV export
+GET {{baseApiPath}}/reporting/schulstartpaket/generate-csv

@@ -8,5 +8,7 @@ export const staticValueTypeLabels: Record<StaticValueTypeEnum, string> = {
   [StaticValueTypeEnum.FAMILY_ALLOWANCE]: 'Familienbeihilfe',
   [StaticValueTypeEnum.CHILD_TAX_ALLOWANCE]: 'Kinderabsetzbetrag',
   [StaticValueTypeEnum.SIBLING_ADDITION]: 'Geschwisterstaffel',
-  [StaticValueTypeEnum.COST_CONTRIBUTION]: 'Kostenbeitrag'
+  [StaticValueTypeEnum.COST_CONTRIBUTION]: 'Kostenbeitrag',
+  [StaticValueTypeEnum.SCHULSTARTPAKET_AGE_MIN]: 'Schulstartpaket Mindestalter',
+  [StaticValueTypeEnum.SCHULSTARTPAKET_AGE_MAX]: 'Schulstartpaket Höchstalter'
 };
