@@ -186,18 +186,19 @@
         </div>
         <hr/>
         <div class="mb-2">
+          <label class="form-label">Alleinerzieher</label>
+          <div>
+            <input testid="singleParentInput" type="checkbox" [formField]="customerForm.singleParent">
+          </div>
+        </div>
+        <hr/>
+        <div class="mb-2">
           <label class="form-label">Gültig bis *</label>
           <input testid="validUntilInput" type="date" [formField]="customerForm.validUntil" class="form-control"
                  [ngClass]="fieldStateClasses(customerForm.validUntil())">
           @for (errorMessage of visibleErrorMessages(customerForm.validUntil()); track $index) {
             <div class="invalid-feedback">{{errorMessage}}</div>
           }
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Alleinerzieher</label>
-          <div>
-            <input testid="singleParentInput" type="checkbox" [formField]="customerForm.singleParent">
-          </div>
         </div>
       </mat-card-content>
     </mat-card>
