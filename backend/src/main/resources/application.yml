@@ -69,6 +69,12 @@ security:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
 
+# Swagger UI/OpenAPI docs are only browsable on developer machines (see application-local.yml) -
+# never exposed in production or e2e/testdata environments
+springdoc:
+  api-docs.enabled: false
+  swagger-ui.enabled: false
+
 tafeladmin:
   server:
     relativeBaseUrl: /

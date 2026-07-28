@@ -30,3 +30,7 @@ tafeladmin:
     from: "dummy@localhost"
     defaultRecipientsBcc:
       - "bcc1@localhost"
+
+springdoc:
+  api-docs.enabled: true
+  swagger-ui.enabled: true

@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.passay)
     implementation(libs.apache.commons.csv)
     implementation(libs.apache.commons.lang3)
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
     // runtimeOnly
     runtimeOnly(libs.jjwt.impl)
