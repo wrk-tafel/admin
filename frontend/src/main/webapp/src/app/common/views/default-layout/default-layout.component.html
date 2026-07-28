@@ -31,6 +31,7 @@
             @if (item.children) {
               <a (click)="toggleExpanded(item.name)"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                 [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -46,6 +47,7 @@
               <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
                  (click)="isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                 [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -76,7 +78,8 @@
       }
     </nav>
 
-    <div class="hidden lg:flex border-t border-gray-800 justify-end px-2 py-2 shrink-0">
+    <div class="hidden lg:flex border-t border-gray-800 px-2 py-2 shrink-0"
+         [class.justify-end]="!collapsed()" [class.justify-center]="collapsed()">
       <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
