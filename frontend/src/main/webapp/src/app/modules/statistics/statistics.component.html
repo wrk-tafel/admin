@@ -134,20 +134,16 @@
   </mat-card-header>
   <mat-card-content>
     <div class="font-bold mb-2">Schulstartpakete</div>
-    <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-4">
-      <div class="sm:col-span-2">
-        <label class="form-label">Alter von</label>
-      </div>
-      <div class="sm:col-span-5">
-        <input testid="schoolStarterPackageAgeMinInput" type="number" class="form-control"
+    <div class="flex flex-wrap items-center gap-4 mb-4">
+      <div class="flex items-center gap-2">
+        <label class="form-label mb-0">Alter von</label>
+        <input testid="schoolStarterPackageAgeMinInput" type="number" class="form-control" style="max-width: 90px"
                [ngModel]="schoolStarterPackageAgeMin()"
                (ngModelChange)="schoolStarterPackageAgeMin.set($event)">
       </div>
-      <div class="sm:col-span-2">
-        <label class="form-label">Alter bis</label>
-      </div>
-      <div class="sm:col-span-5">
-        <input testid="schoolStarterPackageAgeMaxInput" type="number" class="form-control"
+      <div class="flex items-center gap-2">
+        <label class="form-label mb-0">Alter bis</label>
+        <input testid="schoolStarterPackageAgeMaxInput" type="number" class="form-control" style="max-width: 90px"
                [ngModel]="schoolStarterPackageAgeMax()"
                (ngModelChange)="schoolStarterPackageAgeMax.set($event)">
       </div>
