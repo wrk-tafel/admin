@@ -65,6 +65,14 @@ export class CustomerDuplicatesComponent {
     this.customerApiService.deleteCustomer(customerId).subscribe(observer);
   }
 
+  /**
+   * Merges `customer` (the one whose "keep this one" button was clicked) with the rest of its
+   * duplicate pair, deleting the others. Reads the pair from `items[0]` regardless of which
+   * button in the template was clicked - safe only because the backend's duplicates endpoint
+   * hardcodes a page size of 1 (`HouseholdDuplicationService.findDuplicates`), so a page's `items`
+   * array never holds more than one pair. If that page size ever changes, this needs to look up
+   * the specific item `customer` belongs to instead of always taking `items[0]`.
+   */
   mergeCustomers(customer: CustomerData) {
     const duplicatesData = this.customerDuplicatesData()!.items[0];
     const sourceCustomerIds = [duplicatesData.customer, ...duplicatesData.similarCustomers]

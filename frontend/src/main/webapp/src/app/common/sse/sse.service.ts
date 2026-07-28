@@ -6,6 +6,18 @@ import {UrlHelperService} from '../util/url-helper.service';
 export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
 
+  /**
+   * Opens a Server-Sent Events connection to `url` and emits each parsed message.
+   *
+   * Wraps the native `EventSource` in an `Observable` so callers can use `toSignal()`/`subscribe()`
+   * like any other stream. If the connection drops (`EventSource` reports `CLOSED`), it is
+   * automatically reconnected after a fixed 1s delay - callers never see the drop as an error on
+   * the observable, only as a transient `false` on `connectionStateCallback` if one was passed.
+   * Unsubscribing closes the underlying `EventSource` and stops any pending reconnect.
+   *
+   * @param url Backend path relative to the API base, e.g. `/sse/dashboard`
+   * @param connectionStateCallback Optional hook fired with `true`/`false` on connect/permanent-close
+   */
   listen<T>(url: string, connectionStateCallback?: (connected: boolean) => void): Observable<T> {
     return new Observable<T>((observer) => {
       const baseUrl = this.urlHelperService.getBaseUrl();
