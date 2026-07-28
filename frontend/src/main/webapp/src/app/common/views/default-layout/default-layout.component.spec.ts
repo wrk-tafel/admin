@@ -71,6 +71,24 @@ describe('DefaultLayoutComponent', () => {
         expect(component.versionInfo()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z'});
     });
 
+    it('shows the version footer without a "v" prefix when expanded', () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        const text = fixture.nativeElement.textContent;
+        expect(text).toContain('1.0.0');
+        expect(text).not.toContain('v1.0.0');
+    });
+
+    it('hides the version footer when the sidebar is collapsed', () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        component.collapsed.set(true);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).not.toContain('1.0.0');
+    });
+
     it('navItems are filtered by permissions - permissions undefined', () => {
         const fixture = TestBed.createComponent(DefaultLayoutComponent);
         const component = fixture.componentInstance;
