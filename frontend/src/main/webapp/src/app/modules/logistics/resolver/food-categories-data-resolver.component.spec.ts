@@ -19,7 +19,7 @@ describe('FoodCategoriesDataResolver', () => {
         {
           provide: FoodCategoriesApiService,
           useValue: {
-            getFoodCategories: vi.fn().mockName('FoodCategoriesApiService.getFoodCategories')
+            getActiveFoodCategories: vi.fn().mockName('FoodCategoriesApiService.getActiveFoodCategories')
           }
         },
         FoodCategoriesDataResolver
@@ -32,10 +32,10 @@ describe('FoodCategoriesDataResolver', () => {
 
   it('resolve', () => {
     const mockCategories: FoodCategory[] = [
-      {id: 0, name: 'Cat 1', returnItem: false},
-      {id: 1, name: 'Cat 2', returnItem: true},
+      {id: 0, name: 'Cat 1', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: true},
+      {id: 1, name: 'Cat 2', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: true},
     ];
-    apiService.getFoodCategories.mockReturnValue(of(mockCategories));
+    apiService.getActiveFoodCategories.mockReturnValue(of(mockCategories));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
     resolver.resolve(activatedRoute).subscribe((categories: FoodCategory[]) => {

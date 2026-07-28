@@ -2,7 +2,9 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -10,22 +12,54 @@ class FoodCategoryService(
     private val foodCategoriesRepository: FoodCategoryRepository,
 ) {
 
-    fun getFoodCategories(): List<FoodCategory> {
-        val categories = foodCategoriesRepository.findAll().toList()
-        return categories
-            .sortedWith(
-                compareBy(
-                    { it.returnItem },
-                    { it.sortOrder },
-                    { it.name },
-                ),
-            )
-            .map { mapRoute(it) }
+    fun getActiveFoodCategories(): List<FoodCategory> = sortCategories(foodCategoriesRepository.findByEnabledIsTrue())
+        .map { mapFoodCategory(it) }
+
+    fun getAllFoodCategories(): List<FoodCategory> = sortCategories(foodCategoriesRepository.findAll().toList())
+        .map { mapFoodCategory(it) }
+
+    fun createFoodCategory(category: FoodCategory): FoodCategory {
+        val entity = FoodCategoryEntity().apply {
+            name = category.name
+            weightPerUnit = category.weightPerUnit
+            returnItem = category.returnItem
+            sortOrder = category.sortOrder
+            enabled = category.enabled
+        }
+
+        val savedEntity = foodCategoriesRepository.save(entity)
+        return mapFoodCategory(savedEntity)
     }
 
-    private fun mapRoute(foodCategoryEntity: FoodCategoryEntity): FoodCategory = FoodCategory(
-        id = foodCategoryEntity.id!!,
+    fun updateFoodCategory(categoryId: Long, updatedCategory: FoodCategory): FoodCategory {
+        val entity = foodCategoriesRepository.findByIdOrNull(categoryId)
+            ?: throw TafelValidationException("FoodCategory with id $categoryId not found")
+
+        entity.name = updatedCategory.name
+        entity.weightPerUnit = updatedCategory.weightPerUnit
+        entity.returnItem = updatedCategory.returnItem
+        entity.sortOrder = updatedCategory.sortOrder
+        entity.enabled = updatedCategory.enabled
+
+        val savedEntity = foodCategoriesRepository.save(entity)
+        return mapFoodCategory(savedEntity)
+    }
+
+    private fun sortCategories(categories: List<FoodCategoryEntity>): List<FoodCategoryEntity> = categories
+        .sortedWith(
+            compareBy(
+                { it.returnItem },
+                { it.sortOrder },
+                { it.name },
+            ),
+        )
+
+    private fun mapFoodCategory(foodCategoryEntity: FoodCategoryEntity): FoodCategory = FoodCategory(
+        id = foodCategoryEntity.id,
         name = foodCategoryEntity.name!!,
+        weightPerUnit = foodCategoryEntity.weightPerUnit,
         returnItem = foodCategoryEntity.returnItem ?: false,
+        sortOrder = foodCategoryEntity.sortOrder ?: 0,
+        enabled = foodCategoryEntity.enabled ?: false,
     )
 }

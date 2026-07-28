@@ -7,9 +7,11 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class FoodCategoriesControllerTest {
@@ -21,28 +23,62 @@ class FoodCategoriesControllerTest {
     private lateinit var controller: FoodCategoriesController
 
     @Test
-    fun `get categories`() {
-        val category1 = FoodCategory(
-            id = 1,
-            name = "Category 1",
-            returnItem = false,
-        )
-        val category2 = FoodCategory(
-            id = 2,
-            name = "Category 2",
-            returnItem = true,
-        )
-        every { foodCategoriesService.getFoodCategories() } returns listOf(category1, category2)
+    fun `get active categories`() {
+        val category1 = testCategory(1)
+        val category2 = testCategory(2)
+        every { foodCategoriesService.getActiveFoodCategories() } returns listOf(category1, category2)
 
-        val categoriesListResponse = controller.getFoodCategories()
+        val categoriesListResponse = controller.getActiveFoodCategories()
 
         assertThat(categoriesListResponse).isEqualTo(
-            FoodCategoriesListResponse(
-                categories = listOf(
-                    category1,
-                    category2,
-                ),
-            ),
+            FoodCategoriesListResponse(categories = listOf(category1, category2)),
         )
     }
+
+    @Test
+    fun `get all categories`() {
+        val category1 = testCategory(1)
+        val category2 = testCategory(2)
+        every { foodCategoriesService.getAllFoodCategories() } returns listOf(category1, category2)
+
+        val categoriesListResponse = controller.getAllFoodCategories()
+
+        assertThat(categoriesListResponse).isEqualTo(
+            FoodCategoriesListResponse(categories = listOf(category1, category2)),
+        )
+    }
+
+    @Test
+    fun `create category`() {
+        val newCategory = testCategory(null)
+        val createdCategory = newCategory.copy(id = 42L)
+
+        every { foodCategoriesService.createFoodCategory(any()) } returns createdCategory
+
+        val response = controller.createFoodCategory(newCategory)
+
+        assertThat(response).isEqualTo(createdCategory)
+        verify { foodCategoriesService.createFoodCategory(newCategory) }
+    }
+
+    @Test
+    fun `update category`() {
+        val updatedCategory = testCategory(1)
+
+        every { foodCategoriesService.updateFoodCategory(any(), any()) } returns updatedCategory
+
+        val response = controller.updateFoodCategory(1L, updatedCategory)
+
+        assertThat(response).isEqualTo(updatedCategory)
+        verify { foodCategoriesService.updateFoodCategory(1L, updatedCategory) }
+    }
+
+    private fun testCategory(id: Long?) = FoodCategory(
+        id = id,
+        name = "Category $id",
+        weightPerUnit = BigDecimal.TEN,
+        returnItem = false,
+        sortOrder = 10,
+        enabled = true,
+    )
 }

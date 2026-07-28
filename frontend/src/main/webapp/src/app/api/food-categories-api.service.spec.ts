@@ -22,18 +22,62 @@ describe('FoodCategoriesApiService', () => {
     apiService = TestBed.inject(FoodCategoriesApiService);
   });
 
-  it('get categories', () => {
+  it('get active categories', () => {
     const mockCategories: FoodCategory[] = [
-      {id: 0, name: 'Bakery', returnItem: false},
-      {id: 1, name: 'Frozen Food', returnItem: true}
+      {id: 0, name: 'Bakery', weightPerUnit: 1.5, returnItem: false, sortOrder: 0, enabled: true},
+      {id: 1, name: 'Frozen Food', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: true}
     ];
 
-    apiService.getFoodCategories().subscribe((data: FoodCategory[]) => {
+    apiService.getActiveFoodCategories().subscribe((data: FoodCategory[]) => {
+      expect(data).toEqual(mockCategories);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/food-categories/active'});
+    req.flush({categories: mockCategories});
+    httpMock.verify();
+  });
+
+  it('get all categories', () => {
+    const mockCategories: FoodCategory[] = [
+      {id: 0, name: 'Bakery', weightPerUnit: 1.5, returnItem: false, sortOrder: 0, enabled: true},
+      {id: 1, name: 'Frozen Food', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: false}
+    ];
+
+    apiService.getAllFoodCategories().subscribe((data: FoodCategory[]) => {
       expect(data).toEqual(mockCategories);
     });
 
     const req = httpMock.expectOne({method: 'GET', url: '/food-categories'});
     req.flush({categories: mockCategories});
+    httpMock.verify();
+  });
+
+  it('create category', () => {
+    const newCategory: FoodCategory = {
+      id: 0, name: 'New Category', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: true
+    };
+    const createdCategory: FoodCategory = {...newCategory, id: 42};
+
+    apiService.createFoodCategory(newCategory).subscribe((data: FoodCategory) => {
+      expect(data).toEqual(createdCategory);
+    });
+
+    const req = httpMock.expectOne({method: 'POST', url: '/food-categories'});
+    req.flush(createdCategory);
+    httpMock.verify();
+  });
+
+  it('update category', () => {
+    const updatedCategory: FoodCategory = {
+      id: 1, name: 'Updated Category', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: false
+    };
+
+    apiService.updateFoodCategory(1, updatedCategory).subscribe((data: FoodCategory) => {
+      expect(data).toEqual(updatedCategory);
+    });
+
+    const req = httpMock.expectOne({method: 'POST', url: '/food-categories/1'});
+    req.flush(updatedCategory);
     httpMock.verify();
   });
 

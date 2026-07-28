@@ -8,7 +8,7 @@ export class FoodCategoriesDataResolver {
   private readonly foodCategoriesApiService = inject(FoodCategoriesApiService);
 
   public resolve(_route: ActivatedRouteSnapshot): Observable<FoodCategory[]> {
-    return this.foodCategoriesApiService.getFoodCategories();
+    return this.foodCategoriesApiService.getActiveFoodCategories();
   }
 
 }

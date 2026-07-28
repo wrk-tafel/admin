@@ -1,0 +1,28 @@
+<tafel-dialog title="Lebensmittelkategorie bearbeiten" testid="food-category-edit-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Gewicht pro Einheit</mat-label>
+        <input matInput type="number" formControlName="weightPerUnit"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Sortierung</mat-label>
+        <input matInput type="number" formControlName="sortOrder"/>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="returnItem" class="mb-2">Pfandartikel</mat-checkbox>
+      <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" (click)="save()">Speichern</button>
+    <button matButton (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>
