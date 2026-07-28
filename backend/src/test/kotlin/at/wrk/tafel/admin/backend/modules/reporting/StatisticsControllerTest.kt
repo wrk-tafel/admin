@@ -243,4 +243,37 @@ class StatisticsControllerTest {
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
+
+    @Test
+    fun `getSchoolStarterPackageData delegates to service with given age range`() {
+        val expectedData = listOf(
+            SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8),
+        )
+        every { service.getSchoolStarterPackageData(6, 10) } returns expectedData
+
+        val result = controller.getSchoolStarterPackageData(ageMin = 6, ageMax = 10)
+
+        assertThat(result).isEqualTo(expectedData)
+        verify(exactly = 1) { service.getSchoolStarterPackageData(6, 10) }
+    }
+
+    @Test
+    fun `generate school starter package csv - result mapped`() {
+        val testFilename = "schulstartpakete_28.07.2026.csv"
+        every { service.generateSchoolStarterPackageCsv(6, 10) } returns StatisticsCsvResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
 }

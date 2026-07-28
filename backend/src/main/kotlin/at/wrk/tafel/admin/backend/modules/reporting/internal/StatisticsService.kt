@@ -3,6 +3,9 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
@@ -13,18 +16,22 @@ import org.springframework.transaction.annotation.Transactional
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlin.math.max
 
 @Service
 class StatisticsService(
     private val distributionRepository: DistributionRepository,
+    private val householdRepository: HouseholdRepository,
     private val entityManager: EntityManager,
 ) {
 
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
+        const val SCHOOL_STARTER_PACKAGE_AGE_MIN_DEFAULT = 6
+        const val SCHOOL_STARTER_PACKAGE_AGE_MAX_DEFAULT = 10
     }
 
     fun getSettings(): StatisticsSettings {
@@ -355,6 +362,64 @@ class StatisticsService(
         return StatisticsCsvResult(
             filename = "statistik_export_${DATE_TIME_FORMATTER.format(fromDate)}_bis_${DATE_TIME_FORMATTER.format(toDate)}.csv",
             bytes = CsvUtil.writeRowsToByteArray(rows),
+        )
+    }
+
+    /**
+     * Ports the ad-hoc "Schulstartpakete" SQL (see `_reporting/reporting.sql`) into a real export:
+     * every additional (non-main) member of a currently valid household whose age falls in the
+     * given (inclusive) age range, one row per person, ordered by the household's business number.
+     * The original SQL hardcoded 6..10 but noted the age range should be configurable, hence the
+     * parameters here (frontend exposes them as editable fields) rather than fixed constants.
+     */
+    @Transactional
+    fun generateSchoolStarterPackageCsv(
+        ageMin: Int = SCHOOL_STARTER_PACKAGE_AGE_MIN_DEFAULT,
+        ageMax: Int = SCHOOL_STARTER_PACKAGE_AGE_MAX_DEFAULT,
+    ): StatisticsCsvResult {
+        val today = LocalDate.now()
+        val rows = getSchoolStarterPackageData(ageMin, ageMax, today)
+
+        val csvRows: List<List<String>> = listOf(
+            listOf("Haushalt", "Vorname", "Nachname", "Alter"),
+        ) + rows.map { listOf(it.householdId.toString(), it.firstname, it.lastname, it.age.toString()) }
+
+        return StatisticsCsvResult(
+            filename = "schulstartpakete_${DATE_TIME_FORMATTER.format(today)}.csv",
+            bytes = CsvUtil.writeRowsToByteArray(csvRows),
+        )
+    }
+
+    @Transactional
+    fun getSchoolStarterPackageData(
+        ageMin: Int = SCHOOL_STARTER_PACKAGE_AGE_MIN_DEFAULT,
+        ageMax: Int = SCHOOL_STARTER_PACKAGE_AGE_MAX_DEFAULT,
+        today: LocalDate = LocalDate.now(),
+    ): List<SchoolStarterPackageEntry> {
+        val households = householdRepository.findAll(HouseholdEntity.Specs.validHousehold())
+
+        return households
+            .flatMap { household -> schoolStarterPackageEntriesForHousehold(household, ageMin, ageMax, today) }
+            .sortedBy { it.householdId }
+    }
+
+    private fun schoolStarterPackageEntriesForHousehold(
+        household: HouseholdEntity,
+        ageMin: Int,
+        ageMax: Int,
+        today: LocalDate,
+    ): List<SchoolStarterPackageEntry> = household.additionalPersons().mapNotNull { person ->
+        val birthDate = person.birthDate ?: return@mapNotNull null
+        val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
+        if (age !in ageMin..ageMax) {
+            return@mapNotNull null
+        }
+
+        SchoolStarterPackageEntry(
+            householdId = household.householdId!!,
+            firstname = person.firstname.orEmpty(),
+            lastname = person.lastname.orEmpty(),
+            age = age,
         )
     }
 }

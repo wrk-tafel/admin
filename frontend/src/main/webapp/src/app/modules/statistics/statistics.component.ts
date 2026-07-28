@@ -2,8 +2,19 @@ import {Component, computed, inject, input, signal} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
+  MatTable
+} from '@angular/material/table';
 import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
-import {ReportingApiService} from '../../api/reporting-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CommonModule} from '@angular/common';
@@ -26,13 +37,22 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     MatButtonModule,
     MatButtonToggleModule,
     StatisticsPanelComponent,
-    FaIconComponent
+    FaIconComponent,
+    MatCell,
+    MatCellDef,
+    MatColumnDef,
+    MatHeaderCell,
+    MatHeaderCellDef,
+    MatHeaderRow,
+    MatHeaderRowDef,
+    MatRow,
+    MatRowDef,
+    MatTable
   ]
 })
 export class StatisticsComponent {
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
-  private readonly reportingApiService = inject(ReportingApiService);
   private readonly fileHelperService = inject(FileHelperService);
 
   _dateRangeFrom = signal<Date>(dayjs().startOf('year').toDate());
@@ -46,6 +66,19 @@ export class StatisticsComponent {
       switchMap(range => this.statisticsApiService.getData(range.from, range.to))
     )
   );
+
+  schoolStarterPackageAgeMin = signal<number>(6);
+  schoolStarterPackageAgeMax = signal<number>(10);
+  schoolStarterPackageAgeRange = computed(() => ({
+    min: this.schoolStarterPackageAgeMin(),
+    max: this.schoolStarterPackageAgeMax()
+  }));
+  schoolStarterPackageData = toSignal(
+    toObservable(this.schoolStarterPackageAgeRange).pipe(
+      switchMap(range => this.statisticsApiService.getSchoolStarterPackageData(range.min, range.max))
+    )
+  );
+  schoolStarterPackageColumns = ['householdId', 'firstname', 'lastname', 'age'];
 
   selectedMode = signal<DateRangeMode>('year');
   selectedYear = signal<number>(dayjs().year());
@@ -108,7 +141,8 @@ export class StatisticsComponent {
   }
 
   protected generateSchoolStarterPackageCsv() {
-    this.reportingApiService.generateSchoolStarterPackageCsv()
+    const range = this.schoolStarterPackageAgeRange();
+    this.statisticsApiService.generateSchoolStarterPackageCsv(range.min, range.max)
       .subscribe((response) => this.processCsvResponse(response));
   }
 

@@ -32,6 +32,27 @@ export class StatisticsApiService {
       });
   }
 
+  getSchoolStarterPackageData(ageMin: number, ageMax: number): Observable<SchoolStarterPackageEntry[]> {
+    let queryParams = new HttpParams();
+    queryParams = queryParams.set('ageMin', ageMin);
+    queryParams = queryParams.set('ageMax', ageMax);
+
+    return this.http.get<SchoolStarterPackageEntry[]>('/statistics/school-starter-package', {params: queryParams});
+  }
+
+  generateSchoolStarterPackageCsv(ageMin: number, ageMax: number): Observable<HttpResponse<Blob>> {
+    let queryParams = new HttpParams();
+    queryParams = queryParams.set('ageMin', ageMin);
+    queryParams = queryParams.set('ageMax', ageMax);
+
+    return this.http.get('/statistics/generate-school-starter-package-csv',
+      {
+        params: queryParams,
+        responseType: 'blob',
+        observe: 'response'
+      });
+  }
+
 }
 
 export interface StatisticsSettings {
@@ -61,4 +82,11 @@ export interface StatisticsDetailData {
   subTitle: string;
   labels: string[];
   dataPoints: number[];
+}
+
+export interface SchoolStarterPackageEntry {
+  householdId: number;
+  firstname: string;
+  lastname: string;
+  age: number;
 }

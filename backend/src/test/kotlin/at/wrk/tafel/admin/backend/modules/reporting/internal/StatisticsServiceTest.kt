@@ -2,6 +2,10 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
@@ -15,6 +19,7 @@ import jakarta.persistence.Query
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -23,6 +28,9 @@ internal class StatisticsServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
+
+    @RelaxedMockK
+    private lateinit var householdRepository: HouseholdRepository
 
     @RelaxedMockK
     private lateinit var entityManager: EntityManager
@@ -482,5 +490,110 @@ internal class StatisticsServiceTest {
         assertThat(lines[7]).isEqualTo("Spender (Anzahl);60")
         assertThat(lines[8]).isEqualTo("Warenmenge (Gesamt);60 kg")
         assertThat(lines[9]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20,00 kg")
+    }
+
+    private fun person(firstname: String, lastname: String, age: Int, isMainPerson: Boolean = false): PersonEntity =
+        PersonEntity().apply {
+            this.firstname = firstname
+            this.lastname = lastname
+            this.birthDate = LocalDate.now().minusYears(age.toLong())
+            this.isMainPerson = isMainPerson
+        }
+
+    private fun household(householdId: Long, vararg persons: PersonEntity): HouseholdEntity =
+        HouseholdEntity().apply {
+            this.householdId = householdId
+            persons.forEach { this.persons.add(it) }
+        }
+
+    @Test
+    fun `generateSchoolStarterPackageCsv includes only additional persons within the hardcoded age range`() {
+        val mainPerson = person("Main", "Person", age = 40, isMainPerson = true)
+        val childInRange = person("Kind", "InRange", age = 8)
+        val childBelowRange = person("Kind", "TooYoung", age = 5)
+        val childAboveRange = person("Kind", "TooOld", age = 11)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            household(1L, mainPerson, childInRange, childBelowRange, childAboveRange),
+        )
+
+        val result = service.generateSchoolStarterPackageCsv()
+        val csvContent = String(result.bytes, Charsets.UTF_8)
+
+        assertThat(csvContent).contains("Kind;InRange;8")
+        assertThat(csvContent).doesNotContain("TooYoung")
+        assertThat(csvContent).doesNotContain("TooOld")
+        assertThat(csvContent).doesNotContain("Main;Person")
+    }
+
+    @Test
+    fun `generateSchoolStarterPackageCsv includes ages at the inclusive boundaries`() {
+        val childAtMin = person("Kind", "AtMin", age = 6)
+        val childAtMax = person("Kind", "AtMax", age = 10)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            household(1L, childAtMin, childAtMax),
+        )
+
+        val csvContent = String(service.generateSchoolStarterPackageCsv().bytes, Charsets.UTF_8)
+
+        assertThat(csvContent).contains("AtMin")
+        assertThat(csvContent).contains("AtMax")
+    }
+
+    @Test
+    fun `generateSchoolStarterPackageCsv orders rows by household id`() {
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            household(20L, person("B", "Household20", age = 7)),
+            household(5L, person("A", "Household5", age = 7)),
+        )
+
+        val csvContent = String(service.generateSchoolStarterPackageCsv().bytes, Charsets.UTF_8)
+
+        val household5Index = csvContent.indexOf("Household5")
+        val household20Index = csvContent.indexOf("Household20")
+        assertThat(household5Index).isLessThan(household20Index)
+    }
+
+    @Test
+    fun `generateSchoolStarterPackageCsv filename contains todays date`() {
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns emptyList()
+
+        val result = service.generateSchoolStarterPackageCsv()
+
+        assertThat(result.filename).startsWith("schulstartpakete_")
+        assertThat(result.filename).endsWith(".csv")
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData returns matching entries ordered by household id`() {
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            household(20L, person("B", "Household20", age = 7)),
+            household(5L, person("A", "Household5", age = 7)),
+            household(1L, person("Main", "Person", age = 40, isMainPerson = true)),
+        )
+
+        val result = service.getSchoolStarterPackageData()
+
+        assertThat(result).containsExactly(
+            SchoolStarterPackageEntry(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
+            SchoolStarterPackageEntry(householdId = 20L, firstname = "B", lastname = "Household20", age = 7),
+        )
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData honors a custom age range`() {
+        val childAge3 = person("Kind", "Young", age = 3)
+        val childAge12 = person("Kind", "Old", age = 12)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            household(1L, childAge3, childAge12),
+        )
+
+        val result = service.getSchoolStarterPackageData(ageMin = 0, ageMax = 3)
+
+        assertThat(result).containsExactly(
+            SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Young", age = 3),
+        )
     }
 }

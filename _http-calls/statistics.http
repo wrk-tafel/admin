@@ -7,5 +7,8 @@ GET {{baseApiPath}}/statistics/data?fromDate=2000-01-01&toDate=2999-12-31
 ### Generate CSV export
 GET {{baseApiPath}}/statistics/generate-csv?fromDate=2000-01-01&toDate=2999-12-31
 
+### Fetch school starter package report data
+GET {{baseApiPath}}/statistics/school-starter-package?ageMin=6&ageMax=10
+
 ### Generate school starter package report CSV export
-GET {{baseApiPath}}/reporting/school-starter-package/generate-csv
+GET {{baseApiPath}}/statistics/generate-school-starter-package-csv?ageMin=6&ageMax=10

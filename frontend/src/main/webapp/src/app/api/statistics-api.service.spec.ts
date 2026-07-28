@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
-import {StatisticsApiService, StatisticsData, StatisticsSettings} from './statistics-api.service';
+import {SchoolStarterPackageEntry, StatisticsApiService, StatisticsData, StatisticsSettings} from './statistics-api.service';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
@@ -164,6 +164,27 @@ describe('StatisticsApiService', () => {
     apiService.generateCsv(fromDate, toDate).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/statistics/generate-csv?fromDate=1234-01-02&toDate=4321-01-02'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get school starter package data', () => {
+    const testResponse: SchoolStarterPackageEntry[] = [
+      {householdId: 1, firstname: 'Kind', lastname: 'Mustermann', age: 8}
+    ];
+
+    apiService.getSchoolStarterPackageData(6, 10).subscribe((response) => {
+      expect(response).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/statistics/school-starter-package?ageMin=6&ageMax=10'});
+    req.flush(testResponse);
+  });
+
+  it('generate school starter package csv', () => {
+    apiService.generateSchoolStarterPackageCsv(6, 10).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/statistics/generate-school-starter-package-csv?ageMin=6&ageMax=10'});
     req.flush(null);
     httpMock.verify();
   });
