@@ -40,8 +40,6 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
-        with:
-          cache-provider: basic
       - name: Regenerate lock file and verification metadata
         run: ./gradlew --write-locks --write-verification-metadata sha256 :backend:build --console=plain
       - name: Commit changes if any
