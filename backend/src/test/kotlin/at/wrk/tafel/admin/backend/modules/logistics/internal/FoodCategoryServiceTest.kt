@@ -89,16 +89,17 @@ class FoodCategoryServiceTest {
     }
 
     @Test
-    fun `create category`() {
+    fun `create category assigns next sort order after the current max, ignoring the input value`() {
         val createInput = FoodCategory(
             id = null,
             name = "New Category",
             weightPerUnit = BigDecimal("15"),
             returnItem = false,
-            sortOrder = 50,
+            sortOrder = 999,
             enabled = true,
         )
 
+        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory3, testFoodCategory2)
         every { foodCategoryRepository.save(any()) } answers {
             val arg = firstArg() as FoodCategoryEntity
             arg.id = 42
@@ -107,9 +108,35 @@ class FoodCategoryServiceTest {
 
         val result = service.createFoodCategory(createInput)
 
-        assertThat(result).isEqualTo(createInput.copy(id = 42L))
+        // testFoodCategory2 is a return-item ("Kisten") fixture and must be ignored when
+        // computing the next order - only testFoodCategory1 (sortOrder 200) and
+        // testFoodCategory3 (sortOrder 100) count, so the next value is 201.
+        assertThat(result).isEqualTo(createInput.copy(id = 42L, sortOrder = 201))
 
         verify { foodCategoryRepository.save(any()) }
+    }
+
+    @Test
+    fun `create category assigns sort order 1 when no categories exist yet`() {
+        val createInput = FoodCategory(
+            id = null,
+            name = "New Category",
+            weightPerUnit = BigDecimal("15"),
+            returnItem = false,
+            sortOrder = 999,
+            enabled = true,
+        )
+
+        every { foodCategoryRepository.findAll() } returns emptyList()
+        every { foodCategoryRepository.save(any()) } answers {
+            val arg = firstArg() as FoodCategoryEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createFoodCategory(createInput)
+
+        assertThat(result.sortOrder).isEqualTo(1)
     }
 
     @Test
@@ -153,6 +180,34 @@ class FoodCategoryServiceTest {
         )
 
         assertThatThrownBy { service.updateFoodCategory(99L, updated) }
+            .isInstanceOf(TafelValidationException::class.java)
+            .hasMessage("FoodCategory with id 99 not found")
+    }
+
+    @Test
+    fun `reorder categories assigns sequential sort order matching the given order`() {
+        val entity1 = FoodCategoryEntity().apply { id = 1; sortOrder = 200 }
+        val entity2 = FoodCategoryEntity().apply { id = 2; sortOrder = 100 }
+        val entity3 = FoodCategoryEntity().apply { id = 3; sortOrder = 300 }
+
+        every { foodCategoryRepository.findByIdOrNull(3L) } returns entity3
+        every { foodCategoryRepository.findByIdOrNull(1L) } returns entity1
+        every { foodCategoryRepository.findByIdOrNull(2L) } returns entity2
+        every { foodCategoryRepository.save(any()) } answers { firstArg() as FoodCategoryEntity }
+
+        service.reorderFoodCategories(listOf(3L, 1L, 2L))
+
+        assertThat(entity3.sortOrder).isEqualTo(1)
+        assertThat(entity1.sortOrder).isEqualTo(2)
+        assertThat(entity2.sortOrder).isEqualTo(3)
+        verify(exactly = 3) { foodCategoryRepository.save(any()) }
+    }
+
+    @Test
+    fun `reorder categories throws exception when a category is not found`() {
+        every { foodCategoryRepository.findByIdOrNull(99L) } returns null
+
+        assertThatThrownBy { service.reorderFoodCategories(listOf(99L)) }
             .isInstanceOf(TafelValidationException::class.java)
             .hasMessage("FoodCategory with id 99 not found")
     }

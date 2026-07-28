@@ -28,7 +28,9 @@ export class FoodCategoryCreateDialogComponent {
     name: ['', [Validators.required]],
     weightPerUnit: [null as number | null, [Validators.required]],
     returnItem: [false],
-    sortOrder: [0, [Validators.required]],
+    // Not user-editable here - the backend auto-assigns the actual sort order on create,
+    // placing new categories last; reordering afterwards happens via drag-and-drop.
+    sortOrder: [0],
     enabled: [true]
   });
 

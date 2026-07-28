@@ -17,3 +17,8 @@ data class FoodCategory(
     val sortOrder: Int,
     val enabled: Boolean,
 )
+
+@ExcludeFromTestCoverage
+data class FoodCategoryReorderRequest(
+    val categoryIds: List<Long>,
+)

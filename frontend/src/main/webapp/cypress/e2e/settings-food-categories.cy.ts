@@ -17,7 +17,6 @@ describe('Settings - Food Categories', () => {
       // Dialog fields are rendered in an overlay; target visible inputs instead of the host element
       cy.get('input[formControlName="name"]').should('be.visible').type('New Category ' + randomId);
       cy.get('input[formControlName="weightPerUnit"]').type('12');
-      cy.get('input[formControlName="sortOrder"]').clear().type('500');
       cy.contains('Speichern').click();
 
       cy.byTestId('food-categories-table').should('contain.text', 'New Category ' + randomId);

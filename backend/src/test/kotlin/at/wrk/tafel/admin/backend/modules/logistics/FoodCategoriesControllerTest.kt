@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoryService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoriesListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryReorderRequest
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -71,6 +72,23 @@ class FoodCategoriesControllerTest {
 
         assertThat(response).isEqualTo(updatedCategory)
         verify { foodCategoriesService.updateFoodCategory(1L, updatedCategory) }
+    }
+
+    @Test
+    fun `reorder categories`() {
+        val category1 = testCategory(1)
+        val category2 = testCategory(2)
+        val request = FoodCategoryReorderRequest(categoryIds = listOf(2L, 1L))
+
+        every { foodCategoriesService.reorderFoodCategories(request.categoryIds) } returns Unit
+        every { foodCategoriesService.getAllFoodCategories() } returns listOf(category2, category1)
+
+        val response = controller.reorderFoodCategories(request)
+
+        assertThat(response).isEqualTo(
+            FoodCategoriesListResponse(categories = listOf(category2, category1)),
+        )
+        verify { foodCategoriesService.reorderFoodCategories(request.categoryIds) }
     }
 
     private fun testCategory(id: Long?) = FoodCategory(

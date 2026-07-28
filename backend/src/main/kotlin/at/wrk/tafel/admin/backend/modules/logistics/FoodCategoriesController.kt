@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoryService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoriesListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryReorderRequest
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -43,4 +44,13 @@ class FoodCategoriesController(
         @PathVariable categoryId: Long,
         @RequestBody category: FoodCategory,
     ): FoodCategory = foodCategoriesService.updateFoodCategory(categoryId, category)
+
+    @PostMapping("/reorder")
+    @PreAuthorize("hasAuthority('SETTINGS')")
+    fun reorderFoodCategories(
+        @RequestBody request: FoodCategoryReorderRequest,
+    ): FoodCategoriesListResponse {
+        foodCategoriesService.reorderFoodCategories(request.categoryIds)
+        return FoodCategoriesListResponse(categories = foodCategoriesService.getAllFoodCategories())
+    }
 }

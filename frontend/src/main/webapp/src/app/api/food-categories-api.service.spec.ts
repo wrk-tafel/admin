@@ -81,4 +81,20 @@ describe('FoodCategoriesApiService', () => {
     httpMock.verify();
   });
 
+  it('reorder categories', () => {
+    const reorderedCategories: FoodCategory[] = [
+      {id: 1, name: 'Frozen Food', weightPerUnit: 2, returnItem: false, sortOrder: 1, enabled: true},
+      {id: 0, name: 'Bakery', weightPerUnit: 1.5, returnItem: false, sortOrder: 2, enabled: true}
+    ];
+
+    apiService.reorderFoodCategories([1, 0]).subscribe((data: FoodCategory[]) => {
+      expect(data).toEqual(reorderedCategories);
+    });
+
+    const req = httpMock.expectOne({method: 'POST', url: '/food-categories/reorder'});
+    expect(req.request.body).toEqual({categoryIds: [1, 0]});
+    req.flush({categories: reorderedCategories});
+    httpMock.verify();
+  });
+
 });

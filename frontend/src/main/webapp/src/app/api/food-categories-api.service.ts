@@ -24,6 +24,11 @@ export class FoodCategoriesApiService {
   updateFoodCategory(categoryId: number, category: FoodCategory): Observable<FoodCategory> {
     return this.http.post<FoodCategory>(`/food-categories/${categoryId}`, category);
   }
+
+  reorderFoodCategories(categoryIds: number[]): Observable<FoodCategory[]> {
+    return this.http.post<FoodCategoriesList>('/food-categories/reorder', {categoryIds})
+      .pipe(map(val => val.categories));
+  }
 }
 
 export interface FoodCategoriesList {

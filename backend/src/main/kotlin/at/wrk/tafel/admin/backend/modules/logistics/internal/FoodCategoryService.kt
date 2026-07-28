@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
+import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -26,7 +27,7 @@ class FoodCategoryService(
             name = category.name
             weightPerUnit = category.weightPerUnit
             returnItem = category.returnItem
-            sortOrder = category.sortOrder
+            sortOrder = nextSortOrder()
             enabled = category.enabled
         }
 
@@ -47,6 +48,23 @@ class FoodCategoryService(
         val savedEntity = foodCategoriesRepository.save(entity)
         return mapFoodCategory(savedEntity)
     }
+
+    @Transactional
+    fun reorderFoodCategories(categoryIds: List<Long>) {
+        categoryIds.forEachIndexed { index, categoryId ->
+            val entity = foodCategoriesRepository.findByIdOrNull(categoryId)
+                ?: throw TafelValidationException("FoodCategory with id $categoryId not found")
+
+            entity.sortOrder = index + 1
+            foodCategoriesRepository.save(entity)
+        }
+    }
+
+    private fun nextSortOrder(): Int = (
+        foodCategoriesRepository.findAll()
+            .filter { it.returnItem != true }
+            .maxOfOrNull { it.sortOrder ?: 0 } ?: 0
+        ) + 1
 
     private fun sortCategories(categories: List<FoodCategoryEntity>): List<FoodCategoryEntity> = categories
         .sortedWith(

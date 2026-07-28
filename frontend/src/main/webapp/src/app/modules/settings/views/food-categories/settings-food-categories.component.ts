@@ -15,10 +15,11 @@ import {
   MatRowDef,
   MatTable
 } from '@angular/material/table';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faEye, faEyeSlash, faGripVertical, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
@@ -45,7 +46,10 @@ import {MatInputModule} from '@angular/material/input';
     MatButton,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle
   ]
 })
 export class SettingsFoodCategoriesComponent {
@@ -55,12 +59,11 @@ export class SettingsFoodCategoriesComponent {
 
   private _foodCategories = signal<FoodCategory[]>([]);
   protected foodCategories = this._foodCategories;
-  displayedColumns = ['active', 'name', 'weightPerUnit', 'sortOrder', 'actions'];
+  displayedColumns = ['drag', 'active', 'name', 'weightPerUnit', 'actions'];
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});
   protected weightPerUnitControl = new FormControl<number | null>(null);
-  protected sortOrderControl = new FormControl<number>(0, {nonNullable: true});
   private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
   constructor() {
@@ -80,7 +83,6 @@ export class SettingsFoodCategoriesComponent {
     this.editingId.set(category.id);
     this.nameControl.setValue(category.name);
     this.weightPerUnitControl.setValue(category.weightPerUnit);
-    this.sortOrderControl.setValue(category.sortOrder);
   }
 
   protected cancelEdit() {
@@ -91,8 +93,7 @@ export class SettingsFoodCategoriesComponent {
     const updated: FoodCategory = {
       ...category,
       name: this.nameControl.value,
-      weightPerUnit: this.weightPerUnitControl.value,
-      sortOrder: this.sortOrderControl.value
+      weightPerUnit: this.weightPerUnitControl.value
     };
 
     this.foodCategoriesApiService.updateFoodCategory(updated.id, updated).subscribe({
@@ -123,6 +124,20 @@ export class SettingsFoodCategoriesComponent {
     this.foodCategoriesApiService.updateFoodCategory(updatedCategory.id, updatedCategory).subscribe(observer);
   }
 
+  protected drop(event: CdkDragDrop<FoodCategory[]>) {
+    const reordered = [...this.foodCategories()];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    this._foodCategories.set(reordered);
+
+    this.foodCategoriesApiService.reorderFoodCategories(reordered.map(category => category.id)).subscribe({
+      next: data => this._foodCategories.set(data),
+      error: () => {
+        this.toastr.error('Fehler beim Ändern der Reihenfolge', 'Fehler');
+        this.loadFoodCategories();
+      }
+    });
+  }
+
   protected addFoodCategory() {
     const dialogRef = this.dialog.open(FoodCategoryCreateDialogComponent, {
       width: '600px'
@@ -147,4 +162,5 @@ export class SettingsFoodCategoriesComponent {
   protected readonly faPlus = faPlus;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;
+  protected readonly faGripVertical = faGripVertical;
 }
