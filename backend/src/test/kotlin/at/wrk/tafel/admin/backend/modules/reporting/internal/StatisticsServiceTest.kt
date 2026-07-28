@@ -621,6 +621,9 @@ internal class StatisticsServiceTest {
         assertThat(secondPage.items).hasSize(5)
         assertThat(secondPage.items.first().householdId).isEqualTo(26L)
         assertThat(secondPage.currentPage).isEqualTo(2)
+        // totalCount reflects the full filtered result set (30), not the current page's item count (5) -
+        // regression guard for accidentally binding it to items.size instead of the pre-slice total.
+        assertThat(secondPage.totalCount).isEqualTo(30L)
     }
 
     @Test
