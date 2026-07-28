@@ -7,6 +7,7 @@ import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {MatInput} from '@angular/material/input';
+import {MatFormField, MatLabel} from '@angular/material/form-field';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faKey, faUser} from '@fortawesome/free-solid-svg-icons';
 
@@ -20,6 +21,8 @@ import {faKey, faUser} from '@fortawesome/free-solid-svg-icons';
     MatCardContent,
     MatButton,
     MatInput,
+    MatFormField,
+    MatLabel,
     FaIconComponent
   ]
 })

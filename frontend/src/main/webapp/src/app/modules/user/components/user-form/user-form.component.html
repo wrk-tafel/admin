@@ -5,86 +5,76 @@
     </mat-card-header>
     <mat-card-content>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label class="form-label">Benutzername *</label>
-          <input [formField]="userForm.username" testid="usernameInput" type="text" class="form-control" tafelAutofocus
-                 [ngClass]="fieldStateClasses(userForm.username())">
+        <mat-form-field>
+          <mat-label>Benutzername</mat-label>
+          <input matInput [formField]="userForm.username" testid="usernameInput" type="text" tafelAutofocus>
           @for (errorMessage of visibleErrorMessages(userForm.username()); track errorMessage) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
-        <div>
-          <label class="form-label">Personalnummer *</label>
-          <input testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber" class="form-control"
-                 [ngClass]="fieldStateClasses(userForm.personnelNumber())">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Personalnummer</mat-label>
+          <input matInput testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber">
           @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
+        </mat-form-field>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
-        <div>
-          <label class="form-label">Nachname *</label>
-          <input testid="lastnameInput" type="text" [formField]="userForm.lastname" class="form-control"
-                 [ngClass]="fieldStateClasses(userForm.lastname())">
+        <mat-form-field>
+          <mat-label>Nachname</mat-label>
+          <input matInput testid="lastnameInput" type="text" [formField]="userForm.lastname">
           @for (errorMessage of visibleErrorMessages(userForm.lastname()); track errorMessage) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
-        <div>
-          <label class="form-label">Vorname *</label>
-          <input testid="firstnameInput" type="text" [formField]="userForm.firstname" class="form-control"
-                 autocomplete="new-password"
-                 [ngClass]="fieldStateClasses(userForm.firstname())">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Vorname</mat-label>
+          <input matInput testid="firstnameInput" type="text" [formField]="userForm.firstname"
+                 autocomplete="new-password">
           @for (errorMessage of visibleErrorMessages(userForm.firstname()); track errorMessage) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
+        </mat-form-field>
       </div>
       <hr>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label class="form-label">Passwort</label>
-          <div class="flex items-center gap-2">
-            <input testid="passwordInput"
-                   autocomplete="new-password"
-                   [type]="passwordTextVisible() ? 'text' : 'password'"
-                   [formField]="userForm.password" class="form-control"
-                   [ngClass]="fieldStateClasses(userForm.password())">
-            <span (click)="togglePasswordVisibility()" class="cursor-pointer">
-                  @if (!passwordTextVisible()) {
-                    <fa-icon [icon]="faEyeSlash"></fa-icon>
-                  }
-                  @if (passwordTextVisible()) {
-                    <fa-icon [icon]="faEye"></fa-icon>
-                  }
-            </span>
-          </div>
+        <mat-form-field>
+          <mat-label>Passwort</mat-label>
+          <input matInput testid="passwordInput"
+                 autocomplete="new-password"
+                 [type]="passwordTextVisible() ? 'text' : 'password'"
+                 [formField]="userForm.password">
+          <button type="button" mat-icon-button matSuffix (click)="togglePasswordVisibility()">
+            @if (!passwordTextVisible()) {
+              <fa-icon [icon]="faEyeSlash"></fa-icon>
+            }
+            @if (passwordTextVisible()) {
+              <fa-icon [icon]="faEye"></fa-icon>
+            }
+          </button>
           @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
-        <div>
-          <label class="form-label">Passwort (Wiederholung)</label>
-          <div class="flex items-center gap-2">
-            <input testid="passwordRepeatInput"
-                   autocomplete="new-password"
-                   [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
-                   [formField]="userForm.passwordRepeat" class="form-control"
-                   [ngClass]="fieldStateClasses(userForm.passwordRepeat())">
-            <span (click)="togglePasswordRepeatVisibility()" class="cursor-pointer">
-                  @if (!passwordRepeatTextVisible()) {
-                    <fa-icon [icon]="faEyeSlash"></fa-icon>
-                  }
-                  @if (passwordRepeatTextVisible()) {
-                    <fa-icon [icon]="faEye"></fa-icon>
-                  }
-            </span>
-          </div>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Passwort (Wiederholung)</mat-label>
+          <input matInput testid="passwordRepeatInput"
+                 autocomplete="new-password"
+                 [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
+                 [formField]="userForm.passwordRepeat">
+          <button type="button" mat-icon-button matSuffix (click)="togglePasswordRepeatVisibility()">
+            @if (!passwordRepeatTextVisible()) {
+              <fa-icon [icon]="faEyeSlash"></fa-icon>
+            }
+            @if (passwordRepeatTextVisible()) {
+              <fa-icon [icon]="faEye"></fa-icon>
+            }
+          </button>
           @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {
-            <div class="invalid-feedback">{{errorMessage}}</div>
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
+        </mat-form-field>
       </div>
       <div class="mt-4">
         <button type="button" testid="generate-password-button" matButton="filled"
@@ -94,17 +84,12 @@
       <hr>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
-          <label class="form-label">Benutzer aktiv</label>
-          <div>
-            <input testid="enabledInput" type="checkbox" [formField]="userForm.enabled" class="form-check-input">
-          </div>
+          <mat-checkbox [formField]="userForm.enabled" testid="enabledInput">Benutzer aktiv</mat-checkbox>
         </div>
         <div class="mt-4 sm:mt-0">
-          <label class="form-label">Passwort-Änderung beim nächsten Login erforderlich</label>
-          <div>
-            <input testid="passwordChangeRequiredInput" type="checkbox" [formField]="userForm.passwordChangeRequired"
-                   class="form-check-input">
-          </div>
+          <mat-checkbox [formField]="userForm.passwordChangeRequired" testid="passwordChangeRequiredInput">
+            Passwort-Änderung beim nächsten Login erforderlich
+          </mat-checkbox>
         </div>
       </div>
       <hr>
@@ -114,10 +99,9 @@
       <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mt-2">
         @for (permission of permissions(); track trackBy($index, permission); let i = $index) {
           <div [attr.testid]="'permission-' + i">
-            <label [attr.for]="'permission-checkbox-' + i">{{permission.title}}</label>
-            <div>
-              <input type="checkbox" [checked]="permission.enabled" (change)="togglePermission(i)" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
-            </div>
+            <mat-checkbox [checked]="permission.enabled" (change)="togglePermission(i)" [attr.testid]="'permission-checkbox-' + i">
+              {{permission.title}}
+            </mat-checkbox>
           </div>
         }
       </div>

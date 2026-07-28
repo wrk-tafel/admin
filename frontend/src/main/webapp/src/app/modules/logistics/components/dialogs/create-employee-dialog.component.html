@@ -2,49 +2,43 @@
   <div tafel-dialog-content>
     <form [formGroup]="createEmployeeForm" autocomplete="off">
       <p class="mb-2"><strong>Neuen Mitarbeiter anlegen</strong></p>
-      <div class="mb-2">
-        <label class="form-label">Personalnummer *</label>
-        <input [attr.testid]="data.testIdPrefix + 'personnelnumber-input'" type="text"
-               formControlName="personnelNumber"
-               class="form-control"
-               [ngClass]="controlStateClasses(personnelNumber)">
+      <mat-form-field class="w-full">
+        <mat-label>Personalnummer</mat-label>
+        <input matInput [attr.testid]="data.testIdPrefix + 'personnelnumber-input'" type="text"
+               formControlName="personnelNumber">
         @if (personnelNumber.errors?.required && personnelNumber.touched) {
-          <div class="invalid-feedback">Pflichtfeld</div>
+          <mat-error>Pflichtfeld</mat-error>
         }
         @if (personnelNumber.errors?.maxlength && personnelNumber.touched) {
-          <div class="invalid-feedback">
+          <mat-error>
             Personalnummer zu lang (Limit: {{ personnelNumber.errors?.maxlength.requiredLength }})
-          </div>
+          </mat-error>
         }
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Vorname *</label>
-        <input [attr.testid]="data.testIdPrefix + 'firstname-input'" type="text" formControlName="firstname"
-               class="form-control"
-               [ngClass]="controlStateClasses(firstname)">
+      </mat-form-field>
+      <mat-form-field class="w-full">
+        <mat-label>Vorname</mat-label>
+        <input matInput [attr.testid]="data.testIdPrefix + 'firstname-input'" type="text" formControlName="firstname">
         @if (firstname.errors?.required && firstname.touched) {
-          <div class="invalid-feedback">Pflichtfeld</div>
+          <mat-error>Pflichtfeld</mat-error>
         }
         @if (firstname.errors?.maxlength && firstname.touched) {
-          <div class="invalid-feedback">
+          <mat-error>
             Vorname zu lang (Limit: {{ firstname.errors?.maxlength.requiredLength }})
-          </div>
+          </mat-error>
         }
-      </div>
-      <div class="mb-2">
-        <label class="form-label">Nachname *</label>
-        <input [attr.testid]="data.testIdPrefix + 'lastname-input'" type="text" formControlName="lastname"
-               class="form-control"
-               [ngClass]="controlStateClasses(lastname)">
+      </mat-form-field>
+      <mat-form-field class="w-full">
+        <mat-label>Nachname</mat-label>
+        <input matInput [attr.testid]="data.testIdPrefix + 'lastname-input'" type="text" formControlName="lastname">
         @if (lastname.errors?.required && lastname.touched) {
-          <div class="invalid-feedback">Pflichtfeld</div>
+          <mat-error>Pflichtfeld</mat-error>
         }
         @if (lastname.errors?.maxlength && lastname.touched) {
-          <div class="invalid-feedback">
+          <mat-error>
             Nachname zu lang (Limit: {{ lastname.errors?.maxlength.requiredLength }})
-          </div>
+          </mat-error>
         }
-      </div>
+      </mat-form-field>
     </form>
   </div>
   <div tafel-dialog-actions>

@@ -167,8 +167,10 @@ describe('Customer Creation', () => {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
     cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(25)).format('YYYY-MM-DD'));
-    cy.byTestId('genderInput').select('Männlich');
-    cy.byTestId('countryInput').select('Österreich');
+    cy.byTestId('genderInput').click();
+    cy.byTestId('genderInput-option-MALE').click();
+    cy.byTestId('countryInput').click();
+    cy.byTestId('countryInput-option-165').click();
     cy.byTestId('telephoneNumberInput').type('0664123132123');
     cy.byTestId('emailInput').type('test@gmail.com');
     cy.byTestId('streetInput').type('Teststreet');
@@ -188,8 +190,14 @@ describe('Customer Creation', () => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
       cy.byTestId('birthDateInput').type(dayjs(data.birthDate).format('YYYY-MM-DD'));
-      cy.byTestId('genderInput').select(data.gender);
-      cy.byTestId('countryInput').select(data.country!.name);
+      cy.byTestId('genderInput').click();
+    });
+    cy.byTestId('genderInput-option-' + data.gender).click();
+    cy.byTestId('personform-' + index).within(() => {
+      cy.byTestId('countryInput').click();
+    });
+    cy.byTestId('countryInput-option-' + data.country!.id).click();
+    cy.byTestId('personform-' + index).within(() => {
       if (data.employer) {
         cy.byTestId('employerInput').type(data.employer);
       }
@@ -197,7 +205,7 @@ describe('Customer Creation', () => {
         cy.byTestId('incomeInput').type(data.income.toString());
       }
       if (data.excludeFromHousehold) {
-        cy.byTestId('excludeFromHouseholdInput').check();
+        cy.byTestId('excludeFromHouseholdInput').click();
       }
     });
   }

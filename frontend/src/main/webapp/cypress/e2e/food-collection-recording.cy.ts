@@ -98,7 +98,8 @@ describe('Food Collection Recording', () => {
 
   function enterRouteData() {
     cy.byTestId('routeInput').select('Route 2');
-    cy.byTestId('carInput').select('W-NC-123 (Nice Car 123)');
+    cy.byTestId('carInput').click();
+    cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
     cy.byTestId('kmStartInput').type('1000');
     cy.byTestId('kmEndInput').type('2000');
   }

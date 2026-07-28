@@ -18,10 +18,11 @@
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex">
-                    <input type="number" class="form-control" min="0"
-                           [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
-                           formControlName="amount"
-                           style="min-width: 3.6em; max-width: 5em;">
+                    <mat-form-field subscriptSizing="dynamic" style="min-width: 3.6em; max-width: 5em;">
+                      <input matInput type="number" min="0"
+                             [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                             formControlName="amount">
+                    </mat-form-field>
                   </td>
                 }
               </ng-container>
