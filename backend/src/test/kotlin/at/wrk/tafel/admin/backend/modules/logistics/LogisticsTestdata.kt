@@ -207,6 +207,7 @@ val testShelter1 = ShelterEntity().apply {
     note = "Note 1"
     personsCount = 1
     enabled = true
+    sortOrder = 1
 }
 
 val testDistributionStatisticShelterEntity1 = DistributionStatisticShelterEntity().apply {
@@ -219,6 +220,7 @@ val testDistributionStatisticShelterEntity1 = DistributionStatisticShelterEntity
     addressDoor = testShelter1.addressDoor
     addressCity = testShelter1.addressCity
     personsCount = testShelter1.personsCount
+    sortOrder = testShelter1.sortOrder
 }
 
 val testShelter2 = ShelterEntity().apply {
@@ -233,6 +235,7 @@ val testShelter2 = ShelterEntity().apply {
     note = "Note 2"
     personsCount = 2
     enabled = true
+    sortOrder = 2
 }
 
 val testShelter3 = ShelterEntity().apply {
@@ -247,6 +250,7 @@ val testShelter3 = ShelterEntity().apply {
     note = "Note 3"
     personsCount = 3
     enabled = false
+    sortOrder = 3
 }
 
 val testDistributionStatisticShelterEntity2 = DistributionStatisticShelterEntity().apply {
@@ -259,4 +263,5 @@ val testDistributionStatisticShelterEntity2 = DistributionStatisticShelterEntity
     addressDoor = testShelter2.addressDoor
     addressCity = testShelter2.addressCity
     personsCount = testShelter2.personsCount
+    sortOrder = testShelter2.sortOrder
 }

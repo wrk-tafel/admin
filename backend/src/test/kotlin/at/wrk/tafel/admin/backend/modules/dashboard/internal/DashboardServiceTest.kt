@@ -107,6 +107,32 @@ internal class DashboardServiceTest {
     }
 
     @Test
+    fun `get statistics sorts shelters by their frozen sortOrder, not name`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            endedAt = null
+            statistic = DistributionStatisticEntity().apply {
+                employeeCount = 100
+                shelters = mutableListOf(
+                    DistributionStatisticShelterEntity().apply {
+                        name = "Shelter Z"
+                        sortOrder = 1
+                    },
+                    DistributionStatisticShelterEntity().apply {
+                        name = "Shelter A"
+                        sortOrder = 2
+                    },
+                )
+            }
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val data = service.getData()
+
+        assertThat(data.statistics!!.selectedShelterNames).containsExactly("Shelter Z", "Shelter A")
+    }
+
+    @Test
     fun `get notes`() {
         val testNotes = "dummy-notes"
         val testDistributionEntity = DistributionEntity().apply {

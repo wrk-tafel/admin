@@ -353,6 +353,7 @@ class DistributionService(
                     addressCity = it.addressCity
                     addressDoor = it.addressDoor
                     personsCount = it.personsCount
+                    sortOrder = it.sortOrder
                 }
             }.toMutableList()
 

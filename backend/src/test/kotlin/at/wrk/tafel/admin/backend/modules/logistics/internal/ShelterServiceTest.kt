@@ -49,6 +49,7 @@ class ShelterServiceTest {
                 note = testShelter1.note,
                 personsCount = testShelter1.personsCount!!,
                 enabled = testShelter1.enabled!!,
+                sortOrder = testShelter1.sortOrder!!,
                 contacts = emptyList(),
             ),
         )
@@ -74,6 +75,7 @@ class ShelterServiceTest {
                 note = testShelter1.note,
                 personsCount = testShelter1.personsCount!!,
                 enabled = testShelter1.enabled!!,
+                sortOrder = testShelter1.sortOrder!!,
                 contacts = emptyList(),
             ),
         )
@@ -93,6 +95,7 @@ class ShelterServiceTest {
             note = "Updated note",
             personsCount = 5,
             enabled = false,
+            sortOrder = 5,
             contacts = emptyList(),
         )
 
@@ -105,7 +108,7 @@ class ShelterServiceTest {
     }
 
     @Test
-    fun `create shelter`() {
+    fun `create shelter assigns next sort order after the current max, ignoring the input value`() {
         val createInput = Shelter(
             id = 0L,
             name = "New Shelter",
@@ -118,9 +121,11 @@ class ShelterServiceTest {
             note = "New note",
             personsCount = 5,
             enabled = true,
+            sortOrder = 999,
             contacts = emptyList(),
         )
 
+        every { shelterRepository.findAll() } returns listOf(testShelter1, testShelter2, testShelter3)
         every { shelterRepository.save(any()) } answers {
             val arg = firstArg() as ShelterEntity
             arg.id = 42
@@ -142,11 +147,42 @@ class ShelterServiceTest {
                 note = createInput.note,
                 personsCount = createInput.personsCount,
                 enabled = createInput.enabled,
+                sortOrder = 4,
                 contacts = createInput.contacts,
             ),
         )
 
         verify { shelterRepository.save(any()) }
+    }
+
+    @Test
+    fun `create shelter assigns sort order 1 when no shelters exist yet`() {
+        val createInput = Shelter(
+            id = 0L,
+            name = "New Shelter",
+            addressStreet = "New Street",
+            addressHouseNumber = "10",
+            addressStairway = null,
+            addressPostalCode = 11111,
+            addressDoor = null,
+            addressCity = "New City",
+            note = "New note",
+            personsCount = 5,
+            enabled = true,
+            sortOrder = 999,
+            contacts = emptyList(),
+        )
+
+        every { shelterRepository.findAll() } returns emptyList()
+        every { shelterRepository.save(any()) } answers {
+            val arg = firstArg() as ShelterEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createShelter(createInput)
+
+        assertThat(result.sortOrder).isEqualTo(1)
     }
 
     @Test
@@ -163,6 +199,7 @@ class ShelterServiceTest {
             note = "New note",
             personsCount = 5,
             enabled = true,
+            sortOrder = 0,
             contacts = listOf(
                 ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
             ),
@@ -200,6 +237,7 @@ class ShelterServiceTest {
             note = "Updated note",
             personsCount = 5,
             enabled = false,
+            sortOrder = 5,
             contacts = listOf(
                 ShelterContact(firstname = "Erika", lastname = "Musterfrau", phone = "0987654321"),
             ),
@@ -226,6 +264,43 @@ class ShelterServiceTest {
             .hasMessage("Shelter with id 99 not found")
     }
 
+    @Test
+    fun `reorder shelters assigns sequential sort order matching the given order`() {
+        val entity1 = ShelterEntity().apply {
+            id = 1
+            sortOrder = 200
+        }
+        val entity2 = ShelterEntity().apply {
+            id = 2
+            sortOrder = 100
+        }
+        val entity3 = ShelterEntity().apply {
+            id = 3
+            sortOrder = 300
+        }
+
+        every { shelterRepository.findByIdOrNull(3L) } returns entity3
+        every { shelterRepository.findByIdOrNull(1L) } returns entity1
+        every { shelterRepository.findByIdOrNull(2L) } returns entity2
+        every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
+
+        service.reorderShelters(listOf(3L, 1L, 2L))
+
+        assertThat(entity3.sortOrder).isEqualTo(1)
+        assertThat(entity1.sortOrder).isEqualTo(2)
+        assertThat(entity2.sortOrder).isEqualTo(3)
+        verify(exactly = 3) { shelterRepository.save(any()) }
+    }
+
+    @Test
+    fun `reorder shelters throws exception when a shelter is not found`() {
+        every { shelterRepository.findByIdOrNull(99L) } returns null
+
+        assertThatThrownBy { service.reorderShelters(listOf(99L)) }
+            .isInstanceOf(TafelValidationException::class.java)
+            .hasMessage("Shelter with id 99 not found")
+    }
+
     private fun testShelter3ShelterModel() = Shelter(
         id = testShelter3.id!!,
         name = testShelter3.name!!,
@@ -238,6 +313,7 @@ class ShelterServiceTest {
         note = testShelter3.note,
         personsCount = testShelter3.personsCount!!,
         enabled = testShelter3.enabled!!,
+        sortOrder = testShelter3.sortOrder!!,
         contacts = emptyList(),
     )
 }

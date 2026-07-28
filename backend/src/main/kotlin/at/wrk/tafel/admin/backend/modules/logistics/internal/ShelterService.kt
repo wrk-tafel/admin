@@ -18,12 +18,12 @@ class ShelterService(
     @Transactional
     fun getActiveShelters(): List<Shelter> = shelterRepository.findByEnabledIsTrue()
         .map { mapShelter(it) }
-        .sortedBy { it.name }
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
     @Transactional
     fun getAllShelters(): List<Shelter> = shelterRepository.findAll()
         .map { mapShelter(it) }
-        .sortedBy { it.name }
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
     fun createShelter(shelter: Shelter): Shelter {
         val shelterEntity = ShelterEntity().apply {
@@ -37,6 +37,7 @@ class ShelterService(
             note = shelter.note
             personsCount = shelter.personsCount
             enabled = shelter.enabled
+            sortOrder = nextSortOrder()
         }
 
         // attach contacts
@@ -65,6 +66,7 @@ class ShelterService(
         note = shelterEntity.note,
         personsCount = shelterEntity.personsCount!!,
         enabled = shelterEntity.enabled!!,
+        sortOrder = shelterEntity.sortOrder ?: 0,
         contacts = shelterEntity.contacts.map {
             ShelterContact(
                 firstname = it.firstname,
@@ -88,6 +90,7 @@ class ShelterService(
         shelterEntity.note = updatedShelter.note
         shelterEntity.personsCount = updatedShelter.personsCount
         shelterEntity.enabled = updatedShelter.enabled
+        shelterEntity.sortOrder = updatedShelter.sortOrder
 
         // replace contacts
         shelterEntity.contacts = updatedShelter.contacts.map { contact ->
@@ -102,4 +105,17 @@ class ShelterService(
         val savedEntity = shelterRepository.save(shelterEntity)
         return mapShelter(savedEntity)
     }
+
+    @Transactional
+    fun reorderShelters(shelterIds: List<Long>) {
+        shelterIds.forEachIndexed { index, shelterId ->
+            val entity = shelterRepository.findByIdOrNull(shelterId)
+                ?: throw TafelValidationException("Shelter with id $shelterId not found")
+
+            entity.sortOrder = index + 1
+            shelterRepository.save(entity)
+        }
+    }
+
+    private fun nextSortOrder(): Int = (shelterRepository.findAll().maxOfOrNull { it.sortOrder ?: 0 } ?: 0) + 1
 }

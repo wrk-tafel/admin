@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.modules.logistics.internal.ShelterService
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterListResponse
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterReorderRequest
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
@@ -33,4 +34,12 @@ class SheltersController(
         @PathVariable shelterId: Long,
         @RequestBody updatedShelter: Shelter,
     ): Shelter = shelterService.updateShelter(shelterId, updatedShelter)
+
+    @PostMapping("/reorder")
+    fun reorderShelters(
+        @RequestBody request: ShelterReorderRequest,
+    ): ShelterListResponse {
+        shelterService.reorderShelters(request.shelterIds)
+        return ShelterListResponse(shelters = shelterService.getAllShelters())
+    }
 }

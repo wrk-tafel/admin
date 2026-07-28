@@ -43,7 +43,8 @@ describe('DashboardSheltersDataResolver', () => {
           addressCity: 'Test City',
           note: 'Test Note',
           personsCount: 100,
-          enabled: true
+          enabled: true,
+          sortOrder: 1
         },
         {
           id: 2,
@@ -56,7 +57,8 @@ describe('DashboardSheltersDataResolver', () => {
           addressCity: 'Test City',
           note: 'Test Note 2',
           personsCount: 200,
-          enabled: true
+          enabled: true,
+          sortOrder: 2
         }
       ]
     };

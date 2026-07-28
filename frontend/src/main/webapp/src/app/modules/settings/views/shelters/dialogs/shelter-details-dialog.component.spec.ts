@@ -19,6 +19,7 @@ describe('ShelterDetailsDialogComponent', () => {
     note: 'Note',
     personsCount: 2,
     enabled: true,
+    sortOrder: 1,
     contacts: [
       { firstname: 'John', lastname: 'Doe', phone: '012345' }
     ]

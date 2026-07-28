@@ -882,9 +882,11 @@ internal class DistributionServiceTest {
         assertThat(firstShelter.addressDoor).isEqualTo(testShelter1.addressDoor)
         assertThat(firstShelter.addressCity).isEqualTo(testShelter1.addressCity)
         assertThat(firstShelter.personsCount).isEqualTo(testShelter1.personsCount)
+        assertThat(firstShelter.sortOrder).isEqualTo(testShelter1.sortOrder)
 
         val secondShelter = updatedDistributionEntity.statistic!!.shelters[1]
         assertThat(secondShelter).isNotNull
+        assertThat(secondShelter.sortOrder).isEqualTo(testShelter2.sortOrder)
     }
 
     @Test

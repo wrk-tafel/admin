@@ -55,7 +55,9 @@ class DashboardService(
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
         // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
-        selectedShelterNames = currentDistribution?.statistic?.shelters?.mapNotNull { it.name } ?: emptyList(),
+        selectedShelterNames = currentDistribution?.statistic?.shelters
+            ?.sortedWith(compareBy({ it.sortOrder ?: 0 }, { it.name }))
+            ?.mapNotNull { it.name } ?: emptyList(),
     )
 
     private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData = DashboardLogisticsData(

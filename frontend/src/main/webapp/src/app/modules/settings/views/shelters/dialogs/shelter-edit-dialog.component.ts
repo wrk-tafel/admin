@@ -46,6 +46,9 @@ export class ShelterEditDialogComponent {
     note: [this.data.shelter?.note ?? ''],
     personsCount: [this.data.shelter?.personsCount ?? '', [Validators.required]],
     enabled: [this.data.shelter?.enabled ?? true],
+    // Not user-editable here - preserved as-is on edit, auto-assigned by the backend on
+    // create; reordering afterwards happens via drag-and-drop.
+    sortOrder: [this.data.shelter?.sortOrder ?? 0],
     contacts: this.fb.array((this.data.shelter?.contacts ?? []).map(c => this.createContactGroup(c)))
   });
 
