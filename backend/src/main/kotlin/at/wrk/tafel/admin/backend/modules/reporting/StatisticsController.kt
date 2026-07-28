@@ -44,7 +44,8 @@ class StatisticsController(
     fun getSchoolStarterPackageData(
         @RequestParam ageMin: Int,
         @RequestParam ageMax: Int,
-    ): List<SchoolStarterPackageEntry> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax)
+        @RequestParam page: Int? = null,
+    ): SchoolStarterPackageSearchResult = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page)
 
     @GetMapping("/generate-school-starter-package-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun generateSchoolStarterPackageCsv(
@@ -104,4 +105,12 @@ data class SchoolStarterPackageEntry(
     val firstname: String,
     val lastname: String,
     val age: Int,
+)
+
+data class SchoolStarterPackageSearchResult(
+    val items: List<SchoolStarterPackageEntry>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int,
 )

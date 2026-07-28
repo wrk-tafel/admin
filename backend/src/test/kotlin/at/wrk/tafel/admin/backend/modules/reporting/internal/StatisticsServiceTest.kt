@@ -575,10 +575,14 @@ internal class StatisticsServiceTest {
 
         val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10)
 
-        assertThat(result).containsExactly(
+        assertThat(result.items).containsExactly(
             SchoolStarterPackageEntry(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
             SchoolStarterPackageEntry(householdId = 20L, firstname = "B", lastname = "Household20", age = 7),
         )
+        assertThat(result.totalCount).isEqualTo(2L)
+        assertThat(result.currentPage).isEqualTo(1)
+        assertThat(result.totalPages).isEqualTo(1)
+        assertThat(result.pageSize).isEqualTo(25)
     }
 
     @Test
@@ -592,8 +596,41 @@ internal class StatisticsServiceTest {
 
         val result = service.getSchoolStarterPackageData(ageMin = 0, ageMax = 3)
 
-        assertThat(result).containsExactly(
+        assertThat(result.items).containsExactly(
             SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Young", age = 3),
         )
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData paginates results in-memory`() {
+        val households = (1..30).map { id -> household(id.toLong(), person("Kind", "Nr$id", age = 7)) }
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns households
+
+        val firstPage = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
+
+        assertThat(firstPage.items).hasSize(25)
+        assertThat(firstPage.items.first().householdId).isEqualTo(1L)
+        assertThat(firstPage.items.last().householdId).isEqualTo(25L)
+        assertThat(firstPage.totalCount).isEqualTo(30L)
+        assertThat(firstPage.currentPage).isEqualTo(1)
+        assertThat(firstPage.totalPages).isEqualTo(2)
+        assertThat(firstPage.pageSize).isEqualTo(25)
+
+        val secondPage = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
+
+        assertThat(secondPage.items).hasSize(5)
+        assertThat(secondPage.items.first().householdId).isEqualTo(26L)
+        assertThat(secondPage.currentPage).isEqualTo(2)
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData defaults to the first page`() {
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+            household(1L, person("Kind", "Test", age = 7)),
+        )
+
+        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = null)
+
+        assertThat(result.currentPage).isEqualTo(1)
     }
 }

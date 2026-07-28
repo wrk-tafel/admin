@@ -101,28 +101,47 @@ just fetches its report data directly.
 
 ## Sonstige: `StatisticsMiscComponent`
 
-Same reactive-signal shape as `Allgemein`'s date range, but driven by an editable age range
-instead of a date range:
+Unlike `Allgemein`'s reactive `toSignal`/`switchMap` pipeline, this page follows the imperative
+load-on-demand pattern used by the app's other paginated lists (`UserSearchComponent`,
+`CustomerDuplicatesComponent`, `customer-above-limit`, ...): a plain
+`schoolStarterPackageData = signal<SchoolStarterPackageSearchResult | undefined>(undefined)`,
+populated by an explicit `loadSchoolStarterPackageData(page?)` call rather than derived from an
+observable of the filter state:
 
 ```ts
-schoolStarterPackageAgeRange = computed(() => ({
-  min: this.schoolStarterPackageAgeMin(),
-  max: this.schoolStarterPackageAgeMax()
-}));
-schoolStarterPackageData = toSignal(
-  toObservable(this.schoolStarterPackageAgeRange).pipe(
-    switchMap(range => this.statisticsApiService.getSchoolStarterPackageData(range.min, range.max))
-  )
-);
+onAgeMinChange(value: number) {
+  this.schoolStarterPackageAgeMin.set(value);
+  this.loadSchoolStarterPackageData();
+}
+
+onPageChange(event: PageEvent) {
+  this.loadSchoolStarterPackageData(event.pageIndex + 1);
+}
+
+private loadSchoolStarterPackageData(page?: number) {
+  this.statisticsApiService.getSchoolStarterPackageData(
+    this.schoolStarterPackageAgeMin(), this.schoolStarterPackageAgeMax(), page
+  ).subscribe((response) => this.schoolStarterPackageData.set(response));
+}
 ```
 
 Two plain `<input type="number">` fields (`Alter von` / `Alter bis`, bound via
-`[ngModel]`/`(ngModelChange)` straight to the signals, no reactive form) drive both the on-screen
-table and the CSV export button — there's no shared "apply" step, changing either input
-immediately re-fetches `/statistics/school-starter-package`. `ageMin`/`ageMax` are required query
-params on the backend (`StatisticsController`/`StatisticsService`, `/api/statistics` — not a
-separate `reporting` module path), matching the ad-hoc SQL this report replaced
-(`_reporting/reporting.sql`, "Alter konfigurierbar").
+`[ngModel]`/`(ngModelChange)`, no reactive form) each reload page 1 on change; the CSV export
+button reuses the current age range but ignores paging - it always exports every matching row, not
+just the current page. `ageMin`/`ageMax` are required query params on the backend
+(`StatisticsController`/`StatisticsService`, `/api/statistics` — not a separate `reporting` module
+path), matching the ad-hoc SQL this report replaced (`_reporting/reporting.sql`,
+"Alter konfigurierbar").
+
+Pagination itself mirrors `HouseholdService.getHouseholdsAboveLimit()` on the backend: the age
+filter can't be expressed as a JPA `Pageable` query (it depends on each person's computed age, not
+a stored column), so `StatisticsService.getSchoolStarterPackageData()` loads every matching entry
+first and then slices it in-memory with a `PageRequest`/`PageImpl`, returning the same
+`items`/`totalCount`/`currentPage`/`totalPages`/`pageSize` shape (`SchoolStarterPackageSearchResult`)
+as `HouseholdSearchResult`/`UserSearchResult`. The template mirrors the same double-paginator
+layout too (`mat-paginator` above and below the table, `[hidePageSize]="true"`, an
+`@if (...items?.length === 0)` empty-state check) - see `user-search.component.html` or
+`customer-duplicates.component.html` for the reference layout this was copied from.
 
 ## Relationship to the dashboard module
 

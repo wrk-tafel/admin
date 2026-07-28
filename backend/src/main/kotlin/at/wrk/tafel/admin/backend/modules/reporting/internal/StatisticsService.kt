@@ -6,11 +6,14 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
+import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageSearchResult
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsSettings
 import jakarta.persistence.EntityManager
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.text.NumberFormat
@@ -376,7 +379,7 @@ class StatisticsService(
         ageMax: Int,
     ): StatisticsCsvResult {
         val today = LocalDate.now()
-        val rows = getSchoolStarterPackageData(ageMin, ageMax, today)
+        val rows = getAllSchoolStarterPackageEntries(ageMin, ageMax, today)
 
         val csvRows: List<List<String>> = listOf(
             listOf("Haushalt", "Vorname", "Nachname", "Alter"),
@@ -388,11 +391,38 @@ class StatisticsService(
         )
     }
 
+    /**
+     * The age filter can't be expressed as a DB-level query (it depends on the person's computed
+     * age, not a stored column - see [schoolStarterPackageEntriesForHousehold]), so, same as
+     * `HouseholdService.getHouseholdsAboveLimit()`, pagination is applied in-memory on top of the
+     * already-computed, already-filtered result rather than via a JPA `Pageable` query.
+     */
     @Transactional
     fun getSchoolStarterPackageData(
         ageMin: Int,
         ageMax: Int,
-        today: LocalDate = LocalDate.now(),
+        page: Int? = null,
+    ): SchoolStarterPackageSearchResult {
+        val entries = getAllSchoolStarterPackageEntries(ageMin, ageMax, LocalDate.now())
+
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val fromIndex = pageRequest.offset.toInt().coerceAtMost(entries.size)
+        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(entries.size)
+        val pagedResult = PageImpl(entries.subList(fromIndex, toIndex), pageRequest, entries.size.toLong())
+
+        return SchoolStarterPackageSearchResult(
+            items = pagedResult.content,
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize,
+        )
+    }
+
+    private fun getAllSchoolStarterPackageEntries(
+        ageMin: Int,
+        ageMax: Int,
+        today: LocalDate,
     ): List<SchoolStarterPackageEntry> {
         val households = householdRepository.findAll(HouseholdEntity.Specs.validHousehold())
 

@@ -245,16 +245,20 @@ class StatisticsControllerTest {
     }
 
     @Test
-    fun `getSchoolStarterPackageData delegates to service with given age range`() {
-        val expectedData = listOf(
-            SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8),
+    fun `getSchoolStarterPackageData delegates to service with given age range and page`() {
+        val expectedData = SchoolStarterPackageSearchResult(
+            items = listOf(SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8)),
+            totalCount = 1L,
+            currentPage = 2,
+            totalPages = 1,
+            pageSize = 25,
         )
-        every { service.getSchoolStarterPackageData(6, 10) } returns expectedData
+        every { service.getSchoolStarterPackageData(6, 10, 2) } returns expectedData
 
-        val result = controller.getSchoolStarterPackageData(ageMin = 6, ageMax = 10)
+        val result = controller.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
 
         assertThat(result).isEqualTo(expectedData)
-        verify(exactly = 1) { service.getSchoolStarterPackageData(6, 10) }
+        verify(exactly = 1) { service.getSchoolStarterPackageData(6, 10, 2) }
     }
 
     @Test
