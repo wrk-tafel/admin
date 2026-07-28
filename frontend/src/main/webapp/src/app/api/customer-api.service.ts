@@ -188,6 +188,7 @@ export interface CustomerData {
   lockedBy?: string | null;
   lockReason?: string | null;
   pendingCostContribution?: number;
+  singleParent?: boolean;
   additionalPersons?: CustomerAddPersonData[];
 }
 
@@ -284,6 +285,7 @@ interface HouseholdData {
   lockedBy?: string | null;
   lockReason?: string | null;
   pendingCostContribution?: number;
+  singleParent?: boolean;
   persons: PersonData[];
 }
 
@@ -398,6 +400,7 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
     lockedBy: household?.lockedBy,
     lockReason: household?.lockReason,
     pendingCostContribution: household?.pendingCostContribution,
+    singleParent: household?.singleParent,
     additionalPersons: additionalPersons
   };
 }
@@ -453,6 +456,7 @@ function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
     lockedBy: customer.lockedBy,
     lockReason: customer.lockReason,
     pendingCostContribution: customer.pendingCostContribution,
+    singleParent: customer.singleParent,
     persons: [mainPerson, ...additionalPersons]
   };
 }

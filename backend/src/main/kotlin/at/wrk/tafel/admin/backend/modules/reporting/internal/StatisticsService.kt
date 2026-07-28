@@ -80,6 +80,14 @@ class StatisticsService(
             dataPoints = countBeneficiaryCustomersWithChildren.map { it.value },
         )
 
+        val countSingleParentHouseholds = countSingleParentHouseholds(fromDate, toDate)
+        val countSingleParentHouseholdsData = StatisticsDetailData(
+            title = INTEGER_FORMATTER.format(countSingleParentHouseholds.lastOrNull()?.value?.toLong() ?: 0L),
+            subTitle = "Alleinerzieher (Haushalte)",
+            labels = countSingleParentHouseholds.map { it.label },
+            dataPoints = countSingleParentHouseholds.map { it.value },
+        )
+
         val countShelters = countShelters(fromDate, toDate)
         val countSheltersData = StatisticsDetailData(
             title = INTEGER_FORMATTER.format(countShelters.sumOf { it.value.toLong() }),
@@ -139,6 +147,7 @@ class StatisticsService(
             beneficiaryCustomers = countBeneficiaryCustomersData,
             beneficiaryPersons = countBeneficiaryPersonsData,
             beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
+            singleParentHouseholds = countSingleParentHouseholdsData,
             sheltersCount = countSheltersData,
             sheltersAverage = averageSheltersData,
             sheltersPersonsCount = countSheltersPersonsData,
@@ -196,6 +205,24 @@ class StatisticsService(
                     AND h.locked IS NOT TRUE
                     AND p.is_main_person = false
                     AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) <= 15
+                ) as value
+            FROM get_timeline(:fromDate, :toDate) t
+            ORDER BY t.start_date ASC
+        """.trimIndent()
+
+        return executeStatsQuery(sql, fromDate, toDate)
+    }
+
+    fun countSingleParentHouseholds(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
+        val sql = """
+            SELECT
+                format_by_resolution(t.start_date, t.res_code) as label,
+                (
+                    SELECT COUNT(*)
+                    FROM households h
+                    WHERE h.valid_until >= t.start_date
+                    AND h.locked is not true
+                    AND h.single_parent is true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -352,6 +379,7 @@ class StatisticsService(
                 "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
                 data.beneficiaryCustomersWithChildren.title,
             ),
+            listOf("Alleinerzieher (Haushalte)", data.singleParentHouseholds.title),
             listOf("Notschlafstellen (Anzahl)", data.sheltersCount.title),
             listOf("Notschlafstellen (Durchschnitt pro Ausgabe)", data.sheltersAverage.title),
             listOf("Notschlafstellen (versorgte Personen pro Ausgabe)", data.sheltersPersonsCount.title),

@@ -102,6 +102,9 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
     @Column(name = "pending_cost_contribution")
     var pendingCostContribution: BigDecimal = BigDecimal.ZERO
 
+    @Column(name = "single_parent")
+    var singleParent: Boolean? = null
+
     @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
     var persons: MutableList<PersonEntity> = mutableListOf()
 

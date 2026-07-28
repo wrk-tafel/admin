@@ -72,6 +72,7 @@ export interface StatisticsData {
   beneficiaryCustomers: StatisticsDetailData
   beneficiaryPersons: StatisticsDetailData
   beneficiaryCustomersWithChildren: StatisticsDetailData
+  singleParentHouseholds: StatisticsDetailData
   sheltersCount: StatisticsDetailData
   sheltersAverage: StatisticsDetailData
   sheltersPersonsCount: StatisticsDetailData

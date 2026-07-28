@@ -34,6 +34,7 @@ describe('CustomerApiService', () => {
     employer: 'test employer',
     income: 1000,
     incomeDue: incomeDue,
+    singleParent: true,
     additionalPersons: [
       {
         key: 'form-only-key',
@@ -64,6 +65,7 @@ describe('CustomerApiService', () => {
     },
     telephoneNumber: '00436644123123123',
     email: 'max.mustermann@gmail.com',
+    singleParent: true,
     persons: [
       {
         id: 1,
@@ -169,6 +171,7 @@ describe('CustomerApiService', () => {
     expect(body.address).toEqual(mockCustomer.address);
     expect(body.telephoneNumber).toEqual('00436644123123123');
     expect(body.email).toEqual('max.mustermann@gmail.com');
+    expect(body.singleParent).toBe(true);
     expect(body.firstname).toBeUndefined();
     expect(body.additionalPersons).toBeUndefined();
 
@@ -219,6 +222,7 @@ describe('CustomerApiService', () => {
     expect(result!.incomeDue).toEqual(incomeDue);
     expect(result!.address).toEqual(mockCustomer.address);
     expect(result!.telephoneNumber).toEqual('00436644123123123');
+    expect(result!.singleParent).toBe(true);
 
     expect(result!.additionalPersons).toHaveLength(1);
     expect(result!.additionalPersons![0].id).toEqual(2);

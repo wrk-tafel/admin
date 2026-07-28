@@ -193,6 +193,12 @@
             <div class="invalid-feedback">{{errorMessage}}</div>
           }
         </div>
+        <div class="mb-2">
+          <label class="form-label">Alleinerzieher</label>
+          <div>
+            <input testid="singleParentInput" type="checkbox" [formField]="customerForm.singleParent">
+          </div>
+        </div>
       </mat-card-content>
     </mat-card>
     <div class="mt-4 md:mt-0">
