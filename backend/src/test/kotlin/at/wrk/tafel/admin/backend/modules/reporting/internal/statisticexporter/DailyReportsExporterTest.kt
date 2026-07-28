@@ -123,23 +123,23 @@ class DailyReportsExporterTest {
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tagesreports"),
                 listOf(
                     "Datum", "KW", "Versorgte Personen", "davon in NOST", "davon in Ausgabestelle", "davon Kinder < 3 Jahre", "Haushalte",
-                    "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Ges. Spender", "Spender mit Ware",
+                    "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Alleinerzieher (Haushalte)", "Ges. Spender", "Spender mit Ware",
                     "Warenmenge", "Kilometerleistung", "Anz. MitarbeiterInnen",
                 ),
                 listOf(
                     previousDistribution2.startedAt!!.format(DATE_FORMATTER),
                     previousDistribution2.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1",
+                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
                 listOf(
                     previousDistribution1.startedAt!!.format(DATE_FORMATTER),
                     previousDistribution1.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "9", "3", "6", "3", "4", "5", "6", "7", "8", "9", "10", "11.1", "12", "13",
+                    "9", "3", "6", "3", "4", "5", "6", "7", "8", "0", "9", "10", "11.1", "12", "13",
                 ),
                 listOf(
                     currentDistribution.startedAt!!.format(DATE_FORMATTER),
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "22", "0", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1",
+                    "22", "0", "22", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
             ),
         )
@@ -184,13 +184,13 @@ class DailyReportsExporterTest {
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tagesreports"),
                 listOf(
                     "Datum", "KW", "Versorgte Personen", "davon in NOST", "davon in Ausgabestelle", "davon Kinder < 3 Jahre", "Haushalte",
-                    "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Ges. Spender", "Spender mit Ware",
+                    "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Alleinerzieher (Haushalte)", "Ges. Spender", "Spender mit Ware",
                     "Warenmenge", "Kilometerleistung", "Anz. MitarbeiterInnen",
                 ),
                 listOf(
                     currentDistribution.startedAt!!.format(DATE_FORMATTER),
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "5", "4", "3.1", "2", "1",
+                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
             ),
         )

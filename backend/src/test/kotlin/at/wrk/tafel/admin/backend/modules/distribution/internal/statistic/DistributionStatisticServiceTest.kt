@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
@@ -110,6 +112,7 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCustomersProlonged.size)
         assertThat(savedStatistic.countPersonsProlonged).isEqualTo(3)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCustomersNew.size - testCustomersProlonged.size)
+        assertThat(savedStatistic.countSingleParentHouseholds).isEqualTo(0)
 
         assertThat(savedStatistic.shopsTotalCount).isEqualTo(3)
         assertThat(savedStatistic.shopsWithFoodCount).isEqualTo(2)
@@ -148,12 +151,54 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(0)
         assertThat(savedStatistic.countPersonsProlonged).isEqualTo(0)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(0)
+        assertThat(savedStatistic.countSingleParentHouseholds).isEqualTo(0)
 
         assertThat(savedStatistic.shopsTotalCount).isEqualTo(0)
         assertThat(savedStatistic.shopsWithFoodCount).isEqualTo(0)
         assertThat(savedStatistic.foodTotalAmount).isEqualTo(BigDecimal.ZERO)
         assertThat(savedStatistic.foodPerShopAverage).isEqualTo(BigDecimal.ZERO)
         assertThat(savedStatistic.routesLengthKm).isEqualTo(0)
+    }
+
+    @Test
+    fun `count single parent households only counts registered households flagged as such`() {
+        val singleParentHousehold1 = DistributionHouseholdEntity().apply {
+            household = HouseholdEntity().apply { singleParent = true }
+        }
+        val singleParentHousehold2 = DistributionHouseholdEntity().apply {
+            household = HouseholdEntity().apply { singleParent = true }
+        }
+        val nonSingleParentHousehold = DistributionHouseholdEntity().apply {
+            household = HouseholdEntity().apply { singleParent = false }
+        }
+        val unknownHousehold = DistributionHouseholdEntity().apply {
+            household = HouseholdEntity().apply { singleParent = null }
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now().minusHours(2)
+            endedAt = LocalDateTime.now()
+            statistic = DistributionStatisticEntity()
+            households = listOf(
+                singleParentHousehold1,
+                singleParentHousehold2,
+                nonSingleParentHousehold,
+                unknownHousehold,
+            )
+        }
+
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.saveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        assertThat(savedStatisticSlot.captured.countSingleParentHouseholds).isEqualTo(2)
     }
 
     @Test

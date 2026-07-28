@@ -34,6 +34,7 @@ class DailyReportsExporter(
             "Verlängert (Personen)",
             "Neue Kunden",
             "Neue Personen",
+            "Alleinerzieher (Haushalte)",
             "Ges. Spender",
             "Spender mit Ware",
             "Warenmenge",
@@ -87,6 +88,7 @@ class DailyReportsExporter(
         columns.add(statistic.countPersonsProlonged.toString())
         columns.add(statistic.countCustomersNew.toString())
         columns.add(statistic.countPersonsNew.toString())
+        columns.add(statistic.countSingleParentHouseholds.toString())
         columns.add(statistic.shopsTotalCount.toString())
         columns.add(statistic.shopsWithFoodCount.toString())
         columns.add(statistic.foodTotalAmount.toString())

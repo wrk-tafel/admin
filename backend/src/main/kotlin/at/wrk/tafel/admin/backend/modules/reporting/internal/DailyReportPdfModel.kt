@@ -21,6 +21,7 @@ data class DailyReportPdfModel(
     val countCustomersProlonged: Int,
     val countPersonsProlonged: Int,
     val countCustomersUpdated: Int,
+    val countSingleParentHouseholds: Int,
 
     val shopsTotalCount: Int,
     val shopsWithFoodCount: Int,
@@ -50,6 +51,7 @@ data class DailyReportPdfModel(
             countCustomersProlonged == other.countCustomersProlonged &&
             countPersonsProlonged == other.countPersonsProlonged &&
             countCustomersUpdated == other.countCustomersUpdated &&
+            countSingleParentHouseholds == other.countSingleParentHouseholds &&
             shopsTotalCount == other.shopsTotalCount &&
             shopsWithFoodCount == other.shopsWithFoodCount &&
             foodTotalAmount == other.foodTotalAmount &&
@@ -73,6 +75,7 @@ data class DailyReportPdfModel(
         result = 31 * result + countCustomersProlonged
         result = 31 * result + countPersonsProlonged
         result = 31 * result + countCustomersUpdated
+        result = 31 * result + countSingleParentHouseholds
         result = 31 * result + shopsTotalCount
         result = 31 * result + shopsWithFoodCount
         result = 31 * result + foodTotalAmount.hashCode()
