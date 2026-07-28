@@ -126,8 +126,8 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/statistiken/allgemein'
       },
       {
-        name: 'Sonstige',
-        url: '/statistiken/sonstige'
+        name: 'Schulstartpakete',
+        url: '/statistiken/schulstartpakete'
       }
     ]
   },
