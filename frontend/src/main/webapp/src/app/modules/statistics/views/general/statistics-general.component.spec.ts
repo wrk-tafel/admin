@@ -1,9 +1,9 @@
 import {TestBed} from '@angular/core/testing';
-import {StatisticsComponent} from './statistics.component';
+import {StatisticsGeneralComponent} from './statistics-general.component';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
-describe('StatisticsComponent', () => {
+describe('StatisticsGeneralComponent', () => {
 
   beforeEach((() => {
     TestBed.configureTestingModule({
@@ -15,7 +15,7 @@ describe('StatisticsComponent', () => {
   }));
 
   it('component can be created', () => {
-    const fixture = TestBed.createComponent(StatisticsComponent);
+    const fixture = TestBed.createComponent(StatisticsGeneralComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });

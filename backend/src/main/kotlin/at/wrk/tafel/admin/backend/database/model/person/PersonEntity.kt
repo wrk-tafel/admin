@@ -12,6 +12,12 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.Join
+import jakarta.persistence.criteria.Root
+import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -63,4 +69,40 @@ class PersonEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "receives_family_allowance", nullable = false)
     var receivesFamilyAllowance: Boolean = false
+
+    interface Specs {
+        companion object {
+            fun isAdditionalPerson(): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                cb.isFalse(root.get("isMainPerson"))
+            }
+
+            /**
+             * `birthDate` is a plain stored column - filtering by a min/max *age* is expressed here
+             * as a `birthDate` range instead of computing age in the query (e.g. via Postgres'
+             * `age()`), so it stays portable and index-friendly. See callers for the age-to-date
+             * range math.
+             */
+            fun birthDateBetween(from: LocalDate, to: LocalDate): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val birthDate: Expression<LocalDate> = root["birthDate"]
+                cb.between(birthDate, from, to)
+            }
+
+            fun householdIsValid(): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val household = root.join<PersonEntity, HouseholdEntity>("household")
+                val validUntil: Expression<LocalDate> = household["validUntil"]
+                cb.and(
+                    cb.isNotNull(validUntil),
+                    cb.greaterThanOrEqualTo(validUntil, LocalDate.now()),
+                )
+            }
+
+            fun orderByHouseholdId(spec: Specification<PersonEntity>): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val household: Join<PersonEntity, HouseholdEntity> = root.join("household")
+                val householdId: Expression<Long> = household["householdId"]
+
+                cq!!.orderBy(cb.asc(householdId))
+                spec.toPredicate(root, cq, cb)
+            }
+        }
+    }
 }

@@ -2,6 +2,10 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
+import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
@@ -10,11 +14,16 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.slot
 import jakarta.persistence.EntityManager
 import jakarta.persistence.Query
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -23,6 +32,9 @@ internal class StatisticsServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
+
+    @RelaxedMockK
+    private lateinit var personRepository: PersonRepository
 
     @RelaxedMockK
     private lateinit var entityManager: EntityManager
@@ -482,5 +494,109 @@ internal class StatisticsServiceTest {
         assertThat(lines[7]).isEqualTo("Spender (Anzahl);60")
         assertThat(lines[8]).isEqualTo("Warenmenge (Gesamt);60 kg")
         assertThat(lines[9]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20,00 kg")
+    }
+
+    /**
+     * The age-range/main-person/valid-household *filtering* itself now happens inside the
+     * Specification passed to `personRepository.findAll(...)` (see `StatisticsServiceIT` for that
+     * behavior against a real DB) - these unit tests only cover what the service does with
+     * whatever `PersonRepository` hands back: mapping to `SchoolStarterPackageEntry` and
+     * translating `page` into a zero-based `PageRequest`.
+     */
+    private fun personEntity(householdId: Long, firstname: String, lastname: String, age: Int): PersonEntity {
+        val household = HouseholdEntity().apply { this.householdId = householdId }
+        return PersonEntity().apply {
+            this.household = household
+            this.firstname = firstname
+            this.lastname = lastname
+            this.birthDate = LocalDate.now().minusYears(age.toLong())
+        }
+    }
+
+    @Test
+    fun `generateSchoolStarterPackageCsv builds one row per person returned by the repository`() {
+        every { personRepository.findAll(any<Specification<PersonEntity>>()) } returns listOf(
+            personEntity(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
+            personEntity(householdId = 20L, firstname = "B", lastname = "Household20", age = 8),
+        )
+
+        val csvContent = String(service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10).bytes, Charsets.UTF_8)
+
+        assertThat(csvContent).contains("Haushalt;Vorname;Nachname;Alter")
+        assertThat(csvContent).contains("5;A;Household5;7")
+        assertThat(csvContent).contains("20;B;Household20;8")
+    }
+
+    @Test
+    fun `generateSchoolStarterPackageCsv filename contains todays date`() {
+        every { personRepository.findAll(any<Specification<PersonEntity>>()) } returns emptyList()
+
+        val result = service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10)
+
+        assertThat(result.filename).startsWith("schulstartpakete_")
+        assertThat(result.filename).endsWith(".csv")
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData maps the returned page content to entries`() {
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), any<Pageable>())
+        } returns PageImpl(
+            listOf(personEntity(householdId = 5L, firstname = "A", lastname = "Household5", age = 7)),
+            PageRequest.of(0, 25),
+            1,
+        )
+
+        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
+
+        assertThat(result.items).containsExactly(
+            SchoolStarterPackageEntry(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
+        )
+        assertThat(result.currentPage).isEqualTo(1)
+        assertThat(result.totalPages).isEqualTo(1)
+        assertThat(result.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData totalCount reflects the pages totalElements, not the items on the current page`() {
+        // Page 1 of a 30-row result, 25 (a full page) returned here - PageImpl would otherwise
+        // "correct" an inconsistent total (see its constructor) if offset + pageSize exceeded it,
+        // so this has to stay a realistic full first page rather than an arbitrary short list.
+        val fullPage = (1..25).map { personEntity(householdId = it.toLong(), firstname = "Kind", lastname = "Nr$it", age = 7) }
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), any<Pageable>())
+        } returns PageImpl(fullPage, PageRequest.of(0, 25), 30)
+
+        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
+
+        assertThat(result.items).hasSize(25)
+        assertThat(result.totalCount).isEqualTo(30L)
+        assertThat(result.currentPage).isEqualTo(1)
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData translates the 1-based page param into a 0-based PageRequest`() {
+        val pageableSlot = slot<Pageable>()
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
+        } returns PageImpl(emptyList(), PageRequest.of(1, 25), 0)
+
+        service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
+
+        assertThat(pageableSlot.captured.pageNumber).isEqualTo(1)
+        assertThat(pageableSlot.captured.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData defaults to the first page`() {
+        val pageableSlot = slot<Pageable>()
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
+        } returns PageImpl(emptyList(), PageRequest.of(0, 25), 0)
+
+        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = null)
+
+        assertThat(result.currentPage).isEqualTo(1)
+        assertThat(pageableSlot.captured.pageNumber).isEqualTo(0)
     }
 }

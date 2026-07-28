@@ -1,35 +1,45 @@
 # Statistics Module
 
-This module ("Statistiken" in the nav, route `statistiken`) is the historical/aggregate
-reporting screen — as opposed to the `dashboard` module's live, per-distribution cockpit. It lets
-staff pick a date range (or a specific past distribution, or "current month", or a whole year),
-fetches aggregated counters for that range from the backend, renders them as small Chart.js line
-charts, and offers a CSV export of the same range.
+This module ("Statistiken" in the nav) is the historical/aggregate reporting area — as opposed to
+the `dashboard` module's live, per-distribution cockpit. The nav item is a parent with two
+sub-pages:
+
+- **Allgemein** (`/statistiken/allgemein`) — pick a date range (or a specific past distribution,
+  or "current month", or a whole year), fetch aggregated counters for that range from the
+  backend, render them as small Chart.js line charts, and offer a CSV export of the same range.
+- **Sonstige** (`/statistiken/sonstige`) — one-off reports that don't fit the date-range shape
+  above; currently just the "Schulstartpakete" (school starter package) report, a
+  min/max-age-filtered household member listing with its own CSV export.
 
 It is unrelated to the `dashboard` module's "statistics" input card (`distribution-statistics-input`,
 which records *today's* employee count / shelter occupancy for the currently open distribution).
-This module reports on *closed* distributions over arbitrary time ranges — see "Relationship to
-the dashboard module" below.
+The **Allgemein** page reports on *closed* distributions over arbitrary time ranges — see
+"Relationship to the dashboard module" below.
 
 ## Folder structure
 
 ```
 statistics/
-  statistics.component.ts / .html / .spec.ts   # page: date-range picker + CSV export + panels
-  statistics.routes.ts                         # single '' route, provides ng2-charts + resolver
+  statistics.routes.ts                         # 'allgemein' + 'sonstige' child routes (redirects '' -> 'allgemein')
+  views/
+    general/
+      statistics-general.component.ts / .html / .spec.ts  # date-range picker + CSV export + panels
+    misc/
+      statistics-misc.component.ts / .html / .spec.ts      # school starter package report + CSV export
   resolver/
-    statistics-settings-resolver.component.ts  # StatisticsSettingsResolver -> StatisticsSettings
+    statistics-settings-resolver.component.ts  # StatisticsSettingsResolver -> StatisticsSettings (Allgemein only)
   components/
-    statistics-panel.component.ts / .html / .spec.ts  # one Chart.js line-chart "tile"
+    statistics-panel.component.ts / .html / .spec.ts  # one Chart.js line-chart "tile" (used by Allgemein)
 ```
 
-Only 6 source files (+ specs) — there is no `components/` subfolder split beyond the single
-reusable panel, since `StatisticsComponent` itself is the only page-level view.
+The two pages are deliberately separate components/routes, not tabs inside one component - they
+have unrelated data shapes and lifecycles (date-range-driven charts vs. a fixed report), and the
+nav renders them as `Statistiken > Allgemein / Sonstige` sub-items (see `navigation-menuItems.ts`).
 
-## How the date range drives data
+## Allgemein: how the date range drives data
 
-`StatisticsComponent` keeps the range as two signals, `_dateRangeFrom` / `_dateRangeTo`, exposed
-as a combined `computed()` called `dateRange`. Four mutually exclusive input modes
+`StatisticsGeneralComponent` keeps the range as two signals, `_dateRangeFrom` / `_dateRangeTo`,
+exposed as a combined `computed()` called `dateRange`. Four mutually exclusive input modes
 (`year` / `currentMonth` / `distribution` / `custom`, a `mat-button-toggle-group` in the template)
 all funnel into setting those two signals — e.g. picking a year computes Jan 1–now (current year)
 or Jan 1–Dec 31 (past year) via `dayjs`; picking a past distribution copies its
@@ -55,7 +65,7 @@ live counters.
 
 ## Charts: `StatisticsPanelComponent`
 
-Each of the nine tiles rendered in `statistics.component.html` (see below) is one
+Each of the nine tiles rendered in `statistics-general.component.html` is one
 `<tafel-statistics-panel [data]="...">`, wrapping a single `ng2-charts` `<canvas baseChart>` line
 chart. `StatisticsPanelComponent` just reshapes the incoming `StatisticsDetailData` (`title`,
 `subTitle`, `labels`, `dataPoints`) into the Chart.js `data`/`options` shape via a `computed()`
@@ -63,10 +73,10 @@ chart. `StatisticsPanelComponent` just reshapes the incoming `StatisticsDetailDa
 gridlines — these are meant to read as compact sparklines with a big number/title overlaid via
 plain HTML (`data()?.title` / `data()?.subTitle`), not as analytical charts with tickable axes.
 `ng2-charts`' `provideCharts(withDefaultRegisterables())` is registered as a route-level provider
-in `statistics.routes.ts` rather than app-wide, so Chart.js is only pulled in when this route is
-actually navigated to.
+on the `allgemein` route in `statistics.routes.ts` rather than app-wide, so Chart.js is only pulled
+in when that route is actually navigated to.
 
-`StatisticsComponent`'s template feeds all nine `StatisticsData` fields from the
+`StatisticsGeneralComponent`'s template feeds all nine `StatisticsData` fields from the
 `/statistics/data` response into panels, grouped under three headings:
 
 - **Kunden und Personen** (customers/persons): `beneficiaryCustomers`, `beneficiaryPersons`,
@@ -82,10 +92,62 @@ backend just means adding one more field to `StatisticsData` and one more
 ## `resolver/`
 
 `StatisticsSettingsResolver` pre-fetches `/statistics/settings` (available years +
-past-distribution date ranges) before the route activates, so `StatisticsComponent.settings` is
-populated as a route-resolved `input()` before first render — used to populate the year dropdown
-(`yearOptions`, deduplicated + sorted descending, always includes the current year even if the
-backend hasn't recorded it yet) and the distribution dropdown.
+past-distribution date ranges) before the `allgemein` route activates, so
+`StatisticsGeneralComponent.settings` is populated as a route-resolved `input()` before first
+render — used to populate the year dropdown (`yearOptions`, deduplicated + sorted descending,
+always includes the current year even if the backend hasn't recorded it yet) and the distribution
+dropdown. `sonstige` has no resolver — `StatisticsMiscComponent` has no settings dependency, it
+just fetches its report data directly.
+
+## Sonstige: `StatisticsMiscComponent`
+
+Unlike `Allgemein`'s reactive `toSignal`/`switchMap` pipeline, this page follows the imperative
+load-on-demand pattern used by the app's other paginated lists (`UserSearchComponent`,
+`CustomerDuplicatesComponent`, `customer-above-limit`, ...): a plain
+`schoolStarterPackageData = signal<SchoolStarterPackageSearchResult | undefined>(undefined)`,
+populated by an explicit `loadSchoolStarterPackageData(page?)` call rather than derived from an
+observable of the filter state:
+
+```ts
+onAgeMinChange(value: number) {
+  this.schoolStarterPackageAgeMin.set(value);
+  this.loadSchoolStarterPackageData();
+}
+
+onPageChange(event: PageEvent) {
+  this.loadSchoolStarterPackageData(event.pageIndex + 1);
+}
+
+private loadSchoolStarterPackageData(page?: number) {
+  this.statisticsApiService.getSchoolStarterPackageData(
+    this.schoolStarterPackageAgeMin(), this.schoolStarterPackageAgeMax(), page
+  ).subscribe((response) => this.schoolStarterPackageData.set(response));
+}
+```
+
+Two plain `<input type="number">` fields (`Alter von` / `Alter bis`, bound via
+`[ngModel]`/`(ngModelChange)`, no reactive form) each reload page 1 on change; the CSV export
+button reuses the current age range but ignores paging - it always exports every matching row, not
+just the current page. `ageMin`/`ageMax` are required query params on the backend
+(`StatisticsController`/`StatisticsService`, `/api/statistics` — not a separate `reporting` module
+path), matching the ad-hoc SQL this report replaced (`_reporting/reporting.sql`,
+"Alter konfigurierbar").
+
+Pagination happens at the DB level via a genuine JPA `Specification<PersonEntity>`/`Pageable` query
+(`PersonRepository`, `PersonEntity.Specs`) - "age in [ageMin, ageMax]" is expressed as a plain
+`birthDate` range rather than computed in the query (e.g. via Postgres' `age()`), so it's just an
+ordinary indexable column comparison that Spring Data can paginate directly, no in-memory slicing
+needed. `StatisticsService.getSchoolStarterPackageData()` returns the same
+`items`/`totalCount`/`currentPage`/`totalPages`/`pageSize` shape (`SchoolStarterPackageSearchResult`)
+as `HouseholdSearchResult`/`UserSearchResult`, and the age-filtering math is covered end-to-end
+against a real Postgres in `StatisticsServiceIT` (boundary ages, main-person exclusion, expired
+households, `totalCount` staying correct across pages) - `StatisticsServiceTest` only unit-tests
+what the service does with whatever `PersonRepository` hands back (mapping, page-number
+translation), since the actual filtering now lives in the Specification, not in Kotlin. The
+template mirrors the same double-paginator layout as the rest of the app (`mat-paginator` above
+and below the table, `[hidePageSize]="true"`, an `@if (...items?.length === 0)` empty-state check)
+- see `user-search.component.html` or `customer-duplicates.component.html` for the reference layout
+this was copied from.
 
 ## Relationship to the dashboard module
 
@@ -99,20 +161,27 @@ dashboard vs. `StatisticsApiService` here). The naming overlap is coincidental:
 - `dashboard`'s "statistics" (`distribution-statistics-input`) = data *entry* for the
   **currently open** distribution (employee count, shelter occupancy), pushed live via
   `/sse/dashboard`.
-- `statistics` module (this one) = historical *reporting* across arbitrary/past date ranges,
-  fetched via plain HTTP, visualized as Chart.js line charts, exportable as CSV.
+- `statistics` module (this one) = historical/one-off *reporting*, fetched via plain HTTP,
+  visualized as Chart.js line charts (Allgemein) or a plain table (Sonstige), exportable as CSV.
 
 If you're looking for where an "average shelter occupancy over the last quarter" type feature
-would go, it belongs here, not in `dashboard`.
+would go, it belongs in Allgemein, not `dashboard`. A new one-off report with its own filter
+shape belongs in Sonstige, as its own card/section in `statistics-misc.component.html` (or a new
+view alongside it, if it grows enough to warrant its own page).
 
 ## Gotchas
 
-- `dateRangeFrom`/`dateRangeTo` getters/setters on `StatisticsComponent` exist only to bridge the
-  `Date`-typed signals to the `<input type="date">` two-way `[(ngModel)]` binding (which needs
-  `'YYYY-MM-DD'` strings) — don't replace the signals themselves with strings, the `dateRange`
-  `computed()` and the API calls expect `Date` objects.
+- `dateRangeFrom`/`dateRangeTo` getters/setters on `StatisticsGeneralComponent` exist only to
+  bridge the `Date`-typed signals to the `<input type="date">` two-way `[(ngModel)]` binding
+  (which needs `'YYYY-MM-DD'` strings) — don't replace the signals themselves with strings, the
+  `dateRange` `computed()` and the API calls expect `Date` objects.
 - Switching to `'custom'` mode doesn't reset `_dateRangeFrom`/`_dateRangeTo` — it keeps whatever
   the previous mode left behind, so the date inputs start prefilled with the last active range.
 - `statisticsData()` is `undefined` until the first response arrives; the results card
   (`@if (statisticsData())`) is entirely absent from the DOM until then — there's no loading
-  spinner, so a slow `/statistics/data` response just shows nothing below the range picker.
+  spinner, so a slow `/statistics/data` response just shows nothing below the range picker. Same
+  applies to `schoolStarterPackageData()` on the Sonstige page.
+- The nav item "Statistiken" has no `url` of its own anymore (see `navigation-menuItems.ts`) — it
+  only renders as an expandable group with the two children, matching the existing
+  `Benutzer`/`Einstellungen` pattern. Navigating straight to `/statistiken` still works via the
+  `redirectTo: 'allgemein'` route.

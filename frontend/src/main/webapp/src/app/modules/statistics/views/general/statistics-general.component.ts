@@ -2,21 +2,21 @@ import {Component, computed, inject, input, signal} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
+import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CommonModule} from '@angular/common';
 import {switchMap} from 'rxjs';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
-import {StatisticsPanelComponent} from './components/statistics-panel.component';
+import {StatisticsPanelComponent} from '../../components/statistics-panel.component';
 import {HttpResponse} from '@angular/common/http';
-import {FileHelperService} from '../../common/util/file-helper.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faSave} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'tafel-statistics',
-  templateUrl: 'statistics.component.html',
+  selector: 'tafel-statistics-general',
+  templateUrl: 'statistics-general.component.html',
   imports: [
     CommonModule,
     MatCardModule,
@@ -28,7 +28,7 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     FaIconComponent
   ]
 })
-export class StatisticsComponent {
+export class StatisticsGeneralComponent {
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
