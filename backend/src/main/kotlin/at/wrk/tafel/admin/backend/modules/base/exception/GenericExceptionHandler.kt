@@ -74,6 +74,14 @@ class GenericExceptionHandler(
         )
     }
 
+    /**
+     * Builds the error response, special-casing SSE requests.
+     *
+     * If the incoming request's `Accept` header contains `text/event-stream`, a normal JSON error
+     * body would not be understood by the open `EventSource` - it's written instead as an
+     * `event: error` SSE frame so an in-flight SSE connection doesn't just look like it silently
+     * broke.
+     */
     private fun createErrorResponse(
         exception: Exception,
         status: HttpStatus,

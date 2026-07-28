@@ -42,6 +42,13 @@ class ReturnBoxesMailPostProcessor(
         logger.info("Mail for return boxes '$mailSubject' sent!")
     }
 
+    /**
+     * Builds the route -> shop -> return-category hierarchy for the mail by re-filtering
+     * `distribution.foodCollections` at each nesting level (by route, then by route+shop) rather
+     * than grouping once, and drops any route/shop with no return items via `null` filtering. Not
+     * the cheapest possible approach, but distribution-sized data volumes make this fine, and it
+     * keeps each level's filter self-contained.
+     */
     private fun createReturnBoxesData(distribution: DistributionEntity): ReturnBoxesDataModel {
         val uniqueRoutes = distribution.foodCollections.mapNotNull { it.route }
             .distinctBy { it.id }

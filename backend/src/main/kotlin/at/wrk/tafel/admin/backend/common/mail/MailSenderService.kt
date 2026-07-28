@@ -45,6 +45,11 @@ class MailSenderService(
         sendMail(mailType, subject, content, attachments, isHtmlMail = true)
     }
 
+    /**
+     * `mailSender` is `@Autowired(required = false)` - when no mail server is configured (e.g.
+     * dev/test profiles), this silently no-ops instead of failing, so callers don't need to guard
+     * every mail-sending call site against a missing mail configuration.
+     */
     private fun sendMail(
         mailType: MailType,
         subject: String,

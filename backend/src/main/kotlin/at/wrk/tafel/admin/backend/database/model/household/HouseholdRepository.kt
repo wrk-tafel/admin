@@ -12,13 +12,20 @@ interface HouseholdRepository :
     JpaRepository<HouseholdEntity, Long>,
     JpaSpecificationExecutor<HouseholdEntity> {
 
+    /**
+     * The human-facing `household_id` business number, drawn from a dedicated Postgres sequence -
+     * distinct from the entity's own JPA-generated primary key.
+     */
     @Query("SELECT nextval('household_id_sequence')", nativeQuery = true)
     fun getNextHouseholdSequenceValue(): Long
 
-    // overrides the inherited findAll(Specification) with an eager fetch of persons - without this,
-    // HouseholdConverter.mapEntityToHousehold() accessing the lazy persons collection triggers one
-    // extra query per household (only used by getHouseholdsAboveLimit(), which loads every valid
-    // household up front rather than a paginated slice, so the N+1 cost is otherwise unbounded)
+    /**
+     * Overrides the inherited `findAll(Specification)` with an eager fetch of `persons`. Without
+     * this, `HouseholdConverter.mapEntityToHousehold()` accessing the lazy `persons` collection
+     * would trigger one extra query per household - the only caller,
+     * `HouseholdService.getHouseholdsAboveLimit()`, loads every valid household up front rather
+     * than a paginated slice, so the N+1 cost would otherwise be unbounded.
+     */
     @EntityGraph(attributePaths = ["persons"])
     override fun findAll(spec: Specification<HouseholdEntity>): List<HouseholdEntity>
 

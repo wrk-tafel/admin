@@ -22,6 +22,12 @@ class FoodCollectionItemEntity {
     @Column(name = "amount")
     var amount: Int? = null
 
+    /**
+     * If the shop's [FoodUnit] is `KG`, `amount` already *is* the weight; otherwise the weight is
+     * derived as `amount * category.weightPerUnit` (e.g. boxes of a known per-box weight). Get the
+     * shop's unit wrong and every weight-based report/statistic derived from this collection is
+     * wrong too.
+     */
     fun calculateWeight(): BigDecimal {
         val amount = amount ?: 0
         val unit = shop?.foodUnit ?: FoodUnit.BOX

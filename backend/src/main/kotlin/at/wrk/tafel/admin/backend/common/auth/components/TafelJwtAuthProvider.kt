@@ -18,6 +18,11 @@ class TafelJwtAuthProvider(
 
     override fun supports(authentication: Class<*>): Boolean = authentication == TafelJwtAuthentication::class.java
 
+    /**
+     * A validly-signed, unexpired JWT is not sufficient on its own - the referenced user may have
+     * been disabled or deleted after the token was issued, so this re-checks the user's `enabled`
+     * state in the DB on every authenticated request rather than trusting the token's claims alone.
+     */
     override fun authenticate(authentication: Authentication): TafelJwtAuthentication {
         try {
             val tafelJwtAuthentication = authentication as TafelJwtAuthentication
@@ -28,8 +33,6 @@ class TafelJwtAuthProvider(
                 throw CredentialsExpiredException("Token not valid")
             }
 
-            // a valid signature is not enough - the user may have been disabled or deleted
-            // after the token was issued
             val userEntity = claims.subject?.let { userRepository.findByUsername(it) }
             if (userEntity?.enabled != true) {
                 throw DisabledException("User '${claims.subject}' is disabled or doesn't exist")

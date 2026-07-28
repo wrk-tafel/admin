@@ -49,6 +49,12 @@ class DistributionStatisticService(
         return statistic
     }
 
+    /**
+     * `countCustomersUpdated` is derived by subtraction, not a dedicated query: it's every
+     * household updated in the window ([HouseholdRepository.countByUpdatedAtBetween]) minus the
+     * ones already counted as new or prolonged, since those also touch `updated_at` and would
+     * otherwise be double-counted across the three statistics.
+     */
     private fun fillHouseholdStatistics(
         distribution: DistributionEntity,
         statisticStartTime: LocalDateTime,

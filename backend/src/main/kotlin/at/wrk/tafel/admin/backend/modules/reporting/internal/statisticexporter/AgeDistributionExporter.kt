@@ -26,6 +26,13 @@ class AgeDistributionExporter : StatisticExporter {
         return headerRows + dataRows
     }
 
+    /**
+     * `household.additionalPersons()` deliberately excludes the household's own main person, so
+     * `householdsBirthDates` (the main persons) has to be derived separately and spliced back into
+     * `personsBirthDates` to get correct *person*-level age buckets - while the *household*-level
+     * buckets (`groupedCustomers`) use `householdsBirthDates` alone. The same list is reused once
+     * on its own and once merged; that's intentional, not redundant.
+     */
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
         val households = statistic.distribution
             ?.households
