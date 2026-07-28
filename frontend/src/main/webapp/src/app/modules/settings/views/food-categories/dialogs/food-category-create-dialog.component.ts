@@ -5,7 +5,6 @@ import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButton} from '@angular/material/button';
 import {FoodCategory} from '../../../../../api/food-categories-api.service';
 
@@ -18,7 +17,6 @@ import {FoodCategory} from '../../../../../api/food-categories-api.service';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     MatButton
   ]
 })

@@ -71,7 +71,6 @@ describe('SettingsFoodCategoriesComponent', () => {
     expect(component['editingId']()).toBe(testCategory.id);
     expect(component['nameControl'].value).toBe(testCategory.name);
     expect(component['weightPerUnitControl'].value).toBe(testCategory.weightPerUnit);
-    expect(component['returnItemControl'].value).toBe(testCategory.returnItem);
     expect(component['sortOrderControl'].value).toBe(testCategory.sortOrder);
   });
 

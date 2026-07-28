@@ -22,7 +22,6 @@ import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesom
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @Component({
   selector: 'tafel-settings-food-categories',
@@ -46,8 +45,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
     MatButton,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule,
-    MatCheckboxModule
+    MatInputModule
   ]
 })
 export class SettingsFoodCategoriesComponent {
@@ -57,12 +55,11 @@ export class SettingsFoodCategoriesComponent {
 
   private _foodCategories = signal<FoodCategory[]>([]);
   protected foodCategories = this._foodCategories;
-  displayedColumns = ['active', 'name', 'weightPerUnit', 'returnItem', 'sortOrder', 'actions'];
+  displayedColumns = ['active', 'name', 'weightPerUnit', 'sortOrder', 'actions'];
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});
   protected weightPerUnitControl = new FormControl<number | null>(null);
-  protected returnItemControl = new FormControl<boolean>(false, {nonNullable: true});
   protected sortOrderControl = new FormControl<number>(0, {nonNullable: true});
   private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
@@ -83,7 +80,6 @@ export class SettingsFoodCategoriesComponent {
     this.editingId.set(category.id);
     this.nameControl.setValue(category.name);
     this.weightPerUnitControl.setValue(category.weightPerUnit);
-    this.returnItemControl.setValue(category.returnItem);
     this.sortOrderControl.setValue(category.sortOrder);
   }
 
@@ -96,7 +92,6 @@ export class SettingsFoodCategoriesComponent {
       ...category,
       name: this.nameControl.value,
       weightPerUnit: this.weightPerUnitControl.value,
-      returnItem: this.returnItemControl.value,
       sortOrder: this.sortOrderControl.value
     };
 
