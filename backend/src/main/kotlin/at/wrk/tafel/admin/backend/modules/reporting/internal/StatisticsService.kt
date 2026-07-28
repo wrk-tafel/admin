@@ -3,8 +3,8 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
 import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageSearchResult
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
@@ -12,8 +12,8 @@ import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsSettings
 import jakarta.persistence.EntityManager
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.text.NumberFormat
@@ -26,7 +26,7 @@ import kotlin.math.max
 @Service
 class StatisticsService(
     private val distributionRepository: DistributionRepository,
-    private val householdRepository: HouseholdRepository,
+    private val personRepository: PersonRepository,
     private val entityManager: EntityManager,
 ) {
 
@@ -379,7 +379,8 @@ class StatisticsService(
         ageMax: Int,
     ): StatisticsCsvResult {
         val today = LocalDate.now()
-        val rows = getAllSchoolStarterPackageEntries(ageMin, ageMax, today)
+        val rows = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today))
+            .map { it.toSchoolStarterPackageEntry(today) }
 
         val csvRows: List<List<String>> = listOf(
             listOf("Haushalt", "Vorname", "Nachname", "Alter"),
@@ -392,10 +393,11 @@ class StatisticsService(
     }
 
     /**
-     * The age filter can't be expressed as a DB-level query (it depends on the person's computed
-     * age, not a stored column - see [schoolStarterPackageEntriesForHousehold]), so, same as
-     * `HouseholdService.getHouseholdsAboveLimit()`, pagination is applied in-memory on top of the
-     * already-computed, already-filtered result rather than via a JPA `Pageable` query.
+     * Filters and paginates at the DB level: "age in [ageMin, ageMax]" is expressed as a plain
+     * `birthDate` range (see [schoolStarterPackageSpec]) rather than computing age in the query
+     * (e.g. via Postgres' `age()`), so it stays a straightforward, index-friendly column
+     * comparison that a JPA `Specification`/`Pageable` can paginate directly - no in-memory
+     * slicing needed, unlike `HouseholdService.getHouseholdsAboveLimit()`.
      */
     @Transactional
     fun getSchoolStarterPackageData(
@@ -403,15 +405,12 @@ class StatisticsService(
         ageMax: Int,
         page: Int? = null,
     ): SchoolStarterPackageSearchResult {
-        val entries = getAllSchoolStarterPackageEntries(ageMin, ageMax, LocalDate.now())
-
+        val today = LocalDate.now()
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
-        val fromIndex = pageRequest.offset.toInt().coerceAtMost(entries.size)
-        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(entries.size)
-        val pagedResult = PageImpl(entries.subList(fromIndex, toIndex), pageRequest, entries.size.toLong())
+        val pagedResult = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today), pageRequest)
 
         return SchoolStarterPackageSearchResult(
-            items = pagedResult.content,
+            items = pagedResult.content.map { it.toSchoolStarterPackageEntry(today) },
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
@@ -419,34 +418,31 @@ class StatisticsService(
         )
     }
 
-    private fun getAllSchoolStarterPackageEntries(
-        ageMin: Int,
-        ageMax: Int,
-        today: LocalDate,
-    ): List<SchoolStarterPackageEntry> {
-        val households = householdRepository.findAll(HouseholdEntity.Specs.validHousehold())
+    /**
+     * age >= ageMin  <=>  birthDate <= today.minusYears(ageMin)
+     * age <= ageMax  <=>  birthDate >= today.minusYears(ageMax + 1).plusDays(1)
+     * (matches [java.time.temporal.ChronoUnit.YEARS]' truncation, used to compute the displayed
+     * age in [toSchoolStarterPackageEntry])
+     */
+    private fun schoolStarterPackageSpec(ageMin: Int, ageMax: Int, today: LocalDate): Specification<PersonEntity> {
+        val maxBirthDate = today.minusYears(ageMin.toLong())
+        val minBirthDate = today.minusYears(ageMax + 1L).plusDays(1)
 
-        return households
-            .flatMap { household -> schoolStarterPackageEntriesForHousehold(household, ageMin, ageMax, today) }
-            .sortedBy { it.householdId }
+        val spec = Specification.allOf(
+            PersonEntity.Specs.isAdditionalPerson(),
+            PersonEntity.Specs.householdIsValid(),
+            PersonEntity.Specs.birthDateBetween(minBirthDate, maxBirthDate),
+        )
+        return PersonEntity.Specs.orderByHouseholdId(spec)
     }
 
-    private fun schoolStarterPackageEntriesForHousehold(
-        household: HouseholdEntity,
-        ageMin: Int,
-        ageMax: Int,
-        today: LocalDate,
-    ): List<SchoolStarterPackageEntry> = household.additionalPersons().mapNotNull { person ->
-        val birthDate = person.birthDate ?: return@mapNotNull null
+    private fun PersonEntity.toSchoolStarterPackageEntry(today: LocalDate): SchoolStarterPackageEntry {
         val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
-        if (age !in ageMin..ageMax) {
-            return@mapNotNull null
-        }
 
-        SchoolStarterPackageEntry(
-            householdId = household.householdId!!,
-            firstname = person.firstname.orEmpty(),
-            lastname = person.lastname.orEmpty(),
+        return SchoolStarterPackageEntry(
+            householdId = household!!.householdId!!,
+            firstname = firstname.orEmpty(),
+            lastname = lastname.orEmpty(),
             age = age,
         )
     }

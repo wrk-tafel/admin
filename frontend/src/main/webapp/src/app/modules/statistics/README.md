@@ -133,15 +133,21 @@ just the current page. `ageMin`/`ageMax` are required query params on the backen
 path), matching the ad-hoc SQL this report replaced (`_reporting/reporting.sql`,
 "Alter konfigurierbar").
 
-Pagination itself mirrors `HouseholdService.getHouseholdsAboveLimit()` on the backend: the age
-filter can't be expressed as a JPA `Pageable` query (it depends on each person's computed age, not
-a stored column), so `StatisticsService.getSchoolStarterPackageData()` loads every matching entry
-first and then slices it in-memory with a `PageRequest`/`PageImpl`, returning the same
+Pagination happens at the DB level via a genuine JPA `Specification<PersonEntity>`/`Pageable` query
+(`PersonRepository`, `PersonEntity.Specs`) - "age in [ageMin, ageMax]" is expressed as a plain
+`birthDate` range rather than computed in the query (e.g. via Postgres' `age()`), so it's just an
+ordinary indexable column comparison that Spring Data can paginate directly, no in-memory slicing
+needed. `StatisticsService.getSchoolStarterPackageData()` returns the same
 `items`/`totalCount`/`currentPage`/`totalPages`/`pageSize` shape (`SchoolStarterPackageSearchResult`)
-as `HouseholdSearchResult`/`UserSearchResult`. The template mirrors the same double-paginator
-layout too (`mat-paginator` above and below the table, `[hidePageSize]="true"`, an
-`@if (...items?.length === 0)` empty-state check) - see `user-search.component.html` or
-`customer-duplicates.component.html` for the reference layout this was copied from.
+as `HouseholdSearchResult`/`UserSearchResult`, and the age-filtering math is covered end-to-end
+against a real Postgres in `StatisticsServiceIT` (boundary ages, main-person exclusion, expired
+households, `totalCount` staying correct across pages) - `StatisticsServiceTest` only unit-tests
+what the service does with whatever `PersonRepository` hands back (mapping, page-number
+translation), since the actual filtering now lives in the Specification, not in Kotlin. The
+template mirrors the same double-paginator layout as the rest of the app (`mat-paginator` above
+and below the table, `[hidePageSize]="true"`, an `@if (...items?.length === 0)` empty-state check)
+- see `user-search.component.html` or `customer-duplicates.component.html` for the reference layout
+this was copied from.
 
 ## Relationship to the dashboard module
 
