@@ -517,7 +517,7 @@ internal class StatisticsServiceTest {
             household(1L, mainPerson, childInRange, childBelowRange, childAboveRange),
         )
 
-        val result = service.generateSchoolStarterPackageCsv()
+        val result = service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10)
         val csvContent = String(result.bytes, Charsets.UTF_8)
 
         assertThat(csvContent).contains("Kind;InRange;8")
@@ -535,7 +535,7 @@ internal class StatisticsServiceTest {
             household(1L, childAtMin, childAtMax),
         )
 
-        val csvContent = String(service.generateSchoolStarterPackageCsv().bytes, Charsets.UTF_8)
+        val csvContent = String(service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10).bytes, Charsets.UTF_8)
 
         assertThat(csvContent).contains("AtMin")
         assertThat(csvContent).contains("AtMax")
@@ -548,7 +548,7 @@ internal class StatisticsServiceTest {
             household(5L, person("A", "Household5", age = 7)),
         )
 
-        val csvContent = String(service.generateSchoolStarterPackageCsv().bytes, Charsets.UTF_8)
+        val csvContent = String(service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10).bytes, Charsets.UTF_8)
 
         val household5Index = csvContent.indexOf("Household5")
         val household20Index = csvContent.indexOf("Household20")
@@ -559,7 +559,7 @@ internal class StatisticsServiceTest {
     fun `generateSchoolStarterPackageCsv filename contains todays date`() {
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns emptyList()
 
-        val result = service.generateSchoolStarterPackageCsv()
+        val result = service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10)
 
         assertThat(result.filename).startsWith("schulstartpakete_")
         assertThat(result.filename).endsWith(".csv")
@@ -573,7 +573,7 @@ internal class StatisticsServiceTest {
             household(1L, person("Main", "Person", age = 40, isMainPerson = true)),
         )
 
-        val result = service.getSchoolStarterPackageData()
+        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10)
 
         assertThat(result).containsExactly(
             SchoolStarterPackageEntry(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),

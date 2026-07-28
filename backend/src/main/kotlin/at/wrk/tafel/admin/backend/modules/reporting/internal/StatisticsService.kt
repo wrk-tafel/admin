@@ -30,8 +30,6 @@ class StatisticsService(
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
-        const val SCHOOL_STARTER_PACKAGE_AGE_MIN_DEFAULT = 6
-        const val SCHOOL_STARTER_PACKAGE_AGE_MAX_DEFAULT = 10
     }
 
     fun getSettings(): StatisticsSettings {
@@ -374,8 +372,8 @@ class StatisticsService(
      */
     @Transactional
     fun generateSchoolStarterPackageCsv(
-        ageMin: Int = SCHOOL_STARTER_PACKAGE_AGE_MIN_DEFAULT,
-        ageMax: Int = SCHOOL_STARTER_PACKAGE_AGE_MAX_DEFAULT,
+        ageMin: Int,
+        ageMax: Int,
     ): StatisticsCsvResult {
         val today = LocalDate.now()
         val rows = getSchoolStarterPackageData(ageMin, ageMax, today)
@@ -392,8 +390,8 @@ class StatisticsService(
 
     @Transactional
     fun getSchoolStarterPackageData(
-        ageMin: Int = SCHOOL_STARTER_PACKAGE_AGE_MIN_DEFAULT,
-        ageMax: Int = SCHOOL_STARTER_PACKAGE_AGE_MAX_DEFAULT,
+        ageMin: Int,
+        ageMax: Int,
         today: LocalDate = LocalDate.now(),
     ): List<SchoolStarterPackageEntry> {
         val households = householdRepository.findAll(HouseholdEntity.Specs.validHousehold())
