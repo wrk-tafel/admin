@@ -12,6 +12,7 @@ qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
 apache-commons-csv = "1.14.1"
 apache-commons-lang3 = "3.20.0"
+springdoc-openapi = "3.0.3"
 
 # Test dependency versions
 archunit = "1.4.2"
@@ -80,6 +81,9 @@ qrcode-kotlin-jvm = { module = "io.github.g0dkar:qrcode-kotlin-jvm", version.ref
 passay = { module = "org.passay:passay", version.ref = "passay" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }
+
+# API documentation
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
 
 # Test dependencies
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
