@@ -264,7 +264,6 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Use `resource()` for data fetching with automatic loading/error states
 - Read signals in templates with `()` - e.g., `@if (loading())`
 - Application runs in **zoneless mode** - no `ngZone.run()` needed
-- Angular signal patterns documentation referenced in `ANGULAR_SIGNAL_PATTERNS.md` does not currently exist in the repo
 
 ## API Structure
 
