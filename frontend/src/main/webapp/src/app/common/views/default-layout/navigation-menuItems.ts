@@ -119,8 +119,17 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Statistiken',
     icon: faChartLine,
-    url: '/statistiken',
     permissions: ['STATISTICS'],
+    children: [
+      {
+        name: 'Allgemein',
+        url: '/statistiken/allgemein'
+      },
+      {
+        name: 'Sonstige',
+        url: '/statistiken/sonstige'
+      }
+    ]
   },
   {
     name: 'Einstellungen',

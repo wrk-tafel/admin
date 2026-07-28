@@ -2,33 +2,21 @@ import {Component, computed, inject, input, signal} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import {
-  MatCell,
-  MatCellDef,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderCellDef,
-  MatHeaderRow,
-  MatHeaderRowDef,
-  MatRow,
-  MatRowDef,
-  MatTable
-} from '@angular/material/table';
-import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
+import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CommonModule} from '@angular/common';
 import {switchMap} from 'rxjs';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
-import {StatisticsPanelComponent} from './components/statistics-panel.component';
+import {StatisticsPanelComponent} from '../../components/statistics-panel.component';
 import {HttpResponse} from '@angular/common/http';
-import {FileHelperService} from '../../common/util/file-helper.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faSave} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'tafel-statistics',
-  templateUrl: 'statistics.component.html',
+  selector: 'tafel-statistics-general',
+  templateUrl: 'statistics-general.component.html',
   imports: [
     CommonModule,
     MatCardModule,
@@ -37,20 +25,10 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     MatButtonModule,
     MatButtonToggleModule,
     StatisticsPanelComponent,
-    FaIconComponent,
-    MatCell,
-    MatCellDef,
-    MatColumnDef,
-    MatHeaderCell,
-    MatHeaderCellDef,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatRow,
-    MatRowDef,
-    MatTable
+    FaIconComponent
   ]
 })
-export class StatisticsComponent {
+export class StatisticsGeneralComponent {
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
@@ -66,19 +44,6 @@ export class StatisticsComponent {
       switchMap(range => this.statisticsApiService.getData(range.from, range.to))
     )
   );
-
-  schoolStarterPackageAgeMin = signal<number>(6);
-  schoolStarterPackageAgeMax = signal<number>(10);
-  schoolStarterPackageAgeRange = computed(() => ({
-    min: this.schoolStarterPackageAgeMin(),
-    max: this.schoolStarterPackageAgeMax()
-  }));
-  schoolStarterPackageData = toSignal(
-    toObservable(this.schoolStarterPackageAgeRange).pipe(
-      switchMap(range => this.statisticsApiService.getSchoolStarterPackageData(range.min, range.max))
-    )
-  );
-  schoolStarterPackageColumns = ['householdId', 'firstname', 'lastname', 'age'];
 
   selectedMode = signal<DateRangeMode>('year');
   selectedYear = signal<number>(dayjs().year());
@@ -137,12 +102,6 @@ export class StatisticsComponent {
 
   protected generateCsv() {
     this.statisticsApiService.generateCsv(this.dateRange().from, this.dateRange().to)
-      .subscribe((response) => this.processCsvResponse(response));
-  }
-
-  protected generateSchoolStarterPackageCsv() {
-    const range = this.schoolStarterPackageAgeRange();
-    this.statisticsApiService.generateSchoolStarterPackageCsv(range.min, range.max)
       .subscribe((response) => this.processCsvResponse(response));
   }
 
