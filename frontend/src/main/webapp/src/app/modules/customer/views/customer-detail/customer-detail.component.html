@@ -162,6 +162,10 @@
                       testid="issuedInformation">am {{ $safeNavigationMigration(customerData()?.issuedAt) | date : 'dd.MM.yyyy' }} {{ $safeNavigationMigration(customerData()?.issuer) | formatIssuer }}</span>
                   </div>
                   <div class="flex justify-between">
+                    <span class="font-bold">Alleinerzieher</span>
+                    <span testid="singleParentText">{{ customerData()?.singleParent === true ? 'Ja' : 'Nein' }}</span>
+                  </div>
+                  <div class="flex justify-between">
                     <span class="font-bold text-white px-2"
                           [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
                       Gültig bis:
