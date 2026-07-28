@@ -7,12 +7,6 @@ import java.time.LocalDateTime
 
 interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntity, Long> {
 
-    @Query(value = "SELECT pg_advisory_lock(1000)", nativeQuery = true)
-    fun acquireLock()
-
-    @Query(value = "SELECT pg_advisory_unlock(1000)", nativeQuery = true)
-    fun releaseLock()
-
     @Query(
         value = """
                 SELECT COALESCE(

@@ -12,6 +12,7 @@ Available lock keys:
 - `CLOSE_DISTRIBUTION` (2000L) - For closing distribution events
 - `LOGIN_ATTEMPT_TRACKING` (3000L) - Serializes concurrent login-failure updates across instances
 - `PATCH_FOOD_COLLECTION_ITEM` (4000L) - Serializes read-modify-write updates to a food collection's items to avoid duplicate-key races when multiple patches for the same route/shop overlap
+- `SCANNER_REGISTRATION` (5000L) - Serializes scanner registration's gap-filling scanner-id lookup to avoid two concurrent registrations computing and inserting the same id
 
 ### AdvisoryLockRepository
 Spring Data JPA repository providing native query methods for PostgreSQL advisory lock functions.
@@ -110,7 +111,8 @@ enum class AdvisoryLockKey(val lockId: Long) {
     CLOSE_DISTRIBUTION(2000L),
     LOGIN_ATTEMPT_TRACKING(3000L),
     PATCH_FOOD_COLLECTION_ITEM(4000L),
-    MY_NEW_LOCK(5000L), // Add new lock key here - existing keys are spaced 1000 apart by convention
+    SCANNER_REGISTRATION(5000L),
+    MY_NEW_LOCK(6000L), // Add new lock key here - existing keys are spaced 1000 apart by convention
 }
 ```
 

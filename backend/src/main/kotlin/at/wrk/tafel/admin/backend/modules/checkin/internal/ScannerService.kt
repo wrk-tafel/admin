@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.checkin.internal
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationRepository
 import org.slf4j.Logger
@@ -13,6 +15,7 @@ import java.util.concurrent.TimeUnit
 @Service
 class ScannerService(
     private val scannerRegisteredRepository: ScannerRegistrationRepository,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
 
     companion object {
@@ -22,9 +25,7 @@ class ScannerService(
     }
 
     @Transactional
-    fun registerScanner(existingScannerId: Int? = null): Int {
-        scannerRegisteredRepository.acquireLock()
-
+    fun registerScanner(existingScannerId: Int? = null): Int = advisoryLockService.withLock(AdvisoryLockKey.SCANNER_REGISTRATION) {
         val nextScannerId = scannerRegisteredRepository.getNextScannerId()
         var scannerRegistration =
             if (existingScannerId != null) {
@@ -48,8 +49,7 @@ class ScannerService(
             logger.info("Registered existing scanner with id: {}", existingScannerId)
         }
 
-        scannerRegisteredRepository.releaseLock()
-        return scannerRegistration.scannerId!!
+        scannerRegistration.scannerId!!
     }
 
     fun getScannerIds(): List<Int> = scannerRegisteredRepository.findAll().mapNotNull { it.scannerId }.sorted()

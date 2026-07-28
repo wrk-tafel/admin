@@ -65,28 +65,20 @@ an event, keeping `checkin` itself dependency-free.
 
 ## Gotchas
 
-### `registerScanner()` uses its own raw advisory lock, not the shared one
+### `registerScanner()` goes through the shared `AdvisoryLockService`
 ```kotlin
-@Query(value = "SELECT pg_advisory_lock(1000)", nativeQuery = true)
-fun acquireLock()
-
-@Query(value = "SELECT pg_advisory_unlock(1000)", nativeQuery = true)
-fun releaseLock()
+fun registerScanner(existingScannerId: Int? = null): Int = advisoryLockService.withLock(AdvisoryLockKey.SCANNER_REGISTRATION) {
+    // ...
+}
 ```
-This is a **session-level** lock (`pg_advisory_lock`/`pg_advisory_unlock`, manually released), called
-directly from `ScannerRegistrationRepository` — it does **not** go through
-`database.common.lock.AdvisoryLockService` / `AdvisoryLockKey` (see that module's own README). Two
-consequences worth knowing:
-- It bypasses the project's usual lock bookkeeping (`AdvisoryLockKey` enum), so there's nowhere else in
-  the codebase that documents "lock id `1000` is taken by scanner registration."
-- PostgreSQL advisory locks share **one keyspace regardless of session vs. transaction scope** — only
-  the release semantics differ. `AdvisoryLockKey.CREATE_DISTRIBUTION` (in the `distribution` module's
-  lock enum) also uses the numeric id `1000`, just via `pg_try_advisory_xact_lock`. Because both go
-  through the single-`bigint`-argument overload of the advisory lock functions, they occupy the *same*
-  lock id in Postgres. In practice the window is tiny (the session lock here is held only for the
-  duration of `registerScanner()`, a few statements), but it's a real, easy-to-miss cross-module
-  collision on a raw numeric id. If you add a new lock anywhere, prefer registering it in the shared
-  `AdvisoryLockKey` enum instead of a magic number, precisely to avoid this.
+This used to be a raw `pg_advisory_lock(1000)`/`pg_advisory_unlock(1000)` pair called directly from
+`ScannerRegistrationRepository`, bypassing `database.common.lock.AdvisoryLockService`/`AdvisoryLockKey`
+entirely (see that module's own README). Because PostgreSQL advisory locks share **one keyspace
+regardless of session vs. transaction scope**, that raw numeric id `1000` collided with
+`AdvisoryLockKey.CREATE_DISTRIBUTION`, which also uses `1000` (via `pg_try_advisory_xact_lock`). It's
+now registered as its own key, `AdvisoryLockKey.SCANNER_REGISTRATION` (`5000L`), and acquired via
+`AdvisoryLockService.withLock` like everywhere else. If you add a new lock anywhere, always register it
+in the shared `AdvisoryLockKey` enum instead of a raw numeric id, precisely to avoid this class of bug.
 
 ### `getNextScannerId()` fills gaps, it doesn't just increment
 ```sql

@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.checkin.internal
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationRepository
 import io.mockk.every
@@ -10,6 +12,7 @@ import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifySequence
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDateTime
@@ -20,8 +23,18 @@ internal class ScannerServiceTest {
     @RelaxedMockK
     private lateinit var scannerRegisteredRepository: ScannerRegistrationRepository
 
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
+
     @InjectMockKs
     private lateinit var service: ScannerService
+
+    @BeforeEach
+    fun setUp() {
+        every { advisoryLockService.withLock(any(), any<() -> Any?>()) } answers {
+            secondArg<() -> Any?>().invoke()
+        }
+    }
 
     @Test
     fun `register new scanner`() {
@@ -38,11 +51,10 @@ internal class ScannerServiceTest {
 
         val savedEntitySlot = slot<ScannerRegistrationEntity>()
         verifySequence {
-            scannerRegisteredRepository.acquireLock()
+            advisoryLockService.withLock(AdvisoryLockKey.SCANNER_REGISTRATION, any<() -> Any?>())
             scannerRegisteredRepository.getNextScannerId()
             scannerRegisteredRepository.findByScannerId(newScannerId)
             scannerRegisteredRepository.save(capture(savedEntitySlot))
-            scannerRegisteredRepository.releaseLock()
         }
 
         val savedEntity = savedEntitySlot.captured
@@ -68,11 +80,10 @@ internal class ScannerServiceTest {
 
         val savedEntitySlot = slot<ScannerRegistrationEntity>()
         verifySequence {
-            scannerRegisteredRepository.acquireLock()
+            advisoryLockService.withLock(AdvisoryLockKey.SCANNER_REGISTRATION, any<() -> Any?>())
             scannerRegisteredRepository.getNextScannerId()
             scannerRegisteredRepository.findByScannerId(existingScannerId)
             scannerRegisteredRepository.save(capture(savedEntitySlot))
-            scannerRegisteredRepository.releaseLock()
         }
 
         val savedEntity = savedEntitySlot.captured
