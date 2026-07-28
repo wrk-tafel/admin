@@ -34,8 +34,10 @@ describe('Food Collection Recording', () => {
       assertSavedToast();
 
       // check if existing data is filled again
-      cy.byTestId('routeInput').select('Route 1');
-      cy.byTestId('routeInput').select('Route 2');
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 1').click();
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 2').click();
       cy.byTestId('category-1-shop-20-input').should('have.value', '12');
 
       assertNoEmployeeModalsOpen();
@@ -71,7 +73,8 @@ describe('Food Collection Recording', () => {
 
       // validate auto-save on input change
       cy.reload();
-      cy.byTestId('routeInput').select('Route 2');
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 2').click();
       cy.byTestId('select-items-tab').click();
       cy.byTestId('category-1-input').should('have.value', '12');
       cy.byTestId('category-2-input').should('have.value', '2');
@@ -80,8 +83,10 @@ describe('Food Collection Recording', () => {
       assertSavedToast();
 
       // check if existing data is filled again
-      cy.byTestId('routeInput').select('Route 1');
-      cy.byTestId('routeInput').select('Route 2');
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 1').click();
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 2').click();
       cy.byTestId('category-1-input').should('have.value', '12');
       cy.byTestId('category-2-input').should('have.value', '2');
 
@@ -97,7 +102,8 @@ describe('Food Collection Recording', () => {
   });
 
   function enterRouteData() {
-    cy.byTestId('routeInput').select('Route 2');
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
     cy.byTestId('carInput').click();
     cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
     cy.byTestId('kmStartInput').type('1000');

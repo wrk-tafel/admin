@@ -1,8 +1,10 @@
 <tafel-dialog testId="lock-customer-dialog" type="info" title="Kunde sperren">
   <div tafel-dialog-content>
-    <div class="font-bold">Sperrgrund:</div>
-    <textarea testid="lockreason-input-text" id="textarea-input" name="textarea-input" rows="9" class="form-control"
-              [ngModel]="reasonText()" (ngModelChange)="reasonText.set($event)"></textarea>
+    <mat-form-field class="w-full">
+      <mat-label>Sperrgrund</mat-label>
+      <textarea testid="lockreason-input-text" matInput rows="9"
+                [ngModel]="reasonText()" (ngModelChange)="reasonText.set($event)"></textarea>
+    </mat-form-field>
   </div>
   <div tafel-dialog-actions>
     <button testid="okButton" matButton="filled" (click)="dialogRef.close(reasonText())"

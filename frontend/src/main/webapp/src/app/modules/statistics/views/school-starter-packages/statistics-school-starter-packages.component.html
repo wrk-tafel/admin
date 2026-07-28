@@ -6,18 +6,18 @@
   </mat-card-header>
   <mat-card-content>
     <div class="flex flex-wrap items-center gap-4 mb-4">
-      <div class="flex items-center gap-2">
-        <label class="form-label mb-0">Alter von</label>
-        <input testid="schoolStarterPackageAgeMinInput" type="number" class="form-control" style="max-width: 90px"
+      <mat-form-field subscriptSizing="dynamic" style="max-width: 130px">
+        <mat-label>Alter von</mat-label>
+        <input testid="schoolStarterPackageAgeMinInput" matInput type="number"
                [ngModel]="schoolStarterPackageAgeMin()"
                (ngModelChange)="onAgeMinChange($event)">
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="form-label mb-0">Alter bis</label>
-        <input testid="schoolStarterPackageAgeMaxInput" type="number" class="form-control" style="max-width: 90px"
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic" style="max-width: 130px">
+        <mat-label>Alter bis</mat-label>
+        <input testid="schoolStarterPackageAgeMaxInput" matInput type="number"
                [ngModel]="schoolStarterPackageAgeMax()"
                (ngModelChange)="onAgeMaxChange($event)">
-      </div>
+      </mat-form-field>
       <button matButton="filled" (click)="generateSchoolStarterPackageCsv()">
         <fa-icon [icon]="faSave"></fa-icon>&nbsp;CSV-Export
       </button>

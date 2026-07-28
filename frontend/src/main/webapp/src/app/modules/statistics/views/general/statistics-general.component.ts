@@ -2,6 +2,9 @@ import {Component, computed, inject, input, signal} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
 import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
@@ -24,6 +27,9 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     ReactiveFormsModule,
     MatButtonModule,
     MatButtonToggleModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     StatisticsPanelComponent,
     FaIconComponent
   ]

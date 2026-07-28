@@ -14,6 +14,8 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {HttpResponse} from '@angular/common/http';
 import {SchoolStarterPackageSearchResult, StatisticsApiService} from '../../../../api/statistics-api.service';
@@ -28,6 +30,8 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     MatCardModule,
     FormsModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
     FaIconComponent,
     MatCell,
     MatCellDef,

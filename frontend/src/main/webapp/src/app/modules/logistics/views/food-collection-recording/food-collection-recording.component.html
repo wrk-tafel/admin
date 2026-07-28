@@ -7,13 +7,16 @@
       <div class="w-1/4 md:w-1/12">Route</div>
       <div class="w-3/4 md:w-1/3">
         <div class="flex items-center gap-2">
-          <select testid="routeInput" class="form-control" [ngModel]="selectedRoute"
-                  (ngModelChange)="onSelectedRouteChange($event)">
-            <option [ngValue]="undefined">Bitte auswählen</option>
-            @for (route of routeList().routes; track route) {
-              <option [ngValue]="route">{{ route.name }}</option>
-            }
-          </select>
+          <mat-form-field class="w-full">
+            <mat-label>Route auswählen</mat-label>
+            <mat-select testid="routeInput" [ngModel]="selectedRoute"
+                        (ngModelChange)="onSelectedRouteChange($event)">
+              <mat-option [value]="undefined">Bitte auswählen</mat-option>
+              @for (route of routeList().routes; track route) {
+                <mat-option [value]="route" [attr.testid]="'routeInput-option-' + route.id">{{ route.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
           <fa-icon [icon]="faRoute"></fa-icon>
         </div>
       </div>

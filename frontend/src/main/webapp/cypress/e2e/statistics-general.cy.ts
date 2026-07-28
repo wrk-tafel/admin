@@ -10,7 +10,7 @@ describe('Statistics General', () => {
 
   it('defaults to the current year and shows the aggregated data', () => {
     const currentYear = dayjs().year();
-    cy.byTestId('yearInput').find('option:selected').should('have.text', currentYear.toString());
+    cy.byTestId('yearInput').should('contain.text', currentYear.toString());
 
     const from = dayjs().startOf('year').format('DD.MM.YYYY');
     const to = dayjs().format('DD.MM.YYYY');
@@ -53,10 +53,10 @@ describe('Statistics General', () => {
     const today = dayjs().format('DD.MM.YYYY');
     // Distributions accumulate across test runs, so several options can share today's date -
     // select by position (the freshly closed one sorts first, right after the blank placeholder)
-    // rather than by text, which `cy.select()` refuses to disambiguate.
-    cy.byTestId('distributionDateInput').find('option').eq(1).invoke('text').should('equal', today);
-    cy.byTestId('distributionDateInput').find('option').eq(1).invoke('val')
-      .then(value => cy.byTestId('distributionDateInput').select(value as string));
+    // rather than by text.
+    cy.byTestId('distributionDateInput').click();
+    cy.get('mat-option').eq(1).invoke('text').should('equal', today);
+    cy.get('mat-option').eq(1).click();
 
     cy.contains(`Zeitraum: ${today} - ${today}`).should('be.visible');
   });

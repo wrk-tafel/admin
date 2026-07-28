@@ -18,44 +18,52 @@
           @switch (selectedMode()) {
             @case ('year') {
               <div class="sm:col-span-2">
-                <label class="form-label">Jahr</label>
+                <div class="mb-2">Jahr</div>
               </div>
               <div class="sm:col-span-5">
-                <select testid="yearInput" class="form-control" [ngModel]="selectedYear()"
-                        (ngModelChange)="onYearSelected($event)">
-                  @for (year of yearOptions(); track year) {
-                    <option [ngValue]="year">{{ year }}</option>
-                  }
-                </select>
+                <mat-form-field subscriptSizing="dynamic" class="w-full">
+                  <mat-select testid="yearInput" [ngModel]="selectedYear()"
+                              (ngModelChange)="onYearSelected($event)">
+                    @for (year of yearOptions(); track year) {
+                      <mat-option [value]="year" [attr.testid]="'yearInput-option-' + year">{{ year }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
               </div>
             }
             @case ('distribution') {
               <div class="sm:col-span-2">
-                <label class="form-label">Ausgabe</label>
+                <div class="mb-2">Ausgabe</div>
               </div>
               <div class="sm:col-span-5">
-                <select testid="distributionDateInput" class="form-control"
-                        [ngModel]="selectedDistribution()"
-                        (ngModelChange)="onDistributionSelected($event)">
-                  <option [ngValue]="undefined"></option>
-                  @for (distribution of settings()?.distributions; track distribution.startDate) {
-                    <option [ngValue]="distribution">{{ distribution.startDate | date : 'dd.MM.yyyy' }}</option>
-                  }
-                </select>
+                <mat-form-field subscriptSizing="dynamic" class="w-full">
+                  <mat-select testid="distributionDateInput"
+                              [ngModel]="selectedDistribution()"
+                              (ngModelChange)="onDistributionSelected($event)">
+                    <mat-option [value]="undefined"></mat-option>
+                    @for (distribution of settings()?.distributions; track distribution.startDate) {
+                      <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distribution.startDate | date : 'dd.MM.yyyy' }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
               </div>
             }
             @case ('custom') {
               <div class="sm:col-span-2">
-                <label class="form-label">von</label>
+                <div class="mb-2">von</div>
               </div>
               <div class="sm:col-span-5">
-                <input testid="dataRangeFromInput" type="date" class="form-control" [(ngModel)]="dateRangeFrom">
+                <mat-form-field subscriptSizing="dynamic" class="w-full">
+                  <input matInput testid="dataRangeFromInput" type="date" [(ngModel)]="dateRangeFrom">
+                </mat-form-field>
               </div>
               <div class="sm:col-span-2 mt-2 sm:mt-0">
-                <label class="form-label">bis</label>
+                <div class="mb-2">bis</div>
               </div>
               <div class="sm:col-span-5 mt-2 sm:mt-0">
-                <input testid="dataRangeToInput" type="date" class="form-control" [(ngModel)]="dateRangeTo">
+                <mat-form-field subscriptSizing="dynamic" class="w-full">
+                  <input matInput testid="dataRangeToInput" type="date" [(ngModel)]="dateRangeTo">
+                </mat-form-field>
               </div>
             }
           }
