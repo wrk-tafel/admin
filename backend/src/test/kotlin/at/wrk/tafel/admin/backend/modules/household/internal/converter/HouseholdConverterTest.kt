@@ -93,6 +93,7 @@ internal class HouseholdConverterTest {
         validUntil = LocalDate.now(),
         locked = false,
         pendingCostContribution = null,
+        singleParent = true,
         persons = listOf(
             testMainPerson,
             Person(
@@ -138,6 +139,7 @@ internal class HouseholdConverterTest {
         locked = false
         prolongedAt = null
         pendingCostContribution = BigDecimal.TEN
+        singleParent = true
 
         val mainPersonEntity = PersonEntity()
         mainPersonEntity.id = 1
@@ -259,6 +261,7 @@ internal class HouseholdConverterTest {
         assertThat(household.email).isEqualTo(testHousehold.email)
         assertThat(household.validUntil).isEqualTo(testHousehold.validUntil)
         assertThat(household.pendingCostContribution).isEqualTo(BigDecimal.TEN)
+        assertThat(household.singleParent).isTrue()
 
         assertThat(household.locked).isFalse()
         assertThat(household.lockedAt).isNull()
@@ -294,6 +297,7 @@ internal class HouseholdConverterTest {
 
         assertThat(result.householdId).isEqualTo(100)
         assertThat(result.addressStreet).isEqualTo("Test-Straße")
+        assertThat(result.singleParent).isTrue()
         assertThat(result.persons).hasSize(3)
         assertThat(result.persons.count { it.isMainPerson }).isEqualTo(1)
 

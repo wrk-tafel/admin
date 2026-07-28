@@ -87,6 +87,16 @@ describe('StatisticsApiService', () => {
         ],
         dataPoints: [2, 2, 2]
       },
+      singleParentHouseholds: {
+        title: '1',
+        subTitle: 'Alleinerzieher (Haushalte)',
+        labels: [
+          '2026-01',
+          '2026-02',
+          '2026-03'
+        ],
+        dataPoints: [1, 1, 1]
+      },
       sheltersCount: {
         title: '0',
         subTitle: 'Notschlafstellen (Anzahl)',

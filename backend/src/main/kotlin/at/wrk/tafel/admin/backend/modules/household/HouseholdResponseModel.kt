@@ -41,6 +41,7 @@ data class Household(
     val lockedBy: String? = null,
     val lockReason: String? = null,
     val pendingCostContribution: BigDecimal? = null,
+    val singleParent: Boolean? = null,
     val persons: List<Person> = emptyList(),
 ) {
     /**

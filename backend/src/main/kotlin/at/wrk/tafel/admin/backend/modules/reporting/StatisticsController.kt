@@ -85,6 +85,7 @@ data class StatisticsData(
     val beneficiaryCustomers: StatisticsDetailData,
     val beneficiaryPersons: StatisticsDetailData,
     val beneficiaryCustomersWithChildren: StatisticsDetailData,
+    val singleParentHouseholds: StatisticsDetailData,
     val sheltersCount: StatisticsDetailData,
     val sheltersAverage: StatisticsDetailData,
     val sheltersPersonsCount: StatisticsDetailData,

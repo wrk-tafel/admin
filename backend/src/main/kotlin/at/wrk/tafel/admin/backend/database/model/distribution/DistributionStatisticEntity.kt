@@ -51,6 +51,9 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
     @Column(name = "count_customers_updated")
     var countCustomersUpdated: Int = 0
 
+    @Column(name = "count_single_parent_households")
+    var countSingleParentHouseholds: Int = 0
+
     @Column(name = "shops_total_count")
     var shopsTotalCount: Int = 0
 
@@ -86,6 +89,7 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
             countCustomersProlonged == 0 &&
             countPersonsProlonged == 0 &&
             countCustomersUpdated == 0 &&
+            countSingleParentHouseholds == 0 &&
             shopsTotalCount == 0 &&
             shopsWithFoodCount == 0 &&
             BigDecimal.ZERO.compareTo(foodTotalAmount) == 0 &&

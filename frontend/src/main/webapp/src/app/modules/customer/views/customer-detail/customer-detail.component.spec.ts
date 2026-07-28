@@ -71,6 +71,7 @@ describe('CustomerDetailComponent', () => {
     income: 1000,
     incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
     pendingCostContribution: 123,
+    singleParent: true,
 
     validUntil: dayjs().add(1, 'years').startOf('day').toDate(),
 
@@ -262,6 +263,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'issuedInformation'))
       .toBe('am ' + dayjs(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
     expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('123,00 €');
+    expect(getTextByTestId(fixture, 'singleParentText')).toBe('Ja');
 
     expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
 

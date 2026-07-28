@@ -44,6 +44,7 @@ class HouseholdConverter(
         householdEntity.addressCity = householdUpdate.address.city?.trim()
         householdEntity.telephoneNumber = householdUpdate.telephoneNumber
         householdEntity.email = householdUpdate.email?.takeIf { it.isNotBlank() }?.trim()
+        householdEntity.singleParent = householdUpdate.singleParent
 
         val prolongedAt =
             if (storedEntity?.validUntil != null &&
@@ -139,6 +140,7 @@ class HouseholdConverter(
             lockedBy = householdEntity.lockedBy?.let { "${it.employee!!.personnelNumber} ${it.employee!!.firstname} ${it.employee!!.lastname}" },
             lockReason = householdEntity.lockReason,
             pendingCostContribution = householdEntity.pendingCostContribution,
+            singleParent = householdEntity.singleParent,
             persons = listOfNotNull(mainPersonEntity?.let { mapPerson(it) }) + additionalPersons,
         )
     }

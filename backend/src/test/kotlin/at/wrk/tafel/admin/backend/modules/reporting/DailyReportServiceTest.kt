@@ -43,6 +43,7 @@ internal class DailyReportServiceTest {
             countCustomersProlonged = 7
             countPersonsProlonged = 8
             countCustomersUpdated = 9
+            countSingleParentHouseholds = 15
 
             shopsTotalCount = 10
             shopsWithFoodCount = 11
@@ -85,6 +86,7 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.countCustomersProlonged).isEqualTo(statistic.countCustomersProlonged)
         assertThat(pdfModel.countPersonsProlonged).isEqualTo(statistic.countPersonsProlonged)
         assertThat(pdfModel.countCustomersUpdated).isEqualTo(statistic.countCustomersUpdated)
+        assertThat(pdfModel.countSingleParentHouseholds).isEqualTo(statistic.countSingleParentHouseholds)
 
         assertThat(pdfModel.shopsTotalCount).isEqualTo(statistic.shopsTotalCount)
         assertThat(pdfModel.shopsWithFoodCount).isEqualTo(statistic.shopsWithFoodCount)

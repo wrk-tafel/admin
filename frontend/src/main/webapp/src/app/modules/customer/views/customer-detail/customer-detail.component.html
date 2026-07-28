@@ -95,7 +95,7 @@
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Allgemeine Daten">
-        <div class="mt-4 px-4">
+        <div class="mt-4">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
             <div>
               <mat-card>
@@ -157,6 +157,11 @@
                   </div>
                   <hr>
                   <div class="flex justify-between">
+                    <span class="font-bold">Alleinerzieher</span>
+                    <span testid="singleParentText">{{ customerData()?.singleParent === true ? 'Ja' : 'Nein' }}</span>
+                  </div>
+                  <hr>
+                  <div class="flex justify-between">
                     <span class="font-bold">Angelegt</span>
                     <span
                       testid="issuedInformation">am {{ $safeNavigationMigration(customerData()?.issuedAt) | date : 'dd.MM.yyyy' }} {{ $safeNavigationMigration(customerData()?.issuer) | formatIssuer }}</span>
@@ -170,10 +175,10 @@
                           [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ $safeNavigationMigration(customerData()?.validUntil) | date : 'dd.MM.yyyy' }}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="font-bold px-2"
-                          [ngClass]="{'bg-red-600': (customerData()?.pendingCostContribution ?? 0) > 0, 'text-white': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
-                    <span testid="pendingCostContributionText" class="px-2"
-                          [ngClass]="{'bg-red-600': (customerData()?.pendingCostContribution ?? 0) > 0, 'text-white': (customerData()?.pendingCostContribution ?? 0) > 0}">
+                    <span class="font-bold"
+                          [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
+                    <span testid="pendingCostContributionText"
+                          [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">
                       {{ $safeNavigationMigration(customerData()?.pendingCostContribution) | currency }}
                     </span>
                   </div>
@@ -222,7 +227,7 @@
         <ng-template mat-tab-label>
           <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
         </ng-template>
-        <div class="px-4">
+        <div class="mt-4">
           @if (customerData()?.additionalPersons?.length === 0) {
             <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
           }

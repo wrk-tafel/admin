@@ -92,6 +92,16 @@
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>davon Alleinerzieher (Haushalte):</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="countSingleParentHouseholds"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
                 </fo:table-body>
             </fo:table>
         </fo:block>

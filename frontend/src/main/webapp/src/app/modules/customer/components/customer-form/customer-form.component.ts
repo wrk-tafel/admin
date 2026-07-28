@@ -64,6 +64,7 @@ export class CustomerFormComponent {
     income: null,
     incomeDue: null,
     validUntil: null,
+    singleParent: false,
     additionalPersons: []
   });
 
@@ -181,6 +182,7 @@ export class CustomerFormComponent {
           income: customerData.income ?? null,
           incomeDue: customerData.incomeDue ?? null,
           validUntil: customerData.validUntil ?? null,
+          singleParent: customerData.singleParent ?? false,
           additionalPersons: additionalPersonsData
         });
       }
@@ -310,6 +312,7 @@ export interface CustomerFormModel {
   income: number | null;
   incomeDue: Date | null;
   validUntil: Date | null;
+  singleParent: boolean;
   additionalPersons: AdditionalPersonFormItem[];
 }
 
