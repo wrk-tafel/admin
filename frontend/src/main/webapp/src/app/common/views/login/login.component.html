@@ -1,7 +1,8 @@
-<div class="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+<!-- bg-[#212631] matches --mat-sidenav-container-background-color in default-layout.component.scss -->
+<div class="min-h-screen flex items-center justify-center bg-[#212631] p-6">
   <div class="w-full max-w-md">
     <mat-card class="shadow-md">
-      <mat-card-content class="p-6 md:p-8">
+      <mat-card-content class="p-8 md:p-10">
         <div class="flex flex-col items-center mb-8 text-center">
           <img src="assets/img/brand/logo.svg" alt="ÖRK Logo" class="mb-4 h-[54px] w-[200px] object-contain"/>
           <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Tafel Admin</h1>
@@ -16,7 +17,9 @@
         <form (submit)="onSubmit($event)" class="flex flex-col gap-1">
           <mat-form-field class="w-full">
             <mat-label>Benutzername</mat-label>
-            <fa-icon matPrefix [icon]="faUser" class="mr-2 text-slate-500"></fa-icon>
+            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none mr-2 text-slate-500">
+              <fa-icon [icon]="faUser"></fa-icon>
+            </mat-icon>
             <input [formField]="loginForm.username" matInput testid="username" type="text"
                    autocomplete="username" tafelAutofocus
                    (animationstart)="onAutofill($event, 'username')">
@@ -27,7 +30,9 @@
 
           <mat-form-field class="w-full mt-2">
             <mat-label>Passwort</mat-label>
-            <fa-icon matPrefix [icon]="faKey" class="mr-2 text-slate-500"></fa-icon>
+            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none mr-2 text-slate-500">
+              <fa-icon [icon]="faKey"></fa-icon>
+            </mat-icon>
             <input [formField]="loginForm.password" matInput testid="password"
                    [type]="passwordVisible() ? 'text' : 'password'"
                    autocomplete="current-password"
