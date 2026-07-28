@@ -7,6 +7,22 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.math.max
 
+/**
+ * Validates a household's combined monthly income against a configurable limit.
+ *
+ * All limits/bonuses are read from [StaticValueRepository] rather than hardcoded, so they can be
+ * adjusted per [StaticValueType] over time (each lookup is date-scoped via `currentDate`) without
+ * a code change. The overall algorithm:
+ * 1. Sum `monthlyIncome` for persons not flagged `excludeFromIncomeCalculation`.
+ * 2. Add a family bonus: per child flagged `receivesFamilyBonus`, an age-tiered [StaticValueType.FAMILY_BONUS]
+ *    amount plus a flat [StaticValueType.CHILD_TAX_ALLOWANCE], plus a [StaticValueType.SIBLING_ADDITION]
+ *    that scales with the number of qualifying children (capped at the highest configured tier for 7+).
+ * 3. Determine the base limit from [StaticValueRepository.findLatestForPersonCount] for the
+ *    adult/child counts, then add [StaticValueType.ADDITIONAL_ADULT] / [StaticValueType.ADDITIONAL_CHILD]
+ *    for persons beyond the base household size (2 adults, 2 or 3 children depending on adult count),
+ *    plus a [StaticValueType.TOLERANCE] buffer.
+ * 4. Valid when the income sum does not exceed the resulting limit.
+ */
 @Service
 class IncomeValidatorServiceImpl(
     private val staticValueRepository: StaticValueRepository,

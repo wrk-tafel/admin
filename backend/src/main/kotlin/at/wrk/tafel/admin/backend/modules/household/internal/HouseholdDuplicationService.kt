@@ -14,6 +14,22 @@ import org.springframework.jdbc.core.SingleColumnRowMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * Fuzzy-matches households against each other to surface likely duplicate registrations for
+ * manual review (see [AGENTS.md special considerations][at.wrk.tafel.admin.backend] - never
+ * auto-merges, only lists candidates).
+ *
+ * A pair is flagged as a possible duplicate when, on the main person's name and the household
+ * address, both:
+ * - `soundex(lastname)` and `soundex(firstname)` match (phonetic match, tolerant of spelling
+ *   variants), and
+ * - the Levenshtein distance of the concatenated name is below 4, and the Levenshtein distance
+ *   of the concatenated street/house-number/door is below 10.
+ *
+ * Implemented as raw SQL (via [JdbcTemplate]) rather than JPA/Specifications because `soundex`
+ * and `levenshtein` are Postgres functions with no JPQL equivalent; the query self-joins
+ * `households`/`persons` twice (`household` vs `compare`) to compare every pair.
+ */
 @Service
 class HouseholdDuplicationService(
     private val householdRepository: HouseholdRepository,

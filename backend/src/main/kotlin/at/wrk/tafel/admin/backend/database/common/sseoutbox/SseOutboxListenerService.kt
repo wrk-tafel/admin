@@ -16,6 +16,15 @@ import java.sql.Connection
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
+/**
+ * Holds a single dedicated JDBC connection issuing Postgres `LISTEN sse_outbox`, and fans out
+ * incoming `NOTIFY` payloads (JSON-encoded [SseOutboxNotificationEvent]) to callbacks registered
+ * by [SseOutboxService], keyed by `notificationName`.
+ *
+ * The listener loop runs on its own coroutine and blocks in `PGConnection.getNotifications` with
+ * an effectively infinite timeout ([NOTIFICATIONS_POLL_TIMEOUT]) rather than polling - it only
+ * wakes up when Postgres delivers a notification on the connection.
+ */
 @Service
 class SseOutboxListenerService(
     private val jdbcTemplate: JdbcTemplate,
