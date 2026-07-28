@@ -3,7 +3,7 @@
     <div class="md:col-span-5">
       <div class="flex items-center gap-2">
         <mat-form-field class="w-full">
-          <mat-label>KFZ *</mat-label>
+          <mat-label>KFZ</mat-label>
           <mat-select testid="carInput" formControlName="car" [compareWith]="compareCar">
             @for (car of carList().cars; track car.id) {
               <mat-option [value]="car" [attr.testid]="'carInput-option-' + car.id">
@@ -21,7 +21,7 @@
     <div class="md:col-span-3 mt-4 md:mt-0">
       <div class="flex items-center gap-2">
         <mat-form-field class="w-full">
-          <mat-label>KM Start *</mat-label>
+          <mat-label>KM Start</mat-label>
           <input matInput testid="kmStartInput" type="number" formControlName="kmStart">
           @if (kmStart.errors?.required && kmStart.touched) {
             <mat-error>Pflichtfeld</mat-error>
@@ -36,7 +36,7 @@
     <div class="md:col-span-3 mt-4 md:mt-0">
       <div class="flex items-center gap-2">
         <mat-form-field class="w-full">
-          <mat-label>KM Ende *</mat-label>
+          <mat-label>KM Ende</mat-label>
           <input matInput testid="kmEndInput" type="number" formControlName="kmEnd">
           @if (kmEnd.errors?.required && kmEnd.touched) {
             <mat-error>Pflichtfeld</mat-error>
@@ -57,7 +57,7 @@
       @if (!selectedDriver()) {
         <div class="flex items-center gap-2">
           <mat-form-field class="w-full">
-            <mat-label>Fahrer *</mat-label>
+            <mat-label>Fahrer</mat-label>
             <input matInput testid="driverSearchInput" type="text" formControlName="driverSearchInput"
                    placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()">
             @if (driverSearchInput.errors?.required && driverSearchInput.touched) {
@@ -91,7 +91,7 @@
       @if (!selectedCoDriver()) {
         <div class="flex items-center gap-2">
           <mat-form-field class="w-full">
-            <mat-label>Beifahrer *</mat-label>
+            <mat-label>Beifahrer</mat-label>
             <input matInput testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput"
                    placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()">
             @if (coDriverSearchInput.errors?.required && coDriverSearchInput.touched) {

@@ -7,14 +7,14 @@
       <mat-card-content>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
-            <mat-label>Nachname *</mat-label>
+            <mat-label>Nachname</mat-label>
             <input matInput testid="lastnameInput" type="text" [formField]="customerForm.lastname" tafelAutofocus>
             @for (errorMessage of visibleErrorMessages(customerForm.lastname()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
           </mat-form-field>
           <mat-form-field>
-            <mat-label>Vorname *</mat-label>
+            <mat-label>Vorname</mat-label>
             <input matInput testid="firstnameInput" type="text" [formField]="customerForm.firstname">
             @for (errorMessage of visibleErrorMessages(customerForm.firstname()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
@@ -23,7 +23,7 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
-            <mat-label>Geburtsdatum *</mat-label>
+            <mat-label>Geburtsdatum</mat-label>
             <input matInput testid="birthDateInput" type="date" [formField]="customerForm.birthDate">
             @for (errorMessage of visibleErrorMessages(customerForm.birthDate()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
@@ -31,7 +31,7 @@
           </mat-form-field>
           <div class="flex items-center gap-2">
             <mat-form-field class="w-full">
-              <mat-label>Geschlecht *</mat-label>
+              <mat-label>Geschlecht</mat-label>
               <mat-select testid="genderInput" [formField]="customerForm.gender">
                 @for (genderOption of genders; track genderOption) {
                   <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
@@ -47,7 +47,7 @@
         </div>
         <div class="mb-2 flex items-center gap-2">
           <mat-form-field class="w-full">
-            <mat-label>Nationalität *</mat-label>
+            <mat-label>Nationalität</mat-label>
             <mat-select testid="countryInput" [formField]="customerForm.country" [compareWith]="compareCountry">
               @for (countryItem of countries(); track countryItem.id) {
                 <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
@@ -63,7 +63,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <div class="flex items-center gap-2">
             <mat-form-field class="w-full">
-              <mat-label>Telefonnummer *</mat-label>
+              <mat-label>Telefonnummer</mat-label>
               <input matInput testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber">
               @for (errorMessage of visibleErrorMessages(customerForm.telephoneNumber()); track $index) {
                 <mat-error>{{errorMessage}}</mat-error>
@@ -85,7 +85,7 @@
         <hr>
         <div>
           <mat-form-field class="w-full mb-2">
-            <mat-label>Straße *</mat-label>
+            <mat-label>Straße</mat-label>
             <input matInput testid="streetInput" type="text" [formField]="customerForm.address.street">
             @for (errorMessage of visibleErrorMessages(customerForm.address.street()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
@@ -93,7 +93,7 @@
           </mat-form-field>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-2">
             <mat-form-field>
-              <mat-label>Hausnummer *</mat-label>
+              <mat-label>Hausnummer</mat-label>
               <input matInput testid="houseNumberInput" type="text" [formField]="customerForm.address.houseNumber">
               @for (errorMessage of visibleErrorMessages(customerForm.address.houseNumber()); track $index) {
                 <mat-error>{{errorMessage}}</mat-error>
@@ -111,7 +111,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
             <div class="flex items-center gap-2">
               <mat-form-field class="w-full">
-                <mat-label>PLZ *</mat-label>
+                <mat-label>PLZ</mat-label>
                 <input matInput testid="postalCodeInput" type="number" [formField]="customerForm.address.postalCode">
                 @for (errorMessage of visibleErrorMessages(customerForm.address.postalCode()); track $index) {
                   <mat-error>{{errorMessage}}</mat-error>
@@ -121,7 +121,7 @@
             </div>
             <div class="flex items-center gap-2">
               <mat-form-field class="w-full">
-                <mat-label>Ort *</mat-label>
+                <mat-label>Ort</mat-label>
                 <input matInput testid="cityInput" type="text" [formField]="customerForm.address.city">
                 @for (errorMessage of visibleErrorMessages(customerForm.address.city()); track $index) {
                   <mat-error>{{errorMessage}}</mat-error>
@@ -134,7 +134,7 @@
         <hr>
         <div class="mb-2 flex items-center gap-2">
           <mat-form-field class="w-full">
-            <mat-label>Arbeitgeber *</mat-label>
+            <mat-label>Arbeitgeber</mat-label>
             <input matInput testid="employerInput" type="text" [formField]="customerForm.employer">
             @for (errorMessage of visibleErrorMessages(customerForm.employer()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
@@ -167,7 +167,7 @@
         </div>
         <hr/>
         <mat-form-field class="w-full mb-2">
-          <mat-label>Gültig bis *</mat-label>
+          <mat-label>Gültig bis</mat-label>
           <input matInput testid="validUntilInput" type="date" [formField]="customerForm.validUntil">
           @for (errorMessage of visibleErrorMessages(customerForm.validUntil()); track $index) {
             <mat-error>{{errorMessage}}</mat-error>
@@ -195,7 +195,7 @@
                 <mat-card-content [attr.testid]="'personform-' + i">
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <mat-form-field>
-                      <mat-label>Nachname *</mat-label>
+                      <mat-label>Nachname</mat-label>
                       <input matInput testid="lastnameInput" type="text" [formField]="personField(i).lastname"
                              tafelAutofocus>
                       @for (errorMessage of visibleErrorMessages(personField(i).lastname()); track $index) {
@@ -203,7 +203,7 @@
                       }
                     </mat-form-field>
                     <mat-form-field>
-                      <mat-label>Vorname *</mat-label>
+                      <mat-label>Vorname</mat-label>
                       <input matInput testid="firstnameInput" type="text" [formField]="personField(i).firstname">
                       @for (errorMessage of visibleErrorMessages(personField(i).firstname()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>
@@ -212,7 +212,7 @@
                   </div>
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
                     <mat-form-field>
-                      <mat-label>Geburtsdatum *</mat-label>
+                      <mat-label>Geburtsdatum</mat-label>
                       <input matInput testid="birthDateInput" type="date" [formField]="personField(i).birthDate">
                       @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>
@@ -220,7 +220,7 @@
                     </mat-form-field>
                     <div class="flex items-center gap-2">
                       <mat-form-field class="w-full">
-                        <mat-label>Geschlecht *</mat-label>
+                        <mat-label>Geschlecht</mat-label>
                         <mat-select testid="genderInput" [formField]="personField(i).gender">
                           @for (genderOption of genders; track genderOption) {
                             <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
@@ -236,7 +236,7 @@
                   </div>
                   <div class="mt-2 flex items-center gap-2">
                     <mat-form-field class="w-full">
-                      <mat-label>Nationalität *</mat-label>
+                      <mat-label>Nationalität</mat-label>
                       <mat-select testid="countryInput" [formField]="personField(i).country"
                                   [compareWith]="compareCountry">
                         @for (countryItem of countries(); track countryItem.id) {

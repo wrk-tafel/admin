@@ -3,7 +3,7 @@
     <form [formGroup]="createEmployeeForm" autocomplete="off">
       <p class="mb-2"><strong>Neuen Mitarbeiter anlegen</strong></p>
       <mat-form-field class="w-full">
-        <mat-label>Personalnummer *</mat-label>
+        <mat-label>Personalnummer</mat-label>
         <input matInput [attr.testid]="data.testIdPrefix + 'personnelnumber-input'" type="text"
                formControlName="personnelNumber">
         @if (personnelNumber.errors?.required && personnelNumber.touched) {
@@ -16,7 +16,7 @@
         }
       </mat-form-field>
       <mat-form-field class="w-full">
-        <mat-label>Vorname *</mat-label>
+        <mat-label>Vorname</mat-label>
         <input matInput [attr.testid]="data.testIdPrefix + 'firstname-input'" type="text" formControlName="firstname">
         @if (firstname.errors?.required && firstname.touched) {
           <mat-error>Pflichtfeld</mat-error>
@@ -28,7 +28,7 @@
         }
       </mat-form-field>
       <mat-form-field class="w-full">
-        <mat-label>Nachname *</mat-label>
+        <mat-label>Nachname</mat-label>
         <input matInput [attr.testid]="data.testIdPrefix + 'lastname-input'" type="text" formControlName="lastname">
         @if (lastname.errors?.required && lastname.touched) {
           <mat-error>Pflichtfeld</mat-error>
