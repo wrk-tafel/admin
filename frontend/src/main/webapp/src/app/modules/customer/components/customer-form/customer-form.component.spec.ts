@@ -52,7 +52,7 @@ describe('CustomerFormComponent', () => {
         income: 200,
         incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
         excludeFromHousehold: false,
-        receivesFamilyBonus: true
+        receivesFamilyAllowance: true
       },
       {
         key: 1,
@@ -63,7 +63,7 @@ describe('CustomerFormComponent', () => {
         gender: Gender.MALE,
         country: mockCountryList[0],
         excludeFromHousehold: true,
-        receivesFamilyBonus: false
+        receivesFamilyAllowance: false
       }
     ]
   };
@@ -137,7 +137,7 @@ describe('CustomerFormComponent', () => {
         employer: testCustomerData.additionalPersons![0].employer,
         income: testCustomerData.additionalPersons![0].income,
         incomeDue: testCustomerData.additionalPersons![0].incomeDue,
-        receivesFamilyBonus: testCustomerData.additionalPersons![0].receivesFamilyBonus
+        receivesFamilyAllowance: testCustomerData.additionalPersons![0].receivesFamilyAllowance
       }));
     expect(component.customerForm.additionalPersons().value()[1])
       .toEqual(expect.objectContaining({
@@ -148,7 +148,7 @@ describe('CustomerFormComponent', () => {
         gender: testCustomerData.additionalPersons![1].gender,
         country: testCustomerData.additionalPersons![1].country,
         excludeFromHousehold: testCustomerData.additionalPersons![1].excludeFromHousehold,
-        receivesFamilyBonus: testCustomerData.additionalPersons![1].receivesFamilyBonus
+        receivesFamilyAllowance: testCustomerData.additionalPersons![1].receivesFamilyAllowance
       }));
   });
 

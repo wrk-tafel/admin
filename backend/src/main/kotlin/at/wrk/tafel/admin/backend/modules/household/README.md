@@ -145,12 +145,12 @@ duplicate households, keeping only the target.
 
 ### `IncomeValidatorService` / `IncomeValidatorServiceImpl` (`internal/income`)
 Validates a household's combined income against configurable limits stored in `StaticValueRepository`
-(`StaticValueType.ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_BONUS`,
+(`StaticValueType.ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_ALLOWANCE`,
 `SIBLING_ADDITION`, `CHILD_TAX_ALLOWANCE`, and a per-person-count base limit). Key rules baked into
 the implementation:
-- A person `isChild()` if under 15; `isChildForFamilyBonus()` if 24 or under (a wider bracket).
+- A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket).
 - Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) are
-  excluded from the income sum entirely, but can still receive family bonus.
+  excluded from the income sum entirely, but can still receive family allowance.
 - The base limit is looked up per (adult count, child count) via
   `StaticValueRepository.findLatestForPersonCount`, then a flat `TOLERANCE` amount is added on top
   before comparing against the summed income - `IncomeValidatorResult.toleranceValue` reports how

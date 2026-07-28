@@ -218,7 +218,7 @@ export interface CustomerAddPersonData {
   income?: number;
   incomeDue?: Date;
   excludeFromHousehold: boolean;
-  receivesFamilyBonus: boolean;
+  receivesFamilyAllowance: boolean;
 }
 
 export enum Gender {
@@ -299,7 +299,7 @@ interface PersonData {
   income?: number;
   incomeDue?: Date;
   excludeFromHousehold: boolean;
-  receivesFamilyBonus: boolean;
+  receivesFamilyAllowance: boolean;
 }
 
 interface HouseholdSearchResult {
@@ -374,7 +374,7 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
       income: person.income,
       incomeDue: person.incomeDue,
       excludeFromHousehold: person.excludeFromHousehold,
-      receivesFamilyBonus: person.receivesFamilyBonus
+      receivesFamilyAllowance: person.receivesFamilyAllowance
     }) as CustomerAddPersonData);
 
   return {
@@ -422,7 +422,7 @@ function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
     income: customer.income,
     incomeDue: customer.incomeDue,
     excludeFromHousehold: false,
-    receivesFamilyBonus: false
+    receivesFamilyAllowance: false
   };
 
   const additionalPersons: PersonData[] = (customer.additionalPersons ?? []).map(person => ({
@@ -437,7 +437,7 @@ function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
     income: person.income,
     incomeDue: person.incomeDue,
     excludeFromHousehold: person.excludeFromHousehold,
-    receivesFamilyBonus: person.receivesFamilyBonus
+    receivesFamilyAllowance: person.receivesFamilyAllowance
   }));
 
   return {

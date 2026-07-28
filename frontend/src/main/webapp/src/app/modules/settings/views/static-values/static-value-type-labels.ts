@@ -5,7 +5,7 @@ export const staticValueTypeLabels: Record<StaticValueTypeEnum, string> = {
   [StaticValueTypeEnum.ADDITIONAL_ADULT]: 'Zusätzlicher Erwachsener',
   [StaticValueTypeEnum.ADDITIONAL_CHILD]: 'Zusätzliches Kind',
   [StaticValueTypeEnum.TOLERANCE]: 'Toleranz',
-  [StaticValueTypeEnum.FAMILY_BONUS]: 'Familienbonus',
+  [StaticValueTypeEnum.FAMILY_ALLOWANCE]: 'Familienbeihilfe',
   [StaticValueTypeEnum.CHILD_TAX_ALLOWANCE]: 'Kinderabsetzbetrag',
   [StaticValueTypeEnum.SIBLING_ADDITION]: 'Geschwisterstaffel',
   [StaticValueTypeEnum.COST_CONTRIBUTION]: 'Kostenbeitrag'

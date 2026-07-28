@@ -169,7 +169,7 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (100, NOW(), NOW(), 100, 100, null, 'Erdberg', 1, null, null,
         '1030', 'Wien', '00436645678953', 'max.single.mustermann@wrk.at', '2999-12-31', 25);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (100, NOW(), NOW(), 100, true, 'Max Single', 'Mustermann', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00,
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 100 WHERE id = 100;
@@ -180,19 +180,19 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (101, NOW(), NOW(), 101, 100, null, 'Erdberg', 2, '1', '20', '1010',
         'Wien', '00436645678953', 'eva.musterfrau@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (101, NOW(), NOW(), 101, true, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE', 2, 'Rotes Kreuz Wien', 456.00,
         '2999-12-31', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     income, income_due, country_id, receives_familybonus)
+                     income, income_due, country_id, receives_family_allowance)
 values (1011, NOW(), NOW(), 101, false, 'Child 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus)
+                     employer, income, income_due, country_id, receives_family_allowance)
 values (1012, NOW(), NOW(), 101, false, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE',
         'Stadt Wien', null, null, 1,
         true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1013, NOW(), NOW(), 101, false, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null,
         null, 1, true,
         true);
@@ -212,7 +212,7 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (102, NOW(), NOW(), 102, 100, null, 'Erdberg', 1, null, null, '1030', 'Wien',
         '00436645678953', 'john.doe@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (102, NOW(), NOW(), 102, true, 'John', 'Doe', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00, '2999-12-31',
         false, false);
 UPDATE households SET main_person_id = 102 WHERE id = 102;
@@ -223,38 +223,38 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (103, NOW(), NOW(), 103, 100, null, 'Erdberg', 1, null, null,
         '1030', 'Wien', null, null, NOW() + interval '1 month', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (103, NOW(), NOW(), 103, true, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00,
         NOW() + interval '1 month', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     income, income_due, country_id, receives_familybonus)
+                     income, income_due, country_id, receives_family_allowance)
 values (1031, NOW(), NOW(), 103, false, 'Child 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus)
+                     employer, income, income_due, country_id, receives_family_allowance)
 values (1032, NOW(), NOW(), 103, false, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null, null, 1, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1033, NOW(), NOW(), 103, false, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1034, NOW(), NOW(), 103, false, 'Child 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1035, NOW(), NOW(), 103, false, 'Child 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1036, NOW(), NOW(), 103, false, 'Child 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1037, NOW(), NOW(), 103, false, 'Child 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1038, NOW(), NOW(), 103, false, 'Child 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1039, NOW(), NOW(), 103, false, 'Child 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     employer, income, income_due, country_id, receives_familybonus, exclude_household)
+                     employer, income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1040, NOW(), NOW(), 103, false, 'Child 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null, 1, true, true);
 UPDATE households SET main_person_id = 103 WHERE id = 103;
 
@@ -295,7 +295,7 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (104, NOW(), NOW(), 104, 100, null, 'Erdberg', 1, null, null, '1030',
         'Wien', null, null, '2000-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (104, NOW(), NOW(), 104, true, 'Jane Doe', 'EXPIRED', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
         '2000-12-31', false, false);
 UPDATE households SET main_person_id = 104 WHERE id = 104;
@@ -307,7 +307,7 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (105, NOW(), NOW(), 105, 100, null, 'Erdberg', 1, null, null, '1030',
         'Wien', null, null, '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (105, NOW(), NOW(), 105, true, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 105 WHERE id = 105;
@@ -320,27 +320,27 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (106, NOW(), NOW(), 106, null, null, null, null, null, null, null,
         null, null, null, NOW(), false, null, null, null, 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (106, NOW(), NOW(), 106, true, null, null, null, null, 1, null, null, null, false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
-                     income, income_due, country_id, receives_familybonus, exclude_household)
+                     income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1060, NOW(), NOW(), 106, false, 'Firstname 1', 'Lastname 1', null, null, null, null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
-                     income, income_due, country_id, receives_familybonus, exclude_household)
+                     income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1061, NOW(), NOW(), 106, false, 'Firstname 2', 'Lastname 2', null, null, null, null, null, 1, false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
-                     income, income_due, country_id, receives_familybonus, exclude_household)
+                     income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1062, NOW(), NOW(), 106, false, 'Firstname 3', 'Lastname 3', null, null, null, null, null, 1, true, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
-                     income, income_due, country_id, receives_familybonus, exclude_household)
+                     income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1063, NOW(), NOW(), 106, false, 'Firstname 4', 'Lastname 4', null, null, null, null, null, 1, false, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
-                     income, income_due, country_id, receives_familybonus, exclude_household)
+                     income, income_due, country_id, receives_family_allowance, exclude_household)
 values (1064, NOW(), NOW(), 106, false, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
 UPDATE households SET main_person_id = 106 WHERE id = 106;
 
@@ -352,18 +352,18 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (110, NOW(), NOW(), 110, 100, null, 'Teststraße', '10', null, null,
         '1030', 'Wien', '0043660111000', 'ueberlimit.paar@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (110, NOW(), NOW(), 110, true, 'Anna', 'Vielverdiener', '1988-05-10', 'FEMALE', 1, 'Firma A', 2200.00,
         '2999-12-31', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (1101, NOW(), NOW(), 110, false, 'Peter', 'Vielverdiener', '1985-03-15', 'MALE', 1, 'Firma B', 1600.00,
         '2999-12-31', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, exclude_household, receives_familybonus)
+                     country_id, exclude_household, receives_family_allowance)
 values (1102, NOW(), NOW(), 110, false, 'Lisa', 'Vielverdiener', CURRENT_DATE - interval '8 year', 'FEMALE', 1, false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, exclude_household, receives_familybonus)
+                     country_id, exclude_household, receives_family_allowance)
 values (1103, NOW(), NOW(), 110, false, 'Tom', 'Vielverdiener', CURRENT_DATE - interval '5 year', 'MALE', 1, false, false);
 UPDATE households SET main_person_id = 110 WHERE id = 110;
 
@@ -375,7 +375,7 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
 values (111, NOW(), NOW(), 111, 100, null, 'Teststraße', '11', null, null,
         '1030', 'Wien', '0043660111111', 'ueberlimit.single@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
-                     country_id, employer, income, income_due, exclude_household, receives_familybonus)
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (111, NOW(), NOW(), 111, true, 'Sabine', 'Grossverdiener', '1975-11-20', 'FEMALE', 1, 'Firma C', 2200.00,
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 111 WHERE id = 111;
@@ -407,15 +407,15 @@ VALUES (9, 'ADDITIONAL_CHILD', '1900-01-01', '2999-12-31', 398.00);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (10, 'TOLERANCE', '1900-01-01', '2999-12-31', 100.00);
 
--- family bonus
+-- family allowance
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (11, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 114.00, 0);
+VALUES (11, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 114.00, 0);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (12, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 121.90, 3);
+VALUES (12, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 121.90, 3);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (13, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 141.50, 10);
+VALUES (13, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 141.50, 10);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (14, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 165.10, 19);
+VALUES (14, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 165.10, 19);
 
 -- child tax allowance
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)

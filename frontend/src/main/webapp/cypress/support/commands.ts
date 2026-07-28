@@ -182,7 +182,7 @@ function customerToHousehold(data: CustomerData) {
     income: data.income,
     incomeDue: data.incomeDue,
     excludeFromHousehold: false,
-    receivesFamilyBonus: false
+    receivesFamilyAllowance: false
   };
   const additionalPersons = (data.additionalPersons ?? []).map(person => ({
     id: person.id,
@@ -196,7 +196,7 @@ function customerToHousehold(data: CustomerData) {
     income: person.income,
     incomeDue: person.incomeDue,
     excludeFromHousehold: person.excludeFromHousehold,
-    receivesFamilyBonus: person.receivesFamilyBonus
+    receivesFamilyAllowance: person.receivesFamilyAllowance
   }));
 
   return {
@@ -366,7 +366,7 @@ export interface CustomerAddPersonData {
   income?: number;
   incomeDue?: Date;
   excludeFromHousehold: boolean;
-  receivesFamilyBonus: boolean;
+  receivesFamilyAllowance: boolean;
 }
 
 export interface UserData {

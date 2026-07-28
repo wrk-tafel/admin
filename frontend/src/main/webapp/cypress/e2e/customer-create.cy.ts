@@ -74,7 +74,7 @@ describe('Customer Creation', () => {
       enterAdditionalPersonData(0, {
         id: 0,
         key: 0,
-        receivesFamilyBonus: false,
+        receivesFamilyAllowance: false,
         lastname: 'Add',
         firstname: 'Adult 1',
         birthDate: getBirthDateForAge(30),
@@ -123,7 +123,7 @@ describe('Customer Creation', () => {
     enterAdditionalPersonData(0, {
       id: 0,
       key: 0,
-      receivesFamilyBonus: false,
+      receivesFamilyAllowance: false,
       lastname: 'Add',
       firstname: 'Adult 1',
       birthDate: getBirthDateForAge(30),
@@ -136,7 +136,7 @@ describe('Customer Creation', () => {
     enterAdditionalPersonData(1, {
       id: 1,
       key: 1,
-      receivesFamilyBonus: false,
+      receivesFamilyAllowance: false,
       lastname: 'Add',
       firstname: 'Child 1',
       birthDate: getBirthDateForAge(3),
@@ -148,7 +148,7 @@ describe('Customer Creation', () => {
     enterAdditionalPersonData(2, {
       id: 2,
       key: 2,
-      receivesFamilyBonus: true,
+      receivesFamilyAllowance: true,
       lastname: 'Add',
       firstname: 'Child 2',
       birthDate: getBirthDateForAge(8),

@@ -63,7 +63,7 @@ function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
     isMainPerson: true,
     // ...customer's flat fields moved back onto a person...
     excludeFromHousehold: false,
-    receivesFamilyBonus: false,
+    receivesFamilyAllowance: false,
   };
   const additionalPersons: PersonData[] = (customer.additionalPersons ?? [])
     .map(person => ({ ...person, isMainPerson: false }));
@@ -74,7 +74,7 @@ function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
 
 Gotchas worth knowing before you change either direction:
 
-- `excludeFromHousehold` and `receivesFamilyBonus` only exist on
+- `excludeFromHousehold` and `receivesFamilyAllowance` only exist on
   `CustomerAddPersonData`/`PersonData`. The main person is always sent with both
   hardcoded to `false` — the flat `CustomerData` has no field to carry them for the
   main person.

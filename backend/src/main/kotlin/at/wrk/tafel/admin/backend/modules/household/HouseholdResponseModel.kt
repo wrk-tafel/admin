@@ -83,7 +83,7 @@ data class Person(
     val employer: String? = null,
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
-    val receivesFamilyBonus: Boolean = false,
+    val receivesFamilyAllowance: Boolean = false,
     val excludeFromHousehold: Boolean = false,
 )
 

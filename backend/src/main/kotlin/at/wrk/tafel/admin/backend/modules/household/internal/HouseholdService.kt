@@ -281,7 +281,7 @@ class HouseholdService(
                 birthDate = it.birthDate,
                 monthlyIncome = it.income,
                 excludeFromIncomeCalculation = it.excludeFromHousehold,
-                receivesFamilyBonus = it.receivesFamilyBonus,
+                receivesFamilyAllowance = it.receivesFamilyAllowance,
             )
         }
 

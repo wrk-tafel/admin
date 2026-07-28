@@ -61,6 +61,6 @@ class PersonEntity : BaseChangeTrackingEntity() {
     @Column(name = "exclude_household", nullable = false)
     var excludeFromHousehold: Boolean = false
 
-    @Column(name = "receives_familybonus", nullable = false)
-    var receivesFamilyBonus: Boolean = false
+    @Column(name = "receives_family_allowance", nullable = false)
+    var receivesFamilyAllowance: Boolean = false
 }

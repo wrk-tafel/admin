@@ -73,7 +73,7 @@ describe('CustomerDataResolver', () => {
                     income: 50,
                     incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
                     excludeFromHousehold: false,
-                    receivesFamilyBonus: true
+                    receivesFamilyAllowance: true
                 }
             ]
         };

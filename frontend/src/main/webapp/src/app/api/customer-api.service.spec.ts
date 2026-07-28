@@ -47,7 +47,7 @@ describe('CustomerApiService', () => {
         income: 50,
         incomeDue: incomeDue,
         excludeFromHousehold: false,
-        receivesFamilyBonus: true
+        receivesFamilyAllowance: true
       }
     ]
   };
@@ -77,7 +77,7 @@ describe('CustomerApiService', () => {
         income: 1000,
         incomeDue: incomeDue,
         excludeFromHousehold: false,
-        receivesFamilyBonus: false
+        receivesFamilyAllowance: false
       },
       {
         id: 2,
@@ -91,7 +91,7 @@ describe('CustomerApiService', () => {
         income: 50,
         incomeDue: incomeDue,
         excludeFromHousehold: false,
-        receivesFamilyBonus: true
+        receivesFamilyAllowance: true
       }
     ]
   };
@@ -185,14 +185,14 @@ describe('CustomerApiService', () => {
       income: 1000,
       incomeDue: incomeDue,
       excludeFromHousehold: false,
-      receivesFamilyBonus: false
+      receivesFamilyAllowance: false
     });
 
     // additional persons keep their id so the backend can update the existing rows
     expect(body.persons[1].id).toEqual(2);
     expect(body.persons[1].isMainPerson).toBe(false);
     expect(body.persons[1].firstname).toEqual('Kind');
-    expect(body.persons[1].receivesFamilyBonus).toBe(true);
+    expect(body.persons[1].receivesFamilyAllowance).toBe(true);
     // the form-only `key` is not sent to the backend
     expect(body.persons[1].key).toBeUndefined();
 
@@ -223,7 +223,7 @@ describe('CustomerApiService', () => {
     expect(result!.additionalPersons).toHaveLength(1);
     expect(result!.additionalPersons![0].id).toEqual(2);
     expect(result!.additionalPersons![0].firstname).toEqual('Kind');
-    expect(result!.additionalPersons![0].receivesFamilyBonus).toBe(true);
+    expect(result!.additionalPersons![0].receivesFamilyAllowance).toBe(true);
     // the main person must not leak into the additional persons list
     expect(result!.additionalPersons!.map(person => person.firstname)).not.toContain('Max');
   });

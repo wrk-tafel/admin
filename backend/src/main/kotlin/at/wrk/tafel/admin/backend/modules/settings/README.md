@@ -58,7 +58,7 @@ Modeled as flat rows in `mail_recipients`: `(mailType, recipientType, address)`,
 ## Static values
 
 `StaticValueEntity` (`static_values`) rows are **time-boxed** parameters: `type` (`StaticValueType`:
-`INCOME_LIMIT`, `ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_BONUS`,
+`INCOME_LIMIT`, `ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_ALLOWANCE`,
 `CHILD_TAX_ALLOWANCE`, `SIBLING_ADDITION`, `COST_CONTRIBUTION`), a `BigDecimal amount`, and a
 `[validFrom, validTo]` validity window, optionally further keyed by `countAdults`/`countChildren`/
 `age` for lookup-table-style values (e.g. income limit by household composition).

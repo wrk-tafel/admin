@@ -27,11 +27,11 @@ class IncomeValidatorServiceImplTest {
         StaticValueMockData(value = BigDecimal("1800"), countAdult = 2, countChild = 3),
     )
 
-    private val mockFamilyBonus = listOf(
-        FamilyBonusMockData(value = BigDecimal("10"), age = 0),
-        FamilyBonusMockData(value = BigDecimal("30"), age = 3),
-        FamilyBonusMockData(value = BigDecimal("90"), age = 10),
-        FamilyBonusMockData(value = BigDecimal("190"), age = 19),
+    private val mockFamilyAllowance = listOf(
+        FamilyAllowanceMockData(value = BigDecimal("10"), age = 0),
+        FamilyAllowanceMockData(value = BigDecimal("30"), age = 3),
+        FamilyAllowanceMockData(value = BigDecimal("90"), age = 10),
+        FamilyAllowanceMockData(value = BigDecimal("190"), age = 19),
     )
 
     private val mockSiblingAddition = listOf(
@@ -69,7 +69,7 @@ class IncomeValidatorServiceImplTest {
         }
         every { staticValueRepository.findSingleValueOfType(type = StaticValueType.ADDITIONAL_ADULT, currentDate = any()) } returns createAdditionalAdultLimitEntity()
         every { staticValueRepository.findSingleValueOfType(type = StaticValueType.ADDITIONAL_CHILD, currentDate = any()) } returns createAdditionalChildLimitEntity()
-        every { staticValueRepository.findValuesOfType(type = StaticValueType.FAMILY_BONUS, currentDate = any()) } returns mockFamilyBonus.map {
+        every { staticValueRepository.findValuesOfType(type = StaticValueType.FAMILY_ALLOWANCE, currentDate = any()) } returns mockFamilyAllowance.map {
             StaticValueEntity().apply {
                 amount = it.value
                 age = it.age
@@ -337,7 +337,7 @@ class IncomeValidatorServiceImplTest {
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(10),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
         )
 
@@ -362,7 +362,7 @@ class IncomeValidatorServiceImplTest {
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(10),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
         )
 
@@ -387,7 +387,7 @@ class IncomeValidatorServiceImplTest {
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(10),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
         )
 
@@ -411,35 +411,35 @@ class IncomeValidatorServiceImplTest {
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(0),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(3),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(10),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(19),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(24),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(4),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(12),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(20),
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
         )
 
@@ -498,7 +498,7 @@ data class StaticValueMockData(
     val countChild: Int? = 0,
 )
 
-data class FamilyBonusMockData(
+data class FamilyAllowanceMockData(
     val value: BigDecimal,
     val age: Int,
 )

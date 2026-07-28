@@ -95,7 +95,7 @@ class HouseholdConverter(
             personEntity.employer = person.employer?.trim()
             personEntity.income = person.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
             personEntity.incomeDue = person.incomeDue
-            personEntity.receivesFamilyBonus = person.receivesFamilyBonus
+            personEntity.receivesFamilyAllowance = person.receivesFamilyAllowance
             personEntity.excludeFromHousehold = person.excludeFromHousehold
             personEntity
         }.toList()
@@ -154,15 +154,19 @@ class HouseholdConverter(
         employer = personEntity.employer,
         income = personEntity.income,
         incomeDue = personEntity.incomeDue,
-        receivesFamilyBonus = personEntity.receivesFamilyBonus,
+        receivesFamilyAllowance = personEntity.receivesFamilyAllowance,
         excludeFromHousehold = personEntity.excludeFromHousehold,
     )
 
     private fun mapGender(gender: Gender?): PersonGender? = gender?.let { PersonGender.valueOf(it.name) }
 
+    // static_countries.code/name are NOT NULL in the DB, but CountryEntity models both as String? for the
+    // JPA no-arg constructor, so the assertions below are genuinely required (removing either is a compile
+    // error). Sonar (kotlin:S6619) flags the `code` assertion as dead regardless of which null-check syntax
+    // is used - confirmed false positive, suppressed rather than reworded.
     private fun mapCountryToResponse(country: CountryEntity): Country = Country(
         id = country.id!!,
-        code = country.code!!,
+        code = country.code!!, // NOSONAR kotlin:S6619
         name = country.name!!,
     )
 }
