@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
-import at.wrk.tafel.admin.backend.modules.reporting.internal.SchulstartpaketReportCsvResult
-import at.wrk.tafel.admin.backend.modules.reporting.internal.SchulstartpaketReportService
+import at.wrk.tafel.admin.backend.modules.reporting.internal.SchoolStarterPackageReportCsvResult
+import at.wrk.tafel.admin.backend.modules.reporting.internal.SchoolStarterPackageReportService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -14,18 +14,18 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 
 @ExtendWith(MockKExtension::class)
-class SchulstartpaketReportControllerTest {
+class SchoolStarterPackageReportControllerTest {
 
     @RelaxedMockK
-    private lateinit var service: SchulstartpaketReportService
+    private lateinit var service: SchoolStarterPackageReportService
 
     @InjectMockKs
-    private lateinit var controller: SchulstartpaketReportController
+    private lateinit var controller: SchoolStarterPackageReportController
 
     @Test
     fun `generate csv - result mapped`() {
         val testFilename = "schulstartpakete_28.07.2026.csv"
-        every { service.generateCsv() } returns SchulstartpaketReportCsvResult(
+        every { service.generateCsv() } returns SchoolStarterPackageReportCsvResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
         )

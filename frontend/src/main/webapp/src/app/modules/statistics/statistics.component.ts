@@ -3,6 +3,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
+import {ReportingApiService} from '../../api/reporting-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CommonModule} from '@angular/common';
@@ -31,6 +32,7 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
 export class StatisticsComponent {
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
+  private readonly reportingApiService = inject(ReportingApiService);
   private readonly fileHelperService = inject(FileHelperService);
 
   _dateRangeFrom = signal<Date>(dayjs().startOf('year').toDate());
@@ -102,6 +104,11 @@ export class StatisticsComponent {
 
   protected generateCsv() {
     this.statisticsApiService.generateCsv(this.dateRange().from, this.dateRange().to)
+      .subscribe((response) => this.processCsvResponse(response));
+  }
+
+  protected generateSchoolStarterPackageCsv() {
+    this.reportingApiService.generateSchoolStarterPackageCsv()
       .subscribe((response) => this.processCsvResponse(response));
   }
 

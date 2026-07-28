@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @Service
-class SchulstartpaketReportService(
+class SchoolStarterPackageReportService(
     private val householdRepository: HouseholdRepository,
     private val staticValueRepository: StaticValueRepository,
 ) {
@@ -20,7 +20,7 @@ class SchulstartpaketReportService(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    fun generateCsv(): SchulstartpaketReportCsvResult {
+    fun generateCsv(): SchoolStarterPackageReportCsvResult {
         val today = LocalDate.now()
         val rows = getReportRows(today)
 
@@ -28,7 +28,7 @@ class SchulstartpaketReportService(
             listOf("Haushalt", "Vorname", "Nachname", "Alter"),
         ) + rows.map { listOf(it.householdId.toString(), it.firstname, it.lastname, it.age.toString()) }
 
-        return SchulstartpaketReportCsvResult(
+        return SchoolStarterPackageReportCsvResult(
             filename = "schulstartpakete_${DATE_FORMATTER.format(today)}.csv",
             bytes = CsvUtil.writeRowsToByteArray(csvRows),
         )
@@ -39,9 +39,9 @@ class SchulstartpaketReportService(
      * of a currently valid household whose age falls in the configured min/max range, one row per
      * person, ordered by the household's business number.
      */
-    private fun getReportRows(today: LocalDate): List<SchulstartpaketReportRow> {
-        val ageMin = requireAgeThreshold(StaticValueType.SCHULSTARTPAKET_AGE_MIN, today)
-        val ageMax = requireAgeThreshold(StaticValueType.SCHULSTARTPAKET_AGE_MAX, today)
+    private fun getReportRows(today: LocalDate): List<SchoolStarterPackageReportRow> {
+        val ageMin = requireAgeThreshold(StaticValueType.SCHOOL_STARTER_PACKAGE_AGE_MIN, today)
+        val ageMax = requireAgeThreshold(StaticValueType.SCHOOL_STARTER_PACKAGE_AGE_MAX, today)
 
         val households = householdRepository.findAll(HouseholdEntity.Specs.validHousehold())
 
@@ -55,14 +55,14 @@ class SchulstartpaketReportService(
         ageMin: Int,
         ageMax: Int,
         today: LocalDate,
-    ): List<SchulstartpaketReportRow> = household.additionalPersons().mapNotNull { person ->
+    ): List<SchoolStarterPackageReportRow> = household.additionalPersons().mapNotNull { person ->
         val birthDate = person.birthDate ?: return@mapNotNull null
         val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
         if (age !in ageMin..ageMax) {
             return@mapNotNull null
         }
 
-        SchulstartpaketReportRow(
+        SchoolStarterPackageReportRow(
             householdId = household.householdId!!,
             firstname = person.firstname.orEmpty(),
             lastname = person.lastname.orEmpty(),
@@ -75,7 +75,7 @@ class SchulstartpaketReportService(
             ?: throw IllegalStateException("Kein gültiger Wert für $type konfiguriert")
 }
 
-data class SchulstartpaketReportRow(
+data class SchoolStarterPackageReportRow(
     val householdId: Long,
     val firstname: String,
     val lastname: String,
@@ -83,7 +83,7 @@ data class SchulstartpaketReportRow(
 )
 
 @ExcludeFromTestCoverage
-data class SchulstartpaketReportCsvResult(
+data class SchoolStarterPackageReportCsvResult(
     val filename: String,
     val bytes: ByteArray,
 ) {
@@ -91,7 +91,7 @@ data class SchulstartpaketReportCsvResult(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as SchulstartpaketReportCsvResult
+        other as SchoolStarterPackageReportCsvResult
 
         if (filename != other.filename) return false
         return bytes.contentEquals(other.bytes)

@@ -76,6 +76,16 @@
     </mat-card>
   </div>
 </div>
+<mat-card class="mt-4">
+  <mat-card-header>
+    <h5>Sonderberichte</h5>
+  </mat-card-header>
+  <mat-card-content>
+    <button matButton="filled" (click)="generateSchoolStarterPackageCsv()">
+      <fa-icon [icon]="faSave"></fa-icon>&nbsp;Schulstartpakete CSV-Export
+    </button>
+  </mat-card-content>
+</mat-card>
 @if (statisticsData()) {
   <mat-card class="mt-4">
     <mat-card-header>

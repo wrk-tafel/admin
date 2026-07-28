@@ -18,7 +18,7 @@ import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
-internal class SchulstartpaketReportServiceTest {
+internal class SchoolStarterPackageReportServiceTest {
 
     @RelaxedMockK
     private lateinit var householdRepository: HouseholdRepository
@@ -27,14 +27,14 @@ internal class SchulstartpaketReportServiceTest {
     private lateinit var staticValueRepository: StaticValueRepository
 
     @InjectMockKs
-    private lateinit var service: SchulstartpaketReportService
+    private lateinit var service: SchoolStarterPackageReportService
 
     private fun mockAgeRange(min: Int, max: Int) {
         every {
-            staticValueRepository.findSingleValueOfType(StaticValueType.SCHULSTARTPAKET_AGE_MIN, any())
+            staticValueRepository.findSingleValueOfType(StaticValueType.SCHOOL_STARTER_PACKAGE_AGE_MIN, any())
         } returns StaticValueEntity().apply { age = min }
         every {
-            staticValueRepository.findSingleValueOfType(StaticValueType.SCHULSTARTPAKET_AGE_MAX, any())
+            staticValueRepository.findSingleValueOfType(StaticValueType.SCHOOL_STARTER_PACKAGE_AGE_MAX, any())
         } returns StaticValueEntity().apply { age = max }
     }
 
