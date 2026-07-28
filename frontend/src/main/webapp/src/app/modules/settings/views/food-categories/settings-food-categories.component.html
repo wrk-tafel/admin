@@ -79,7 +79,7 @@
             </button>
           } @else {
             <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButton-' + i"
-                    (click)="startEdit(category)">
+                    [disabled]="!category.enabled" (click)="startEdit(category)">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
           }
