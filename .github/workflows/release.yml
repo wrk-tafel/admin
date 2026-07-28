@@ -65,6 +65,14 @@ jobs:
         with:
           tag_name: ${{ needs.version.outputs.version }}
           generate_release_notes: true
+          body: |
+            ## Docker image
+
+            ```
+            ghcr.io/wrk-tafel/admin:${{ needs.version.outputs.version }}
+            ```
+
+            Also tagged `latest`. All tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: build-push-image-test
