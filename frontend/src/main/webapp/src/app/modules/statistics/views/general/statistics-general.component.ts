@@ -6,7 +6,7 @@ import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CommonModule} from '@angular/common';
-import {switchMap} from 'rxjs';
+import {catchError, EMPTY, switchMap} from 'rxjs';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {StatisticsPanelComponent} from '../../components/statistics-panel.component';
 import {HttpResponse} from '@angular/common/http';
@@ -41,7 +41,7 @@ export class StatisticsGeneralComponent {
   }));
   statisticsData = toSignal(
     toObservable(this.dateRange).pipe(
-      switchMap(range => this.statisticsApiService.getData(range.from, range.to))
+      switchMap(range => this.statisticsApiService.getData(range.from, range.to).pipe(catchError(() => EMPTY)))
     )
   );
 

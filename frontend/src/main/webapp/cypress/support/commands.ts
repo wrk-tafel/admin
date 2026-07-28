@@ -27,12 +27,16 @@
 import Chainable = Cypress.Chainable;
 import dayjs from 'dayjs';
 
-Cypress.Commands.add('byTestId', (id, options?: Partial<Cypress.Loggable & Cypress.Timeoutable & Cypress.Withinable & Cypress.Shadow>) => cy.get(`[testid="${id}"]`, options));
+Cypress.Commands.add(
+  'byTestId',
+  (id, options?: Partial<Cypress.Loggable & Cypress.Timeoutable & Cypress.Withinable & Cypress.Shadow>) =>
+    cy.get(`[testid="${id}"]`, options)
+);
 
 // The backend requires the X-XSRF-TOKEN header (mirroring the XSRF-TOKEN cookie) on every
 // mutating request. The Angular app handles this via its xsrfInterceptor - direct cy.request
 // calls need the header injected here.
-Cypress.Commands.overwrite('request', (originalFn, ...args: any[]) => {
+Cypress.Commands.overwrite('request', (originalFn, ...args: any[]): Cypress.Chainable<Cypress.Response<any>> => {
   const options: Partial<Cypress.RequestOptions> = {};
   if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
     Object.assign(options, args[0]);
@@ -66,26 +70,29 @@ Cypress.Commands.overwrite('request', (originalFn, ...args: any[]) => {
       initialTokenValue = cookie?.value;
       return send(initialTokenValue);
     })
-    .then(response => {
+    .then((response): Cypress.Chainable<Cypress.Response<any>> => {
       if (response.status !== 403) {
-        return response;
+        return cy.wrap(response, {log: false});
       }
       // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing)
       // between reading it above and this request reaching the server, so the header we sent
       // no longer matches the cookie Cypress auto-attached. Retry once with whatever the
       // cookie is now before treating this as a genuine failure.
-      return cy.getCookie('XSRF-TOKEN').then(freshCookie => {
+      return cy.getCookie('XSRF-TOKEN').then((freshCookie): Cypress.Chainable<Cypress.Response<any>> => {
         if (!freshCookie || freshCookie.value === initialTokenValue) {
-          return response;
+          return cy.wrap(response, {log: false});
         }
         return send(freshCookie.value);
       });
     })
-    .then(response => {
+    .then((response): Cypress.Chainable<Cypress.Response<any>> => {
       if (failOnStatusCode && (response.status < 200 || response.status >= 400)) {
-        throw new Error(`cy.request() to ${options.method ?? 'GET'} ${options.url} failed with status ${response.status}: ${JSON.stringify(response.body)}`);
+        throw new Error(
+          `cy.request() to ${options.method ?? 'GET'} ${options.url} failed with status ${response.status}: `
+          + JSON.stringify(response.body)
+        );
       }
-      return response;
+      return cy.wrap(response, {log: false});
     });
 });
 
@@ -114,19 +121,21 @@ Cypress.Commands.add('logout', () => {
   });
 });
 
-// tslint:disable-next-line:max-line-length
-Cypress.Commands.add('createLoginRequest', (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
-  const encodedCredentials = Buffer.from(username + ':' + password).toString('base64');
+Cypress.Commands.add(
+  'createLoginRequest',
+  (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
+    const encodedCredentials = Buffer.from(username + ':' + password).toString('base64');
 
-  return cy.request({
-    method: 'POST',
-    url: '/api/login',
-    failOnStatusCode: failOnStatusCode,
-    headers: {
-      'Authorization': 'Basic ' + encodedCredentials
-    }
-  });
-});
+    return cy.request({
+      method: 'POST',
+      url: '/api/login',
+      failOnStatusCode: failOnStatusCode,
+      headers: {
+        'Authorization': 'Basic ' + encodedCredentials
+      }
+    });
+  }
+);
 
 Cypress.Commands.add('createDistribution', () => {
   cy.request({
@@ -157,18 +166,20 @@ Cypress.Commands.add('closeDistribution', () => {
   });
 });
 
-Cypress.Commands.add('createCustomer', (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> => {
+Cypress.Commands.add(
+  'createCustomer',
   // The backend speaks households/persons - translate in both directions here so the specs keep
   // working with the flat CustomerData shape (same split as in CustomerApiService).
-  return cy.request({
-    method: 'POST',
-    url: `/api/households?force=${force ?? false}`,
-    body: customerToHousehold(data)
-  }).then((response) => {
-    response.body = {...response.body, data: householdToCustomer(response.body?.data)};
-    return response as Cypress.Response<CustomerCreationResponse>;
-  });
-});
+  (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
+    cy.request({
+      method: 'POST',
+      url: `/api/households?force=${force ?? false}`,
+      body: customerToHousehold(data)
+    }).then((response) => {
+      response.body = {...response.body, data: householdToCustomer(response.body?.data)};
+      return response as Cypress.Response<CustomerCreationResponse>;
+    })
+);
 
 function customerToHousehold(data: CustomerData) {
   const mainPerson = {
@@ -229,65 +240,73 @@ function householdToCustomer(household: any): CustomerData {
   };
 }
 
-Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> => {
-  return cy.getAnyRandomNumber().then(randomNumber => {
-    const data: CustomerData = {
-      firstname: 'firstname-' + randomNumber,
-      lastname: 'lastname-' + randomNumber,
-      birthDate: dayjs().subtract(25, 'year').toDate(),
-      gender: Gender.MALE,
-      telephoneNumber: '0123456789',
-      email: 'firstname.lastname@test.com',
-      employer: 'employer-' + randomNumber,
-      country: {
-        id: 165,
-        code: 'AT',
-        name: 'Österreich'
-      },
-      income: income ?? 1000,
-      incomeDue: dayjs().add(30, 'days').toDate(),
-      address: {
-        street: 'street-' + randomNumber,
-        houseNumber: '1A',
-        city: 'city-' + randomNumber,
-        postalCode: 1234
-      },
-      validUntil: dayjs().add(1, 'year').toDate()
-    };
-    return cy.createCustomer(data, force);
-  });
-});
+Cypress.Commands.add(
+  'createDummyCustomer',
+  (income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const data: CustomerData = {
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        telephoneNumber: '0123456789',
+        email: 'firstname.lastname@test.com',
+        employer: 'employer-' + randomNumber,
+        country: {
+          id: 165,
+          code: 'AT',
+          name: 'Österreich'
+        },
+        income: income ?? 1000,
+        incomeDue: dayjs().add(30, 'days').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        },
+        validUntil: dayjs().add(1, 'year').toDate()
+      };
+      return cy.createCustomer(data, force);
+    })
+);
 
-Cypress.Commands.add('createUser', (data: UserData): Cypress.Chainable<Cypress.Response<UserData>> => {
-  return cy.request({
-    method: 'POST',
-    url: '/api/users',
-    body: data
-  });
-});
+Cypress.Commands.add(
+  'createUser',
+  (data: UserData): Cypress.Chainable<Cypress.Response<UserData>> =>
+    cy.request({
+      method: 'POST',
+      url: '/api/users',
+      body: data
+    })
+);
 
-Cypress.Commands.add('createDummyUser', (): Cypress.Chainable<Cypress.Response<UserData>> => {
-  return cy.getAnyRandomNumber().then(randomNumber => {
-    const data: UserData = {
-      username: 'username-' + randomNumber,
-      personnelNumber: randomNumber.toString(),
-      firstname: 'firstname-' + randomNumber,
-      lastname: 'lastname-' + randomNumber,
-      enabled: true,
-      password: 'dummy-pwd-' + randomNumber,
-      passwordChangeRequired: false,
-      permissions: []
-    };
-    return cy.createUser(data);
-  });
-});
+Cypress.Commands.add(
+  'createDummyUser',
+  (): Cypress.Chainable<Cypress.Response<UserData>> =>
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const data: UserData = {
+        username: 'username-' + randomNumber,
+        personnelNumber: randomNumber.toString(),
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-pwd-' + randomNumber,
+        passwordChangeRequired: false,
+        permissions: []
+      };
+      return cy.createUser(data);
+    })
+);
 
-Cypress.Commands.add('deleteUser', (userId: number): Cypress.Chainable<Cypress.Response<void>> => {
-  return cy.request({
-    method: 'DELETE',
-    url: '/api/users/' + userId
-  });
-});
+Cypress.Commands.add(
+  'deleteUser',
+  (userId: number): Cypress.Chainable<Cypress.Response<void>> =>
+    cy.request({
+      method: 'DELETE',
+      url: '/api/users/' + userId
+    })
+);
 
 Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<number> => {
   const minCeil = Math.ceil(min);
@@ -295,9 +314,7 @@ Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<nu
   return cy.wrap(Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil);
 });
 
-Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => {
-  return cy.getRandomNumber(50000, 100000);
-});
+Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => cy.getRandomNumber(50000, 100000));
 
 
 export interface AddCustomerToDistributionRequest {
@@ -388,5 +405,5 @@ export interface UserPermission {
 }
 
 export enum Gender {
-  MALE = 1, FEMALE = 2
+  MALE = 'MALE', FEMALE = 'FEMALE'
 }

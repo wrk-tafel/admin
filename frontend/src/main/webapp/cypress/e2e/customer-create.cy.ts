@@ -189,7 +189,7 @@ describe('Customer Creation', () => {
       cy.byTestId('firstnameInput').type(data.firstname);
       cy.byTestId('birthDateInput').type(dayjs(data.birthDate).format('YYYY-MM-DD'));
       cy.byTestId('genderInput').select(data.gender);
-      cy.byTestId('countryInput').select(data.country.name);
+      cy.byTestId('countryInput').select(data.country!.name);
       if (data.employer) {
         cy.byTestId('employerInput').type(data.employer);
       }

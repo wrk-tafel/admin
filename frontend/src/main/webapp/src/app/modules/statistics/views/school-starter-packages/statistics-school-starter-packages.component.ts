@@ -56,11 +56,20 @@ export class StatisticsSchoolStarterPackagesComponent {
   }
 
   onAgeMinChange(value: number) {
+    // A cleared input reports null/NaN while the user is mid-edit (e.g. retyping a digit) -
+    // ageMin/ageMax are required backend query params, so skip firing a request until a full
+    // number is entered again rather than sending an invalid value.
+    if (value == null || isNaN(value)) {
+      return;
+    }
     this.schoolStarterPackageAgeMin.set(value);
     this.loadSchoolStarterPackageData();
   }
 
   onAgeMaxChange(value: number) {
+    if (value == null || isNaN(value)) {
+      return;
+    }
     this.schoolStarterPackageAgeMax.set(value);
     this.loadSchoolStarterPackageData();
   }

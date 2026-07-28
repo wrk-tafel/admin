@@ -31,7 +31,7 @@ describe('Login', () => {
     createTestUserRequiringPasswordChange().then(({user, testUser}) => {
       cy.visit('/#/login');
 
-      enterLoginData(user.username, testUser.password);
+      enterLoginData(user.username, testUser.password!);
       cy.url().should('contain', '/login/passwortaendern');
 
       cy.visit('/#/uebersicht');
@@ -42,7 +42,7 @@ describe('Login', () => {
 
   it('login with required password change cancelled', () => {
     createTestUserRequiringPasswordChange().then(({user, testUser}) => {
-      enterLoginData(user.username, testUser.password);
+      enterLoginData(user.username, testUser.password!);
 
       cy.url().should('contain', '/login/passwortaendern');
       cy.byTestId('cancelButton').click();
@@ -54,10 +54,10 @@ describe('Login', () => {
     createTestUserRequiringPasswordChange([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
       cy.visit('/#/login');
 
-      enterLoginData(user.username, testUser.password);
+      enterLoginData(user.username, testUser.password!);
       cy.url().should('contain', '/login/passwortaendern');
 
-      cy.byTestId('currentPasswordText').type(testUser.password);
+      cy.byTestId('currentPasswordText').type(testUser.password!);
       cy.byTestId('newPasswordText').type('11111111');
       cy.byTestId('newRepeatedPasswordText').type('11111111');
 
@@ -81,9 +81,7 @@ describe('Login', () => {
       };
 
       cy.loginDefault();
-      return cy.createUser(testUser).then(response => {
-        return {user: response.body, testUser};
-      });
+      return cy.createUser(testUser).then(response => ({user: response.body, testUser}));
     });
   }
 

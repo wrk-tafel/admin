@@ -10,7 +10,7 @@ describe('Scanner', () => {
 
     // Check that the scanner ID is displayed
     cy.byTestId('scanner-id').should('be.visible').invoke('text').then((text) => {
-      expect(text).not.to.be.empty;
+      expect(text).to.not.equal('');
       expect(Number(text)).to.be.greaterThan(0);
     });
 
