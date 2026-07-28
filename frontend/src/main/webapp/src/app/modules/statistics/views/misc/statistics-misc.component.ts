@@ -13,9 +13,10 @@ import {
   MatRowDef,
   MatTable
 } from '@angular/material/table';
+import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {switchMap} from 'rxjs';
+import {switchMap, tap} from 'rxjs';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {HttpResponse} from '@angular/common/http';
 import {StatisticsApiService} from '../../../../api/statistics-api.service';
@@ -41,7 +42,8 @@ import {faSave} from '@fortawesome/free-solid-svg-icons';
     MatHeaderRowDef,
     MatRow,
     MatRowDef,
-    MatTable
+    MatTable,
+    MatPaginatorModule
   ]
 })
 export class StatisticsMiscComponent {
@@ -56,10 +58,24 @@ export class StatisticsMiscComponent {
   }));
   schoolStarterPackageData = toSignal(
     toObservable(this.schoolStarterPackageAgeRange).pipe(
+      tap(() => this.pageIndex.set(0)),
       switchMap(range => this.statisticsApiService.getSchoolStarterPackageData(range.min, range.max))
     )
   );
   schoolStarterPackageColumns = ['householdId', 'firstname', 'lastname', 'age'];
+
+  pageIndex = signal(0);
+  pageSize = signal(10);
+  pagedSchoolStarterPackageData = computed(() => {
+    const data = this.schoolStarterPackageData() ?? [];
+    const start = this.pageIndex() * this.pageSize();
+    return data.slice(start, start + this.pageSize());
+  });
+
+  onPageChange(event: PageEvent) {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
+  }
 
   protected generateSchoolStarterPackageCsv() {
     const range = this.schoolStarterPackageAgeRange();

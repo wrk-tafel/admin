@@ -5,6 +5,12 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    @if (schoolStarterPackageData()) {
+      <div class="mb-4" testid="school-starter-package-total-count">
+        <span class="text-2xl font-bold">{{ schoolStarterPackageData()!.length }}</span>
+        Schulstartpakete benötigt
+      </div>
+    }
     <div class="flex flex-wrap items-center gap-4 mb-4">
       <div class="flex items-center gap-2">
         <label class="form-label mb-0">Alter von</label>
@@ -23,7 +29,7 @@
       <fa-icon [icon]="faSave"></fa-icon>&nbsp;CSV-Export
     </button>
     @if (schoolStarterPackageData()?.length) {
-      <table mat-table [dataSource]="schoolStarterPackageData()!" class="w-full mt-4"
+      <table mat-table [dataSource]="pagedSchoolStarterPackageData()" class="w-full mt-4"
              testid="school-starter-package-table">
         <ng-container matColumnDef="householdId">
           <th mat-header-cell *matHeaderCellDef>Haushalt</th>
@@ -44,6 +50,9 @@
         <tr mat-header-row *matHeaderRowDef="schoolStarterPackageColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: schoolStarterPackageColumns;"></tr>
       </table>
+      <mat-paginator class="tafel-paginator-responsive" [length]="schoolStarterPackageData()!.length"
+                     [pageSize]="pageSize()" [pageIndex]="pageIndex()" [pageSizeOptions]="[10, 25, 50]"
+                     [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
     } @else if (schoolStarterPackageData()) {
       <div class="mt-4">Keine Einträge gefunden.</div>
     }
