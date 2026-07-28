@@ -232,18 +232,13 @@ describe('Customer Detail', () => {
         cy.visit('/#/kunden/detail/' + customerId);
         cy.byTestId('editCustomerButton').click();
 
-        const observer = {
-          error: (error: any) => {
-            if (error.status == 409) {
-              // Dialog should appear after 409 error
-              cy.byTestId('confirm-customer-save-dialog').should('be.visible');
-              cy.byTestId('confirm-customer-save-dialog').should('contain.text', error.error.message);
-              cy.byTestId('confirm-customer-save-dialog').should('contain.text', 'Trotzdem speichern?');
-            }
-          },
-        };
-
         cy.byTestId('save-button').click();
+
+        // Dialog should appear after 409 error
+        cy.byTestId('confirm-customer-save-dialog')
+          .should('be.visible')
+          .and('contain.text', 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)')
+          .and('contain.text', 'Trotzdem speichern?');
       });
     });
 

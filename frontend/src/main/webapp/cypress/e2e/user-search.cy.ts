@@ -22,7 +22,7 @@ describe('User Search', () => {
 
       cy.byTestId('firstnameText').type(user.firstname);
       cy.byTestId('lastnameText').type(user.lastname);
-      clickSearchAndOpenFirstResult(user.id);
+      clickSearchAndOpenFirstResult(user.id!);
     });
   });
 
@@ -31,7 +31,7 @@ describe('User Search', () => {
       const user = response.body;
 
       cy.byTestId('lastnameText').type(user.lastname);
-      clickSearchAndOpenFirstResult(user.id);
+      clickSearchAndOpenFirstResult(user.id!);
     });
   });
 
@@ -40,7 +40,7 @@ describe('User Search', () => {
       const user = response.body;
 
       cy.byTestId('firstnameText').type(user.firstname);
-      clickSearchAndOpenFirstResult(user.id);
+      clickSearchAndOpenFirstResult(user.id!);
     });
   });
 

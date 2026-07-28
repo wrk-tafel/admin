@@ -19,7 +19,7 @@ describe('User Create', () => {
       cy.byTestId('permission-checkbox-2').click();
       cy.byTestId('save-button').click();
 
-      cy.url().should('contain', `/benutzer/detail`);
+      cy.url().should('contain', '/benutzer/detail');
       cy.byTestId('usernameText').should('have.text', username);
       cy.byTestId('personnelNumberText').should('have.text', personnelNumber);
     });
@@ -32,11 +32,9 @@ describe('User Create', () => {
     // Replace '/api/users' with the actual endpoint URL your app uses
     cy.intercept('POST', '/api/users').as('createUserRequest');
     // 1. Suppress uncaught exceptions just for this test
-    cy.once('uncaught:exception', (err) => {
-      return !err.message.includes('400');
-    });
+    cy.once('uncaught:exception', (err) => !err.message.includes('400'));
 
-    cy.getAnyRandomNumber().then((userRandomId) => {
+    cy.getAnyRandomNumber().then(() => {
       fillUserForm('e2etest', 'e2etest');
 
       cy.byTestId('passwordChangeRequiredInput').click();

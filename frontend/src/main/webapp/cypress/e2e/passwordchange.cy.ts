@@ -60,13 +60,13 @@ describe('PasswordChange', () => {
       cy.createUser(testUser).then(response => {
         const user = response.body;
 
-        cy.login(user.username, testUser.password);
+        cy.login(user.username, testUser.password!);
         cy.visit('/#');
 
         cy.byTestId('usermenu').click();
         cy.byTestId('usermenu-changepassword').click();
 
-        const currentPassword = testUser.password;
+        const currentPassword = testUser.password!;
         recurse(
           () => cy.byTestId('currentPasswordText').find('input').type(currentPassword),
           ($input) => $input.val() === currentPassword,

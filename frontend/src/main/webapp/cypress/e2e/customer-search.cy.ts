@@ -7,7 +7,7 @@ describe('Customer Search', () => {
 
   it('search by customerId', () => {
     cy.createDummyCustomer().then((response) => {
-      const customerId = response.body.data.id;
+      const customerId = response.body.data.id!;
 
       cy.byTestId('customerIdText').type(customerId.toString());
       cy.byTestId('showcustomer-button').click();
@@ -22,7 +22,7 @@ describe('Customer Search', () => {
 
       cy.byTestId('lastnameText').type(customer.lastname);
       cy.byTestId('firstnameText').type(customer.firstname);
-      clickSearchAndOpenFirstResult(customer.id);
+      clickSearchAndOpenFirstResult(customer.id!);
     });
   });
 
@@ -31,7 +31,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('lastnameText').type(customer.lastname);
-      clickSearchAndOpenFirstResult(customer.id);
+      clickSearchAndOpenFirstResult(customer.id!);
     });
   });
 
@@ -40,7 +40,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('firstnameText').type(customer.firstname);
-      clickSearchAndOpenFirstResult(customer.id);
+      clickSearchAndOpenFirstResult(customer.id!);
     });
   });
 
