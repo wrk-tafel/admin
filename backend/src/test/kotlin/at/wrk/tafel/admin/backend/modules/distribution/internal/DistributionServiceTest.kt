@@ -13,6 +13,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
@@ -227,6 +228,23 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `get distribution items`() {
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
+            testDistributionEntity,
+        )
+
+        val distributionItems = service.getDistributionItems()
+
+        assertThat(distributionItems).containsExactly(
+            DistributionItem(
+                id = testDistributionEntity.id!!,
+                startedAt = testDistributionEntity.startedAt!!,
+                endedAt = testDistributionEntity.endedAt,
+            ),
+        )
+    }
+
+    @Test
     fun `create new distribution`() {
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
@@ -253,6 +271,32 @@ internal class DistributionServiceTest {
                 },
             )
         }
+    }
+
+    @Test
+    fun `create new distribution item`() {
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.startedAt = LocalDateTime.now()
+        every { distributionRepository.save(any()) } returns distributionEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
+
+        val distributionItem = service.createNewDistributionItem()
+
+        assertThat(distributionItem).isEqualTo(
+            DistributionItem(
+                id = distributionEntity.id!!,
+                startedAt = distributionEntity.startedAt!!,
+                endedAt = distributionEntity.endedAt,
+            ),
+        )
     }
 
     @Test
@@ -300,6 +344,45 @@ internal class DistributionServiceTest {
         val distribution = service.getCurrentDistribution()
 
         assertThat(distribution).isNull()
+    }
+
+    @Test
+    fun `current distribution item found`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+
+        val distributionItem = service.getCurrentDistributionItem()
+
+        assertThat(distributionItem).isEqualTo(
+            DistributionItem(
+                id = activeDistribution.id!!,
+                startedAt = activeDistribution.startedAt!!,
+                endedAt = activeDistribution.endedAt,
+            ),
+        )
+    }
+
+    @Test
+    fun `current distribution item not found`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val distributionItem = service.getCurrentDistributionItem()
+
+        assertThat(distributionItem).isNull()
+    }
+
+    @Test
+    fun `has current distribution true`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity.apply { endedAt = null }
+
+        assertThat(service.hasCurrentDistribution()).isTrue()
+    }
+
+    @Test
+    fun `has current distribution false`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        assertThat(service.hasCurrentDistribution()).isFalse()
     }
 
     @Test
@@ -598,6 +681,23 @@ internal class DistributionServiceTest {
         val distributionHouseholdEntity = service.getCurrentTicketNumber()
 
         assertThat(distributionHouseholdEntity?.ticketNumber).isEqualTo(51)
+    }
+
+    @Test
+    fun `get current ticketNumber value with open tickets left`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            endedAt = null
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+            )
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val ticketNumber = service.getCurrentTicketNumberValue()
+
+        assertThat(ticketNumber).isEqualTo(51)
     }
 
     @Test

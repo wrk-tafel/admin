@@ -34,12 +34,12 @@ class DistributionTicketScreenController(
     @PostMapping("/distributions/ticket-screen/show-current")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showCurrentTicket() {
-        val distribution = service.getCurrentDistribution()
-
-        val response = distribution?.let {
-            val ticketNumber = service.getCurrentTicketNumber(null)?.ticketNumber
+        val response = if (service.hasCurrentDistribution()) {
+            val ticketNumber = service.getCurrentTicketNumberValue()
             logger.info("Ticket-Log - Fetched current ticket-number: $ticketNumber")
             ticketNumber
+        } else {
+            null
         }
 
         saveToOutbox(text = TICKET_SCREEN_TITLE, response?.toString())
@@ -71,8 +71,8 @@ class DistributionTicketScreenController(
 
         // send initial state
         var currentTicketNumber: Int? = null
-        service.getCurrentDistribution()?.let {
-            currentTicketNumber = service.getCurrentTicketNumber()?.ticketNumber
+        if (service.hasCurrentDistribution()) {
+            currentTicketNumber = service.getCurrentTicketNumberValue()
         }
         val payload = TicketScreenShowText(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
         sseOutboxService.sendEvent(sseEmitter, payload)

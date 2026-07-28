@@ -25,10 +25,10 @@ class DistributionTicketController(
     fun getCurrentTicketForHouseholdId(
         @PathVariable householdId: Long,
     ): TicketNumberResponse {
-        val distributionHouseholdEntity = service.getCurrentTicketNumber(householdId)
-        logger.info("Ticket-Log - Fetched current ticket-number: $distributionHouseholdEntity")
+        val ticketNumber = service.getCurrentTicketNumberValue(householdId)
+        logger.info("Ticket-Log - Fetched current ticket-number: $ticketNumber")
         return TicketNumberResponse(
-            ticketNumber = distributionHouseholdEntity?.ticketNumber,
+            ticketNumber = ticketNumber,
         )
     }
 

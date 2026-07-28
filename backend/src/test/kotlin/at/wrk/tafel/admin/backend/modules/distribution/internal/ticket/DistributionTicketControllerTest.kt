@@ -1,11 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -29,7 +26,7 @@ internal class DistributionTicketControllerTest {
     @Test
     fun `get current ticket for household 1`() {
         val householdId = 123L
-        every { service.getCurrentTicketNumber(householdId) } returns testDistributionHouseholdEntity1
+        every { service.getCurrentTicketNumberValue(householdId) } returns 50
 
         val response = controller.getCurrentTicketForHouseholdId(householdId)
 
@@ -41,7 +38,7 @@ internal class DistributionTicketControllerTest {
     @Test
     fun `get current ticket for household 2`() {
         val householdId = 123L
-        every { service.getCurrentTicketNumber(householdId) } returns testDistributionHouseholdEntity3
+        every { service.getCurrentTicketNumberValue(householdId) } returns 52
 
         val response = controller.getCurrentTicketForHouseholdId(householdId)
 
@@ -52,9 +49,6 @@ internal class DistributionTicketControllerTest {
 
     @Test
     fun `delete current ticket for household`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
         every { service.deleteCurrentTicket(any()) } returns true
 
         val householdId = 123L
@@ -66,9 +60,6 @@ internal class DistributionTicketControllerTest {
 
     @Test
     fun `delete current ticket for household failed`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
         every { service.deleteCurrentTicket(any()) } returns false
 
         val householdId = 123L

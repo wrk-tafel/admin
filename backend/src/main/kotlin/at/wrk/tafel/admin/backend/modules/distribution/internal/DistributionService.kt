@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
@@ -56,6 +57,8 @@ class DistributionService(
 
     fun getDistributions(): List<DistributionEntity> = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
 
+    fun getDistributionItems(): List<DistributionItem> = getDistributions().map { mapDistribution(it) }
+
     @Transactional
     fun createNewDistribution(): DistributionEntity {
         var result: DistributionEntity? = null
@@ -87,8 +90,14 @@ class DistributionService(
         return result!!
     }
 
+    fun createNewDistributionItem(): DistributionItem = mapDistribution(createNewDistribution())
+
     @Transactional
     fun getCurrentDistribution(): DistributionEntity? = distributionRepository.getCurrentDistribution()
+
+    fun getCurrentDistributionItem(): DistributionItem? = getCurrentDistribution()?.let { mapDistribution(it) }
+
+    fun hasCurrentDistribution(): Boolean = getCurrentDistribution() != null
 
     @Transactional
     fun assignHouseholdToDistribution(
@@ -156,6 +165,9 @@ class DistributionService(
         logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionHouseholdEntity?.ticketNumber}")
         return distributionHouseholdEntity
     }
+
+    @Transactional
+    fun getCurrentTicketNumberValue(householdId: Long? = null): Int? = getCurrentTicketNumber(householdId)?.ticketNumber
 
     @Transactional
     fun reopenAndGetPreviousTicket(): Int? {
@@ -288,6 +300,12 @@ class DistributionService(
 
         return result!!
     }
+
+    private fun mapDistribution(distribution: DistributionEntity): DistributionItem = DistributionItem(
+        id = distribution.id!!,
+        startedAt = distribution.startedAt!!,
+        endedAt = distribution.endedAt,
+    )
 
     private fun getLastProcessedDistributionHouseholdEntity(
         distribution: DistributionEntity,
