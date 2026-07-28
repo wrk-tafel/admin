@@ -16,9 +16,14 @@ data class IncomeValidatorPerson(
     val excludeFromIncomeCalculation: Boolean = false,
     val receivesFamilyAllowance: Boolean = false,
 ) {
-    fun isChild(): Boolean = getAge() < 15
+    companion object {
+        private const val CHILD_AGE_LIMIT = 15
+        private const val FAMILY_ALLOWANCE_CHILD_AGE_LIMIT = 24
+    }
 
-    fun isChildForFamilyAllowance(): Boolean = getAge() <= 24
+    fun isChild(): Boolean = getAge() < CHILD_AGE_LIMIT
+
+    fun isChildForFamilyAllowance(): Boolean = getAge() <= FAMILY_ALLOWANCE_CHILD_AGE_LIMIT
 
     fun getAge(): Int = Period.between(birthDate, LocalDate.now()).years
 }
