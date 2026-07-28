@@ -1,5 +1,12 @@
 import {MatPaginatorIntl} from '@angular/material/paginator';
 
+/**
+ * German-language `MatPaginatorIntl` for `mat-paginator`, registered app-wide as its provider.
+ * `getRangeLabel` mirrors Angular Material's own default implementation (just German-translated),
+ * including its edge-case handling: a `0`/`0` result when there's nothing to page through, and an
+ * `endIndex` past `normalizedLength` on the last page when `page * pageSize` already exceeds the
+ * total (avoids showing a shrinking, out-of-range end index while items are still loading).
+ */
 export function getGermanPaginatorIntl(): MatPaginatorIntl {
   const paginatorIntl = new MatPaginatorIntl();
 

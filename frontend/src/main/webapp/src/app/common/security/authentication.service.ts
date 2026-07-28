@@ -10,6 +10,13 @@ export class AuthenticationService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
+  /**
+   * Logs in and, on success, also loads the user's permissions before resolving - callers can
+   * treat a resolved `login()` as "userInfo() is already populated", no separate wait needed.
+   * A `423` (account locked) is not treated as a request failure: it resolves with
+   * `{successful: false, locked: true}` rather than rejecting, so the login form can show a
+   * dedicated "account locked" message instead of a generic error.
+   */
   public async login(username: string, password: string): Promise<LoginResult> {
     return firstValueFrom(this.executeLoginRequest(username, password)
       .pipe(map(async response => {
