@@ -14,39 +14,43 @@
           </div>
         }
 
-        <form (submit)="onSubmit($event)" class="flex flex-col gap-1">
-          <mat-form-field class="w-full">
-            <mat-label>Benutzername</mat-label>
-            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !p-0 !w-5 !h-5 mr-1.5 text-slate-500">
-              <fa-icon [icon]="faUser"></fa-icon>
-            </mat-icon>
-            <input [formField]="loginForm.username" matInput testid="username" type="text"
-                   autocomplete="username" tafelAutofocus
-                   (animationstart)="onAutofill($event, 'username')">
-          </mat-form-field>
-          @for (message of visibleErrorMessages(loginForm.username()); track message) {
-            <mat-error>{{ message }}</mat-error>
-          }
+        <form (submit)="onSubmit($event)" class="flex flex-col">
+          <div class="mb-4">
+            <mat-form-field class="w-full">
+              <mat-label>Benutzername</mat-label>
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !p-0 !w-5 !h-5 mr-1.5 text-slate-500">
+                <fa-icon [icon]="faUser"></fa-icon>
+              </mat-icon>
+              <input [formField]="loginForm.username" matInput testid="username" type="text"
+                     autocomplete="username" tafelAutofocus
+                     (animationstart)="onAutofill($event, 'username')">
+            </mat-form-field>
+            @for (message of visibleErrorMessages(loginForm.username()); track message) {
+              <mat-error class="block mt-1">{{ message }}</mat-error>
+            }
+          </div>
 
-          <mat-form-field class="w-full mt-2">
-            <mat-label>Passwort</mat-label>
-            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !p-0 !w-5 !h-5 mr-1.5 text-slate-500">
-              <fa-icon [icon]="faKey"></fa-icon>
-            </mat-icon>
-            <input [formField]="loginForm.password" matInput testid="password"
-                   [type]="passwordVisible() ? 'text' : 'password'"
-                   autocomplete="current-password"
-                   (animationstart)="onAutofill($event, 'password')">
-            <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !p-0 !w-5 !h-5 cursor-pointer"
-                      (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle" type="button">
-              <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
-            </mat-icon>
-          </mat-form-field>
-          @for (message of visibleErrorMessages(loginForm.password()); track message) {
-            <mat-error>{{ message }}</mat-error>
-          }
+          <div class="mb-4">
+            <mat-form-field class="w-full">
+              <mat-label>Passwort</mat-label>
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !p-0 !w-5 !h-5 mr-1.5 text-slate-500">
+                <fa-icon [icon]="faKey"></fa-icon>
+              </mat-icon>
+              <input [formField]="loginForm.password" matInput testid="password"
+                     [type]="passwordVisible() ? 'text' : 'password'"
+                     autocomplete="current-password"
+                     (animationstart)="onAutofill($event, 'password')">
+              <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !p-0 !w-5 !h-5 cursor-pointer"
+                        (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle" type="button">
+                <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
+              </mat-icon>
+            </mat-form-field>
+            @for (message of visibleErrorMessages(loginForm.password()); track message) {
+              <mat-error class="block mt-1">{{ message }}</mat-error>
+            }
+          </div>
 
-          <button testid="loginButton" matButton="filled" type="submit" class="w-full mt-4"
+          <button testid="loginButton" matButton="filled" type="submit" class="w-full"
                   [disabled]="!loginForm().valid() || submitting()">
             {{ submitting() ? 'Anmeldung läuft…' : 'Anmelden' }}
           </button>
