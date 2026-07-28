@@ -1,7 +1,10 @@
 <tafel-dialog type="info" title="Neue Notiz hinzufügen">
   <div tafel-dialog-content>
-    <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
-              [ngModel]="noteText()" (ngModelChange)="noteText.set($event)"></textarea>
+    <mat-form-field class="w-full">
+      <mat-label>Notiz</mat-label>
+      <textarea matInput rows="9"
+                [ngModel]="noteText()" (ngModelChange)="noteText.set($event)"></textarea>
+    </mat-form-field>
   </div>
   <div tafel-dialog-actions>
     <button testid="okButton" matButton="filled" (click)="dialogRef.close(noteText())"

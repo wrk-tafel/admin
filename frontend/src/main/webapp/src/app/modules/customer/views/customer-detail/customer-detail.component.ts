@@ -28,6 +28,8 @@ import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatDialog} from '@angular/material/dialog';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 import {CommonModule} from '@angular/common';
 import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -57,7 +59,9 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     FormatIssuerPipe,
     FormatCustomerNamePipe,
     TafelIfDistributionActiveDirective,
-    FormsModule
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule
   ]
 })
 export class CustomerDetailComponent {
