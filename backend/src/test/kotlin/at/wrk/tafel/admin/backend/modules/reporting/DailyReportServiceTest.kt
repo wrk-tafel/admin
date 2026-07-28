@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity1
 import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity2
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportPdfModel
@@ -110,5 +111,32 @@ internal class DailyReportServiceTest {
                 personCount = 2,
             ),
         )
+    }
+
+    @Test
+    fun `shelters are sorted by their frozen sortOrder, not name`() {
+        val statistic = DistributionStatisticEntity().apply {
+            shelters = listOf(
+                DistributionStatisticShelterEntity().apply {
+                    name = "Shelter Z"
+                    personsCount = 1
+                    sortOrder = 1
+                },
+                DistributionStatisticShelterEntity().apply {
+                    name = "Shelter A"
+                    personsCount = 2
+                    sortOrder = 2
+                },
+            ).toMutableList()
+        }
+
+        every { pdfService.generatePdf(any(), any()) } returns ByteArray(0)
+
+        service.generateDailyReportPdf(statistic)
+
+        val pdfModelSlot = slot<DailyReportPdfModel>()
+        verify { pdfService.generatePdf(capture(pdfModelSlot), any()) }
+
+        assertThat(pdfModelSlot.captured.shelters.map { it.name }).containsExactly("Shelter Z", "Shelter A")
     }
 }

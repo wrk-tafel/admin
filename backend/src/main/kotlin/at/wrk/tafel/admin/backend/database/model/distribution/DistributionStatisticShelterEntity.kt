@@ -40,4 +40,7 @@ class DistributionStatisticShelterEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "persons_count")
     var personsCount: Int? = null
+
+    @Column(name = "sort_order")
+    var sortOrder: Int? = null
 }

@@ -53,7 +53,7 @@ class DailyReportService(
             personsInSheltersTotalCount = statistic.shelters.sumOf { it.personsCount ?: 0 },
             shelters = statistic.shelters
                 .filter { it.personsCount!! > 0 }
-                .sortedBy { it.name }
+                .sortedWith(compareBy({ it.sortOrder ?: 0 }, { it.name }))
                 .map {
                     DailyReportShelterPdfModel(
                         name = it.name!!,

@@ -220,6 +220,7 @@ val testDistributionStatisticShelterEntity1 = DistributionStatisticShelterEntity
     addressDoor = testShelter1.addressDoor
     addressCity = testShelter1.addressCity
     personsCount = testShelter1.personsCount
+    sortOrder = testShelter1.sortOrder
 }
 
 val testShelter2 = ShelterEntity().apply {
@@ -262,4 +263,5 @@ val testDistributionStatisticShelterEntity2 = DistributionStatisticShelterEntity
     addressDoor = testShelter2.addressDoor
     addressCity = testShelter2.addressCity
     personsCount = testShelter2.personsCount
+    sortOrder = testShelter2.sortOrder
 }
