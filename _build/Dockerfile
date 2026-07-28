@@ -5,6 +5,10 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 RUN find extracted -exec touch -d @0 {} \+
 
 FROM amazoncorretto:26-alpine
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+ENV TAFELADMIN_VERSION=$VERSION
+ENV TAFELADMIN_BUILD_TIME=$BUILD_TIME
 VOLUME /app/config
 VOLUME /app/logs
 

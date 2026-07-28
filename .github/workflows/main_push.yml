@@ -10,6 +10,13 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
   test:
     uses: ./.github/workflows/subflow_test.yml
+  commit-info:
+    runs-on: ubuntu-latest
+    outputs:
+      shortSha: ${{ steps.sha.outputs.value }}
+    steps:
+      - id: sha
+        run: echo "value=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
@@ -19,9 +26,10 @@ jobs:
     uses: ./.github/workflows/subflow_lint.yml
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: build
+    needs: [build, commit-info]
     with:
       imageTags: test
+      version: ${{ needs.commit-info.outputs.shortSha }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:

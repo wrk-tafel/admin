@@ -38,9 +38,10 @@ jobs:
     needs: build
   build-push-image-test:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, test, e2e-test]
+    needs: [build, test, e2e-test, version]
     with:
       imageTags: test
+      version: ${{ needs.version.outputs.version }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   build-push-image-prod:
@@ -50,6 +51,7 @@ jobs:
       imageTags: |
         latest
         ${{ needs.version.outputs.version }}
+      version: ${{ needs.version.outputs.version }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   github-release:

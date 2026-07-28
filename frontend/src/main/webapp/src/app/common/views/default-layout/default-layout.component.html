@@ -74,6 +74,18 @@
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
+    @if (versionInfo(); as info) {
+      <div class="border-t border-gray-800 px-4 py-2 text-xs text-gray-500 shrink-0 text-center">
+        @if (!collapsed()) {
+          <div class="truncate">v{{ info.version }}</div>
+          @if (info.buildTime !== 'unknown') {
+            <div class="truncate">{{ info.buildTime | date: 'dd.MM.yyyy HH:mm' }}</div>
+          }
+        } @else {
+          <div class="truncate">{{ info.version }}</div>
+        }
+      </div>
+    }
   </mat-sidenav>
 
   <mat-sidenav-content class="flex flex-col min-h-screen">

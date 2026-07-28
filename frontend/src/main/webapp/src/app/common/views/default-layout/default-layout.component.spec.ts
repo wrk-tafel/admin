@@ -4,9 +4,11 @@ import { DefaultLayoutComponent } from './default-layout.component';
 import { AuthenticationService } from '../../security/authentication.service';
 import { GlobalStateService } from '../../state/global-state.service';
 import { DistributionItem } from '../../../api/distribution-api.service';
+import { VersionApiService } from '../../../api/version-api.service';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
+import { of } from 'rxjs';
 
 describe('DefaultLayoutComponent', () => {
     let authService: MockedObject<AuthenticationService>;
@@ -22,6 +24,10 @@ describe('DefaultLayoutComponent', () => {
             getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
             getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
         };
+        const versionApiServiceSpy = {
+            getVersion: vi.fn().mockName('VersionApiService.getVersion')
+                .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z'}))
+        };
 
         TestBed.configureTestingModule({
             providers: [
@@ -34,6 +40,10 @@ describe('DefaultLayoutComponent', () => {
                 {
                     provide: GlobalStateService,
                     useValue: globalStateServiceSpy
+                },
+                {
+                    provide: VersionApiService,
+                    useValue: versionApiServiceSpy
                 }
             ]
         }).compileComponents();
@@ -51,6 +61,14 @@ describe('DefaultLayoutComponent', () => {
         const component = fixture.componentInstance;
 
         expect(component).toBeTruthy();
+    });
+
+    it('exposes the version info from VersionApiService', () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        expect(component.versionInfo()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z'});
     });
 
     it('navItems are filtered by permissions - permissions undefined', () => {

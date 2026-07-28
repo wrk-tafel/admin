@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "tafeladmin")
 @ExcludeFromTestCoverage
 data class TafelAdminProperties(
+    val version: String = "dev",
+    val buildTime: String = "unknown",
     val mail: TafelAdminMailProperties? = null,
     val server: TafelAdminServerProperties = TafelAdminServerProperties(),
 )
