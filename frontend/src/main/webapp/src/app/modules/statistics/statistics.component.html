@@ -76,6 +76,58 @@
     </mat-card>
   </div>
 </div>
+@if (statisticsData()) {
+  <mat-card class="mt-4">
+    <mat-card-header>
+      <h5>Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h5>
+    </mat-card-header>
+    <mat-card-content>
+      <div>
+        <h5>Kunden und Personen</h5>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <tafel-statistics-panel [data]="statisticsData()!.beneficiaryCustomers"></tafel-statistics-panel>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <tafel-statistics-panel [data]="statisticsData()!.beneficiaryPersons"></tafel-statistics-panel>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <tafel-statistics-panel
+            [data]="statisticsData()!.beneficiaryCustomersWithChildren"></tafel-statistics-panel>
+        </div>
+      </div>
+      <div class="mt-4">
+        <h5>Notschlafstellen</h5>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <tafel-statistics-panel [data]="statisticsData()!.sheltersCount"></tafel-statistics-panel>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <tafel-statistics-panel [data]="statisticsData()!.sheltersAverage"></tafel-statistics-panel>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <tafel-statistics-panel [data]="statisticsData()!.sheltersPersonsCount"></tafel-statistics-panel>
+        </div>
+      </div>
+      <div class="mt-4">
+        <h5>Transport- / Logistik</h5>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <tafel-statistics-panel [data]="statisticsData()!.shopsCount"></tafel-statistics-panel>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <tafel-statistics-panel [data]="statisticsData()!.shopItemsTotal"></tafel-statistics-panel>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <tafel-statistics-panel [data]="statisticsData()!.shopItemsAverage"></tafel-statistics-panel>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}
 <mat-card class="mt-4">
   <mat-card-header>
     <h5>Sonderberichte</h5>
@@ -130,55 +182,3 @@
     }
   </mat-card-content>
 </mat-card>
-@if (statisticsData()) {
-  <mat-card class="mt-4">
-    <mat-card-header>
-      <h5>Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h5>
-    </mat-card-header>
-    <mat-card-content>
-      <div>
-        <h5>Kunden und Personen</h5>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div>
-          <tafel-statistics-panel [data]="statisticsData()!.beneficiaryCustomers"></tafel-statistics-panel>
-        </div>
-        <div class="mt-2 md:mt-0">
-          <tafel-statistics-panel [data]="statisticsData()!.beneficiaryPersons"></tafel-statistics-panel>
-        </div>
-        <div class="mt-2 md:mt-0">
-          <tafel-statistics-panel
-            [data]="statisticsData()!.beneficiaryCustomersWithChildren"></tafel-statistics-panel>
-        </div>
-      </div>
-      <div class="mt-4">
-        <h5>Notschlafstellen</h5>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div>
-          <tafel-statistics-panel [data]="statisticsData()!.sheltersCount"></tafel-statistics-panel>
-        </div>
-        <div class="mt-2 md:mt-0">
-          <tafel-statistics-panel [data]="statisticsData()!.sheltersAverage"></tafel-statistics-panel>
-        </div>
-        <div class="mt-2 md:mt-0">
-          <tafel-statistics-panel [data]="statisticsData()!.sheltersPersonsCount"></tafel-statistics-panel>
-        </div>
-      </div>
-      <div class="mt-4">
-        <h5>Transport- / Logistik</h5>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div>
-          <tafel-statistics-panel [data]="statisticsData()!.shopsCount"></tafel-statistics-panel>
-        </div>
-        <div class="mt-2 md:mt-0">
-          <tafel-statistics-panel [data]="statisticsData()!.shopItemsTotal"></tafel-statistics-panel>
-        </div>
-        <div class="mt-2 md:mt-0">
-          <tafel-statistics-panel [data]="statisticsData()!.shopItemsAverage"></tafel-statistics-panel>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
-}
