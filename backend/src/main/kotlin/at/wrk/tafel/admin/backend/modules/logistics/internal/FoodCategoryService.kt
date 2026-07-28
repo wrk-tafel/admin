@@ -16,6 +16,9 @@ class FoodCategoryService(
         .map { mapFoodCategory(it) }
 
     fun getAllFoodCategories(): List<FoodCategory> = sortCategories(foodCategoriesRepository.findAll().toList())
+        // Return/deposit item categories ("Kisten") are out of scope for this admin listing -
+        // they will get their own dedicated form later.
+        .filter { it.returnItem != true }
         .map { mapFoodCategory(it) }
 
     fun createFoodCategory(category: FoodCategory): FoodCategory {

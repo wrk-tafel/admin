@@ -70,13 +70,22 @@ class FoodCategoryServiceTest {
     @Test
     fun `get all categories`() {
         val category1 = testFoodCategory1
-        val category2 = testFoodCategory2
         val category3 = testFoodCategory3
-        every { foodCategoryRepository.findAll() } returns listOf(category1, category2, category3)
+        every { foodCategoryRepository.findAll() } returns listOf(category1, category3)
 
         val categories = service.getAllFoodCategories()
 
-        assertThat(categories.map { it.id }).containsExactly(category3.id, category1.id, category2.id)
+        assertThat(categories.map { it.id }).containsExactly(category3.id, category1.id)
+    }
+
+    @Test
+    fun `get all categories excludes return-item categories`() {
+        // testFoodCategory2 is a return-item ("Kisten") fixture
+        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
+
+        val categories = service.getAllFoodCategories()
+
+        assertThat(categories.map { it.id }).containsExactly(testFoodCategory1.id)
     }
 
     @Test
