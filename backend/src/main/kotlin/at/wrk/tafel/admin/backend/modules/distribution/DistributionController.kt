@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
 import org.springframework.core.io.InputStreamResource
@@ -28,16 +27,12 @@ class DistributionController(
 
     @GetMapping("/distributions")
     @PreAuthorize("isAuthenticated()")
-    fun getDistributions(): DistributionListResponse {
-        val distributions = service.getDistributions().map { mapDistribution(it) }
-        return DistributionListResponse(items = distributions)
-    }
+    fun getDistributions(): DistributionListResponse = DistributionListResponse(items = service.getDistributionItems())
 
     @PostMapping("/distributions/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun createNewDistribution(): DistributionItemUpdate {
-        val distribution = service.createNewDistribution()
-        val update = DistributionItemUpdate(distribution = mapDistribution(distribution))
+        val update = DistributionItemUpdate(distribution = service.createNewDistributionItem())
 
         sseOutboxService.saveOutboxEntry(
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
@@ -52,10 +47,9 @@ class DistributionController(
         val sseEmitter = SseUtil.createSseEmitter()
 
         // initial data
-        val distribution = service.getCurrentDistribution()
         sseOutboxService.sendEvent(
             sseEmitter,
-            DistributionItemUpdate(distribution = distribution?.let { mapDistribution(it) }),
+            DistributionItemUpdate(distribution = service.getCurrentDistributionItem()),
         )
 
         sseOutboxService.forwardNotificationEventsToSse(
@@ -157,10 +151,4 @@ class DistributionController(
         service.sendMails(distributionId)
         return ResponseEntity.ok().build()
     }
-
-    private fun mapDistribution(distribution: DistributionEntity): DistributionItem = DistributionItem(
-        id = distribution.id!!,
-        startedAt = distribution.startedAt!!,
-        endedAt = distribution.endedAt,
-    )
 }

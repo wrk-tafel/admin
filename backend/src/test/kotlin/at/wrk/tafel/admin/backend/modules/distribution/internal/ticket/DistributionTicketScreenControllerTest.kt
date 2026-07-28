@@ -1,10 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -52,8 +49,8 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `show current ticketNumber with active distribution`() {
-        every { service.getCurrentDistribution() } returns testDistributionEntity
-        every { service.getCurrentTicketNumber(null) } returns testDistributionHouseholdEntity1
+        every { service.hasCurrentDistribution() } returns true
+        every { service.getCurrentTicketNumberValue() } returns 50
 
         controller.showCurrentTicket()
 
@@ -70,8 +67,7 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `show current ticketNumber without active distribution`() {
-        every { service.getCurrentDistribution() } returns null
-        every { service.getCurrentTicketNumber(null) } returns testDistributionHouseholdEntity1
+        every { service.hasCurrentDistribution() } returns false
 
         controller.showCurrentTicket()
 
@@ -168,8 +164,8 @@ internal class DistributionTicketScreenControllerTest {
     fun `listen for changes with active distribution`() {
         val testValue = TicketScreenShowText(text = "Ticket", value = "50")
 
-        every { service.getCurrentDistribution() } returns DistributionEntity()
-        every { service.getCurrentTicketNumber() } returns testDistributionHouseholdEntity1
+        every { service.hasCurrentDistribution() } returns true
+        every { service.getCurrentTicketNumberValue() } returns 50
 
         val emitter = controller.listenForChanges()
         assertThat(emitter).isNotNull
@@ -196,7 +192,7 @@ internal class DistributionTicketScreenControllerTest {
     fun `listen for changes without active distribution`() {
         val testValue = TicketScreenShowText(text = "Ticket", value = null)
 
-        every { service.getCurrentDistribution() } returns null
+        every { service.hasCurrentDistribution() } returns false
 
         val emitter = controller.listenForChanges()
         assertThat(emitter).isNotNull

@@ -35,21 +35,16 @@ internal class DistributionControllerTest {
 
     @Test
     fun `create new distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        distributionEntity.startedAt = LocalDateTime.now()
-        distributionEntity.endedAt = null
-        every { service.createNewDistribution() } returns distributionEntity
+        val distributionItem = DistributionItem(
+            id = 123,
+            startedAt = LocalDateTime.now(),
+            endedAt = null,
+        )
+        every { service.createNewDistributionItem() } returns distributionItem
 
         controller.createNewDistribution()
 
-        val distributionItemResponse = DistributionItemUpdate(
-            distribution = DistributionItem(
-                id = distributionEntity.id!!,
-                startedAt = distributionEntity.startedAt!!,
-                endedAt = distributionEntity.endedAt,
-            ),
-        )
+        val distributionItemResponse = DistributionItemUpdate(distribution = distributionItem)
 
         verify {
             sseOutboxService.saveOutboxEntry(
@@ -61,31 +56,24 @@ internal class DistributionControllerTest {
 
     @Test
     fun `get distributions`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        distributionEntity.startedAt = LocalDateTime.now()
-        distributionEntity.endedAt = null
-        every { service.getDistributions() } returns listOf(distributionEntity)
+        val distributionItem = DistributionItem(
+            id = 123,
+            startedAt = LocalDateTime.now(),
+            endedAt = null,
+        )
+        every { service.getDistributionItems() } returns listOf(distributionItem)
 
         val response = controller.getDistributions()
 
         assertThat(response).isEqualTo(
-            DistributionListResponse(
-                items = listOf(
-                    DistributionItem(
-                        id = distributionEntity.id!!,
-                        startedAt = distributionEntity.startedAt!!,
-                        endedAt = distributionEntity.endedAt,
-                    ),
-                ),
-            ),
+            DistributionListResponse(items = listOf(distributionItem)),
         )
     }
 
     @Test
     fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
-        every { service.createNewDistribution() } throws TafelException(message)
+        every { service.createNewDistributionItem() } throws TafelException(message)
 
         val exception = assertThrows(TafelException::class.java) {
             controller.createNewDistribution()
@@ -96,11 +84,12 @@ internal class DistributionControllerTest {
 
     @Test
     fun `listen for distribution updates with active distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        distributionEntity.startedAt = LocalDateTime.now()
-        distributionEntity.endedAt = null
-        every { service.getCurrentDistribution() } returns distributionEntity
+        val distributionItem = DistributionItem(
+            id = 123,
+            startedAt = LocalDateTime.now(),
+            endedAt = null,
+        )
+        every { service.getCurrentDistributionItem() } returns distributionItem
 
         val sseEmitter = controller.listenForDistributionUpdates()
         assertThat(sseEmitter).isNotNull
@@ -108,13 +97,7 @@ internal class DistributionControllerTest {
         verifySequence {
             sseOutboxService.sendEvent(
                 sseEmitter,
-                DistributionItemUpdate(
-                    distribution = DistributionItem(
-                        id = distributionEntity.id!!,
-                        startedAt = distributionEntity.startedAt!!,
-                        endedAt = distributionEntity.endedAt,
-                    ),
-                ),
+                DistributionItemUpdate(distribution = distributionItem),
             )
 
             sseOutboxService.forwardNotificationEventsToSse(
@@ -127,7 +110,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `listen for distribution updates without active distribution`() {
-        every { service.getCurrentDistribution() } returns null
+        every { service.getCurrentDistributionItem() } returns null
 
         val sseEmitter = controller.listenForDistributionUpdates()
         assertThat(sseEmitter).isNotNull
