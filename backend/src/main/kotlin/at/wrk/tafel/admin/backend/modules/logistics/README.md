@@ -48,10 +48,10 @@ DB level — it only governs `modules`-to-`modules` traffic.
 - `ShopEntity` (`shops`) embeds `ShopAddress` (`address_street`/`address_postal_code`/
   `address_city`) and carries a `foodUnit: FoodUnit` (`BOX` or `KG`) — this drives weight
   calculation in food collections (see below).
-- **Dead code warning:** `RouteShopRepository` is a `JpaRepository<RouteStopEntity, Long>` —
-  despite its name it repository-manages *stops*, not shops, and nothing in the codebase actually
-  uses it (`ShopService` goes through `RouteRepository` instead). Don't reach for it assuming it's
-  the shop repository.
+- There is no standalone shop repository — `ShopService` goes through `RouteRepository` for
+  everything (see above). A `RouteShopRepository` used to exist here (`JpaRepository<RouteStopEntity, Long>`,
+  despite its name actually repository-managing *stops*, not shops) but was unused dead code and
+  has been removed; don't recreate a shop-specific repository without checking `ShopService` first.
 
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal
