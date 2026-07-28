@@ -1,0 +1,21 @@
+<tafel-dialog title="Lebensmittelkategorie erstellen" testid="food-category-create-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Gewicht pro Einheit</mat-label>
+        <input matInput type="number" formControlName="weightPerUnit"/>
+        <span matTextSuffix>&nbsp;kg</span>
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" (click)="save()">Speichern</button>
+    <button matButton (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

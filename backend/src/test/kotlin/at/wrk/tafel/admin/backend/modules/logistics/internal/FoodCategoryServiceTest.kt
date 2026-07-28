@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
@@ -9,9 +11,13 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.repository.findByIdOrNull
+import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class FoodCategoryServiceTest {
@@ -23,32 +29,195 @@ class FoodCategoryServiceTest {
     private lateinit var service: FoodCategoryService
 
     @Test
-    fun `get categories`() {
+    fun `get active categories`() {
         val category1 = testFoodCategory1
         val category2 = testFoodCategory2
         val category3 = testFoodCategory3
-        every { foodCategoryRepository.findAll() } returns listOf(category1, category2, category3)
+        every { foodCategoryRepository.findByEnabledIsTrue() } returns listOf(category1, category2, category3)
 
-        val categories = service.getFoodCategories()
+        val categories = service.getActiveFoodCategories()
 
         assertThat(categories).isEqualTo(
             listOf(
                 FoodCategory(
-                    id = category3.id!!,
+                    id = category3.id,
                     name = category3.name!!,
+                    weightPerUnit = category3.weightPerUnit,
                     returnItem = category3.returnItem!!,
+                    sortOrder = category3.sortOrder!!,
+                    enabled = category3.enabled!!,
                 ),
                 FoodCategory(
-                    id = category1.id!!,
+                    id = category1.id,
                     name = category1.name!!,
+                    weightPerUnit = category1.weightPerUnit,
                     returnItem = category1.returnItem!!,
+                    sortOrder = category1.sortOrder!!,
+                    enabled = category1.enabled!!,
                 ),
                 FoodCategory(
-                    id = category2.id!!,
+                    id = category2.id,
                     name = category2.name!!,
+                    weightPerUnit = category2.weightPerUnit,
                     returnItem = category2.returnItem!!,
+                    sortOrder = 0,
+                    enabled = category2.enabled!!,
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `get all categories`() {
+        val category1 = testFoodCategory1
+        val category3 = testFoodCategory3
+        every { foodCategoryRepository.findAll() } returns listOf(category1, category3)
+
+        val categories = service.getAllFoodCategories()
+
+        assertThat(categories.map { it.id }).containsExactly(category3.id, category1.id)
+    }
+
+    @Test
+    fun `get all categories excludes return-item categories`() {
+        // testFoodCategory2 is a return-item ("Kisten") fixture
+        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
+
+        val categories = service.getAllFoodCategories()
+
+        assertThat(categories.map { it.id }).containsExactly(testFoodCategory1.id)
+    }
+
+    @Test
+    fun `create category assigns next sort order after the current max, ignoring the input value`() {
+        val createInput = FoodCategory(
+            id = null,
+            name = "New Category",
+            weightPerUnit = BigDecimal("15"),
+            returnItem = false,
+            sortOrder = 999,
+            enabled = true,
+        )
+
+        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory3, testFoodCategory2)
+        every { foodCategoryRepository.save(any()) } answers {
+            val arg = firstArg() as FoodCategoryEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createFoodCategory(createInput)
+
+        // testFoodCategory2 is a return-item ("Kisten") fixture and must be ignored when
+        // computing the next order - only testFoodCategory1 (sortOrder 200) and
+        // testFoodCategory3 (sortOrder 100) count, so the next value is 201.
+        assertThat(result).isEqualTo(createInput.copy(id = 42L, sortOrder = 201))
+
+        verify { foodCategoryRepository.save(any()) }
+    }
+
+    @Test
+    fun `create category assigns sort order 1 when no categories exist yet`() {
+        val createInput = FoodCategory(
+            id = null,
+            name = "New Category",
+            weightPerUnit = BigDecimal("15"),
+            returnItem = false,
+            sortOrder = 999,
+            enabled = true,
+        )
+
+        every { foodCategoryRepository.findAll() } returns emptyList()
+        every { foodCategoryRepository.save(any()) } answers {
+            val arg = firstArg() as FoodCategoryEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createFoodCategory(createInput)
+
+        assertThat(result.sortOrder).isEqualTo(1)
+    }
+
+    @Test
+    fun `update category`() {
+        val existingEntity = FoodCategoryEntity().apply {
+            id = 3
+            name = "Category 3"
+            weightPerUnit = BigDecimal("30")
+            returnItem = false
+            sortOrder = 100
+            enabled = true
+        }
+        val updated = FoodCategory(
+            id = existingEntity.id,
+            name = "Updated Category",
+            weightPerUnit = BigDecimal("99"),
+            returnItem = true,
+            sortOrder = 5,
+            enabled = false,
+        )
+
+        every { foodCategoryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { foodCategoryRepository.save(any()) } answers { firstArg() as FoodCategoryEntity }
+
+        val result = service.updateFoodCategory(existingEntity.id!!, updated)
+
+        assertThat(result).isEqualTo(updated)
+    }
+
+    @Test
+    fun `update category throws exception when not found`() {
+        every { foodCategoryRepository.findByIdOrNull(99L) } returns null
+
+        val updated = FoodCategory(
+            id = 99L,
+            name = "Updated Category",
+            weightPerUnit = BigDecimal("99"),
+            returnItem = true,
+            sortOrder = 5,
+            enabled = false,
+        )
+
+        assertThatThrownBy { service.updateFoodCategory(99L, updated) }
+            .isInstanceOf(TafelValidationException::class.java)
+            .hasMessage("FoodCategory with id 99 not found")
+    }
+
+    @Test
+    fun `reorder categories assigns sequential sort order matching the given order`() {
+        val entity1 = FoodCategoryEntity().apply {
+            id = 1
+            sortOrder = 200
+        }
+        val entity2 = FoodCategoryEntity().apply {
+            id = 2
+            sortOrder = 100
+        }
+        val entity3 = FoodCategoryEntity().apply {
+            id = 3
+            sortOrder = 300
+        }
+
+        every { foodCategoryRepository.findByIdOrNull(3L) } returns entity3
+        every { foodCategoryRepository.findByIdOrNull(1L) } returns entity1
+        every { foodCategoryRepository.findByIdOrNull(2L) } returns entity2
+        every { foodCategoryRepository.save(any()) } answers { firstArg() as FoodCategoryEntity }
+
+        service.reorderFoodCategories(listOf(3L, 1L, 2L))
+
+        assertThat(entity3.sortOrder).isEqualTo(1)
+        assertThat(entity1.sortOrder).isEqualTo(2)
+        assertThat(entity2.sortOrder).isEqualTo(3)
+        verify(exactly = 3) { foodCategoryRepository.save(any()) }
+    }
+
+    @Test
+    fun `reorder categories throws exception when a category is not found`() {
+        every { foodCategoryRepository.findByIdOrNull(99L) } returns null
+
+        assertThatThrownBy { service.reorderFoodCategories(listOf(99L)) }
+            .isInstanceOf(TafelValidationException::class.java)
+            .hasMessage("FoodCategory with id 99 not found")
     }
 }

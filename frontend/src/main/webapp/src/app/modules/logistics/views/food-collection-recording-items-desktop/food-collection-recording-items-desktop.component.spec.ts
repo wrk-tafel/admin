@@ -56,8 +56,8 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         name: 'Route 1'
     };
     const testFoodCategories: FoodCategory[] = [
-        { id: 0, name: 'Category 1', returnItem: false },
-        { id: 1, name: 'Category 2', returnItem: true },
+        { id: 0, name: 'Category 1', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: true },
+        { id: 1, name: 'Category 2', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: true },
     ];
     const testShops: Shop[] = [
         { id: 0, number: 1, name: 'Shop 1', address: 'Address 1' },

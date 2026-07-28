@@ -1,0 +1,96 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <div class="flex items-center gap-2">
+        <h5 class="mb-0 mt-1">Lebensmittelkategorien</h5>
+        <button matButton="filled" class="button-success" testid="addFoodCategoryButton" (click)="addFoodCategory()">
+          <fa-icon [icon]="faPlus"></fa-icon>
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <table mat-table [dataSource]="foodCategories()" testid="food-categories-table"
+           cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
+      <ng-container matColumnDef="drag">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let category; let i = index">
+          <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
+                   [attr.testid]="'dragFoodCategoryHandle-' + i"></fa-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Aktiv</th>
+        <td mat-cell *matCellDef="let category; let i = index">
+          @if (category.enabled) {
+            <button matButton="filled" class="button-success ms-2" testid="enableFoodCategoryButton"
+                    (click)="toggleFoodCategoryVisibility(category, false)">
+              <fa-icon [icon]="faEye"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger ms-2" testid="disableFoodCategoryButton"
+                    (click)="toggleFoodCategoryVisibility(category, true)">
+              <fa-icon [icon]="faEyeSlash"></fa-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let category; let i = index">
+          @if (editingId() === category.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input #nameInput matInput [formControl]="nameControl" [attr.testid]="'foodCategoryNameInput-' + i"
+                     (keydown.enter)="saveEdit(category)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ category.name }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="weightPerUnit">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gewicht pro Einheit (kg)</th>
+        <td mat-cell *matCellDef="let category; let i = index">
+          @if (editingId() === category.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input matInput type="number" [formControl]="weightPerUnitControl"
+                     [attr.testid]="'foodCategoryWeightPerUnitInput-' + i"
+                     (keydown.enter)="saveEdit(category)" (keydown.escape)="cancelEdit()"/>
+              <span matTextSuffix>&nbsp;kg</span>
+            </mat-form-field>
+          } @else {
+            {{ category.weightPerUnit }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+        <td mat-cell *matCellDef="let category; let i = index">
+          @if (editingId() === category.id) {
+            <button matButton="filled" [attr.testid]="'saveFoodCategoryButton-' + i" (click)="saveEdit(category)">
+              <fa-icon [icon]="faCheck"></fa-icon>
+            </button>
+            <button matButton class="ml-2" [attr.testid]="'cancelFoodCategoryButton-' + i" (click)="cancelEdit()">
+              <fa-icon [icon]="faXmark"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButton-' + i"
+                    [disabled]="!category.enabled" (click)="startEdit(category)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
+          cdkDrag [cdkDragData]="row"
+          [class.opacity-50]="!row.enabled"
+          [attr.testid]="'food-categories-row-' + i"></tr>
+    </table>
+  </mat-card-content>
+</mat-card>
