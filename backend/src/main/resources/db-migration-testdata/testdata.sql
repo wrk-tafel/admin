@@ -176,9 +176,9 @@ UPDATE households SET main_person_id = 100 WHERE id = 100;
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
-                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution, single_parent)
 values (101, NOW(), NOW(), 101, 100, null, 'Erdberg', 2, '1', '20', '1010',
-        'Wien', '00436645678953', 'eva.musterfrau@wrk.at', '2999-12-31', 0);
+        'Wien', '00436645678953', 'eva.musterfrau@wrk.at', '2999-12-31', 0, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (101, NOW(), NOW(), 101, true, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE', 2, 'Rotes Kreuz Wien', 456.00,
@@ -219,9 +219,9 @@ UPDATE households SET main_person_id = 102 WHERE id = 102;
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
-                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution, single_parent)
 values (103, NOW(), NOW(), 103, 100, null, 'Erdberg', 1, null, null,
-        '1030', 'Wien', null, null, NOW() + interval '1 month', 0);
+        '1030', 'Wien', null, null, NOW() + interval '1 month', 0, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (103, NOW(), NOW(), 103, true, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00,
