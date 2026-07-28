@@ -1,6 +1,7 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {FoodCategoryEditDialogComponent} from './dialogs/food-category-edit-dialog.component';
+import {FoodCategoryCreateDialogComponent} from './dialogs/food-category-create-dialog.component';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
@@ -17,8 +18,11 @@ import {
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faEye, faEyeSlash, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @Component({
   selector: 'tafel-settings-food-categories',
@@ -39,7 +43,11 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatTable,
     MatHeaderCellDef,
     FaIconComponent,
-    MatButton
+    MatButton,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCheckboxModule
   ]
 })
 export class SettingsFoodCategoriesComponent {
@@ -51,8 +59,17 @@ export class SettingsFoodCategoriesComponent {
   protected foodCategories = this._foodCategories;
   displayedColumns = ['active', 'name', 'weightPerUnit', 'returnItem', 'sortOrder', 'actions'];
 
+  protected editingId = signal<number | null>(null);
+  protected nameControl = new FormControl<string>('', {nonNullable: true});
+  protected weightPerUnitControl = new FormControl<number | null>(null);
+  protected returnItemControl = new FormControl<boolean>(false, {nonNullable: true});
+  protected sortOrderControl = new FormControl<number>(0, {nonNullable: true});
+  private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
+
   constructor() {
     this.loadFoodCategories();
+
+    effect(() => this.nameInput()?.nativeElement.focus());
   }
 
   private loadFoodCategories() {
@@ -62,22 +79,34 @@ export class SettingsFoodCategoriesComponent {
     });
   }
 
-  protected editFoodCategory(category: FoodCategory) {
-    const dialogRef = this.dialog.open(FoodCategoryEditDialogComponent, {
-      data: {category},
-      width: '600px'
-    });
+  protected startEdit(category: FoodCategory) {
+    this.editingId.set(category.id);
+    this.nameControl.setValue(category.name);
+    this.weightPerUnitControl.setValue(category.weightPerUnit);
+    this.returnItemControl.setValue(category.returnItem);
+    this.sortOrderControl.setValue(category.sortOrder);
+  }
 
-    dialogRef.afterClosed().subscribe((updated: FoodCategory | undefined) => {
-      if (updated) {
-        this.foodCategoriesApiService.updateFoodCategory(updated.id!, updated).subscribe({
-          next: () => {
-            this.toastr.success('Lebensmittelkategorie gespeichert', 'Erfolgreich');
-            this.loadFoodCategories();
-          },
-          error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
-        });
-      }
+  protected cancelEdit() {
+    this.editingId.set(null);
+  }
+
+  protected saveEdit(category: FoodCategory) {
+    const updated: FoodCategory = {
+      ...category,
+      name: this.nameControl.value,
+      weightPerUnit: this.weightPerUnitControl.value,
+      returnItem: this.returnItemControl.value,
+      sortOrder: this.sortOrderControl.value
+    };
+
+    this.foodCategoriesApiService.updateFoodCategory(updated.id, updated).subscribe({
+      next: () => {
+        this.toastr.success('Lebensmittelkategorie gespeichert', 'Erfolgreich');
+        this.editingId.set(null);
+        this.loadFoodCategories();
+      },
+      error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
     });
   }
 
@@ -96,12 +125,11 @@ export class SettingsFoodCategoriesComponent {
         this.toastr.error('Fehler beim Ändern', 'Fehler');
       }
     };
-    this.foodCategoriesApiService.updateFoodCategory(updatedCategory.id!, updatedCategory).subscribe(observer);
+    this.foodCategoriesApiService.updateFoodCategory(updatedCategory.id, updatedCategory).subscribe(observer);
   }
 
   protected addFoodCategory() {
-    const dialogRef = this.dialog.open(FoodCategoryEditDialogComponent, {
-      data: {category: undefined as any},
+    const dialogRef = this.dialog.open(FoodCategoryCreateDialogComponent, {
       width: '600px'
     });
 
@@ -122,4 +150,6 @@ export class SettingsFoodCategoriesComponent {
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
+  protected readonly faCheck = faCheck;
+  protected readonly faXmark = faXmark;
 }

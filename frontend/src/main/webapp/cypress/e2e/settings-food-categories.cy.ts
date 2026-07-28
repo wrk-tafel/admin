@@ -24,16 +24,64 @@ describe('Settings - Food Categories', () => {
     });
   });
 
-  it('edits a food category', () => {
+  it('shows validation errors and does not submit an invalid new food category', () => {
+    cy.byTestId('addFoodCategoryButton').click();
+
+    // Try to save without required fields
+    cy.get('input[formControlName="name"]').should('be.visible').clear();
+    cy.get('input[formControlName="weightPerUnit"]').clear();
+    cy.contains('Speichern').click();
+    // Ensure dialog still open (save did not close because of validation)
+    cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
+  });
+
+  it('focuses the name input when starting an inline edit', () => {
+    cy.byTestId('editFoodCategoryButton-0').click();
+
+    cy.byTestId('foodCategoryNameInput-0').should('be.focused');
+  });
+
+  it('edits a food category inline', () => {
     cy.getAnyRandomNumber().then((randomId) => {
-      cy.byTestId('edit-foodcategory-button-0').click();
+      cy.byTestId('editFoodCategoryButton-0').click();
 
-      // Dialog fields are rendered in the overlay; target visible inputs instead
       const newName = 'Backwaren Updated ' + randomId;
-      cy.get('input[formControlName="name"]').should('be.visible').clear().type(newName);
-      cy.contains('Speichern').click();
+      cy.byTestId('foodCategoryNameInput-0').should('be.visible').clear().type(newName);
+      cy.byTestId('saveFoodCategoryButton-0').click();
 
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
       cy.byTestId('food-categories-row-0').should('contain.text', newName);
+    });
+  });
+
+  it('discards changes when cancelling an inline edit', () => {
+    cy.byTestId('food-categories-row-0').invoke('text').then((originalText) => {
+      cy.byTestId('editFoodCategoryButton-0').click();
+      cy.byTestId('foodCategoryNameInput-0').clear().type('Should Not Be Saved');
+      cy.byTestId('cancelFoodCategoryButton-0').click();
+
+      cy.byTestId('food-categories-row-0').should('have.text', originalText);
+    });
+  });
+
+  it('saves the inline edit when pressing Enter', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      cy.byTestId('editFoodCategoryButton-0').click();
+
+      const newName = 'Backwaren Enter ' + randomId;
+      cy.byTestId('foodCategoryNameInput-0').should('be.visible').clear().type(newName + '{enter}');
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+      cy.byTestId('food-categories-row-0').should('contain.text', newName);
+    });
+  });
+
+  it('discards changes when pressing Escape', () => {
+    cy.byTestId('food-categories-row-0').invoke('text').then((originalText) => {
+      cy.byTestId('editFoodCategoryButton-0').click();
+      cy.byTestId('foodCategoryNameInput-0').clear().type('Should Not Be Saved{esc}');
+
+      cy.byTestId('food-categories-row-0').should('have.text', originalText);
     });
   });
 
@@ -41,18 +89,6 @@ describe('Settings - Food Categories', () => {
     cy.byTestId('enableFoodCategoryButton').first().click();
     cy.get('.toast-message')
       .should('be.visible');
-  });
-
-  it('shows validation errors and does not submit invalid food category', () => {
-    cy.byTestId('addFoodCategoryButton').click();
-
-    // Try to save without required fields
-    // Dialog fields are rendered in the overlay; target visible inputs instead
-    cy.get('input[formControlName="name"]').should('be.visible').clear();
-    cy.get('input[formControlName="weightPerUnit"]').clear();
-    cy.contains('Speichern').click();
-    // Ensure dialog still open (save did not close because of validation)
-    cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
   });
 
 });
