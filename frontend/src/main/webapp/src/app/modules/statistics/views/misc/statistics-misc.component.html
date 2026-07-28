@@ -51,7 +51,7 @@
         <tr mat-row *matRowDef="let row; columns: schoolStarterPackageColumns;"></tr>
       </table>
       <mat-paginator class="tafel-paginator-responsive" [length]="schoolStarterPackageData()!.length"
-                     [pageSize]="pageSize()" [pageIndex]="pageIndex()" [pageSizeOptions]="[10, 25, 50]"
+                     [pageSize]="pageSize()" [pageIndex]="pageIndex()" [hidePageSize]="true"
                      [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
     } @else if (schoolStarterPackageData()) {
       <div class="mt-4">Keine Einträge gefunden.</div>
