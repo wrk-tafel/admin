@@ -95,7 +95,7 @@ class HouseholdConverter(
             personEntity.employer = person.employer?.trim()
             personEntity.income = person.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
             personEntity.incomeDue = person.incomeDue
-            personEntity.receivesFamilyBonus = person.receivesFamilyBonus
+            personEntity.receivesFamilyAllowance = person.receivesFamilyAllowance
             personEntity.excludeFromHousehold = person.excludeFromHousehold
             personEntity
         }.toList()
@@ -154,7 +154,7 @@ class HouseholdConverter(
         employer = personEntity.employer,
         income = personEntity.income,
         incomeDue = personEntity.incomeDue,
-        receivesFamilyBonus = personEntity.receivesFamilyBonus,
+        receivesFamilyAllowance = personEntity.receivesFamilyAllowance,
         excludeFromHousehold = personEntity.excludeFromHousehold,
     )
 

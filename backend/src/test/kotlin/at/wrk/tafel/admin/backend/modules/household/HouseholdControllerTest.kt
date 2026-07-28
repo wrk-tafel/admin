@@ -94,7 +94,7 @@ class HouseholdControllerTest {
                     gender = PersonGender.FEMALE,
                     income = BigDecimal("100"),
                     incomeDue = LocalDate.now(),
-                    receivesFamilyBonus = false,
+                    receivesFamilyAllowance = false,
                     country = Country(
                         id = 1,
                         code = "AT",
@@ -109,7 +109,7 @@ class HouseholdControllerTest {
                     lastname = "Add pers 2",
                     birthDate = LocalDate.now().minusYears(2),
                     gender = PersonGender.MALE,
-                    receivesFamilyBonus = true,
+                    receivesFamilyAllowance = true,
                     country = Country(
                         id = 1,
                         code = "AT",

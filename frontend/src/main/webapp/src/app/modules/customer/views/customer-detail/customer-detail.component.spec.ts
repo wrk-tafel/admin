@@ -87,7 +87,7 @@ describe('CustomerDetailComponent', () => {
         incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
         country: mockCountry,
         excludeFromHousehold: false,
-        receivesFamilyBonus: true
+        receivesFamilyAllowance: true
       },
       {
         key: 1,
@@ -98,7 +98,7 @@ describe('CustomerDetailComponent', () => {
         gender: Gender.MALE,
         country: mockCountry,
         excludeFromHousehold: true,
-        receivesFamilyBonus: false
+        receivesFamilyAllowance: false
       }
     ]
   };
@@ -274,7 +274,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
-    expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyBonus')).toBe('Ja');
+    expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyAllowance')).toBe('Ja');
 
     const birthDateAgePers1 = dayjs(mockCustomer.additionalPersons![0].birthDate).format('DD.MM.YYYY') +
       ' (' + dayjs().diff(mockCustomer.additionalPersons![0].birthDate, 'years') + ')';

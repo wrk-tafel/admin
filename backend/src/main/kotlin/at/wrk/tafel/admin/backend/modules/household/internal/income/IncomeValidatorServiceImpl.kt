@@ -14,7 +14,7 @@ import kotlin.math.max
  * adjusted per [StaticValueType] over time (each lookup is date-scoped via `currentDate`) without
  * a code change. The overall algorithm:
  * 1. Sum `monthlyIncome` for persons not flagged `excludeFromIncomeCalculation`.
- * 2. Add a family bonus: per child flagged `receivesFamilyBonus`, an age-tiered [StaticValueType.FAMILY_BONUS]
+ * 2. Add a family allowance: per child flagged `receivesFamilyAllowance`, an age-tiered [StaticValueType.FAMILY_ALLOWANCE]
  *    amount plus a flat [StaticValueType.CHILD_TAX_ALLOWANCE], plus a [StaticValueType.SIBLING_ADDITION]
  *    that scales with the number of qualifying children (capped at the highest configured tier for 7+).
  * 3. Determine the base limit from [StaticValueRepository.findLatestForPersonCount] for the
@@ -33,19 +33,19 @@ class IncomeValidatorServiceImpl(
 
         val personsToInclude = persons.filterNot { it.excludeFromIncomeCalculation }
 
-        val familyBonusSum = calculateFamilyBonus(persons.filter { it.receivesFamilyBonus })
+        val familyAllowanceSum = calculateFamilyAllowance(persons.filter { it.receivesFamilyAllowance })
         val incomeSum = personsToInclude.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
-        val overallIncome = incomeSum + familyBonusSum
+        val overallIncome = incomeSum + familyAllowanceSum
         return calculateOverallResult(personsToInclude, overallIncome)
     }
 
-    private fun calculateFamilyBonus(persons: List<IncomeValidatorPerson>): BigDecimal {
+    private fun calculateFamilyAllowance(persons: List<IncomeValidatorPerson>): BigDecimal {
         var monthlySum = persons.sumOf { person ->
             var monthlySum = BigDecimal.ZERO
 
-            if (person.isChildForFamilyBonus()) {
-                monthlySum += getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO
+            if (person.isChildForFamilyAllowance()) {
+                monthlySum += getFamilyAllowanceForAge(person.getAge()) ?: BigDecimal.ZERO
 
                 val childTaxAllowanceValue = staticValueRepository
                     .findSingleValueOfType(type = StaticValueType.CHILD_TAX_ALLOWANCE, currentDate = LocalDate.now())
@@ -63,7 +63,7 @@ class IncomeValidatorServiceImpl(
     private fun calculateSiblingAddition(
         persons: List<IncomeValidatorPerson>,
     ): BigDecimal {
-        val countChildren = persons.count { it.isChildForFamilyBonus() }
+        val countChildren = persons.count { it.isChildForFamilyAllowance() }
 
         val siblingAdditionLimits = staticValueRepository.findValuesOfType(
             type = StaticValueType.SIBLING_ADDITION,
@@ -82,8 +82,8 @@ class IncomeValidatorServiceImpl(
         return siblingAdditionValue.multiply(countChildren.toBigDecimal())
     }
 
-    private fun getFamilyBonusForAge(age: Int): BigDecimal? = staticValueRepository.findValuesOfType(
-        type = StaticValueType.FAMILY_BONUS,
+    private fun getFamilyAllowanceForAge(age: Int): BigDecimal? = staticValueRepository.findValuesOfType(
+        type = StaticValueType.FAMILY_ALLOWANCE,
         currentDate = LocalDate.now(),
     )
         .asSequence()

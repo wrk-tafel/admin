@@ -114,7 +114,7 @@ class HouseholdServiceTest {
                     country = testCountry,
                     income = BigDecimal("100"),
                     excludeFromHousehold = false,
-                    receivesFamilyBonus = false,
+                    receivesFamilyAllowance = false,
                 ),
                 Person(
                     id = 3,
@@ -126,7 +126,7 @@ class HouseholdServiceTest {
                     country = testCountry,
                     income = null,
                     excludeFromHousehold = true,
-                    receivesFamilyBonus = true,
+                    receivesFamilyAllowance = true,
                 ),
             ),
         )
@@ -161,7 +161,7 @@ class HouseholdServiceTest {
                 birthDate = LocalDate.now().minusYears(5),
                 monthlyIncome = BigDecimal("100"),
                 excludeFromIncomeCalculation = false,
-                receivesFamilyBonus = false,
+                receivesFamilyAllowance = false,
             ),
         )
 
@@ -169,7 +169,7 @@ class HouseholdServiceTest {
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(2),
                 excludeFromIncomeCalculation = true,
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
             ),
         )
 

@@ -14,11 +14,11 @@ data class IncomeValidatorPerson(
     val monthlyIncome: BigDecimal? = null,
     val birthDate: LocalDate?,
     val excludeFromIncomeCalculation: Boolean = false,
-    val receivesFamilyBonus: Boolean = false,
+    val receivesFamilyAllowance: Boolean = false,
 ) {
     fun isChild(): Boolean = getAge() < 15
 
-    fun isChildForFamilyBonus(): Boolean = getAge() <= 24
+    fun isChildForFamilyAllowance(): Boolean = getAge() <= 24
 
     fun getAge(): Int = Period.between(birthDate, LocalDate.now()).years
 }

@@ -104,7 +104,7 @@ internal class HouseholdConverterTest {
                 gender = PersonGender.MALE,
                 income = BigDecimal("100"),
                 incomeDue = LocalDate.now(),
-                receivesFamilyBonus = false,
+                receivesFamilyAllowance = false,
                 country = testCountry,
                 excludeFromHousehold = false,
             ),
@@ -115,7 +115,7 @@ internal class HouseholdConverterTest {
                 lastname = "Add pers 2",
                 birthDate = LocalDate.now().minusYears(2),
                 gender = PersonGender.FEMALE,
-                receivesFamilyBonus = true,
+                receivesFamilyAllowance = true,
                 country = testCountry,
                 excludeFromHousehold = true,
             ),
@@ -161,7 +161,7 @@ internal class HouseholdConverterTest {
         addPerson1.gender = Gender.MALE
         addPerson1.income = BigDecimal("100")
         addPerson1.incomeDue = LocalDate.now()
-        addPerson1.receivesFamilyBonus = false
+        addPerson1.receivesFamilyAllowance = false
         addPerson1.country = testCountry1
         addPerson1.excludeFromHousehold = false
 
@@ -173,7 +173,7 @@ internal class HouseholdConverterTest {
         addPerson2.birthDate = LocalDate.now().minusYears(2)
         addPerson2.gender = Gender.FEMALE
         addPerson2.country = testCountry1
-        addPerson2.receivesFamilyBonus = true
+        addPerson2.receivesFamilyAllowance = true
         addPerson2.excludeFromHousehold = true
 
         persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)

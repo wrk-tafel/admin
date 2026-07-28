@@ -261,7 +261,7 @@ export class CustomerFormComponent {
       income: null,
       incomeDue: null,
       excludeFromHousehold: false,
-      receivesFamilyBonus: true
+      receivesFamilyAllowance: true
     };
 
     // Update the form model's additionalPersons array
@@ -334,5 +334,5 @@ export interface AdditionalPersonFormItem {
   income: number | null;
   incomeDue: Date | null;
   excludeFromHousehold: boolean;
-  receivesFamilyBonus: boolean;
+  receivesFamilyAllowance: boolean;
 }

@@ -56,7 +56,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         income: 50,
         incomeDue: dayjs().add(1, 'years').startOf('day').toDate(),
         excludeFromHousehold: false,
-        receivesFamilyBonus: true
+        receivesFamilyAllowance: true
       },
       {
         key: 1,
@@ -67,7 +67,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         gender: Gender.MALE,
         country: testCountry2,
         excludeFromHousehold: true,
-        receivesFamilyBonus: false
+        receivesFamilyAllowance: false
       }
     ]
   };

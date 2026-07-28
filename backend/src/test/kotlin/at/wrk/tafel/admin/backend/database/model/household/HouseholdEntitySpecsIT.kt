@@ -100,7 +100,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
             lastname = "child-${generateRandomLong()}"
             country = testCountry
             excludeFromHousehold = false
-            receivesFamilyBonus = false
+            receivesFamilyAllowance = false
             birthDate = null
             gender = null
         }

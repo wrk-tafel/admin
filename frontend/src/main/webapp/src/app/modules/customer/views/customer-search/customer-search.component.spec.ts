@@ -35,7 +35,7 @@ describe('CustomerSearchComponent', () => {
                     city: 'city'
                 },
                 additionalPersons: [
-                    { key: 1, id: 1, firstname: 'child', lastname: 'last', excludeFromHousehold: false, receivesFamilyBonus: false }
+                    { key: 1, id: 1, firstname: 'child', lastname: 'last', excludeFromHousehold: false, receivesFamilyAllowance: false }
                 ],
             }
         ],
