@@ -45,6 +45,16 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
   test:
     uses: ./.github/workflows/subflow_test.yml
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Determine short commit SHA
+        id: version
+        env:
+          FULL_SHA: ${{ github.event.pull_request.head.sha }}
+        run: echo "version=${FULL_SHA:0:7}" >> "$GITHUB_OUTPUT"
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
@@ -54,10 +64,10 @@ jobs:
     uses: ./.github/workflows/subflow_lint.yml
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: build
+    needs: [build, version]
     with:
-      imageTags: dev
-      version: ${{ github.event.pull_request.head.sha }}
+      imageTags: ${{ needs.version.outputs.version }}
+      version: ${{ needs.version.outputs.version }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
@@ -65,11 +75,14 @@ jobs:
     needs: build
   deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: build-push-image
+    needs: [build-push-image, version]
+    with:
+      environment: dev
+      version: ${{ needs.version.outputs.version }}
     concurrency:
       group: dev-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_DEV_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
     if: github.actor != 'dependabot[bot]'
