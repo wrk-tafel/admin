@@ -14,6 +14,14 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('not.exist');
   });
 
+  it('visiting the app root while not logged in redirects to a plain login without an error message', () => {
+    cy.visit('/');
+
+    cy.url().should('contain', '/login');
+    cy.url().should('not.contain', 'fehlgeschlagen');
+    cy.byTestId('errorMessage').should('not.exist');
+  });
+
   it('login successful', () => {
     enterLoginData('e2etest', 'e2etest');
 
