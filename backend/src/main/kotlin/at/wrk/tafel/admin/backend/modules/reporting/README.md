@@ -64,23 +64,24 @@ Because `AgeDistributionExporter`/`CountryDistributionExporter`/`HouseholdSizeDi
 at `currentStatistic.distribution.households`, they silently report empty/zero data if that relation isn't
 populated on the entity passed in — they do not requery the database for it.
 
-## The `allowedDependencies = {}` puzzle — reporting is a dependency *target*, not consumer
+## Module dependency: `reporting` depends on `distribution`, only for one event
 
-Like `dashboard`, `reporting`'s `package-info.java` declares no allowed module dependencies:
+`reporting`'s `package-info.java`:
 
 ```java
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {}
+        allowedDependencies = {"distribution"}
 )
 package at.wrk.tafel.admin.backend.modules.reporting;
 ```
 
-This is consistent, not contradictory, with `distribution` depending on `reporting` (per the top-level
-`AGENTS.md`): `allowedDependencies` on *this* module's annotation only constrains what `reporting` itself is
-allowed to import from other `modules.*` packages (it imports none — same trick as `dashboard`, it only reads
-`database.model.*` entities/repositories, e.g. `DistributionRepository`, `FoodCategoryRepository`, which are
-shared infrastructure, not application modules). It says nothing about who is allowed to depend on
-`reporting`.
+This is the *reverse* of what you'd expect from "distribution closes, then reporting emails files" — and
+it used to be reversed: `distribution` previously depended on `reporting` directly (two post-processors,
+`DailyReportMailPostProcessor`/`StatisticMailPostProcessor`, called `DailyReportService`/
+`StatisticExportService` straight from `distribution`). That coupling was inverted via an event: `distribution`
+now publishes `at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent` (a public,
+non-internal type) after a distribution closes, and `reporting` is the one with the allowed dependency —
+solely so it can reference that event type.
 
 There are no explicit `@NamedInterface`/`@org.springframework.modulith.NamedInterface` annotations anywhere
 in this module. Spring Modulith's default rule applies instead: **a module's root package is its default
@@ -88,27 +89,29 @@ public API; everything under `internal` is hidden from other modules.** Concrete
 directly in `modules.reporting` (`DailyReportService`, `StatisticExportService`, `StatisticExportFile`,
 `StatisticsController` and the `StatisticsSettings`/`StatisticsData`/... DTOs) are importable by other
 modules; everything in `modules.reporting.internal.*` (the `StatisticsService`, the PDF model, the
-exporters) is not.
+exporters, and the listener below) is not. In practice nothing outside `reporting` imports
+`DailyReportService`/`StatisticExportService`/`StatisticExportFile` anymore (checked) — they're only public
+because nothing has moved them to `internal` since the post-processors that used to be their only external
+callers were deleted.
 
-`distribution`'s post-processor chain is exactly what depends on this public surface — confirmed by
-`import` lines in
-`modules/distribution/internal/postprocessors/DailyReportMailPostProcessor.kt` and
-`.../StatisticMailPostProcessor.kt`:
+### `internal.DistributionClosedEventListener` — reacts to `DistributionClosedEvent`
 
-```kotlin
-import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
-// ...
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportFile
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
-```
+`@Component class DistributionClosedEventListener` is a plain, synchronous `@EventListener` (deliberately *not*
+`@ApplicationModuleListener` — see its class doc for why) that reacts to `DistributionClosedEvent` by
+calling `dailyReportService.generateDailyReportPdf(statistic)` and
+`statisticExportService.exportStatisticFiles(statistic)` itself and emailing the results - the same two
+mails `DailyReportMailPostProcessor`/`StatisticMailPostProcessor` used to send from inside `distribution`,
+now sent from inside `reporting` instead - plus a third mail, the return-boxes summary, ported over
+(unchanged logic) from `distribution`'s `ReturnBoxesMailPostProcessor`. That third one never actually
+depended on `reporting`; it moved here purely so all three mails share the same isolation/retry handling.
+All three mails are isolated from each other and each is retried up to 3 times (via a `RetryTemplate`)
+before being given up on; see `distribution/README.md`'s "Why `distribution` no longer depends on
+`reporting`" section for the full picture of both sides of this event, including the manual mail-resend
+path.
 
-`DailyReportMailPostProcessor.process(...)` calls `dailyReportService.generateDailyReportPdf(statistic)` and
-mails the bytes as a PDF attachment; `StatisticMailPostProcessor.process(...)` calls
-`statisticExportService.exportStatisticFiles(statistic)` and mails each `StatisticExportFile` as a CSV
-attachment. Both post-processors run as part of `distribution`'s close-distribution post-processor chain
-(`DistributionPostProcessorService`), i.e. reporting's public services are invoked synchronously right after
-a distribution is closed — there's no async/event-driven handoff here, unlike the dashboard's outbox-based
-decoupling.
+Every class in this codebase whose job is to react to a Spring event is named `<EventName>Listener` — this
+one, and `distribution.internal.DistributionEndedEventListener` (reacts to `DistributionEndedEvent`, the
+internal-only event that triggers `distribution`'s own post-processor chain before this one ever fires).
 
 ## PDF generation mechanics (XSL-FO + Apache FOP)
 

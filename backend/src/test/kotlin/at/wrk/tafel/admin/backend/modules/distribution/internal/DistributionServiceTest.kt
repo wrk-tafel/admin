@@ -17,7 +17,6 @@ import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -85,9 +84,6 @@ internal class DistributionServiceTest {
     @RelaxedMockK
     private lateinit var pdfService: PDFService
 
-    @RelaxedMockK
-    private lateinit var distributionPostProcessorService: DistributionPostProcessorService
-
     @SpyK
     private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
 
@@ -96,9 +92,6 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var routeRepository: RouteRepository
-
-    @RelaxedMockK
-    private lateinit var returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor
 
     @RelaxedMockK
     private lateinit var advisoryLockService: AdvisoryLockService
@@ -411,8 +404,32 @@ internal class DistributionServiceTest {
                 },
             )
         }
-        verify { distributionPostProcessorService.process(savedDistributionId) }
+        verify { eventPublisher.publishEvent(DistributionEndedEvent(savedDistributionId)) }
         verify(exactly = 1) { transactionTemplate.transactionManager }
+    }
+
+    @Test
+    fun `close distribution forwards the error when publishing DistributionEndedEvent fails`() {
+        val distributionEntity = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+
+        val savedDistributionId = 123L
+        val savedDistribution = mockk<DistributionEntity>()
+        every { savedDistribution.id } returns savedDistributionId
+        every { savedDistribution.startedAt } returns LocalDateTime.now().minusHours(1)
+        every { savedDistribution.endedAt } returns LocalDateTime.now()
+        every { distributionRepository.save(any()) } returns savedDistribution
+
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
+        every { eventPublisher.publishEvent(any<DistributionEndedEvent>()) } throws TafelValidationException("Test exception")
+
+        val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
+        assertThat(exception.message).isEqualTo("Test exception")
     }
 
     @Test
@@ -1068,7 +1085,6 @@ internal class DistributionServiceTest {
         service.sendMails(testDistributionEntity.id!!)
 
         verify { eventPublisher.publishEvent(DistributionClosedEvent(testDistributionEntity.id!!)) }
-        verify { returnBoxesMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
     }
 
     @Test
@@ -1077,5 +1093,14 @@ internal class DistributionServiceTest {
 
         val exception = assertThrows<TafelValidationException> { service.sendMails(testDistributionEntity.id!!) }
         assertThat(exception.message).isEqualTo("Ausgabe nicht gefunden!")
+    }
+
+    @Test
+    fun `send mails forwards the error when publishing fails`() {
+        every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns testDistributionEntity
+        every { eventPublisher.publishEvent(any<DistributionClosedEvent>()) } throws TafelValidationException("Test exception")
+
+        val exception = assertThrows<TafelValidationException> { service.sendMails(testDistributionEntity.id!!) }
+        assertThat(exception.message).isEqualTo("Test exception")
     }
 }

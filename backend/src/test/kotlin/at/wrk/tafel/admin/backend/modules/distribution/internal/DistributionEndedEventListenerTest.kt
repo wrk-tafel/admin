@@ -5,26 +5,32 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DistributionPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
+import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.retry.support.RetryTemplate
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
-internal class DistributionPostProcessorServiceTest {
+internal class DistributionEndedEventListenerTest {
 
     @RelaxedMockK
     private lateinit var distributionStatisticService: DistributionStatisticService
+
+    @RelaxedMockK
+    private lateinit var missingCostContributionService: MissingCostContributionService
 
     @SpyK
     private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
@@ -35,133 +41,105 @@ internal class DistributionPostProcessorServiceTest {
     @RelaxedMockK
     private lateinit var eventPublisher: ApplicationEventPublisher
 
-    private val failingPostProcessor = mockk<DistributionPostProcessor>()
-    private val successfulPostProcessor = mockk<DistributionPostProcessor>()
+    private lateinit var listener: DistributionEndedEventListener
 
     @BeforeEach
     fun beforeEach() {
-        every { failingPostProcessor.process(any(), any()) } throws TafelValidationException("Test exception")
+        // Real RetryTemplate (not mocked) with no backoff, so retry behavior is genuinely exercised
+        // without slowing the test down with real waits between attempts.
+        val retryTemplate = RetryTemplate.builder()
+            .maxAttempts(3)
+            .noBackoff()
+            .retryOn(Exception::class.java)
+            .build()
+
+        listener = DistributionEndedEventListener(
+            distributionStatisticService,
+            missingCostContributionService,
+            transactionTemplate,
+            distributionRepository,
+            eventPublisher,
+            retryTemplate,
+        )
     }
 
     @Test
-    fun `creates statistic and calls proper postprocessors`() {
-        val service = DistributionPostProcessorService(
-            distributionStatisticService,
-            transactionTemplate,
-            distributionRepository,
-            listOf(
-                successfulPostProcessor,
-                successfulPostProcessor,
-            ),
-            eventPublisher,
-        )
-
+    fun `creates statistic, adds missing cost contributions, and publishes event`() {
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.households } returns listOf(
-            testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2,
-        )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
-        service.process(distributionId)
+        listener.onDistributionEnded(DistributionEndedEvent(distributionId))
 
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
         verify(exactly = 1) { distributionStatisticService.saveStatistic(distribution) }
-        verify(exactly = 2) { successfulPostProcessor.process(distribution, distributionStatistic) }
+        verify(exactly = 1) { missingCostContributionService.addMissingCostContributions(distribution) }
         verify(exactly = 1) { eventPublisher.publishEvent(DistributionClosedEvent(distributionId)) }
     }
 
     @Test
-    fun `still proceeds when one process fails`() {
-        val service = DistributionPostProcessorService(
-            distributionStatisticService,
-            transactionTemplate,
-            distributionRepository,
-            listOf(
-                failingPostProcessor,
-                successfulPostProcessor,
-            ),
-            eventPublisher,
-        )
+    fun `retries the whole transaction on transient failure and succeeds`() {
+        val distributionId = 123L
+        val distribution = mockk<DistributionEntity>()
+        every { distribution.id } returns distributionId
+
+        val distributionStatistic = mockk<DistributionStatisticEntity>()
+        every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
+        every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
+        every { missingCostContributionService.addMissingCostContributions(distribution) } throws
+            TafelValidationException("transient failure") andThenThrows
+            TafelValidationException("transient failure") andThen Unit
+
+        listener.onDistributionEnded(DistributionEndedEvent(distributionId))
+
+        verify(exactly = 3) { distributionStatisticService.saveStatistic(distribution) }
+        verify(exactly = 3) { missingCostContributionService.addMissingCostContributions(distribution) }
+        verify(exactly = 1) { eventPublisher.publishEvent(DistributionClosedEvent(distributionId)) }
+    }
+
+    @Test
+    fun `rolls back, retries, and never publishes event when adding missing cost contributions keeps failing`() {
+        every { missingCostContributionService.addMissingCostContributions(any()) } throws
+            TafelValidationException("Test exception")
 
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.households } returns listOf(
-            testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2,
-        )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
-        service.process(distributionId)
+        assertThrows<TafelValidationException> {
+            listener.onDistributionEnded(DistributionEndedEvent(distributionId))
+        }
 
-        verify(exactly = 1) { failingPostProcessor.process(distribution, distributionStatistic) }
-        verify(exactly = 1) { successfulPostProcessor.process(distribution, distributionStatistic) }
-        verify(exactly = 1) { eventPublisher.publishEvent(DistributionClosedEvent(distributionId)) }
+        verify(exactly = 3) { missingCostContributionService.addMissingCostContributions(distribution) }
+        verify(exactly = 0) { eventPublisher.publishEvent(any<DistributionClosedEvent>()) }
     }
 
     @Test
-    fun `still publishes event when a postprocessor fails`() {
-        val service = DistributionPostProcessorService(
-            distributionStatisticService,
-            transactionTemplate,
-            distributionRepository,
-            listOf(failingPostProcessor),
-            eventPublisher,
-        )
+    fun `forwards the error when event publishing fails, without retrying it`() {
+        every { eventPublisher.publishEvent(any<DistributionClosedEvent>()) } throws TafelValidationException("Test exception")
 
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.households } returns listOf(
-            testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2,
-        )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
-        service.process(distributionId)
+        val exception = assertThrows<TafelValidationException> {
+            listener.onDistributionEnded(DistributionEndedEvent(distributionId))
+        }
 
-        verify(exactly = 1) { eventPublisher.publishEvent(DistributionClosedEvent(distributionId)) }
-    }
-
-    @Test
-    fun `still finishes when event publishing fails`() {
-        every { eventPublisher.publishEvent(any()) } throws TafelValidationException("Test exception")
-
-        val service = DistributionPostProcessorService(
-            distributionStatisticService,
-            transactionTemplate,
-            distributionRepository,
-            listOf(successfulPostProcessor),
-            eventPublisher,
-        )
-
-        val distributionId = 123L
-        val distribution = mockk<DistributionEntity>()
-        every { distribution.id } returns distributionId
-        every { distribution.households } returns listOf(
-            testDistributionHouseholdEntity1,
-            testDistributionHouseholdEntity2,
-        )
-
-        val distributionStatistic = mockk<DistributionStatisticEntity>()
-        every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
-        every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
-
-        service.process(distributionId)
-
-        verify(exactly = 1) { successfulPostProcessor.process(distribution, distributionStatistic) }
+        assertThat(exception.message).isEqualTo("Test exception")
+        verify(exactly = 1) { missingCostContributionService.addMissingCostContributions(distribution) }
         verify(exactly = 1) { eventPublisher.publishEvent(DistributionClosedEvent(distributionId)) }
     }
 }

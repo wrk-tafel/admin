@@ -92,7 +92,7 @@ Modeled as flat rows in `mail_recipients`: `(mailType, recipientType, address)`,
 - **Again, the settings module is admin-only — it doesn't gatekeep reads.** Actual business logic
   reads `StaticValueRepository` directly, bypassing `settings` entirely:
   `household.internal.income.IncomeValidatorServiceImpl` (income-limit/family-bonus/tolerance
-  calculations) and `distribution.internal.postprocessors.MissingCostContributionPostProcessor`
+  calculations) and `distribution.internal.statistic.MissingCostContributionService`
   both inject `StaticValueRepository` themselves rather than going through `SettingsService`.
 
 ## Working in this module

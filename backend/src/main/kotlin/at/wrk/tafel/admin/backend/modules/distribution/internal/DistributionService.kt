@@ -17,7 +17,6 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.Distributi
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -41,11 +40,9 @@ class DistributionService(
     private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val householdRepository: HouseholdRepository,
     private val pdfService: PDFService,
-    private val distributionPostProcessorService: DistributionPostProcessorService,
     private val transactionTemplate: TransactionTemplate,
     private val shelterRepository: ShelterRepository,
     private val routeRepository: RouteRepository,
-    private val returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor,
     private val advisoryLockService: AdvisoryLockService,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
@@ -289,7 +286,12 @@ class DistributionService(
                 "Closed distribution: ID ${currentDistribution.id} (started at: $startDateFormatted, ended at: $endDateFormatted)",
             )
 
-            distributionPostProcessorService.process(currentDistribution.id!!)
+            try {
+                eventPublisher.publishEvent(DistributionEndedEvent(currentDistribution.id!!))
+            } catch (e: Exception) {
+                logger.error("Publishing DistributionEndedEvent failed", e)
+                throw e
+            }
             result = currentDistribution
         }
 
@@ -388,10 +390,14 @@ class DistributionService(
 
     @Transactional
     fun sendMails(distributionId: Long) {
-        val distribution = distributionRepository.findByIdOrNull(distributionId)
+        distributionRepository.findByIdOrNull(distributionId)
             ?: throw TafelValidationException("Ausgabe nicht gefunden!")
 
-        eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
-        returnBoxesMailPostProcessor.process(distribution, distribution.statistic!!)
+        try {
+            eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
+        } catch (e: Exception) {
+            logger.error("Publishing DistributionClosedEvent failed", e)
+            throw e
+        }
     }
 }
