@@ -1,0 +1,24 @@
+name: Cleanup untagged container images
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 8 * * 1'
+
+jobs:
+  delete-untagged-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      # Untagged versions are orphaned image manifests left behind whenever a
+      # mutable tag (dev/test/latest) moved to a new digest, plus any digest
+      # no tag ever pointed to. Nothing references them, so they're safe to
+      # delete outright rather than time-boxing a retention window.
+      - name: Delete untagged versions of the admin container image
+        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: admin
+          package-type: container
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 0
