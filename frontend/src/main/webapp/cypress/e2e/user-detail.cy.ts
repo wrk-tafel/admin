@@ -1,9 +1,48 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {UserData} from '../support/commands';
 
 describe('User Detail', () => {
 
   beforeEach(() => {
     cy.loginDefault();
+  });
+
+  it('shows permissions grouped by category', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const userData: UserData = {
+        username: 'permcheck-' + randomNumber,
+        personnelNumber: 'permcheck-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-' + randomNumber,
+        passwordRepeat: 'dummy-' + randomNumber,
+        passwordChangeRequired: false,
+        permissions: [
+          {key: 'CHECKIN', title: 'Anmeldung'},
+          {key: 'SUPERVISOR', title: 'Supervisor'}
+        ]
+      };
+
+      cy.createUser(userData).then(response => {
+        cy.visit('/#/benutzer/detail/' + response.body.id);
+
+        cy.byTestId('permission-group-Ausgabe & Betrieb').within(() => {
+          cy.byTestId('permission-chip-CHECKIN').should('contain.text', 'Anmeldung');
+        });
+        cy.byTestId('permission-group-Leitung').within(() => {
+          cy.byTestId('permission-chip-SUPERVISOR').should('contain.text', 'Supervisor');
+        });
+      });
+    });
+  });
+
+  it('shows a placeholder when the user has no permissions', () => {
+    cy.createDummyUser().then(response => {
+      cy.visit('/#/benutzer/detail/' + response.body.id);
+
+      cy.byTestId('permissionsText').should('contain.text', '-');
+    });
   });
 
   it('userId correct', () => {
@@ -56,8 +95,10 @@ describe('User Detail', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/#/benutzer/detail/300');
 
-    // action buttons and the details card stack (flex-col, buttons on top) below the lg: breakpoint
-    cy.byTestId('editUserButton').should('be.visible');
+    // action buttons and the details card stack (flex-col-reverse, buttons below the card) below the
+    // lg: breakpoint - on the short phone viewport the now-richer permissions section pushes the
+    // buttons past the fold, so scroll to them first like a real user would.
+    cy.byTestId('editUserButton').scrollIntoView().should('be.visible');
     cy.byTestId('enabledText').should('have.text', 'Ja');
 
     cy.byTestId('changeUserStateButton').click();

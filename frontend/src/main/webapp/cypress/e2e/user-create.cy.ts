@@ -57,6 +57,43 @@ describe('User Create', () => {
     });
   });
 
+  it('permissions are grouped by category with a working select-all toggle', () => {
+    cy.visit('/#/benutzer/erstellen');
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      const username = 'test-username-' + userRandomId;
+      const personnelNumber = 'test-personnelNumber-' + userRandomId;
+      fillUserForm(username, personnelNumber);
+
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 11 ausgewählt');
+      cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').should('contain.text', 'Alle auswählen').click();
+
+      cy.byTestId('permission-checkbox-CHECKIN').find('input').should('be.checked');
+      cy.byTestId('permission-checkbox-DISTRIBUTION_LCM').find('input').should('be.checked');
+      cy.byTestId('permission-checkbox-CUSTOMER').find('input').should('be.checked');
+      cy.byTestId('permission-checkbox-SCANNER').find('input').should('be.checked');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '4 von 11 ausgewählt');
+      cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').should('contain.text', 'Alle abwählen');
+
+      // toggling again deselects the whole group
+      cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').click();
+      cy.byTestId('permission-checkbox-CHECKIN').find('input').should('not.be.checked');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 11 ausgewählt');
+
+      // re-select the group so the created user has permissions to verify on the detail page
+      cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').click();
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail');
+      cy.byTestId('permission-group-Ausgabe & Betrieb').within(() => {
+        cy.byTestId('permission-chip-CHECKIN').should('contain.text', 'Anmeldung');
+        cy.byTestId('permission-chip-DISTRIBUTION_LCM').should('contain.text', 'Ausgabe-Ablauf');
+        cy.byTestId('permission-chip-CUSTOMER').should('contain.text', 'Kundenverwaltung');
+        cy.byTestId('permission-chip-SCANNER').should('contain.text', 'Scanner');
+      });
+    });
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);
