@@ -2,6 +2,15 @@ name: Deploy to server
 
 on:
   workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment folder on the server, e.g. "dev", "test", "prod"'
+        type: string
+        required: true
+      version:
+        description: 'Docker image tag to deploy, e.g. a commit SHA or release version'
+        type: string
+        required: true
     secrets:
       sshKey:
         required: true
@@ -26,4 +35,4 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ secrets.sshKnownHosts }}
           SSH_KEY_PATH: ${{ github.workspace }}/../private.key
       - name: Deploy to server
-        run: ${{ secrets.sshDeployCommand }}
+        run: ${{ secrets.sshDeployCommand }} ${{ inputs.environment }} ${{ inputs.version }}
