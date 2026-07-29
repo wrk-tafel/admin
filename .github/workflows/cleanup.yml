@@ -50,13 +50,13 @@ jobs:
           min-versions-to-keep: 0
       # Every PR/main-push build tags its image with an immutable short commit
       # SHA (see pull_request.yml/main_push.yml), so these otherwise accumulate
-      # forever. Keep the most recent 5 for debugging/rollback reference and
-      # prune the rest; release images ("latest" and semver version tags) are
-      # excluded and kept indefinitely.
+      # forever. Keep the most recent 2 - the currently deployed dev and test
+      # images - and prune the rest; release images ("latest" and semver
+      # version tags) are excluded and kept indefinitely.
       - name: Delete old commit-SHA-tagged versions of the admin container image
         uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
         with:
           package-name: admin
           package-type: container
-          min-versions-to-keep: 5
+          min-versions-to-keep: 2
           ignore-versions: '^(latest|[0-9]+\.[0-9]+\.[0-9]+)$'
