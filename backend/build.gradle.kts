@@ -55,7 +55,7 @@ dependencies {
     implementation(libs.spring.boot.starter.mail)
     implementation(libs.spring.boot.starter.jackson)
     implementation(libs.spring.boot.starter.thymeleaf)
-    implementation(libs.spring.modulith.starter.jpa)
+    implementation(libs.spring.modulith.starter.core)
     implementation(libs.spring.modulith.actuator)
     implementation(libs.spring.security.messaging)
     implementation(libs.spring.retry)

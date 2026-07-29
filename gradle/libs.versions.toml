@@ -47,7 +47,7 @@ spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
 # Spring Modulith
-spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
+spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
 spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
 
 # Spring Security
