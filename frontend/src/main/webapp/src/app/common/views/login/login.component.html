@@ -16,7 +16,7 @@
 
         <form (submit)="onSubmit($event)" class="flex flex-col">
           <div class="mb-4">
-            <mat-form-field class="w-full">
+            <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>Benutzername</mat-label>
               <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
                 <fa-icon [icon]="faUser"></fa-icon>
@@ -26,12 +26,12 @@
                      (animationstart)="onAutofill($event, 'username')">
             </mat-form-field>
             @for (message of visibleErrorMessages(loginForm.username()); track message) {
-              <mat-error class="block mt-1">{{ message }}</mat-error>
+              <mat-error class="block">{{ message }}</mat-error>
             }
           </div>
 
           <div class="mb-4">
-            <mat-form-field class="w-full">
+            <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>Passwort</mat-label>
               <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
                 <fa-icon [icon]="faKey"></fa-icon>
@@ -46,11 +46,11 @@
               </mat-icon>
             </mat-form-field>
             @for (message of visibleErrorMessages(loginForm.password()); track message) {
-              <mat-error class="block mt-1">{{ message }}</mat-error>
+              <mat-error class="block">{{ message }}</mat-error>
             }
           </div>
 
-          <button testid="loginButton" matButton="filled" type="submit" class="w-full"
+          <button testid="loginButton" matButton="filled" type="submit" class="w-full mt-4"
                   [disabled]="!loginForm().valid() || submitting()">
             {{ submitting() ? 'Anmeldung läuft…' : 'Anmelden' }}
           </button>
