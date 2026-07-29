@@ -27,7 +27,7 @@ jobs:
     uses: ./.github/workflows/subflow_lint.yml
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, version]
+    needs: [build, version, sonar, e2e-test]
     with:
       imageTags: ${{ needs.version.outputs.version }}
       version: ${{ needs.version.outputs.version }}
