@@ -150,7 +150,7 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/statische-werte'
       },
       {
-        name: 'Lebensmittelkategorien',
+        name: 'Waren-Kategorien',
         url: '/einstellungen/lebensmittelkategorien'
       },
     ],
