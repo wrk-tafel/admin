@@ -89,7 +89,7 @@ The two post-processors that used to reach into `reporting` directly (`DailyRepo
 `StatisticExportService.exportStatisticFiles()`) were removed. Instead, `distribution` publishes a
 `DistributionClosedEvent(distributionId)` — from `DistributionPostProcessorService.process()` after
 close, and from `DistributionService.sendMails()` on a manual resend — and `reporting`'s
-`internal.DistributionClosedMailListener` (a plain synchronous `@EventListener`, not
+`internal.DistributionClosedListener` (a plain synchronous `@EventListener`, not
 `@ApplicationModuleListener`) reacts to it, re-fetching the distribution by id and generating/emailing
 the daily report PDF and statistic CSV exports itself. `reporting` is therefore now the one with an
 allowed dependency on `distribution` (only for the event type), the reverse of before.
@@ -99,6 +99,14 @@ async after the publishing transaction commits, which would make `sendMails()` (
 used specifically when a mail failed to deliver) return success before actually knowing whether the
 resend worked. A synchronous listener keeps `sendMails()`'s existing behavior — it still runs inline
 and still throws back to the controller if mail generation/sending fails.
+
+Within `DistributionClosedListener`, the daily-report mail and the statistic mail are isolated from
+each other and each is retried up to 3 times (via a `RetryTemplate`) before being given up on - one
+failing/retrying never blocks the other from being attempted, mirroring the independence they used to
+have as separate `DistributionPostProcessor` beans. If either still fails after all retries, that
+failure is rethrown once both have been attempted (with a second failure attached as a suppressed
+exception), so `sendMails()` still surfaces a real error to the caller; the automatic post-close flow
+just logs it via `DistributionPostProcessorService`'s own try/catch and moves on.
 
 The household-list PDF (`generateHouseholdListPdf()`) uses the generic `common.pdf.PDFService` instead,
 not `reporting`.
@@ -228,7 +236,7 @@ stream is left open to any authenticated user while the state-changing endpoints
 
 `POST /api/distributions/{distributionId}/send-mails` (`DistributionService.sendMails()`) re-runs the
 daily report/statistic mails (by publishing `DistributionClosedEvent`, handled synchronously by
-`reporting`'s `DistributionClosedMailListener`) and `ReturnBoxesMailPostProcessor` directly, for an
+`reporting`'s `DistributionClosedListener`) and `ReturnBoxesMailPostProcessor` directly, for an
 already-closed distribution — useful if a mail failed to deliver. It deliberately does **not** re-run
 `MissingCostContributionPostProcessor`, since re-running that would double-count pending cost
 contributions for households that already had them added when the distribution originally closed.

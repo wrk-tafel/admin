@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.spring.modulith.starter.jpa)
     implementation(libs.spring.modulith.actuator)
     implementation(libs.spring.security.messaging)
+    implementation(libs.spring.retry)
     implementation(libs.flyway.database.postgresql)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.dataformat.xml)
