@@ -10,6 +10,14 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
   test:
     uses: ./.github/workflows/subflow_test.yml
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Determine short commit SHA
+        id: version
+        run: echo "version=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
@@ -19,10 +27,10 @@ jobs:
     uses: ./.github/workflows/subflow_lint.yml
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: build
+    needs: [build, version]
     with:
-      imageTags: ${{ github.sha }}
-      version: ${{ github.sha }}
+      imageTags: ${{ needs.version.outputs.version }}
+      version: ${{ needs.version.outputs.version }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
@@ -33,10 +41,10 @@ jobs:
     # main is the "must be green" pipeline: unlike PRs, deployment requires
     # backend+frontend unit tests AND e2e to have passed, not just a
     # successful build
-    needs: [build-push-image, test, e2e-test]
+    needs: [build-push-image, test, e2e-test, version]
     with:
       environment: test
-      version: ${{ github.sha }}
+      version: ${{ needs.version.outputs.version }}
     concurrency:
       group: test-environment
     secrets:
