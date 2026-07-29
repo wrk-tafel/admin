@@ -27,7 +27,7 @@ class FoodCollectionService(
     private val advisoryLockService: AdvisoryLockService,
 ) {
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getFoodCollection(routeId: Long): FoodCollectionData? {
         val distribution = distributionRepository.getCurrentDistribution()!!
 
@@ -93,7 +93,7 @@ class FoodCollectionService(
         foodCollectionRepository.save(foodCollectionEntity)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getItemsPerShop(routeId: Long, shopId: Long): FoodCollectionItems? {
         val distributionEntity = distributionRepository.getCurrentDistribution()!!
 

@@ -12,7 +12,7 @@ class ShopService(
     private val routeRepository: RouteRepository,
 ) {
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getShopsForRouteId(routeId: Long): List<Shop> {
         val route =
             routeRepository.findByIdOrNull(routeId) ?: throw TafelValidationException("Route $routeId nicht gefunden!")
