@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('User Create', () => {
 
   beforeEach(() => {
@@ -52,6 +54,16 @@ describe('User Create', () => {
       cy.get('.toast-message')
         .should('be.visible')
         .should('contain.text', 'Benutzer (Benutzername: e2etest) existiert bereits!');
+    });
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.visit('/#/benutzer/erstellen');
+
+      cy.byTestId('usernameInput').should('be.visible').type('mobile-test-user');
+      cy.byTestId('save-button').should('exist');
     });
   });
 

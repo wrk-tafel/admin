@@ -1,4 +1,5 @@
 import {UserData} from '../support/commands';
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Login', () => {
 
@@ -132,6 +133,28 @@ describe('Login', () => {
       cy.url().should('contain', '/login/fehlgeschlagen');
       cy.byTestId('errorMessage').should('exist').and('contain.text', 'Zugriff nicht erlaubt');
     });
+  });
+
+  it('remains usable on a phone viewport', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.visit('/#/login');
+
+    cy.byTestId('username').should('be.visible').type('e2etest');
+    cy.byTestId('password').should('be.visible').type('e2etest');
+    cy.byTestId('loginButton').should('be.enabled').click();
+
+    cy.url().should('contain', '/uebersicht');
+  });
+
+  it('remains usable on a tablet viewport', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.visit('/#/login');
+
+    cy.byTestId('username').should('be.visible').type('e2etest');
+    cy.byTestId('password').should('be.visible').type('e2etest');
+    cy.byTestId('loginButton').should('be.enabled').click();
+
+    cy.url().should('contain', '/uebersicht');
   });
 
   function createTestUser(permissions: { key: string; title: string }[] = []) {

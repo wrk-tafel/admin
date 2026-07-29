@@ -1,5 +1,6 @@
 import * as path from 'path';
 import dayjs from 'dayjs';
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Statistics General', () => {
 
@@ -17,8 +18,8 @@ describe('Statistics General', () => {
     cy.contains(`Zeitraum: ${from} - ${to}`).should('be.visible');
 
     cy.contains('Kunden und Personen').should('be.visible');
-    cy.contains('Notschlafstellen').should('be.visible');
-    cy.contains('Transport- / Logistik').should('be.visible');
+    cy.contains('Notschlafstellen').scrollIntoView().should('be.visible');
+    cy.contains('Transport- / Logistik').scrollIntoView().should('be.visible');
   });
 
   it('switches to current month mode and updates the shown range', () => {
@@ -71,6 +72,36 @@ describe('Statistics General', () => {
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
+  });
+
+  it('switches to a custom date range and updates the shown range on phone', () => {
+    cy.viewport(PHONE_VIEWPORT);
+
+    // below the sm: breakpoint the date range card and the "von"/"bis" label+input pairs stack in a single column
+    cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').click();
+
+    cy.intercept('GET', '/api/statistics/data?fromDate=2024-01-01&toDate=2024-06-30').as('customRangeData');
+
+    cy.byTestId('dataRangeFromInput').should('be.visible').clear().type('2024-01-01');
+    cy.byTestId('dataRangeToInput').should('be.visible').clear().type('2024-06-30');
+
+    cy.wait('@customRangeData');
+    cy.contains('Zeitraum: 01.01.2024 - 30.06.2024').should('be.visible');
+
+    cy.contains('Kunden und Personen').should('be.visible');
+    cy.contains('Notschlafstellen').scrollIntoView().should('be.visible');
+    cy.contains('Transport- / Logistik').scrollIntoView().should('be.visible');
+  });
+
+  it('shows the statistic and export cards and the aggregated data at tablet width', () => {
+    cy.viewport(TABLET_VIEWPORT);
+
+    // at the md: breakpoint the statistic card (col-span-3) and export card (col-span-1) sit side by side
+    const currentYear = dayjs().year();
+    cy.byTestId('yearInput').should('be.visible').and('contain.text', currentYear.toString());
+    cy.contains('CSV-Export').should('be.visible');
+
+    cy.contains('Kunden und Personen').should('be.visible');
   });
 
 });
