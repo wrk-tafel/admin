@@ -8,8 +8,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
-    {key: 'PERM1', title: 'Permission 1'},
-    {key: 'PERM2', title: 'Permission 2'}
+    {key: 'PERM1', title: 'Permission 1', category: 'Category 1'},
+    {key: 'PERM2', title: 'Permission 2', category: 'Category 2'}
   ];
 
   const mockUser: UserData = {
@@ -124,6 +124,51 @@ describe('UserFormComponent', () => {
       passwordChangeRequired: updatedPasswordChangeRequired,
       permissions: []
     }));
+  });
+
+  it('permissions are grouped by category', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    expect(component.permissionGroups()).toEqual([
+      {category: 'Category 1', permissions: [{...mockPermissions[0], enabled: false}]},
+      {category: 'Category 2', permissions: [{...mockPermissions[1], enabled: false}]}
+    ]);
+  });
+
+  it('togglePermission toggles only the matching permission by key', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    component.togglePermission('PERM2');
+
+    expect(component.permissions()).toEqual([
+      {...mockPermissions[0], enabled: false},
+      {...mockPermissions[1], enabled: true}
+    ]);
+    expect(component.selectedPermissionsCount()).toBe(1);
+    expect(component.totalPermissionsCount()).toBe(2);
+  });
+
+  it('toggleGroup selects all permissions in a category, then deselects them again', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    const group = component.permissionGroups()[0];
+    expect(component.isGroupFullySelected(group)).toBe(false);
+
+    component.toggleGroup(group);
+    expect(component.permissions()[0].enabled).toBe(true);
+    expect(component.isGroupFullySelected(component.permissionGroups()[0])).toBe(true);
+
+    component.toggleGroup(component.permissionGroups()[0]);
+    expect(component.permissions()[0].enabled).toBe(false);
   });
 
   it('password-repeat validator passwords different', () => {

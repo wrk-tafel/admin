@@ -1,12 +1,13 @@
-import {Component, inject, input, linkedSignal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
+import {MatChipsModule} from '@angular/material/chips';
 import {CommonModule, NgClass} from '@angular/common';
-import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions.pipe';
+import {groupPermissionsByCategory} from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
@@ -17,9 +18,9 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
         MatButtonModule,
         MatMenuModule,
         MatDividerModule,
+        MatChipsModule,
         NgClass,
-        CommonModule,
-        FormatPermissionsPipe
+        CommonModule
     ]
 })
 export class UserDetailComponent {
@@ -31,6 +32,8 @@ export class UserDetailComponent {
 
   // Writable signal that resets from input, but can be locally updated after API calls
   readonly currentUserData = linkedSignal(() => this.userData());
+
+  readonly permissionGroups = computed(() => groupPermissionsByCategory(this.currentUserData().permissions));
 
   disableUser() {
     this.changeUserState(false);

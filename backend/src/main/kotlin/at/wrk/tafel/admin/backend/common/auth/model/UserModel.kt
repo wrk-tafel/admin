@@ -32,6 +32,7 @@ data class User(
 data class UserPermission(
     val key: String,
     val title: String,
+    val category: String = "",
 )
 
 @ExcludeFromTestCoverage

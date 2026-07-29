@@ -104,6 +104,7 @@ export interface PermissionsListResponse {
 export interface UserPermission {
   key: string;
   title: string;
+  category: string;
 }
 
 export interface GeneratedPasswordResponse {
