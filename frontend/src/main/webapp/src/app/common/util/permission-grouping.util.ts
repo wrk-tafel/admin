@@ -1,4 +1,4 @@
-const CATEGORY_ORDER = ['Kundenverwaltung', 'Ausgabe & Betrieb', 'Verwaltung', 'Statistik'];
+const CATEGORY_ORDER = ['Ausgabe & Betrieb', 'Logistik', 'Leitung', 'Verwaltung'];
 
 export interface PermissionGroup<T> {
   category: string;

@@ -6,15 +6,15 @@ describe('permission-grouping.util', () => {
     it('should group permissions by category', () => {
       const permissions = [
         {key: 'CHECKIN', title: 'Anmeldung', category: 'Ausgabe & Betrieb'},
-        {key: 'CUSTOMER', title: 'Kundenverwaltung', category: 'Kundenverwaltung'},
+        {key: 'SETTINGS', title: 'Einstellungen', category: 'Verwaltung'},
         {key: 'SCANNER', title: 'Scanner', category: 'Ausgabe & Betrieb'},
       ];
 
       const result = groupPermissionsByCategory(permissions);
 
       expect(result).toEqual([
-        {category: 'Kundenverwaltung', permissions: [permissions[1]]},
         {category: 'Ausgabe & Betrieb', permissions: [permissions[0], permissions[2]]},
+        {category: 'Verwaltung', permissions: [permissions[1]]},
       ]);
     });
 
@@ -25,12 +25,12 @@ describe('permission-grouping.util', () => {
     it('should sort unknown categories after known ones', () => {
       const permissions = [
         {key: 'X', title: 'X', category: 'Sonstiges'},
-        {key: 'STATISTICS', title: 'Statistiken', category: 'Statistik'},
+        {key: 'SUPERVISOR', title: 'Supervisor', category: 'Leitung'},
       ];
 
       const result = groupPermissionsByCategory(permissions);
 
-      expect(result.map(group => group.category)).toEqual(['Statistik', 'Sonstiges']);
+      expect(result.map(group => group.category)).toEqual(['Leitung', 'Sonstiges']);
     });
   });
 });
