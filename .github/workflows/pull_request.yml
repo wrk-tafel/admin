@@ -56,7 +56,7 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     with:
-      imageTags: dev
+      imageTags: ${{ github.event.pull_request.head.sha }}
       version: ${{ github.event.pull_request.head.sha }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -66,10 +66,13 @@ jobs:
   deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: build-push-image
+    with:
+      environment: dev
+      version: ${{ github.event.pull_request.head.sha }}
     concurrency:
       group: dev-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_DEV_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
     if: github.actor != 'dependabot[bot]'

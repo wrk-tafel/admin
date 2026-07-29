@@ -41,7 +41,6 @@ jobs:
     needs: [build, test, e2e-test, version]
     with:
       imageTags: |
-        test
         latest
         ${{ needs.version.outputs.version }}
       version: ${{ needs.version.outputs.version }}
@@ -68,19 +67,25 @@ jobs:
             Also tagged `latest`. All tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: github-release
+    needs: [version, github-release]
+    with:
+      environment: test
+      version: ${{ needs.version.outputs.version }}
     concurrency:
       group: test-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
   deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: github-release
+    needs: [version, github-release]
+    with:
+      environment: prod
+      version: ${{ needs.version.outputs.version }}
     concurrency:
       group: prod-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_PROD_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}

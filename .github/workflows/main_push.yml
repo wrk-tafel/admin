@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     with:
-      imageTags: test
+      imageTags: ${{ github.sha }}
       version: ${{ github.sha }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -34,9 +34,12 @@ jobs:
     # backend+frontend unit tests AND e2e to have passed, not just a
     # successful build
     needs: [build-push-image, test, e2e-test]
+    with:
+      environment: test
+      version: ${{ github.sha }}
     concurrency:
       group: test-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
