@@ -3,9 +3,9 @@ name: Cleanup untagged container images
 on:
   workflow_dispatch:
   schedule:
-    # TEMPORARY: every minute to burn down the ~6k-version untagged backlog
+    # TEMPORARY: every 5 minutes to burn down the ~6k-version untagged backlog
     # (100/run cap). Revert to weekly ('00 8 * * 1') once the backlog is clear.
-    - cron: '* * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   delete-untagged-versions:
