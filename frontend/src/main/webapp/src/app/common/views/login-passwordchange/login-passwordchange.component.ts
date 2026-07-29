@@ -51,7 +51,12 @@ export class LoginPasswordChangeComponent {
   }
 
   cancel() {
-    this.router.navigate(['login']);
+    // Reaching this screen means the user already authenticated successfully (just with
+    // passwordChangeRequired) - a plain navigate would leave that session live while the UI
+    // looks logged out, so actually log out first, same as the header's logout button.
+    this.authenticationService.logout().subscribe(() => {
+      this.authenticationService.redirectToLogin();
+    });
   }
 
 }
