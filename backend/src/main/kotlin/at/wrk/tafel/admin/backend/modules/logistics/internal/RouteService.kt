@@ -11,7 +11,7 @@ class RouteService(
     private val routeRepository: RouteRepository,
 ) {
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getRoutes(): List<Route> {
         val routes: List<RouteEntity> = routeRepository.findAll()
         return routes.map { mapRoute(it) }

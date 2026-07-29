@@ -418,6 +418,7 @@ export interface UserData {
 export interface UserPermission {
   key: string;
   title: string;
+  category?: string;
 }
 
 export enum Gender {

@@ -18,8 +18,8 @@ describe('UserDetailComponent', () => {
         enabled: true,
         passwordChangeRequired: true,
         permissions: [
-            { key: 'PERM1', title: 'Permission 1' },
-            { key: 'PERM2', title: 'Permission 2' }
+            { key: 'PERM1', title: 'Permission 1', category: 'Category 1' },
+            { key: 'PERM2', title: 'Permission 2', category: 'Category 2' }
         ]
     };
 
@@ -158,14 +158,32 @@ describe('UserDetailComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/bearbeiten', mockUser.id]);
     });
 
-    it('formatted permissions', () => {
+    it('permissions grouped by category', () => {
         const fixture = TestBed.createComponent(UserDetailComponent);
+        const component = fixture.componentInstance;
         fixture.componentRef.setInput('userData', mockUser);
 
         fixture.detectChanges();
 
-        const permissionsElement = getTextByTestId(fixture, 'permissionsText');
-        expect(permissionsElement).toEqual(`${mockUser.permissions[0].title}, ${mockUser.permissions[1].title}`);
+        expect(component.permissionGroups()).toEqual([
+            {category: 'Category 1', permissions: [mockUser.permissions[0]]},
+            {category: 'Category 2', permissions: [mockUser.permissions[1]]}
+        ]);
+
+        const permissionsText = getTextByTestId(fixture, 'permissionsText');
+        expect(permissionsText).toContain('Category 1');
+        expect(permissionsText).toContain(mockUser.permissions[0].title);
+        expect(permissionsText).toContain('Category 2');
+        expect(permissionsText).toContain(mockUser.permissions[1].title);
+    });
+
+    it('shows placeholder when user has no permissions', () => {
+        const fixture = TestBed.createComponent(UserDetailComponent);
+        fixture.componentRef.setInput('userData', {...mockUser, permissions: []});
+
+        fixture.detectChanges();
+
+        expect(getTextByTestId(fixture, 'permissionsText')).toContain('-');
     });
 
     function getTextByTestId(fixture: ComponentFixture<UserDetailComponent>, testId: string): string {

@@ -85,8 +85,8 @@ describe('UserEditComponent', () => {
 
     describe('Editing an existing user', () => {
         const mockPermissions = [
-            {key: 'PERM1', title: 'Permission 1'},
-            {key: 'PERM2', title: 'Permission 2'}
+            {key: 'PERM1', title: 'Permission 1', category: 'Category 1'},
+            {key: 'PERM2', title: 'Permission 2', category: 'Category 1'}
         ];
 
         let apiService: MockedObject<UserApiService>;

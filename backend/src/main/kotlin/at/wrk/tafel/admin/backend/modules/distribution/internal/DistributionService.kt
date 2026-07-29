@@ -88,7 +88,7 @@ class DistributionService(
 
     fun createNewDistributionItem(): DistributionItem = mapDistribution(createNewDistribution())
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getCurrentDistribution(): DistributionEntity? = distributionRepository.getCurrentDistribution()
 
     fun getCurrentDistributionItem(): DistributionItem? = getCurrentDistribution()?.let { mapDistribution(it) }
@@ -122,7 +122,7 @@ class DistributionService(
         distributionHouseholdRepository.save(entry)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun generateHouseholdListPdf(): HouseholdListPdfResult? {
         val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
@@ -153,7 +153,7 @@ class DistributionService(
         return HouseholdListPdfResult(filename = filename, bytes = bytes)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getCurrentTicketNumber(householdId: Long? = null): DistributionHouseholdEntity? {
         val distribution = getCurrentDistribution()!!
 
@@ -162,7 +162,7 @@ class DistributionService(
         return distributionHouseholdEntity
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getCurrentTicketNumberValue(householdId: Long? = null): Int? = getCurrentTicketNumber(householdId)?.ticketNumber
 
     @Transactional
@@ -212,7 +212,7 @@ class DistributionService(
         } ?: false
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun validateClose(): DistributionCloseValidationResult {
         val errors = mutableListOf<String>()
         val warnings = mutableListOf<String>()
@@ -388,7 +388,7 @@ class DistributionService(
         distributionRepository.save(currentDistribution)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun sendMails(distributionId: Long) {
         distributionRepository.findByIdOrNull(distributionId)
             ?: throw TafelValidationException("Ausgabe nicht gefunden!")

@@ -40,15 +40,32 @@
             Passwortänderung notwendig
           </div>
           <div testid="passwordChangeRequiredText">{{currentUserData()?.passwordChangeRequired === true ? 'Ja' : 'Nein'}}</div>
-          <div class="font-bold">
-            Berechtigungen
-          </div>
-          <div testid="permissionsText" class="font-bold">{{currentUserData() | formatPermissions}}</div>
           <div class="font-bold text-white px-2"
                [ngClass]="{'bg-green-600': currentUserData()?.enabled === true, 'bg-red-600': currentUserData()?.enabled === false}">Aktiv
           </div>
           <div testid="enabledText" class="text-white px-2"
                [ngClass]="{'bg-green-600': currentUserData()?.enabled === true, 'bg-red-600': currentUserData()?.enabled === false}">{{currentUserData()?.enabled === true ? 'Ja' : 'Nein'}}</div>
+        </div>
+      </div>
+      <hr class="my-4">
+      <div>
+        <div class="font-bold mb-2">
+          Berechtigungen
+        </div>
+        <div testid="permissionsText" class="flex flex-col gap-3">
+          @if (permissionGroups().length === 0) {
+            <div>-</div>
+          }
+          @for (group of permissionGroups(); track group.category) {
+            <div>
+              <div class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{{group.category}}</div>
+              <mat-chip-set [attr.testid]="'permission-group-' + group.category">
+                @for (permission of group.permissions; track permission.key) {
+                  <mat-chip [attr.testid]="'permission-chip-' + permission.key">{{permission.title}}</mat-chip>
+                }
+              </mat-chip-set>
+            </div>
+          }
         </div>
       </div>
     </mat-card-content>

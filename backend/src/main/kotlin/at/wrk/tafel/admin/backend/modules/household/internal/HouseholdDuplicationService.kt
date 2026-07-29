@@ -90,7 +90,7 @@ class HouseholdDuplicationService(
         """.trimIndent()
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun findDuplicates(page: Int?): HouseholdDuplicateSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 1)
 

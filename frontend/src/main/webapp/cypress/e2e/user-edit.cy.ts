@@ -22,7 +22,7 @@ describe('User Edit', () => {
       cy.byTestId('firstnameInput').clear();
       cy.byTestId('firstnameInput').type(`${user.firstname} updated`);
 
-      cy.byTestId('permission-checkbox-0').click();
+      cy.byTestId('permission-checkbox-CHECKIN').click();
       cy.byTestId('save-button').click();
 
       cy.url().should('contain', '/benutzer/detail/' + user.id);

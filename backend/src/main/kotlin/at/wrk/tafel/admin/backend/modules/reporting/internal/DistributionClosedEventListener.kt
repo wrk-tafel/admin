@@ -17,6 +17,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
 import java.time.format.DateTimeFormatter
 
@@ -38,6 +39,13 @@ import java.time.format.DateTimeFormatter
  * surfaces a real error to the caller - the automatic post-close flow just logs and moves on, same as
  * `at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService`
  * does for its own failures.
+ *
+ * `@Transactional` (read-only, since this only reads) because `distribution` is fetched via the
+ * repository, whose own transaction closes as soon as the fetch returns - without an outer transaction
+ * here, `distribution.households`/`.foodCollections` (both lazy) would throw
+ * `LazyInitializationException` the moment they're accessed below, on every single invocation. Same
+ * fix as `DistributionEndedEventListener` applies for the same reason, just via the annotation instead
+ * of `TransactionTemplate` since there's no retry-the-whole-transaction-as-a-unit requirement here.
  */
 @Component
 class DistributionClosedEventListener(
@@ -54,6 +62,7 @@ class DistributionClosedEventListener(
     }
 
     @EventListener
+    @Transactional(readOnly = true)
     fun onDistributionClosed(event: DistributionClosedEvent) {
         val distribution = distributionRepository.findByIdOrNull(event.distributionId) ?: return
         val statistic = distribution.statistic ?: return

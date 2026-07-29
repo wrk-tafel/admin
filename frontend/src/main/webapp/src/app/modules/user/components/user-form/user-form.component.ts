@@ -11,6 +11,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
+import {groupPermissionsByCategory, PermissionGroup} from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
@@ -51,6 +52,10 @@ export class UserFormComponent {
 
   // Signal for permissions
   permissions = signal<UserPermissionFormItem[]>([]);
+
+  permissionGroups = computed(() => groupPermissionsByCategory(this.permissions()));
+  selectedPermissionsCount = computed(() => this.permissions().filter((permission) => permission.enabled).length);
+  totalPermissionsCount = computed(() => this.permissions().length);
 
   // Create signal form with validation schema
   userForm = form(this.formModel, (schemaPath) => {
@@ -179,16 +184,21 @@ export class UserFormComponent {
     this.passwordRepeatTextVisible.update(value => !value);
   }
 
-  public trackBy(index: number, permission: UserPermissionFormItem) {
-    return permission.key;
+  public togglePermission(key: string) {
+    this.permissions.update(perms => perms.map(permission =>
+      permission.key === key ? {...permission, enabled: !permission.enabled} : permission
+    ));
   }
 
-  public togglePermission(index: number) {
-    this.permissions.update(perms => {
-      const updated = [...perms];
-      updated[index] = {...updated[index], enabled: !updated[index].enabled};
-      return updated;
-    });
+  public isGroupFullySelected(group: PermissionGroup<UserPermissionFormItem>): boolean {
+    return group.permissions.every((permission) => permission.enabled);
+  }
+
+  public toggleGroup(group: PermissionGroup<UserPermissionFormItem>) {
+    const enable = !this.isGroupFullySelected(group);
+    this.permissions.update(perms => perms.map(permission =>
+      permission.category === group.category ? {...permission, enabled: enable} : permission
+    ));
   }
 
   // Expose utility functions for template use

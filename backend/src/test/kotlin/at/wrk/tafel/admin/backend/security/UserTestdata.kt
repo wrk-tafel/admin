@@ -53,6 +53,6 @@ val testUserApiResponse = User(
     enabled = testUserEntity.enabled!!,
     passwordChangeRequired = testUserEntity.passwordChangeRequired!!,
     permissions = testUserPermissions.map {
-        UserPermission(key = it.key, title = it.title)
+        UserPermission(key = it.key, title = it.title, category = it.category.title)
     },
 )
