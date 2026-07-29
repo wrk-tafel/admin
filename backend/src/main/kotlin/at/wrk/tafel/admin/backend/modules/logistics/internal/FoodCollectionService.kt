@@ -27,7 +27,7 @@ class FoodCollectionService(
     private val advisoryLockService: AdvisoryLockService,
 ) {
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getFoodCollection(routeId: Long): FoodCollectionData? {
         val distribution = distributionRepository.getCurrentDistribution()!!
 
@@ -93,7 +93,7 @@ class FoodCollectionService(
         foodCollectionRepository.save(foodCollectionEntity)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getItemsPerShop(routeId: Long, shopId: Long): FoodCollectionItems? {
         val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
@@ -142,7 +142,7 @@ class FoodCollectionService(
         newAmount: Int,
     ) {
         val existingItem = items.firstOrNull {
-            it.category?.id == categoryId && it.shop?.id == shopId
+            it.category?.id == categoryId && it.shop?.id == shopId // NOSONAR kotlin:S6619
         }
         if (existingItem != null) {
             existingItem.amount = newAmount
@@ -230,8 +230,8 @@ class FoodCollectionService(
 
     private fun mapItemsEntityToItems(items: List<FoodCollectionItemEntity>): List<FoodCollectionItem> = items.map {
         FoodCollectionItem(
-            categoryId = it.category!!.id!!,
-            shopId = it.shop!!.id!!,
+            categoryId = it.category!!.id!!, // NOSONAR kotlin:S6619
+            shopId = it.shop!!.id!!, // NOSONAR kotlin:S6619
             amount = it.amount ?: 0,
         )
     }

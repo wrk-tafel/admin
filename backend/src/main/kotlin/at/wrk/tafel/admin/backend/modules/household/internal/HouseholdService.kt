@@ -41,7 +41,7 @@ class HouseholdService(
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun findByHouseholdId(householdId: Long): Household? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
 
     @Transactional
@@ -144,7 +144,7 @@ class HouseholdService(
         return householdRepository.saveAndFlush(savedEntity)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getHouseholds(
         firstname: String? = null,
         lastname: String? = null,
@@ -179,7 +179,7 @@ class HouseholdService(
         )
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getHouseholdsAboveLimit(page: Int? = null): HouseholdAboveLimitSearchResult {
         // households needing post-processing (missing birthDate/gender/country/address/... - see
         // HouseholdEntity.Specs.postProcessingNecessary()) can't be income-validated
@@ -217,7 +217,7 @@ class HouseholdService(
         )
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun generatePdf(householdId: Long, type: HouseholdPdfType): HouseholdPdfResult? {
         val household = householdRepository.findByHouseholdId(householdId)
         if (household != null) {

@@ -6,21 +6,21 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContact
-import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ShelterService(
     private val shelterRepository: ShelterRepository,
 ) {
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getActiveShelters(): List<Shelter> = shelterRepository.findByEnabledIsTrue()
         .map { mapShelter(it) }
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getAllShelters(): List<Shelter> = shelterRepository.findAll()
         .map { mapShelter(it) }
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))

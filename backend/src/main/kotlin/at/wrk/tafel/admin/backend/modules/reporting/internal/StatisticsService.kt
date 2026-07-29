@@ -54,7 +54,7 @@ class StatisticsService(
         )
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsData {
         val countBeneficiaryCustomers = countBeneficiaryCustomers(fromDate, toDate)
         val countBeneficiaryCustomersData = StatisticsDetailData(
@@ -364,7 +364,7 @@ class StatisticsService(
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun generateCsv(fromDate: LocalDate, toDate: LocalDate): StatisticsCsvResult {
         val data = getData(fromDate, toDate)
 
@@ -401,7 +401,7 @@ class StatisticsService(
      * The original SQL hardcoded 6..10 but noted the age range should be configurable, hence the
      * parameters here (frontend exposes them as editable fields) rather than fixed constants.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     fun generateSchoolStarterPackageCsv(
         ageMin: Int,
         ageMax: Int,
@@ -427,7 +427,7 @@ class StatisticsService(
      * comparison that a JPA `Specification`/`Pageable` can paginate directly - no in-memory
      * slicing needed, unlike `HouseholdService.getHouseholdsAboveLimit()`.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     fun getSchoolStarterPackageData(
         ageMin: Int,
         ageMax: Int,
