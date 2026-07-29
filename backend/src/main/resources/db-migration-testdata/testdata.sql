@@ -380,6 +380,83 @@ values (111, NOW(), NOW(), 111, true, 'Sabine', 'Grossverdiener', '1975-11-20', 
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 111 WHERE id = 111;
 
+-- customer duplicates - fuzzy name/address matches for the "Kunden-Duplikate" screen
+-- (see HouseholdDuplicationService: soundex + levenshtein tolerance on name and address)
+
+-- pair: same address, first-name typo (classic re-registration)
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (120, NOW(), NOW(), 120, 100, null, 'Hauptstraße', '5', null, null,
+        '1030', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (120, NOW(), NOW(), 120, true, 'Maria', 'Huber', '1982-04-12', 'FEMALE', 1, false, false);
+UPDATE households SET main_person_id = 120 WHERE id = 120;
+
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (121, NOW(), NOW(), 121, 100, null, 'Hauptstraße', '5', null, null,
+        '1030', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (121, NOW(), NOW(), 121, true, 'Marie', 'Huber', '1982-04-12', 'FEMALE', 1, false, false);
+UPDATE households SET main_person_id = 121 WHERE id = 121;
+
+-- pair: same name, address spelling variant (ß vs ss)
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (122, NOW(), NOW(), 122, 100, null, 'Wehlistraße', '22', null, null,
+        '1020', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (122, NOW(), NOW(), 122, true, 'Thomas', 'Berger', '1975-09-01', 'MALE', 1, false, false);
+UPDATE households SET main_person_id = 122 WHERE id = 122;
+
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (123, NOW(), NOW(), 123, 100, null, 'Wehlistrasse', '22', null, null,
+        '1020', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (123, NOW(), NOW(), 123, true, 'Thomas', 'Berger', '1975-09-01', 'MALE', 1, false, false);
+UPDATE households SET main_person_id = 123 WHERE id = 123;
+
+-- three-way cluster: an exact re-entry plus a name/address typo variant, so one household
+-- shows two similar households at once
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (130, NOW(), NOW(), 130, 100, null, 'Praterstraße', '10', null, null,
+        '1020', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (130, NOW(), NOW(), 130, true, 'Anna', 'Fischer', '1990-06-20', 'FEMALE', 1, false, false);
+UPDATE households SET main_person_id = 130 WHERE id = 130;
+
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (131, NOW(), NOW(), 131, 100, null, 'Praterstraße', '10', null, null,
+        '1020', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (131, NOW(), NOW(), 131, true, 'Anna', 'Fischer', '1990-06-20', 'FEMALE', 1, false, false);
+UPDATE households SET main_person_id = 131 WHERE id = 131;
+
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (132, NOW(), NOW(), 132, 100, null, 'Praterstrasse', '10', null, null,
+        '1020', 'Wien', null, null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (132, NOW(), NOW(), 132, true, 'Ana', 'Fischer', '1990-06-20', 'FEMALE', 1, false, false);
+UPDATE households SET main_person_id = 132 WHERE id = 132;
+
 -- static values
 DELETE FROM static_values;
 
