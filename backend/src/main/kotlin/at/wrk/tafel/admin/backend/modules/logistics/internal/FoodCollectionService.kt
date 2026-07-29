@@ -142,7 +142,7 @@ class FoodCollectionService(
         newAmount: Int,
     ) {
         val existingItem = items.firstOrNull {
-            it.category?.id == categoryId && it.shop?.id == shopId
+            it.category?.id == categoryId && it.shop?.id == shopId // NOSONAR kotlin:S6619
         }
         if (existingItem != null) {
             existingItem.amount = newAmount
@@ -230,8 +230,8 @@ class FoodCollectionService(
 
     private fun mapItemsEntityToItems(items: List<FoodCollectionItemEntity>): List<FoodCollectionItem> = items.map {
         FoodCollectionItem(
-            categoryId = it.category!!.id!!,
-            shopId = it.shop!!.id!!,
+            categoryId = it.category!!.id!!, // NOSONAR kotlin:S6619
+            shopId = it.shop!!.id!!, // NOSONAR kotlin:S6619
             amount = it.amount ?: 0,
         )
     }
