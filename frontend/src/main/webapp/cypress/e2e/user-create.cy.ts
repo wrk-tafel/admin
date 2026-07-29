@@ -16,9 +16,9 @@ describe('User Create', () => {
 
       cy.byTestId('passwordChangeRequiredInput').click();
 
-      cy.byTestId('permission-checkbox-0').click();
+      cy.byTestId('permission-checkbox-CHECKIN').click();
 
-      cy.byTestId('permission-checkbox-2').click();
+      cy.byTestId('permission-checkbox-USER_MANAGEMENT').click();
       cy.byTestId('save-button').click();
 
       cy.url().should('contain', '/benutzer/detail');
@@ -40,8 +40,8 @@ describe('User Create', () => {
       fillUserForm('e2etest', 'e2etest');
 
       cy.byTestId('passwordChangeRequiredInput').click();
-      cy.byTestId('permission-checkbox-0').click();
-      cy.byTestId('permission-checkbox-2').click();
+      cy.byTestId('permission-checkbox-CHECKIN').click();
+      cy.byTestId('permission-checkbox-USER_MANAGEMENT').click();
 
       // 2. Click save - Cypress will no longer fail on the 400 error
       // because we are managing the request via intercept

@@ -274,6 +274,7 @@ class UserControllerTest {
         val newPermission = UserPermission(
             key = UserPermissions.CHECKIN.key,
             title = UserPermissions.CHECKIN.title,
+            category = UserPermissions.CHECKIN.category.title,
         )
         val updatedUser = User(
             id = 123,
@@ -372,6 +373,7 @@ class UserControllerTest {
             UserPermission(
                 key = userPermissionEntries.first().key,
                 title = userPermissionEntries.first().title,
+                category = userPermissionEntries.first().category.title,
             ),
         )
     }

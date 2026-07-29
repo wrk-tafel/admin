@@ -93,15 +93,32 @@
         </div>
       </div>
       <hr>
-      <div>
+      <div class="flex items-center justify-between">
         <h5>Berechtigungen</h5>
+        <div class="text-sm text-gray-500" testid="permissionsSelectedCount">
+          {{selectedPermissionsCount()}} von {{totalPermissionsCount()}} ausgewählt
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mt-2">
-        @for (permission of permissions(); track trackBy($index, permission); let i = $index) {
-          <div [attr.testid]="'permission-' + i">
-            <mat-checkbox [checked]="permission.enabled" (change)="togglePermission(i)" [attr.testid]="'permission-checkbox-' + i">
-              {{permission.title}}
-            </mat-checkbox>
+      <div class="flex flex-col gap-4 mt-2">
+        @for (group of permissionGroups(); track group.category) {
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="font-semibold text-sm text-gray-500 uppercase tracking-wide">{{group.category}}</div>
+              <button type="button" class="text-sm text-blue-600 hover:underline" (click)="toggleGroup(group)"
+                      [attr.testid]="'permission-group-toggle-' + group.category">
+                {{isGroupFullySelected(group) ? 'Alle abwählen' : 'Alle auswählen'}}
+              </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+              @for (permission of group.permissions; track permission.key) {
+                <div [attr.testid]="'permission-' + permission.key">
+                  <mat-checkbox [checked]="permission.enabled" (change)="togglePermission(permission.key)"
+                                [attr.testid]="'permission-checkbox-' + permission.key">
+                    {{permission.title}}
+                  </mat-checkbox>
+                </div>
+              }
+            </div>
           </div>
         }
       </div>

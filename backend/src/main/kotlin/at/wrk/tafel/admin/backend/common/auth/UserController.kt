@@ -240,6 +240,7 @@ class UserController(
         return UserPermission(
             key = permissionEnum.key,
             title = permissionEnum.title,
+            category = permissionEnum.category.title,
         )
     }
 }
