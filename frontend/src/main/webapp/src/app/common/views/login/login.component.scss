@@ -1,0 +1,16 @@
+// Chrome/Edge/Safari fire no `input` event when they autofill a field, so the signal-forms
+// model (and therefore the submit button's disabled state) never learns the field was filled.
+// This keyframe-on-:-webkit-autofill trick is the standard workaround: the animation starts
+// as soon as the browser applies its autofill styling, and the (animationstart) handler in the
+// component syncs the real value into the form model.
+@keyframes tafel-autofill-detect {
+  from {
+  }
+  to {
+  }
+}
+
+input:-webkit-autofill {
+  animation-name: tafel-autofill-detect;
+  animation-duration: 1ms;
+}

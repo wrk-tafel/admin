@@ -20,7 +20,9 @@ describe('LoginPasswordChangeComponent', () => {
                     provide: AuthenticationService,
                     useValue: {
                         login: vi.fn().mockName('AuthenticationService.login'),
-                        getUsername: vi.fn().mockName('AuthenticationService.getUsername')
+                        getUsername: vi.fn().mockName('AuthenticationService.getUsername'),
+                        logout: vi.fn().mockName('AuthenticationService.logout'),
+                        redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
                     }
                 },
                 {
@@ -43,13 +45,16 @@ describe('LoginPasswordChangeComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('cancel password change', () => {
+    it('cancel password change logs out the still-live session and redirects to a plain login', () => {
         const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
         const component = fixture.componentInstance;
 
+        authServiceSpy.logout.mockReturnValue(of(undefined));
+
         component.cancel();
 
-        expect(routerSpy.navigate).toHaveBeenCalledWith(['login']);
+        expect(authServiceSpy.logout).toHaveBeenCalled();
+        expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith();
     });
 
     it('saveDisabled is true when form is undefined', () => {

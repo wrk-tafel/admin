@@ -27,6 +27,17 @@ describe('AuthGuardService', () => {
         return { service, authServiceSpy };
     }
 
+    it('canActivate when not authenticated redirects to plain login without an error message', async () => {
+        const { service, authServiceSpy } = setup();
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+
+        const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: {} };
+        const canActivate = await service.canActivate(activatedRoute);
+
+        expect(canActivate).toBe(false);
+        expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith();
+    });
+
     it('canActivate when authenticated', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);

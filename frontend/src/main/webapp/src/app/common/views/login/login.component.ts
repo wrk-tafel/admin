@@ -6,14 +6,16 @@ import {toSignal} from '@angular/core/rxjs-interop';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
-import {MatInput} from '@angular/material/input';
-import {MatFormField, MatLabel} from '@angular/material/form-field';
+import {MatError, MatFormField, MatInput, MatLabel, MatPrefix, MatSuffix} from '@angular/material/input';
+import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faKey, faUser} from '@fortawesome/free-solid-svg-icons';
+import {faEye, faEyeSlash, faKey, faUser} from '@fortawesome/free-solid-svg-icons';
+import {visibleErrorMessages} from '../../util/signal-form-helper';
 
 @Component({
   selector: 'tafel-login',
   templateUrl: 'login.component.html',
+  styleUrls: ['login.component.scss'],
   imports: [
     FormField,
     TafelAutofocusDirective,
@@ -23,6 +25,10 @@ import {faKey, faUser} from '@fortawesome/free-solid-svg-icons';
     MatInput,
     MatFormField,
     MatLabel,
+    MatError,
+    MatPrefix,
+    MatSuffix,
+    MatIcon,
     FaIconComponent
   ]
 })
@@ -58,11 +64,52 @@ export class LoginComponent {
     return null;
   });
 
+  passwordVisible = signal(false);
+  submitting = signal(false);
+
+  public togglePasswordVisibility() {
+    this.passwordVisible.update(value => !value);
+  }
+
+  // Browser autofill doesn't dispatch an `input` event, so the signal-forms model (and the
+  // submit button's disabled state) would otherwise never learn a field got filled in. See
+  // login.component.scss for the :-webkit-autofill animation this reacts to.
+  //
+  // Chrome also withholds the autofilled value from `input.value` until the user makes a
+  // genuine gesture anywhere on the page (a privacy measure), so reading it immediately here
+  // would just read an empty string - wait for that gesture, then sync.
+  public onAutofill(event: AnimationEvent, field: 'username' | 'password') {
+    if (event.animationName !== 'tafel-autofill-detect') {
+      return;
+    }
+    const input = event.target as HTMLInputElement;
+    const sync = () => {
+      document.removeEventListener('pointerdown', sync, true);
+      document.removeEventListener('keydown', sync, true);
+      setTimeout(() => this.loginForm[field]().value.set(input.value));
+    };
+    document.addEventListener('pointerdown', sync, {capture: true});
+    document.addEventListener('keydown', sync, {capture: true});
+  }
+
+  public onSubmit(event: Event) {
+    // Plain native <form> (signal-forms has no NgForm/ngSubmit directive to do this for us) -
+    // without preventDefault the browser would GET-submit the page with the fields as query params.
+    event.preventDefault();
+    this.login();
+  }
+
   public async login() {
+    this.loginForm().markAsTouched();
+    if (!this.loginForm().valid()) {
+      return;
+    }
+
     const username = this.loginForm.username().value();
     const password = this.loginForm.password().value();
 
-    this.authenticationService.login(username, password).then((loginResult) => {
+    this.submitting.set(true);
+    return this.authenticationService.login(username, password).then((loginResult) => {
       if (loginResult.successful) {
         if (loginResult.passwordChangeRequired) {
           this.router.navigate(['/login/passwortaendern']);
@@ -74,9 +121,14 @@ export class LoginComponent {
       } else {
         this.errorMessage.set('Anmeldung fehlgeschlagen!');
       }
+    }).finally(() => {
+      this.submitting.set(false);
     });
   }
 
+  protected readonly visibleErrorMessages = visibleErrorMessages;
   protected readonly faUser = faUser;
   protected readonly faKey = faKey;
+  protected readonly faEye = faEye;
+  protected readonly faEyeSlash = faEyeSlash;
 }

@@ -12,16 +12,25 @@ export class AuthGuardService {
    * screens like the dashboard), while `anyPermissionOf: string[]` requires one specific
    * permission from that list (used by feature modules gated on e.g. `SCANNER`/`CHECKIN`). A
    * route can set both; failing either redirects to the login page.
+   *
+   * Not being logged in at all (e.g. a fresh visit to `/`, which redirects to `uebersicht`) is
+   * not the same as being logged in but lacking a permission - the former sends the user to a
+   * plain login page, the latter shows the "access denied" message via the `fehlgeschlagen`
+   * error key so it isn't misreported as a real authorization failure.
    */
   async canActivate(childRoute: ActivatedRouteSnapshot): Promise<boolean> {
     const routeData: AuthGuardData = childRoute.data;
 
     const authenticated = this.authenticationService.isAuthenticated();
+    if (!authenticated) {
+      this.authenticationService.redirectToLogin();
+      return false;
+    }
 
     const needsAnyPermission = routeData.anyPermission;
     const hasAnyPermission = this.authenticationService.hasAnyPermission();
 
-    if (!authenticated || (needsAnyPermission && !hasAnyPermission)) {
+    if (needsAnyPermission && !hasAnyPermission) {
       this.authenticationService.redirectToLogin('fehlgeschlagen');
       return false;
     }

@@ -1,39 +1,61 @@
-<div class="flex flex-row min-w-screen min-h-screen items-center justify-center">
-  <mat-card class="min-w-[500px]">
-    <mat-card-content class="p-6">
-      <div class="flex flex-col items-center gap-2">
-        <div>
-          <img src="assets/img/brand/logo.svg" alt="ÖRK Logo" width="200px" height="54px"/>
-          <h1>Tafel Admin</h1>
+<!-- bg-[#212631] matches --mat-sidenav-container-background-color in default-layout.component.scss -->
+<div class="min-h-screen flex items-center justify-center bg-[#212631] p-6">
+  <div class="w-full max-w-md">
+    <mat-card class="shadow-md">
+      <mat-card-content class="p-8 md:p-10">
+        <div class="flex flex-col items-center mb-8 text-center">
+          <img src="assets/img/brand/logo.svg" alt="ÖRK Logo" class="mb-4 h-[54px] w-[200px] object-contain"/>
+          <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Tafel Admin</h1>
         </div>
+
         @if (errorMessage()) {
           <div testid="errorMessage" class="tafel-banner-error">
             <div>{{ errorMessage() }}</div>
           </div>
         }
-        <div class="flex flex-col gap-2 m-6">
-          <div class="flex flex-row items-center">
-            <fa-icon [icon]="faUser" class="mr-2"></fa-icon>
-            <mat-form-field>
-              <mat-label>Benutzername</mat-label>
-              <input [formField]="loginForm.username" matInput testid="username" type="text"
-                     autocomplete="username" tafelAutofocus>
-            </mat-form-field>
-          </div>
-          <div class="flex flex-row items-center">
-            <fa-icon [icon]="faKey" class="mr-2"></fa-icon>
-            <mat-form-field>
-              <mat-label>Passwort</mat-label>
-              <input [formField]="loginForm.password" matInput testid="password" type="password"
-                     autocomplete="current-password">
-            </mat-form-field>
-          </div>
-        </div>
 
-        <button testid="loginButton" matButton="filled" [disabled]="!loginForm().valid()" (click)="login()">
-          Anmelden
-        </button>
-      </div>
-    </mat-card-content>
-  </mat-card>
+        <form (submit)="onSubmit($event)" class="flex flex-col">
+          <div class="mb-4">
+            <mat-form-field class="w-full">
+              <mat-label>Benutzername</mat-label>
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                <fa-icon [icon]="faUser"></fa-icon>
+              </mat-icon>
+              <input [formField]="loginForm.username" matInput testid="username" type="text"
+                     autocomplete="username" tafelAutofocus
+                     (animationstart)="onAutofill($event, 'username')">
+              @for (message of visibleErrorMessages(loginForm.username()); track message) {
+                <mat-error class="block">{{ message }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="mb-4">
+            <mat-form-field class="w-full">
+              <mat-label>Passwort</mat-label>
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                <fa-icon [icon]="faKey"></fa-icon>
+              </mat-icon>
+              <input [formField]="loginForm.password" matInput testid="password"
+                     [type]="passwordVisible() ? 'text' : 'password'"
+                     autocomplete="current-password"
+                     (animationstart)="onAutofill($event, 'password')">
+              <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 cursor-pointer"
+                        (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle" type="button">
+                <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
+              </mat-icon>
+              @for (message of visibleErrorMessages(loginForm.password()); track message) {
+                <mat-error class="block">{{ message }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <button testid="loginButton" matButton="filled" type="submit" class="w-full mt-4"
+                  [disabled]="!loginForm().valid() || submitting()">
+            {{ submitting() ? 'Anmeldung läuft…' : 'Anmelden' }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
 </div>

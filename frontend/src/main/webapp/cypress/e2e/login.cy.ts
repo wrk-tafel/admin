@@ -14,6 +14,14 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('not.exist');
   });
 
+  it('visiting the app root while not logged in redirects to a plain login without an error message', () => {
+    cy.visit('/');
+
+    cy.url().should('contain', '/login');
+    cy.url().should('not.contain', 'fehlgeschlagen');
+    cy.byTestId('errorMessage').should('not.exist');
+  });
+
   it('login successful', () => {
     enterLoginData('e2etest', 'e2etest');
 
@@ -47,6 +55,13 @@ describe('Login', () => {
       cy.url().should('contain', '/login/passwortaendern');
       cy.byTestId('cancelButton').click();
       cy.url().should('contain', '/login');
+      cy.url().should('not.contain', 'fehlgeschlagen');
+
+      // Cancelling must actually end the still-live session (not just navigate away from
+      // it) - otherwise a stale session would let this "cancelled" login back into the app.
+      cy.visit('/#/uebersicht');
+      cy.url().should('contain', '/login');
+      cy.byTestId('errorMessage').should('not.exist');
     });
   });
 
@@ -65,6 +80,78 @@ describe('Login', () => {
       cy.url().should('contain', '/uebersicht');
     });
   });
+
+  it('login blocked after too many failed attempts shows the account-locked message', () => {
+    createTestUser().then(({user, testUser}) => {
+      // Exhaust the failed-attempt threshold via the API (fast) - the backend locks the account
+      // once the configured max (10, see application.yml security.loginAttempts.maxFailures) is
+      // reached, regardless of the credentials on the attempt that tips it over.
+      for (let i = 0; i < 10; i++) {
+        cy.createLoginRequest(user.username, 'wrong-' + testUser.password, false);
+      }
+
+      cy.visit('/#/login');
+      enterLoginData(user.username, testUser.password!);
+
+      cy.url().should('contain', '/login');
+      cy.byTestId('errorMessage').should('exist').and('contain.text', 'gesperrt');
+    });
+  });
+
+  it('an invalidated session redirects to login with a session-expired message', () => {
+    enterLoginData('e2etest', 'e2etest');
+    cy.url().should('contain', '/uebersicht');
+
+    cy.contains('Kunden suchen').click();
+    cy.url().should('include', '/kunden/suchen');
+
+    // Simulates a session expiring server-side mid-use: the client still thinks it's
+    // authenticated (in-memory state survives, since only a real page reload would clear it),
+    // but the next authenticated request the app makes gets a 401 from the server.
+    cy.clearCookie('tafel-admin-jwt');
+
+    // Route resolvers (e.g. the above-limit list's data fetch) fire an authenticated request
+    // before the target component even mounts - that's what's used here to trigger the 401.
+    cy.contains('Kunden über Limit').click();
+
+    cy.url().should('contain', '/login/abgelaufen');
+    cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');
+  });
+
+  it('accessing a module without the required permission shows access denied', () => {
+    createTestUser([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
+      cy.visit('/#/login');
+      enterLoginData(user.username, testUser.password!);
+
+      // CHECKIN is enough to pass uebersicht's generic anyPermission check...
+      cy.url().should('contain', '/uebersicht');
+
+      // ...but kunden specifically requires CUSTOMER, which this user was never given.
+      cy.visit('/#/kunden/suchen');
+
+      cy.url().should('contain', '/login/fehlgeschlagen');
+      cy.byTestId('errorMessage').should('exist').and('contain.text', 'Zugriff nicht erlaubt');
+    });
+  });
+
+  function createTestUser(permissions: { key: string; title: string }[] = []) {
+    return cy.getAnyRandomNumber().then(randomNumber => {
+      const testUser: UserData = {
+        username: 'username-' + randomNumber,
+        personnelNumber: 'personnelnumber-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-' + randomNumber,
+        passwordRepeat: 'dummy-' + randomNumber,
+        passwordChangeRequired: false,
+        permissions
+      };
+
+      cy.loginDefault();
+      return cy.createUser(testUser).then(response => ({user: response.body, testUser}));
+    });
+  }
 
   function createTestUserRequiringPasswordChange(permissions: { key: string; title: string }[] = []) {
     return cy.getAnyRandomNumber().then(randomNumber => {
