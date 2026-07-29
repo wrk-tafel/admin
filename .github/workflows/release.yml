@@ -75,7 +75,7 @@ jobs:
             Also tagged `latest`. All tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: build-push-image-test
+    needs: [build-push-image-test, github-release]
     concurrency:
       group: test-environment
     secrets:
@@ -84,7 +84,7 @@ jobs:
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
   deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: build-push-image-prod
+    needs: [build-push-image-prod, github-release]
     concurrency:
       group: prod-environment
     secrets:
