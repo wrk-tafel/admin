@@ -29,9 +29,9 @@ jobs:
               fi
             done
 
-  delete-untagged-versions:
+  delete-package-versions:
     runs-on: ubuntu-latest
-    name: Delete untagged package versions
+    name: Delete old/unused package versions
     permissions:
       packages: write
     steps:
@@ -46,3 +46,15 @@ jobs:
           package-type: container
           delete-only-untagged-versions: true
           min-versions-to-keep: 0
+      # Every PR/main-push build tags its image with an immutable short commit
+      # SHA (see pull_request.yml/main_push.yml), so these otherwise accumulate
+      # forever. Keep the most recent 20 for debugging/rollback reference and
+      # prune the rest; release images ("latest" and semver version tags) are
+      # excluded and kept indefinitely.
+      - name: Delete old commit-SHA-tagged versions of the admin container image
+        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: admin
+          package-type: container
+          min-versions-to-keep: 20
+          ignore-versions: '^(latest|[0-9]+\.[0-9]+\.[0-9]+)$'
