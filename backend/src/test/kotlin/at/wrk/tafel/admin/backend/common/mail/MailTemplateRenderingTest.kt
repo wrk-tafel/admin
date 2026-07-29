@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.common.mail
 
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesDataModel
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesRoute
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesShop
+import at.wrk.tafel.admin.backend.modules.reporting.internal.ReturnBoxesDataModel
+import at.wrk.tafel.admin.backend.modules.reporting.internal.ReturnBoxesRoute
+import at.wrk.tafel.admin.backend.modules.reporting.internal.ReturnBoxesShop
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.thymeleaf.context.Context

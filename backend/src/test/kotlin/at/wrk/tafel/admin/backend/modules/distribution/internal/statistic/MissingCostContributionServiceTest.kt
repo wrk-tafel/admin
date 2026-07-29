@@ -1,7 +1,6 @@
-package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
+package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
@@ -26,7 +25,7 @@ import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
-class MissingCostContributionPostProcessorTest {
+class MissingCostContributionServiceTest {
 
     @RelaxedMockK
     private lateinit var householdRepository: HouseholdRepository
@@ -35,7 +34,7 @@ class MissingCostContributionPostProcessorTest {
     private lateinit var staticValueRepository: StaticValueRepository
 
     @InjectMockKs
-    private lateinit var postProcessor: MissingCostContributionPostProcessor
+    private lateinit var service: MissingCostContributionService
 
     @Test
     fun `processed missing cost contributions`() {
@@ -60,8 +59,7 @@ class MissingCostContributionPostProcessorTest {
 
         every { householdRepository.save(any()) } returns mockk()
 
-        val distributionStatistic = mockk<DistributionStatisticEntity>()
-        postProcessor.process(distribution, distributionStatistic)
+        service.addMissingCostContributions(distribution)
 
         val capturedHouseholds = mutableListOf<HouseholdEntity>()
         verify {
@@ -84,9 +82,8 @@ class MissingCostContributionPostProcessorTest {
         every { staticValueRepository.findSingleValueOfType(StaticValueType.COST_CONTRIBUTION, any()) } returns null
 
         val distribution = mockk<DistributionEntity>()
-        val distributionStatistic = mockk<DistributionStatisticEntity>()
 
-        val exception = assertThrows<TafelValidationException> { postProcessor.process(distribution, distributionStatistic) }
+        val exception = assertThrows<TafelValidationException> { service.addMissingCostContributions(distribution) }
         assertThat(exception.message).isEqualTo("No cost contribution value found. Skipping missing cost contribution post processing.")
     }
 }

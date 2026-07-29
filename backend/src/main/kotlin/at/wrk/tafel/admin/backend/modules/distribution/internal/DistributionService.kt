@@ -11,16 +11,15 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -41,14 +40,11 @@ class DistributionService(
     private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val householdRepository: HouseholdRepository,
     private val pdfService: PDFService,
-    private val distributionPostProcessorService: DistributionPostProcessorService,
     private val transactionTemplate: TransactionTemplate,
     private val shelterRepository: ShelterRepository,
     private val routeRepository: RouteRepository,
-    private val dailyReportMailPostProcessor: DailyReportMailPostProcessor,
-    private val returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor,
-    private val statisticMailPostProcessor: StatisticMailPostProcessor,
     private val advisoryLockService: AdvisoryLockService,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -290,7 +286,12 @@ class DistributionService(
                 "Closed distribution: ID ${currentDistribution.id} (started at: $startDateFormatted, ended at: $endDateFormatted)",
             )
 
-            distributionPostProcessorService.process(currentDistribution.id!!)
+            try {
+                eventPublisher.publishEvent(DistributionEndedEvent(currentDistribution.id!!))
+            } catch (e: Exception) {
+                logger.error("Publishing DistributionEndedEvent failed", e)
+                throw e
+            }
             result = currentDistribution
         }
 
@@ -389,11 +390,14 @@ class DistributionService(
 
     @Transactional
     fun sendMails(distributionId: Long) {
-        val distribution = distributionRepository.findByIdOrNull(distributionId)
+        distributionRepository.findByIdOrNull(distributionId)
             ?: throw TafelValidationException("Ausgabe nicht gefunden!")
 
-        dailyReportMailPostProcessor.process(distribution, distribution.statistic!!)
-        returnBoxesMailPostProcessor.process(distribution, distribution.statistic!!)
-        statisticMailPostProcessor.process(distribution, distribution.statistic!!)
+        try {
+            eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
+        } catch (e: Exception) {
+            logger.error("Publishing DistributionClosedEvent failed", e)
+            throw e
+        }
     }
 }

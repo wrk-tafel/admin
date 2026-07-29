@@ -52,46 +52,76 @@ and `sendMails()` (manual re-send, see below).
   (`show-text`, `show-current`, `show-previous`, `show-next`) plus
   `/api/sse/distributions/ticket-screen/current`: drives the fullscreen "now serving" ticket display.
 
-### Post-processor chain (`internal/postprocessors/`)
-- **DistributionPostProcessor** — a `fun interface` with a single `process(distribution, statistic)`
-  method.
-- **DistributionPostProcessorService** — runs `@Async` right after a distribution is closed. It
-  (re)computes and saves the statistics snapshot, then invokes every `DistributionPostProcessor` bean
-  Spring injects as `List<DistributionPostProcessor>`, catching and logging exceptions per-processor so
-  one failure doesn't block the others.
-- **DailyReportMailPostProcessor** — builds the daily-report PDF via `reporting.DailyReportService`
-  and emails it (skipped with a warning log if no households were served).
-- **StatisticMailPostProcessor** — builds CSV exports via `reporting.StatisticExportService` and
-  emails them.
-- **ReturnBoxesMailPostProcessor** — builds a per-route/per-shop "which empty boxes need to go back to
-  which shop" summary and emails it. Doesn't touch `reporting`.
-- **MissingCostContributionPostProcessor** — for every household whose `costContributionPaid == false`
-  on this distribution, adds the current cost-contribution amount to `household.pendingCostContribution`
-  so it can be collected next time. Doesn't touch `reporting` either.
+### DistributionEndedEventListener (`internal/DistributionEndedEventListener.kt`)
+An `@Async` `@EventListener` reacting to `DistributionEndedEvent` (published by
+`DistributionService.closeDistribution()` right after `endedAt` commits - a purely internal event, never
+crossing a module boundary). It re-fetches the distribution, then calls two collaborators directly in the
+same transaction - `DistributionStatisticService.saveStatistic()` and
+`MissingCostContributionService.addMissingCostContributions()` - with **no** try/catch around either: if
+either throws, the transaction rolls back atomically (no half-done result, e.g. a saved statistic with no
+cost contributions applied) and `DistributionClosedEvent` is never published, rather than silently
+degrading. Only once that transaction commits does it publish `DistributionClosedEvent` for other
+modules to react to — see "Why `distribution` no longer depends on `reporting`" below. Being `@Async` on
+an `@EventListener` works without any self-invocation caveat here, since `DistributionService` (the
+publisher) and `DistributionEndedEventListener` (the listener) are different beans - Spring's proxy for
+this bean intercepts the call and dispatches it to the async executor, returning immediately.
 
-There are no `@Order` annotations on the post-processors — they run in whatever order Spring happens to
-inject the `List<DistributionPostProcessor>` bean. If processing order ever matters, that needs to be
-added explicitly.
+There used to be a generic `DistributionPostProcessor` interface here with a `List<DistributionPostProcessor>`
+Spring auto-collected, back when there were four implementations (two mail post-processors, the
+return-boxes mail, and cost contributions). Once the mail ones moved to `reporting` (see below) only one
+implementation was left, so the interface/list indirection was removed in favor of calling
+`MissingCostContributionService` directly - the content stayed, the generic construct didn't.
 
-### DistributionStatisticService (`internal/statistic/`)
-Builds the `DistributionStatisticEntity` snapshot at close time: household/person/infant counts (new,
-prolonged, updated), average persons per household, and logistics numbers (shops visited, food weight
-collected, route km). Only called from `DistributionPostProcessorService`, never on-demand.
+### `internal/statistic/` — `DistributionStatisticService` and `MissingCostContributionService`
+- **DistributionStatisticService** — builds the `DistributionStatisticEntity` snapshot at close time:
+  household/person/infant counts (new, prolonged, updated), average persons per household, and logistics
+  numbers (shops visited, food weight collected, route km). Only called from
+  `DistributionEndedEventListener`, never on-demand.
+- **MissingCostContributionService** — for every household whose `costContributionPaid == false` on this
+  distribution, adds the current cost-contribution amount to `household.pendingCostContribution` so it
+  can be collected next time. Doesn't touch `reporting`. Deliberately not called by
+  `DistributionService.sendMails()` (the manual mail re-send), since re-running it would double-count
+  pending contributions for households that already had them added when the distribution originally
+  closed - that's exactly why `sendMails()` publishes `DistributionClosedEvent` directly instead of
+  `DistributionEndedEvent`, which is what triggers this service in the first place.
 
-## Why `distribution` depends on `reporting`
+## Why `distribution` no longer depends on `reporting`
 
 `package-info.java` declares:
 ```java
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"base::exception", "reporting"}
+        allowedDependencies = {"base::exception"}
 )
 ```
-Only two of the four post-processors actually reach into `reporting`:
-- `DailyReportMailPostProcessor` → `DailyReportService.generateDailyReportPdf(statistic)`
-- `StatisticMailPostProcessor` → `StatisticExportService.exportStatisticFiles(statistic)`
+The two post-processors that used to reach into `reporting` directly (`DailyReportMailPostProcessor` →
+`DailyReportService.generateDailyReportPdf()`, `StatisticMailPostProcessor` →
+`StatisticExportService.exportStatisticFiles()`) were removed, and `ReturnBoxesMailPostProcessor` (which
+never depended on `reporting`) moved there too. Instead, `distribution` publishes a
+`DistributionClosedEvent(distributionId)` — from `DistributionEndedEventListener.onDistributionEnded()` after
+close, and from `DistributionService.sendMails()` on a manual resend — and `reporting`'s
+`internal.DistributionClosedEventListener` (a plain synchronous `@EventListener`, not
+`@ApplicationModuleListener`) reacts to it, re-fetching the distribution by id and generating/emailing
+the daily report PDF, statistic CSV exports, and return-boxes summary itself. `reporting` is therefore
+now the one with an allowed dependency on `distribution` (only for the event type), the reverse of before.
 
-Both are only called after a distribution closes. The household-list PDF (`generateHouseholdListPdf()`)
-uses the generic `common.pdf.PDFService` instead, not `reporting`.
+A plain `@EventListener` was chosen over `@ApplicationModuleListener` deliberately: the latter runs
+async after the publishing transaction commits, which would make `sendMails()` (the manual resend,
+used specifically when a mail failed to deliver) return success before actually knowing whether the
+resend worked. A synchronous listener keeps `sendMails()`'s existing behavior — it still runs inline
+and still throws back to the controller if mail generation/sending fails.
+
+Within `DistributionClosedEventListener`, all three mails are isolated from each other and each is
+retried up to 3 times (via a `RetryTemplate`) before being given up on - one failing/retrying never
+blocks another from being attempted, mirroring the independence they used to have as separate
+`DistributionPostProcessor` beans (the return-boxes mail specifically didn't gain anything
+module-dependency-wise from the move - it's here purely to share this isolation/retry handling with the
+other two). If any still fail after all retries, the first failure is rethrown once all three have been
+attempted (with the others attached as suppressed exceptions), so `sendMails()` still surfaces a real
+error to the caller; the automatic post-close flow just logs it via `DistributionEndedEventListener`'s own
+try/catch and moves on.
+
+The household-list PDF (`generateHouseholdListPdf()`) uses the generic `common.pdf.PDFService` instead,
+not `reporting`.
 
 Note that `database.model.*` (entities/repositories for `household`, `logistics`, `auth`, etc.) is
 **not** subject to the Spring Modulith `allowedDependencies` check — only the `modules.*` package tree
@@ -155,8 +185,8 @@ deliberate UX choice: two admins double-clicking "start"/"close" at the same tim
 error, not a hung request.
 
 `closeDistribution()` also has a subtlety around transactions: inside the lock, it commits `endedAt` in
-its own `REQUIRES_NEW` transaction *before* kicking off the `@Async` post-processor chain. The code
-comments this explicitly:
+its own `REQUIRES_NEW` transaction *before* publishing `DistributionEndedEvent` (which triggers the
+`@Async` post-processing chain). The code comments this explicitly:
 ```kotlin
 // Use REQUIRES_NEW to ensure endedAt is committed before async post-processor runs
 ```
@@ -216,8 +246,11 @@ stream is left open to any authenticated user while the state-changing endpoints
 
 ## Manually re-sending mails
 
-`POST /api/distributions/{distributionId}/send-mails` (`DistributionService.sendMails()`) re-runs
-`DailyReportMailPostProcessor`, `ReturnBoxesMailPostProcessor`, and `StatisticMailPostProcessor` for an
-already-closed distribution — useful if a mail failed to deliver. It deliberately does **not** re-run
-`MissingCostContributionPostProcessor`, since re-running that would double-count pending cost
-contributions for households that already had them added when the distribution originally closed.
+`POST /api/distributions/{distributionId}/send-mails` (`DistributionService.sendMails()`) re-sends all
+three mails (daily report, statistic, return boxes) by publishing `DistributionClosedEvent`, handled
+synchronously by `reporting`'s `DistributionClosedEventListener`, for an already-closed distribution —
+useful if a mail failed to deliver. It deliberately does **not** re-run
+`MissingCostContributionService`, since re-running that would double-count pending cost contributions for
+households that already had them added when the distribution originally closed - which is exactly why
+that service is only triggered by `DistributionEndedEvent` (published once, from `closeDistribution()`),
+never by `sendMails()`, which publishes `DistributionClosedEvent` directly instead.
