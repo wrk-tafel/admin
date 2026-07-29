@@ -31,8 +31,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           # No leading uppercase, no trailing period, and a length cap that keeps the full
-          # "type(scope)!: description" header under commitlint's 100-char header-max-length
-          # even with a long type+scope prefix.
+          # "type(scope)!: description" header under 100 chars even with a long type+scope
+          # prefix. This is intentionally stricter than commitlint.config.js's 150-char
+          # header-max-length, which was raised only to stop Dependabot's longer
+          # auto-generated commit messages from failing that check; human-authored titles
+          # should stay concise regardless.
           subjectPattern: ^(?![A-Z]).{0,79}[^.]$
           subjectPatternError: |
             The description "{subject}" found in title "{title}" must start with a lowercase
