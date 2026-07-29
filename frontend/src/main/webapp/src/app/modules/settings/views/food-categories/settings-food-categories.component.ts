@@ -75,7 +75,7 @@ export class SettingsFoodCategoriesComponent {
   private loadFoodCategories() {
     this.foodCategoriesApiService.getAllFoodCategories().subscribe({
       next: data => this._foodCategories.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Lebensmittelkategorien', 'Fehler')
+      error: () => this.toastr.error('Fehler beim Laden der Waren-Kategorien', 'Fehler')
     });
   }
 
