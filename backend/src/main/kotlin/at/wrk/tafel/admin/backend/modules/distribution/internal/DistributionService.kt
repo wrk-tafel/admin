@@ -11,16 +11,16 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -45,10 +45,9 @@ class DistributionService(
     private val transactionTemplate: TransactionTemplate,
     private val shelterRepository: ShelterRepository,
     private val routeRepository: RouteRepository,
-    private val dailyReportMailPostProcessor: DailyReportMailPostProcessor,
     private val returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor,
-    private val statisticMailPostProcessor: StatisticMailPostProcessor,
     private val advisoryLockService: AdvisoryLockService,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -392,8 +391,7 @@ class DistributionService(
         val distribution = distributionRepository.findByIdOrNull(distributionId)
             ?: throw TafelValidationException("Ausgabe nicht gefunden!")
 
-        dailyReportMailPostProcessor.process(distribution, distribution.statistic!!)
+        eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
         returnBoxesMailPostProcessor.process(distribution, distribution.statistic!!)
-        statisticMailPostProcessor.process(distribution, distribution.statistic!!)
     }
 }

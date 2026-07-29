@@ -1,9 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DistributionPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
@@ -17,6 +19,9 @@ import org.springframework.transaction.support.TransactionTemplate
  * bound to this method's own persistence context instead of a stale/detached one. All registered
  * [DistributionPostProcessor] beans then run in sequence, each wrapped in its own try/catch so
  * one processor failing (e.g. a mail post-processor) does not stop the others from running.
+ * Finally, a [DistributionClosedEvent] is published (same try/catch isolation) for other modules -
+ * e.g. `reporting`, which emails the daily report/statistic exports - to react to without this
+ * module depending on them directly.
  */
 @Service
 class DistributionPostProcessorService(
@@ -24,6 +29,7 @@ class DistributionPostProcessorService(
     private val transactionTemplate: TransactionTemplate,
     private val distributionRepository: DistributionRepository,
     private val postProcessors: List<DistributionPostProcessor>,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionPostProcessorService::class.java)
@@ -46,6 +52,14 @@ class DistributionPostProcessorService(
                 } catch (e: Exception) {
                     logger.error("Postprocessing - $postProcessorName ... failed", e)
                 }
+            }
+
+            try {
+                logger.info("Postprocessing - DistributionClosedEvent ... started")
+                eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
+                logger.info("Postprocessing - DistributionClosedEvent ... done")
+            } catch (e: Exception) {
+                logger.error("Postprocessing - DistributionClosedEvent ... failed", e)
             }
         }
     }

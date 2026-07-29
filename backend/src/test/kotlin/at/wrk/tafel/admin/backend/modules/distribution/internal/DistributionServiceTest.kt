@@ -13,12 +13,11 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -41,6 +40,7 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -98,16 +98,13 @@ internal class DistributionServiceTest {
     private lateinit var routeRepository: RouteRepository
 
     @RelaxedMockK
-    private lateinit var dailyReportMailPostProcessor: DailyReportMailPostProcessor
-
-    @RelaxedMockK
     private lateinit var returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor
 
     @RelaxedMockK
-    private lateinit var statisticMailPostProcessor: StatisticMailPostProcessor
+    private lateinit var advisoryLockService: AdvisoryLockService
 
     @RelaxedMockK
-    private lateinit var advisoryLockService: AdvisoryLockService
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -1070,9 +1067,8 @@ internal class DistributionServiceTest {
 
         service.sendMails(testDistributionEntity.id!!)
 
-        verify { dailyReportMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
+        verify { eventPublisher.publishEvent(DistributionClosedEvent(testDistributionEntity.id!!)) }
         verify { returnBoxesMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
-        verify { statisticMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
     }
 
     @Test

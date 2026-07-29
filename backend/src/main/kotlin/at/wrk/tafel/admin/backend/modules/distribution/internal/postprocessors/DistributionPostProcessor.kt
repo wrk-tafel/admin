@@ -8,8 +8,10 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
  * [at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionPostProcessorService]).
  * Every Spring bean implementing this interface is picked up automatically (injected as a
  * `List<DistributionPostProcessor>`) and run in an isolated try/catch - one processor throwing
- * does not prevent the others from running. Implementations: [DailyReportMailPostProcessor],
- * [StatisticMailPostProcessor], [MissingCostContributionPostProcessor], [ReturnBoxesMailPostProcessor].
+ * does not prevent the others from running. Implementations: [MissingCostContributionPostProcessor],
+ * [ReturnBoxesMailPostProcessor]. Side effects that belong to another module (e.g. the daily
+ * report/statistic mails, owned by `reporting`) go through
+ * [at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent] instead of this interface.
  */
 fun interface DistributionPostProcessor {
     fun process(distribution: DistributionEntity, statistic: DistributionStatisticEntity)

@@ -58,11 +58,9 @@ and `sendMails()` (manual re-send, see below).
 - **DistributionPostProcessorService** — runs `@Async` right after a distribution is closed. It
   (re)computes and saves the statistics snapshot, then invokes every `DistributionPostProcessor` bean
   Spring injects as `List<DistributionPostProcessor>`, catching and logging exceptions per-processor so
-  one failure doesn't block the others.
-- **DailyReportMailPostProcessor** — builds the daily-report PDF via `reporting.DailyReportService`
-  and emails it (skipped with a warning log if no households were served).
-- **StatisticMailPostProcessor** — builds CSV exports via `reporting.StatisticExportService` and
-  emails them.
+  one failure doesn't block the others. Finally it publishes a `DistributionClosedEvent` (same
+  try/catch isolation) for other modules to react to — see "Why `distribution` no longer depends on
+  `reporting`" below.
 - **ReturnBoxesMailPostProcessor** — builds a per-route/per-shop "which empty boxes need to go back to
   which shop" summary and emails it. Doesn't touch `reporting`.
 - **MissingCostContributionPostProcessor** — for every household whose `costContributionPaid == false`
@@ -78,20 +76,32 @@ Builds the `DistributionStatisticEntity` snapshot at close time: household/perso
 prolonged, updated), average persons per household, and logistics numbers (shops visited, food weight
 collected, route km). Only called from `DistributionPostProcessorService`, never on-demand.
 
-## Why `distribution` depends on `reporting`
+## Why `distribution` no longer depends on `reporting`
 
 `package-info.java` declares:
 ```java
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"base::exception", "reporting"}
+        allowedDependencies = {"base::exception"}
 )
 ```
-Only two of the four post-processors actually reach into `reporting`:
-- `DailyReportMailPostProcessor` → `DailyReportService.generateDailyReportPdf(statistic)`
-- `StatisticMailPostProcessor` → `StatisticExportService.exportStatisticFiles(statistic)`
+The two post-processors that used to reach into `reporting` directly (`DailyReportMailPostProcessor` →
+`DailyReportService.generateDailyReportPdf()`, `StatisticMailPostProcessor` →
+`StatisticExportService.exportStatisticFiles()`) were removed. Instead, `distribution` publishes a
+`DistributionClosedEvent(distributionId)` — from `DistributionPostProcessorService.process()` after
+close, and from `DistributionService.sendMails()` on a manual resend — and `reporting`'s
+`internal.DistributionClosedMailListener` (a plain synchronous `@EventListener`, not
+`@ApplicationModuleListener`) reacts to it, re-fetching the distribution by id and generating/emailing
+the daily report PDF and statistic CSV exports itself. `reporting` is therefore now the one with an
+allowed dependency on `distribution` (only for the event type), the reverse of before.
 
-Both are only called after a distribution closes. The household-list PDF (`generateHouseholdListPdf()`)
-uses the generic `common.pdf.PDFService` instead, not `reporting`.
+A plain `@EventListener` was chosen over `@ApplicationModuleListener` deliberately: the latter runs
+async after the publishing transaction commits, which would make `sendMails()` (the manual resend,
+used specifically when a mail failed to deliver) return success before actually knowing whether the
+resend worked. A synchronous listener keeps `sendMails()`'s existing behavior — it still runs inline
+and still throws back to the controller if mail generation/sending fails.
+
+The household-list PDF (`generateHouseholdListPdf()`) uses the generic `common.pdf.PDFService` instead,
+not `reporting`.
 
 Note that `database.model.*` (entities/repositories for `household`, `logistics`, `auth`, etc.) is
 **not** subject to the Spring Modulith `allowedDependencies` check — only the `modules.*` package tree
@@ -216,8 +226,9 @@ stream is left open to any authenticated user while the state-changing endpoints
 
 ## Manually re-sending mails
 
-`POST /api/distributions/{distributionId}/send-mails` (`DistributionService.sendMails()`) re-runs
-`DailyReportMailPostProcessor`, `ReturnBoxesMailPostProcessor`, and `StatisticMailPostProcessor` for an
+`POST /api/distributions/{distributionId}/send-mails` (`DistributionService.sendMails()`) re-runs the
+daily report/statistic mails (by publishing `DistributionClosedEvent`, handled synchronously by
+`reporting`'s `DistributionClosedMailListener`) and `ReturnBoxesMailPostProcessor` directly, for an
 already-closed distribution — useful if a mail failed to deliver. It deliberately does **not** re-run
 `MissingCostContributionPostProcessor`, since re-running that would double-count pending cost
 contributions for households that already had them added when the distribution originally closed.
