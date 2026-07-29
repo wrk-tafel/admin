@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('User Edit', () => {
 
   beforeEach(() => {
@@ -27,6 +29,20 @@ describe('User Edit', () => {
 
       cy.byTestId('permissionsText').should('contain.text', 'Anmeldung');
       cy.byTestId('nameText').should('contain.text', 'updated');
+    });
+  });
+
+  it('remains usable on mobile viewports', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+        cy.viewport(viewport);
+        cy.visit('/#/benutzer/bearbeiten/' + user.id);
+
+        cy.byTestId('firstnameInput').should('be.visible').and('have.value', user.firstname);
+        cy.byTestId('save-button').should('exist');
+      });
     });
   });
 

@@ -49,6 +49,14 @@ declare global {
       ): Chainable<JQuery<HTMLElementTagNameMap[K]>>;
 
       /**
+       * Filters a previously-queried set down to elements that are currently CSS-displayed
+       * (offsetParent !== null), ignoring scroll-clipping - use to disambiguate a testid that
+       * appears in both a `hidden md:block` and a `block md:hidden` responsive branch.
+       * @example cy.byTestId('foo').filterDisplayed().click();
+       */
+      filterDisplayed(): Chainable<JQuery<HTMLElement>>;
+
+      /**
        * Custom command to create a distribution.
        * @example cy.createDistribution();
        */

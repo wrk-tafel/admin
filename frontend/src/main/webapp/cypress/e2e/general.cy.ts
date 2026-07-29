@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('General', () => {
 
   beforeEach(() => {
@@ -30,6 +32,16 @@ describe('General', () => {
     cy.byTestId('subtitle').should('have.text', 'Interner Server Fehler');
 
     cy.url().should('include', '/500');
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.visit('/#/invalidpath');
+
+      cy.byTestId('status').should('be.visible').and('have.text', '404');
+      cy.byTestId('title').should('be.visible').and('have.text', 'Seite nicht gefunden');
+    });
   });
 
 });

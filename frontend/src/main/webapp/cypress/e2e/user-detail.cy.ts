@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('User Detail', () => {
 
   beforeEach(() => {
@@ -48,6 +50,34 @@ describe('User Detail', () => {
       cy.visit('/#/benutzer/detail/' + userId);
       cy.url().should('include', '/benutzer/suchen');
     });
+  });
+
+  it('disable and re-enable user on phone', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.visit('/#/benutzer/detail/300');
+
+    // action buttons and the details card stack (flex-col, buttons on top) below the lg: breakpoint
+    cy.byTestId('editUserButton').should('be.visible');
+    cy.byTestId('enabledText').should('have.text', 'Ja');
+
+    cy.byTestId('changeUserStateButton').click();
+    cy.byTestId('disableUserButton').click();
+
+    cy.byTestId('enabledText').should('have.text', 'Nein');
+
+    cy.byTestId('changeUserStateButton').click();
+    cy.byTestId('enableUserButton').click();
+
+    cy.byTestId('enabledText').should('have.text', 'Ja');
+  });
+
+  it('shows the stacked action/details layout at tablet width', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.visit('/#/benutzer/detail/300');
+
+    cy.byTestId('usernameText').should('have.text', 'admin');
+    cy.byTestId('editUserButton').should('be.visible');
+    cy.byTestId('changeUserStateButton').should('be.visible');
   });
 
 });

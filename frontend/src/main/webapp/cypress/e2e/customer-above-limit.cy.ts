@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Customer Above Limit', () => {
 
   beforeEach(() => {
@@ -12,6 +14,7 @@ describe('Customer Above Limit', () => {
 
       cy.contains('[testid^="abovelimit-id-"]', customer.id!.toString())
         .closest('tr')
+        .scrollIntoView()
         .within(() => {
           cy.get('[testid^="abovelimit-name-"]').should('contain.text', customer.lastname).and('contain.text', customer.firstname);
           cy.get('[testid^="abovelimit-address-"]').should('contain.text', customer.address.city);
@@ -22,7 +25,51 @@ describe('Customer Above Limit', () => {
             .invoke('text')
             .should('not.be.empty');
 
+          // the table row and the equivalent card (below md:) both render a button with this
+          // testid - .closest('tr') above already scopes this to the (visible) table row's copy
           cy.get('[testid^="abovelimit-showcustomer-button-"]').click();
+        });
+
+      cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
+  });
+
+  it('renders the card list on phone and still links to the customer detail page', () => {
+    cy.viewport(PHONE_VIEWPORT);
+
+    cy.createDummyCustomer(50000, true).then((response) => {
+      const customer = response.body.data;
+
+      cy.visit('/#/kunden/ueber-limit');
+
+      // below md: the table is hidden and the card list is shown instead
+      cy.get('[testid^="abovelimit-id-"]').should('exist').and('not.be.visible');
+
+      cy.contains('mat-card', customer.lastname)
+        .scrollIntoView()
+        .should('be.visible')
+        .within(() => {
+          // the table row and the card both render a button with this testid - filter to the
+          // one that's actually displayed in this (card) branch
+          cy.get('[testid^="abovelimit-showcustomer-button-"]').filterDisplayed().should('have.length', 1).click();
+        });
+
+      cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
+  });
+
+  it('renders the desktop-style table at tablet breakpoint and still links to the customer detail page', () => {
+    cy.viewport(TABLET_VIEWPORT);
+
+    cy.createDummyCustomer(50000, true).then((response) => {
+      const customer = response.body.data;
+
+      cy.visit('/#/kunden/ueber-limit');
+
+      cy.contains('[testid^="abovelimit-id-"]', customer.id!.toString())
+        .closest('tr')
+        .within(() => {
+          cy.get('[testid^="abovelimit-showcustomer-button-"]').filterDisplayed().should('have.length', 1).click();
         });
 
       cy.url().should('include', '/kunden/detail/' + customer.id);

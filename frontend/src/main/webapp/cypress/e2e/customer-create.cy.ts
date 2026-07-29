@@ -1,5 +1,6 @@
 import {CustomerAddPersonData, Gender} from '../support/commands';
 import dayjs from 'dayjs';
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Customer Creation', () => {
 
@@ -43,6 +44,16 @@ describe('Customer Creation', () => {
       .should('contain.text', 'Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet');
 
     cy.url().should('include', '/kunden/detail');
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.reload();
+
+      cy.byTestId('lastnameInput').should('be.visible').type('Mustermann');
+      cy.byTestId('save-button').should('exist');
+    });
   });
 
   describe('Supervisor', () => {

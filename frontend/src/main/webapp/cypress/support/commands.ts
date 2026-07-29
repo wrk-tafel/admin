@@ -33,6 +33,17 @@ Cypress.Commands.add(
     cy.get(`[testid="${id}"]`, options)
 );
 
+// Some responsive pages render the same testid twice (once per Tailwind `hidden md:block` /
+// `block md:hidden` branch) so only one is ever CSS-displayed at a time. Cypress's `:visible`
+// filter isn't safe to disambiguate them with, because it also treats an element scrolled outside
+// a clipping ancestor (e.g. a horizontally-scrollable table on a narrow viewport) as "not visible" -
+// which would incorrectly filter out the real match before a click ever gets the chance to scroll it
+// into view. `offsetParent` is null only when the element (or an ancestor) is actually
+// `display: none`, regardless of scroll position, so it isolates the currently-active branch.
+Cypress.Commands.add('filterDisplayed', {prevSubject: true}, (subject) =>
+  cy.wrap((subject as JQuery).filter((_, el) => (el as HTMLElement).offsetParent !== null))
+);
+
 // The backend requires the X-XSRF-TOKEN header (mirroring the XSRF-TOKEN cookie) on every
 // mutating request. The Angular app handles this via its xsrfInterceptor - direct cy.request
 // calls need the header injected here.
@@ -154,10 +165,15 @@ Cypress.Commands.add('addCustomerToDistribution', (request: AddCustomerToDistrib
 });
 
 Cypress.Commands.add('closeDistribution', () => {
+  // Runs from afterEach, including after a failed test that may not have gotten far enough to
+  // leave the distribution in a state the statistics endpoint accepts. Tolerate that failure so
+  // the actual close call below still runs - otherwise the distribution is left stuck open and
+  // every later spec's createDistribution() fails with "Ausgabe bereits gestartet!".
   cy.request({
     method: 'POST',
     url: '/api/distributions/statistics',
-    body: {employeeCount: 100, selectedShelterIds: [1, 2]}
+    body: {employeeCount: 100, selectedShelterIds: [1, 2]},
+    failOnStatusCode: false
   });
 
   cy.request({

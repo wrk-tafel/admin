@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Food Collection Recording', () => {
   beforeEach(() => {
     cy.loginDefault();
@@ -10,7 +12,7 @@ describe('Food Collection Recording', () => {
   });
 
   it('food collection recorded properly on desktop', () => {
-    cy.viewport(1920, 1080);
+    // Uses the global 1024x768 desktop baseline from cypress.config.ts.
 
     cy.getAnyRandomNumber().then((randomNumber) => {
       enterRouteData();
@@ -45,7 +47,10 @@ describe('Food Collection Recording', () => {
   });
 
   it('food collection recorded properly on responsive layouts', () => {
-    cy.viewport('iphone-7');
+    cy.viewport(PHONE_VIEWPORT);
+    // give the layout a moment to settle after the resize before the first interaction -
+    // otherwise a resize-triggered re-render can detach routeInput mid-click under load
+    cy.byTestId('routeInput').should('be.visible');
 
     cy.getAnyRandomNumber().then((randomNumber) => {
       enterRouteData();
@@ -65,11 +70,18 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('select-items-tab').click();
 
+      // the item-patch queue sends autosave requests sequentially, one per value change - alias
+      // it so the reload below can wait for every queued patch to land instead of racing them
+      cy.intercept('PATCH', '**/food-collections/route/*/items').as('patchItem');
+
       cy.byTestId('category-1-input').type('12');
       cy.byTestId('category-2-increment-button').click();
       cy.byTestId('category-2-increment-button').click();
       cy.byTestId('category-2-increment-button').click();
       cy.byTestId('category-2-decrement-button').click();
+
+      // category-1's two keystrokes ('1' then '12') plus category-2's 3 increments + 1 decrement
+      cy.wait(new Array(6).fill('@patchItem'));
 
       // validate auto-save on input change
       cy.reload();
@@ -98,6 +110,34 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('previous-shop-button').click();
       cy.byTestId('shop-title').should('have.text', '20 - Lidl');
+    });
+  });
+
+  it('food collection recording shows the desktop-style item grid at tablet breakpoint', () => {
+    // At the tablet width the sidenav is already in mobile ("over") mode, but page content
+    // switches to the desktop item grid at the app's md: (768px) breakpoint - verify both hold.
+    cy.viewport(TABLET_VIEWPORT);
+
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      enterRouteData();
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+
+      cy.byTestId('save-routedata-button').click();
+
+      cy.byTestId('km-diff-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+
+      assertSavedToast();
+
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('category-1-shop-20-input').should('be.visible').clear().type('12');
+      cy.byTestId('save-items-button').click();
+      assertSavedToast();
     });
   });
 

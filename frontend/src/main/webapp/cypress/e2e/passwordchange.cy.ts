@@ -1,5 +1,6 @@
 import {recurse} from 'cypress-recurse';
 import {UserData} from '../support/commands';
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('PasswordChange', () => {
 
@@ -41,6 +42,21 @@ describe('PasswordChange', () => {
 
     // Verify the error message is gone
     cy.byTestId('newRepeatedPasswordText-error').should('not.exist');
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.reload();
+
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-changepassword').click();
+
+      cy.byTestId('currentPasswordText').should('be.visible');
+      cy.byTestId('newPasswordText').should('be.visible');
+      cy.byTestId('newRepeatedPasswordText').should('be.visible');
+      cy.byTestId('saveButton').should('exist');
+    });
   });
 
   it('change password', () => {

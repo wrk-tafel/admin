@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('TicketScreen', () => {
 
   beforeEach(() => {
@@ -28,6 +30,17 @@ describe('TicketScreen', () => {
     cy.get('@open').should('be.called');
     cy.byTestId('title').should('have.text', 'Ticket');
     cy.url().should('eq', Cypress.config().baseUrl + '#/anmeldung/ticketmonitor');
+  });
+
+  it('fullscreen kiosk display still loads at phone and tablet sizes', () => {
+    // No responsive markup on this page - just a smoke check that it still renders at
+    // the smaller viewports rather than exercising its layout in detail.
+    for (const viewport of [PHONE_VIEWPORT, TABLET_VIEWPORT]) {
+      cy.viewport(viewport);
+      cy.visit('/#/anmeldung/ticketmonitor');
+      cy.byTestId('title').should('exist');
+      cy.byTestId('text').should('exist');
+    }
   });
 
   describe('with distribution and tickets', () => {
@@ -74,6 +87,35 @@ describe('TicketScreen', () => {
 
       cy.byTestId('costcontribution-paid-yes-button').click();
       cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('3');
+    });
+
+    it('tickets switched successfully on phone', () => {
+      // Below lg: (1024px) the control form and live-view preview stack into a single
+      // column, and below sm: (640px) the paid/not-paid buttons stack too - verify the flow
+      // still works fully stacked.
+      cy.viewport(PHONE_VIEWPORT);
+
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+    });
+
+    it('tickets switched successfully at tablet breakpoint (sm: button row)', () => {
+      // At 768px the sidenav is still in mobile ("over") mode and the lg: grid is still
+      // single-column, but the sm: paid/not-paid button row is already side-by-side - verify
+      // that combination renders and the flow still works.
+      cy.viewport(TABLET_VIEWPORT);
+
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+
+      cy.byTestId('costcontribution-paid-no-button').click();
       assertTicketText('3');
     });
 
