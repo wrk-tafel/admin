@@ -55,6 +55,13 @@ describe('Login', () => {
       cy.url().should('contain', '/login/passwortaendern');
       cy.byTestId('cancelButton').click();
       cy.url().should('contain', '/login');
+      cy.url().should('not.contain', 'fehlgeschlagen');
+
+      // Cancelling must actually end the still-live session (not just navigate away from
+      // it) - otherwise a stale session would let this "cancelled" login back into the app.
+      cy.visit('/#/uebersicht');
+      cy.url().should('contain', '/login');
+      cy.byTestId('errorMessage').should('not.exist');
     });
   });
 
