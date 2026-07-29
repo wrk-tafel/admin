@@ -1,5 +1,6 @@
 import * as path from 'path';
 import dayjs from 'dayjs';
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Dashboard', () => {
 
@@ -67,6 +68,54 @@ describe('Dashboard', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
 
     // --> CLOSED
+    cy.closeDistribution();
+  });
+
+  it('dashboard content and actions usable on phone', () => {
+    // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
+    // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.
+    cy.viewport(PHONE_VIEWPORT);
+
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
+
+    cy.byTestId('distribution-start-button').click();
+    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+
+    cy.byTestId('distribution-statistics-employee-count-input').type('100');
+    cy.byTestId('distribution-statistics-save-button').click();
+
+    cy.byTestId('distribution-notes-textarea').type('Test note - everything went well!');
+    cy.byTestId('distribution-notes-save-button').click();
+
+    // check if data is filled after reload
+    cy.reload();
+    cy.byTestId('distribution-statistics-employee-count-input')
+      .find('input')
+      .should('have.value', '100');
+    cy.byTestId('distribution-notes-textarea').should('have.value', 'Test note - everything went well!');
+
+    cy.closeDistribution();
+  });
+
+  it('dashboard content renders and download works at tablet breakpoint', () => {
+    cy.viewport(TABLET_VIEWPORT);
+
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
+    cy.byTestId('download-customerlist-button').should('not.exist');
+
+    cy.createDistribution();
+
+    const downloadCustomerListButton = cy.byTestId('download-customerlist-button');
+    downloadCustomerListButton.should('be.visible');
+    downloadCustomerListButton.click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const formattedDate = dayjs().format('DD.MM.YYYY');
+    const downloadedFilename = path.join(downloadsFolder, `kundenliste-ausgabe-${formattedDate}.pdf`);
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
+
     cy.closeDistribution();
   });
 

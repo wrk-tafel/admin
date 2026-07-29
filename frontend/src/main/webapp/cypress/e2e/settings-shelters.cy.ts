@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Settings - Shelters', () => {
 
   beforeEach(() => {
@@ -69,6 +71,16 @@ describe('Settings - Shelters', () => {
     cy.contains('Speichern').click();
     // Ensure dialog still open (save did not close because of validation)
     cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.reload();
+
+      cy.byTestId('shelters-table').should('exist');
+      cy.byTestId('addShelterButton').should('be.visible');
+    });
   });
 
 });

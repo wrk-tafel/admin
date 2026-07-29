@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Scanner', () => {
 
   beforeEach(() => {
@@ -32,6 +34,16 @@ describe('Scanner', () => {
     cy.byTestId('message', {timeout: 20000}).should('contain.text', 'Letzter Scan: 12345');
 
     cy.wait('@scanResult', {timeout: 20000}).its('request.url').should('include', 'scanResult=12345');
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.visit('/#/anmeldung/scanner');
+
+      cy.byTestId('scanner-id').should('be.visible');
+      cy.byTestId('state-camera', {timeout: 20000}).should('have.text', 'Bereit');
+    });
   });
 
 });

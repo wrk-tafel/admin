@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Customer Edit', () => {
 
   beforeEach(() => {
@@ -88,6 +90,20 @@ describe('Customer Edit', () => {
         .should('contain.text', 'Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet');
 
       cy.url().should('contain', '/kunden/detail/' + customerId);
+    });
+  });
+
+  it('remains usable on mobile viewports', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id;
+
+      [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+        cy.viewport(viewport);
+        cy.visit('/#/kunden/bearbeiten/' + customerId);
+
+        cy.byTestId('lastnameInput').should('be.visible');
+        cy.byTestId('save-button').should('be.enabled');
+      });
     });
   });
 

@@ -3,8 +3,12 @@ import * as path from 'path';
 
 export default defineConfig({
   builder: '@cypress/schematic:cypress',
-  viewportWidth: 1280,
-  viewportHeight: 1024,
+  // 1024x768 is the smallest desktop resolution still used in production
+  // (right at the app's mobile/desktop breakpoint), so it's the baseline for
+  // all specs. Individual specs additionally test PHONE_VIEWPORT/TABLET_VIEWPORT
+  // (see cypress/support/viewports.ts) for pages with responsive layouts.
+  viewportWidth: 1024,
+  viewportHeight: 768,
   videoCompression: false,
   video: true,
   allowCypressEnv: false,

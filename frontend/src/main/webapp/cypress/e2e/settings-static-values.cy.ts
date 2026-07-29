@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Settings - Static Values', () => {
 
   beforeEach(() => {
@@ -61,6 +63,16 @@ describe('Settings - Static Values', () => {
       cy.byTestId('staticValueAmountInput-0').clear().type('999999{esc}');
 
       cy.byTestId('static-values-row-0').should('have.text', originalText);
+    });
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.reload();
+
+      cy.byTestId('static-values-table').should('exist');
+      cy.byTestId('editStaticValueButton-0').scrollIntoView().should('be.visible');
     });
   });
 

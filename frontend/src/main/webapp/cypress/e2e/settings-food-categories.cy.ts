@@ -1,3 +1,5 @@
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
 describe('Settings - Food Categories', () => {
 
   beforeEach(() => {
@@ -88,6 +90,16 @@ describe('Settings - Food Categories', () => {
     cy.byTestId('enableFoodCategoryButton').first().click();
     cy.get('.toast-message')
       .should('be.visible');
+  });
+
+  it('remains usable on mobile viewports', () => {
+    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
+      cy.viewport(viewport);
+      cy.reload();
+
+      cy.byTestId('food-categories-table').should('exist');
+      cy.byTestId('addFoodCategoryButton').should('be.visible');
+    });
   });
 
 });

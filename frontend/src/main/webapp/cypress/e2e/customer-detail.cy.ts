@@ -1,6 +1,7 @@
 import * as path from 'path';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 dayjs.extend(customParseFormat);
 
@@ -114,6 +115,59 @@ describe('Customer Detail', () => {
 
     cy.byTestId('latest-customer-note').should('not.exist');
     cy.byTestId('latest-customer-note-none').should('be.visible');
+  });
+
+  it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.visit('/#/kunden/detail/101');
+
+    cy.byTestId('customerIdText').should('be.visible');
+    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
+    cy.byTestId('editCustomerButton').scrollIntoView().should('be.visible');
+
+    // below lg: the outer section reverses (flex-col-reverse), so the data tabs render
+    // above the action buttons instead of below them
+    cy.byTestId('customerIdText').then(($content) => {
+      const contentTop = $content[0].getBoundingClientRect().top;
+      cy.byTestId('editCustomerButton').then(($actionButton) => {
+        expect(contentTop).to.be.lessThan($actionButton[0].getBoundingClientRect().top);
+      });
+    });
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+
+    openEditMenu();
+    cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-input-text').type('dummy lockreason');
+    cy.byTestId('lock-customer-dialog').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.byTestId('lock-info-banner').should('exist');
+
+    openEditMenu();
+    cy.byTestId('unlockCustomerButton').click();
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
+  it('renders correctly at tablet breakpoint and still allows prolonging', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.visit('/#/kunden/detail/100');
+
+    cy.byTestId('customerIdText').should('be.visible');
+    cy.byTestId('latest-customer-note-none').should('be.visible');
+
+    let validDateString;
+    cy.byTestId('validUntilText').then(($value) => {
+      validDateString = $value.text();
+      const expectedValidDate = dayjs(validDateString, 'DD.MM.YYYY').add(1, 'months').endOf('day').format('DD.MM.YYYY');
+
+      cy.byTestId('prolongButton').click();
+      cy.byTestId('prolongOneMonthButton').click();
+
+      cy.byTestId('validUntilText').should('have.text', expectedValidDate);
+    });
   });
 
   it('ticket section not visible when no distribution is active', () => {
