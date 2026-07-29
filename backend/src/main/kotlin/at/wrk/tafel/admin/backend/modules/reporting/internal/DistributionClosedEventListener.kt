@@ -203,7 +203,7 @@ class DistributionClosedEventListener(
                 val returnBoxes = uniqueReturnCategories.mapNotNull { category ->
                     val amount = distribution.foodCollections.flatMap { it.items ?: emptyList() }
                         .filter { it.shop!!.id == shop.id }
-                        .filter { it.category!!.id == category.id }
+                        .filter { it.category?.id == category.id }
                         .sumOf { it.amount ?: 0 }
 
                     if (amount > 0) "${amount}x ${category.name}" else null
