@@ -3,9 +3,7 @@ name: Cleanup old workflow runs and package versions
 on:
   workflow_dispatch:
   schedule:
-    # TEMPORARY: every 5 minutes to burn down the ~6k-version untagged backlog
-    # (100/run cap). Revert to daily ('00 8 * * *') once the backlog is clear.
-    - cron: '*/5 * * * *'
+    - cron: '00 8 * * *'
 
 jobs:
   delete-workflow-runs:
