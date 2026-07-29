@@ -1,0 +1,62 @@
+name: Cleanup old workflow runs and package versions
+
+on:
+  workflow_dispatch:
+  schedule:
+    # TEMPORARY: every 5 minutes to burn down the ~6k-version untagged backlog
+    # (100/run cap). Revert to daily ('00 8 * * *') once the backlog is clear.
+    - cron: '*/5 * * * *'
+
+jobs:
+  delete-workflow-runs:
+    runs-on: ubuntu-latest
+    name: Delete old workflow runs
+    permissions:
+      actions: write
+    steps:
+      # MajorScruffy/delete-old-workflow-runs is archived/unmaintained (still declares a node12
+      # runtime), so this is inlined via gh api instead of depending on it.
+      - name: Delete workflow runs older than 2 weeks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: wrk-tafel/admin
+        run: |
+          cutoff=$(date -d '14 days ago' +%s)
+          gh api "repos/${REPO}/actions/runs" --paginate --jq '.workflow_runs[] | [.id, .created_at] | @tsv' |
+            while IFS=$'\t' read -r id created_at; do
+              created_ts=$(date -d "$created_at" +%s)
+              if [ "$created_ts" -lt "$cutoff" ]; then
+                echo "Deleting run $id (created $created_at)"
+                gh api -X DELETE "repos/${REPO}/actions/runs/${id}" || true
+              fi
+            done
+
+  delete-package-versions:
+    runs-on: ubuntu-latest
+    name: Delete old/unused package versions
+    permissions:
+      packages: write
+    steps:
+      # Untagged versions are orphaned image manifests left behind whenever a
+      # mutable tag (dev/test/latest) moved to a new digest, plus any digest
+      # no tag ever pointed to. Nothing references them, so they're safe to
+      # delete outright rather than time-boxing a retention window.
+      - name: Delete untagged versions of the admin container image
+        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: admin
+          package-type: container
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 0
+      # Every PR/main-push build tags its image with an immutable short commit
+      # SHA (see pull_request.yml/main_push.yml), so these otherwise accumulate
+      # forever. Keep the most recent 5 for debugging/rollback reference and
+      # prune the rest; release images ("latest" and semver version tags) are
+      # excluded and kept indefinitely.
+      - name: Delete old commit-SHA-tagged versions of the admin container image
+        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: admin
+          package-type: container
+          min-versions-to-keep: 5
+          ignore-versions: '^(latest|[0-9]+\.[0-9]+\.[0-9]+)$'
