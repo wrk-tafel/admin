@@ -75,9 +75,9 @@
   </div>
   <div *tafelIfDistributionActive class="flex items-center mt-4 lg:mt-2 mb-2 gap-2">
     @if (!ticketNumber()) {
-      <mat-form-field subscriptSizing="dynamic" style="max-width: 150px;">
+      <mat-form-field subscriptSizing="dynamic" class="max-w-36">
+        <mat-label>Ticketnummer</mat-label>
         <input testid="ticket-number-input" matInput type="number"
-               placeholder="Ticketnummer"
                [ngModel]="ticketNumberInput()" (ngModelChange)="ticketNumberInput.set($event)">
       </mat-form-field>
       <button testid="assign-ticket-button" matButton="filled" class="button-success"
