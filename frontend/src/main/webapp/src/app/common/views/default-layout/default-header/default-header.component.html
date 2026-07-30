@@ -13,7 +13,7 @@
     </button>
     <mat-menu #userMenu="matMenu">
       <!-- #212631 matches the sidebar's background (--mat-sidenav-container-background-color in default-layout.component.scss). -->
-      <div class="px-6 py-2.5 mb-2 font-semibold text-[rgba(255,255,255,.92)] bg-[#212631]">Benutzer</div>
+      <div class="px-6 py-2 font-semibold text-[rgba(255,255,255,.92)] bg-[#212631]">Benutzer</div>
       <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
         <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
       </a>
