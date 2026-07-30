@@ -1,6 +1,7 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {CarEditDialogComponent} from './dialogs/car-edit-dialog.component';
+import {CarCreateDialogComponent} from './dialogs/car-create-dialog.component';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
@@ -18,8 +19,10 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {CarApiService, CarData, CarList} from '../../../../api/car-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faEye, faEyeSlash, faGripVertical, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faEye, faEyeSlash, faGripVertical, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 
 @Component({
   selector: 'tafel-settings-cars',
@@ -41,6 +44,9 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatHeaderCellDef,
     FaIconComponent,
     MatButton,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
     CdkDropList,
     CdkDrag,
     CdkDragHandle
@@ -55,8 +61,15 @@ export class SettingsCarsComponent {
   protected cars = this._cars;
   displayedColumns = ['drag', 'active', 'licensePlate', 'name', 'actions'];
 
+  protected editingId = signal<number | null>(null);
+  protected licensePlateControl = new FormControl<string>('', {nonNullable: true});
+  protected nameControl = new FormControl<string>('', {nonNullable: true});
+  private licensePlateInput = viewChild<ElementRef<HTMLInputElement>>('licensePlateInput');
+
   constructor() {
     this.loadCars();
+
+    effect(() => this.licensePlateInput()?.nativeElement.focus());
   }
 
   private loadCars() {
@@ -66,22 +79,30 @@ export class SettingsCarsComponent {
     });
   }
 
-  protected editCar(car: CarData) {
-    const dialogRef = this.dialog.open(CarEditDialogComponent, {
-      data: {car},
-      width: '600px'
-    });
+  protected startEdit(car: CarData) {
+    this.editingId.set(car.id);
+    this.licensePlateControl.setValue(car.licensePlate);
+    this.nameControl.setValue(car.name);
+  }
 
-    dialogRef.afterClosed().subscribe((updated: CarData | undefined) => {
-      if (updated) {
-        this.carApiService.updateCar(updated.id, updated).subscribe({
-          next: () => {
-            this.toastr.success('Auto gespeichert', 'Erfolgreich');
-            this.loadCars();
-          },
-          error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
-        });
-      }
+  protected cancelEdit() {
+    this.editingId.set(null);
+  }
+
+  protected saveEdit(car: CarData) {
+    const updated: CarData = {
+      ...car,
+      licensePlate: this.licensePlateControl.value,
+      name: this.nameControl.value
+    };
+
+    this.carApiService.updateCar(updated.id, updated).subscribe({
+      next: () => {
+        this.toastr.success('Auto gespeichert', 'Erfolgreich');
+        this.editingId.set(null);
+        this.loadCars();
+      },
+      error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
     });
   }
 
@@ -104,12 +125,11 @@ export class SettingsCarsComponent {
   }
 
   protected addCar() {
-    const dialogRef = this.dialog.open(CarEditDialogComponent, {
-      data: {car: undefined as any},
+    const dialogRef = this.dialog.open(CarCreateDialogComponent, {
       width: '600px'
     });
 
-    dialogRef.afterClosed().subscribe((created: any) => {
+    dialogRef.afterClosed().subscribe((created: CarData | undefined) => {
       if (created) {
         this.carApiService.createCar(created).subscribe({
           next: () => {
@@ -140,5 +160,7 @@ export class SettingsCarsComponent {
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
+  protected readonly faCheck = faCheck;
+  protected readonly faXmark = faXmark;
   protected readonly faGripVertical = faGripVertical;
 }

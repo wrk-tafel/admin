@@ -32,7 +32,7 @@ settings/
       static-value-type-labels.ts
     cars/                          # route: einstellungen/fahrzeuge
       dialogs/
-        car-edit-dialog.component.ts
+        car-create-dialog.component.ts
   settings.routes.ts
 ```
 
@@ -140,19 +140,24 @@ map — if you add a new static value type, update that file, not the component.
 
 ## `cars` (`SettingsCarsComponent`)
 
-CRUD + drag-and-drop reordering for cars (Autos), structurally the twin of
-`shelters` above but without the address/contacts complexity — a car is just
-`licensePlate` + `name` + `enabled` + `sortOrder`, so the edit dialog is a
-single flat form and there's no separate read-only details dialog (the table
-already shows every field).
+CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
+`food-categories` above — inline editing, not a dialog, since a car is just
+`licensePlate` + `name` + `enabled` + `sortOrder`.
 
 - Loads via `CarApiService.getAllCars()` into a signal (`_cars`), table
   columns `['drag', 'active', 'licensePlate', 'name', 'actions']`.
+- **Inline editing**: clicking edit (`startEdit()`) sets an `editingId` signal
+  and swaps that row's `licensePlate`/`name` cells for a `licensePlateControl`/
+  `nameControl` pair; `saveEdit()`/`cancelEdit()` exit the mode (Enter saves,
+  Escape cancels, same as food-categories). A `viewChild` + `effect()`
+  auto-focuses the license-plate input whenever it appears. The edit button is
+  disabled for disabled cars, same as food-categories.
+- **Creation still uses a dialog** (`car-create-dialog.component.ts`), which
+  only exposes `licensePlate`/`name` — `sortOrder`/`enabled` are hidden form
+  fields with fixed defaults (`0`/`true`), same convention as
+  `food-category-create-dialog.component.ts`.
 - Same optimistic-drag-then-reconcile reordering pattern as shelters/food
   categories, against `CarApiService.reorderCars()`.
-- `sortOrder` is present on `CarData` but not user-editable in
-  `car-edit-dialog.component.ts` — server-assigned on create, drag-and-drop
-  only afterwards (same convention as shelters).
 - Disabling a car here excludes it from `CarApiService.getActiveCars()`,
   which feeds the `logistics` module's food-collection-recording car
   dropdown (`CarDataResolver`) — same relationship as food categories'

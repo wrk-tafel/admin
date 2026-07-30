@@ -1,4 +1,4 @@
-<tafel-dialog title="Auto bearbeiten" testid="car-edit-dialog">
+<tafel-dialog title="Auto erstellen" testid="car-create-dialog">
   <div tafel-dialog-content>
     <form [formGroup]="form" class="grid grid-cols-1">
       <mat-form-field>
@@ -10,8 +10,6 @@
         <mat-label>Name</mat-label>
         <input matInput formControlName="name"/>
       </mat-form-field>
-
-      <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
     </form>
   </div>
 

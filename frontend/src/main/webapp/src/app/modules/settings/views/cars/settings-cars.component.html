@@ -39,27 +39,56 @@
 
       <ng-container matColumnDef="licensePlate">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Kennzeichen</th>
-        <td mat-cell *matCellDef="let car; let i = index">{{ car.licensePlate }}</td>
+        <td mat-cell *matCellDef="let car; let i = index">
+          @if (editingId() === car.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input #licensePlateInput matInput [formControl]="licensePlateControl"
+                     [attr.testid]="'carLicensePlateInput-' + i"
+                     (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ car.licensePlate }}
+          }
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let car; let i = index">{{ car.name }}</td>
+        <td mat-cell *matCellDef="let car; let i = index">
+          @if (editingId() === car.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input matInput [formControl]="nameControl" [attr.testid]="'carNameInput-' + i"
+                     (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ car.name }}
+          }
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let car; let i = index">
-          <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i"
-                  (click)="editCar(car)">
-            <fa-icon [icon]="faPencil"></fa-icon>
-          </button>
+          @if (editingId() === car.id) {
+            <button matButton="filled" [attr.testid]="'saveCarButton-' + i" (click)="saveEdit(car)">
+              <fa-icon [icon]="faCheck"></fa-icon>
+            </button>
+            <button matButton class="ml-2" [attr.testid]="'cancelCarButton-' + i" (click)="cancelEdit()">
+              <fa-icon [icon]="faXmark"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i"
+                    [disabled]="!car.enabled" (click)="startEdit(car)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          }
         </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
           cdkDrag [cdkDragData]="row"
+          [class.opacity-50]="!row.enabled"
           [attr.testid]="'cars-row-' + i"></tr>
     </table>
   </mat-card-content>
