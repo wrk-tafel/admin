@@ -142,6 +142,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/email'
       },
       {
+        name: 'Fahrzeuge',
+        url: '/einstellungen/fahrzeuge'
+      },
+      {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen'
       },
@@ -152,10 +156,6 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Waren-Kategorien',
         url: '/einstellungen/lebensmittelkategorien'
-      },
-      {
-        name: 'Fahrzeuge',
-        url: '/einstellungen/fahrzeuge'
       },
     ],
   },
