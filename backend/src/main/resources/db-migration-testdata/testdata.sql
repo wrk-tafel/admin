@@ -743,6 +743,10 @@ INSERT INTO cars (id, created_at, updated_at, license_plate, name)
 VALUES (2, NOW(), NOW(), 'W-NC-456', 'Nice Car 456');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
 VALUES (3, NOW(), NOW(), 'W-NC-789', 'Nice Car 789');
+INSERT INTO cars (id, created_at, updated_at, license_plate, name, enabled)
+VALUES (4, NOW(), NOW(), 'W-NC-111', 'Old Car 1 disabled', false);
+INSERT INTO cars (id, created_at, updated_at, license_plate, name, enabled)
+VALUES (5, NOW(), NOW(), 'W-NC-222', 'Old Car 2 disabled', false);
 
 -- food collection for route 1
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,

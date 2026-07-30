@@ -153,6 +153,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         name: 'Waren-Kategorien',
         url: '/einstellungen/lebensmittelkategorien'
       },
+      {
+        name: 'Fahrzeuge',
+        url: '/einstellungen/fahrzeuge'
+      },
     ],
   },
 ];

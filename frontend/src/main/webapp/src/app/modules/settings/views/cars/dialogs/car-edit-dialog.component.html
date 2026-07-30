@@ -1,0 +1,22 @@
+<tafel-dialog title="Auto bearbeiten" testid="car-edit-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Kennzeichen</mat-label>
+        <input matInput formControlName="licensePlate"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name"/>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" (click)="save()">Speichern</button>
+    <button matButton (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

@@ -30,6 +30,9 @@ settings/
         food-category-create-dialog.component.ts
     static-values/                 # route: einstellungen/statische-werte
       static-value-type-labels.ts
+    cars/                          # route: einstellungen/fahrzeuge
+      dialogs/
+        car-edit-dialog.component.ts
   settings.routes.ts
 ```
 
@@ -135,6 +138,26 @@ create, delete, or reordering — only `amount` is editable per row via
 rather than inlined on the component, unlike `mail-recipients`' `MailTypeLabels`
 map — if you add a new static value type, update that file, not the component.
 
+## `cars` (`SettingsCarsComponent`)
+
+CRUD + drag-and-drop reordering for cars (Autos), structurally the twin of
+`shelters` above but without the address/contacts complexity — a car is just
+`licensePlate` + `name` + `enabled` + `sortOrder`, so the edit dialog is a
+single flat form and there's no separate read-only details dialog (the table
+already shows every field).
+
+- Loads via `CarApiService.getAllCars()` into a signal (`_cars`), table
+  columns `['drag', 'active', 'licensePlate', 'name', 'actions']`.
+- Same optimistic-drag-then-reconcile reordering pattern as shelters/food
+  categories, against `CarApiService.reorderCars()`.
+- `sortOrder` is present on `CarData` but not user-editable in
+  `car-edit-dialog.component.ts` — server-assigned on create, drag-and-drop
+  only afterwards (same convention as shelters).
+- Disabling a car here excludes it from `CarApiService.getActiveCars()`,
+  which feeds the `logistics` module's food-collection-recording car
+  dropdown (`CarDataResolver`) — same relationship as food categories'
+  enabled/active split.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
@@ -142,6 +165,8 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
 - `settings-api.service.ts` — mail recipients, static values, and their
   `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions.
 - `shelter-api.service.ts` — `ShelterApiService`, including `reorderShelters()`.
+- `car-api.service.ts` — `CarApiService`, including `reorderCars()`; also used
+  by `logistics`' `CarDataResolver` for the read-only `getActiveCars()` side.
 - `food-categories-api.service.ts` — `FoodCategoriesApiService`, shared with
   `logistics` (which only calls its read side; full CRUD + reorder is only
   exercised from this module).
