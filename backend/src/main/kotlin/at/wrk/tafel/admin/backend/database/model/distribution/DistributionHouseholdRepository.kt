@@ -6,7 +6,5 @@ interface DistributionHouseholdRepository : JpaRepository<DistributionHouseholdE
 
     fun countAllByDistributionId(distributionId: Long): Int
 
-    fun findByHouseholdHouseholdId(householdId: Long): List<DistributionHouseholdEntity>
-
     fun findByDistributionId(distributionId: Long): List<DistributionHouseholdEntity>
 }

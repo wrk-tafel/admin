@@ -29,58 +29,58 @@
               <mat-error>{{errorMessage}}</mat-error>
             }
           </mat-form-field>
-          <div class="flex items-center gap-2">
-            <mat-form-field class="w-full">
-              <mat-label>Geschlecht</mat-label>
-              <mat-select testid="genderInput" [formField]="customerForm.gender">
-                @for (genderOption of genders; track genderOption) {
-                  <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
-                    {{genderOption | genderLabel}}</mat-option>
-                }
-              </mat-select>
-              @for (errorMessage of visibleErrorMessages(customerForm.gender()); track $index) {
-                <mat-error>{{errorMessage}}</mat-error>
-              }
-            </mat-form-field>
-            <fa-icon [icon]="faVenusMars"></fa-icon>
-          </div>
-        </div>
-        <div class="mb-2 flex items-center gap-2">
-          <mat-form-field class="w-full">
-            <mat-label>Nationalität</mat-label>
-            <mat-select testid="countryInput" [formField]="customerForm.country" [compareWith]="compareCountry">
-              @for (countryItem of countries(); track countryItem.id) {
-                <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
-                  {{countryItem.name}}</mat-option>
+          <mat-form-field>
+            <mat-label>Geschlecht</mat-label>
+            <mat-select testid="genderInput" [formField]="customerForm.gender">
+              @for (genderOption of genders; track genderOption) {
+                <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
+                  {{genderOption | genderLabel}}</mat-option>
               }
             </mat-select>
-            @for (errorMessage of visibleErrorMessages(customerForm.country()); track $index) {
+            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+              <fa-icon [icon]="faVenusMars"></fa-icon>
+            </mat-icon>
+            @for (errorMessage of visibleErrorMessages(customerForm.gender()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
           </mat-form-field>
-          <fa-icon [icon]="faFlag"></fa-icon>
         </div>
+        <mat-form-field class="w-full mb-2">
+          <mat-label>Nationalität</mat-label>
+          <mat-select testid="countryInput" [formField]="customerForm.country" [compareWith]="compareCountry">
+            @for (countryItem of countries(); track countryItem.id) {
+              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                {{countryItem.name}}</mat-option>
+            }
+          </mat-select>
+          <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+            <fa-icon [icon]="faFlag"></fa-icon>
+          </mat-icon>
+          @for (errorMessage of visibleErrorMessages(customerForm.country()); track $index) {
+            <mat-error>{{errorMessage}}</mat-error>
+          }
+        </mat-form-field>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-          <div class="flex items-center gap-2">
-            <mat-form-field class="w-full">
-              <mat-label>Telefonnummer</mat-label>
-              <input matInput testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber">
-              @for (errorMessage of visibleErrorMessages(customerForm.telephoneNumber()); track $index) {
-                <mat-error>{{errorMessage}}</mat-error>
-              }
-            </mat-form-field>
-            <fa-icon [icon]="faPhone"></fa-icon>
-          </div>
-          <div class="flex items-center gap-2">
-            <mat-form-field class="w-full">
-              <mat-label>E-Mail</mat-label>
-              <input matInput testid="emailInput" type="text" [formField]="customerForm.email">
-              @for (errorMessage of visibleErrorMessages(customerForm.email()); track $index) {
-                <mat-error>{{errorMessage}}</mat-error>
-              }
-            </mat-form-field>
-            <fa-icon [icon]="faEnvelope"></fa-icon>
-          </div>
+          <mat-form-field>
+            <mat-label>Telefonnummer</mat-label>
+            <input matInput testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber">
+            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+              <fa-icon [icon]="faPhone"></fa-icon>
+            </mat-icon>
+            @for (errorMessage of visibleErrorMessages(customerForm.telephoneNumber()); track $index) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>E-Mail</mat-label>
+            <input matInput testid="emailInput" type="text" [formField]="customerForm.email">
+            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+              <fa-icon [icon]="faEnvelope"></fa-icon>
+            </mat-icon>
+            @for (errorMessage of visibleErrorMessages(customerForm.email()); track $index) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
         </div>
         <hr>
         <div>
@@ -109,50 +109,50 @@
             </mat-form-field>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-            <div class="flex items-center gap-2">
-              <mat-form-field class="w-full">
-                <mat-label>PLZ</mat-label>
-                <input matInput testid="postalCodeInput" type="number" [formField]="customerForm.address.postalCode">
-                @for (errorMessage of visibleErrorMessages(customerForm.address.postalCode()); track $index) {
-                  <mat-error>{{errorMessage}}</mat-error>
-                }
-              </mat-form-field>
-              <fa-icon [icon]="faLocationDot"></fa-icon>
-            </div>
-            <div class="flex items-center gap-2">
-              <mat-form-field class="w-full">
-                <mat-label>Ort</mat-label>
-                <input matInput testid="cityInput" type="text" [formField]="customerForm.address.city">
-                @for (errorMessage of visibleErrorMessages(customerForm.address.city()); track $index) {
-                  <mat-error>{{errorMessage}}</mat-error>
-                }
-              </mat-form-field>
-              <fa-icon [icon]="faLocationDot"></fa-icon>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <div class="mb-2 flex items-center gap-2">
-          <mat-form-field class="w-full">
-            <mat-label>Arbeitgeber</mat-label>
-            <input matInput testid="employerInput" type="text" [formField]="customerForm.employer">
-            @for (errorMessage of visibleErrorMessages(customerForm.employer()); track $index) {
-              <mat-error>{{errorMessage}}</mat-error>
-            }
-          </mat-form-field>
-          <fa-icon [icon]="faBuilding"></fa-icon>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-          <div class="flex items-center gap-2">
-            <mat-form-field class="w-full">
-              <mat-label>Einkommen (monatl.)</mat-label>
-              <input matInput testid="incomeInput" type="number" [formField]="customerForm.income">
-              @for (errorMessage of visibleErrorMessages(customerForm.income()); track $index) {
+            <mat-form-field>
+              <mat-label>PLZ</mat-label>
+              <input matInput testid="postalCodeInput" type="number" [formField]="customerForm.address.postalCode">
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                <fa-icon [icon]="faLocationDot"></fa-icon>
+              </mat-icon>
+              @for (errorMessage of visibleErrorMessages(customerForm.address.postalCode()); track $index) {
                 <mat-error>{{errorMessage}}</mat-error>
               }
             </mat-form-field>
-            <fa-icon [icon]="faEuroSign"></fa-icon>
+            <mat-form-field>
+              <mat-label>Ort</mat-label>
+              <input matInput testid="cityInput" type="text" [formField]="customerForm.address.city">
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                <fa-icon [icon]="faLocationDot"></fa-icon>
+              </mat-icon>
+              @for (errorMessage of visibleErrorMessages(customerForm.address.city()); track $index) {
+                <mat-error>{{errorMessage}}</mat-error>
+              }
+            </mat-form-field>
           </div>
+        </div>
+        <hr>
+        <mat-form-field class="w-full mb-2">
+          <mat-label>Arbeitgeber</mat-label>
+          <input matInput testid="employerInput" type="text" [formField]="customerForm.employer">
+          <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+            <fa-icon [icon]="faBuilding"></fa-icon>
+          </mat-icon>
+          @for (errorMessage of visibleErrorMessages(customerForm.employer()); track $index) {
+            <mat-error>{{errorMessage}}</mat-error>
+          }
+        </mat-form-field>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
+          <mat-form-field>
+            <mat-label>Einkommen (monatl.)</mat-label>
+            <input matInput testid="incomeInput" type="number" [formField]="customerForm.income">
+            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+              <fa-icon [icon]="faEuroSign"></fa-icon>
+            </mat-icon>
+            @for (errorMessage of visibleErrorMessages(customerForm.income()); track $index) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
           <mat-form-field>
             <mat-label>nachgewiesen bis</mat-label>
             <input matInput testid="incomeDueInput" type="date" [formField]="customerForm.incomeDue">
@@ -218,59 +218,59 @@
                         <mat-error>{{errorMessage}}</mat-error>
                       }
                     </mat-form-field>
-                    <div class="flex items-center gap-2">
-                      <mat-form-field class="w-full">
-                        <mat-label>Geschlecht</mat-label>
-                        <mat-select testid="genderInput" [formField]="personField(i).gender">
-                          @for (genderOption of genders; track genderOption) {
-                            <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
-                              {{genderOption | genderLabel}}</mat-option>
-                          }
-                        </mat-select>
-                        @for (errorMessage of visibleErrorMessages(personField(i).gender()); track $index) {
-                          <mat-error>{{errorMessage}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <fa-icon [icon]="faVenusMars"></fa-icon>
-                    </div>
-                  </div>
-                  <div class="mt-2 flex items-center gap-2">
-                    <mat-form-field class="w-full">
-                      <mat-label>Nationalität</mat-label>
-                      <mat-select testid="countryInput" [formField]="personField(i).country"
-                                  [compareWith]="compareCountry">
-                        @for (countryItem of countries(); track countryItem.id) {
-                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
-                            {{countryItem.name}}</mat-option>
+                    <mat-form-field>
+                      <mat-label>Geschlecht</mat-label>
+                      <mat-select testid="genderInput" [formField]="personField(i).gender">
+                        @for (genderOption of genders; track genderOption) {
+                          <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
+                            {{genderOption | genderLabel}}</mat-option>
                         }
                       </mat-select>
-                      @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
+                      <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                        <fa-icon [icon]="faVenusMars"></fa-icon>
+                      </mat-icon>
+                      @for (errorMessage of visibleErrorMessages(personField(i).gender()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>
                       }
                     </mat-form-field>
-                    <fa-icon [icon]="faFlag"></fa-icon>
                   </div>
+                  <mat-form-field class="w-full mt-2">
+                    <mat-label>Nationalität</mat-label>
+                    <mat-select testid="countryInput" [formField]="personField(i).country"
+                                [compareWith]="compareCountry">
+                      @for (countryItem of countries(); track countryItem.id) {
+                        <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                          {{countryItem.name}}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                      <fa-icon [icon]="faFlag"></fa-icon>
+                    </mat-icon>
+                    @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
+                      <mat-error>{{errorMessage}}</mat-error>
+                    }
+                  </mat-form-field>
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <div class="flex items-center gap-2">
-                      <mat-form-field class="w-full">
-                        <mat-label>Arbeitgeber</mat-label>
-                        <input matInput testid="employerInput" type="text" [formField]="personField(i).employer">
-                        @for (errorMessage of visibleErrorMessages(personField(i).employer()); track $index) {
-                          <mat-error>{{errorMessage}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <fa-icon [icon]="faBuilding"></fa-icon>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <mat-form-field class="w-full">
-                        <mat-label>Einkommen (monatl.)</mat-label>
-                        <input matInput testid="incomeInput" type="number" [formField]="personField(i).income">
-                        @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
-                          <mat-error>{{errorMessage}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <fa-icon [icon]="faEuroSign"></fa-icon>
-                    </div>
+                    <mat-form-field>
+                      <mat-label>Arbeitgeber</mat-label>
+                      <input matInput testid="employerInput" type="text" [formField]="personField(i).employer">
+                      <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                        <fa-icon [icon]="faBuilding"></fa-icon>
+                      </mat-icon>
+                      @for (errorMessage of visibleErrorMessages(personField(i).employer()); track $index) {
+                        <mat-error>{{errorMessage}}</mat-error>
+                      }
+                    </mat-form-field>
+                    <mat-form-field>
+                      <mat-label>Einkommen (monatl.)</mat-label>
+                      <input matInput testid="incomeInput" type="number" [formField]="personField(i).income">
+                      <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                        <fa-icon [icon]="faEuroSign"></fa-icon>
+                      </mat-icon>
+                      @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
+                        <mat-error>{{errorMessage}}</mat-error>
+                      }
+                    </mat-form-field>
                   </div>
                   <mat-form-field class="w-full mt-2">
                     <mat-label>nachgewiesen bis</mat-label>

@@ -78,9 +78,14 @@ DB level — it only governs `modules`-to-`modules` traffic.
   shelter sortOrder in dashboard/daily report PDF" behavior lives in those consumers, not here.
 
 ### Cars (`CarsController`, `internal/CarService`)
-- The simplest sub-area: `CarEntity` (`cars`) is just `licensePlate` + `name`. `CarService` only
-  exposes `getCars()` — there's currently no create/update/delete endpoint for cars in this
-  module; car master data is presumably maintained elsewhere (migration/manual DB) for now.
+- `CarEntity` (`cars`) is `licensePlate` + `name`, plus `enabled`/`sortOrder` (added alongside the
+  "maintain cars" settings page, mirroring shelters). `CarService` exposes `getActiveCars()`
+  (`enabled = true`, used by the food-collection recording car dropdown) and `getAllCars()`
+  (used by the settings maintenance page) plus `createCar()`/`updateCar()`/`reorderCars()` —
+  same `nextSortOrder()`/`reorderCars(index + 1)` pattern as shelters/food categories.
+- **Permission split, same shape as food categories:** `getActiveCars()` requires
+  `isAuthenticated()` (frontend route-level `LOGISTICS` gating already restricts who reaches it),
+  while `getAllCars()` plus create/update/reorder all require `SETTINGS`.
 
 ### Food categories (`FoodCategoriesController`, `internal/FoodCategoryService`)
 - `FoodCategoryEntity` (`food_categories`) has `weightPerUnit` (`BigDecimal`), a `returnItem`

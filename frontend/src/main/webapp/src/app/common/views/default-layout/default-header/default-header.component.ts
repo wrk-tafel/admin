@@ -2,7 +2,7 @@ import {Component, inject, output} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
-import {NgClass} from '@angular/common';
+import {NgClass, NgOptimizedImage} from '@angular/common';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faBars, faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {AuthenticationService} from '../../../security/authentication.service';
@@ -16,6 +16,7 @@ import {GlobalStateService} from '../../../state/global-state.service';
     MatMenuModule,
     MatDividerModule,
     NgClass,
+    NgOptimizedImage,
     FaIconComponent
   ]
 })

@@ -142,12 +142,16 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/email'
       },
       {
-        name: 'Notschlafstellen',
-        url: '/einstellungen/notschlafstellen'
+        name: 'Fahrzeuge',
+        url: '/einstellungen/fahrzeuge'
       },
       {
-        name: 'Statische Werte',
+        name: 'Grenzwerte',
         url: '/einstellungen/statische-werte'
+      },
+      {
+        name: 'Notschlafstellen',
+        url: '/einstellungen/notschlafstellen'
       },
       {
         name: 'Waren-Kategorien',

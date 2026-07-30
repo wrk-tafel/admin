@@ -8,7 +8,7 @@
       <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-6">
           <div class="sm:w-1/3">
-            <mat-form-field class="w-full">
+            <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>Kundennummer</mat-label>
               <input matInput testid="customerIdText" type="number" formControlName="customerId"
                      (keydown.enter)="searchForCustomerId()" tafelAutofocus>
@@ -26,13 +26,13 @@
       <div class="mb-4">
         <div class="flex flex-col sm:flex-row gap-6">
           <div class="sm:w-1/3">
-            <mat-form-field class="w-full">
+            <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>Nachname</mat-label>
               <input matInput testid="lastnameText" type="text" formControlName="lastname">
             </mat-form-field>
           </div>
           <div class="sm:w-1/3">
-            <mat-form-field class="w-full">
+            <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>Vorname</mat-label>
               <input matInput testid="firstnameText" type="text" formControlName="firstname">
             </mat-form-field>

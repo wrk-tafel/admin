@@ -9,6 +9,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatIcon} from '@angular/material/icon';
 import {
   faBuilding,
   faEnvelope,
@@ -38,6 +39,7 @@ import dayjs from 'dayjs';
     MatInputModule,
     MatSelectModule,
     MatCheckboxModule,
+    MatIcon,
     FaIconComponent,
     TafelAutofocusDirective,
     GenderLabelPipe

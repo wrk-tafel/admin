@@ -6,13 +6,13 @@
   </mat-card-header>
   <mat-card-content>
     <div class="flex flex-wrap items-center gap-4 mb-4">
-      <mat-form-field subscriptSizing="dynamic" style="max-width: 130px">
+      <mat-form-field subscriptSizing="dynamic" class="max-w-32">
         <mat-label>Alter von</mat-label>
         <input testid="schoolStarterPackageAgeMinInput" matInput type="number"
                [ngModel]="schoolStarterPackageAgeMin()"
                (ngModelChange)="onAgeMinChange($event)">
       </mat-form-field>
-      <mat-form-field subscriptSizing="dynamic" style="max-width: 130px">
+      <mat-form-field subscriptSizing="dynamic" class="max-w-32">
         <mat-label>Alter bis</mat-label>
         <input testid="schoolStarterPackageAgeMaxInput" matInput type="number"
                [ngModel]="schoolStarterPackageAgeMax()"

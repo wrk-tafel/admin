@@ -12,8 +12,8 @@ import {MatCard, MatCardHeader, MatCardTitle, MatCardContent} from '@angular/mat
   ]
 })
 export class TicketsProcessedComponent {
-  countProcessedTickets = input<number>();
-  countTotalTickets = input<number>();
+  countProcessedTickets = input<number | null>(null);
+  countTotalTickets = input<number | null>(null);
 
   panelColor = computed<string>(() => {
     const processed = this.countProcessedTickets();

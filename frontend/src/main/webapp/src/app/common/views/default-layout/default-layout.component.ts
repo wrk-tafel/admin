@@ -6,7 +6,7 @@ import {BreakpointObserver} from '@angular/cdk/layout';
 import {map} from 'rxjs';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faAngleDown, faAngleRight, faAnglesLeft, faAnglesRight} from '@fortawesome/free-solid-svg-icons';
-import {DatePipe, NgClass} from '@angular/common';
+import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
 import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
@@ -30,6 +30,7 @@ const MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
     FaIconComponent,
     NgClass,
     DatePipe,
+    NgOptimizedImage,
     DefaultHeaderComponent
   ]
 })

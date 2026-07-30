@@ -9,7 +9,14 @@ data class CarListResponse(
 
 @ExcludeFromTestCoverage
 data class Car(
-    val id: Long,
+    val id: Long?,
     val licensePlate: String,
     val name: String,
+    val enabled: Boolean,
+    val sortOrder: Int,
+)
+
+@ExcludeFromTestCoverage
+data class CarReorderRequest(
+    val carIds: List<Long>,
 )

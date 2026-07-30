@@ -73,7 +73,7 @@
                   <mat-label>Telefon</mat-label>
                   <input matInput formControlName="phone" />
                 </mat-form-field>
-                <button matButton type="button" (click)="removeContact(i)">Entfernen</button>
+                <button matButton="outlined" type="button" (click)="removeContact(i)">Entfernen</button>
               </div>
             </div>
           }
@@ -87,6 +87,6 @@
 
   <div tafel-dialog-actions>
     <button matButton="filled" (click)="save()">Speichern</button>
-    <button matButton (click)="cancel()">Abbrechen</button>
+    <button matButton="outlined" (click)="cancel()">Abbrechen</button>
   </div>
 </tafel-dialog>
