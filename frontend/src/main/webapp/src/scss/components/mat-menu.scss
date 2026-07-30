@@ -8,3 +8,23 @@
   border: #080A0C2D solid 1px !important;
   box-shadow: none !important;
 }
+
+// Material's default menu spacing (8px content padding, 48px item height) reads as too
+// loose for the short, dense menus used across the app.
+.mat-mdc-menu-content {
+  padding: 4px 0 !important;
+}
+
+.mat-mdc-menu-item {
+  min-height: 36px !important;
+}
+
+// The user menu's colored header row (default-header.component.html) should sit flush
+// against the panel's top edge instead of leaving a gap above it.
+.user-menu.mat-mdc-menu-panel {
+  overflow: hidden !important;
+
+  .mat-mdc-menu-content {
+    padding-top: 0 !important;
+  }
+}

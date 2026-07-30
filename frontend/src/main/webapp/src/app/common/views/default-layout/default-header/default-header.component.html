@@ -11,8 +11,9 @@
             class="w-9 h-9 rounded-md overflow-hidden">
       <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover"/>
     </button>
-    <mat-menu #userMenu="matMenu">
-      <div class="px-6 py-2 font-semibold bg-gray-100">Benutzer</div>
+    <mat-menu #userMenu="matMenu" class="user-menu">
+      <!-- #212631 matches the sidebar's background (--mat-sidenav-container-background-color in default-layout.component.scss) -->
+      <div class="px-6 py-2.5 font-semibold text-white bg-[#212631]">Benutzer</div>
       <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
         <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
       </a>
