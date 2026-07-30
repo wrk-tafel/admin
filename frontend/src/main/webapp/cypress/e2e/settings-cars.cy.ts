@@ -50,7 +50,11 @@ describe('Settings - Cars', () => {
       cy.byTestId('saveCarButton-0').click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
-      cy.byTestId('cars-row-0').should('contain.text', newName);
+      // Cars share a tied sort_order in testdata, so the list is ordered alphabetically by
+      // name - renaming can move the edited row past others, so assert against the whole
+      // table rather than assuming it stays at row 0 (unlike food-categories, whose testdata
+      // pins distinct sort_order values that keep "Backwaren" first regardless of rename).
+      cy.byTestId('cars-table').should('contain.text', newName);
     });
   });
 
@@ -72,7 +76,7 @@ describe('Settings - Cars', () => {
       cy.byTestId('carNameInput-0').should('be.visible').clear().type(newName + '{enter}');
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
-      cy.byTestId('cars-row-0').should('contain.text', newName);
+      cy.byTestId('cars-table').should('contain.text', newName);
     });
   });
 
