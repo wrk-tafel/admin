@@ -12,7 +12,7 @@
       <h1 class="ms-4 text-6xl" testid="scanner-id">{{ scannerId() }}</h1>
     </div>
     <div class="flex gap-4 my-4">
-      <mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
         <mat-label>Kamera</mat-label>
         <mat-select testid="cameraSelectionInput"
                     [(ngModel)]="selectedCamera"
