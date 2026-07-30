@@ -133,9 +133,11 @@ no loading spinner needed for the shelter picker used by `distribution-statistic
 
 - `DashboardComponent` calls `toSignal()` on the SSE observable **without an `initialValue`**, so
   `data()` is `undefined` until the first message arrives — every template binding that reads
-  `data()?.foo` must handle that. Most child inputs accept `undefined` directly; the two that don't
-  (`tafel-recorded-food-collections`, `tafel-food-amount` - both typed `input<number | null>(null)`)
-  need the explicit `?? null` seen in `dashboard.component.html`.
+  `data()?.foo` must handle that. Most child inputs accept `undefined` directly; the ones typed
+  `input<number | null>(null)` (`tafel-recorded-food-collections`, `tafel-food-amount`,
+  `tafel-tickets-processed`) render their "-" placeholder only on an explicit `null`, so they need
+  the `?? null` seen in `dashboard.component.html` - passing bare `undefined` silently breaks their
+  `!== null` template check.
 - Don't add a new "is a distribution active" flag scoped to this module — always go through
   `GlobalStateService.getCurrentDistribution()` so `checkin`/`logistics`/other modules stay in
   sync with the same `/sse/distributions` stream.

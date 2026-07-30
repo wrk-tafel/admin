@@ -1,8 +1,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
   <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
   <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
-  <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets"
-                           [countTotalTickets]="data()?.tickets?.countTotalTickets">
+  <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets ?? null"
+                           [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
   </tafel-tickets-processed>
 </div>
 <mat-divider class="!m-4"></mat-divider>
