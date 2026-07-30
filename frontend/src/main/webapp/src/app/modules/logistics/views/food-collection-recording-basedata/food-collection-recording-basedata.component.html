@@ -77,8 +77,8 @@
                                         (selectedEmployee)="setSelectedDriver($event)"/>
         </div>
       } @else {
-        <div class="mb-2 font-medium">Fahrer</div>
-        <div class="flex justify-between gap-2">
+        <div class="font-medium">Fahrer</div>
+        <div class="flex items-center justify-between gap-2">
           <div testid="selectedDriverDescription">{{ selectedDriver()!.personnelNumber }} {{ selectedDriver()!.firstname }} {{ selectedDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedDriverRemoveButton" class="button-danger"
                   (click)="resetDriver()">
@@ -111,8 +111,8 @@
                                         (selectedEmployee)="setSelectedCoDriver($event)"/>
         </div>
       } @else {
-        <div class="mb-2 font-medium">Beifahrer</div>
-        <div class="flex justify-between gap-2">
+        <div class="font-medium">Beifahrer</div>
+        <div class="flex items-center justify-between gap-2">
           <div testid="selectedCoDriverDescription">{{ selectedCoDriver()!.personnelNumber }} {{ selectedCoDriver()!.firstname }} {{ selectedCoDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedCoDriverRemoveButton" class="button-danger"
                   (click)="resetCoDriver()">
