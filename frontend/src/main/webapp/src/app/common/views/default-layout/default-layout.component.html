@@ -78,7 +78,7 @@
       }
     </nav>
 
-    <div class="hidden lg:flex border-t border-gray-800 px-2 py-2 shrink-0"
+    <div class="hidden lg:flex px-2 py-2 shrink-0"
          [class.justify-end]="!collapsed()" [class.justify-center]="collapsed()">
       <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
@@ -86,7 +86,7 @@
       </button>
     </div>
     @if (!collapsed() && versionInfo(); as info) {
-      <div class="border-t border-gray-800 px-4 pt-2 pb-4 text-xs text-gray-500 shrink-0 text-center">
+      <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-500 shrink-0 text-center">
         <div class="truncate">{{ info.version }}</div>
         @if (info.buildTime !== 'unknown') {
           <div class="truncate">{{ info.buildTime | date: 'dd.MM.yyyy HH:mm' }}</div>
