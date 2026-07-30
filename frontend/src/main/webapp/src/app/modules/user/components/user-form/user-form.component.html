@@ -45,14 +45,15 @@
                  autocomplete="new-password"
                  [type]="passwordTextVisible() ? 'text' : 'password'"
                  [formField]="userForm.password">
-          <button type="button" mat-icon-button matSuffix (click)="togglePasswordVisibility()">
+          <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 cursor-pointer"
+                    (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle" type="button">
             @if (!passwordTextVisible()) {
               <fa-icon [icon]="faEyeSlash"></fa-icon>
             }
             @if (passwordTextVisible()) {
               <fa-icon [icon]="faEye"></fa-icon>
             }
-          </button>
+          </mat-icon>
           @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
           }
@@ -63,14 +64,15 @@
                  autocomplete="new-password"
                  [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
                  [formField]="userForm.passwordRepeat">
-          <button type="button" mat-icon-button matSuffix (click)="togglePasswordRepeatVisibility()">
+          <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 cursor-pointer"
+                    (click)="togglePasswordRepeatVisibility()" testid="passwordRepeatVisibilityToggle" type="button">
             @if (!passwordRepeatTextVisible()) {
               <fa-icon [icon]="faEyeSlash"></fa-icon>
             }
             @if (passwordRepeatTextVisible()) {
               <fa-icon [icon]="faEye"></fa-icon>
             }
-          </button>
+          </mat-icon>
           @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
           }

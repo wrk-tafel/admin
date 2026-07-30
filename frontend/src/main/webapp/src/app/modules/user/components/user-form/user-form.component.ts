@@ -7,6 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -25,6 +26,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
         MatFormFieldModule,
         MatInputModule,
         MatCheckboxModule,
+        MatIcon,
         FaIconComponent,
         TafelAutofocusDirective
     ]
