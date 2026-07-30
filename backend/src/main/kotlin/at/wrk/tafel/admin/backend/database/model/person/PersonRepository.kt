@@ -11,8 +11,6 @@ interface PersonRepository :
     JpaRepository<PersonEntity, Long>,
     JpaSpecificationExecutor<PersonEntity> {
 
-    fun findAllByHouseholdId(householdId: Long): List<PersonEntity>
-
     /**
      * Overrides both inherited `findAll(Specification...)` variants with an eager fetch of
      * `household`, matching `HouseholdRepository.findAll(Specification)`'s reasoning - callers here

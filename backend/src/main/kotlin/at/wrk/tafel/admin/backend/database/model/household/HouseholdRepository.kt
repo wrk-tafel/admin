@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface HouseholdRepository :
@@ -35,13 +34,9 @@ interface HouseholdRepository :
 
     fun findByHouseholdId(householdId: Long): HouseholdEntity?
 
-    fun deleteByHouseholdId(householdId: Long)
-
     fun findAllByCreatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<HouseholdEntity>
 
     fun findAllByProlongedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<HouseholdEntity>
 
     fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int
-
-    fun findByValidUntilAfter(fromDate: LocalDate): List<HouseholdEntity>
 }
