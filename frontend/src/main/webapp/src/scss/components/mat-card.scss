@@ -3,7 +3,7 @@
 }
 
 .mat-mdc-card {
-  border: #080A0C2D solid 1px !important;
+  border: var(--tafel-border-color) solid 1px !important;
   background-color: white !important;
   box-shadow: none !important;
 }

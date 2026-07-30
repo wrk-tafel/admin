@@ -12,8 +12,8 @@
       <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
     </button>
     <mat-menu #userMenu="matMenu">
-      <!-- #212631 matches the sidebar's background (--mat-sidenav-container-background-color in default-layout.component.scss). -->
-      <div class="px-6 py-2 text-xs uppercase tracking-wide text-gray-100 font-semibold bg-[#212631]">Benutzer</div>
+      <!-- --tafel-background-secondary (defined in _theme.scss) is the same variable the sidebar itself uses (default-layout.component.scss). -->
+      <div class="px-6 py-2 text-xs uppercase tracking-wide text-gray-100 font-semibold bg-[var(--tafel-background-secondary)]">Benutzer</div>
       <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
         <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
       </a>
