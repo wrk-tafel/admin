@@ -1,4 +1,4 @@
-<mat-card class="h-full mat-card-primary">
+<mat-card appearance="outlined" class="h-full mat-card-primary">
   <mat-card-header>
     <mat-card-title>
       <h4>Kunden angemeldet</h4>
@@ -8,7 +8,7 @@
     <div testid="customers-count" class="text-5xl">{{ count() ?? '-' }}</div>
   </mat-card-content>
   <mat-card-footer *tafelIfDistributionActive>
-    <button testid="download-customerlist-button" mat-raised-button (click)="downloadCustomerList()">
+    <button testid="download-customerlist-button" matButton="filled" (click)="downloadCustomerList()">
       <fa-icon [icon]="faDownload"></fa-icon>
       Kundenliste
     </button>

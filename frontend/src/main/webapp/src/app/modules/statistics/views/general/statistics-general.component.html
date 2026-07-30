@@ -1,6 +1,6 @@
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
   <div class="md:col-span-3">
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <h5>Statistik</h5>
       </mat-card-header>
@@ -72,7 +72,7 @@
     </mat-card>
   </div>
   <div class="mt-4 md:mt-0">
-    <mat-card class="h-full">
+    <mat-card appearance="outlined" class="h-full">
       <mat-card-header>
         <h5>Export</h5>
       </mat-card-header>
@@ -85,7 +85,7 @@
   </div>
 </div>
 @if (statisticsData()) {
-  <mat-card class="mt-4">
+  <mat-card appearance="outlined" class="mt-4">
     <mat-card-header>
       <h5>Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h5>
     </mat-card-header>

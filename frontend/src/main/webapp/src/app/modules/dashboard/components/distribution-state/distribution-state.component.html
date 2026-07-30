@@ -1,4 +1,4 @@
-<mat-card class="h-full mat-card-primary">
+<mat-card appearance="outlined" class="h-full mat-card-primary">
   <mat-card-header>
     <mat-card-title>
       <h4>Status</h4>
@@ -10,13 +10,13 @@
   <mat-card-footer class="mt-6">
     @if (!isDistributionActive()) {
       <button testid="distribution-start-button"
-              mat-raised-button
+              matButton="filled"
               (click)="createNewDistribution()">Tag starten
       </button>
     }
     @if (isDistributionActive()) {
       <button testid="distribution-close-button"
-              mat-raised-button
+              matButton="filled"
               (click)="openCloseDistributionDialog()">Tag beenden
       </button>
     }
