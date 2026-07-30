@@ -6,7 +6,7 @@
 // directly instead of fighting the cascade.
 mat-sidenav {
   --mat-sidenav-container-width: 16rem;
-  --mat-sidenav-container-background-color: #212631;
+  --mat-sidenav-container-background-color: var(--tafel-background-secondary);
   --mat-sidenav-container-text-color: rgba(255, 255, 255, .87);
   --mat-sidenav-container-shape: 0;
   --mat-sidenav-container-divider-color: transparent;

@@ -1,5 +1,5 @@
 @if (customerData()?.locked) {
-  <div testid="lock-info-banner" class="alert alert-danger">
+  <div testid="lock-info-banner" class="tafel-banner-error">
     <div><strong>Kunde ist gesperrt!</strong></div>
     @if (customerData().lockedBy) {
       <div>Gesperrt am {{ customerData().lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{ customerData().lockedBy }}</div>
