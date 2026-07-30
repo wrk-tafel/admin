@@ -10,22 +10,29 @@
   box-shadow: none !important;
 }
 
+// Clip content to the panel's rounded corners so a flush first/last row (see below)
+// can't poke a square corner past the curve.
+.mat-mdc-menu-panel {
+  overflow: hidden !important;
+}
+
 // Material's default menu spacing (8px content padding, 48px item height) reads as too
-// loose for the short, dense menus used across the app.
+// loose for the short, dense menus used across the app. Padding is removed entirely
+// (rather than just reduced) so an item's hover/focus background reaches all the way to
+// the panel edge instead of leaving an uncolored strip above the first / below the last
+// item - the item itself is the only source of vertical spacing now.
 .mat-mdc-menu-content {
-  padding: 4px 0 !important;
+  padding: 0 !important;
+}
+
+.mat-mdc-menu-content > *:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.mat-mdc-menu-content > *:last-child {
+  border-radius: 0 0 8px 8px;
 }
 
 .mat-mdc-menu-item {
   min-height: 36px !important;
-}
-
-// The user menu's colored header row (default-header.component.html) should sit flush
-// against the panel's top edge instead of leaving a gap above it.
-.user-menu.mat-mdc-menu-panel {
-  overflow: hidden !important;
-
-  .mat-mdc-menu-content {
-    padding-top: 0 !important;
-  }
 }
