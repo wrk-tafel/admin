@@ -2,6 +2,15 @@
   box-shadow: none !important;
 }
 
+// The basic/text button variant (matButton with no value, e.g. inline-edit "cancel" buttons)
+// has no fill and no border by default, so on its own it renders as a bare icon with no visible
+// button shape. Unlike mat-mdc-button-base, .mat-mdc-button is only the text-variant class - it
+// doesn't touch icon-buttons/fabs (mat-mdc-icon-button), so this can't reintroduce the unwanted
+// circles from cbe7653e.
+.mat-mdc-button:not([disabled]):not(.mat-mdc-button-disabled) {
+  border: var(--tafel-border-color) solid 1px !important;
+}
+
 /* Support legacy "btn-success" / "btn-danger" utility classes on Material buttons
    and ensure the background color applies in normal, hover, focus and active states. */
 .mat-mdc-button:not([disabled]):not(.mat-mdc-button-disabled),
