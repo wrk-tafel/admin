@@ -9,7 +9,7 @@
 
     <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
             class="w-9 h-9 rounded-md overflow-hidden">
-      <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover"/>
+      <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
     </button>
     <mat-menu #userMenu="matMenu">
       <!-- #212631 matches the sidebar's background (--mat-sidenav-container-background-color in default-layout.component.scss). -->

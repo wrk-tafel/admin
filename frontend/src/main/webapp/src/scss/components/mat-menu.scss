@@ -47,10 +47,8 @@
 
 .mat-mdc-menu-item:has(+ .mat-divider) {
   min-height: 44px !important;
-  padding-bottom: 8px !important;
 }
 
 .mat-mdc-menu-panel .mat-divider + .mat-mdc-menu-item {
   min-height: 44px !important;
-  padding-top: 8px !important;
 }
