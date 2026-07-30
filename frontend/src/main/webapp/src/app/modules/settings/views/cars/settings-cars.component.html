@@ -73,7 +73,7 @@
             <button matButton="filled" [attr.testid]="'saveCarButton-' + i" (click)="saveEdit(car)">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton class="ml-2" [attr.testid]="'cancelCarButton-' + i" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelCarButton-' + i" (click)="cancelEdit()">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {

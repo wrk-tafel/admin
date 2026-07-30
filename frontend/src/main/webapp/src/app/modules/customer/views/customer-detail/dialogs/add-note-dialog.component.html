@@ -9,6 +9,6 @@
   <div tafel-dialog-actions>
     <button testid="okButton" matButton="filled" (click)="dialogRef.close(noteText())"
             [disabled]="!noteText() || noteText()?.trim()?.length === 0">Speichern</button>
-    <button testid="cancelButton" matButton (click)="dialogRef.close()">Abbrechen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>

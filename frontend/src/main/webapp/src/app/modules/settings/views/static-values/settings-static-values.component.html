@@ -49,7 +49,7 @@
             <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + i" (click)="saveEdit(staticValue)">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" (click)="cancelEdit()">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
