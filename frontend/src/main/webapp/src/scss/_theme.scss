@@ -12,20 +12,6 @@ body {
   border-color: #A6B0C1;
 }
 
-// Angular Material's mat-icon defaults to a 24px inline-block box (see @angular/material/icon's base
-// styles). FontAwesome's <fa-icon> renders its own inline SVG that doesn't fill that box on its own, so
-// icons used as mat-form-field prefixes/suffixes (matPrefix/matSuffix wrapping an fa-icon inside a
-// mat-icon) need to be explicitly centered and sized. !important is needed to reliably win over
-// Material's .mat-icon rules regardless of stylesheet load order.
-.tafel-form-field-icon {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 20px !important;
-  height: 20px !important;
-  line-height: 1 !important;
-}
-
 // Tailwind's preflight zeroes hr's margin and doesn't apply Bootstrap's default opacity, leaving <hr>
 // flush against surrounding content instead of the spaced-out, faint divider used throughout the app.
 hr {

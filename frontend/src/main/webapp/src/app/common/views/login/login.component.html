@@ -17,7 +17,7 @@
           <div class="mb-4">
             <mat-form-field class="w-full">
               <mat-label>Benutzername</mat-label>
-              <mat-icon matPrefix class="tafel-form-field-icon text-slate-500">
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
                 <fa-icon [icon]="faUser"></fa-icon>
               </mat-icon>
               <input [formField]="loginForm.username" matInput testid="username" type="text"
@@ -32,18 +32,17 @@
           <div class="mb-4">
             <mat-form-field class="w-full">
               <mat-label>Passwort</mat-label>
-              <mat-icon matPrefix class="tafel-form-field-icon text-slate-500">
+              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
                 <fa-icon [icon]="faKey"></fa-icon>
               </mat-icon>
               <input [formField]="loginForm.password" matInput testid="password"
                      [type]="passwordVisible() ? 'text' : 'password'"
                      autocomplete="current-password"
                      (animationstart)="onAutofill($event, 'password')">
-              <button type="button" mat-icon-button matSuffix (click)="togglePasswordVisibility()"
-                      testid="passwordVisibilityToggle"
-                      [attr.aria-label]="passwordVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'">
-                <fa-icon class="tafel-form-field-icon" [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
-              </button>
+              <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 cursor-pointer"
+                        (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle" type="button">
+                <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
+              </mat-icon>
               @for (message of visibleErrorMessages(loginForm.password()); track message) {
                 <mat-error class="block">{{ message }}</mat-error>
               }

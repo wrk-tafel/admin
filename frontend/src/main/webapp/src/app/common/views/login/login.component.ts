@@ -6,7 +6,7 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 import {MatCard, MatCardContent} from '@angular/material/card';
-import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatButton} from '@angular/material/button';
 import {MatError, MatFormField, MatInput, MatLabel, MatPrefix, MatSuffix} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -24,7 +24,6 @@ import {visibleErrorMessages} from '../../util/signal-form-helper';
     MatCard,
     MatCardContent,
     MatButton,
-    MatIconButton,
     MatInput,
     MatFormField,
     MatLabel,
