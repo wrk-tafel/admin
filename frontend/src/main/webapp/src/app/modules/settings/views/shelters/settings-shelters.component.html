@@ -60,7 +60,7 @@
             <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
           </button>
           <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                  (click)="editShelter(shelter)">
+                  [disabled]="!shelter.enabled" (click)="editShelter(shelter)">
             <fa-icon [icon]="faPencil"></fa-icon>
           </button>
         </td>
@@ -69,6 +69,7 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
           cdkDrag [cdkDragData]="row"
+          [class.opacity-50]="!row.enabled"
           [attr.testid]="'shelters-row-' + i"></tr>
     </table>
   </mat-card-content>
