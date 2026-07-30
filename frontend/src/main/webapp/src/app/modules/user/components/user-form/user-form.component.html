@@ -45,12 +45,14 @@
                  autocomplete="new-password"
                  [type]="passwordTextVisible() ? 'text' : 'password'"
                  [formField]="userForm.password">
-          <button type="button" mat-icon-button matSuffix (click)="togglePasswordVisibility()">
+          <button type="button" mat-icon-button matSuffix (click)="togglePasswordVisibility()"
+                  testid="passwordVisibilityToggle"
+                  [attr.aria-label]="passwordTextVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'">
             @if (!passwordTextVisible()) {
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
+              <fa-icon class="tafel-form-field-icon" [icon]="faEyeSlash"></fa-icon>
             }
             @if (passwordTextVisible()) {
-              <fa-icon [icon]="faEye"></fa-icon>
+              <fa-icon class="tafel-form-field-icon" [icon]="faEye"></fa-icon>
             }
           </button>
           @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
@@ -63,12 +65,14 @@
                  autocomplete="new-password"
                  [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
                  [formField]="userForm.passwordRepeat">
-          <button type="button" mat-icon-button matSuffix (click)="togglePasswordRepeatVisibility()">
+          <button type="button" mat-icon-button matSuffix (click)="togglePasswordRepeatVisibility()"
+                  testid="passwordRepeatVisibilityToggle"
+                  [attr.aria-label]="passwordRepeatTextVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'">
             @if (!passwordRepeatTextVisible()) {
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
+              <fa-icon class="tafel-form-field-icon" [icon]="faEyeSlash"></fa-icon>
             }
             @if (passwordRepeatTextVisible()) {
-              <fa-icon [icon]="faEye"></fa-icon>
+              <fa-icon class="tafel-form-field-icon" [icon]="faEye"></fa-icon>
             }
           </button>
           @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {

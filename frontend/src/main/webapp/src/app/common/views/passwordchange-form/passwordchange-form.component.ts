@@ -10,7 +10,7 @@ import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {MatDivider} from '@angular/material/list';
-import {MatIcon} from '@angular/material/icon';
+import {MatIconButton} from '@angular/material/button';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
 
 @Component({
@@ -27,7 +27,7 @@ import {visibleErrorMessages} from '../../util/signal-form-helper';
     MatDivider,
     MatInput,
     MatSuffix,
-    MatIcon
+    MatIconButton
   ]
 })
 export class PasswordChangeFormComponent {
