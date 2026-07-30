@@ -1,8 +1,4 @@
-// Excludes icon-buttons/fabs: mat-mdc-button-base is the shared host class for every Material
-// button variant, including circular icon-buttons (e.g. mat-paginator's nav buttons, the snackbar
-// close button). Bordering those draws a visible circle around them, which isn't this app's look.
-.mat-mdc-button-base:not(.mat-mdc-icon-button):not(.mat-mdc-fab):not(.mat-mdc-mini-fab) {
-  border: var(--tafel-border-color) solid 1px !important;
+.mat-mdc-button-base {
   box-shadow: none !important;
 }
 
