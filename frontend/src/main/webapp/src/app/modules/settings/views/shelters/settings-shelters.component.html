@@ -14,7 +14,7 @@
            cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let shelter; let i = index">
+        <td mat-cell *matCellDef="let shelter; let i = index" [class.opacity-50]="!shelter.enabled">
           <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
                    [attr.testid]="'dragShelterHandle-' + i"></fa-icon>
         </td>
@@ -22,7 +22,7 @@
 
       <ng-container matColumnDef="active">
         <th mat-header-cell *matHeaderCellDef>Aktiv</th>
-        <td mat-cell *matCellDef="let shelter; let i = index">
+        <td mat-cell *matCellDef="let shelter; let i = index" [class.opacity-50]="!shelter.enabled">
           @if (shelter.enabled) {
             <button matButton="filled" class="button-success ms-2" testid="enableShelterButton"
                     (click)="toggleShelterVisibility(shelter, false)">
@@ -39,17 +39,20 @@
 
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let shelter; let i = index">{{ shelter.name }}</td>
+        <td mat-cell *matCellDef="let shelter; let i = index"
+            [class.opacity-50]="!shelter.enabled">{{ shelter.name }}</td>
       </ng-container>
 
       <ng-container matColumnDef="address">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Addresse</th>
-        <td mat-cell *matCellDef="let shelter; let i = index">{{ shelter | formatShelterAddress }}</td>
+        <td mat-cell *matCellDef="let shelter; let i = index"
+            [class.opacity-50]="!shelter.enabled">{{ shelter | formatShelterAddress }}</td>
       </ng-container>
 
       <ng-container matColumnDef="persons">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Anz. Personen</th>
-        <td mat-cell *matCellDef="let shelter; let i = index">{{ shelter.personsCount }}</td>
+        <td mat-cell *matCellDef="let shelter; let i = index"
+            [class.opacity-50]="!shelter.enabled">{{ shelter.personsCount }}</td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
@@ -69,7 +72,6 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
           cdkDrag [cdkDragData]="row"
-          [class.opacity-50]="!row.enabled"
           [attr.testid]="'shelters-row-' + i"></tr>
     </table>
   </mat-card-content>
