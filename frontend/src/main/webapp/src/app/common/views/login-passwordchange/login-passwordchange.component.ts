@@ -1,4 +1,5 @@
 import {Component, computed, inject, viewChild} from '@angular/core';
+import {NgOptimizedImage} from '@angular/common';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
@@ -9,6 +10,7 @@ import {MatButton} from '@angular/material/button';
   selector: 'tafel-login-passwordchange',
   templateUrl: 'login-passwordchange.component.html',
   imports: [
+    NgOptimizedImage,
     PasswordChangeFormComponent,
     MatCard,
     MatCardContent,
