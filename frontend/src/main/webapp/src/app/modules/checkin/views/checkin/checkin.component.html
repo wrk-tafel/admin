@@ -51,7 +51,7 @@
           </div>
           @if ((customer()?.pendingCostContribution ?? 0) > 0) {
             <div class="badge badge-danger">
-              Unkostenbeitrag offen: {{ $safeNavigationMigration(customer()?.pendingCostContribution) | currency }}
+              Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
             </div>
           }
         </h2>
@@ -106,9 +106,9 @@
                           </div>
                           <div class="flex justify-between">
                             <div
-                              [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ $safeNavigationMigration(addPerson?.birthDate) | birthdateAge }}
+                              [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}
                             </div>
-                            <div [attr.testid]="'addperson-' + i + '-genderText'">{{ $safeNavigationMigration(addPerson?.gender) | genderLabel }}
+                            <div [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}
                             </div>
                           </div>
                           <div>

@@ -35,9 +35,11 @@ know about SSE at all — they are pure `input()`-driven display/edit components
 "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
 render it" concern in the leaf components.
 
-Because the SSE stream only pushes deltas the backend decides are relevant, several template
-bindings use the `$safeNavigationMigration()` helper to tolerate `undefined` fields on
-partial/initial payloads (e.g. `$safeNavigationMigration(data()?.registeredCustomers)`).
+Because the SSE stream only pushes deltas the backend decides are relevant, several fields on
+`data()` are `undefined` on partial/initial payloads (e.g. `data()?.registeredCustomers`). The
+consuming child inputs (`count`, `countProcessedTickets`, etc.) are all optional signal inputs
+(`input<T>()` with no default), so they already accept `undefined` natively - no extra handling
+needed in the template.
 
 ### 2. `/sse/distributions` — owned by `GlobalStateService`, consumed app-wide
 
@@ -131,8 +133,9 @@ no loading spinner needed for the shelter picker used by `distribution-statistic
 
 - `DashboardComponent` calls `toSignal()` on the SSE observable **without an `initialValue`**, so
   `data()` is `undefined` until the first message arrives — every template binding that reads
-  `data()?.foo` must handle that (hence the widespread `$safeNavigationMigration()` / `?? null`
-  usage in `dashboard.component.html`).
+  `data()?.foo` must handle that. Most child inputs accept `undefined` directly; the two that don't
+  (`tafel-recorded-food-collections`, `tafel-food-amount` - both typed `input<number | null>(null)`)
+  need the explicit `?? null` seen in `dashboard.component.html`.
 - Don't add a new "is a distribution active" flag scoped to this module — always go through
   `GlobalStateService.getCurrentDistribution()` so `checkin`/`logistics`/other modules stay in
   sync with the same `/sse/distributions` stream.
