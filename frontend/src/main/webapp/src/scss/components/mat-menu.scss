@@ -1,0 +1,10 @@
+// Material's M3 tokens default dropdown/overlay panels to a greyish "surface-container"
+// color. Match the white background + light grey border used for cards (mat-card.scss)
+// and buttons (mat-button.scss) instead.
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  background-color: white !important;
+  border: #080A0C2D solid 1px !important;
+  box-shadow: none !important;
+}
