@@ -30,6 +30,9 @@ settings/
         food-category-create-dialog.component.ts
     static-values/                 # route: einstellungen/statische-werte
       static-value-type-labels.ts
+    cars/                          # route: einstellungen/fahrzeuge
+      dialogs/
+        car-create-dialog.component.ts
   settings.routes.ts
 ```
 
@@ -135,6 +138,31 @@ create, delete, or reordering — only `amount` is editable per row via
 rather than inlined on the component, unlike `mail-recipients`' `MailTypeLabels`
 map — if you add a new static value type, update that file, not the component.
 
+## `cars` (`SettingsCarsComponent`)
+
+CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
+`food-categories` above — inline editing, not a dialog, since a car is just
+`licensePlate` + `name` + `enabled` + `sortOrder`.
+
+- Loads via `CarApiService.getAllCars()` into a signal (`_cars`), table
+  columns `['drag', 'active', 'licensePlate', 'name', 'actions']`.
+- **Inline editing**: clicking edit (`startEdit()`) sets an `editingId` signal
+  and swaps that row's `licensePlate`/`name` cells for a `licensePlateControl`/
+  `nameControl` pair; `saveEdit()`/`cancelEdit()` exit the mode (Enter saves,
+  Escape cancels, same as food-categories). A `viewChild` + `effect()`
+  auto-focuses the license-plate input whenever it appears. The edit button is
+  disabled for disabled cars, same as food-categories.
+- **Creation still uses a dialog** (`car-create-dialog.component.ts`), which
+  only exposes `licensePlate`/`name` — `sortOrder`/`enabled` are hidden form
+  fields with fixed defaults (`0`/`true`), same convention as
+  `food-category-create-dialog.component.ts`.
+- Same optimistic-drag-then-reconcile reordering pattern as shelters/food
+  categories, against `CarApiService.reorderCars()`.
+- Disabling a car here excludes it from `CarApiService.getActiveCars()`,
+  which feeds the `logistics` module's food-collection-recording car
+  dropdown (`CarDataResolver`) — same relationship as food categories'
+  enabled/active split.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
@@ -142,6 +170,8 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
 - `settings-api.service.ts` — mail recipients, static values, and their
   `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions.
 - `shelter-api.service.ts` — `ShelterApiService`, including `reorderShelters()`.
+- `car-api.service.ts` — `CarApiService`, including `reorderCars()`; also used
+  by `logistics`' `CarDataResolver` for the read-only `getActiveCars()` side.
 - `food-categories-api.service.ts` — `FoodCategoriesApiService`, shared with
   `logistics` (which only calls its read side; full CRUD + reorder is only
   exercised from this module).

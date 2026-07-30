@@ -16,4 +16,10 @@ class CarEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "name")
     var name: String? = null
+
+    @Column(name = "enabled")
+    var enabled: Boolean? = null
+
+    @Column(name = "sort_order")
+    var sortOrder: Int? = null
 }

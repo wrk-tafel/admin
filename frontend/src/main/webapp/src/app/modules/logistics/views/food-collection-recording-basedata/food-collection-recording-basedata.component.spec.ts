@@ -96,8 +96,8 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
   };
   const mockCarList: CarList = {
     cars: [
-      {id: 1, name: 'Car 1', licensePlate: 'ABC123'},
-      {id: 2, name: 'Car 2', licensePlate: 'XYZ789'}
+      {id: 1, name: 'Car 1', licensePlate: 'ABC123', enabled: true, sortOrder: 1},
+      {id: 2, name: 'Car 2', licensePlate: 'XYZ789', enabled: true, sortOrder: 2}
     ]
   };
   const mockRoute: RouteData = {id: 123, name: 'Test Route'};
