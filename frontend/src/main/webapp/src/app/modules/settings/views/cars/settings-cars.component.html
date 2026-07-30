@@ -1,0 +1,95 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <div class="flex items-center gap-2">
+        <h5 class="mb-0 mt-1">Fahrzeuge</h5>
+        <button matButton="filled" class="button-success" testid="addCarButton" (click)="addCar()">
+          <fa-icon [icon]="faPlus"></fa-icon>
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <table mat-table [dataSource]="cars()?.cars ?? []" testid="cars-table"
+           cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">
+      <ng-container matColumnDef="drag">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let car; let i = index">
+          <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
+                   [attr.testid]="'dragCarHandle-' + i"></fa-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Aktiv</th>
+        <td mat-cell *matCellDef="let car; let i = index">
+          @if (car.enabled) {
+            <button matButton="filled" class="button-success ms-2" testid="enableCarButton"
+                    (click)="toggleCarVisibility(car, false)">
+              <fa-icon [icon]="faEye"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger ms-2" testid="disableCarButton"
+                    (click)="toggleCarVisibility(car, true)">
+              <fa-icon [icon]="faEyeSlash"></fa-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="licensePlate">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Kennzeichen</th>
+        <td mat-cell *matCellDef="let car; let i = index">
+          @if (editingId() === car.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input #licensePlateInput matInput [formControl]="licensePlateControl"
+                     [attr.testid]="'carLicensePlateInput-' + i"
+                     (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ car.licensePlate }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let car; let i = index">
+          @if (editingId() === car.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input matInput [formControl]="nameControl" [attr.testid]="'carNameInput-' + i"
+                     (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ car.name }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+        <td mat-cell *matCellDef="let car; let i = index">
+          @if (editingId() === car.id) {
+            <button matButton="filled" [attr.testid]="'saveCarButton-' + i" (click)="saveEdit(car)">
+              <fa-icon [icon]="faCheck"></fa-icon>
+            </button>
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelCarButton-' + i" (click)="cancelEdit()">
+              <fa-icon [icon]="faXmark"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i"
+                    [disabled]="!car.enabled" (click)="startEdit(car)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
+          cdkDrag [cdkDragData]="row"
+          [class.opacity-50]="!row.enabled"
+          [attr.testid]="'cars-row-' + i"></tr>
+    </table>
+  </mat-card-content>
+</mat-card>

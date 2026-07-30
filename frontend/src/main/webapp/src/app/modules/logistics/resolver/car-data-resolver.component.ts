@@ -8,7 +8,7 @@ export class CarDataResolver {
   private readonly carApiService = inject(CarApiService);
 
   public resolve(_route: ActivatedRouteSnapshot): Observable<CarList> {
-    return this.carApiService.getCars();
+    return this.carApiService.getActiveCars();
   }
 
 }

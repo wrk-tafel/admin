@@ -74,7 +74,7 @@
             <button matButton="filled" [attr.testid]="'saveFoodCategoryButton-' + i" (click)="saveEdit(category)">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton class="ml-2" [attr.testid]="'cancelFoodCategoryButton-' + i" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelFoodCategoryButton-' + i" (click)="cancelEdit()">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {

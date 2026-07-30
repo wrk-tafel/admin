@@ -121,12 +121,16 @@ val testCar1 = CarEntity().apply {
     id = 1
     licensePlate = "W-123"
     name = "Car 123"
+    enabled = true
+    sortOrder = 1
 }
 
 val testCar2 = CarEntity().apply {
     id = 2
     licensePlate = "W-456"
     name = "Car 456"
+    enabled = true
+    sortOrder = 2
 }
 
 val testFoodCollectionRoute1Entity = FoodCollectionEntity().apply {

@@ -2,22 +2,70 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Car
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CarService(
     private val carRepository: CarRepository,
 ) {
 
-    fun getCars(): List<Car> {
-        val cars = carRepository.findAll().toList()
-        return cars.map { mapCar(it) }
+    @Transactional(readOnly = true)
+    fun getActiveCars(): List<Car> = carRepository.findByEnabledIsTrue()
+        .map { mapCar(it) }
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+
+    @Transactional(readOnly = true)
+    fun getAllCars(): List<Car> = carRepository.findAll()
+        .map { mapCar(it) }
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+
+    fun createCar(car: Car): Car {
+        val carEntity = CarEntity().apply {
+            licensePlate = car.licensePlate
+            name = car.name
+            enabled = car.enabled
+            sortOrder = nextSortOrder()
+        }
+
+        val savedEntity = carRepository.save(carEntity)
+        return mapCar(savedEntity)
     }
+
+    fun updateCar(carId: Long, updatedCar: Car): Car {
+        val carEntity = carRepository.findByIdOrNull(carId)
+            ?: throw TafelValidationException("Car with id $carId not found")
+
+        carEntity.licensePlate = updatedCar.licensePlate
+        carEntity.name = updatedCar.name
+        carEntity.enabled = updatedCar.enabled
+        carEntity.sortOrder = updatedCar.sortOrder
+
+        val savedEntity = carRepository.save(carEntity)
+        return mapCar(savedEntity)
+    }
+
+    @Transactional
+    fun reorderCars(carIds: List<Long>) {
+        carIds.forEachIndexed { index, carId ->
+            val entity = carRepository.findByIdOrNull(carId)
+                ?: throw TafelValidationException("Car with id $carId not found")
+
+            entity.sortOrder = index + 1
+            carRepository.save(entity)
+        }
+    }
+
+    private fun nextSortOrder(): Int = (carRepository.findAll().maxOfOrNull { it.sortOrder ?: 0 } ?: 0) + 1
 
     private fun mapCar(carEntity: CarEntity): Car = Car(
         id = carEntity.id!!,
         licensePlate = carEntity.licensePlate!!,
         name = carEntity.name!!,
+        enabled = carEntity.enabled!!,
+        sortOrder = carEntity.sortOrder ?: 0,
     )
 }

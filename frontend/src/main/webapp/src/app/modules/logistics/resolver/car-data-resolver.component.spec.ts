@@ -19,7 +19,7 @@ describe('CarDataResolver', () => {
         {
           provide: CarApiService,
           useValue: {
-            getCars: vi.fn().mockName('CarApiService.getCars')
+            getActiveCars: vi.fn().mockName('CarApiService.getActiveCars')
           }
         },
         CarDataResolver
@@ -37,15 +37,19 @@ describe('CarDataResolver', () => {
           id: 1,
           licensePlate: '123',
           name: 'Car 123',
+          enabled: true,
+          sortOrder: 1,
         },
         {
           id: 1,
           licensePlate: '456',
           name: 'Car 456',
+          enabled: true,
+          sortOrder: 2,
         }
       ]
     };
-    apiService.getCars.mockReturnValue(of(mockCars));
+    apiService.getActiveCars.mockReturnValue(of(mockCars));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
     resolver.resolve(activatedRoute).subscribe((carList: CarList) => {
