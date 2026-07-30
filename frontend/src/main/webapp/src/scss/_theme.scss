@@ -1,54 +1,60 @@
-:root {
-  --tafel-border-color: #080A0C2D;
-  --tafel-background-secondary: #212631;
-}
+// Wrapped in Tailwind's "base" layer (see @layer theme, base, components, utilities; in
+// tailwindcss/index.css) instead of left unlayered - unlayered CSS always beats layered CSS
+// regardless of specificity, so without this an element-selector rule like `h4 { margin-bottom }`
+// would override even an explicit utility class like `m-0` on the same element.
+@layer base {
+  :root {
+    --tafel-border-color: #080A0C2D;
+    --tafel-background-secondary: #212631;
+  }
 
-body {
-  background-color: #f5f5f5;
-  color: rgba(37, 43, 54, .95);
-}
+  body {
+    background-color: #f5f5f5;
+    color: rgba(37, 43, 54, .95);
+  }
 
-.form-check-input {
-  border-color: #A6B0C1;
-}
+  .form-check-input {
+    border-color: #A6B0C1;
+  }
 
-// Tailwind's preflight zeroes hr's margin and doesn't apply Bootstrap's default opacity, leaving <hr>
-// flush against surrounding content instead of the spaced-out, faint divider used throughout the app.
-hr {
-  margin: 1rem 0;
-  opacity: .25;
-}
+  // Tailwind's preflight zeroes hr's margin and doesn't apply Bootstrap's default opacity, leaving <hr>
+  // flush against surrounding content instead of the spaced-out, faint divider used throughout the app.
+  hr {
+    margin: 1rem 0;
+    opacity: .25;
+  }
 
-// Tailwind's preflight resets h1-h6 to font-size/font-weight: inherit. Restore sensible defaults for
-// the many headings across the app that rely on browser/Bootstrap-style heading typography rather than
-// an explicit text-* utility class.
-h1, h2, h3, h4, h5, h6 {
-  margin-bottom: .5rem;
-  font-weight: 500;
-  line-height: 1.2;
-  color: inherit;
-}
+  // Tailwind's preflight resets h1-h6 to font-size/font-weight: inherit. Restore sensible defaults for
+  // the many headings across the app that rely on browser/Bootstrap-style heading typography rather than
+  // an explicit text-* utility class.
+  h1, h2, h3, h4, h5, h6 {
+    margin-bottom: .5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: inherit;
+  }
 
-h1 {
-  font-size: 2.5rem;
-}
+  h1 {
+    font-size: 2.5rem;
+  }
 
-h2 {
-  font-size: 2rem;
-}
+  h2 {
+    font-size: 2rem;
+  }
 
-h3 {
-  font-size: 1.75rem;
-}
+  h3 {
+    font-size: 1.75rem;
+  }
 
-h4 {
-  font-size: 1.5rem;
-}
+  h4 {
+    font-size: 1.5rem;
+  }
 
-h5 {
-  font-size: 1.25rem;
-}
+  h5 {
+    font-size: 1.25rem;
+  }
 
-h6 {
-  font-size: 1rem;
+  h6 {
+    font-size: 1rem;
+  }
 }

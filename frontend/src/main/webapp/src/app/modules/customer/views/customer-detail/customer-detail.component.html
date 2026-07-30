@@ -10,90 +10,91 @@
   </div>
 }
 <div class="flex flex-col-reverse lg:flex-col">
-  <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 mb-6 lg:mb-0 gap-4">
-    <button testid="printMenuButton" matButton="filled" [matMenuTriggerFor]="printMenu" [disabled]="$safeNavigationMigration(customerData()?.locked)">
-      Daten ausdrucken ▾
-    </button>
-    <mat-menu #printMenu="matMenu">
-      <button mat-menu-item testid="printCombinedButton" (click)="printCombined()">
-        Stammdaten + Ausweis
+  <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+    <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 gap-4">
+      <button testid="printMenuButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="printMenu" [disabled]="customerData()?.locked">
+        Daten ausdrucken ▾
       </button>
-      <mat-divider></mat-divider>
-      <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
-        Stammdaten
-      </button>
-      <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
-        Ausweis
-      </button>
-    </mat-menu>
+      <mat-menu #printMenu="matMenu">
+        <button mat-menu-item testid="printCombinedButton" (click)="printCombined()">
+          Stammdaten + Ausweis
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
+          Stammdaten
+        </button>
+        <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
+          Ausweis
+        </button>
+      </mat-menu>
 
-    <button testid="prolongButton" matButton="filled" [matMenuTriggerFor]="prolongMenu" [disabled]="$safeNavigationMigration(customerData()?.locked)">
-      Bezug verlängern ▾
-    </button>
-    <mat-menu #prolongMenu="matMenu">
-      <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">1
-        Monat
+      <button testid="prolongButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="prolongMenu" [disabled]="customerData()?.locked">
+        Bezug verlängern ▾
       </button>
-      <button mat-menu-item testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">2
-        Monate
-      </button>
-      <button mat-menu-item testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">
-        3 Monate
-      </button>
-      <button mat-menu-item testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">6
-        Monate
-      </button>
-      <button mat-menu-item testid="prolongTwelveMonthsButton"
-              (click)="prolongCustomer(12)">12 Monate
-      </button>
-    </mat-menu>
+      <mat-menu #prolongMenu="matMenu">
+        <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">1
+          Monat
+        </button>
+        <button mat-menu-item testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">2
+          Monate
+        </button>
+        <button mat-menu-item testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">
+          3 Monate
+        </button>
+        <button mat-menu-item testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">6
+          Monate
+        </button>
+        <button mat-menu-item testid="prolongTwelveMonthsButton"
+                (click)="prolongCustomer(12)">12 Monate
+        </button>
+      </mat-menu>
 
-    <div class="flex">
-      <button type="button" matButton="filled" class="button-danger !rounded-r-none" testid="editCustomerButton" (click)="editCustomer()"
-              [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
-      </button>
-      <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
-              aria-label="Toggle Dropdown">▾
-      </button>
+      <div class="flex w-full lg:w-auto">
+        <button type="button" matButton="filled" class="button-danger !rounded-r-none flex-1 lg:flex-none" testid="editCustomerButton" (click)="editCustomer()"
+                [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
+        </button>
+        <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
+                aria-label="Toggle Dropdown">▾
+        </button>
+      </div>
+      <mat-menu #editMenu="matMenu">
+        <button mat-menu-item testid="invalidateCustomerButton" (click)="disableCustomer()"
+                [disabled]="!customerData() || customerData()?.locked">Kunde deaktivieren
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
+                [disabled]="!customerData() || customerData()?.locked">Kunde sperren
+        </button>
+        <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
+                [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
+                [disabled]="!customerData() || customerData()?.locked">Kunde löschen
+        </button>
+      </mat-menu>
     </div>
-    <mat-menu #editMenu="matMenu">
-      <button mat-menu-item testid="invalidateCustomerButton" (click)="disableCustomer()"
-              [disabled]="!customerData() || customerData()?.locked">Kunde deaktivieren
-      </button>
-      <mat-divider></mat-divider>
-      <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
-              [disabled]="!customerData() || customerData()?.locked">Kunde sperren
-      </button>
-      <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
-              [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
-      </button>
-      <mat-divider></mat-divider>
-      <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
-              [disabled]="!customerData() || customerData()?.locked">Kunde löschen
-      </button>
-    </mat-menu>
+    <div *tafelIfDistributionActive class="flex flex-col lg:flex-row lg:items-center lg:mt-2 mb-2 gap-2 lg:ml-auto">
+      @if (!ticketNumber()) {
+        <mat-form-field subscriptSizing="dynamic" class="w-full lg:max-w-36">
+          <mat-label>Ticketnummer</mat-label>
+          <input testid="ticket-number-input" matInput type="number"
+                 [ngModel]="ticketNumberInput()" (ngModelChange)="ticketNumberInput.set($event)">
+        </mat-form-field>
+        <button testid="assign-ticket-button" matButton="filled" class="button-success w-full lg:w-auto"
+                [disabled]="!ticketNumberInput() || customerData()?.locked"
+                (click)="assignTicket()">
+          Ticket zuweisen
+        </button>
+      } @else {
+        <span testid="ticket-number-display" class="font-bold">Ticket: {{ ticketNumber() }}</span>
+        <button testid="delete-ticket-button" matButton="filled" class="button-danger w-full lg:w-auto"
+                (click)="deleteTicket()">
+          Ticket löschen
+        </button>
+      }
+    </div>
   </div>
-  <div *tafelIfDistributionActive class="flex items-center mt-4 lg:mt-2 mb-2 gap-2">
-    @if (!ticketNumber()) {
-      <mat-form-field subscriptSizing="dynamic" style="max-width: 150px;">
-        <input testid="ticket-number-input" matInput type="number"
-               placeholder="Ticketnummer"
-               [ngModel]="ticketNumberInput()" (ngModelChange)="ticketNumberInput.set($event)">
-      </mat-form-field>
-      <button testid="assign-ticket-button" matButton="filled" class="button-success"
-              [disabled]="!ticketNumberInput() || customerData()?.locked"
-              (click)="assignTicket()">
-        Ticket zuweisen
-      </button>
-    } @else {
-      <span testid="ticket-number-display" class="font-bold">Ticket: {{ ticketNumber() }}</span>
-      <button testid="delete-ticket-button" matButton="filled" class="button-danger"
-              (click)="deleteTicket()">
-        Ticket löschen
-      </button>
-    }
-  </div>
-  <hr>
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Allgemeine Daten">
@@ -115,11 +116,11 @@
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold">Geburtsdatum (Alter)</span>
-                    <span testid="birthDateAgeText">{{ $safeNavigationMigration(customerData()?.birthDate) | birthdateAge }}</span>
+                    <span testid="birthDateAgeText">{{ customerData()?.birthDate | birthdateAge }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold">Geschlecht</span>
-                    <span testid="genderText">{{ $safeNavigationMigration(customerData()?.gender) | genderLabel }}</span>
+                    <span testid="genderText">{{ customerData()?.gender | genderLabel }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold">Nationalität</span>
@@ -138,8 +139,9 @@
                   <div>
                     <span class="font-bold">Adresse</span>
                     <div>
-                      <div testid="addressLine1Text">{{ customerData()?.address ? formatAddressLine1($safeNavigationMigration(customerData()?.address)) : '' }}</div>
-                      <div testid="addressLine2Text">{{ customerData()?.address ? formatAddressLine2($safeNavigationMigration(customerData()?.address)) : '' }}</div>
+                      @let address = customerData()?.address;
+                      <div testid="addressLine1Text">{{ address ? formatAddressLine1(address) : '' }}</div>
+                      <div testid="addressLine2Text">{{ address ? formatAddressLine2(address) : '' }}</div>
                     </div>
                   </div>
                   <hr>
@@ -150,12 +152,12 @@
                   <div class="flex justify-between items-end">
                     <span class="font-bold">Einkommen (monatlich)</span>
                     <span
-                      testid="incomeText">{{ !customerData()?.income ? '-' : $safeNavigationMigration(customerData()?.income) | currency }}</span>
+                      testid="incomeText">{{ !customerData()?.income ? '-' : customerData()?.income | currency }}</span>
                   </div>
                   <div class="flex justify-between items-end">
                     <span>nachgewiesen bis:</span>
                     <span
-                      testid="incomeDueText">{{ !customerData()?.incomeDue ? '-' : $safeNavigationMigration(customerData()?.incomeDue) | date : 'dd.MM.yyyy' }}</span>
+                      testid="incomeDueText">{{ !customerData()?.incomeDue ? '-' : customerData()?.incomeDue | date : 'dd.MM.yyyy' }}</span>
                   </div>
                   <hr>
                   <div class="flex justify-between">
@@ -166,7 +168,7 @@
                   <div class="flex justify-between">
                     <span class="font-bold">Angelegt</span>
                     <span
-                      testid="issuedInformation">am {{ $safeNavigationMigration(customerData()?.issuedAt) | date : 'dd.MM.yyyy' }} {{ $safeNavigationMigration(customerData()?.issuer) | formatIssuer }}</span>
+                      testid="issuedInformation">am {{ customerData()?.issuedAt | date : 'dd.MM.yyyy' }} {{ customerData()?.issuer | formatIssuer }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold text-white px-2"
@@ -174,14 +176,14 @@
                       Gültig bis:
                     </span>
                     <span testid="validUntilText" class="text-white px-2"
-                          [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ $safeNavigationMigration(customerData()?.validUntil) | date : 'dd.MM.yyyy' }}</span>
+                          [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold"
                           [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
                     <span testid="pendingCostContributionText"
                           [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">
-                      {{ $safeNavigationMigration(customerData()?.pendingCostContribution) | currency }}
+                      {{ customerData()?.pendingCostContribution | currency }}
                     </span>
                   </div>
                 </mat-card-content>
@@ -247,9 +249,9 @@
                       </div>
                       <div class="flex justify-between">
                         <span
-                          [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ $safeNavigationMigration(addPerson?.birthDate) | birthdateAge }}</span>
+                          [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}</span>
                         <span
-                          [attr.testid]="'addperson-' + i + '-genderText'">{{ $safeNavigationMigration(addPerson?.gender) | genderLabel }}</span>
+                          [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}</span>
                       </div>
                       <div>
                         <span [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}</span>
@@ -263,12 +265,12 @@
                       <div class="flex justify-between items-end">
                         <span>Einkommen (monatl.)</span>
                         <span
-                          [attr.testid]="'addperson-' + i + '-incomeText'">{{ addPerson?.income ? ($safeNavigationMigration(addPerson?.income) | currency) : '-' }}</span>
+                          [attr.testid]="'addperson-' + i + '-incomeText'">{{ addPerson?.income ? (addPerson?.income | currency) : '-' }}</span>
                       </div>
                       <div class="flex justify-between items-end">
                         <span>Einkommen nachgewiesen bis:</span>
                         <span class="align-bottom"
-                              [attr.testid]="'addperson-' + i + '-incomeDueText'">{{ addPerson?.incomeDue ? ($safeNavigationMigration(addPerson?.incomeDue) | date : 'dd.MM.yyyy') : '-' }}</span>
+                              [attr.testid]="'addperson-' + i + '-incomeDueText'">{{ addPerson?.incomeDue ? (addPerson?.incomeDue | date : 'dd.MM.yyyy') : '-' }}</span>
                       </div>
                       <div class="flex justify-between items-end">
                         <span>Bezieht Familienbeihilfe:</span>

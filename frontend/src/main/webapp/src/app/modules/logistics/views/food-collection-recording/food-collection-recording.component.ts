@@ -5,6 +5,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
+import {MatIcon} from '@angular/material/icon';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
@@ -35,6 +36,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatTabsModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatIcon,
     FaIconComponent,
     FoodCollectionRecordingBasedataComponent,
     FoodCollectionRecordingItemsDesktopComponent,

@@ -1,4 +1,5 @@
 import {Component, inject, linkedSignal, signal} from '@angular/core';
+import {NgOptimizedImage} from '@angular/common';
 import {form, FormField, required} from '@angular/forms/signals';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
@@ -17,6 +18,7 @@ import {visibleErrorMessages} from '../../util/signal-form-helper';
   templateUrl: 'login.component.html',
   styleUrls: ['login.component.scss'],
   imports: [
+    NgOptimizedImage,
     FormField,
     TafelAutofocusDirective,
     MatCard,

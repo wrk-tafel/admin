@@ -20,6 +20,14 @@ describe('TicketsProcessedComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows a dash when no distribution is active', () => {
+    const fixture = TestBed.createComponent(TicketsProcessedComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="tickets-processed-count"]')).nativeElement.textContent)
+      .toBe('-');
+  });
+
   it('counts rendered', () => {
     const fixture = TestBed.createComponent(TicketsProcessedComponent);
     const componentRef = fixture.componentRef;

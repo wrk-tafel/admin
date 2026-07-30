@@ -1,6 +1,6 @@
 <mat-card class="w-full h-full mat-card-primary">
   <mat-card-content>
-    <div class="text-sm">{{ $safeNavigationMigration(data()?.subTitle) }}</div>
+    <div class="text-sm">{{ data()?.subTitle }}</div>
     <div class="text-2xl font-bold">{{ data()?.title }}</div>
     <canvas baseChart class="mt-4 mx-4" height="80"
             [type]="'line'" [data]="chartData()" [options]="optionsDefault"></canvas>

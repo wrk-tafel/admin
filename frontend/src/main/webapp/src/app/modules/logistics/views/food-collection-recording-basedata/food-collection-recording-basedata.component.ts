@@ -4,6 +4,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatIcon} from '@angular/material/icon';
 import {MatDialog} from '@angular/material/dialog';
 import {KmDiffDialogComponent} from './dialogs/km-diff-dialog.component';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -31,6 +32,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
+        MatIcon,
         FaIconComponent,
         TafelEmployeeSearchCreateComponent
     ]

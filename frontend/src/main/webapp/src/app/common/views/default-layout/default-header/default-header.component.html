@@ -9,7 +9,7 @@
 
     <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
             class="w-9 h-9 rounded-md overflow-hidden">
-      <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
+      <img ngSrc="./assets/img/user/user.svg" width="36" height="36" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
     </button>
     <mat-menu #userMenu="matMenu">
       <!-- --tafel-background-secondary (defined in _theme.scss) is the same variable the sidebar itself uses (default-layout.component.scss). -->
