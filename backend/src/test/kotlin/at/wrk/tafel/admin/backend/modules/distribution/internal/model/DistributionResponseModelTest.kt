@@ -26,13 +26,22 @@ class DistributionResponseModelTest {
     }
 
     @Test
-    fun `distribution statistic data with negative count and empty shelters is invalid`() {
+    fun `distribution statistic data with negative count is invalid`() {
         val data = DistributionStatisticData(employeeCount = -1, selectedShelterIds = emptyList())
 
         val violations = validator.validate(data)
 
         assertThat(violations).extracting<String> { it.propertyPath.toString() }
-            .containsExactlyInAnyOrder("employeeCount", "selectedShelterIds")
+            .containsExactly("employeeCount")
+    }
+
+    @Test
+    fun `distribution statistic data with no shelters selected is valid`() {
+        val data = DistributionStatisticData(employeeCount = 0, selectedShelterIds = emptyList())
+
+        val violations = validator.validate(data)
+
+        assertThat(violations).isEmpty()
     }
 
     @Test
