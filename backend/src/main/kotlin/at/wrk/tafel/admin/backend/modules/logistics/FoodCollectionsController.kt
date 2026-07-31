@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -28,7 +29,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun saveFoodCollectionRouteData(
         @PathVariable routeId: Long,
-        @RequestBody request: FoodCollectionSaveRouteData,
+        @Valid @RequestBody request: FoodCollectionSaveRouteData,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveRouteData(routeId, request)
         return ResponseEntity.ok().build()
@@ -38,7 +39,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItems(
         @PathVariable routeId: Long,
-        @RequestBody request: FoodCollectionItems,
+        @Valid @RequestBody request: FoodCollectionItems,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItems(routeId, request)
         return ResponseEntity.ok().build()
@@ -59,7 +60,7 @@ class FoodCollectionsController(
     fun saveFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
         @PathVariable shopId: Long,
-        @RequestBody request: FoodCollectionSaveItemsPerShopData,
+        @Valid @RequestBody request: FoodCollectionSaveItemsPerShopData,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItemsPerShop(routeId, shopId, request)
         return ResponseEntity.ok().build()
@@ -69,7 +70,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun patchFoodCollectionItem(
         @PathVariable routeId: Long,
-        @RequestBody request: FoodCollectionItem,
+        @Valid @RequestBody request: FoodCollectionItem,
     ): ResponseEntity<Unit> {
         foodCollectionService.patchItem(routeId, request)
         return ResponseEntity.ok().build()

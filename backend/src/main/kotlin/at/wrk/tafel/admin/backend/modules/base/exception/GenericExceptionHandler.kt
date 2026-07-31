@@ -6,6 +6,7 @@ import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.ServletWebRequest
@@ -58,6 +59,24 @@ class GenericExceptionHandler(
         )
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleMethodArgumentNotValidException(
+        exception: MethodArgumentNotValidException,
+        request: WebRequest,
+        locale: Locale,
+    ): ResponseEntity<Any> {
+        logger.debug(exception.message, exception)
+
+        val message = exception.bindingResult.fieldErrors.joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
+        return createErrorResponse(
+            exception = exception,
+            status = HttpStatus.BAD_REQUEST,
+            message = message,
+            request = request,
+            locale = locale,
+        )
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleException(
         exception: Exception,
@@ -87,6 +106,7 @@ class GenericExceptionHandler(
         status: HttpStatus,
         request: WebRequest,
         locale: Locale,
+        message: String? = exception.message,
     ): ResponseEntity<Any> {
         val localizedErrorTitle: String = messageSource.getMessage(
             "http-error.${status.value()}.title",
@@ -98,7 +118,7 @@ class GenericExceptionHandler(
             timestamp = LocalDateTime.now(),
             status = status.value(),
             error = localizedErrorTitle,
-            message = exception.message,
+            message = message,
             trace = exception.stackTraceToString(),
             path = (request as ServletWebRequest).request.requestURI,
         )

@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoryService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoriesListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryReorderRequest
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -38,20 +39,20 @@ class FoodCategoriesController(
     @PostMapping
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun createFoodCategory(
-        @RequestBody category: FoodCategory,
+        @Valid @RequestBody category: FoodCategory,
     ): ResponseEntity<FoodCategory> = ResponseEntity.status(HttpStatus.CREATED).body(foodCategoriesService.createFoodCategory(category))
 
     @PutMapping("/{foodCategoryId}")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun updateFoodCategory(
         @PathVariable foodCategoryId: Long,
-        @RequestBody category: FoodCategory,
+        @Valid @RequestBody category: FoodCategory,
     ): FoodCategory = foodCategoriesService.updateFoodCategory(foodCategoryId, category)
 
     @PostMapping("/reorder")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun reorderFoodCategories(
-        @RequestBody request: FoodCategoryReorderRequest,
+        @Valid @RequestBody request: FoodCategoryReorderRequest,
     ): FoodCategoriesListResponse {
         foodCategoriesService.reorderFoodCategories(request.categoryIds)
         return FoodCategoriesListResponse(categories = foodCategoriesService.getAllFoodCategories())

@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -54,7 +55,7 @@ class UserController(
 
     @PostMapping("/change-password")
     @Transactional
-    fun changePassword(@RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
+    fun changePassword(@Valid @RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
         try {
             userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
         } catch (e: PasswordChangeException) {
@@ -128,7 +129,7 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     @Transactional
     fun createUser(
-        @RequestBody user: User,
+        @Valid @RequestBody user: User,
     ): ResponseEntity<User> {
         validateIfUserExists(user)
 
@@ -157,7 +158,7 @@ class UserController(
     @Transactional
     fun updateUser(
         @PathVariable userId: Long,
-        @RequestBody user: User,
+        @Valid @RequestBody user: User,
     ): ResponseEntity<User> {
         userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(

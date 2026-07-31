@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.note
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -38,10 +38,9 @@ class HouseholdNoteController(
     @PostMapping
     fun createNewNote(
         @PathVariable householdId: Long,
-        @RequestBody request: CreateHouseholdNoteRequest,
+        @Valid @RequestBody request: CreateHouseholdNoteRequest,
     ): ResponseEntity<HouseholdNoteItem> {
-        val note = request.note.ifBlank { throw TafelValidationException("Notiz darf nicht leer sein!") }
-        val persistedNote = service.createNewNote(householdId, note)
+        val persistedNote = service.createNewNote(householdId, request.note)
         return ResponseEntity.status(HttpStatus.CREATED).body(persistedNote)
     }
 }

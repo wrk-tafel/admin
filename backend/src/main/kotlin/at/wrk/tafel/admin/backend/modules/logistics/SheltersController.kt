@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.internal.ShelterService
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterReorderRequest
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -30,20 +31,20 @@ class SheltersController(
     @PostMapping
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun createShelter(
-        @RequestBody shelter: Shelter,
+        @Valid @RequestBody shelter: Shelter,
     ): ResponseEntity<Shelter> = ResponseEntity.status(HttpStatus.CREATED).body(shelterService.createShelter(shelter))
 
     @PutMapping("/{shelterId}")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun updateShelter(
         @PathVariable shelterId: Long,
-        @RequestBody updatedShelter: Shelter,
+        @Valid @RequestBody updatedShelter: Shelter,
     ): Shelter = shelterService.updateShelter(shelterId, updatedShelter)
 
     @PostMapping("/reorder")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun reorderShelters(
-        @RequestBody request: ShelterReorderRequest,
+        @Valid @RequestBody request: ShelterReorderRequest,
     ): ShelterListResponse {
         shelterService.reorderShelters(request.shelterIds)
         return ShelterListResponse(shelters = shelterService.getAllShelters())
