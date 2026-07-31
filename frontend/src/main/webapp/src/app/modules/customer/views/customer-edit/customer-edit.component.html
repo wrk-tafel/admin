@@ -1,6 +1,6 @@
 <div class="mb-4">
     <tafel-customer-form [customerData]="customerData()" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode()"></tafel-customer-form>
-    <button testid="validate-button" matButton="outlined" class="px-6 mt-4 mb-4" (click)="validate()">Anspruch prüfen</button>
+    <button testid="validate-button" matButton="filled" class="px-6 mt-4 mb-4" (click)="validate()">Anspruch prüfen</button>
     <button testid="save-button" matButton="filled"
             [class.button-success]="isSaveEnabled()" [class.button-danger]="!isSaveEnabled()"
             class="px-6 mt-4 ms-2 mb-4" (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
