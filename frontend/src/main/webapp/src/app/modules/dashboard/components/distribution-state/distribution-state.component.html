@@ -10,13 +10,13 @@
   <mat-card-footer class="mt-6">
     @if (!isDistributionActive()) {
       <button testid="distribution-start-button"
-              matButton="filled"
+              mat-raised-button
               (click)="createNewDistribution()">Tag starten
       </button>
     }
     @if (isDistributionActive()) {
       <button testid="distribution-close-button"
-              matButton="filled"
+              mat-raised-button
               (click)="openCloseDistributionDialog()">Tag beenden
       </button>
     }

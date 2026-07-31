@@ -1,3 +1,7 @@
+.mat-mdc-button-base {
+  box-shadow: none !important;
+}
+
 /* Support legacy "btn-success" / "btn-danger" utility classes on Material buttons
    and ensure the background color applies in normal, hover, focus and active states. */
 .mat-mdc-button:not([disabled]):not(.mat-mdc-button-disabled),
