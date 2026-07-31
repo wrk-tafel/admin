@@ -2,10 +2,13 @@
   padding: 0 1rem 1rem 1rem !important;
 }
 
-.mat-mdc-card {
-  border: var(--tafel-border-color) solid 1px !important;
-  background-color: white !important;
-  box-shadow: none !important;
+// Every <mat-card> in the app uses appearance="outlined", whose own (unlayered) structural CSS
+// already sets background-color/border/box-shadow from these exact custom properties (falling
+// back to Material's system tokens otherwise) - set them directly instead of re-implementing the
+// outlined look with a raw override.
+:root {
+  --mat-card-outlined-container-color: white;
+  --mat-card-outlined-outline-color: var(--tafel-border-color);
 }
 
 .mat-mdc-card-header {

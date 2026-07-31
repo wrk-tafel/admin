@@ -1,13 +1,39 @@
 // Material's M3 tokens default dropdown/overlay panels to a greyish "surface-container"
-// color. Match the white background + light grey border used for cards (mat-card.scss)
-// and buttons (mat-button.scss) instead.
+// color, an elevation shadow and (for menus/autocomplete) 4px rounded corners. Match the
+// white background + light grey border + flat look used for cards (mat-card.scss) and
+// buttons (mat-button.scss) instead - set through Material's own theming custom properties
+// rather than raw overrides, since all three panels expose them.
+:root {
+  --mat-menu-container-color: white;
+  --mat-menu-container-elevation-shadow: none;
+  --mat-menu-container-shape: 8px;
+  // A divider's own margin (8px top + 8px bottom by default) sits between two items but
+  // belongs to neither, so hovering either item stops short of the divider instead of
+  // reaching it. Zero it via these tokens; the same breathing room is restored on the
+  // adjacent items' own height below so it's included in their hover area.
+  --mat-menu-divider-top-spacing: 0;
+  --mat-menu-divider-bottom-spacing: 0;
+
+  --mat-select-panel-background-color: white;
+  --mat-select-container-elevation-shadow: none;
+
+  --mat-autocomplete-background-color: white;
+  --mat-autocomplete-container-elevation-shadow: none;
+  --mat-autocomplete-container-shape: 8px;
+}
+
+// No custom-property equivalent exists for any of these three panels' border, so this stays
+// a raw override.
 .mat-mdc-menu-panel,
 .mat-mdc-select-panel,
 .mat-mdc-autocomplete-panel {
-  background-color: white !important;
   border: var(--tafel-border-color) solid 1px !important;
+}
+
+// The select panel's border-radius is hardcoded in Material's own structural CSS (0 0 4px 4px)
+// with no corresponding token, unlike the menu/autocomplete panels above.
+.mat-mdc-select-panel {
   border-radius: 8px !important;
-  box-shadow: none !important;
 }
 
 // Clip content to the panel's rounded corners so a flush first/last row (see below)
@@ -20,7 +46,8 @@
 // loose for the short, dense menus used across the app. Padding is removed entirely
 // (rather than just reduced) so an item's hover/focus background reaches all the way to
 // the panel edge instead of leaving an uncolored strip above the first / below the last
-// item - the item itself is the only source of vertical spacing now.
+// item - the item itself is the only source of vertical spacing now. Neither has a
+// corresponding Material token.
 .mat-mdc-menu-content {
   padding: 0 !important;
 }
@@ -35,14 +62,6 @@
 
 .mat-mdc-menu-item {
   min-height: 36px !important;
-}
-
-// A divider's own margin (8px top + 8px bottom by default) sits between two items but
-// belongs to neither, so hovering either item stops short of the divider instead of
-// reaching it. Zero the divider's margin and move that same amount of breathing room
-// into the adjacent items' own height instead, so it's included in their hover area.
-.mat-mdc-menu-panel .mat-divider {
-  margin: 0 !important;
 }
 
 .mat-mdc-menu-item:has(+ .mat-divider) {
