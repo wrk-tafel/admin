@@ -72,7 +72,7 @@ describe('Food Collection Recording', () => {
 
       // the item-patch queue sends autosave requests sequentially, one per value change - alias
       // it so the reload below can wait for every queued patch to land instead of racing them
-      cy.intercept('PATCH', '**/food-collections/route/*/items').as('patchItem');
+      cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
 
       cy.byTestId('category-1-input').type('12');
       cy.byTestId('category-2-increment-button').click();

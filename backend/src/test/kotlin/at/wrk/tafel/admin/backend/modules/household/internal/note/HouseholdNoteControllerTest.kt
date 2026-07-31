@@ -108,7 +108,7 @@ internal class HouseholdNoteControllerTest {
             request = CreateHouseholdNoteRequest(note = note),
         )
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
         assertThat(response.body).isEqualTo(noteItem)
         verify { service.createNewNote(householdId, note) }
     }

@@ -2,18 +2,14 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
-// The SSE endpoint stays open to every authenticated user: the fullscreen ticket monitor runs
-// under a display account without permissions. The state-changing endpoints are restricted.
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/distributions/ticket-screen")
 class DistributionTicketScreenController(
     private val service: DistributionService,
     private val sseOutboxService: SseOutboxService,
@@ -25,13 +21,13 @@ class DistributionTicketScreenController(
         const val TICKET_SCREEN_TITLE = "Ticket"
     }
 
-    @PostMapping("/distributions/ticket-screen/show-text")
+    @PostMapping("/show-text")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showText(@RequestBody request: TicketScreenShowText) {
         saveToOutbox(text = request.text, value = request.value)
     }
 
-    @PostMapping("/distributions/ticket-screen/show-current")
+    @PostMapping("/show-current")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showCurrentTicket() {
         val response = if (service.hasCurrentDistribution()) {
@@ -45,7 +41,7 @@ class DistributionTicketScreenController(
         saveToOutbox(text = TICKET_SCREEN_TITLE, response?.toString())
     }
 
-    @PostMapping("/distributions/ticket-screen/show-previous")
+    @PostMapping("/show-previous")
     @TafelActiveDistributionRequired
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showPreviousTicket() {
@@ -55,7 +51,7 @@ class DistributionTicketScreenController(
         saveToOutbox(text = TICKET_SCREEN_TITLE, value = previousTicketNumber?.toString())
     }
 
-    @PostMapping("/distributions/ticket-screen/show-next")
+    @PostMapping("/show-next")
     @TafelActiveDistributionRequired
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showNextTicket(@RequestBody request: TicketScreenShowNextTicketRequest) {
@@ -63,27 +59,6 @@ class DistributionTicketScreenController(
         logger.info("Ticket-Log - fetched next ticket-number: $nextTicketNumber")
 
         saveToOutbox(text = TICKET_SCREEN_TITLE, value = nextTicketNumber?.toString())
-    }
-
-    @GetMapping("/sse/distributions/ticket-screen/current")
-    fun listenForChanges(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
-
-        // send initial state
-        var currentTicketNumber: Int? = null
-        if (service.hasCurrentDistribution()) {
-            currentTicketNumber = service.getCurrentTicketNumberValue()
-        }
-        val payload = TicketScreenShowText(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
-        sseOutboxService.sendEvent(sseEmitter, payload)
-
-        sseOutboxService.forwardNotificationEventsToSse(
-            sseEmitter = sseEmitter,
-            notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-            resultType = TicketScreenShowText::class.java,
-        )
-
-        return sseEmitter
     }
 
     private fun saveToOutbox(text: String, value: String?) {

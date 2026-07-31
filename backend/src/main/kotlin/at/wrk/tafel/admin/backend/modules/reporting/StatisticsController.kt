@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsCsvResult
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsService
 import org.springframework.core.io.InputStreamResource
@@ -45,7 +46,7 @@ class StatisticsController(
         @RequestParam ageMin: Int,
         @RequestParam ageMax: Int,
         @RequestParam page: Int? = null,
-    ): SchoolStarterPackageSearchResult = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page)
+    ): PagedResponse<SchoolStarterPackageEntry> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page)
 
     @GetMapping("/generate-school-starter-package-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun generateSchoolStarterPackageCsv(
@@ -106,12 +107,4 @@ data class SchoolStarterPackageEntry(
     val firstname: String,
     val lastname: String,
     val age: Int,
-)
-
-data class SchoolStarterPackageSearchResult(
-    val items: List<SchoolStarterPackageEntry>,
-    val totalCount: Long,
-    val currentPage: Int,
-    val totalPages: Int,
-    val pageSize: Int,
 )

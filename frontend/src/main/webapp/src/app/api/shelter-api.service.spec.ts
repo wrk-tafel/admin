@@ -123,7 +123,7 @@ describe('ShelterApiService', () => {
       expect(data).toEqual(updatedShelter);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/shelters/1'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/shelters/1'});
     req.flush(updatedShelter);
     httpMock.verify();
   });

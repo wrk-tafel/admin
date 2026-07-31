@@ -12,6 +12,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
 class SheltersControllerTest {
@@ -142,7 +143,8 @@ class SheltersControllerTest {
 
         val response = controller.createShelter(newShelter)
 
-        assertThat(response).isEqualTo(createdShelter)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
+        assertThat(response.body).isEqualTo(createdShelter)
         verify {
             service.createShelter(newShelter)
         }

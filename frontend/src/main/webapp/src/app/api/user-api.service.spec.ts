@@ -108,7 +108,7 @@ describe('UserApiService', () => {
     };
     apiService.updateUser(mockUserUpdate).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/users/133'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/users/133'});
     req.flush(null);
     httpMock.verify();
 

@@ -1,8 +1,8 @@
 ### Get collected food for route 1
-GET {{baseApiPath}}/food-collections/route/1
+GET {{baseApiPath}}/food-collections/routes/1
 
 ### Save route data
-POST {{baseApiPath}}/food-collections/route/1
+POST {{baseApiPath}}/food-collections/routes/1
 Content-Type: application/json
 
 {
@@ -15,7 +15,7 @@ Content-Type: application/json
 }
 
 ### Save food items
-POST {{baseApiPath}}/food-collections/route/1/items
+POST {{baseApiPath}}/food-collections/routes/1/items
 Content-Type: application/json
 
 {
@@ -34,7 +34,7 @@ Content-Type: application/json
 }
 
 ### Save food items per shop
-POST {{baseApiPath}}/food-collections/route/1/shop/1/items
+POST {{baseApiPath}}/food-collections/routes/1/shops/1/items
 Content-Type: application/json
 
 {
@@ -51,10 +51,10 @@ Content-Type: application/json
 }
 
 ### Get food items per shop
-GET {{baseApiPath}}/food-collections/route/1/shop/1/items
+GET {{baseApiPath}}/food-collections/routes/1/shops/1/items
 
 ### Patch a single food item
-PATCH {{baseApiPath}}/food-collections/route/1/items
+PATCH {{baseApiPath}}/food-collections/routes/1/items
 Content-Type: application/json
 
 {

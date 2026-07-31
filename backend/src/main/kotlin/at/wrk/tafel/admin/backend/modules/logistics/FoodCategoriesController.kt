@@ -4,10 +4,13 @@ import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoryService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoriesListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryReorderRequest
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -36,14 +39,14 @@ class FoodCategoriesController(
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun createFoodCategory(
         @RequestBody category: FoodCategory,
-    ): FoodCategory = foodCategoriesService.createFoodCategory(category)
+    ): ResponseEntity<FoodCategory> = ResponseEntity.status(HttpStatus.CREATED).body(foodCategoriesService.createFoodCategory(category))
 
-    @PostMapping("/{categoryId}")
+    @PutMapping("/{foodCategoryId}")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun updateFoodCategory(
-        @PathVariable categoryId: Long,
+        @PathVariable foodCategoryId: Long,
         @RequestBody category: FoodCategory,
-    ): FoodCategory = foodCategoriesService.updateFoodCategory(categoryId, category)
+    ): FoodCategory = foodCategoriesService.updateFoodCategory(foodCategoryId, category)
 
     @PostMapping("/reorder")
     @PreAuthorize("hasAuthority('SETTINGS')")

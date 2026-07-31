@@ -8,27 +8,27 @@ export class FoodCollectionsApiService {
   private readonly http = inject(HttpClient);
 
   getFoodCollection(routeId: number): Observable<FoodCollectionData> {
-    return this.http.get<FoodCollectionData>(`/food-collections/route/${routeId}`);
+    return this.http.get<FoodCollectionData>(`/food-collections/routes/${routeId}`);
   }
 
   saveRouteData(routeId: number, data: FoodCollectionSaveRouteDataRequest): Observable<void> {
-    return this.http.post<void>(`/food-collections/route/${routeId}`, data);
+    return this.http.post<void>(`/food-collections/routes/${routeId}`, data);
   }
 
   saveItems(routeId: number, data: FoodCollectionSaveItemsRequest): Observable<void> {
-    return this.http.post<void>(`/food-collections/route/${routeId}/items`, data);
+    return this.http.post<void>(`/food-collections/routes/${routeId}/items`, data);
   }
 
   saveItemsPerShop(routeId: number, shopId: number, data: FoodCollectionSaveItemsPerShopRequest): Observable<void> {
-    return this.http.post<void>(`/food-collections/route/${routeId}/shop/${shopId}/items`, data);
+    return this.http.post<void>(`/food-collections/routes/${routeId}/shops/${shopId}/items`, data);
   }
 
   getItemsPerShop(routeId: number, shopId: number): Observable<FoodCollectionItemsPerShopResponse> {
-    return this.http.get<FoodCollectionItemsPerShopResponse>(`/food-collections/route/${routeId}/shop/${shopId}/items`);
+    return this.http.get<FoodCollectionItemsPerShopResponse>(`/food-collections/routes/${routeId}/shops/${shopId}/items`);
   }
 
   patchItems(routeId: number, data: FoodCollectionItem): Observable<void> {
-    return this.http.patch<void>(`/food-collections/route/${routeId}/items`, data);
+    return this.http.patch<void>(`/food-collections/routes/${routeId}/items`, data);
   }
 
 }

@@ -12,20 +12,19 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/routes")
+@PreAuthorize("hasAuthority('LOGISTICS')")
 class RouteController(
     private val routeService: RouteService,
     private val shopService: ShopService,
 ) {
 
     @GetMapping
-    @PreAuthorize("hasAuthority('LOGISTICS')")
     fun getRoutes(): RouteListResponse {
         val routes = routeService.getRoutes()
         return RouteListResponse(routes = routes)
     }
 
     @GetMapping("/{routeId}/shops")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
     fun getShopsOfRoute(
         @PathVariable routeId: Long,
     ): RouteShopsResponse {

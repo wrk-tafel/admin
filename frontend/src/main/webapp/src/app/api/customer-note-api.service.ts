@@ -1,6 +1,7 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class CustomerNoteApiService {
@@ -21,13 +22,7 @@ export class CustomerNoteApiService {
 
 }
 
-export interface CustomerNotesResponse {
-  items: CustomerNoteItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerNotesResponse = PagedResponse<CustomerNoteItem>;
 
 export interface CustomerNoteItem {
   author?: string;

@@ -1,6 +1,7 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class EmployeeApiService {
@@ -23,13 +24,7 @@ export class EmployeeApiService {
 
 }
 
-export interface EmployeeListResponse {
-  items: EmployeeData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type EmployeeListResponse = PagedResponse<EmployeeData>;
 
 export interface CreateEmployeeRequest {
   personnelNumber: string;

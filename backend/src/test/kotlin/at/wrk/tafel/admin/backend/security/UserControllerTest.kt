@@ -233,7 +233,7 @@ class UserControllerTest {
 
         val response = controller.createUser(user = testUserApiResponse)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
         assertThat(response.body).isEqualTo(testUserApiResponse)
 
         verify(exactly = 1) { userDetailsManager.createUser(testUser) }
@@ -352,8 +352,9 @@ class UserControllerTest {
     fun `delete user found`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        controller.deleteUser(userId = 123)
+        val response = controller.deleteUser(userId = 123)
 
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
     }
 

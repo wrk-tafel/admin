@@ -1,9 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.base.employee
 
 import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeService
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -23,5 +27,13 @@ class EmployeeController(
     ): EmployeeListResponse = employeeService.findEmployees(searchInput, page)
 
     @PostMapping
-    fun saveEmployee(@RequestBody employeeCreateRequest: EmployeeCreateRequest): Employee = employeeService.saveEmployee(employeeCreateRequest)
+    fun saveEmployee(
+        @RequestBody employeeCreateRequest: EmployeeCreateRequest,
+    ): ResponseEntity<Employee> = ResponseEntity.status(HttpStatus.CREATED).body(employeeService.saveEmployee(employeeCreateRequest))
+
+    @PutMapping("/{employeeId}")
+    fun updateEmployee(
+        @PathVariable employeeId: Long,
+        @RequestBody employeeUpdateRequest: EmployeeCreateRequest,
+    ): Employee = employeeService.updateEmployee(employeeId, employeeUpdateRequest)
 }

@@ -76,7 +76,7 @@ describe('FoodCategoriesApiService', () => {
       expect(data).toEqual(updatedCategory);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/food-categories/1'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/food-categories/1'});
     req.flush(updatedCategory);
     httpMock.verify();
   });

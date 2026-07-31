@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsCsvResult
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsService
 import io.mockk.every
@@ -246,7 +247,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSchoolStarterPackageData delegates to service with given age range and page`() {
-        val expectedData = SchoolStarterPackageSearchResult(
+        val expectedData = PagedResponse(
             items = listOf(SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8)),
             totalCount = 1L,
             currentPage = 2,

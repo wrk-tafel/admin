@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### Update shelter 1
-POST {{baseApiPath}}/shelters/1
+PUT {{baseApiPath}}/shelters/1
 Content-Type: application/json
 
 {

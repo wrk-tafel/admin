@@ -1,6 +1,7 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class UserApiService {
@@ -45,7 +46,7 @@ export class UserApiService {
   }
 
   updateUser(data: UserData): Observable<UserData> {
-    return this.http.post<UserData>(`/users/${data.id}`, data);
+    return this.http.put<UserData>(`/users/${data.id}`, data);
   }
 
   deleteUser(userId: number): Observable<void> {
@@ -76,13 +77,7 @@ export interface ChangePasswordResponse {
   details: string[];
 }
 
-export interface UserSearchResult {
-  items: UserData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type UserSearchResult = PagedResponse<UserData>;
 
 export interface UserData {
   id?: number;

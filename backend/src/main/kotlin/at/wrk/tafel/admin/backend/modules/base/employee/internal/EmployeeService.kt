@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -45,6 +46,23 @@ class EmployeeService(
         }
         employeeRepository.save(employeeEntity)
         return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(employeeCreateRequest.personnelNumber)!!)
+    }
+
+    @Transactional
+    fun updateEmployee(employeeId: Long, employeeUpdateRequest: EmployeeCreateRequest): Employee {
+        val employeeEntity = employeeRepository.findByIdOrNull(employeeId)
+            ?: throw TafelValidationException("Employee with id $employeeId not found")
+
+        if (employeeRepository.existsByPersonnelNumberAndIdNot(employeeUpdateRequest.personnelNumber, employeeId)) {
+            throw TafelValidationException("Mitarbeiter ${employeeUpdateRequest.personnelNumber} ist bereits vorhanden!")
+        }
+
+        employeeEntity.personnelNumber = employeeUpdateRequest.personnelNumber.trim()
+        employeeEntity.firstname = employeeUpdateRequest.firstname.trim()
+        employeeEntity.lastname = employeeUpdateRequest.lastname.trim()
+
+        val savedEntity = employeeRepository.save(employeeEntity)
+        return mapEntityToEmployee(savedEntity)
     }
 
     private fun mapEntityToEmployee(it: EmployeeEntity) = Employee(

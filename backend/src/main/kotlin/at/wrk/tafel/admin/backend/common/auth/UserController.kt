@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
@@ -106,7 +107,7 @@ class UserController(
         @RequestParam lastname: String? = null,
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
-    ): UserListResponse {
+    ): PagedResponse<User> {
         val userSearchResult = userDetailsManager.loadUsers(
             username = username?.trim(),
             firstname = firstname?.trim(),
@@ -114,7 +115,7 @@ class UserController(
             enabled = enabled,
             page = page,
         )
-        return UserListResponse(
+        return PagedResponse(
             items = userSearchResult.items.map { mapToResponse(it) },
             totalCount = userSearchResult.totalCount,
             currentPage = userSearchResult.currentPage,
@@ -135,7 +136,7 @@ class UserController(
         userDetailsManager.createUser(tafelUser)
 
         val userResponse = mapToResponse(userDetailsManager.loadUserByUsername(user.username))
-        return ResponseEntity.ok(userResponse)
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse)
     }
 
     private fun validateIfUserExists(user: User) {
@@ -151,7 +152,7 @@ class UserController(
         }
     }
 
-    @PostMapping("/{userId}")
+    @PutMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     @Transactional
     fun updateUser(
@@ -187,7 +188,7 @@ class UserController(
     @Transactional
     fun deleteUser(
         @PathVariable userId: Long,
-    ) {
+    ): ResponseEntity<Unit> {
         val tafelUser = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht vorhanden!",
@@ -195,6 +196,7 @@ class UserController(
             )
 
         userDetailsManager.deleteUser(tafelUser.username)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/permissions")

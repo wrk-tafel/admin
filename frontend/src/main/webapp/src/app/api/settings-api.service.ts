@@ -11,7 +11,7 @@ export class SettingsApiService {
   }
 
   saveMailRecipients(data: MailRecipients): Observable<void> {
-    return this.http.post<void>('/settings/mail-recipients', data);
+    return this.http.put<void>('/settings/mail-recipients', data);
   }
 
   getStaticValues(): Observable<StaticValueListResponse> {
@@ -19,7 +19,7 @@ export class SettingsApiService {
   }
 
   updateStaticValue(staticValueId: number, staticValue: StaticValueItem): Observable<StaticValueItem> {
-    return this.http.post<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
+    return this.http.put<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
   }
 
 }

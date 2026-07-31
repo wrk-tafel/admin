@@ -1,0 +1,38 @@
+package at.wrk.tafel.admin.backend.modules.distribution
+
+import at.wrk.tafel.admin.backend.common.sse.SseUtil
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
+import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+
+@RestController
+@RequestMapping("/api/sse/distributions")
+class DistributionSseController(
+    private val service: DistributionService,
+    private val sseOutboxService: SseOutboxService,
+) {
+
+    @GetMapping
+    fun listenForDistributionUpdates(): SseEmitter {
+        val sseEmitter = SseUtil.createSseEmitter()
+
+        // initial data
+        sseOutboxService.sendEvent(
+            sseEmitter,
+            DistributionItemUpdate(distribution = service.getCurrentDistributionItem()),
+        )
+
+        sseOutboxService.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+            resultType = DistributionItemUpdate::class.java,
+        )
+
+        return sseEmitter
+    }
+}
