@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
+import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -43,7 +44,7 @@ class DistributionController(
     @PostMapping("/statistics")
     @PreAuthorize("hasAuthority('LOGISTICS')")
     @TafelActiveDistributionRequired
-    fun saveDistributionStatistic(@RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
+    fun saveDistributionStatistic(@Valid @RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
         service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.selectedShelterIds)
         return ResponseEntity.ok().build()
     }
@@ -51,7 +52,7 @@ class DistributionController(
     @PostMapping("/notes")
     @PreAuthorize("isAuthenticated()")
     @TafelActiveDistributionRequired
-    fun saveDistributionNotes(@RequestBody noteData: DistributionNoteData): ResponseEntity<Unit> {
+    fun saveDistributionNotes(@Valid @RequestBody noteData: DistributionNoteData): ResponseEntity<Unit> {
         service.updateDistributionNoteData(noteData.notes)
         return ResponseEntity.ok().build()
     }
@@ -94,7 +95,7 @@ class DistributionController(
     @PreAuthorize("hasAuthority('CHECKIN')")
     @TafelActiveDistributionRequired
     fun assignHouseholdToDistribution(
-        @RequestBody assignHouseholdRequest: AssignHouseholdRequest,
+        @Valid @RequestBody assignHouseholdRequest: AssignHouseholdRequest,
     ): ResponseEntity<Unit> {
         service.assignHouseholdToDistribution(
             assignHouseholdRequest.householdId,

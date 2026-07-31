@@ -1,10 +1,13 @@
 package at.wrk.tafel.admin.backend.common.auth.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.NotBlank
 
 @ExcludeFromTestCoverage
 data class ChangePasswordRequest(
+    @field:NotBlank
     val passwordCurrent: String,
+    @field:NotBlank
     val passwordNew: String,
 )
 
@@ -17,9 +20,13 @@ data class ChangePasswordResponse(
 @ExcludeFromTestCoverage
 data class User(
     val id: Long?,
+    @field:NotBlank
     val personnelNumber: String,
+    @field:NotBlank
     val username: String,
+    @field:NotBlank
     val firstname: String,
+    @field:NotBlank
     val lastname: String,
     val enabled: Boolean,
     val password: String? = null,

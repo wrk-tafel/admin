@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
+import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -23,7 +24,7 @@ class HouseholdController(
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun validate(@RequestBody household: Household): ValidateHouseholdResponse {
+    fun validate(@Valid @RequestBody household: Household): ValidateHouseholdResponse {
         val result = householdService.validate(household)
         return ValidateHouseholdResponse(
             valid = result.valid,
@@ -38,7 +39,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun createHousehold(
         @RequestParam force: Boolean = false,
-        @RequestBody household: Household,
+        @Valid @RequestBody household: Household,
     ): ResponseEntity<HouseholdCreationResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
@@ -58,7 +59,7 @@ class HouseholdController(
     fun updateHousehold(
         @PathVariable householdId: Long,
         @RequestParam force: Boolean = false,
-        @RequestBody household: Household,
+        @Valid @RequestBody household: Household,
     ): HouseholdUpdateResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
@@ -186,7 +187,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoHousehold(
         @PathVariable householdId: Long,
-        @RequestBody request: HouseholdMergeRequest,
+        @Valid @RequestBody request: HouseholdMergeRequest,
     ): ResponseEntity<Any> {
         householdService.mergeHouseholds(householdId, request.sourceHouseholdIds)
         return ResponseEntity.ok().build()

@@ -1,6 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.PositiveOrZero
 import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
@@ -22,7 +25,9 @@ data class DistributionItem(
 
 @ExcludeFromTestCoverage
 data class AssignHouseholdRequest(
+    @field:Positive
     val householdId: Long,
+    @field:Positive
     val ticketNumber: Int,
 )
 
@@ -33,7 +38,9 @@ data class TicketNumberResponse(
 
 @ExcludeFromTestCoverage
 data class DistributionStatisticData(
+    @field:PositiveOrZero
     val employeeCount: Int,
+    @field:NotEmpty
     val selectedShelterIds: List<Long>,
 )
 

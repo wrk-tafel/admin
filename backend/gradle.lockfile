@@ -288,6 +288,7 @@ org.springframework.boot:spring-boot-starter-test:4.1.0=testCompileClasspath,tes
 org.springframework.boot:spring-boot-starter-thymeleaf:4.1.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework.boot:spring-boot-starter-tomcat-runtime:4.1.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework.boot:spring-boot-starter-tomcat:4.1.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.springframework.boot:spring-boot-starter-validation:4.1.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework.boot:spring-boot-starter-web:4.1.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework.boot:spring-boot-starter:4.1.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework.boot:spring-boot-test-autoconfigure:4.1.0=testCompileClasspath,testRuntimeClasspath

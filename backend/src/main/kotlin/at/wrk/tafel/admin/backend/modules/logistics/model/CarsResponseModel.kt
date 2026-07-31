@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.logistics.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 
 @ExcludeFromTestCoverage
 data class CarListResponse(
@@ -10,7 +12,9 @@ data class CarListResponse(
 @ExcludeFromTestCoverage
 data class Car(
     val id: Long?,
+    @field:NotBlank
     val licensePlate: String,
+    @field:NotBlank
     val name: String,
     val enabled: Boolean,
     val sortOrder: Int,
@@ -18,5 +22,6 @@ data class Car(
 
 @ExcludeFromTestCoverage
 data class CarReorderRequest(
+    @field:NotEmpty
     val carIds: List<Long>,
 )

@@ -4,12 +4,17 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.MessageSource
+import org.springframework.core.MethodParameter
 import org.springframework.http.HttpStatus
+import org.springframework.validation.BeanPropertyBindingResult
+import org.springframework.validation.FieldError
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.context.request.ServletWebRequest
 import tools.jackson.databind.json.JsonMapper
 import java.util.*
@@ -123,6 +128,32 @@ internal class GenericExceptionHandlerTest {
         assertThat(errorBody.error).isEqualTo("localized-title")
         assertThat(errorBody.message).isEqualTo("tafelvalidationexception-msg")
         assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException: tafelvalidationexception-msg")
+        assertThat(errorBody.path).isEqualTo("/dummy-path")
+    }
+
+    @Test
+    fun `handles MethodArgumentNotValidException properly`() {
+        every {
+            messageSource.getMessage(
+                "http-error.${HttpStatus.BAD_REQUEST.value()}.title",
+                arrayOf<Any>(),
+                any(),
+            )
+        } returns "localized-title"
+
+        val bindingResult = BeanPropertyBindingResult("target", "targetObject")
+        bindingResult.addError(FieldError("targetObject", "fieldOne", "must not be blank"))
+        bindingResult.addError(FieldError("targetObject", "fieldTwo", "must be positive"))
+        val exception = MethodArgumentNotValidException(mockk<MethodParameter>(relaxed = true), bindingResult)
+
+        val response = exceptionHandler.handleMethodArgumentNotValidException(exception, request, Locale.GERMAN)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        val errorBody = response.body as TafelErrorResponse
+        assertThat(errorBody.timestamp).isNotNull()
+        assertThat(errorBody.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(errorBody.error).isEqualTo("localized-title")
+        assertThat(errorBody.message).isEqualTo("fieldOne: must not be blank; fieldTwo: must be positive")
         assertThat(errorBody.path).isEqualTo("/dummy-path")
     }
 

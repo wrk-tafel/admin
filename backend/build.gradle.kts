@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.jdbc)
     implementation(libs.spring.boot.starter.flyway)
     implementation(libs.spring.boot.starter.data.jpa)

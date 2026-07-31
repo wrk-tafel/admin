@@ -1,15 +1,20 @@
 package at.wrk.tafel.admin.backend.modules.settings.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 
 @ExcludeFromTestCoverage
 data class MailRecipients(
+    @field:Valid
     val mailRecipients: List<MailRecipientsPerMailType>,
 )
 
 @ExcludeFromTestCoverage
 data class MailRecipientsPerMailType(
+    @field:NotBlank
     val mailType: String,
+    @field:Valid
     val recipients: List<MailRecipientAdresses>,
 )
 

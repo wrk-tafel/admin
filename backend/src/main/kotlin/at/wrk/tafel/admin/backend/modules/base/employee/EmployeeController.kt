@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.base.employee
 
 import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -28,12 +29,12 @@ class EmployeeController(
 
     @PostMapping
     fun saveEmployee(
-        @RequestBody employeeCreateRequest: EmployeeCreateRequest,
+        @Valid @RequestBody employeeCreateRequest: EmployeeCreateRequest,
     ): ResponseEntity<Employee> = ResponseEntity.status(HttpStatus.CREATED).body(employeeService.saveEmployee(employeeCreateRequest))
 
     @PutMapping("/{employeeId}")
     fun updateEmployee(
         @PathVariable employeeId: Long,
-        @RequestBody employeeUpdateRequest: EmployeeCreateRequest,
+        @Valid @RequestBody employeeUpdateRequest: EmployeeCreateRequest,
     ): Employee = employeeService.updateEmployee(employeeId, employeeUpdateRequest)
 }

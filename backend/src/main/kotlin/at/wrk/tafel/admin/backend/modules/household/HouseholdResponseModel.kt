@@ -2,6 +2,12 @@ package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.country.Country
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,8 +29,10 @@ data class Household(
     val id: Long? = null,
     val issuer: HouseholdIssuer? = null,
     val issuedAt: LocalDate? = null,
+    @field:Valid
     val address: HouseholdAddress,
     val telephoneNumber: String? = null,
+    @field:Email
     val email: String? = null,
     val validUntil: LocalDate? = null,
     val locked: Boolean? = null,
@@ -33,6 +41,7 @@ data class Household(
     val lockReason: String? = null,
     val pendingCostContribution: BigDecimal? = null,
     val singleParent: Boolean? = null,
+    @field:Valid
     val persons: List<Person> = emptyList(),
 ) {
     /**
@@ -55,11 +64,16 @@ data class HouseholdIssuer(
 
 @ExcludeFromTestCoverage
 data class HouseholdAddress(
+    @field:NotBlank
     val street: String?,
+    @field:NotBlank
     val houseNumber: String?,
     val stairway: String? = null,
     val door: String? = null,
+    @field:NotNull
+    @field:Positive
     val postalCode: Int?,
+    @field:NotBlank
     val city: String?,
 )
 
@@ -67,9 +81,13 @@ data class HouseholdAddress(
 data class Person(
     val id: Long? = null,
     val isMainPerson: Boolean = false,
+    @field:NotBlank
     val firstname: String?,
+    @field:NotBlank
     val lastname: String?,
+    @field:NotNull
     val birthDate: LocalDate?,
+    @field:NotNull
     val gender: PersonGender?,
     val country: Country,
     val employer: String? = null,
@@ -109,6 +127,7 @@ data class HouseholdDuplicationItem(
 
 @ExcludeFromTestCoverage
 data class HouseholdMergeRequest(
+    @field:NotEmpty
     val sourceHouseholdIds: List<Long>,
 )
 

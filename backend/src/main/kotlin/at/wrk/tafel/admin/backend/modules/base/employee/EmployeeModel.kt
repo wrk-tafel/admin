@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.base.employee
 
+import jakarta.validation.constraints.NotBlank
+
 data class EmployeeListResponse(
     val items: List<Employee>,
     val totalCount: Long,
@@ -16,7 +18,10 @@ data class Employee(
 )
 
 data class EmployeeCreateRequest(
+    @field:NotBlank
     val personnelNumber: String,
+    @field:NotBlank
     val firstname: String,
+    @field:NotBlank
     val lastname: String,
 )
