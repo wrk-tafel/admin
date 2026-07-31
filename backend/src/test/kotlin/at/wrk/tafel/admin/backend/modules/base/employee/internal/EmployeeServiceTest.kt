@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -12,11 +13,13 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.repository.findByIdOrNull
 
 @ExtendWith(MockKExtension::class)
 class EmployeeServiceTest {
@@ -118,5 +121,79 @@ class EmployeeServiceTest {
         assertThat(savedEntity.personnelNumber).isEqualTo(employeeCreateRequest.personnelNumber.trim())
         assertThat(savedEntity.firstname).isEqualTo(employeeCreateRequest.firstname.trim())
         assertThat(savedEntity.lastname).isEqualTo(employeeCreateRequest.lastname.trim())
+    }
+
+    @Test
+    fun `update employee`() {
+        val employeeId = 1L
+        val existingEntity = EmployeeEntity().apply {
+            id = employeeId
+            personnelNumber = "00001"
+            firstname = "Old firstname"
+            lastname = "Old lastname"
+        }
+        val employeeUpdateRequest = EmployeeCreateRequest(
+            personnelNumber = "  00002",
+            firstname = "New firstname  ",
+            lastname = "New lastname   ",
+        )
+        every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
+        every { employeeRepository.existsByPersonnelNumberAndIdNot(any(), any()) } returns false
+        every { employeeRepository.save(any()) } returns existingEntity
+
+        val result = employeeService.updateEmployee(employeeId, employeeUpdateRequest)
+
+        assertThat(result).isEqualTo(
+            Employee(
+                id = employeeId,
+                personnelNumber = "00002",
+                firstname = "New firstname",
+                lastname = "New lastname",
+            ),
+        )
+
+        val entitySlot = slot<EmployeeEntity>()
+        verify { employeeRepository.save(capture(entitySlot)) }
+
+        val savedEntity = entitySlot.captured
+        assertThat(savedEntity.personnelNumber).isEqualTo("00002")
+        assertThat(savedEntity.firstname).isEqualTo("New firstname")
+        assertThat(savedEntity.lastname).isEqualTo("New lastname")
+    }
+
+    @Test
+    fun `update employee throws exception when not found`() {
+        every { employeeRepository.findByIdOrNull(99L) } returns null
+
+        assertThatThrownBy {
+            employeeService.updateEmployee(
+                99L,
+                EmployeeCreateRequest(personnelNumber = "00001", firstname = "first", lastname = "last"),
+            )
+        }
+            .isInstanceOf(TafelValidationException::class.java)
+            .hasMessage("Employee with id 99 not found")
+    }
+
+    @Test
+    fun `update employee throws exception when personnelNumber already used by another employee`() {
+        val employeeId = 1L
+        val existingEntity = EmployeeEntity().apply {
+            id = employeeId
+            personnelNumber = "00001"
+            firstname = "first"
+            lastname = "last"
+        }
+        every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
+        every { employeeRepository.existsByPersonnelNumberAndIdNot("00002", employeeId) } returns true
+
+        assertThatThrownBy {
+            employeeService.updateEmployee(
+                employeeId,
+                EmployeeCreateRequest(personnelNumber = "00002", firstname = "first", lastname = "last"),
+            )
+        }
+            .isInstanceOf(TafelValidationException::class.java)
+            .hasMessage("Mitarbeiter 00002 ist bereits vorhanden!")
     }
 }

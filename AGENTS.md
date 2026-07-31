@@ -298,19 +298,24 @@ without being asked.
 
 **HTTP Requests Collection (`_http-calls/`):** Before inspecting controller source code, check the `_http-calls/` folder for sample HTTP calls (`.http` files) organized by feature area (customers, distributions, routes, users, etc.). These provide quick insight into request/response shapes, query parameters, and authentication patterns. Use them as a first reference, but always verify against the actual controller endpoints when needed — the `.http` files may not cover every endpoint or edge case.
 
-The backend exposes REST APIs under `/api/` prefix:
+The backend exposes REST APIs under `/api/` prefix. Update-by-id endpoints use `PUT`, create
+endpoints return `201`, delete endpoints return `204` — this is a project-wide convention, not
+just a pattern that happens to repeat. SSE endpoints for a given resource live under a sibling
+`.../sse/...` controller (e.g. `DistributionController` + `DistributionSseController`) so their
+URLs stay stable even as the REST resource's own base path changes.
+
 - `/api/users`: User management
 - `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`
 - `/api/households/{householdId}/notes`: Household notes
-- `/api/distributions`: Distribution management
-- `/api/distributions/{id}/tickets`: Ticket management
-- `/api/distributions/ticket-screen`: Ticket screen SSE endpoint
+- `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
+- `/api/distributions`: Distribution management (SSE updates on `/api/sse/distributions`)
+- `/api/distributions/ticket-screen`: Ticket screen control (SSE on `/api/sse/distributions/ticket-screen/current`)
 - `/api/countries`: Country list
 - `/api/employees`: Employee management
-- `/api/scanners`: Scanner registration
+- `/api/scanners`: Scanner registration (SSE on `/api/sse/scanners/{scannerId}/results`)
 - `/api/routes`: Route management
 - `/api/food-categories`: Food category management
-- `/api/food-collections`: Food collection recording
+- `/api/food-collections`: Food collection recording (nested under `/routes/{routeId}` and `/routes/{routeId}/shops/{shopId}`)
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
 - `/api/settings`: Application settings

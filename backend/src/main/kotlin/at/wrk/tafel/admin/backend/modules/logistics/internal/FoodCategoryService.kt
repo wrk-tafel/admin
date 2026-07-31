@@ -35,9 +35,9 @@ class FoodCategoryService(
         return mapFoodCategory(savedEntity)
     }
 
-    fun updateFoodCategory(categoryId: Long, updatedCategory: FoodCategory): FoodCategory {
-        val entity = foodCategoriesRepository.findByIdOrNull(categoryId)
-            ?: throw TafelValidationException("FoodCategory with id $categoryId not found")
+    fun updateFoodCategory(foodCategoryId: Long, updatedCategory: FoodCategory): FoodCategory {
+        val entity = foodCategoriesRepository.findByIdOrNull(foodCategoryId)
+            ?: throw TafelValidationException("FoodCategory with id $foodCategoryId not found")
 
         entity.name = updatedCategory.name
         entity.weightPerUnit = updatedCategory.weightPerUnit

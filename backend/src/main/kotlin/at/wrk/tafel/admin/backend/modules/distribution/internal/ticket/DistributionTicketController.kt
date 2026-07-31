@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/distributions/tickets")
+@RequestMapping("/api/households/{householdId}/ticket")
 @PreAuthorize("hasAnyAuthority('CHECKIN', 'CUSTOMER')")
 class DistributionTicketController(
     private val service: DistributionService,
@@ -20,7 +20,7 @@ class DistributionTicketController(
         private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
     }
 
-    @GetMapping("/households/{householdId}")
+    @GetMapping
     @TafelActiveDistributionRequired
     fun getCurrentTicketForHouseholdId(
         @PathVariable householdId: Long,
@@ -32,7 +32,7 @@ class DistributionTicketController(
         )
     }
 
-    @DeleteMapping("/households/{householdId}")
+    @DeleteMapping
     @TafelActiveDistributionRequired
     fun deleteCurrentTicketForHousehold(
         @PathVariable householdId: Long,
@@ -41,6 +41,6 @@ class DistributionTicketController(
         if (!deleted) {
             throw TafelValidationException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
         }
-        return ResponseEntity.ok().build()
+        return ResponseEntity.noContent().build()
     }
 }

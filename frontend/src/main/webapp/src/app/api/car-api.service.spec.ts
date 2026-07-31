@@ -75,7 +75,7 @@ describe('CarApiService', () => {
       expect(data).toEqual(updatedCar);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/cars/1'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/cars/1'});
     req.flush(updatedCar);
     httpMock.verify();
   });

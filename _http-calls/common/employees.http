@@ -19,3 +19,13 @@ Content-Type: application/json
   "firstname": "first",
   "lastname": "last"
 }
+
+### Update employee 1
+PUT {{baseApiPath}}/employees/1
+Content-Type: application/json
+
+{
+  "personnelNumber": "12345",
+  "firstname": "first-updated",
+  "lastname": "last-updated"
+}

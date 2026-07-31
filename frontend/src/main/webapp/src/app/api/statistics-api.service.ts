@@ -2,6 +2,7 @@ import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import dayjs from 'dayjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class StatisticsApiService {
@@ -95,10 +96,4 @@ export interface SchoolStarterPackageEntry {
   age: number;
 }
 
-export interface SchoolStarterPackageSearchResult {
-  items: SchoolStarterPackageEntry[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type SchoolStarterPackageSearchResult = PagedResponse<SchoolStarterPackageEntry>;

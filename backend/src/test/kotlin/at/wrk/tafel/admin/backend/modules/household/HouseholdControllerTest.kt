@@ -166,8 +166,9 @@ class HouseholdControllerTest {
     fun `create household - missing id so the household should be created`() {
         every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
 
-        controller.createHousehold(false, testHousehold)
+        val response = controller.createHousehold(false, testHousehold)
 
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
         verify { householdService.createHousehold(testHousehold, false, false) }
     }
 
@@ -302,8 +303,9 @@ class HouseholdControllerTest {
     fun `delete household - exists`() {
         every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
 
-        controller.deleteHousehold(testHousehold.id!!)
+        val response = controller.deleteHousehold(testHousehold.id!!)
 
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify { householdService.existsByHouseholdId(testHousehold.id!!) }
     }
 

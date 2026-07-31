@@ -62,7 +62,7 @@ describe('SettingsApiService', () => {
 
     apiService.saveMailRecipients(testData).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/settings/mail-recipients'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/settings/mail-recipients'});
     req.flush(null);
     httpMock.verify();
 
@@ -91,7 +91,7 @@ describe('SettingsApiService', () => {
 
     apiService.updateStaticValue(1, testData).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/settings/static-values/1'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/settings/static-values/1'});
     req.flush(null);
     httpMock.verify();
 

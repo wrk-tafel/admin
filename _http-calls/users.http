@@ -60,7 +60,7 @@ Content-Type: application/json
 }
 
 ### Update user
-POST {{baseApiPath}}/users/300
+PUT {{baseApiPath}}/users/300
 Content-Type: application/json
 
 {

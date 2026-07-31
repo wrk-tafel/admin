@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.modules.logistics.internal.CarService
 import at.wrk.tafel.admin.backend.modules.logistics.model.Car
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarReorderRequest
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
@@ -29,9 +31,9 @@ class CarsController(
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun createCar(
         @RequestBody car: Car,
-    ): Car = carService.createCar(car)
+    ): ResponseEntity<Car> = ResponseEntity.status(HttpStatus.CREATED).body(carService.createCar(car))
 
-    @PostMapping("/{carId}")
+    @PutMapping("/{carId}")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun updateCar(
         @PathVariable carId: Long,

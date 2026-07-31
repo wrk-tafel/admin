@@ -145,7 +145,7 @@ describe('CustomerApiService', () => {
       expect(response.errorMsg).toBeNull();
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=false'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=false'});
     req.flush({data: mockHousehold, errorMsg: null});
     httpMock.verify();
   });
@@ -155,7 +155,7 @@ describe('CustomerApiService', () => {
       expect(response.data.id).toEqual(133);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=true'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=true'});
     req.flush({data: mockHousehold, errorMsg: null});
     httpMock.verify();
   });
@@ -163,7 +163,7 @@ describe('CustomerApiService', () => {
   it('request maps the flat customer onto a household with a persons list', () => {
     apiService.updateCustomer(mockCustomer, false).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=false'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=false'});
     const body = req.request.body;
 
     // household-level fields

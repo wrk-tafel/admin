@@ -12,6 +12,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
@@ -58,7 +59,8 @@ class FoodCategoriesControllerTest {
 
         val response = controller.createFoodCategory(newCategory)
 
-        assertThat(response).isEqualTo(createdCategory)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
+        assertThat(response.body).isEqualTo(createdCategory)
         verify { foodCategoriesService.createFoodCategory(newCategory) }
     }
 

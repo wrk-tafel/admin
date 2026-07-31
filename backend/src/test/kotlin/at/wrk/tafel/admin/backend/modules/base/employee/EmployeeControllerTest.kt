@@ -9,6 +9,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
 class EmployeeControllerTest {
@@ -49,7 +50,25 @@ class EmployeeControllerTest {
 
         val result = employeeController.saveEmployee(employeeCreateRequest)
 
-        assertThat(result).isEqualTo(savedEmployee)
+        assertThat(result.statusCode).isEqualTo(HttpStatus.CREATED)
+        assertThat(result.body).isEqualTo(savedEmployee)
         verify { employeeService.saveEmployee(employeeCreateRequest) }
+    }
+
+    @Test
+    fun `update employee`() {
+        val employeeId = 1L
+        val employeeUpdateRequest = EmployeeCreateRequest(
+            personnelNumber = "00001",
+            firstname = "first 1",
+            lastname = "last 1",
+        )
+        val updatedEmployee = Employee(id = employeeId, personnelNumber = "00001", firstname = "first 1", lastname = "last 1")
+        every { employeeService.updateEmployee(employeeId, employeeUpdateRequest) } returns updatedEmployee
+
+        val result = employeeController.updateEmployee(employeeId, employeeUpdateRequest)
+
+        assertThat(result).isEqualTo(updatedEmployee)
+        verify { employeeService.updateEmployee(employeeId, employeeUpdateRequest) }
     }
 }

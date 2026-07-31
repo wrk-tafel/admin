@@ -1,12 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageSearchResult
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
@@ -432,12 +432,12 @@ class StatisticsService(
         ageMin: Int,
         ageMax: Int,
         page: Int? = null,
-    ): SchoolStarterPackageSearchResult {
+    ): PagedResponse<SchoolStarterPackageEntry> {
         val today = LocalDate.now()
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
         val pagedResult = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today), pageRequest)
 
-        return SchoolStarterPackageSearchResult(
+        return PagedResponse(
             items = pagedResult.content.map { it.toSchoolStarterPackageEntry(today) },
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,

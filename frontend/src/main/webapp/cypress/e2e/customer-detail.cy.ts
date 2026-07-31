@@ -275,7 +275,7 @@ describe('Customer Detail', () => {
 
         // Manually set up a scenario that would trigger the dialog
         cy.intercept('/api/households/*', (req) => {
-          if (req.method === 'POST') {
+          if (req.method === 'PUT') {
             req.reply({
               statusCode: 409,
               body: {message: 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)'}

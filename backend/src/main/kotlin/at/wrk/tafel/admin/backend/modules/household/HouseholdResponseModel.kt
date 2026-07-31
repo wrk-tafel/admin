@@ -7,15 +7,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
-data class HouseholdListResponse(
-    val items: List<Household>,
-    val totalCount: Long,
-    val currentPage: Int,
-    val totalPages: Int,
-    val pageSize: Int,
-)
-
-@ExcludeFromTestCoverage
 data class HouseholdCreationResponse(
     val data: Household,
     val errorMsg: String?,
@@ -111,15 +102,6 @@ enum class PersonGender {
 }
 
 @ExcludeFromTestCoverage
-data class HouseholdDuplicatesResponse(
-    val items: List<HouseholdDuplicationItem>,
-    val totalCount: Long,
-    val currentPage: Int,
-    val totalPages: Int,
-    val pageSize: Int,
-)
-
-@ExcludeFromTestCoverage
 data class HouseholdDuplicationItem(
     val household: Household,
     val similarHouseholds: List<Household>,
@@ -128,15 +110,6 @@ data class HouseholdDuplicationItem(
 @ExcludeFromTestCoverage
 data class HouseholdMergeRequest(
     val sourceHouseholdIds: List<Long>,
-)
-
-@ExcludeFromTestCoverage
-data class HouseholdAboveLimitResponse(
-    val items: List<HouseholdAboveLimitItem>,
-    val totalCount: Long,
-    val currentPage: Int,
-    val totalPages: Int,
-    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage

@@ -4,6 +4,7 @@ import {map, Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 import {tap} from 'rxjs/operators';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
+import {PagedResponse} from '../common/api/paged-response';
 
 /**
  * The backend stores a customer as a *household* plus a list of *persons*, one of which is flagged
@@ -35,7 +36,7 @@ export class CustomerApiService {
   }
 
   updateCustomer(data: CustomerData, force: boolean): Observable<CustomerUpdateResponse> {
-    return this.http.post<HouseholdUpdateResponse>(`/households/${data.id}`, mapCustomerToHousehold(data), {params: {force}})
+    return this.http.put<HouseholdUpdateResponse>(`/households/${data.id}`, mapCustomerToHousehold(data), {params: {force}})
       .pipe(
         map(response => ({data: mapHouseholdToCustomer(response?.data), errorMsg: response?.errorMsg ?? null})),
         tap(response => {
@@ -149,13 +150,7 @@ export interface ValidateCustomerResponse {
   amountExceededLimit: number;
 }
 
-export interface CustomerSearchResult {
-  items: CustomerData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerSearchResult = PagedResponse<CustomerData>;
 
 export interface CustomerCreationResponse {
   data: CustomerData;
@@ -233,26 +228,14 @@ export const genderLabel: { [key in Gender]: string } = {
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';
 
-export interface CustomerDuplicatesResponse {
-  items: CustomerDuplicatesItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 
 export interface CustomerDuplicatesItem {
   customer: CustomerData;
   similarCustomers: CustomerData[];
 }
 
-export interface CustomerAboveLimitResponse {
-  items: CustomerAboveLimitItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerAboveLimitResponse = PagedResponse<CustomerAboveLimitItem>;
 
 export interface CustomerAboveLimitItem {
   customer: CustomerData;
@@ -304,13 +287,7 @@ interface PersonData {
   receivesFamilyAllowance: boolean;
 }
 
-interface HouseholdSearchResult {
-  items: HouseholdData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+type HouseholdSearchResult = PagedResponse<HouseholdData>;
 
 interface HouseholdCreationResponse {
   data: HouseholdData;
@@ -322,13 +299,7 @@ interface HouseholdUpdateResponse {
   errorMsg: string | null;
 }
 
-interface HouseholdDuplicatesResponse {
-  items: HouseholdDuplicatesItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+type HouseholdDuplicatesResponse = PagedResponse<HouseholdDuplicatesItem>;
 
 interface HouseholdDuplicatesItem {
   household: HouseholdData;
@@ -339,13 +310,7 @@ interface HouseholdMergeRequest {
   sourceHouseholdIds: number[];
 }
 
-interface HouseholdAboveLimitResponse {
-  items: HouseholdAboveLimitItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+type HouseholdAboveLimitResponse = PagedResponse<HouseholdAboveLimitItem>;
 
 interface HouseholdAboveLimitItem {
   household: HouseholdData;

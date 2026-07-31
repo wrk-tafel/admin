@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
@@ -38,7 +39,7 @@ class HouseholdController(
     fun createHousehold(
         @RequestParam force: Boolean = false,
         @RequestBody household: Household,
-    ): HouseholdCreationResponse {
+    ): ResponseEntity<HouseholdCreationResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
@@ -48,10 +49,11 @@ class HouseholdController(
             }
         }
 
-        return householdService.createHousehold(household, force, isSupervisor)
+        val response = householdService.createHousehold(household, force, isSupervisor)
+        return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
-    @PostMapping("/{householdId}")
+    @PutMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateHousehold(
         @PathVariable householdId: Long,
@@ -88,7 +90,7 @@ class HouseholdController(
         @RequestParam postProcessing: Boolean? = null,
         @RequestParam costContribution: Boolean? = null,
         @RequestParam valid: Boolean? = null,
-    ): HouseholdListResponse {
+    ): PagedResponse<Household> {
         val householdSearchResult = householdService.getHouseholds(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
@@ -97,7 +99,7 @@ class HouseholdController(
             costContribution = costContribution,
             valid = valid,
         )
-        return HouseholdListResponse(
+        return PagedResponse(
             items = householdSearchResult.items,
             totalCount = householdSearchResult.totalCount,
             currentPage = householdSearchResult.currentPage,
@@ -108,7 +110,7 @@ class HouseholdController(
 
     @DeleteMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun deleteHousehold(@PathVariable householdId: Long) {
+    fun deleteHousehold(@PathVariable householdId: Long): ResponseEntity<Unit> {
         if (!householdService.existsByHouseholdId(householdId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $householdId nicht vorhanden!",
@@ -117,6 +119,7 @@ class HouseholdController(
         }
 
         householdService.deleteHouseholdByHouseholdId(householdId)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/{householdId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
@@ -148,9 +151,9 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
-    ): HouseholdAboveLimitResponse {
+    ): PagedResponse<HouseholdAboveLimitItem> {
         val result = householdService.getHouseholdsAboveLimit(page)
-        return HouseholdAboveLimitResponse(
+        return PagedResponse(
             items = result.items,
             totalCount = result.totalCount,
             currentPage = result.currentPage,
@@ -163,9 +166,9 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(
         @RequestParam page: Int? = null,
-    ): HouseholdDuplicatesResponse {
+    ): PagedResponse<HouseholdDuplicationItem> {
         val duplicateSearchResult = householdDuplicationService.findDuplicates(page)
-        return HouseholdDuplicatesResponse(
+        return PagedResponse(
             items = duplicateSearchResult.items.map {
                 HouseholdDuplicationItem(
                     household = it.household,

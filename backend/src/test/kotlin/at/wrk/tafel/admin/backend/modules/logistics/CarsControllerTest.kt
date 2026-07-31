@@ -12,6 +12,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
 class CarsControllerTest {
@@ -72,7 +73,8 @@ class CarsControllerTest {
 
         val response = controller.createCar(newCar)
 
-        assertThat(response).isEqualTo(createdCar)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
+        assertThat(response.body).isEqualTo(createdCar)
         verify {
             carService.createCar(newCar)
         }

@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.note
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,9 +24,9 @@ class HouseholdNoteController(
     fun getNotes(
         @PathVariable householdId: Long,
         @RequestParam("page") page: Int?,
-    ): HouseholdNotesResponse {
+    ): PagedResponse<HouseholdNoteItem> {
         val searchResult = service.getNotes(householdId = householdId, page = page)
-        return HouseholdNotesResponse(
+        return PagedResponse(
             items = searchResult.items,
             totalCount = searchResult.totalCount,
             currentPage = searchResult.currentPage,
@@ -40,6 +42,6 @@ class HouseholdNoteController(
     ): ResponseEntity<HouseholdNoteItem> {
         val note = request.note.ifBlank { throw TafelValidationException("Notiz darf nicht leer sein!") }
         val persistedNote = service.createNewNote(householdId, note)
-        return ResponseEntity.ok(persistedNote)
+        return ResponseEntity.status(HttpStatus.CREATED).body(persistedNote)
     }
 }

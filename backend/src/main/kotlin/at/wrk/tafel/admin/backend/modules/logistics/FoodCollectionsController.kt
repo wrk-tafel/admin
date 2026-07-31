@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/food-collections")
+@PreAuthorize("hasAuthority('LOGISTICS')")
 class FoodCollectionsController(
     private val foodCollectionService: FoodCollectionService,
 ) {
 
-    @GetMapping("/route/{routeId}")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @GetMapping("/routes/{routeId}")
     @TafelActiveDistributionRequired
     fun getFoodCollection(
         @PathVariable routeId: Long,
@@ -24,8 +24,7 @@ class FoodCollectionsController(
         return ResponseEntity.ok(data)
     }
 
-    @PostMapping("/route/{routeId}")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PostMapping("/routes/{routeId}")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionRouteData(
         @PathVariable routeId: Long,
@@ -35,8 +34,7 @@ class FoodCollectionsController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/route/{routeId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PostMapping("/routes/{routeId}/items")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItems(
         @PathVariable routeId: Long,
@@ -46,8 +44,7 @@ class FoodCollectionsController(
         return ResponseEntity.ok().build()
     }
 
-    @GetMapping("/route/{routeId}/shop/{shopId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @GetMapping("/routes/{routeId}/shops/{shopId}/items")
     @TafelActiveDistributionRequired
     fun getFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
@@ -57,8 +54,7 @@ class FoodCollectionsController(
         return ResponseEntity.ok(data)
     }
 
-    @PostMapping("/route/{routeId}/shop/{shopId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PostMapping("/routes/{routeId}/shops/{shopId}/items")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
@@ -69,8 +65,7 @@ class FoodCollectionsController(
         return ResponseEntity.ok().build()
     }
 
-    @PatchMapping("/route/{routeId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PatchMapping("/routes/{routeId}/items")
     @TafelActiveDistributionRequired
     fun patchFoodCollectionItem(
         @PathVariable routeId: Long,

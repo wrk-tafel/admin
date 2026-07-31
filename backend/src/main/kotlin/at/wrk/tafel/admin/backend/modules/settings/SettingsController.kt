@@ -7,7 +7,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -22,7 +22,7 @@ class SettingsController(
     @GetMapping("/mail-recipients")
     fun getMailRecipientSettings(): MailRecipients = settingsService.getMailRecipients()
 
-    @PostMapping("/mail-recipients")
+    @PutMapping("/mail-recipients")
     fun updateMailRecipientSettings(@RequestBody settings: MailRecipients) {
         settingsService.updateMailRecipients(settings)
     }
@@ -30,7 +30,7 @@ class SettingsController(
     @GetMapping("/static-values")
     fun getStaticValues(): StaticValueListResponse = settingsService.getStaticValues()
 
-    @PostMapping("/static-values/{staticValueId}")
+    @PutMapping("/static-values/{staticValueId}")
     fun updateStaticValue(
         @PathVariable staticValueId: Long,
         @RequestBody staticValue: StaticValueItem,

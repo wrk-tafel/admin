@@ -54,7 +54,7 @@ internal class DistributionTicketControllerTest {
         val householdId = 123L
         val response = controller.deleteCurrentTicketForHousehold(householdId)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify { service.deleteCurrentTicket(householdId) }
     }
 
