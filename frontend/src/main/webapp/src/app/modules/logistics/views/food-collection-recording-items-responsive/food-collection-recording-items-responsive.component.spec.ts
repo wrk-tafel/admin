@@ -6,12 +6,16 @@ import {FoodCollectionRecordingItemsResponsiveComponent} from './food-collection
 import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
+import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
+import {signal} from '@angular/core';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
-  let offlineQueueService: {enqueue: ReturnType<typeof vi.fn>};
+  let offlineQueueService: {enqueue: ReturnType<typeof vi.fn>; getPendingForShop: ReturnType<typeof vi.fn>};
+  let onlineSignal: ReturnType<typeof signal<boolean>>;
 
   beforeEach(() => {
-    offlineQueueService = {enqueue: vi.fn()};
+    offlineQueueService = {enqueue: vi.fn(), getPendingForShop: vi.fn().mockReturnValue([])};
+    onlineSignal = signal(true);
 
     TestBed.configureTestingModule({
       imports: [
@@ -21,7 +25,8 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } },
-        { provide: FoodCollectionOfflineQueueService, useValue: offlineQueueService }
+        { provide: FoodCollectionOfflineQueueService, useValue: offlineQueueService },
+        { provide: ConnectivityService, useValue: { isOnline: () => onlineSignal.asReadonly() } }
       ]
     }).compileComponents();
   });
@@ -221,11 +226,15 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component.categoryValues()[mockFoodCategories[1].id]).toBe(0);
   });
 
-  it('should show error toast when selectShop fails', () => {
+  it('falls back to the route-level snapshot and shows a warning when selectShop fails', () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
-      foodCollectionData: {items: []}
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[1].id, categoryId: mockFoodCategories[0].id, amount: 6}
+        ]
+      }
     };
 
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
@@ -243,11 +252,100 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     } as any);
 
     const toastr = TestBed.inject(TafelToastrService);
-    const toastSpy = vi.spyOn(toastr, 'error');
+    const toastSpy = vi.spyOn(toastr, 'warning');
 
     component.selectShop(mockShops[1]);
 
-    expect(toastSpy).toHaveBeenCalledWith('Laden fehlgeschlagen!');
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(6);
+    expect(toastSpy).toHaveBeenCalledWith('Laden fehlgeschlagen, zuletzt bekannter Stand wird angezeigt.');
+  });
+
+  it('skips the live request and uses the fallback directly when offline', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[1].id, categoryId: mockFoodCategories[0].id, amount: 6}
+        ]
+      }
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    onlineSignal.set(false);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop');
+
+    const toastr = TestBed.inject(TafelToastrService);
+    const toastSpy = vi.spyOn(toastr, 'warning');
+
+    component.selectShop(mockShops[1]);
+
+    expect(getItemsSpy).not.toHaveBeenCalled();
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(6);
+    expect(toastSpy).toHaveBeenCalledWith('Offline - zuletzt bekannter Stand wird angezeigt.');
+  });
+
+  it('prefers a same-session local edit over the stale route-level snapshot in the offline fallback', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[0].id, categoryId: mockFoodCategories[0].id, amount: 6}
+        ]
+      }
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    // Edit shop 1 while online (goes through the normal enqueue path)...
+    component.currentShop.set(mockShops[0]);
+    component.onValueChange({key: mockFoodCategories[0].id, value: 42});
+
+    // ...then go offline and switch away and back to shop 1.
+    onlineSignal.set(false);
+    component.selectShop(mockShops[0]);
+
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(42);
+  });
+
+  it('overlays not-yet-sent queued items on top of the offline fallback', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {items: []}
+    };
+
+    offlineQueueService.getPendingForShop.mockReturnValue([
+      {categoryId: mockFoodCategories[0].id, shopId: mockShops[1].id, amount: 11}
+    ]);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    onlineSignal.set(false);
+    component.selectShop(mockShops[1]);
+
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(11);
   });
 
   it('should navigate to previous shop correctly', () => {
