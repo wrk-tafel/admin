@@ -58,9 +58,12 @@ export class FoodCollectionRecordingComponent {
   private readonly router = inject(Router);
 
   constructor() {
-    // Redirect to overview if no distribution is active
+    // Redirect to overview once it's confirmed no distribution is active. `getCurrentDistribution()`
+    // is also `null` before the first SSE message arrives, so this must wait for a live connection
+    // to avoid redirecting away before the real state is known (e.g. right after a page load with
+    // no/poor connectivity).
     effect(() => {
-      if (this.globalStateService.getCurrentDistribution()() === null) {
+      if (this.globalStateService.getConnectionState()() && this.globalStateService.getCurrentDistribution()() === null) {
         this.router.navigate(['uebersicht']);
       }
     });
