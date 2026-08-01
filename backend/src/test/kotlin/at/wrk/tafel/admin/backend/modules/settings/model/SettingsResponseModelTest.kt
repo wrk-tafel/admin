@@ -17,8 +17,8 @@ class SettingsResponseModelTest {
     }
 
     @Test
-    fun `mail recipients cascades into nested mail type`() {
-        val recipients = MailRecipients(
+    fun `mail recipients request cascades into nested mail type`() {
+        val recipients = MailRecipientsRequest(
             mailRecipients = listOf(MailRecipientsPerMailType(mailType = "", recipients = emptyList())),
         )
 
@@ -29,8 +29,8 @@ class SettingsResponseModelTest {
     }
 
     @Test
-    fun `mail recipients with filled fields is valid`() {
-        val recipients = MailRecipients(
+    fun `mail recipients request with filled fields is valid`() {
+        val recipients = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
                     mailType = "DISTRIBUTION",

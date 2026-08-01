@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.logistics.model.Shop
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShopItem
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -47,7 +47,7 @@ class ShopServiceTest {
                 .sortedBy { it.time }
                 .filter { it.shop != null }
                 .map {
-                    Shop(
+                    ShopItem(
                         id = it.shop!!.id!!,
                         number = it.shop!!.number!!,
                         name = it.shop!!.name!!,

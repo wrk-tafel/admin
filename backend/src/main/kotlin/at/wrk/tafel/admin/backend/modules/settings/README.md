@@ -30,11 +30,12 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
   - `GET /api/settings/static-values`, `POST /api/settings/static-values/{staticValueId}`
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).
-- **`model/SettingsResponseModel.kt`** — `MailRecipients` / `MailRecipientsPerMailType` /
-  `MailRecipientAdresses` (note the model's own `MailRecipientType` enum duplicates
-  `database.model.base.RecipientType` value-for-value: `TO`/`CC`/`BCC` — the service converts
-  between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse).
-- **`model/StaticValueSettingsModel.kt`** — `StaticValueListResponse` / `StaticValueItem`.
+- **`model/SettingsResponseModel.kt`** — `MailRecipientsRequest` / `MailRecipientsResponse` /
+  `MailRecipientsPerMailType` / `MailRecipientAdresses` (note the model's own `MailRecipientType`
+  enum duplicates `database.model.base.RecipientType` value-for-value: `TO`/`CC`/`BCC` — the
+  service converts between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse).
+- **`model/StaticValueSettingsModel.kt`** — `StaticValueListResponse` / `StaticValueRequest` /
+  `StaticValueResponse`.
 
 ## Mail recipients
 

@@ -42,7 +42,7 @@ internal class DistributionControllerTest {
 
         controller.createNewDistribution()
 
-        val distributionItemResponse = DistributionItemUpdate(distribution = distributionItem)
+        val distributionItemResponse = DistributionUpdateResponse(distribution = distributionItem)
 
         verify {
             sseOutboxService.saveOutboxEntry(
@@ -82,7 +82,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `save distribution statistic`() {
-        val statisticData = DistributionStatisticData(
+        val statisticData = DistributionStatisticRequest(
             employeeCount = 100,
             selectedShelterIds = listOf(1, 2, 3),
         )
@@ -100,7 +100,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `save distribution note`() {
-        val noteData = DistributionNoteData(
+        val noteData = DistributionNoteRequest(
             notes = "dummy notes",
         )
 
@@ -119,7 +119,7 @@ internal class DistributionControllerTest {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
-        every { service.validateClose() } returns DistributionCloseValidationResult(
+        every { service.validateClose() } returns DistributionCloseResponse(
             errors = emptyList(),
             warnings = emptyList(),
         )
@@ -131,7 +131,7 @@ internal class DistributionControllerTest {
 
         verify { service.closeDistribution() }
 
-        val distributionItemResponseSlot = slot<DistributionItemUpdate>()
+        val distributionItemResponseSlot = slot<DistributionUpdateResponse>()
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
@@ -140,7 +140,7 @@ internal class DistributionControllerTest {
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
-            DistributionItemUpdate(
+            DistributionUpdateResponse(
                 distribution = null,
             ),
         )
@@ -152,7 +152,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = listOf("Error 1", "Error 2"),
             warnings = emptyList(),
         )
@@ -178,7 +178,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = emptyList(),
             warnings = listOf("Warning 1", "Warning 2"),
         )
@@ -204,7 +204,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = emptyList(),
             warnings = listOf("Warning 1", "Warning 2"),
         )
@@ -217,7 +217,7 @@ internal class DistributionControllerTest {
 
         verify { service.closeDistribution() }
 
-        val distributionItemResponseSlot = slot<DistributionItemUpdate>()
+        val distributionItemResponseSlot = slot<DistributionUpdateResponse>()
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
@@ -226,7 +226,7 @@ internal class DistributionControllerTest {
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
-            DistributionItemUpdate(
+            DistributionUpdateResponse(
                 distribution = null,
             ),
         )
@@ -238,7 +238,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = listOf("Error 1", "Error 2"),
             warnings = listOf("Warning 1", "Warning 2"),
         )

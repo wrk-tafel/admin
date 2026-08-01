@@ -37,10 +37,10 @@ class UserController(
     }
 
     @GetMapping("/info")
-    fun getUserInfo(): ResponseEntity<UserInfo> {
+    fun getUserInfo(): ResponseEntity<UserInfoResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
-        val userInfo = UserInfo(
+        val userInfo = UserInfoResponse(
             username = authenticatedUser.username!!,
             permissions = authenticatedUser.authorities.mapNotNull { it.authority },
         )
@@ -80,7 +80,7 @@ class UserController(
 
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
-    fun getUser(@PathVariable userId: Long): ResponseEntity<User> {
+    fun getUser(@PathVariable userId: Long): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
         val user = mapToResponse(userDetails)
@@ -89,7 +89,7 @@ class UserController(
 
     @GetMapping("/personnel-number/{personnelNumber}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
-    fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<User> {
+    fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
             ?: throw NotFoundException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
         val user = mapToResponse(userDetails)
@@ -104,7 +104,7 @@ class UserController(
         @RequestParam lastname: String? = null,
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
-    ): PagedResponse<User> {
+    ): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
             username = username?.trim(),
             firstname = firstname?.trim(),
@@ -125,8 +125,8 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     @Transactional
     fun createUser(
-        @Valid @RequestBody user: User,
-    ): ResponseEntity<User> {
+        @Valid @RequestBody user: UserRequest,
+    ): ResponseEntity<UserResponse> {
         validateIfUserExists(user)
 
         val tafelUser = mapToTafelUser(user)
@@ -136,7 +136,7 @@ class UserController(
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse)
     }
 
-    private fun validateIfUserExists(user: User) {
+    private fun validateIfUserExists(user: UserRequest) {
         try {
             userDetailsManager.loadUserByUsername(user.username)
             throw ConflictException("Benutzer (Benutzername: ${user.username}) existiert bereits!")
@@ -154,8 +154,8 @@ class UserController(
     @Transactional
     fun updateUser(
         @PathVariable userId: Long,
-        @Valid @RequestBody user: User,
-    ): ResponseEntity<User> {
+        @Valid @RequestBody user: UserRequest,
+    ): ResponseEntity<UserResponse> {
         userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
 
@@ -197,7 +197,7 @@ class UserController(
         return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
     }
 
-    private fun mapToTafelUser(user: User): TafelUser = TafelUser(
+    private fun mapToTafelUser(user: UserRequest): TafelUser = TafelUser(
         id = user.id,
         username = user.username,
         personnelNumber = user.personnelNumber,
@@ -209,7 +209,7 @@ class UserController(
         authorities = user.permissions.map { SimpleGrantedAuthority(it.key) },
     )
 
-    private fun mapToResponse(user: TafelUser): User = User(
+    private fun mapToResponse(user: TafelUser): UserResponse = UserResponse(
         id = user.id,
         username = user.username,
         personnelNumber = user.personnelNumber,
@@ -225,9 +225,9 @@ class UserController(
             .sortedBy { it.title },
     )
 
-    private fun mapToUserPermission(key: String): UserPermission {
+    private fun mapToUserPermission(key: String): UserPermissionItem {
         val permissionEnum = UserPermissions.valueOfKey(key)
-        return UserPermission(
+        return UserPermissionItem(
             key = permissionEnum.key,
             title = permissionEnum.title,
             category = permissionEnum.category.title,

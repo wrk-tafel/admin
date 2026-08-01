@@ -19,7 +19,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun getFoodCollection(
         @PathVariable routeId: Long,
-    ): ResponseEntity<FoodCollectionData> {
+    ): ResponseEntity<FoodCollectionResponse> {
         val data = foodCollectionService.getFoodCollection(routeId)
             ?: return ResponseEntity.noContent().build()
         return ResponseEntity.ok(data)
@@ -29,7 +29,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun saveFoodCollectionRouteData(
         @PathVariable routeId: Long,
-        @Valid @RequestBody request: FoodCollectionSaveRouteData,
+        @Valid @RequestBody request: FoodCollectionSaveRouteRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveRouteData(routeId, request)
         return ResponseEntity.ok().build()
@@ -39,7 +39,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItems(
         @PathVariable routeId: Long,
-        @Valid @RequestBody request: FoodCollectionItems,
+        @Valid @RequestBody request: FoodCollectionItemsRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItems(routeId, request)
         return ResponseEntity.ok().build()
@@ -50,7 +50,7 @@ class FoodCollectionsController(
     fun getFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
         @PathVariable shopId: Long,
-    ): ResponseEntity<FoodCollectionItems> {
+    ): ResponseEntity<FoodCollectionItemsResponse> {
         val data = foodCollectionService.getItemsPerShop(routeId, shopId) ?: return ResponseEntity.noContent().build()
         return ResponseEntity.ok(data)
     }
@@ -60,7 +60,7 @@ class FoodCollectionsController(
     fun saveFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
         @PathVariable shopId: Long,
-        @Valid @RequestBody request: FoodCollectionSaveItemsPerShopData,
+        @Valid @RequestBody request: FoodCollectionSaveItemsPerShopRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItemsPerShop(routeId, shopId, request)
         return ResponseEntity.ok().build()
@@ -70,7 +70,7 @@ class FoodCollectionsController(
     @TafelActiveDistributionRequired
     fun patchFoodCollectionItem(
         @PathVariable routeId: Long,
-        @Valid @RequestBody request: FoodCollectionItem,
+        @Valid @RequestBody request: FoodCollectionItemRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.patchItem(routeId, request)
         return ResponseEntity.ok().build()

@@ -9,10 +9,12 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepositor
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -30,7 +32,7 @@ class SettingsService(
         private val FICTIVE_END_DATE = LocalDate.of(2999, 12, 31)
     }
 
-    fun getMailRecipients(): MailRecipients {
+    fun getMailRecipients(): MailRecipientsResponse {
         val recipientsPerMailType = mailRecipientRepository.findAll().groupBy { it.mailType }
         val mailRecipients = recipientsPerMailType.entries.map {
             val mailType = it.key
@@ -39,7 +41,7 @@ class SettingsService(
             mapToMailRecipientSetting(mailType!!, recipients)
         }
 
-        return MailRecipients(mailRecipients = mailRecipients)
+        return MailRecipientsResponse(mailRecipients = mailRecipients)
     }
 
     private fun mapToMailRecipientSetting(
@@ -60,7 +62,7 @@ class SettingsService(
     }
 
     @Transactional
-    fun updateMailRecipients(settings: MailRecipients) {
+    fun updateMailRecipients(settings: MailRecipientsRequest) {
         val recipients = settings.mailRecipients.flatMap { mailRecipient ->
             mailRecipient.recipients.flatMap { (updatedRecipientType, updatedRecipients) ->
                 updatedRecipients
@@ -104,7 +106,7 @@ class SettingsService(
         cacheNames = ["staticValueLatestForPersonCount", "staticValueSingle", "staticValueList"],
         allEntries = true,
     )
-    fun updateStaticValue(staticValueId: Long, item: StaticValueItem): StaticValueItem {
+    fun updateStaticValue(staticValueId: Long, item: StaticValueRequest): StaticValueResponse {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
             ?: throw NotFoundException("Statischer Wert mit ID $staticValueId nicht gefunden")
 
@@ -137,7 +139,7 @@ class SettingsService(
         return validFrom != null && validTo != null && !today.isBefore(validFrom) && !today.isAfter(validTo)
     }
 
-    private fun mapStaticValue(entity: StaticValueEntity): StaticValueItem = StaticValueItem(
+    private fun mapStaticValue(entity: StaticValueEntity): StaticValueResponse = StaticValueResponse(
         id = entity.id,
         type = entity.type!!.name,
         validFrom = entity.validFrom!!,

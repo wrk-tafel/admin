@@ -2,9 +2,9 @@ package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import at.wrk.tafel.admin.backend.modules.base.employee.Employee
-import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeRequest
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
@@ -56,8 +56,8 @@ class EmployeeServiceTest {
         assertThat(response).isEqualTo(
             EmployeeListResponse(
                 items = listOf(
-                    Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
-                    Employee(id = 2, personnelNumber = "00002", firstname = "first 2", lastname = "last 2"),
+                    EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+                    EmployeeResponse(id = 2, personnelNumber = "00002", firstname = "first 2", lastname = "last 2"),
                 ),
                 totalCount = 123,
                 currentPage = 1,
@@ -83,7 +83,7 @@ class EmployeeServiceTest {
 
         assertThat(response.items).isEqualTo(
             listOf(
-                Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+                EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
             ),
         )
     }
@@ -99,7 +99,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `save employee`() {
-        val employeeCreateRequest = EmployeeCreateRequest(
+        val employeeCreateRequest = EmployeeRequest(
             personnelNumber = "   00001",
             firstname = "first 1  ",
             lastname = "last 1    ",
@@ -133,7 +133,7 @@ class EmployeeServiceTest {
             firstname = "Old firstname"
             lastname = "Old lastname"
         }
-        val employeeUpdateRequest = EmployeeCreateRequest(
+        val employeeUpdateRequest = EmployeeRequest(
             personnelNumber = "  00002",
             firstname = "New firstname  ",
             lastname = "New lastname   ",
@@ -145,7 +145,7 @@ class EmployeeServiceTest {
         val result = employeeService.updateEmployee(employeeId, employeeUpdateRequest)
 
         assertThat(result).isEqualTo(
-            Employee(
+            EmployeeResponse(
                 id = employeeId,
                 personnelNumber = "00002",
                 firstname = "New firstname",
@@ -169,7 +169,7 @@ class EmployeeServiceTest {
         val exception = assertThrows<NotFoundException> {
             employeeService.updateEmployee(
                 99L,
-                EmployeeCreateRequest(personnelNumber = "00001", firstname = "first", lastname = "last"),
+                EmployeeRequest(personnelNumber = "00001", firstname = "first", lastname = "last"),
             )
         }
         assertThat(exception.body.detail).isEqualTo("Employee with id 99 not found")
@@ -190,7 +190,7 @@ class EmployeeServiceTest {
         val exception = assertThrows<ConflictException> {
             employeeService.updateEmployee(
                 employeeId,
-                EmployeeCreateRequest(personnelNumber = "00002", firstname = "first", lastname = "last"),
+                EmployeeRequest(personnelNumber = "00002", firstname = "first", lastname = "last"),
             )
         }
         assertThat(exception.body.detail).isEqualTo("Mitarbeiter 00002 ist bereits vorhanden!")

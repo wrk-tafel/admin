@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.*
-import at.wrk.tafel.admin.backend.modules.base.employee.Employee
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -80,7 +80,7 @@ class FoodCollectionServiceTest {
 
         assertThat(data.carId).isEqualTo(testFoodCollectionRoute1Entity.car!!.id)
         assertThat(data.driver).isEqualTo(
-            Employee(
+            EmployeeResponse(
                 id = testFoodCollectionRoute1Entity.driver!!.id!!,
                 personnelNumber = testEmployee1.personnelNumber!!,
                 firstname = testEmployee1.firstname!!,
@@ -88,7 +88,7 @@ class FoodCollectionServiceTest {
             ),
         )
         assertThat(data.coDriver).isEqualTo(
-            Employee(
+            EmployeeResponse(
                 id = testFoodCollectionRoute1Entity.coDriver!!.id!!,
                 personnelNumber = testEmployee2.personnelNumber!!,
                 firstname = testEmployee2.firstname!!,
@@ -120,7 +120,7 @@ class FoodCollectionServiceTest {
         val routeId = 123L
         val driverId = 1L
         val coDriverId = 2L
-        val data = FoodCollectionSaveRouteData(
+        val data = FoodCollectionSaveRouteRequest(
             carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
@@ -140,7 +140,7 @@ class FoodCollectionServiceTest {
         val routeId = 123L
         val driverId = 1L
         val coDriverId = 2L
-        val data = FoodCollectionSaveRouteData(
+        val data = FoodCollectionSaveRouteRequest(
             carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
@@ -178,7 +178,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items with invalid route`() {
         val routeId = 123L
-        val data = FoodCollectionItems(
+        val data = FoodCollectionItemsRequest(
             items = emptyList(),
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
@@ -192,7 +192,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items`() {
         val routeId = 123L
-        val data = FoodCollectionItems(
+        val data = FoodCollectionItemsRequest(
             items = listOf(
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,
@@ -256,7 +256,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items per shop when current data is null`() {
         val routeId = 123L
-        val data = FoodCollectionSaveItemsPerShopData(
+        val data = FoodCollectionSaveItemsPerShopRequest(
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory1.id!!,
@@ -333,7 +333,7 @@ class FoodCollectionServiceTest {
         every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
         every { shopRepository.findByIdOrNull(testShop2.id!!) } returns testShop2
 
-        val newData = FoodCollectionSaveItemsPerShopData(
+        val newData = FoodCollectionSaveItemsPerShopRequest(
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory2.id!!,
@@ -397,7 +397,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        val newData = FoodCollectionSaveItemsPerShopData(
+        val newData = FoodCollectionSaveItemsPerShopRequest(
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = testFoodCategory1.id!!,
@@ -519,7 +519,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `patch a single item when current data is null`() {
         val routeId = 123L
-        val data = FoodCollectionItem(
+        val data = FoodCollectionItemRequest(
             categoryId = testFoodCategory1.id!!,
             shopId = testShop1.id!!,
             amount = 44,
@@ -575,7 +575,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        val newData = FoodCollectionItem(
+        val newData = FoodCollectionItemRequest(
             categoryId = testFoodCategory2.id!!,
             shopId = testShop2.id!!,
             amount = 22,
@@ -637,7 +637,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        val newAmount = FoodCollectionItem(
+        val newAmount = FoodCollectionItemRequest(
             categoryId = testFoodCategory1.id!!,
             shopId = testShop1.id!!,
             amount = 22,
@@ -691,7 +691,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `patch a single item with unknown route throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionItem(
+        val data = FoodCollectionItemRequest(
             categoryId = testFoodCategory1.id!!,
             shopId = testShop1.id!!,
             amount = 1,
@@ -710,7 +710,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `patch a single item with invalid category throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionItem(
+        val data = FoodCollectionItemRequest(
             categoryId = 999L,
             shopId = testShop1.id!!,
             amount = 1,
@@ -730,7 +730,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `patch a single item with invalid shop throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionItem(
+        val data = FoodCollectionItemRequest(
             categoryId = testFoodCategory1.id!!,
             shopId = 999L,
             amount = 1,
@@ -753,7 +753,7 @@ class FoodCollectionServiceTest {
         val routeId = testRoute1.id!!
         val driverId = testEmployee1.id!!
         val coDriverId = testEmployee2.id!!
-        val data = FoodCollectionSaveRouteData(
+        val data = FoodCollectionSaveRouteRequest(
             carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
@@ -790,7 +790,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save route data with invalid car throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionSaveRouteData(
+        val data = FoodCollectionSaveRouteRequest(
             carId = 999L,
             driverId = testEmployee1.id!!,
             coDriverId = testEmployee2.id!!,
@@ -814,7 +814,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save route data with invalid driver throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionSaveRouteData(
+        val data = FoodCollectionSaveRouteRequest(
             carId = testCar1.id!!,
             driverId = 999L,
             coDriverId = testEmployee2.id!!,
@@ -839,7 +839,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save route data with invalid coDriver throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionSaveRouteData(
+        val data = FoodCollectionSaveRouteRequest(
             carId = testCar1.id!!,
             driverId = testEmployee1.id!!,
             coDriverId = 999L,
@@ -865,7 +865,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items reuses the existing food collection for the route`() {
         val routeId = testRoute1.id!!
-        val data = FoodCollectionItems(
+        val data = FoodCollectionItemsRequest(
             items = listOf(
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,
@@ -903,7 +903,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items with invalid category throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionItems(
+        val data = FoodCollectionItemsRequest(
             items = listOf(
                 FoodCollectionItem(
                     categoryId = 999L,
@@ -927,7 +927,7 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items with invalid shop throws exception`() {
         val routeId = 123L
-        val data = FoodCollectionItems(
+        val data = FoodCollectionItemsRequest(
             items = listOf(
                 FoodCollectionItem(
                     categoryId = testFoodCategory1.id!!,

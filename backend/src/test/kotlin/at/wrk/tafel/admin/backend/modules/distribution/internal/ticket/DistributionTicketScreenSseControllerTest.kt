@@ -26,7 +26,7 @@ internal class DistributionTicketScreenSseControllerTest {
 
     @Test
     fun `listen for changes with active distribution`() {
-        val testValue = TicketScreenShowText(text = "Ticket", value = "50")
+        val testValue = TicketScreenShowTextRequest(text = "Ticket", value = "50")
 
         every { service.hasCurrentDistribution() } returns true
         every { service.getCurrentTicketNumberValue() } returns 50
@@ -38,7 +38,7 @@ internal class DistributionTicketScreenSseControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java,
+                resultType = TicketScreenShowTextRequest::class.java,
             )
         }
 
@@ -47,14 +47,14 @@ internal class DistributionTicketScreenSseControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java,
+                resultType = TicketScreenShowTextRequest::class.java,
             )
         }
     }
 
     @Test
     fun `listen for changes without active distribution`() {
-        val testValue = TicketScreenShowText(text = "Ticket", value = null)
+        val testValue = TicketScreenShowTextRequest(text = "Ticket", value = null)
 
         every { service.hasCurrentDistribution() } returns false
 
@@ -65,7 +65,7 @@ internal class DistributionTicketScreenSseControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java,
+                resultType = TicketScreenShowTextRequest::class.java,
             )
         }
 
@@ -74,7 +74,7 @@ internal class DistributionTicketScreenSseControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                resultType = TicketScreenShowText::class.java,
+                resultType = TicketScreenShowTextRequest::class.java,
             )
         }
     }

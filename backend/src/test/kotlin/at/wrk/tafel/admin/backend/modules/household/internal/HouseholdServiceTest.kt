@@ -6,13 +6,14 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.country.Country
+import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
-import at.wrk.tafel.admin.backend.modules.household.Household
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
+import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
@@ -66,7 +67,7 @@ class HouseholdServiceTest {
     @InjectMockKs
     private lateinit var service: HouseholdService
 
-    private val testCountry = Country(id = testCountry1.id!!, code = testCountry1.code!!, name = testCountry1.name!!)
+    private val testCountry = CountryItem(id = testCountry1.id!!, code = testCountry1.code!!, name = testCountry1.name!!)
 
     @BeforeEach
     fun beforeEach() {
@@ -85,7 +86,7 @@ class HouseholdServiceTest {
 
     @Test
     fun `validate household`() {
-        val testHousehold = Household(
+        val testHousehold = HouseholdRequest(
             id = 100,
             address = HouseholdAddress(
                 street = "street",
@@ -206,7 +207,7 @@ class HouseholdServiceTest {
         val testHouseholdEntity = mockk<HouseholdEntity>(relaxed = true)
         every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity
 
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHousehold = mockk<HouseholdResponse>(relaxed = true)
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHousehold
 
         val household = service.findByHouseholdId(1)
@@ -216,12 +217,13 @@ class HouseholdServiceTest {
 
     @Test
     fun `create household writes the household first and points it at its main person afterwards`() {
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         val mainPerson = PersonEntity().apply { isMainPerson = true }
         val testHouseholdEntity = HouseholdEntity().apply { persons = mutableListOf(mainPerson) }
 
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHousehold
-        every { householdConverter.mapHouseholdToEntity(testHousehold) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+        every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
             valid = true,
@@ -231,22 +233,23 @@ class HouseholdServiceTest {
             amountExceededLimit = BigDecimal("4"),
         )
 
-        val result = service.createHousehold(testHousehold, force = false, isSupervisor = false)
+        val result = service.createHousehold(testHouseholdRequest, force = false, isSupervisor = false)
 
-        assertThat(result).isEqualTo(HouseholdCreationResponse(data = testHousehold, errorMsg = null))
+        assertThat(result).isEqualTo(HouseholdCreationResponse(data = testHouseholdResponse, errorMsg = null))
         assertThat(testHouseholdEntity.mainPerson).isEqualTo(mainPerson)
 
         verify(exactly = 2) { householdRepository.saveAndFlush(any()) }
-        verify(exactly = 1) { householdConverter.mapHouseholdToEntity(testHousehold) }
+        verify(exactly = 1) { householdConverter.mapHouseholdToEntity(testHouseholdRequest) }
     }
 
     @Test
     fun `create household - supervisor with invalid income and force=true should save`() {
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         val testHouseholdEntity = HouseholdEntity()
 
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHousehold
-        every { householdConverter.mapHouseholdToEntity(testHousehold) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+        every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -257,20 +260,21 @@ class HouseholdServiceTest {
             amountExceededLimit = BigDecimal("4"),
         )
 
-        val result = service.createHousehold(testHousehold, true, true)
+        val result = service.createHousehold(testHouseholdRequest, true, true)
 
-        assertThat(result).isEqualTo(HouseholdCreationResponse(data = testHousehold, errorMsg = null))
+        assertThat(result).isEqualTo(HouseholdCreationResponse(data = testHouseholdResponse, errorMsg = null))
         verify(exactly = 2) { householdRepository.saveAndFlush(testHouseholdEntity) }
-        verify(exactly = 1) { householdConverter.mapHouseholdToEntity(testHousehold) }
+        verify(exactly = 1) { householdConverter.mapHouseholdToEntity(testHouseholdRequest) }
     }
 
     @Test
     fun `create household - supervisor with invalid income and force=false should throw exception`() {
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         val testHouseholdEntity = HouseholdEntity()
 
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHousehold
-        every { householdConverter.mapHouseholdToEntity(testHousehold) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+        every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
             valid = false,
@@ -281,7 +285,7 @@ class HouseholdServiceTest {
         )
 
         val exception = assertThrows<ConflictException> {
-            service.createHousehold(testHousehold, false, true)
+            service.createHousehold(testHouseholdRequest, false, true)
         }
 
         assertThat(exception.body.detail).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
@@ -291,11 +295,12 @@ class HouseholdServiceTest {
 
     @Test
     fun `create household - non-supervisor with invalid income should set validUntil to yesterday`() {
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         val testHouseholdEntity = HouseholdEntity()
 
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHousehold
-        every { householdConverter.mapHouseholdToEntity(testHousehold) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+        every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -306,11 +311,11 @@ class HouseholdServiceTest {
             amountExceededLimit = BigDecimal("4"),
         )
 
-        val result = service.createHousehold(testHousehold, force = false, isSupervisor = false)
+        val result = service.createHousehold(testHouseholdRequest, force = false, isSupervisor = false)
 
         assertThat(result).isEqualTo(
             HouseholdCreationResponse(
-                data = testHousehold,
+                data = testHouseholdResponse,
                 errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
             ),
         )
@@ -322,8 +327,9 @@ class HouseholdServiceTest {
     fun `update household is valid`() {
         val householdId = 123L
 
-        val testHouseholdUpdate = mockk<Household>(relaxed = true)
+        val testHouseholdUpdate = mockk<HouseholdRequest>(relaxed = true)
         every { testHouseholdUpdate.id } returns householdId
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
         val existingMainPerson = PersonEntity().apply {
             id = 555
@@ -332,7 +338,7 @@ class HouseholdServiceTest {
         val testHouseholdEntity = HouseholdEntity().apply { persons = mutableListOf(existingMainPerson) }
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdUpdate
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -346,7 +352,7 @@ class HouseholdServiceTest {
         val force = false
         val result = service.updateHousehold(testHouseholdUpdate.id!!, testHouseholdUpdate, force, false)
 
-        assertThat(result).isEqualTo(HouseholdUpdateResponse(data = testHouseholdUpdate, errorMsg = null))
+        assertThat(result).isEqualTo(HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null))
         // the main person row already exists, so no second write is necessary
         verify(exactly = 1) { householdRepository.saveAndFlush(testHouseholdEntity) }
         assertThat(testHouseholdEntity.mainPerson).isEqualTo(existingMainPerson)
@@ -357,13 +363,14 @@ class HouseholdServiceTest {
     fun `update household is invalid and should set validUntil to yesterday when not supervisor`() {
         val householdId = 123L
 
-        val testHouseholdUpdate = mockk<Household>(relaxed = true)
+        val testHouseholdUpdate = mockk<HouseholdRequest>(relaxed = true)
         every { testHouseholdUpdate.id } returns householdId
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
         val testHouseholdEntity = HouseholdEntity()
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdUpdate
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -379,7 +386,7 @@ class HouseholdServiceTest {
 
         assertThat(result).isEqualTo(
             HouseholdUpdateResponse(
-                data = testHouseholdUpdate,
+                data = testHouseholdResponse,
                 errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
             ),
         )
@@ -391,7 +398,7 @@ class HouseholdServiceTest {
     fun `update household - supervisor with invalid income and force=false should throw exception`() {
         val householdId = 123L
 
-        val testHouseholdUpdate = mockk<Household>(relaxed = true)
+        val testHouseholdUpdate = mockk<HouseholdRequest>(relaxed = true)
         every { testHouseholdUpdate.id } returns householdId
 
         val testHouseholdEntity = HouseholdEntity()
@@ -419,16 +426,17 @@ class HouseholdServiceTest {
     fun `update household with force=true when supervisor tries to bypass validation`() {
         val householdId = 123L
 
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHousehold = mockk<HouseholdRequest>(relaxed = true)
         every { testHousehold.id } returns householdId
 
-        val testHouseholdUpdate = mockk<Household>(relaxed = true)
+        val testHouseholdUpdate = mockk<HouseholdRequest>(relaxed = true)
         every { testHouseholdUpdate.id } returns householdId
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
         val testHouseholdEntity = HouseholdEntity()
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdUpdate
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -441,7 +449,7 @@ class HouseholdServiceTest {
 
         val result = service.updateHousehold(testHousehold.id!!, testHouseholdUpdate, true, true)
 
-        assertThat(result).isEqualTo(HouseholdUpdateResponse(data = testHouseholdUpdate, errorMsg = null))
+        assertThat(result).isEqualTo(HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null))
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(any(), any()) }
     }
 
@@ -450,7 +458,7 @@ class HouseholdServiceTest {
         val testHouseholdEntity1 = mockk<HouseholdEntity>(relaxed = true)
         val testHouseholdEntity2 = mockk<HouseholdEntity>(relaxed = true)
 
-        val testHousehold = mockk<Household>(relaxed = true)
+        val testHousehold = mockk<HouseholdResponse>(relaxed = true)
         every { householdConverter.mapEntityToHousehold(any()) } returns testHousehold
 
         val selectedPage = 3
@@ -478,8 +486,8 @@ class HouseholdServiceTest {
         val testHouseholdEntity1 = mockk<HouseholdEntity>(relaxed = true)
         val testHouseholdEntity2 = mockk<HouseholdEntity>(relaxed = true)
 
-        val validHousehold = mockk<Household>(relaxed = true)
-        val invalidHousehold = mockk<Household>(relaxed = true)
+        val validHousehold = mockk<HouseholdResponse>(relaxed = true)
+        val invalidHousehold = mockk<HouseholdResponse>(relaxed = true)
 
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
             testHouseholdEntity1,
@@ -521,7 +529,7 @@ class HouseholdServiceTest {
     @Test
     fun `get households above limit - paginates the computed result`() {
         val testHouseholdEntities = (1..30).map { mockk<HouseholdEntity>(relaxed = true) }
-        val invalidHouseholds = (1..30).map { mockk<Household>(relaxed = true) }
+        val invalidHouseholds = (1..30).map { mockk<HouseholdResponse>(relaxed = true) }
 
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns testHouseholdEntities
         testHouseholdEntities.forEachIndexed { index, entity ->
@@ -634,15 +642,16 @@ class HouseholdServiceTest {
     fun `update household with force=true when non-supervisor should still set validUntil to yesterday`() {
         val householdId = 123L
 
-        val testHouseholdUpdate = mockk<Household>(relaxed = true)
+        val testHouseholdUpdate = mockk<HouseholdRequest>(relaxed = true)
         every { testHouseholdUpdate.id } returns householdId
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
         val testHouseholdEntity = HouseholdEntity().apply {
             validUntil = LocalDate.now()
         }
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdUpdate
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -658,7 +667,7 @@ class HouseholdServiceTest {
 
         assertThat(result).isEqualTo(
             HouseholdUpdateResponse(
-                data = testHouseholdUpdate,
+                data = testHouseholdResponse,
                 errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
             ),
         )

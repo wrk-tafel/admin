@@ -6,15 +6,24 @@ import jakarta.validation.constraints.NotEmpty
 
 @ExcludeFromTestCoverage
 data class CarListResponse(
-    val cars: List<Car>,
+    val cars: List<CarResponse>,
 )
 
 @ExcludeFromTestCoverage
-data class Car(
+data class CarRequest(
     val id: Long?,
     @field:NotBlank
     val licensePlate: String,
     @field:NotBlank
+    val name: String,
+    val enabled: Boolean,
+    val sortOrder: Int,
+)
+
+@ExcludeFromTestCoverage
+data class CarResponse(
+    val id: Long?,
+    val licensePlate: String,
     val name: String,
     val enabled: Boolean,
     val sortOrder: Int,

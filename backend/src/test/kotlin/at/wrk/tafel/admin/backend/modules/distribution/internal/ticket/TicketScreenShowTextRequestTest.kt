@@ -4,11 +4,11 @@ import at.wrk.tafel.admin.backend.common.validation.BeanValidationTestSupport.va
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class TicketScreenShowTextTest {
+class TicketScreenShowTextRequestTest {
 
     @Test
-    fun `ticket screen show text with blank text is invalid`() {
-        val request = TicketScreenShowText(text = "", value = null)
+    fun `ticket screen show text request with blank text is invalid`() {
+        val request = TicketScreenShowTextRequest(text = "", value = null)
 
         val violations = validator.validate(request)
 
@@ -17,8 +17,8 @@ class TicketScreenShowTextTest {
     }
 
     @Test
-    fun `ticket screen show text with filled text is valid`() {
-        val request = TicketScreenShowText(text = "Ticket", value = "1")
+    fun `ticket screen show text request with filled text is valid`() {
+        val request = TicketScreenShowTextRequest(text = "Ticket", value = "1")
 
         val violations = validator.validate(request)
 

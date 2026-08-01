@@ -1,14 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.validation.BeanValidationTestSupport.validator
-import at.wrk.tafel.admin.backend.modules.base.country.Country
+import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class HouseholdResponseModelTest {
 
-    private val country = Country(id = 1, code = "AT", name = "Austria")
+    private val country = CountryItem(id = 1, code = "AT", name = "Austria")
 
     private fun validAddress() = HouseholdAddress(
         street = "Street",
@@ -53,8 +53,8 @@ class HouseholdResponseModelTest {
     }
 
     @Test
-    fun `household with invalid email is invalid`() {
-        val household = Household(address = validAddress(), email = "not-an-email")
+    fun `household request with invalid email is invalid`() {
+        val household = HouseholdRequest(address = validAddress(), email = "not-an-email")
 
         val violations = validator.validate(household)
 
@@ -63,8 +63,8 @@ class HouseholdResponseModelTest {
     }
 
     @Test
-    fun `household cascades into address and persons`() {
-        val household = Household(
+    fun `household request cascades into address and persons`() {
+        val household = HouseholdRequest(
             address = HouseholdAddress(street = "", houseNumber = "1", postalCode = 1010, city = "Vienna"),
             persons = listOf(validPerson().copy(firstname = "")),
         )
@@ -76,8 +76,8 @@ class HouseholdResponseModelTest {
     }
 
     @Test
-    fun `household with valid values is valid`() {
-        val household = Household(address = validAddress(), email = "test@example.com", persons = listOf(validPerson()))
+    fun `household request with valid values is valid`() {
+        val household = HouseholdRequest(address = validAddress(), email = "test@example.com", persons = listOf(validPerson()))
 
         val violations = validator.validate(household)
 

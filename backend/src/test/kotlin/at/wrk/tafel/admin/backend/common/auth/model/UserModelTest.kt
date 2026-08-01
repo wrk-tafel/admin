@@ -26,8 +26,8 @@ class UserModelTest {
     }
 
     @Test
-    fun `user with blank required fields is invalid`() {
-        val user = User(
+    fun `user request with blank required fields is invalid`() {
+        val user = UserRequest(
             id = null,
             personnelNumber = "",
             username = "",
@@ -45,8 +45,8 @@ class UserModelTest {
     }
 
     @Test
-    fun `user with filled required fields is valid`() {
-        val user = User(
+    fun `user request with filled required fields is valid`() {
+        val user = UserRequest(
             id = null,
             personnelNumber = "123",
             username = "username",

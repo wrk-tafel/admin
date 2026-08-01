@@ -4,8 +4,9 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
-import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContact
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,16 +17,16 @@ class ShelterService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getActiveShelters(): List<Shelter> = shelterRepository.findByEnabledIsTrue()
+    fun getActiveShelters(): List<ShelterResponse> = shelterRepository.findByEnabledIsTrue()
         .map { mapShelter(it) }
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
     @Transactional(readOnly = true)
-    fun getAllShelters(): List<Shelter> = shelterRepository.findAll()
+    fun getAllShelters(): List<ShelterResponse> = shelterRepository.findAll()
         .map { mapShelter(it) }
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
-    fun createShelter(shelter: Shelter): Shelter {
+    fun createShelter(shelter: ShelterRequest): ShelterResponse {
         val shelterEntity = ShelterEntity().apply {
             name = shelter.name
             addressStreet = shelter.addressStreet
@@ -54,7 +55,7 @@ class ShelterService(
         return mapShelter(savedEntity)
     }
 
-    private fun mapShelter(shelterEntity: ShelterEntity): Shelter = Shelter(
+    private fun mapShelter(shelterEntity: ShelterEntity): ShelterResponse = ShelterResponse(
         id = shelterEntity.id!!,
         name = shelterEntity.name!!,
         addressStreet = shelterEntity.addressStreet!!,
@@ -68,7 +69,7 @@ class ShelterService(
         enabled = shelterEntity.enabled!!,
         sortOrder = shelterEntity.sortOrder ?: 0,
         contacts = shelterEntity.contacts.map {
-            ShelterContact(
+            ShelterContactItem(
                 firstname = it.firstname,
                 lastname = it.lastname,
                 phone = it.phone!!,
@@ -76,7 +77,7 @@ class ShelterService(
         },
     )
 
-    fun updateShelter(shelterId: Long, updatedShelter: Shelter): Shelter {
+    fun updateShelter(shelterId: Long, updatedShelter: ShelterRequest): ShelterResponse {
         val shelterEntity = shelterRepository.findByIdOrNull(shelterId)
             ?: throw NotFoundException("Shelter with id $shelterId not found")
 

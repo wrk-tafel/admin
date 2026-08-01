@@ -16,9 +16,11 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -60,7 +62,7 @@ class SettingsServiceTest {
         val response = service.getMailRecipients()
 
         assertThat(response).isEqualTo(
-            MailRecipients(
+            MailRecipientsResponse(
                 mailRecipients = listOf(
                     MailRecipientsPerMailType(
                         mailType = MailType.DAILY_REPORT.name,
@@ -95,7 +97,7 @@ class SettingsServiceTest {
 
     @Test
     fun `update mail recipients`() {
-        val updatedSettings = MailRecipients(
+        val updatedSettings = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
                     mailType = MailType.DAILY_REPORT.name,
@@ -161,7 +163,7 @@ class SettingsServiceTest {
 
     @Test
     fun `update, filter and sanitize mail recipients`() {
-        val updatedSettings = MailRecipients(
+        val updatedSettings = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
                     mailType = MailType.DAILY_REPORT.name,
@@ -228,7 +230,7 @@ class SettingsServiceTest {
         val response = service.getStaticValues()
 
         assertThat(response.staticValues).containsExactly(
-            StaticValueItem(
+            StaticValueResponse(
                 id = 1,
                 type = "TOLERANCE",
                 validFrom = today.minusDays(10),
@@ -261,7 +263,7 @@ class SettingsServiceTest {
 
         // type/countAdults/countChildren/age differ from the existing row, but must be ignored - only
         // amount is editable, so the new historized row keeps the existing row's own values
-        val requestedChanges = StaticValueItem(
+        val requestedChanges = StaticValueRequest(
             id = 1,
             type = "TOLERANCE",
             validFrom = LocalDate.of(2030, 1, 1),
@@ -276,7 +278,7 @@ class SettingsServiceTest {
 
         assertThat(existing.validTo).isEqualTo(today.minusDays(1))
         assertThat(response).isEqualTo(
-            StaticValueItem(
+            StaticValueResponse(
                 id = 2,
                 type = "INCOME_LIMIT",
                 validFrom = today,
@@ -302,7 +304,7 @@ class SettingsServiceTest {
         every { staticValueRepository.findByIdOrNull(1L) } returns existing
         every { staticValueRepository.save(any()) } answers { firstArg() }
 
-        val requestedChanges = StaticValueItem(
+        val requestedChanges = StaticValueRequest(
             id = 1,
             type = "TOLERANCE",
             validFrom = today,
@@ -317,7 +319,7 @@ class SettingsServiceTest {
 
         verify(exactly = 1) { staticValueRepository.save(any()) }
         assertThat(response).isEqualTo(
-            StaticValueItem(
+            StaticValueResponse(
                 id = 1,
                 type = "TOLERANCE",
                 validFrom = today,
@@ -334,7 +336,7 @@ class SettingsServiceTest {
     fun `update static value fails when id is not found`() {
         every { staticValueRepository.findByIdOrNull(99L) } returns null
 
-        val updated = StaticValueItem(
+        val updated = StaticValueRequest(
             id = 99,
             type = "TOLERANCE",
             validFrom = LocalDate.of(2026, 1, 1),

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.household.Household
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -164,6 +164,6 @@ data class HouseholdDuplicateSearchResult(
 
 @ExcludeFromTestCoverage
 data class HouseholdDuplicateSearchResultItem(
-    val household: Household,
-    val similarHouseholds: List<Household>,
+    val household: HouseholdResponse,
+    val similarHouseholds: List<HouseholdResponse>,
 )

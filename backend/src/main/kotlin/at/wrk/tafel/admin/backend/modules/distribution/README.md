@@ -45,7 +45,7 @@ and `sendMails()` (manual re-send, see below).
 ### Controllers
 - **DistributionController** — `/api/distributions*`: list, create, close, notes, statistics,
   household-list PDF, manual mail re-send, and the `/api/sse/distributions` SSE stream that pushes
-  `DistributionItemUpdate` whenever the current distribution starts/ends.
+  `DistributionUpdateResponse` whenever the current distribution starts/ends.
 - **DistributionTicketController** (`internal/ticket/`) — `/api/distributions/tickets/households/{id}`:
   get/delete the ticket assigned to a household.
 - **DistributionTicketScreenController** (`internal/ticket/`) — `/api/distributions/ticket-screen/*`

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household
 
-import at.wrk.tafel.admin.backend.modules.base.country.Country
+import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
@@ -38,7 +38,8 @@ class HouseholdControllerTest {
     @InjectMockKs
     private lateinit var controller: HouseholdController
 
-    private lateinit var testHousehold: Household
+    private lateinit var testHouseholdRequest: HouseholdRequest
+    private lateinit var testHouseholdResponse: HouseholdResponse
     private val isSupervisor = false
 
     @BeforeEach
@@ -49,76 +50,93 @@ class HouseholdControllerTest {
                 testUserEntity.username,
                 true,
             )
-        testHousehold = Household(
-            id = 100,
-            issuer = HouseholdIssuer(
-                personnelNumber = "test-personnelnumber",
-                firstname = "test-firstname",
-                lastname = "test-lastname",
+
+        val issuer = HouseholdIssuer(
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+        )
+        val address = HouseholdAddress(
+            street = "Test-Straße",
+            houseNumber = "100",
+            stairway = "1",
+            door = "21",
+            postalCode = 1010,
+            city = "Wien",
+        )
+        val persons = listOf(
+            Person(
+                id = 1,
+                isMainPerson = true,
+                firstname = "Max",
+                lastname = "Mustermann",
+                birthDate = LocalDate.now().minusYears(30),
+                gender = PersonGender.FEMALE,
+                country = CountryItem(
+                    id = 1,
+                    code = "AT",
+                    name = "Österreich",
+                ),
+                employer = "Employer 123",
+                income = BigDecimal("1000"),
+                incomeDue = LocalDate.now(),
             ),
+            Person(
+                id = 2,
+                isMainPerson = false,
+                firstname = "Add pers 1",
+                lastname = "Add pers 1",
+                birthDate = LocalDate.now().minusYears(5),
+                gender = PersonGender.FEMALE,
+                income = BigDecimal("100"),
+                incomeDue = LocalDate.now(),
+                receivesFamilyAllowance = false,
+                country = CountryItem(
+                    id = 1,
+                    code = "AT",
+                    name = "Österreich",
+                ),
+                excludeFromHousehold = false,
+            ),
+            Person(
+                id = 3,
+                isMainPerson = false,
+                firstname = "Add pers 2",
+                lastname = "Add pers 2",
+                birthDate = LocalDate.now().minusYears(2),
+                gender = PersonGender.MALE,
+                receivesFamilyAllowance = true,
+                country = CountryItem(
+                    id = 1,
+                    code = "AT",
+                    name = "Österreich",
+                ),
+                excludeFromHousehold = true,
+            ),
+        )
+
+        testHouseholdRequest = HouseholdRequest(
+            id = 100,
+            issuer = issuer,
             issuedAt = LocalDate.now(),
             telephoneNumber = "0043660123123",
             email = "test@mail.com",
-            address = HouseholdAddress(
-                street = "Test-Straße",
-                houseNumber = "100",
-                stairway = "1",
-                door = "21",
-                postalCode = 1010,
-                city = "Wien",
-            ),
+            address = address,
             validUntil = LocalDate.now(),
             locked = false,
-            persons = listOf(
-                Person(
-                    id = 1,
-                    isMainPerson = true,
-                    firstname = "Max",
-                    lastname = "Mustermann",
-                    birthDate = LocalDate.now().minusYears(30),
-                    gender = PersonGender.FEMALE,
-                    country = Country(
-                        id = 1,
-                        code = "AT",
-                        name = "Österreich",
-                    ),
-                    employer = "Employer 123",
-                    income = BigDecimal("1000"),
-                    incomeDue = LocalDate.now(),
-                ),
-                Person(
-                    id = 2,
-                    isMainPerson = false,
-                    firstname = "Add pers 1",
-                    lastname = "Add pers 1",
-                    birthDate = LocalDate.now().minusYears(5),
-                    gender = PersonGender.FEMALE,
-                    income = BigDecimal("100"),
-                    incomeDue = LocalDate.now(),
-                    receivesFamilyAllowance = false,
-                    country = Country(
-                        id = 1,
-                        code = "AT",
-                        name = "Österreich",
-                    ),
-                    excludeFromHousehold = false,
-                ),
-                Person(
-                    id = 3,
-                    isMainPerson = false,
-                    firstname = "Add pers 2",
-                    lastname = "Add pers 2",
-                    birthDate = LocalDate.now().minusYears(2),
-                    gender = PersonGender.MALE,
-                    receivesFamilyAllowance = true,
-                    country = Country(
-                        id = 1,
-                        code = "AT",
-                        name = "Österreich",
-                    ),
-                    excludeFromHousehold = true,
-                ),
-            ),
+            persons = persons,
+        )
+
+        testHouseholdResponse = HouseholdResponse(
+            id = 100,
+            issuer = issuer,
+            issuedAt = LocalDate.now(),
+            telephoneNumber = "0043660123123",
+            email = "test@mail.com",
+            address = address,
+            validUntil = LocalDate.now(),
+            locked = false,
+            persons = persons,
         )
     }
 
@@ -137,7 +155,7 @@ class HouseholdControllerTest {
             amountExceededLimit = BigDecimal("4"),
         )
 
-        val response = controller.validate(testHousehold)
+        val response = controller.validate(testHouseholdRequest)
 
         assertThat(response).isEqualTo(
             ValidateHouseholdResponse(
@@ -150,27 +168,27 @@ class HouseholdControllerTest {
         )
 
         verify {
-            householdService.validate(testHousehold)
+            householdService.validate(testHouseholdRequest)
         }
     }
 
     @Test
     fun `create household - given id and exists already`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
 
-        val exception = assertThrows<ConflictException> { controller.createHousehold(false, testHousehold) }
+        val exception = assertThrows<ConflictException> { controller.createHousehold(false, testHouseholdRequest) }
 
         assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
 
     @Test
     fun `create household - missing id so the household should be created`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
 
-        val response = controller.createHousehold(false, testHousehold)
+        val response = controller.createHousehold(false, testHouseholdRequest)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
-        verify { householdService.createHousehold(testHousehold, false, false) }
+        verify { householdService.createHousehold(testHouseholdRequest, false, false) }
     }
 
     @Test
@@ -183,29 +201,29 @@ class HouseholdControllerTest {
         )
         SecurityContextHolder.getContext().authentication = supervisorAuth
 
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
 
-        controller.createHousehold(true, testHousehold)
+        controller.createHousehold(true, testHouseholdRequest)
 
-        verify { householdService.createHousehold(testHousehold, true, true) }
+        verify { householdService.createHousehold(testHouseholdRequest, true, true) }
     }
 
     @Test
     fun `create household - force defaults to false when omitted`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
 
-        controller.createHousehold(household = testHousehold)
+        controller.createHousehold(household = testHouseholdRequest)
 
-        verify { householdService.createHousehold(testHousehold, false, false) }
+        verify { householdService.createHousehold(testHouseholdRequest, false, false) }
     }
 
     @Test
     fun `update household - does not exist`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
 
         val exception =
             assertThrows<NotFoundException> {
-                controller.updateHousehold(testHousehold.id!!, false, testHousehold)
+                controller.updateHousehold(testHouseholdRequest.id!!, false, testHouseholdRequest)
             }
 
         assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
@@ -214,106 +232,107 @@ class HouseholdControllerTest {
 
     @Test
     fun `update household - exists and should be updated`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
         every {
             householdService.updateHousehold(
-                testHousehold.id!!,
-                testHousehold,
+                testHouseholdRequest.id!!,
+                testHouseholdRequest,
                 false,
                 isSupervisor,
             )
-        } returns HouseholdUpdateResponse(data = testHousehold, errorMsg = null)
+        } returns HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null)
 
-        val response = controller.updateHousehold(testHousehold.id!!, false, testHousehold)
+        val response = controller.updateHousehold(testHouseholdRequest.id!!, false, testHouseholdRequest)
 
-        assertThat(response.data).isEqualTo(testHousehold)
-        verify { householdService.updateHousehold(testHousehold.id!!, testHousehold, false, isSupervisor) }
+        assertThat(response.data).isEqualTo(testHouseholdResponse)
+        verify { householdService.updateHousehold(testHouseholdRequest.id!!, testHouseholdRequest, false, isSupervisor) }
     }
 
     @Test
     fun `update household with force=true`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
         every {
             householdService.updateHousehold(
-                testHousehold.id!!,
-                testHousehold,
+                testHouseholdRequest.id!!,
+                testHouseholdRequest,
                 true,
                 isSupervisor,
             )
-        } returns HouseholdUpdateResponse(data = testHousehold, errorMsg = null)
+        } returns HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null)
 
-        val response = controller.updateHousehold(testHousehold.id!!, true, testHousehold)
+        val response = controller.updateHousehold(testHouseholdRequest.id!!, true, testHouseholdRequest)
 
-        assertThat(response.data).isEqualTo(testHousehold)
-        verify { householdService.updateHousehold(testHousehold.id!!, testHousehold, true, isSupervisor) }
+        assertThat(response.data).isEqualTo(testHouseholdResponse)
+        verify { householdService.updateHousehold(testHouseholdRequest.id!!, testHouseholdRequest, true, isSupervisor) }
     }
 
     @Test
     fun `update household - force defaults to false when omitted`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
         every {
             householdService.updateHousehold(
-                testHousehold.id!!,
-                testHousehold,
+                testHouseholdRequest.id!!,
+                testHouseholdRequest,
                 false,
                 isSupervisor,
             )
-        } returns HouseholdUpdateResponse(data = testHousehold, errorMsg = null)
+        } returns HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null)
 
-        val response = controller.updateHousehold(householdId = testHousehold.id!!, household = testHousehold)
+        val response =
+            controller.updateHousehold(householdId = testHouseholdRequest.id!!, household = testHouseholdRequest)
 
-        assertThat(response.data).isEqualTo(testHousehold)
-        verify { householdService.updateHousehold(testHousehold.id!!, testHousehold, false, isSupervisor) }
+        assertThat(response.data).isEqualTo(testHouseholdResponse)
+        verify { householdService.updateHousehold(testHouseholdRequest.id!!, testHouseholdRequest, false, isSupervisor) }
     }
 
     @Test
     fun `get household - doesnt exist`() {
-        every { householdService.findByHouseholdId(testHousehold.id!!) } returns null
+        every { householdService.findByHouseholdId(testHouseholdResponse.id!!) } returns null
 
         val exception =
-            assertThrows<NotFoundException> { controller.getHousehold(testHousehold.id!!) }
+            assertThrows<NotFoundException> { controller.getHousehold(testHouseholdResponse.id!!) }
 
-        assertThat(exception.body.detail).isEqualTo("Kunde Nr. ${testHousehold.id} nicht gefunden!")
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. ${testHouseholdResponse.id} nicht gefunden!")
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-        verify { householdService.findByHouseholdId(testHousehold.id!!) }
+        verify { householdService.findByHouseholdId(testHouseholdResponse.id!!) }
     }
 
     @Test
     fun `get household - exists`() {
-        every { householdService.findByHouseholdId(testHousehold.id!!) } returns testHousehold
+        every { householdService.findByHouseholdId(testHouseholdResponse.id!!) } returns testHouseholdResponse
 
-        val household = controller.getHousehold(testHousehold.id!!)
+        val household = controller.getHousehold(testHouseholdResponse.id!!)
 
-        verify { householdService.findByHouseholdId(testHousehold.id!!) }
-        assertThat(household).isEqualTo(testHousehold)
+        verify { householdService.findByHouseholdId(testHouseholdResponse.id!!) }
+        assertThat(household).isEqualTo(testHouseholdResponse)
     }
 
     @Test
     fun `delete household - doesnt exist`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
 
         val exception =
-            assertThrows<NotFoundException> { controller.deleteHousehold(testHousehold.id!!) }
+            assertThrows<NotFoundException> { controller.deleteHousehold(testHouseholdRequest.id!!) }
 
         assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-        verify { householdService.existsByHouseholdId(testHousehold.id!!) }
+        verify { householdService.existsByHouseholdId(testHouseholdRequest.id!!) }
     }
 
     @Test
     fun `delete household - exists`() {
-        every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
 
-        val response = controller.deleteHousehold(testHousehold.id!!)
+        val response = controller.deleteHousehold(testHouseholdRequest.id!!)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        verify { householdService.existsByHouseholdId(testHousehold.id!!) }
+        verify { householdService.existsByHouseholdId(testHouseholdRequest.id!!) }
     }
 
     @Test
     fun `get households - mapped correctly`() {
         val testSearchResult = HouseholdSearchResult(
-            items = listOf(testHousehold),
+            items = listOf(testHouseholdResponse),
             totalCount = 123,
             currentPage = 2,
             totalPages = 10,
@@ -355,7 +374,7 @@ class HouseholdControllerTest {
     @Test
     fun `get households - all filters default when omitted`() {
         val testSearchResult = HouseholdSearchResult(
-            items = listOf(testHousehold),
+            items = listOf(testHouseholdResponse),
             totalCount = 123,
             currentPage = 1,
             totalPages = 10,

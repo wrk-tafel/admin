@@ -14,7 +14,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
@@ -215,7 +215,7 @@ class DistributionService(
     }
 
     @Transactional(readOnly = true)
-    fun validateClose(): DistributionCloseValidationResult {
+    fun validateClose(): DistributionCloseResponse {
         val errors = mutableListOf<String>()
         val warnings = mutableListOf<String>()
 
@@ -235,7 +235,7 @@ class DistributionService(
             }
 
             return if (errors.isNotEmpty()) {
-                DistributionCloseValidationResult(
+                DistributionCloseResponse(
                     errors = errors,
                     warnings = emptyList(),
                 )
@@ -248,14 +248,14 @@ class DistributionService(
                     warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
                 }
 
-                DistributionCloseValidationResult(
+                DistributionCloseResponse(
                     errors = emptyList(),
                     warnings = warnings,
                 )
             }
         }
 
-        return DistributionCloseValidationResult(
+        return DistributionCloseResponse(
             errors = errors,
             warnings = warnings,
         )

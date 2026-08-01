@@ -9,8 +9,8 @@ import java.time.LocalDate
 class StaticValueSettingsModelTest {
 
     @Test
-    fun `static value item with blank type and negative numbers is invalid`() {
-        val item = StaticValueItem(
+    fun `static value request with blank type and negative numbers is invalid`() {
+        val item = StaticValueRequest(
             id = null,
             type = "",
             validFrom = LocalDate.now(),
@@ -28,8 +28,8 @@ class StaticValueSettingsModelTest {
     }
 
     @Test
-    fun `static value item with valid values is valid`() {
-        val item = StaticValueItem(
+    fun `static value request with valid values is valid`() {
+        val item = StaticValueRequest(
             id = null,
             type = "COST_CONTRIBUTION",
             validFrom = LocalDate.now(),

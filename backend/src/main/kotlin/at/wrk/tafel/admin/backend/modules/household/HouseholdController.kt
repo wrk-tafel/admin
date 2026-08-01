@@ -25,7 +25,7 @@ class HouseholdController(
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun validate(@Valid @RequestBody household: Household): ValidateHouseholdResponse {
+    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse {
         val result = householdService.validate(household)
         return ValidateHouseholdResponse(
             valid = result.valid,
@@ -40,7 +40,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun createHousehold(
         @RequestParam force: Boolean = false,
-        @Valid @RequestBody household: Household,
+        @Valid @RequestBody household: HouseholdRequest,
     ): ResponseEntity<HouseholdCreationResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
@@ -60,7 +60,7 @@ class HouseholdController(
     fun updateHousehold(
         @PathVariable householdId: Long,
         @RequestParam force: Boolean = false,
-        @Valid @RequestBody household: Household,
+        @Valid @RequestBody household: HouseholdRequest,
     ): HouseholdUpdateResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
@@ -74,7 +74,7 @@ class HouseholdController(
 
     @GetMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getHousehold(@PathVariable householdId: Long): Household = householdService.findByHouseholdId(householdId)
+    fun getHousehold(@PathVariable householdId: Long): HouseholdResponse = householdService.findByHouseholdId(householdId)
         ?: throw NotFoundException("Kunde Nr. $householdId nicht gefunden!")
 
     @GetMapping
@@ -86,7 +86,7 @@ class HouseholdController(
         @RequestParam postProcessing: Boolean? = null,
         @RequestParam costContribution: Boolean? = null,
         @RequestParam valid: Boolean? = null,
-    ): PagedResponse<Household> {
+    ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),

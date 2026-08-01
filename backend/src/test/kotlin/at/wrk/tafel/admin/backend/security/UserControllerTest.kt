@@ -152,7 +152,7 @@ class UserControllerTest {
         val response = controller.getUser(1)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(testUserApiResponse)
+        assertThat(response.body).isEqualTo(testUserResponse)
     }
 
     @Test
@@ -162,7 +162,7 @@ class UserControllerTest {
         val response = controller.getUserByPersonnelNumber(" ${testUser.personnelNumber} ")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(testUserApiResponse)
+        assertThat(response.body).isEqualTo(testUserResponse)
 
         verify(exactly = 1) { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) }
     }
@@ -211,7 +211,7 @@ class UserControllerTest {
                 page = page,
             )
 
-        assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+        assertThat(response.items).isEqualTo(listOf(testUserResponse))
         assertThat(response.totalCount).isEqualTo(userSearchResult.totalCount)
         assertThat(response.currentPage).isEqualTo(userSearchResult.currentPage)
         assertThat(response.totalPages).isEqualTo(userSearchResult.totalPages)
@@ -233,10 +233,10 @@ class UserControllerTest {
         every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy") andThen testUser
         every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
 
-        val response = controller.createUser(user = testUserApiResponse)
+        val response = controller.createUser(user = testUserRequest)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
-        assertThat(response.body).isEqualTo(testUserApiResponse)
+        assertThat(response.body).isEqualTo(testUserResponse)
 
         verify(exactly = 1) { userDetailsManager.createUser(testUser) }
     }
@@ -245,7 +245,7 @@ class UserControllerTest {
     fun `create user exists by username`() {
         every { userDetailsManager.loadUserByUsername(any()) } returns testUser
 
-        val exception = assertThrows<ConflictException> { controller.createUser(user = testUserApiResponse) }
+        val exception = assertThrows<ConflictException> { controller.createUser(user = testUserRequest) }
         assertThat(exception.body.detail).isEqualTo("Benutzer (Benutzername: test-username) existiert bereits!")
     }
 
@@ -254,7 +254,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
         every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns testUser
 
-        val exception = assertThrows<ConflictException> { controller.createUser(user = testUserApiResponse) }
+        val exception = assertThrows<ConflictException> { controller.createUser(user = testUserRequest) }
         assertThat(exception.body.detail).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) existiert bereits!")
     }
 
@@ -263,7 +263,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns null
 
         val exception =
-            assertThrows<NotFoundException> { controller.updateUser(userId = 123, user = testUserApiResponse) }
+            assertThrows<NotFoundException> { controller.updateUser(userId = 123, user = testUserRequest) }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
@@ -273,12 +273,12 @@ class UserControllerTest {
     fun `update user found`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val newPermission = UserPermission(
+        val newPermission = UserPermissionItem(
             key = UserPermissions.CHECKIN.key,
             title = UserPermissions.CHECKIN.title,
             category = UserPermissions.CHECKIN.category.title,
         )
-        val updatedUser = User(
+        val updatedUser = UserRequest(
             id = 123,
             username = "updated-username",
             personnelNumber = "updated-personnelnumber",
@@ -292,7 +292,7 @@ class UserControllerTest {
         val updatedUserResponse = controller.updateUser(userId = testUser.id!!, user = updatedUser)
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
+        assertThat(updatedUserResponse.body).isEqualTo(testUserResponse)
 
         val updatedUserDetailsSlot = slot<TafelUser>()
         verify(exactly = 1) { userDetailsManager.updateUser(capture(updatedUserDetailsSlot)) }
@@ -316,11 +316,11 @@ class UserControllerTest {
         val newPassword = "123"
         val updatedUserResponse = controller.updateUser(
             userId = 123,
-            user = testUserApiResponse.copy(password = newPassword, passwordRepeat = newPassword),
+            user = testUserRequest.copy(password = newPassword, passwordRepeat = newPassword),
         )
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
+        assertThat(updatedUserResponse.body).isEqualTo(testUserResponse)
         verify(exactly = 1) { userDetailsManager.updateUser(testUser.copy(password = newPassword)) }
     }
 
@@ -331,7 +331,7 @@ class UserControllerTest {
         val exception = assertThrows<BusinessRuleException> {
             controller.updateUser(
                 userId = 123,
-                user = testUserApiResponse.copy(password = "123", passwordRepeat = "456"),
+                user = testUserRequest.copy(password = "123", passwordRepeat = "456"),
             )
         }
 
@@ -373,7 +373,7 @@ class UserControllerTest {
         val userPermissionEntries = UserPermissions.entries
         assertThat(permissions).hasSize(userPermissionEntries.size)
         assertThat(permissions?.first()).isEqualTo(
-            UserPermission(
+            UserPermissionItem(
                 key = userPermissionEntries.first().key,
                 title = userPermissionEntries.first().title,
                 category = userPermissionEntries.first().category.title,

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.household.Household
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -37,22 +37,22 @@ internal class HouseholdDuplicationServiceTest {
         val totalCount = 100L
 
         val householdEntity1 = mockk<HouseholdEntity>(relaxed = true)
-        val household1 = mockk<Household>(relaxed = true)
+        val household1 = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.findByHouseholdId(1) } returns householdEntity1
         every { householdConverter.mapEntityToHousehold(householdEntity1) } returns household1
 
         val householdEntity2 = mockk<HouseholdEntity>(relaxed = true)
-        val household2 = mockk<Household>(relaxed = true)
+        val household2 = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.findByHouseholdId(2) } returns householdEntity2
         every { householdConverter.mapEntityToHousehold(householdEntity2) } returns household2
 
         val householdEntity3 = mockk<HouseholdEntity>(relaxed = true)
-        val household3 = mockk<Household>(relaxed = true)
+        val household3 = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.findByHouseholdId(3) } returns householdEntity3
         every { householdConverter.mapEntityToHousehold(householdEntity3) } returns household3
 
         val householdEntity4 = mockk<HouseholdEntity>(relaxed = true)
-        val household4 = mockk<Household>(relaxed = true)
+        val household4 = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.findByHouseholdId(4) } returns householdEntity4
         every { householdConverter.mapEntityToHousehold(householdEntity4) } returns household4
 
