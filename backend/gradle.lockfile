@@ -100,6 +100,7 @@ net.bytebuddy:byte-buddy:1.18.10=productionRuntimeClasspath,runtimeClasspath,tes
 net.java.dev.jna:jna:5.18.1=testCompileClasspath,testRuntimeClasspath
 net.minidev:accessors-smart:2.6.0=testCompileClasspath,testRuntimeClasspath
 net.minidev:json-smart:2.6.0=testCompileClasspath,testRuntimeClasspath
+net.sourceforge.plantuml:plantuml-mit:1.2026.6=testCompileClasspath,testRuntimeClasspath
 org.antlr:antlr4-runtime:4.13.2=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.apache.commons:commons-compress:1.28.0=testCompileClasspath,testRuntimeClasspath
 org.apache.commons:commons-csv:1.14.1=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath

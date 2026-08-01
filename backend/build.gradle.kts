@@ -103,6 +103,7 @@ dependencies {
     testImplementation(libs.apache.pdfbox)
     testImplementation(libs.image.comparison)
     testImplementation(libs.awaitility)
+    testImplementation(libs.plantuml.mit)
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
