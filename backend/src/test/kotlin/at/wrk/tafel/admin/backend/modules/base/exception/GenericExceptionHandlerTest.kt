@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.MessageSource
 import org.springframework.core.MethodParameter
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.ProblemDetail
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -37,108 +39,77 @@ internal class GenericExceptionHandlerTest {
     @BeforeEach
     fun beforeEach() {
         every { request.request.requestURI } returns "/dummy-path"
+        every { request.locale } returns Locale.GERMAN
     }
 
     @Test
-    fun `handles Exception properly`() {
+    fun `handles NotFoundException properly`() {
         every {
-            messageSource.getMessage(
-                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title",
-                arrayOf<Any>(),
-                any(),
-            )
+            messageSource.getMessage("http-error.${HttpStatus.NOT_FOUND.value()}.title", arrayOf<Any>(), Locale.GERMAN)
         } returns "localized-title"
-        val exception = IllegalArgumentException("test-msg")
+        val exception = NotFoundException("notfound-msg")
 
-        val response = exceptionHandler.handleException(exception, request, Locale.GERMAN)
-
-        assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-        val errorBody = response.body as TafelErrorResponse
-        assertThat(errorBody.timestamp).isNotNull()
-        assertThat(errorBody.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-        assertThat(errorBody.error).isEqualTo("localized-title")
-        assertThat(errorBody.message).isEqualTo("test-msg")
-        assertThat(errorBody.trace).startsWith("java.lang.IllegalArgumentException: test-msg")
-        assertThat(errorBody.path).isEqualTo("/dummy-path")
-    }
-
-    @Test
-    fun `handles TafelException properly`() {
-        every {
-            messageSource.getMessage(
-                "http-error.${HttpStatus.BAD_REQUEST.value()}.title",
-                arrayOf<Any>(),
-                any(),
-            )
-        } returns "localized-title"
-        val exception = TafelException("tafelexception-msg")
-
-        val response = exceptionHandler.handleTafelException(exception, request, Locale.GERMAN)
-
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        val errorBody = response.body as TafelErrorResponse
-        assertThat(errorBody.timestamp).isNotNull()
-        assertThat(errorBody.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(errorBody.error).isEqualTo("localized-title")
-        assertThat(errorBody.message).isEqualTo("tafelexception-msg")
-        assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
-        assertThat(errorBody.path).isEqualTo("/dummy-path")
-    }
-
-    @Test
-    fun `handles TafelException and status overrides defaultvalue`() {
-        every {
-            messageSource.getMessage(
-                "http-error.${HttpStatus.NOT_FOUND.value()}.title",
-                arrayOf<Any>(),
-                any(),
-            )
-        } returns "localized-title"
-        val exception = TafelException(message = "tafelexception-msg", status = HttpStatus.NOT_FOUND)
-
-        val response = exceptionHandler.handleTafelException(exception, request, Locale.GERMAN)
+        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-        val errorBody = response.body as TafelErrorResponse
-        assertThat(errorBody.timestamp).isNotNull()
+        val errorBody = response.body as ProblemDetail
         assertThat(errorBody.status).isEqualTo(HttpStatus.NOT_FOUND.value())
-        assertThat(errorBody.error).isEqualTo("localized-title")
-        assertThat(errorBody.message).isEqualTo("tafelexception-msg")
-        assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
-        assertThat(errorBody.path).isEqualTo("/dummy-path")
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.detail).isEqualTo("notfound-msg")
     }
 
     @Test
-    fun `handles TafelValidationException properly`() {
+    fun `handles ConflictException properly`() {
         every {
-            messageSource.getMessage(
-                "http-error.${HttpStatus.BAD_REQUEST.value()}.title",
-                arrayOf<Any>(),
-                any(),
-            )
+            messageSource.getMessage("http-error.${HttpStatus.CONFLICT.value()}.title", arrayOf<Any>(), Locale.GERMAN)
         } returns "localized-title"
+        val exception = ConflictException("conflict-msg")
 
-        val exception = TafelValidationException("tafelvalidationexception-msg")
-        val response = exceptionHandler.handleTafelValidationException(exception, request, Locale.GERMAN)
+        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CONFLICT)
+        val errorBody = response.body as ProblemDetail
+        assertThat(errorBody.status).isEqualTo(HttpStatus.CONFLICT.value())
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.detail).isEqualTo("conflict-msg")
+    }
+
+    @Test
+    fun `handles BusinessRuleException with default status`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        val exception = BusinessRuleException("businessrule-msg")
+
+        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        val errorBody = response.body as TafelErrorResponse
-        assertThat(errorBody.timestamp).isNotNull()
+        val errorBody = response.body as ProblemDetail
         assertThat(errorBody.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(errorBody.error).isEqualTo("localized-title")
-        assertThat(errorBody.message).isEqualTo("tafelvalidationexception-msg")
-        assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException: tafelvalidationexception-msg")
-        assertThat(errorBody.path).isEqualTo("/dummy-path")
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.detail).isEqualTo("businessrule-msg")
+    }
+
+    @Test
+    fun `handles BusinessRuleException with explicit status`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.UNPROCESSABLE_CONTENT.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        val exception = BusinessRuleException("businessrule-msg", status = HttpStatus.UNPROCESSABLE_CONTENT)
+
+        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+        val errorBody = response.body as ProblemDetail
+        assertThat(errorBody.status).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value())
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.detail).isEqualTo("businessrule-msg")
     }
 
     @Test
     fun `handles MethodArgumentNotValidException properly`() {
         every {
-            messageSource.getMessage(
-                "http-error.${HttpStatus.BAD_REQUEST.value()}.title",
-                arrayOf<Any>(),
-                any(),
-            )
+            messageSource.getMessage("http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), Locale.GERMAN)
         } returns "localized-title"
 
         val bindingResult = BeanPropertyBindingResult("target", "targetObject")
@@ -146,31 +117,46 @@ internal class GenericExceptionHandlerTest {
         bindingResult.addError(FieldError("targetObject", "fieldTwo", "must be positive"))
         val exception = MethodArgumentNotValidException(mockk<MethodParameter>(relaxed = true), bindingResult)
 
-        val response = exceptionHandler.handleMethodArgumentNotValidException(exception, request, Locale.GERMAN)
+        val response = exceptionHandler.handleMethodArgumentNotValid(exception, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        val errorBody = response.body as TafelErrorResponse
-        assertThat(errorBody.timestamp).isNotNull()
+        val errorBody = response.body as ProblemDetail
         assertThat(errorBody.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(errorBody.error).isEqualTo("localized-title")
-        assertThat(errorBody.message).isEqualTo("fieldOne: must not be blank; fieldTwo: must be positive")
-        assertThat(errorBody.path).isEqualTo("/dummy-path")
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.properties?.get("errors")).isEqualTo(
+            listOf(
+                FieldErrorItem("fieldOne", "must not be blank"),
+                FieldErrorItem("fieldTwo", "must be positive"),
+            ),
+        )
+    }
+
+    @Test
+    fun `handles Exception properly`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        val exception = IllegalArgumentException("test-msg")
+
+        val response = exceptionHandler.handleGenericException(exception, request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+        val errorBody = response.body as ProblemDetail
+        assertThat(errorBody.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.detail).isEqualTo("test-msg")
     }
 
     @Test
     fun `handles exception in SSE properly`() {
         every { request.getHeader("Accept") } returns "text/event-stream"
         every {
-            messageSource.getMessage(
-                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title",
-                arrayOf<Any>(),
-                any(),
-            )
+            messageSource.getMessage("http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title", arrayOf<Any>(), Locale.GERMAN)
         } returns "localized-title"
         val exception = IllegalArgumentException("test-msg")
         every { jsonMapper.writeValueAsString(any()) } returns exception.message
 
-        val response = exceptionHandler.handleException(exception, request, Locale.GERMAN)
+        val response = exceptionHandler.handleGenericException(exception, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
         val errorBody = response.body as String

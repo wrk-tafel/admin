@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
@@ -37,7 +37,7 @@ class FoodCategoryService(
 
     fun updateFoodCategory(foodCategoryId: Long, updatedCategory: FoodCategory): FoodCategory {
         val entity = foodCategoriesRepository.findByIdOrNull(foodCategoryId)
-            ?: throw TafelValidationException("FoodCategory with id $foodCategoryId not found")
+            ?: throw NotFoundException("FoodCategory with id $foodCategoryId not found")
 
         entity.name = updatedCategory.name
         entity.weightPerUnit = updatedCategory.weightPerUnit
@@ -53,7 +53,7 @@ class FoodCategoryService(
     fun reorderFoodCategories(categoryIds: List<Long>) {
         categoryIds.forEachIndexed { index, categoryId ->
             val entity = foodCategoriesRepository.findByIdOrNull(categoryId)
-                ?: throw TafelValidationException("FoodCategory with id $categoryId not found")
+                ?: throw NotFoundException("FoodCategory with id $categoryId not found")
 
             entity.sortOrder = index + 1
             foodCategoriesRepository.save(entity)

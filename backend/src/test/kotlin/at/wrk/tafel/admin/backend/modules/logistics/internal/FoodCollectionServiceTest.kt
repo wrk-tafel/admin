@@ -9,7 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
@@ -131,8 +131,8 @@ class FoodCollectionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.saveRouteData(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Route 123 nicht gefunden!")
+        val exception = assertThrows<NotFoundException> { service.saveRouteData(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Route 123 nicht gefunden!")
     }
 
     @Test
@@ -185,8 +185,8 @@ class FoodCollectionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Route 123 nicht gefunden!")
+        val exception = assertThrows<NotFoundException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Route 123 nicht gefunden!")
     }
 
     @Test
@@ -703,8 +703,8 @@ class FoodCollectionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Route 123 nicht gefunden!")
+        val exception = assertThrows<NotFoundException> { service.patchItem(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Route 123 nicht gefunden!")
     }
 
     @Test
@@ -723,8 +723,8 @@ class FoodCollectionServiceTest {
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Kategorie ungültig!")
+        val exception = assertThrows<NotFoundException> { service.patchItem(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Kategorie nicht gefunden!")
     }
 
     @Test
@@ -744,8 +744,8 @@ class FoodCollectionServiceTest {
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
         every { shopRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Filiale ungültig!")
+        val exception = assertThrows<NotFoundException> { service.patchItem(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale nicht gefunden!")
     }
 
     @Test
@@ -805,10 +805,10 @@ class FoodCollectionServiceTest {
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<NotFoundException> {
             service.saveRouteData(routeId = routeId, data = data)
         }
-        assertThat(exception.message).isEqualTo("Ungültiges KFZ!")
+        assertThat(exception.body.detail).isEqualTo("KFZ nicht gefunden!")
     }
 
     @Test
@@ -830,10 +830,10 @@ class FoodCollectionServiceTest {
         every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
         every { employeeRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<NotFoundException> {
             service.saveRouteData(routeId = routeId, data = data)
         }
-        assertThat(exception.message).isEqualTo("Ungültiger Fahrer!")
+        assertThat(exception.body.detail).isEqualTo("Fahrer nicht gefunden!")
     }
 
     @Test
@@ -856,10 +856,10 @@ class FoodCollectionServiceTest {
         every { employeeRepository.findByIdOrNull(testEmployee1.id!!) } returns testEmployee1
         every { employeeRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<NotFoundException> {
             service.saveRouteData(routeId = routeId, data = data)
         }
-        assertThat(exception.message).isEqualTo("Ungültiger Beifahrer!")
+        assertThat(exception.body.detail).isEqualTo("Beifahrer nicht gefunden!")
     }
 
     @Test
@@ -920,8 +920,8 @@ class FoodCollectionServiceTest {
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Kategorie ungültig!")
+        val exception = assertThrows<NotFoundException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Kategorie nicht gefunden!")
     }
 
     @Test
@@ -945,7 +945,7 @@ class FoodCollectionServiceTest {
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
         every { shopRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Filiale ungültig!")
+        val exception = assertThrows<NotFoundException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale nicht gefunden!")
     }
 }

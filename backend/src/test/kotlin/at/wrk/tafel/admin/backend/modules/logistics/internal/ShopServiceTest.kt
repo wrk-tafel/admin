@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shop
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import io.mockk.every
@@ -28,11 +28,11 @@ class ShopServiceTest {
         val routeId = testRoute1.id!!
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<NotFoundException> {
             service.getShopsForRouteId(routeId)
         }
 
-        assertThat(exception.message).isEqualTo("Route $routeId nicht gefunden!")
+        assertThat(exception.body.detail).isEqualTo("Route $routeId nicht gefunden!")
     }
 
     @Test

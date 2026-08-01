@@ -166,7 +166,7 @@ client-computed result can't be trusted) go through it.
 differently depending on the caller's role:
 - Non-supervisor: the household is saved anyway, but forced `validUntil = yesterday` (i.e. saved as
   already-invalid), and an `errorMsg` is returned to inform the user.
-- Supervisor without `force=true`: rejected outright with `TafelValidationException` (409 Conflict) -
+- Supervisor without `force=true`: rejected outright with `ConflictException` (409 Conflict) -
   supervisors get a chance to review and confirm before overriding.
 - Supervisor with `force=true`: saved as-is (validity untouched), no error.
 

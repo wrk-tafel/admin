@@ -7,7 +7,9 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -80,10 +82,7 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUser(@PathVariable userId: Long): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserById(userId)
-            ?: throw TafelValidationException(
-                message = "Benutzer (ID: $userId) nicht gefunden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
@@ -92,10 +91,7 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
-            ?: throw TafelValidationException(
-                message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            ?: throw NotFoundException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
@@ -143,13 +139,13 @@ class UserController(
     private fun validateIfUserExists(user: User) {
         try {
             userDetailsManager.loadUserByUsername(user.username)
-            throw TafelValidationException("Benutzer (Benutzername: ${user.username}) existiert bereits!")
+            throw ConflictException("Benutzer (Benutzername: ${user.username}) existiert bereits!")
         } catch (_: UsernameNotFoundException) {
             // ignore
         }
 
         userDetailsManager.loadUserByPersonnelNumber(user.personnelNumber)?.let {
-            throw TafelValidationException("Benutzer (Personalnummer: ${user.personnelNumber}) existiert bereits!")
+            throw ConflictException("Benutzer (Personalnummer: ${user.personnelNumber}) existiert bereits!")
         }
     }
 
@@ -161,16 +157,10 @@ class UserController(
         @Valid @RequestBody user: User,
     ): ResponseEntity<User> {
         userDetailsManager.loadUserById(userId)
-            ?: throw TafelValidationException(
-                message = "Benutzer (ID: $userId) nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
 
         if (user.password != user.passwordRepeat) {
-            throw TafelValidationException(
-                message = "Passwörter stimmen nicht überein!",
-                status = HttpStatus.BAD_REQUEST,
-            )
+            throw BusinessRuleException("Passwörter stimmen nicht überein!")
         }
 
         try {
@@ -180,7 +170,7 @@ class UserController(
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
             return ResponseEntity.ok(userResponse)
         } catch (e: PasswordChangeException) {
-            throw TafelValidationException(e.message)
+            throw BusinessRuleException(e.message)
         }
     }
 
@@ -191,10 +181,7 @@ class UserController(
         @PathVariable userId: Long,
     ): ResponseEntity<Unit> {
         val tafelUser = userDetailsManager.loadUserById(userId)
-            ?: throw TafelValidationException(
-                message = "Benutzer (ID: $userId) nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
 
         userDetailsManager.deleteUser(tafelUser.username)
         return ResponseEntity.noContent().build()

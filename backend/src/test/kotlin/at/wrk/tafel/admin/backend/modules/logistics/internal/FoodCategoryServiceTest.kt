@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
@@ -13,8 +13,8 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
@@ -179,9 +179,8 @@ class FoodCategoryServiceTest {
             enabled = false,
         )
 
-        assertThatThrownBy { service.updateFoodCategory(99L, updated) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("FoodCategory with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.updateFoodCategory(99L, updated) }
+        assertThat(exception.body.detail).isEqualTo("FoodCategory with id 99 not found")
     }
 
     @Test
@@ -216,8 +215,7 @@ class FoodCategoryServiceTest {
     fun `reorder categories throws exception when a category is not found`() {
         every { foodCategoryRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy { service.reorderFoodCategories(listOf(99L)) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("FoodCategory with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.reorderFoodCategories(listOf(99L)) }
+        assertThat(exception.body.detail).isEqualTo("FoodCategory with id 99 not found")
     }
 }

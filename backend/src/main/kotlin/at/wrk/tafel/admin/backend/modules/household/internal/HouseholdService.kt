@@ -9,7 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.household.Household
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
@@ -24,7 +24,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -51,10 +50,7 @@ class HouseholdService(
         val valid = incomeValidatorService.validate(mapToValidationPersons(household)).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw TafelValidationException(
-                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
-                    status = HttpStatus.CONFLICT,
-                )
+                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
             } else {
                 val savedEntity = saveWithMainPerson(entity)
                 return HouseholdCreationResponse(
@@ -92,10 +88,7 @@ class HouseholdService(
         val valid = incomeValidatorService.validate(mapToValidationPersons(household)).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw TafelValidationException(
-                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
-                    status = HttpStatus.CONFLICT,
-                )
+                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
             } else {
                 val savedEntity = saveWithMainPerson(mappedEntity)
                 return HouseholdUpdateResponse(

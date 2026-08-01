@@ -6,7 +6,6 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
@@ -226,8 +225,8 @@ class DistributionClosedEventListenerTest {
         val (distributionId, distribution, distributionStatistic) = setupDistribution()
 
         every { dailyReportService.generateDailyReportPdf(distributionStatistic) } throws
-            TafelValidationException("transient failure") andThenThrows
-            TafelValidationException("transient failure") andThen ByteArray(10)
+            IllegalStateException("transient failure") andThenThrows
+            IllegalStateException("transient failure") andThen ByteArray(10)
         every { statisticExportService.exportStatisticFiles(distributionStatistic) } returns emptyList()
 
         listener.onDistributionClosed(DistributionClosedEvent(distributionId))
@@ -243,12 +242,12 @@ class DistributionClosedEventListenerTest {
         val (distributionId, distribution, distributionStatistic) = setupDistribution()
 
         every { dailyReportService.generateDailyReportPdf(distributionStatistic) } throws
-            TafelValidationException("permanent failure")
+            IllegalStateException("permanent failure")
         every { statisticExportService.exportStatisticFiles(distributionStatistic) } returns listOf(
             StatisticExportFile("file1.csv", ByteArray(10)),
         )
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<IllegalStateException> {
             listener.onDistributionClosed(DistributionClosedEvent(distributionId))
         }
 
@@ -265,9 +264,9 @@ class DistributionClosedEventListenerTest {
 
         every { dailyReportService.generateDailyReportPdf(distributionStatistic) } returns ByteArray(10)
         every { statisticExportService.exportStatisticFiles(distributionStatistic) } throws
-            TafelValidationException("permanent failure")
+            IllegalStateException("permanent failure")
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<IllegalStateException> {
             listener.onDistributionClosed(DistributionClosedEvent(distributionId))
         }
 
@@ -284,9 +283,9 @@ class DistributionClosedEventListenerTest {
         every { dailyReportService.generateDailyReportPdf(distributionStatistic) } returns ByteArray(10)
         every { statisticExportService.exportStatisticFiles(distributionStatistic) } returns emptyList()
         every { mailSenderService.sendHtmlMail(MailType.RETURN_BOXES, any(), any(), any(), any()) } throws
-            TafelValidationException("permanent failure")
+            IllegalStateException("permanent failure")
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<IllegalStateException> {
             listener.onDistributionClosed(DistributionClosedEvent(distributionId))
         }
 
@@ -301,13 +300,13 @@ class DistributionClosedEventListenerTest {
         val (distributionId, distribution, distributionStatistic) = setupDistribution()
 
         every { dailyReportService.generateDailyReportPdf(distributionStatistic) } throws
-            TafelValidationException("daily report failure")
+            IllegalStateException("daily report failure")
         every { statisticExportService.exportStatisticFiles(distributionStatistic) } throws
-            TafelValidationException("statistic failure")
+            IllegalStateException("statistic failure")
         every { mailSenderService.sendHtmlMail(MailType.RETURN_BOXES, any(), any(), any(), any()) } throws
-            TafelValidationException("return boxes failure")
+            IllegalStateException("return boxes failure")
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<IllegalStateException> {
             listener.onDistributionClosed(DistributionClosedEvent(distributionId))
         }
 

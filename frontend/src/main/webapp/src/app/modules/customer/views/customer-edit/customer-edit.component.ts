@@ -90,7 +90,7 @@ export class CustomerEditComponent {
           this.router.navigate(['/kunden/detail', customer.id]);
         },
         error: (error: any) => {
-          const errorMessage = error.error.message;
+          const errorMessage = error.error.detail;
           if (error.status === 409) {
             this.openConfirmCustomerSaveDialog(errorMessage, () => {
               this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
@@ -118,7 +118,7 @@ export class CustomerEditComponent {
           this.router.navigate(['/kunden/detail', customer.id]);
         },
         error: (error: any) => {
-          const errorMessage = error.error.message;
+          const errorMessage = error.error.detail;
           if (error.status === 409) {
             this.openConfirmCustomerSaveDialog(errorMessage, () => {
               this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({

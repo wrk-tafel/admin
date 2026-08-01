@@ -10,7 +10,9 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
@@ -62,7 +64,7 @@ class DistributionService(
         val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
             val currentDistribution = distributionRepository.getCurrentDistribution()
             if (currentDistribution != null) {
-                throw TafelValidationException("Ausgabe bereits gestartet!")
+                throw ConflictException("Ausgabe bereits gestartet!")
             }
 
             val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
@@ -80,7 +82,7 @@ class DistributionService(
         }
 
         if (!acquired) {
-            throw TafelValidationException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
+            throw ConflictException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
         return result!!
@@ -103,14 +105,14 @@ class DistributionService(
         val distribution = getCurrentDistribution()!!
 
         val household = householdRepository.findByHouseholdId(householdId)
-            ?: throw TafelValidationException("Kunde Nr. $householdId nicht vorhanden!")
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
         val existingHousehold = distribution.households.firstOrNull { it.household?.householdId == householdId }
 
         val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 
         // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
         if (existingTicket != null && existingHousehold?.household?.id != householdId) {
-            throw TafelValidationException("Ticketnummer $ticketNumber bereits vergeben!")
+            throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
         }
 
         val entry = existingHousehold ?: DistributionHouseholdEntity()
@@ -296,7 +298,7 @@ class DistributionService(
         }
 
         if (!acquired) {
-            throw TafelValidationException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
+            throw ConflictException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
         return result!!
@@ -353,7 +355,7 @@ class DistributionService(
 
         val currentStatistic = currentDistribution.statistic
         if (currentStatistic == null) {
-            throw TafelValidationException("Statistik-Daten nicht vorhanden!")
+            throw BusinessRuleException("Statistik-Daten nicht vorhanden!")
         } else {
             currentStatistic.employeeCount = employeeCount
 
@@ -391,7 +393,7 @@ class DistributionService(
     @Transactional(readOnly = true)
     fun sendMails(distributionId: Long) {
         distributionRepository.findByIdOrNull(distributionId)
-            ?: throw TafelValidationException("Ausgabe nicht gefunden!")
+            ?: throw NotFoundException("Ausgabe nicht gefunden!")
 
         try {
             eventPublisher.publishEvent(DistributionClosedEvent(distributionId))

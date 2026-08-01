@@ -56,7 +56,7 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
     if (ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
       if (error.error?.constructor === Object) {
         const errorBody: TafelErrorResponse = error.error;
-        toastr.error(errorBody.message, `HTTP ${error.status} - ${error.statusText}`);
+        toastr.error(errorBody.detail ?? error.message, `HTTP ${error.status} - ${error.statusText}`);
       } else {
         let message = error.message;
         if (error.status === 504) {
@@ -80,5 +80,10 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
 };
 
 export interface TafelErrorResponse {
-  message: string;
+  type?: string;
+  title?: string;
+  status?: number;
+  detail?: string;
+  instance?: string;
+  errors?: { field: string; message: string }[];
 }

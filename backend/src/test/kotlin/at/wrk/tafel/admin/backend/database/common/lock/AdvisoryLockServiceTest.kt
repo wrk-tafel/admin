@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.database.common.lock
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -45,9 +44,9 @@ class AdvisoryLockServiceTest {
 
     @Test
     fun `withLock should release lock even when block throws exception`() {
-        assertThrows<TafelValidationException> {
+        assertThrows<IllegalStateException> {
             service.withLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
-                throw TafelValidationException("test exception")
+                throw IllegalStateException("test exception")
             }
         }
 
@@ -89,9 +88,9 @@ class AdvisoryLockServiceTest {
     fun `tryWithLock should release lock even when block throws exception`() {
         every { repository.tryAcquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) } returns true
 
-        assertThrows<TafelValidationException> {
+        assertThrows<IllegalStateException> {
             service.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
-                throw TafelValidationException("test exception")
+                throw IllegalStateException("test exception")
             }
         }
 

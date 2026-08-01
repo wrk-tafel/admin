@@ -12,7 +12,8 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
@@ -299,22 +300,22 @@ internal class DistributionServiceTest {
             true
         }
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<ConflictException> {
             service.createNewDistribution()
         }
 
-        assertThat(exception.message).isEqualTo("Ausgabe bereits gestartet!")
+        assertThat(exception.body.detail).isEqualTo("Ausgabe bereits gestartet!")
     }
 
     @Test
     fun `create new distribution with existing lock`() {
         every { advisoryLockService.tryWithLock(any(), any()) } returns false
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<ConflictException> {
             service.createNewDistribution()
         }
 
-        assertThat(exception.message).isEqualTo("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
+        assertThat(exception.body.detail).isEqualTo("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
     }
 
     @Test
@@ -426,9 +427,9 @@ internal class DistributionServiceTest {
             block.invoke()
             true
         }
-        every { eventPublisher.publishEvent(any<DistributionEndedEvent>()) } throws TafelValidationException("Test exception")
+        every { eventPublisher.publishEvent(any<DistributionEndedEvent>()) } throws IllegalStateException("Test exception")
 
-        val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
+        val exception = assertThrows<IllegalStateException> { service.closeDistribution() }
         assertThat(exception.message).isEqualTo("Test exception")
     }
 
@@ -446,11 +447,11 @@ internal class DistributionServiceTest {
     fun `close distribution with existing lock`() {
         every { advisoryLockService.tryWithLock(any(), any()) } returns false
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<ConflictException> {
             service.closeDistribution()
         }
 
-        assertThat(exception.message).isEqualTo("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
+        assertThat(exception.body.detail).isEqualTo("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
     }
 
     @Test
@@ -513,14 +514,14 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { householdRepository.findByHouseholdId(householdId) } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<NotFoundException> {
             service.assignHouseholdToDistribution(
                 householdId = householdId,
                 ticketNumber = ticketNumber,
             )
         }
 
-        assertThat(exception.message).isEqualTo("Kunde Nr. $householdId nicht vorhanden!")
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. $householdId nicht vorhanden!")
     }
 
     @Test
@@ -596,13 +597,13 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity1
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<ConflictException> {
             service.assignHouseholdToDistribution(
                 householdId = householdId,
                 ticketNumber = ticketNumber,
             )
         }
-        assertThat(exception.message).isEqualTo("Ticketnummer $ticketNumber bereits vergeben!")
+        assertThat(exception.body.detail).isEqualTo("Ticketnummer $ticketNumber bereits vergeben!")
     }
 
     @Test
@@ -1091,16 +1092,16 @@ internal class DistributionServiceTest {
     fun `send mails with invalid distribution`() {
         every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.sendMails(testDistributionEntity.id!!) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gefunden!")
+        val exception = assertThrows<NotFoundException> { service.sendMails(testDistributionEntity.id!!) }
+        assertThat(exception.body.detail).isEqualTo("Ausgabe nicht gefunden!")
     }
 
     @Test
     fun `send mails forwards the error when publishing fails`() {
         every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns testDistributionEntity
-        every { eventPublisher.publishEvent(any<DistributionClosedEvent>()) } throws TafelValidationException("Test exception")
+        every { eventPublisher.publishEvent(any<DistributionClosedEvent>()) } throws IllegalStateException("Test exception")
 
-        val exception = assertThrows<TafelValidationException> { service.sendMails(testDistributionEntity.id!!) }
+        val exception = assertThrows<IllegalStateException> { service.sendMails(testDistributionEntity.id!!) }
         assertThat(exception.message).isEqualTo("Test exception")
     }
 }

@@ -52,7 +52,7 @@ export class UserEditComponent {
         this.router.navigate(['/benutzer/detail', user.id]);
       },
       error: (error: any) => {
-        this.toastr.error(error.error.message || 'Fehler beim Speichern des Benutzers');
+        this.toastr.error(error.error.detail || 'Fehler beim Speichern des Benutzers');
       },
     };
 

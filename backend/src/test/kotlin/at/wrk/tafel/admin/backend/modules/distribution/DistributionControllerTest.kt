@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
@@ -72,9 +71,9 @@ internal class DistributionControllerTest {
     @Test
     fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
-        every { service.createNewDistributionItem() } throws TafelException(message)
+        every { service.createNewDistributionItem() } throws IllegalStateException(message)
 
-        val exception = assertThrows(TafelException::class.java) {
+        val exception = assertThrows(IllegalStateException::class.java) {
             controller.createNewDistribution()
         }
 
@@ -266,11 +265,11 @@ internal class DistributionControllerTest {
                 any(),
                 any(),
             )
-        } throws TafelException("dummy error")
+        } throws IllegalStateException("dummy error")
 
         val requestBody = AssignHouseholdRequest(householdId = 1, ticketNumber = 100)
 
-        val exception = assertThrows<TafelException> {
+        val exception = assertThrows<IllegalStateException> {
             controller.assignHouseholdToDistribution(requestBody)
         }
 

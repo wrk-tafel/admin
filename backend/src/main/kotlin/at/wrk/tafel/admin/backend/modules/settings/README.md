@@ -13,7 +13,7 @@ limits). Both are exposed under `/api/settings` behind `@PreAuthorize("hasAuthor
 ```
 
 Confirmed — the only declared cross-module dependency is `base::exception`
-(`TafelValidationException`, thrown by `updateStaticValue()` when the id doesn't exist).
+(`NotFoundException`, thrown by `updateStaticValue()` when the id doesn't exist).
 
 **Why nothing else needs to be declared:** the entities this module manages —
 `MailRecipientEntity`/`MailRecipientRepository`/`MailType`/`RecipientType` (in

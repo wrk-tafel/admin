@@ -249,7 +249,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     apiService.updateCustomer.mockReturnValue(throwError(() => ({
       status: 409,
-      error: {message: mockMessage}
+      error: {detail: mockMessage}
     })));
 
     const fixture = TestBed.createComponent(CustomerEditComponent);
@@ -281,7 +281,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     apiService.updateCustomer.mockReturnValue(throwError(() => ({
       status: 500,
-      error: {message: 'Internal server error'}
+      error: {detail: 'Internal server error'}
     })));
 
     const fixture = TestBed.createComponent(CustomerEditComponent);

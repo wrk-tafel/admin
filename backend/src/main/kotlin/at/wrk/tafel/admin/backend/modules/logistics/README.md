@@ -13,8 +13,8 @@ destinations), **shops** (pickup points), and **cars** (the vehicle fleet).
 )
 ```
 
-- `base::exception` — for `TafelValidationException`, thrown by every service here on
-  not-found/invalid-reference (see below).
+- `base::exception` — for `NotFoundException`/`BusinessRuleException`, thrown by every service here
+  on not-found/invalid-reference (see below).
 - `base::employee` — **not** for generic "created/updated by" change tracking (this module's
   entities don't have that; `BaseChangeTrackingEntity` only carries `createdAt`/`updatedAt`
   timestamps, no employee FK). It's needed because `FoodCollectionEntity` has two real,
