@@ -208,6 +208,7 @@ admin/
 │       └── cypress/                #   E2E tests
 ├── _build/                         # Dockerfile
 ├── _http-calls/                    # HTTP request examples for API testing
+├── docs/                           # Auto-generated docs (e.g. module-structure.svg)
 ├── .github/workflows/              # CI/CD pipelines
 ├── docker-compose.yml              # Local development infrastructure
 ├── build.gradle.kts                # Root Gradle build
@@ -234,6 +235,14 @@ The backend follows a **modular monolith** architecture using Spring Modulith. E
 - Post-processor chain for distribution event side effects (emails, reports)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer data
+
+**Module structure:**
+
+![Module structure](docs/module-structure.svg)
+
+Auto-generated from the `@ApplicationModule`/`@NamedInterface` declarations in `package-info.java` by
+`ModularityTest.createModuleDocumentation()`, so it can never drift from the actual module boundaries. A push
+to `main` that changes it opens a PR with the updated file (see `main_push.yml`).
 
 ### Frontend
 
