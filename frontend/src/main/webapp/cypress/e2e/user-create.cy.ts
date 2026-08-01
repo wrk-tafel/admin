@@ -30,11 +30,11 @@ describe('User Create', () => {
   it('create new user which exists already', () => {
     cy.visit('/#/benutzer/erstellen');
 
-    // 1. Intercept the POST request that returns the 400 error
+    // 1. Intercept the POST request that returns the 409 error
     // Replace '/api/users' with the actual endpoint URL your app uses
     cy.intercept('POST', '/api/users').as('createUserRequest');
     // 1. Suppress uncaught exceptions just for this test
-    cy.once('uncaught:exception', (err) => !err.message.includes('400'));
+    cy.once('uncaught:exception', (err) => !err.message.includes('409'));
 
     cy.getAnyRandomNumber().then(() => {
       fillUserForm('e2etest', 'e2etest');
@@ -43,12 +43,12 @@ describe('User Create', () => {
       cy.byTestId('permission-checkbox-CHECKIN').click();
       cy.byTestId('permission-checkbox-USER_MANAGEMENT').click();
 
-      // 2. Click save - Cypress will no longer fail on the 400 error
+      // 2. Click save - Cypress will no longer fail on the 409 error
       // because we are managing the request via intercept
       cy.byTestId('save-button').click();
 
       // 3. Wait for the request and verify the status (optional but recommended)
-      cy.wait('@createUserRequest').its('response.statusCode').should('eq', 400);
+      cy.wait('@createUserRequest').its('response.statusCode').should('eq', 409);
 
       // 4. Assert the UI feedback
       cy.get('.toast-message')

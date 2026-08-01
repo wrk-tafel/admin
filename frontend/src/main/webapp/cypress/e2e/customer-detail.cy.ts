@@ -278,7 +278,7 @@ describe('Customer Detail', () => {
           if (req.method === 'PUT') {
             req.reply({
               statusCode: 409,
-              body: {message: 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)'}
+              body: {detail: 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)'}
             });
           }
         });
