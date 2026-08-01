@@ -17,6 +17,7 @@ import {
   TafelCounterInputValueChange
 } from '../../../../common/components/tafel-counter-input/tafel-counter-input.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-responsive',
@@ -43,12 +44,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly toastr = inject(TafelToastrService);
-
-  // Keystroke-driven value changes fire one patch request each; queuing them one at a
-  // time (instead of firing them all in parallel) guarantees a slower earlier response
-  // can never overwrite a value typed afterwards.
-  private itemPatchQueue: { routeId: number; data: FoodCollectionItem }[] = [];
-  private itemPatchInFlight = false;
+  private readonly offlineQueueService = inject(FoodCollectionOfflineQueueService);
 
   loadEffect = effect(() => {
     if (this.selectedRouteData()) {
@@ -117,42 +113,17 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
     const routeId = this.selectedRouteData()!.route.id;
     const shopId = this.currentShop()!.id;
+    const categoryId = valueChange.key as number;
 
     this.categoryValues.update(values => ({
       ...values,
-      [valueChange.key as number]: valueChange.value
+      [categoryId]: valueChange.value
     }));
 
-    const data: FoodCollectionItem = {
-      categoryId: valueChange.key as number,
-      shopId: shopId,
-      amount: valueChange.value
-    };
-    this.itemPatchQueue.push({routeId, data});
-    this.processItemPatchQueue();
-  }
-
-  private processItemPatchQueue() {
-    if (this.itemPatchInFlight) {
-      return;
-    }
-
-    const next = this.itemPatchQueue.shift();
-    if (!next) {
-      return;
-    }
-
-    this.itemPatchInFlight = true;
-    this.foodCollectionsApiService.patchItems(next.routeId, next.data).subscribe({
-      next: () => {
-        this.itemPatchInFlight = false;
-        this.processItemPatchQueue();
-      },
-      error: () => {
-        this.itemPatchInFlight = false;
-        this.processItemPatchQueue();
-      }
-    });
+    // Handed off to the offline queue rather than sent directly: it persists the change, sends it
+    // straight away when online, and otherwise keeps retrying once connectivity returns - needed
+    // since this screen is used by the codriver on their phone on the road.
+    this.offlineQueueService.enqueue(routeId, shopId, categoryId, valueChange.value);
   }
 
   selectShop(shop: Shop) {

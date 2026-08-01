@@ -5,9 +5,14 @@ import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingItemsResponsiveComponent} from './food-collection-recording-items-responsive.component';
 import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
+  let offlineQueueService: {enqueue: ReturnType<typeof vi.fn>};
+
   beforeEach(() => {
+    offlineQueueService = {enqueue: vi.fn()};
+
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule
@@ -15,7 +20,8 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+        { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } },
+        { provide: FoodCollectionOfflineQueueService, useValue: offlineQueueService }
       ]
     }).compileComponents();
   });
@@ -144,7 +150,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(toastSpy).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
   });
 
-  it('should update categoryValues and call patchItems when onValueChange is called', () => {
+  it('should update categoryValues and enqueue the change via the offline queue when onValueChange is called', () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
@@ -159,12 +165,6 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[0]);
-
-    const apiService = TestBed.inject(FoodCollectionsApiService);
-    const patchItemsSpy = vi.spyOn(apiService, 'patchItems').mockReturnValue({
-      subscribe: () => {
-      }
-    } as any);
 
     const valueChange = {
       key: mockFoodCategories[0].id,
@@ -174,59 +174,11 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.onValueChange(valueChange);
 
     expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(7);
-    expect(patchItemsSpy).toHaveBeenCalledWith(
+    expect(offlineQueueService.enqueue).toHaveBeenCalledWith(
       mockRoute.id,
-      {
-        categoryId: mockFoodCategories[0].id,
-        shopId: mockShops[0].id,
-        amount: 7
-      }
-    );
-  });
-
-  it('should queue patchItems requests so a rapid second value change is not sent until the first completes', () => {
-    const mockRouteData = {
-      route: mockRoute,
-      shops: mockShops,
-      foodCollectionData: {items: []}
-    };
-
-    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-
-    componentRef.setInput('foodCategories', mockFoodCategories);
-    componentRef.setInput('selectedRouteData', mockRouteData);
-
-    component.currentShop.set(mockShops[0]);
-
-    const pendingObservers: any[] = [];
-    const apiService = TestBed.inject(FoodCollectionsApiService);
-    const patchItemsSpy = vi.spyOn(apiService, 'patchItems').mockImplementation(() => ({
-      subscribe: (observer: any) => {
-        pendingObservers.push(observer);
-      }
-    } as any));
-
-    // Simulates typing "12": two keystrokes fire two value changes back to back,
-    // before either patch request's response has come back.
-    component.onValueChange({key: mockFoodCategories[0].id, value: 1});
-    component.onValueChange({key: mockFoodCategories[0].id, value: 12});
-
-    // Only the first request is in flight - the second must wait, otherwise a
-    // slower response to the first request could overwrite the second's value.
-    expect(patchItemsSpy).toHaveBeenCalledTimes(1);
-    expect(patchItemsSpy).toHaveBeenCalledWith(
-      mockRoute.id,
-      {categoryId: mockFoodCategories[0].id, shopId: mockShops[0].id, amount: 1}
-    );
-
-    pendingObservers[0].next();
-
-    expect(patchItemsSpy).toHaveBeenCalledTimes(2);
-    expect(patchItemsSpy).toHaveBeenCalledWith(
-      mockRoute.id,
-      {categoryId: mockFoodCategories[0].id, shopId: mockShops[0].id, amount: 12}
+      mockShops[0].id,
+      mockFoodCategories[0].id,
+      7
     );
   });
 
