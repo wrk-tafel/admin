@@ -77,7 +77,7 @@ export class FoodCollectionOfflineQueueService {
     const data: FoodCollectionItem = {categoryId: next.categoryId, shopId: next.shopId, amount: next.amount};
     this.foodCollectionsApiService.patchItems(next.routeId, data).subscribe({
       next: () => {
-        this.remove(next);
+        this.removeIfUnchanged(next);
         this.flushInFlight = false;
         this.flush();
       },
@@ -90,10 +90,17 @@ export class FoodCollectionOfflineQueueService {
     });
   }
 
-  private remove(item: QueuedItem) {
+  // Only removes the entry if it still holds the value that was just sent - if a newer enqueue()
+  // overwrote it while this send was in flight, that value hasn't been sent yet and must stay
+  // queued for the next flush() to pick up, instead of being silently discarded.
+  private removeIfUnchanged(sent: QueuedItem) {
     this.queue.update(current => {
+      const key = keyOf(sent);
+      if (current[key]?.amount !== sent.amount) {
+        return current;
+      }
       const updated = {...current};
-      delete updated[keyOf(item)];
+      delete updated[key];
       return updated;
     });
     this.persist();

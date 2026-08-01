@@ -156,6 +156,37 @@ describe('FoodCollectionOfflineQueueService', () => {
     expect(patchItems).toHaveBeenCalledTimes(2);
   });
 
+  it('sends the latest value for a key even when it changed again while the previous send for that key was in flight', () => {
+    const {service, patchItems} = setup({online: true});
+    const resolvers: (() => void)[] = [];
+    patchItems.mockImplementation(() => new Observable<void>(subscriber => {
+      resolvers.push(() => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }));
+
+    service.enqueue(1, 2, 3, 1);
+    // Overwrites the still-in-flight send's value before it resolves - the resulting queue
+    // holds 12, not 1, but the request already under way was built from the stale value 1.
+    service.enqueue(1, 2, 3, 12);
+
+    expect(patchItems).toHaveBeenCalledTimes(1);
+    expect(patchItems).toHaveBeenNthCalledWith(1, 1, {categoryId: 3, shopId: 2, amount: 1});
+
+    // The stale send for amount 1 resolves - it must NOT be treated as having sent the current
+    // (newer) value 12, otherwise 12 would be silently dropped from the queue and never sent.
+    resolvers[0]();
+
+    expect(patchItems).toHaveBeenCalledTimes(2);
+    expect(patchItems).toHaveBeenNthCalledWith(2, 1, {categoryId: 3, shopId: 2, amount: 12});
+    expect(service.pendingCount()).toBe(1);
+
+    resolvers[1]();
+
+    expect(service.pendingCount()).toBe(0);
+  });
+
   it('returns all pending items for a shop', () => {
     const {service} = setup({online: false});
 
