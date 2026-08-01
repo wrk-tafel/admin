@@ -3,7 +3,7 @@ import {form, FormField, maxLength, minLength, required, validate} from '@angula
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpContext, HttpErrorResponse} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
@@ -12,6 +12,7 @@ import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/ma
 import {MatDivider} from '@angular/material/list';
 import {MatIcon} from '@angular/material/icon';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
+import {SUPPRESS_ERROR_TOAST} from '../../http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-passwordchange-form',
@@ -102,7 +103,8 @@ export class PasswordChangeFormComponent {
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
 
-    return this.userApiService.changePassword(passwordChangeRequest).pipe(
+    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+    return this.userApiService.changePassword(passwordChangeRequest, context).pipe(
       map(
         /* eslint-disable @typescript-eslint/no-unused-vars */
         (response: ChangePasswordResponse) => {

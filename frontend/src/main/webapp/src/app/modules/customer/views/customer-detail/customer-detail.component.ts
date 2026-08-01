@@ -8,7 +8,7 @@ import {
   CustomerData,
   CustomerUpdateResponse
 } from '../../../../api/customer-api.service';
-import {HttpResponse} from '@angular/common/http';
+import {HttpContext, HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {
   CustomerNoteApiService,
   CustomerNoteItem,
@@ -42,6 +42,8 @@ import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {SUPPRESS_ERROR_TOAST} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -162,13 +164,14 @@ export class CustomerDetailComponent {
     this.dialog.open(DeleteCustomerDialogComponent)
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.customerApiService.deleteCustomer(this.customerData().id!).subscribe({
+        const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+        this.customerApiService.deleteCustomer(this.customerData().id!, context).subscribe({
           next: async () => {
             this.toastr.success('Kunde wurde gelöscht!');
             await this.router.navigate(['/kunden/suchen']);
           },
-          error: () => {
-            this.toastr.error('Löschen fehlgeschlagen!');
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
           },
         });
       }
@@ -182,12 +185,13 @@ export class CustomerDetailComponent {
       }
     }).afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.customerApiService.updateCustomer(customerData, true).subscribe({
+        const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+        this.customerApiService.updateCustomer(customerData, true, context).subscribe({
           next: () => {
             this.toastr.success('Kunde wurde verlängert!');
           },
-          error: () => {
-            this.toastr.error('Verlängerung fehlgeschlagen!');
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
           },
         });
       }
@@ -206,16 +210,17 @@ export class CustomerDetailComponent {
         const customer = response.data;
         this.customerData.set(customer);
       },
-      error: (error: any) => {
+      error: (error: HttpErrorResponse) => {
         if (error.status === 409) {
-          this.openConfirmUpdateCustomerDialog(updatedCustomerData, error.error.detail);
+          this.openConfirmUpdateCustomerDialog(updatedCustomerData, extractErrorMessage(error));
         } else {
-          this.toastr.error('Verlängerung fehlgeschlagen!');
+          this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
         }
       },
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(observer);
+    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+    this.customerApiService.updateCustomer(updatedCustomerData, false, context).subscribe(observer);
   }
 
   disableCustomer() {
@@ -289,27 +294,29 @@ export class CustomerDetailComponent {
   assignTicket() {
     const ticketNumber = this.ticketNumberInput()!;
     const customerId = this.customerData().id!;
-    this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe({
+    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+    this.distributionApiService.assignCustomer(customerId, ticketNumber, context).subscribe({
       next: () => {
         this.ticketNumber.set(ticketNumber);
         this.ticketNumberInput.set(null);
         this.toastr.success('Ticket wurde zugewiesen!');
       },
-      error: () => {
-        this.toastr.error('Ticket-Zuweisung fehlgeschlagen!');
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Ticket-Zuweisung fehlgeschlagen!');
       }
     });
   }
 
   deleteTicket() {
     const customerId = this.customerData().id!;
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId).subscribe({
+    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId, context).subscribe({
       next: () => {
         this.ticketNumber.set(null);
         this.toastr.success('Ticket wurde gelöscht!');
       },
-      error: () => {
-        this.toastr.error('Ticket-Löschung fehlgeschlagen!');
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Ticket-Löschung fehlgeschlagen!');
       }
     });
   }

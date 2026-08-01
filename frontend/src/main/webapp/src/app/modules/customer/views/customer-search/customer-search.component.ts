@@ -1,4 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
+import {HttpContext} from '@angular/common/http';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
@@ -16,6 +17,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {SUPPRESS_ERROR_TOAST} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -68,7 +70,8 @@ export class CustomerSearchComponent {
         }
       }
     };
-    this.customerApiService.getCustomer(customerId).subscribe(observer);
+    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+    this.customerApiService.getCustomer(customerId, context).subscribe(observer);
   }
 
   private navigateToCustomerDetail(customerId: number) {

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 
 import { AuthenticationService } from './authentication.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
+import { SUPPRESS_ERROR_TOAST } from '../http/suppress-error-toast.token';
 
 describe('AuthenticationService', () => {
     let httpMock: HttpTestingController;
@@ -127,6 +128,26 @@ describe('AuthenticationService', () => {
         loginMockReq.flush(null, loginMockResponse);
 
         httpMock.expectNone('/users/info');
+
+        httpMock.verify();
+    });
+
+    it('login request suppresses the generic error toast', () => {
+        service.login('USER', 'PWD');
+
+        const mockLoginReq = httpMock.expectOne('/login');
+        expect(mockLoginReq.request.context.get(SUPPRESS_ERROR_TOAST)).toBe(true);
+        mockLoginReq.flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+        httpMock.verify();
+    });
+
+    it('loadUserInfo suppresses the generic error toast (so a logged-out visitor never sees an error toast on page load)', () => {
+        service.loadUserInfo();
+
+        const mockReq = httpMock.expectOne('/users/info');
+        expect(mockReq.request.context.get(SUPPRESS_ERROR_TOAST)).toBe(true);
+        mockReq.flush(null, { status: 401, statusText: 'Unauthorized' });
 
         httpMock.verify();
     });

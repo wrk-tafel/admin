@@ -1,4 +1,5 @@
 import {Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {HttpContext, HttpErrorResponse} from '@angular/common/http';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import dayjs from 'dayjs';
@@ -24,6 +25,8 @@ import {MatOption, MatSelect} from '@angular/material/select';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {SUPPRESS_ERROR_TOAST} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
     selector: 'tafel-checkin',
@@ -212,17 +215,20 @@ export class CheckinComponent {
             this.ticketNumberEdit.set(this.ticketNumber() != null);
           });
       },
-      error: (error: any) => {
+      error: (error: HttpErrorResponse) => {
         if (error.status === 404) {
           this.processCustomer(undefined);
           this.customerNotes.set([]);
           this.toastr.info(`Kunde ${this.customerId()} nicht gefunden!`);
+        } else {
+          this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden des Kunden!');
         }
       },
     };
 
     if (this.customerId()) {
-      this.customerApiService.getCustomer(this.customerId()!).subscribe(observer);
+      const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+      this.customerApiService.getCustomer(this.customerId()!, context).subscribe(observer);
     } else {
       this.toastr.warning('Keine Kundennummer angegeben!');
     }

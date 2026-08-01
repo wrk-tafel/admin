@@ -1,4 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
+import {HttpContext} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -18,6 +19,7 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {form, FormField} from '@angular/forms/signals';
 import {MatDividerModule} from '@angular/material/divider';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {SUPPRESS_ERROR_TOAST} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-user-search',
@@ -73,7 +75,8 @@ export class UserSearchComponent {
         }
       }
     };
-    this.userApiService.getUserForPersonnelNumber(this.searchForm.personnelNumber().value()).subscribe(observer);
+    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+    this.userApiService.getUserForPersonnelNumber(this.searchForm.personnelNumber().value(), context).subscribe(observer);
   }
 
   navigateToUserDetail(userId: number | undefined) {

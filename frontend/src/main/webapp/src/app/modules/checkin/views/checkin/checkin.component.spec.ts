@@ -320,7 +320,7 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(component.customer()).toEqual(mockCustomer);
-        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
 
         expect(component.customerState()).toBe(CustomerState.VALID);
         expect(component.customerStateText()).toBe('GÜLTIG');
@@ -377,7 +377,7 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(component.customer()).toEqual(mockCustomer);
-        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
 
         expect(component.customerState()).toBe(CustomerState.VALID);
         expect(component.customerStateText()).toBe('GÜLTIG');
@@ -430,7 +430,7 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(component.customer()).toEqual(mockCustomer);
-        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
 
         expect(component.customerState()).toBe(CustomerState.VALID_WARN);
         expect(component.customerStateText()).toBe('GÜLTIG - läuft bald ab');
@@ -480,7 +480,7 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(component.customer()).toEqual(mockCustomer);
-        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
 
         expect(component.customerState()).toBe(CustomerState.INVALID);
         expect(component.customerStateText()).toBe('UNGÜLTIG');
@@ -531,7 +531,7 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(component.customer()).toEqual(mockCustomer);
-        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
 
         expect(component.customerState()).toBe(CustomerState.LOCKED);
         expect(component.customerStateText()).toBe('GESPERRT');
@@ -559,8 +559,23 @@ describe('CheckinComponent', () => {
         expect(component.customer()).toBeUndefined();
         expect(component.customerState()).toBeUndefined();
         expect(component.customerNotes()).toEqual([]);
-        expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId, expect.anything());
         expect(toastr.info).toHaveBeenCalledWith(`Kunde ${testCustomerId} nicht gefunden!`);
+    });
+
+    it('searchForCustomerId non-404 error shows error toast', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        customerApiService.getCustomer.mockReturnValue(throwError(() => ({ status: 500 })));
+        const testCustomerId = 1234;
+        component.customerId.set(testCustomerId);
+
+        component.searchForCustomerId();
+
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId, expect.anything());
+        expect(toastr.error).toHaveBeenCalledWith('Interner Serverfehler!', 'Fehler beim Laden des Kunden!');
     });
 
     it('searchForCustomerId found notes', async () => {

@@ -1,4 +1,4 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpContext} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 
@@ -10,8 +10,8 @@ export class DistributionTicketApiService {
     return this.http.get<TicketNumberResponse>(`/households/${customerId}/ticket`);
   }
 
-  deleteCurrentTicketOfCustomer(customerId: number): Observable<void> {
-    return this.http.delete<void>(`/households/${customerId}/ticket`);
+  deleteCurrentTicketOfCustomer(customerId: number, context?: HttpContext): Observable<void> {
+    return this.http.delete<void>(`/households/${customerId}/ticket`, {context});
   }
 
 }
