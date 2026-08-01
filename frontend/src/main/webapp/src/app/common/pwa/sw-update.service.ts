@@ -1,4 +1,4 @@
-import {Injectable, inject} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {filter} from 'rxjs';
@@ -9,9 +9,7 @@ import {filter} from 'rxjs';
  * with indefinitely - the new version only takes effect on the *next* full reload, which for a
  * kiosk/tablet screen that's rarely closed could be a long time.
  */
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class SwUpdateService {
   private readonly swUpdate = inject(SwUpdate);
   private readonly snackBar = inject(MatSnackBar);
