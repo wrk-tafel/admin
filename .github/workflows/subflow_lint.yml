@@ -37,6 +37,6 @@ jobs:
       - name: Frontend lint
         run: npm run lint
         working-directory: frontend/src/main/webapp
-      - name: Cypress typecheck
-        run: npm run typecheck:cypress
+      - name: Frontend typecheck
+        run: npm run typecheck
         working-directory: frontend/src/main/webapp
