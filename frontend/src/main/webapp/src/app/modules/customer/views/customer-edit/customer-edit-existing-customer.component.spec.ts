@@ -170,7 +170,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
       firstname: testCustomerData.firstname,
       birthDate: testCustomerData.birthDate,
       gender: testCustomerData.gender
-    }), false);
+    }), false, expect.anything());
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
   });
 
@@ -206,7 +206,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
       firstname: testCustomerData.firstname,
       birthDate: testCustomerData.birthDate,
       gender: testCustomerData.gender
-    }), false);
+    }), false, expect.anything());
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
   });
 

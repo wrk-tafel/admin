@@ -1,4 +1,5 @@
 import {afterRenderEffect, Component, computed, inject, input, linkedSignal, viewChild} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
 import {
   CustomerApiService,
@@ -14,6 +15,8 @@ import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -89,18 +92,18 @@ export class CustomerEditComponent {
           const customer = response.data;
           this.router.navigate(['/kunden/detail', customer.id]);
         },
-        error: (error: any) => {
-          const errorMessage = error.error.detail;
+        error: (error: HttpErrorResponse) => {
+          const errorMessage = extractErrorMessage(error);
           if (error.status === 409) {
             this.openConfirmCustomerSaveDialog(errorMessage, () => {
-              this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
+              this.customerApiService.createCustomer(this.customerUpdated(), true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
                 next: (response: CustomerCreationResponse) => {
                   const customer = response.data;
                   this.toastr.success('Kunde wurde gespeichert!');
                   this.router.navigate(['/kunden/detail', customer.id]);
                 },
-                error: () => {
-                  this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
+                error: (retryError: HttpErrorResponse) => {
+                  this.toastr.error(extractErrorMessage(retryError), 'Speichern fehlgeschlagen!');
                 },
               });
             });
@@ -110,25 +113,25 @@ export class CustomerEditComponent {
         },
       };
 
-      this.customerApiService.createCustomer(this.customerUpdated(), false).subscribe(observer);
+      this.customerApiService.createCustomer(this.customerUpdated(), false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
     } else {
       const observer = {
         next: (response: CustomerUpdateResponse) => {
           const customer = response.data;
           this.router.navigate(['/kunden/detail', customer.id]);
         },
-        error: (error: any) => {
-          const errorMessage = error.error.detail;
+        error: (error: HttpErrorResponse) => {
+          const errorMessage = extractErrorMessage(error);
           if (error.status === 409) {
             this.openConfirmCustomerSaveDialog(errorMessage, () => {
-              this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
+              this.customerApiService.updateCustomer(this.customerUpdated(), true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
                 next: (response: CustomerUpdateResponse) => {
                   const customer = response.data;
                   this.toastr.success('Kunde wurde gespeichert!');
                   this.router.navigate(['/kunden/detail', customer.id]);
                 },
-                error: () => {
-                  this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
+                error: (retryError: HttpErrorResponse) => {
+                  this.toastr.error(extractErrorMessage(retryError), 'Speichern fehlgeschlagen!');
                 },
               });
             });
@@ -137,7 +140,7 @@ export class CustomerEditComponent {
           }
         },
       };
-      this.customerApiService.updateCustomer(this.customerUpdated(), false).subscribe(observer);
+      this.customerApiService.updateCustomer(this.customerUpdated(), false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
     }
   }
 

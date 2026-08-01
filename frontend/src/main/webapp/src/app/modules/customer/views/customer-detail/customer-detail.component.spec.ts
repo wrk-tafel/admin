@@ -463,7 +463,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(location.path()).not.toBe('/kunden/suchen');
-    expect(toastr.error).toHaveBeenCalledWith('Löschen fehlgeschlagen!');
+    expect(toastr.error).toHaveBeenCalledWith('Es ist ein unerwarteter Fehler aufgetreten.', 'Löschen fehlgeschlagen!');
   });
 
   it('prolong customer', () => {
@@ -485,7 +485,7 @@ describe('CustomerDetailComponent', () => {
 
     component.prolongCustomer(3);
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
     expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
@@ -695,7 +695,7 @@ describe('CustomerDetailComponent', () => {
     component.ticketNumberInput.set(55);
     component.assignTicket();
 
-    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, 55);
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, 55, expect.anything());
     expect(component.ticketNumber()).toBe(55);
     expect(component.ticketNumberInput()).toBeNull();
     expect(toastr.success).toHaveBeenCalledWith('Ticket wurde zugewiesen!');
@@ -718,7 +718,7 @@ describe('CustomerDetailComponent', () => {
 
     component.deleteTicket();
 
-    expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
     expect(component.ticketNumber()).toBeNull();
     expect(toastr.success).toHaveBeenCalledWith('Ticket wurde gelöscht!');
   });
@@ -768,7 +768,7 @@ describe('CustomerDetailComponent', () => {
         message: mockMessage
       }
     });
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(mockCustomer, true);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(mockCustomer, true, expect.anything());
   });
 
   it('openConfirmUpdateCustomerDialog does not call API when dialog is cancelled', () => {
@@ -813,7 +813,7 @@ describe('CustomerDetailComponent', () => {
 
     component.prolongCustomer(3);
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
   });
 
   it('prolong customer with non-409 error shows error toast', () => {
@@ -835,8 +835,8 @@ describe('CustomerDetailComponent', () => {
 
     component.prolongCustomer(3);
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
-    expect(toastr.error).toHaveBeenCalledWith('Verlängerung fehlgeschlagen!');
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
+    expect(toastr.error).toHaveBeenCalledWith('Internal server error', 'Verlängerung fehlgeschlagen!');
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

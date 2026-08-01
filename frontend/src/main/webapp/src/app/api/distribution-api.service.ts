@@ -1,4 +1,4 @@
-import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 
@@ -22,13 +22,13 @@ export class DistributionApiService {
     return this.http.post<DistributionCloseValidationResult>('/distributions/close', null, {params: queryParams});
   }
 
-  assignCustomer(customerId: number, ticketNumber: number): Observable<void> {
+  assignCustomer(customerId: number, ticketNumber: number, context?: HttpContext): Observable<void> {
     // the backend identifies the customer by its household id (same number as before)
     const body: AssignHouseholdRequest = {
       householdId: customerId,
       ticketNumber: ticketNumber,
     };
-    return this.http.post<void>('/distributions/households', body);
+    return this.http.post<void>('/distributions/households', body, {context});
   }
 
   saveStatistic(employeeCount: number, selectedShelterIds: number[]): Observable<void> {

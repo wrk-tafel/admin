@@ -18,6 +18,7 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {form, FormField} from '@angular/forms/signals';
 import {MatDividerModule} from '@angular/material/divider';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-user-search',
@@ -73,7 +74,8 @@ export class UserSearchComponent {
         }
       }
     };
-    this.userApiService.getUserForPersonnelNumber(this.searchForm.personnelNumber().value()).subscribe(observer);
+    const personnelNumber = this.searchForm.personnelNumber().value();
+    this.userApiService.getUserForPersonnelNumber(personnelNumber, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
   }
 
   navigateToUserDetail(userId: number | undefined) {

@@ -1,9 +1,12 @@
 import {afterRenderEffect, Component, inject, input, linkedSignal, viewChild} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {MatButtonModule} from '@angular/material/button';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-user-edit',
@@ -51,15 +54,15 @@ export class UserEditComponent {
       next: (user: UserData) => {
         this.router.navigate(['/benutzer/detail', user.id]);
       },
-      error: (error: any) => {
-        this.toastr.error(error.error.detail || 'Fehler beim Speichern des Benutzers');
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error));
       },
     };
 
     if (!this.userData()) {
-      this.userApiService.createUser(this.userUpdated()!).subscribe(observer);
+      this.userApiService.createUser(this.userUpdated()!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
     } else {
-      this.userApiService.updateUser(this.userUpdated()!).subscribe(observer);
+      this.userApiService.updateUser(this.userUpdated()!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
     }
   }
 

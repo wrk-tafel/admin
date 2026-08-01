@@ -1,4 +1,4 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
@@ -7,16 +7,16 @@ import {PagedResponse} from '../common/api/paged-response';
 export class UserApiService {
   private readonly http = inject(HttpClient);
 
-  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
-    return this.http.post<ChangePasswordResponse>('/users/change-password', request);
+  changePassword(request: ChangePasswordRequest, context?: HttpContext): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>('/users/change-password', request, {context});
   }
 
   getUserForId(userId: number): Observable<UserData> {
     return this.http.get<UserData>('/users/' + userId);
   }
 
-  getUserForPersonnelNumber(personnelNumber: string): Observable<UserData> {
-    return this.http.get<UserData>('/users/personnel-number/' + personnelNumber);
+  getUserForPersonnelNumber(personnelNumber: string, context?: HttpContext): Observable<UserData> {
+    return this.http.get<UserData>('/users/personnel-number/' + personnelNumber, {context});
   }
 
   searchUser(
@@ -45,16 +45,16 @@ export class UserApiService {
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
   }
 
-  updateUser(data: UserData): Observable<UserData> {
-    return this.http.put<UserData>(`/users/${data.id}`, data);
+  updateUser(data: UserData, context?: HttpContext): Observable<UserData> {
+    return this.http.put<UserData>(`/users/${data.id}`, data, {context});
   }
 
   deleteUser(userId: number): Observable<void> {
     return this.http.delete<void>(`/users/${userId}`);
   }
 
-  createUser(data: UserData): Observable<UserData> {
-    return this.http.post<UserData>('/users', data);
+  createUser(data: UserData, context?: HttpContext): Observable<UserData> {
+    return this.http.post<UserData>('/users', data, {context});
   }
 
   generatePassword(): Observable<GeneratedPasswordResponse> {

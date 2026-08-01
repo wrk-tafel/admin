@@ -1,4 +1,4 @@
-import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {map, Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
@@ -22,8 +22,8 @@ export class CustomerApiService {
     return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data));
   }
 
-  createCustomer(data: CustomerData, force: boolean): Observable<CustomerCreationResponse> {
-    return this.http.post<HouseholdCreationResponse>('/households', mapCustomerToHousehold(data), {params: {force}})
+  createCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerCreationResponse> {
+    return this.http.post<HouseholdCreationResponse>('/households', mapCustomerToHousehold(data), {params: {force}, context})
       .pipe(
         map(response => ({data: mapHouseholdToCustomer(response?.data), errorMsg: response?.errorMsg ?? null})),
         tap(response => {
@@ -35,8 +35,8 @@ export class CustomerApiService {
       );
   }
 
-  updateCustomer(data: CustomerData, force: boolean): Observable<CustomerUpdateResponse> {
-    return this.http.put<HouseholdUpdateResponse>(`/households/${data.id}`, mapCustomerToHousehold(data), {params: {force}})
+  updateCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerUpdateResponse> {
+    return this.http.put<HouseholdUpdateResponse>(`/households/${data.id}`, mapCustomerToHousehold(data), {params: {force}, context})
       .pipe(
         map(response => ({data: mapHouseholdToCustomer(response?.data), errorMsg: response?.errorMsg ?? null})),
         tap(response => {
@@ -48,12 +48,12 @@ export class CustomerApiService {
       );
   }
 
-  deleteCustomer(customerId: number): Observable<void> {
-    return this.http.delete<void>(`/households/${customerId}`);
+  deleteCustomer(customerId: number, context?: HttpContext): Observable<void> {
+    return this.http.delete<void>(`/households/${customerId}`, {context});
   }
 
-  getCustomer(id: number): Observable<CustomerData> {
-    return this.http.get<HouseholdData>('/households/' + id).pipe(map(mapHouseholdToCustomer));
+  getCustomer(id: number, context?: HttpContext): Observable<CustomerData> {
+    return this.http.get<HouseholdData>('/households/' + id, {context}).pipe(map(mapHouseholdToCustomer));
   }
 
   generatePdf(id: number, type: PdfType): Observable<HttpResponse<Blob>> {
