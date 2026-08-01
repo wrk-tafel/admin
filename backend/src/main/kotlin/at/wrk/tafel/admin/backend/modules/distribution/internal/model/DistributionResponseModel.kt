@@ -11,7 +11,7 @@ data class DistributionListResponse(
 )
 
 @ExcludeFromTestCoverage
-data class DistributionItemUpdate(
+data class DistributionUpdateResponse(
     val distribution: DistributionItem?,
 )
 
@@ -36,19 +36,19 @@ data class TicketNumberResponse(
 )
 
 @ExcludeFromTestCoverage
-data class DistributionStatisticData(
+data class DistributionStatisticRequest(
     @field:PositiveOrZero
     val employeeCount: Int,
     val selectedShelterIds: List<Long>,
 )
 
 @ExcludeFromTestCoverage
-data class DistributionNoteData(
+data class DistributionNoteRequest(
     val notes: String,
 )
 
 @ExcludeFromTestCoverage
-data class DistributionCloseValidationResult(
+data class DistributionCloseResponse(
     val errors: List<String>,
     val warnings: List<String>,
 ) {

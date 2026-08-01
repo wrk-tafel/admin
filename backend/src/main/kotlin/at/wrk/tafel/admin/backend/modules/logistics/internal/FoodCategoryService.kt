@@ -3,7 +3,8 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryResponse
 import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -13,16 +14,16 @@ class FoodCategoryService(
     private val foodCategoriesRepository: FoodCategoryRepository,
 ) {
 
-    fun getActiveFoodCategories(): List<FoodCategory> = sortCategories(foodCategoriesRepository.findByEnabledIsTrue())
+    fun getActiveFoodCategories(): List<FoodCategoryResponse> = sortCategories(foodCategoriesRepository.findByEnabledIsTrue())
         .map { mapFoodCategory(it) }
 
-    fun getAllFoodCategories(): List<FoodCategory> = sortCategories(foodCategoriesRepository.findAll().toList())
+    fun getAllFoodCategories(): List<FoodCategoryResponse> = sortCategories(foodCategoriesRepository.findAll().toList())
         // Return/deposit item categories ("Kisten") are out of scope for this admin listing -
         // they will get their own dedicated form later.
         .filter { it.returnItem != true }
         .map { mapFoodCategory(it) }
 
-    fun createFoodCategory(category: FoodCategory): FoodCategory {
+    fun createFoodCategory(category: FoodCategoryRequest): FoodCategoryResponse {
         val entity = FoodCategoryEntity().apply {
             name = category.name
             weightPerUnit = category.weightPerUnit
@@ -35,7 +36,7 @@ class FoodCategoryService(
         return mapFoodCategory(savedEntity)
     }
 
-    fun updateFoodCategory(foodCategoryId: Long, updatedCategory: FoodCategory): FoodCategory {
+    fun updateFoodCategory(foodCategoryId: Long, updatedCategory: FoodCategoryRequest): FoodCategoryResponse {
         val entity = foodCategoriesRepository.findByIdOrNull(foodCategoryId)
             ?: throw NotFoundException("FoodCategory with id $foodCategoryId not found")
 
@@ -75,7 +76,7 @@ class FoodCategoryService(
             ),
         )
 
-    private fun mapFoodCategory(foodCategoryEntity: FoodCategoryEntity): FoodCategory = FoodCategory(
+    private fun mapFoodCategory(foodCategoryEntity: FoodCategoryEntity): FoodCategoryResponse = FoodCategoryResponse(
         id = foodCategoryEntity.id,
         name = foodCategoryEntity.name!!,
         weightPerUnit = foodCategoryEntity.weightPerUnit,

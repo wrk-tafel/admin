@@ -4,11 +4,11 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
 data class CountryListResponse(
-    val items: List<Country> = emptyList(),
+    val items: List<CountryItem> = emptyList(),
 )
 
 @ExcludeFromTestCoverage
-data class Country(
+data class CountryItem(
     val id: Long,
     val code: String,
     val name: String,

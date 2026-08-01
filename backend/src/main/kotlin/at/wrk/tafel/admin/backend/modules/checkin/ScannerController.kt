@@ -24,9 +24,9 @@ class ScannerController(
     fun getScanners(): ScannersResponse = ScannersResponse(scannerIds = scannerService.getScannerIds())
 
     @PostMapping("/register")
-    fun registerScanner(@RequestParam("scannerId") existingScannerId: Int?): ScannerRegistration {
+    fun registerScanner(@RequestParam("scannerId") existingScannerId: Int?): ScannerRegistrationResponse {
         val scannerId = scannerService.registerScanner(existingScannerId)
-        return ScannerRegistration(scannerId = scannerId)
+        return ScannerRegistrationResponse(scannerId = scannerId)
     }
 
     @PostMapping("/{scannerId}/results")
@@ -48,7 +48,7 @@ data class ScanResult(
 )
 
 @ExcludeFromTestCoverage
-data class ScannerRegistration(
+data class ScannerRegistrationResponse(
     val scannerId: Int,
 )
 

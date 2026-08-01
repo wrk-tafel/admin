@@ -237,7 +237,9 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Services: Suffix with `Service`, mark internal services in `internal/` package
 - Entities: Suffix with `Entity`, located in `database/model/`
 - Repositories: Suffix with `Repository`, use Spring Data JPA
-- Models: Suffix with `Model` or `ResponseModel` for DTOs
+- Models: DTOs bound to a REST endpoint follow the naming convention in [API
+  Structure](#rest-dto-naming-convention) below; `Model`/`ResponseModel` filenames (not type names)
+  remain fine for the file a DTO group lives in (e.g. `HouseholdResponseModel.kt`)
 - Use constructor injection for dependencies
 - Use `@Transactional` on service methods that modify data
 - Converters in `internal/converter/` package convert entities to models
@@ -303,6 +305,50 @@ endpoints return `201`, delete endpoints return `204` — this is a project-wide
 just a pattern that happens to repeat. SSE endpoints for a given resource live under a sibling
 `.../sse/...` controller (e.g. `DistributionController` + `DistributionSseController`) so their
 URLs stay stable even as the REST resource's own base path changes.
+
+### REST DTO naming convention
+
+Every type that appears directly in a controller method's signature (a `@RequestBody` parameter,
+or the return type once `ResponseEntity<T>`/`PagedResponse<T>`/`XxxListResponse` is unwrapped to
+`T`) gets one of exactly three suffixes, decided by how that type is actually used across the API
+— not by guessing what "feels" like a request or response:
+
+1. **`Request`** — the type is bound to `@RequestBody` somewhere. If the identical type is *also*
+   directly returned (the old "reuse the domain model for both directions" pattern), split it into
+   a same-named `XxxRequest`/`XxxResponse` pair rather than reusing one bare type for both (e.g.
+   `Car` → `CarRequest`/`CarResponse`, `Household` → `HouseholdRequest`/`HouseholdResponse`). This
+   is deliberate churn: it decouples the write and read wire contracts so either can evolve without
+   dragging the other along, even though the two classes are field-for-field identical on day one.
+2. **`Response`** — the type is returned directly from an endpoint (never a request body) and is
+   not merely a list element (see `Item` below). Covers both full resources with no request-body
+   counterpart (`Employee` → `EmployeeResponse`) and bare action-result types that previously had no
+   suffix or a stray one like `Data`/`Result` (`StatisticsData` → `StatisticsResponse`,
+   `DistributionCloseValidationResult` → `DistributionCloseResponse`).
+3. **`Item`** — the type is *only* ever the element type of a `PagedResponse<T>` or an
+   `XxxListResponse`'s `List<T>` — it never appears as a request body and is never itself returned
+   as a standalone single-resource response (`Route` → `RouteItem`, `SchoolStarterPackageEntry` →
+   `SchoolStarterPackageItem`). A type that already has a dedicated create/update response role
+   (e.g. `HouseholdNoteItem`, created via `POST` and also listed via `PagedResponse`) keeps the
+   `Item` suffix rather than splitting into `Request`/`Response` — the "is it ever a request body"
+   test is what actually matters, not "does some endpoint return one instance of it directly."
+
+Two established generic wrappers are exempt from all of the above and keep their existing names:
+`PagedResponse<T>` (`common/api/PagedResponse.kt`) for paginated lists, and a per-resource
+`XxxListResponse` for non-paginated full-list responses.
+
+**Nested value objects** that are embedded fields inside a `Request`/`Response`/`Item` type but are
+never *themselves* bound to a controller signature (not a request body, not a controller's direct
+return type, not the direct element type of a list endpoint) keep their plain domain name — no
+suffix. Examples: `Person`, `HouseholdAddress`, `HouseholdIssuer`, `ShelterContact` → renamed to
+`ShelterContactItem` for consistency with sibling repeatable-record types (`HouseholdNoteItem`,
+`StaticValueItem`'s successor), while `Person`/`HouseholdAddress`/`HouseholdIssuer` stay bare since
+they're single embedded values, not repeatable records. Enums never take a suffix.
+
+When a service method needs to operate on data that's structurally identical across a
+`Request`/`Response` split (e.g. validating a household's persons list, which exists on both
+`HouseholdRequest` and `HouseholdResponse`), prefer taking the narrower shared shape (a
+`List<Person>`, not a `Household`) over adding overloads or a shared supertype — see
+`HouseholdService.validate`/`mapToValidationPersons`.
 
 - `/api/users`: User management
 - `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`

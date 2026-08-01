@@ -8,11 +8,11 @@ import java.time.LocalDate
 
 @ExcludeFromTestCoverage
 data class StaticValueListResponse(
-    val staticValues: List<StaticValueItem>,
+    val staticValues: List<StaticValueResponse>,
 )
 
 @ExcludeFromTestCoverage
-data class StaticValueItem(
+data class StaticValueRequest(
     val id: Long?,
     @field:NotBlank
     val type: String,
@@ -25,5 +25,17 @@ data class StaticValueItem(
     @field:PositiveOrZero
     val countChildren: Int?,
     @field:PositiveOrZero
+    val age: Int?,
+)
+
+@ExcludeFromTestCoverage
+data class StaticValueResponse(
+    val id: Long?,
+    val type: String,
+    val validFrom: LocalDate,
+    val validTo: LocalDate,
+    val amount: BigDecimal?,
+    val countAdults: Int?,
+    val countChildren: Int?,
     val age: Int?,
 )

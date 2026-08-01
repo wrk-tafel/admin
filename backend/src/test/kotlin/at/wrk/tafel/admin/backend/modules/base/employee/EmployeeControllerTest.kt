@@ -24,7 +24,7 @@ class EmployeeControllerTest {
     fun `find employees`() {
         val response = EmployeeListResponse(
             items = listOf(
-                Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+                EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
             ),
             totalCount = 1,
             currentPage = 1,
@@ -40,12 +40,12 @@ class EmployeeControllerTest {
 
     @Test
     fun `save employee`() {
-        val employeeCreateRequest = EmployeeCreateRequest(
+        val employeeCreateRequest = EmployeeRequest(
             personnelNumber = "00001",
             firstname = "first 1",
             lastname = "last 1",
         )
-        val savedEmployee = Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1")
+        val savedEmployee = EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1")
         every { employeeService.saveEmployee(employeeCreateRequest) } returns savedEmployee
 
         val result = employeeController.saveEmployee(employeeCreateRequest)
@@ -58,12 +58,12 @@ class EmployeeControllerTest {
     @Test
     fun `update employee`() {
         val employeeId = 1L
-        val employeeUpdateRequest = EmployeeCreateRequest(
+        val employeeUpdateRequest = EmployeeRequest(
             personnelNumber = "00001",
             firstname = "first 1",
             lastname = "last 1",
         )
-        val updatedEmployee = Employee(id = employeeId, personnelNumber = "00001", firstname = "first 1", lastname = "last 1")
+        val updatedEmployee = EmployeeResponse(id = employeeId, personnelNumber = "00001", firstname = "first 1", lastname = "last 1")
         every { employeeService.updateEmployee(employeeId, employeeUpdateRequest) } returns updatedEmployee
 
         val result = employeeController.updateEmployee(employeeId, employeeUpdateRequest)

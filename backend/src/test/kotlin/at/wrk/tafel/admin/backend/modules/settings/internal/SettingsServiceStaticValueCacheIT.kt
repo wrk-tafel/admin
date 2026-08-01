@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,7 +56,7 @@ class SettingsServiceStaticValueCacheIT : TafelBaseIntegrationTest() {
 
         settingsService.updateStaticValue(
             entity.id!!,
-            StaticValueItem(
+            StaticValueRequest(
                 id = entity.id,
                 type = StaticValueType.TOLERANCE.name,
                 validFrom = today.minusDays(1),

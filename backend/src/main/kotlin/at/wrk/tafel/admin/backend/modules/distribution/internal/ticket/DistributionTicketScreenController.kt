@@ -25,7 +25,7 @@ class DistributionTicketScreenController(
 
     @PostMapping("/show-text")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
-    fun showText(@Valid @RequestBody request: TicketScreenShowText) {
+    fun showText(@Valid @RequestBody request: TicketScreenShowTextRequest) {
         saveToOutbox(text = request.text, value = request.value)
     }
 
@@ -66,7 +66,7 @@ class DistributionTicketScreenController(
     private fun saveToOutbox(text: String, value: String?) {
         sseOutboxService.saveOutboxEntry(
             TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-            TicketScreenShowText(
+            TicketScreenShowTextRequest(
                 text = text,
                 value = value,
             ),
@@ -75,7 +75,7 @@ class DistributionTicketScreenController(
 }
 
 @ExcludeFromTestCoverage
-data class TicketScreenShowText(
+data class TicketScreenShowTextRequest(
     @field:NotBlank
     val text: String,
     val value: String?,

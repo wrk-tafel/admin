@@ -30,8 +30,8 @@ class DistributionController(
 
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun createNewDistribution(): DistributionItemUpdate {
-        val update = DistributionItemUpdate(distribution = service.createNewDistributionItem())
+    fun createNewDistribution(): DistributionUpdateResponse {
+        val update = DistributionUpdateResponse(distribution = service.createNewDistributionItem())
 
         sseOutboxService.saveOutboxEntry(
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
@@ -44,7 +44,7 @@ class DistributionController(
     @PostMapping("/statistics")
     @PreAuthorize("hasAuthority('LOGISTICS')")
     @TafelActiveDistributionRequired
-    fun saveDistributionStatistic(@Valid @RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
+    fun saveDistributionStatistic(@Valid @RequestBody statisticData: DistributionStatisticRequest): ResponseEntity<Unit> {
         service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.selectedShelterIds)
         return ResponseEntity.ok().build()
     }
@@ -52,21 +52,21 @@ class DistributionController(
     @PostMapping("/notes")
     @PreAuthorize("isAuthenticated()")
     @TafelActiveDistributionRequired
-    fun saveDistributionNotes(@Valid @RequestBody noteData: DistributionNoteData): ResponseEntity<Unit> {
+    fun saveDistributionNotes(@Valid @RequestBody noteData: DistributionNoteRequest): ResponseEntity<Unit> {
         service.updateDistributionNoteData(noteData.notes)
         return ResponseEntity.ok().build()
     }
 
     /**
      * `forceClose` only overrides validation *warnings*, never hard errors: if
-     * [DistributionCloseValidationResult.hasOnlyWarnings] is false (i.e. there's at least one real
+     * [DistributionCloseResponse.hasOnlyWarnings] is false (i.e. there's at least one real
      * error), the distribution is not closed regardless of `forceClose`, and the validation
      * result is returned instead so the caller can see why.
      */
     @PostMapping("/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     @TafelActiveDistributionRequired
-    fun closeDistribution(@RequestParam forceClose: Boolean = false): ResponseEntity<DistributionCloseValidationResult> {
+    fun closeDistribution(@RequestParam forceClose: Boolean = false): ResponseEntity<DistributionCloseResponse> {
         val closeValidationResult = service.validateClose()
         return if (closeValidationResult.isInvalid()) {
             if (forceClose && closeValidationResult.hasOnlyWarnings()) {
@@ -79,13 +79,13 @@ class DistributionController(
         }
     }
 
-    private fun closeAndNotify(): ResponseEntity<DistributionCloseValidationResult> {
+    private fun closeAndNotify(): ResponseEntity<DistributionCloseResponse> {
         service.closeDistribution()
 
         // update clients about new state - no active distribution
         sseOutboxService.saveOutboxEntry(
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            payload = DistributionItemUpdate(distribution = null),
+            payload = DistributionUpdateResponse(distribution = null),
         )
 
         return ResponseEntity.ok().build()

@@ -21,14 +21,16 @@ Entities backing this module are **not** colocated with it: they live under `dat
 ### `country` — `@NamedInterface("country")`
 - [`CountryController`](country/CountryController.kt): `GET /api/countries`, requires only
   `isAuthenticated()` (no specific permission) — returns the full country list, unpaginated.
-- [`CountryModel.kt`](country/CountryModel.kt): exposes `Country(id, code, name)` and
-  `CountryListResponse`.
+- [`CountryModel.kt`](country/CountryModel.kt): exposes `CountryItem(id, code, name)` and
+  `CountryListResponse`. `CountryItem` never appears as a standalone single-resource response or a
+  request body - it's only ever an element of `CountryListResponse.items` or an embedded field on
+  `Person`, hence the `Item` suffix rather than a `Request`/`Response` split.
 - Backed by `CountryRepository`/`CountryEntity` in `database/model/staticdata` (table
   `static_countries`).
 - **Only consumer:** the `household` module. `HouseholdConverter` resolves a `Person`'s
   `CountryEntity` by id (`countryRepository.findById(person.country.id)`), and
-  `HouseholdConverter.mapCountryToResponse` maps it back to the `base.country.Country` DTO for the
-  `Person.country` field in `HouseholdResponseModel.kt`. `household`'s `package-info.java` lists
+  `HouseholdConverter.mapCountryToResponse` maps it back to the `base.country.CountryItem` DTO for
+  the `Person.country` field in `HouseholdResponseModel.kt`. `household`'s `package-info.java` lists
   `base::country` in `allowedDependencies` accordingly. No other module references
   `modules.base.country`.
 
@@ -37,8 +39,9 @@ Entities backing this module are **not** colocated with it: they live under `dat
   name/personnel number) and `POST /api/employees` (create), both gated behind `LOGISTICS`
   authority (not a typo — employee management is treated as a logistics concern, since employees are
   mainly used to track who staffed a distribution/collection).
-- [`EmployeeModel.kt`](employee/EmployeeModel.kt): `Employee(id, personnelNumber, firstname,
-  lastname)`, `EmployeeListResponse`, `EmployeeCreateRequest`.
+- [`EmployeeModel.kt`](employee/EmployeeModel.kt): `EmployeeResponse(id, personnelNumber,
+  firstname, lastname)`, `EmployeeListResponse`, `EmployeeRequest` (used for both create and
+  update).
 - Backed by `EmployeeRepository`/`EmployeeEntity` in `database/model/base` (table `employees`).
 - **Only consumer:** the `logistics` module (`FoodCollectionService`, `FoodCollectionsModel`), which
   declares `base::employee` in its `allowedDependencies`. Note that `household` does **not** depend

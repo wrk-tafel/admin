@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
-import at.wrk.tafel.admin.backend.modules.base.employee.Employee
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import io.mockk.every
@@ -25,16 +25,16 @@ class FoodCollectionsControllerTest {
     @Test
     fun `get food collection`() {
         val routeId = 456L
-        val testFoodCollectionData = FoodCollectionData(
+        val testFoodCollectionData = FoodCollectionResponse(
             routeId = routeId,
             carId = 1,
-            driver = Employee(
+            driver = EmployeeResponse(
                 id = 1,
                 personnelNumber = "111",
                 firstname = "employee firstname 1",
                 lastname = "employee lastname 1",
             ),
-            coDriver = Employee(
+            coDriver = EmployeeResponse(
                 id = 2,
                 personnelNumber = "222",
                 firstname = "employee firstname 2",
@@ -73,7 +73,7 @@ class FoodCollectionsControllerTest {
     @Test
     fun `saves route data`() {
         val routeId = 123L
-        val request = FoodCollectionSaveRouteData(
+        val request = FoodCollectionSaveRouteRequest(
             carId = 1,
             driverId = 1,
             coDriverId = 2,
@@ -89,7 +89,7 @@ class FoodCollectionsControllerTest {
     @Test
     fun `save items`() {
         val routeId = 123L
-        val request = FoodCollectionItems(
+        val request = FoodCollectionItemsRequest(
             items = listOf(
                 FoodCollectionItem(
                     categoryId = 1,
@@ -108,7 +108,7 @@ class FoodCollectionsControllerTest {
     fun `save items per shop`() {
         val routeId = 123L
         val shopId = 456L
-        val request = FoodCollectionSaveItemsPerShopData(
+        val request = FoodCollectionSaveItemsPerShopRequest(
             items = listOf(
                 FoodCollectionCategoryAmount(
                     categoryId = 1,
@@ -126,7 +126,7 @@ class FoodCollectionsControllerTest {
     fun `get items per shop`() {
         val routeId = 123L
         val shopId = 456L
-        val responseBody = FoodCollectionItems(
+        val responseBody = FoodCollectionItemsResponse(
             items = listOf(
                 FoodCollectionItem(
                     categoryId = 1,
@@ -161,7 +161,7 @@ class FoodCollectionsControllerTest {
     @Test
     fun `patch a single item`() {
         val routeId = 123L
-        val request = FoodCollectionItem(
+        val request = FoodCollectionItemRequest(
             categoryId = 1,
             shopId = 2,
             amount = 3,

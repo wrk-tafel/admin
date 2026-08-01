@@ -1,9 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.settings
 
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,10 +23,10 @@ class SettingsController(
 ) {
 
     @GetMapping("/mail-recipients")
-    fun getMailRecipientSettings(): MailRecipients = settingsService.getMailRecipients()
+    fun getMailRecipientSettings(): MailRecipientsResponse = settingsService.getMailRecipients()
 
     @PutMapping("/mail-recipients")
-    fun updateMailRecipientSettings(@Valid @RequestBody settings: MailRecipients) {
+    fun updateMailRecipientSettings(@Valid @RequestBody settings: MailRecipientsRequest) {
         settingsService.updateMailRecipients(settings)
     }
 
@@ -34,6 +36,6 @@ class SettingsController(
     @PutMapping("/static-values/{staticValueId}")
     fun updateStaticValue(
         @PathVariable staticValueId: Long,
-        @Valid @RequestBody staticValue: StaticValueItem,
-    ): StaticValueItem = settingsService.updateStaticValue(staticValueId, staticValue)
+        @Valid @RequestBody staticValue: StaticValueRequest,
+    ): StaticValueResponse = settingsService.updateStaticValue(staticValueId, staticValue)
 }

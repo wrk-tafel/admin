@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionUpdateResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -42,13 +42,13 @@ internal class DistributionSseControllerTest {
         verifySequence {
             sseOutboxService.sendEvent(
                 sseEmitter,
-                DistributionItemUpdate(distribution = distributionItem),
+                DistributionUpdateResponse(distribution = distributionItem),
             )
 
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = sseEmitter,
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                resultType = DistributionItemUpdate::class.java,
+                resultType = DistributionUpdateResponse::class.java,
             )
         }
     }
@@ -63,7 +63,7 @@ internal class DistributionSseControllerTest {
         verifySequence {
             sseOutboxService.sendEvent(
                 sseEmitter,
-                DistributionItemUpdate(
+                DistributionUpdateResponse(
                     distribution = null,
                 ),
             )
@@ -71,7 +71,7 @@ internal class DistributionSseControllerTest {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = sseEmitter,
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                resultType = DistributionItemUpdate::class.java,
+                resultType = DistributionUpdateResponse::class.java,
             )
         }
     }

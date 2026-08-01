@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 class SheltersResponseModelTest {
 
-    private fun validShelter() = Shelter(
+    private fun validShelterRequest() = ShelterRequest(
         id = null,
         name = "Shelter",
         addressStreet = "Street",
@@ -23,8 +23,8 @@ class SheltersResponseModelTest {
     )
 
     @Test
-    fun `shelter with blank and invalid fields is invalid`() {
-        val shelter = validShelter().copy(
+    fun `shelter request with blank and invalid fields is invalid`() {
+        val shelter = validShelterRequest().copy(
             name = "",
             addressStreet = "",
             addressHouseNumber = "",
@@ -47,9 +47,9 @@ class SheltersResponseModelTest {
     }
 
     @Test
-    fun `shelter cascades into blank contact phone`() {
-        val shelter = validShelter().copy(
-            contacts = listOf(ShelterContact(firstname = "A", lastname = "B", phone = "")),
+    fun `shelter request cascades into blank contact phone`() {
+        val shelter = validShelterRequest().copy(
+            contacts = listOf(ShelterContactItem(firstname = "A", lastname = "B", phone = "")),
         )
 
         val violations = validator.validate(shelter)
@@ -59,8 +59,8 @@ class SheltersResponseModelTest {
     }
 
     @Test
-    fun `shelter with valid values is valid`() {
-        val violations = validator.validate(validShelter())
+    fun `shelter request with valid values is valid`() {
+        val violations = validator.validate(validShelterRequest())
 
         assertThat(violations).isEmpty()
     }

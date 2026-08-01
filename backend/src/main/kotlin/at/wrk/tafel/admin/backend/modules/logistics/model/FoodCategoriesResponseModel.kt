@@ -8,15 +8,25 @@ import java.math.BigDecimal
 
 @ExcludeFromTestCoverage
 data class FoodCategoriesListResponse(
-    val categories: List<FoodCategory>,
+    val categories: List<FoodCategoryResponse>,
 )
 
 @ExcludeFromTestCoverage
-data class FoodCategory(
+data class FoodCategoryRequest(
     val id: Long?,
     @field:NotBlank
     val name: String,
     @field:PositiveOrZero
+    val weightPerUnit: BigDecimal?,
+    val returnItem: Boolean,
+    val sortOrder: Int,
+    val enabled: Boolean,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCategoryResponse(
+    val id: Long?,
+    val name: String,
     val weightPerUnit: BigDecimal?,
     val returnItem: Boolean,
     val sortOrder: Int,

@@ -8,7 +8,7 @@ class EmployeeModelTest {
 
     @Test
     fun `employee create request with blank fields is invalid`() {
-        val request = EmployeeCreateRequest(personnelNumber = "", firstname = "", lastname = "")
+        val request = EmployeeRequest(personnelNumber = "", firstname = "", lastname = "")
 
         val violations = validator.validate(request)
 
@@ -18,7 +18,7 @@ class EmployeeModelTest {
 
     @Test
     fun `employee create request with filled fields is valid`() {
-        val request = EmployeeCreateRequest(personnelNumber = "123", firstname = "Max", lastname = "Mustermann")
+        val request = EmployeeRequest(personnelNumber = "123", firstname = "Max", lastname = "Mustermann")
 
         val violations = validator.validate(request)
 

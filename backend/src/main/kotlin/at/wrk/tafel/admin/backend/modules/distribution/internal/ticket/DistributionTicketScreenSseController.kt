@@ -29,13 +29,13 @@ class DistributionTicketScreenSseController(
         if (service.hasCurrentDistribution()) {
             currentTicketNumber = service.getCurrentTicketNumberValue()
         }
-        val payload = TicketScreenShowText(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
+        val payload = TicketScreenShowTextRequest(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
         sseOutboxService.sendEvent(sseEmitter, payload)
 
         sseOutboxService.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-            resultType = TicketScreenShowText::class.java,
+            resultType = TicketScreenShowTextRequest::class.java,
         )
 
         return sseEmitter

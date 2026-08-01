@@ -8,8 +8,8 @@ import java.math.BigDecimal
 class FoodCategoriesResponseModelTest {
 
     @Test
-    fun `food category with blank name and negative weight is invalid`() {
-        val category = FoodCategory(
+    fun `food category request with blank name and negative weight is invalid`() {
+        val category = FoodCategoryRequest(
             id = null,
             name = "",
             weightPerUnit = BigDecimal(-1),
@@ -25,8 +25,8 @@ class FoodCategoriesResponseModelTest {
     }
 
     @Test
-    fun `food category with valid values is valid`() {
-        val category = FoodCategory(
+    fun `food category request with valid values is valid`() {
+        val category = FoodCategoryRequest(
             id = null,
             name = "Category",
             weightPerUnit = BigDecimal.ZERO,

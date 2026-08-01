@@ -2,9 +2,9 @@ package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import at.wrk.tafel.admin.backend.modules.base.employee.Employee
-import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeRequest
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.springframework.data.domain.PageRequest
@@ -35,38 +35,38 @@ class EmployeeService(
     }
 
     @Transactional
-    fun saveEmployee(employeeCreateRequest: EmployeeCreateRequest): Employee {
-        if (employeeRepository.existsByPersonnelNumber(employeeCreateRequest.personnelNumber)) {
-            throw ConflictException("Mitarbeiter ${employeeCreateRequest.personnelNumber} ist bereits vorhanden!")
+    fun saveEmployee(employeeRequest: EmployeeRequest): EmployeeResponse {
+        if (employeeRepository.existsByPersonnelNumber(employeeRequest.personnelNumber)) {
+            throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
         }
 
         val employeeEntity = EmployeeEntity().apply {
-            personnelNumber = employeeCreateRequest.personnelNumber.trim()
-            firstname = employeeCreateRequest.firstname.trim()
-            lastname = employeeCreateRequest.lastname.trim()
+            personnelNumber = employeeRequest.personnelNumber.trim()
+            firstname = employeeRequest.firstname.trim()
+            lastname = employeeRequest.lastname.trim()
         }
         employeeRepository.save(employeeEntity)
-        return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(employeeCreateRequest.personnelNumber)!!)
+        return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(employeeRequest.personnelNumber)!!)
     }
 
     @Transactional
-    fun updateEmployee(employeeId: Long, employeeUpdateRequest: EmployeeCreateRequest): Employee {
+    fun updateEmployee(employeeId: Long, employeeRequest: EmployeeRequest): EmployeeResponse {
         val employeeEntity = employeeRepository.findByIdOrNull(employeeId)
             ?: throw NotFoundException("Employee with id $employeeId not found")
 
-        if (employeeRepository.existsByPersonnelNumberAndIdNot(employeeUpdateRequest.personnelNumber, employeeId)) {
-            throw ConflictException("Mitarbeiter ${employeeUpdateRequest.personnelNumber} ist bereits vorhanden!")
+        if (employeeRepository.existsByPersonnelNumberAndIdNot(employeeRequest.personnelNumber, employeeId)) {
+            throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
         }
 
-        employeeEntity.personnelNumber = employeeUpdateRequest.personnelNumber.trim()
-        employeeEntity.firstname = employeeUpdateRequest.firstname.trim()
-        employeeEntity.lastname = employeeUpdateRequest.lastname.trim()
+        employeeEntity.personnelNumber = employeeRequest.personnelNumber.trim()
+        employeeEntity.firstname = employeeRequest.firstname.trim()
+        employeeEntity.lastname = employeeRequest.lastname.trim()
 
         val savedEntity = employeeRepository.save(employeeEntity)
         return mapEntityToEmployee(savedEntity)
     }
 
-    private fun mapEntityToEmployee(it: EmployeeEntity) = Employee(
+    private fun mapEntityToEmployee(it: EmployeeEntity) = EmployeeResponse(
         id = it.id!!,
         personnelNumber = it.personnelNumber!!,
         firstname = it.firstname!!,

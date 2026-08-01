@@ -29,12 +29,12 @@ class EmployeeController(
 
     @PostMapping
     fun saveEmployee(
-        @Valid @RequestBody employeeCreateRequest: EmployeeCreateRequest,
-    ): ResponseEntity<Employee> = ResponseEntity.status(HttpStatus.CREATED).body(employeeService.saveEmployee(employeeCreateRequest))
+        @Valid @RequestBody employeeRequest: EmployeeRequest,
+    ): ResponseEntity<EmployeeResponse> = ResponseEntity.status(HttpStatus.CREATED).body(employeeService.saveEmployee(employeeRequest))
 
     @PutMapping("/{employeeId}")
     fun updateEmployee(
         @PathVariable employeeId: Long,
-        @Valid @RequestBody employeeUpdateRequest: EmployeeCreateRequest,
-    ): Employee = employeeService.updateEmployee(employeeId, employeeUpdateRequest)
+        @Valid @RequestBody employeeRequest: EmployeeRequest,
+    ): EmployeeResponse = employeeService.updateEmployee(employeeId, employeeRequest)
 }

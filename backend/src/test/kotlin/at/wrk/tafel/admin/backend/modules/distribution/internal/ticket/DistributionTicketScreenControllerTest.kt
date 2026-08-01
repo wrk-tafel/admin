@@ -29,7 +29,7 @@ internal class DistributionTicketScreenControllerTest {
     fun `show text`() {
         val testText = "Test Text"
         val testValue = "123213"
-        val requestBody = TicketScreenShowText(
+        val requestBody = TicketScreenShowTextRequest(
             text = testText,
             value = testValue,
         )
@@ -39,7 +39,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                TicketScreenShowText(
+                TicketScreenShowTextRequest(
                     text = testText,
                     value = testValue,
                 ),
@@ -57,7 +57,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                TicketScreenShowText(
+                TicketScreenShowTextRequest(
                     text = "Ticket",
                     value = "50",
                 ),
@@ -74,7 +74,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                TicketScreenShowText(
+                TicketScreenShowTextRequest(
                     text = "Ticket",
                     value = null,
                 ),
@@ -93,7 +93,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                TicketScreenShowText(
+                TicketScreenShowTextRequest(
                     text = "Ticket",
                     value = previousTicketNumber.toString(),
                 ),
@@ -107,7 +107,7 @@ internal class DistributionTicketScreenControllerTest {
 
         controller.showPreviousTicket()
 
-        val payloadSlot = slot<TicketScreenShowText>()
+        val payloadSlot = slot<TicketScreenShowTextRequest>()
         verify { service.reopenAndGetPreviousTicket() }
         verify {
             sseOutboxService.saveOutboxEntry(
@@ -132,7 +132,7 @@ internal class DistributionTicketScreenControllerTest {
         verify {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
-                TicketScreenShowText(
+                TicketScreenShowTextRequest(
                     text = "Ticket",
                     value = nextTicketNumber.toString(),
                 ),
@@ -146,7 +146,7 @@ internal class DistributionTicketScreenControllerTest {
 
         controller.showNextTicket(TicketScreenShowNextTicketRequest(costContributionPaid = true))
 
-        val payloadSlot = slot<TicketScreenShowText>()
+        val payloadSlot = slot<TicketScreenShowTextRequest>()
         verify { service.closeCurrentTicketAndGetNext(true) }
         verify {
             sseOutboxService.saveOutboxEntry(

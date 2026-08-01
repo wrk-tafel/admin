@@ -10,11 +10,13 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
-import at.wrk.tafel.admin.backend.modules.household.Household
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
+import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
+import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
@@ -36,18 +38,18 @@ class HouseholdService(
     private val householdConverter: HouseholdConverter,
 ) {
 
-    fun validate(household: Household): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household))
+    fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 
     @Transactional(readOnly = true)
-    fun findByHouseholdId(householdId: Long): Household? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
+    fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
 
     @Transactional
-    fun createHousehold(household: Household, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
+    fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
         val entity = householdConverter.mapHouseholdToEntity(household)
 
-        val valid = incomeValidatorService.validate(mapToValidationPersons(household)).valid
+        val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
                 throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
@@ -78,14 +80,14 @@ class HouseholdService(
     @Transactional
     fun updateHousehold(
         householdId: Long,
-        household: Household,
+        household: HouseholdRequest,
         force: Boolean,
         isSupervisor: Boolean,
     ): HouseholdUpdateResponse {
         val existingEntity = householdRepository.getReferenceByHouseholdId(householdId)
         val mappedEntity = householdConverter.mapHouseholdToEntity(household, existingEntity)
 
-        val valid = incomeValidatorService.validate(mapToValidationPersons(household)).valid
+        val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
                 throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
@@ -181,7 +183,7 @@ class HouseholdService(
             .map { householdConverter.mapEntityToHousehold(it) }
 
         val itemsAboveLimit = households.mapNotNull { household ->
-            val result = incomeValidatorService.validate(mapToValidationPersons(household))
+            val result = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
             if (!result.valid) {
                 HouseholdAboveLimitItem(
                     household = household,
@@ -259,8 +261,7 @@ class HouseholdService(
         householdRepository.delete(household)
     }
 
-    private fun mapToValidationPersons(household: Household): List<IncomeValidatorPerson> {
-        val mainPerson = household.mainPerson()
+    private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {
         val mainValidatorPerson = mainPerson?.let {
             IncomeValidatorPerson(
                 birthDate = it.birthDate!!,
@@ -269,7 +270,7 @@ class HouseholdService(
             )
         }
 
-        val additionalValidatorPersons = household.additionalPersons().map {
+        val additionalValidatorPersons = additionalPersons.map {
             IncomeValidatorPerson(
                 birthDate = it.birthDate,
                 monthlyIncome = it.income,
@@ -291,7 +292,7 @@ class HouseholdService(
 
 @ExcludeFromTestCoverage
 data class HouseholdSearchResult(
-    val items: List<Household>,
+    val items: List<HouseholdResponse>,
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,

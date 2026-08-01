@@ -18,7 +18,7 @@ data class ChangePasswordResponse(
 )
 
 @ExcludeFromTestCoverage
-data class User(
+data class UserRequest(
     val id: Long?,
     @field:NotBlank
     val personnelNumber: String,
@@ -32,11 +32,25 @@ data class User(
     val password: String? = null,
     val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean,
-    val permissions: List<UserPermission>,
+    val permissions: List<UserPermissionItem>,
 )
 
 @ExcludeFromTestCoverage
-data class UserPermission(
+data class UserResponse(
+    val id: Long?,
+    val personnelNumber: String,
+    val username: String,
+    val firstname: String,
+    val lastname: String,
+    val enabled: Boolean,
+    val password: String? = null,
+    val passwordRepeat: String? = null,
+    val passwordChangeRequired: Boolean,
+    val permissions: List<UserPermissionItem>,
+)
+
+@ExcludeFromTestCoverage
+data class UserPermissionItem(
     val key: String,
     val title: String,
     val category: String = "",
@@ -48,12 +62,12 @@ data class GeneratedPasswordResponse(
 )
 
 @ExcludeFromTestCoverage
-data class UserInfo(
+data class UserInfoResponse(
     val username: String,
     val permissions: List<String>,
 )
 
 @ExcludeFromTestCoverage
 data class PermissionsListResponse(
-    val permissions: List<UserPermission>,
+    val permissions: List<UserPermissionItem>,
 )

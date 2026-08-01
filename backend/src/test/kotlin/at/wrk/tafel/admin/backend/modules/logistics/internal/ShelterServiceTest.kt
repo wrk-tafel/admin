@@ -3,8 +3,9 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
-import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContact
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter3
@@ -37,7 +38,7 @@ class ShelterServiceTest {
 
         assertThat(shelters).hasSize(2)
         assertThat(shelters.first()).isEqualTo(
-            Shelter(
+            ShelterResponse(
                 id = testShelter1.id!!,
                 name = testShelter1.name!!,
                 addressStreet = testShelter1.addressStreet!!,
@@ -63,7 +64,7 @@ class ShelterServiceTest {
 
         assertThat(shelters).hasSize(2)
         assertThat(shelters.first()).isEqualTo(
-            Shelter(
+            ShelterResponse(
                 id = testShelter1.id!!,
                 name = testShelter1.name!!,
                 addressStreet = testShelter1.addressStreet!!,
@@ -83,7 +84,7 @@ class ShelterServiceTest {
 
     @Test
     fun `update shelter`() {
-        val updated = Shelter(
+        val updated = ShelterRequest(
             id = testShelter3.id!!,
             name = "Updated Shelter",
             addressStreet = testShelter3.addressStreet!!,
@@ -104,12 +105,28 @@ class ShelterServiceTest {
 
         val result = service.updateShelter(testShelter3.id!!, updated)
 
-        assertThat(result).isEqualTo(updated)
+        assertThat(result).isEqualTo(
+            ShelterResponse(
+                id = updated.id,
+                name = updated.name,
+                addressStreet = updated.addressStreet,
+                addressHouseNumber = updated.addressHouseNumber,
+                addressStairway = updated.addressStairway,
+                addressPostalCode = updated.addressPostalCode,
+                addressCity = updated.addressCity,
+                addressDoor = updated.addressDoor,
+                note = updated.note,
+                personsCount = updated.personsCount,
+                enabled = updated.enabled,
+                sortOrder = updated.sortOrder,
+                contacts = updated.contacts,
+            ),
+        )
     }
 
     @Test
     fun `create shelter assigns next sort order after the current max, ignoring the input value`() {
-        val createInput = Shelter(
+        val createInput = ShelterRequest(
             id = 0L,
             name = "New Shelter",
             addressStreet = "New Street",
@@ -135,7 +152,7 @@ class ShelterServiceTest {
         val result = service.createShelter(createInput)
 
         assertThat(result).isEqualTo(
-            Shelter(
+            ShelterResponse(
                 id = 42L,
                 name = createInput.name,
                 addressStreet = createInput.addressStreet,
@@ -157,7 +174,7 @@ class ShelterServiceTest {
 
     @Test
     fun `create shelter assigns sort order 1 when no shelters exist yet`() {
-        val createInput = Shelter(
+        val createInput = ShelterRequest(
             id = 0L,
             name = "New Shelter",
             addressStreet = "New Street",
@@ -187,7 +204,7 @@ class ShelterServiceTest {
 
     @Test
     fun `create shelter with contacts`() {
-        val createInput = Shelter(
+        val createInput = ShelterRequest(
             id = 0L,
             name = "New Shelter",
             addressStreet = "New Street",
@@ -201,7 +218,7 @@ class ShelterServiceTest {
             enabled = true,
             sortOrder = 0,
             contacts = listOf(
-                ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
+                ShelterContactItem(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
             ),
         )
 
@@ -214,7 +231,7 @@ class ShelterServiceTest {
         val result = service.createShelter(createInput)
 
         assertThat(result.contacts).containsExactly(
-            ShelterContact(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
+            ShelterContactItem(firstname = "Max", lastname = "Mustermann", phone = "0123456789"),
         )
 
         val savedEntitySlot = slot<ShelterEntity>()
@@ -225,7 +242,7 @@ class ShelterServiceTest {
 
     @Test
     fun `update shelter with contacts`() {
-        val updated = Shelter(
+        val updated = ShelterRequest(
             id = testShelter3.id!!,
             name = "Updated Shelter",
             addressStreet = testShelter3.addressStreet!!,
@@ -239,7 +256,7 @@ class ShelterServiceTest {
             enabled = false,
             sortOrder = 5,
             contacts = listOf(
-                ShelterContact(firstname = "Erika", lastname = "Musterfrau", phone = "0987654321"),
+                ShelterContactItem(firstname = "Erika", lastname = "Musterfrau", phone = "0987654321"),
             ),
         )
 
@@ -248,7 +265,23 @@ class ShelterServiceTest {
 
         val result = service.updateShelter(testShelter3.id!!, updated)
 
-        assertThat(result).isEqualTo(updated)
+        assertThat(result).isEqualTo(
+            ShelterResponse(
+                id = updated.id,
+                name = updated.name,
+                addressStreet = updated.addressStreet,
+                addressHouseNumber = updated.addressHouseNumber,
+                addressStairway = updated.addressStairway,
+                addressPostalCode = updated.addressPostalCode,
+                addressCity = updated.addressCity,
+                addressDoor = updated.addressDoor,
+                note = updated.note,
+                personsCount = updated.personsCount,
+                enabled = updated.enabled,
+                sortOrder = updated.sortOrder,
+                contacts = updated.contacts,
+            ),
+        )
 
         val savedEntitySlot = slot<ShelterEntity>()
         verify { shelterRepository.save(capture(savedEntitySlot)) }
@@ -259,7 +292,7 @@ class ShelterServiceTest {
     fun `update shelter throws exception when not found`() {
         every { shelterRepository.findByIdOrNull(99L) } returns null
 
-        val exception = assertThrows<NotFoundException> { service.updateShelter(99L, testShelter3ShelterModel()) }
+        val exception = assertThrows<NotFoundException> { service.updateShelter(99L, testShelter3ShelterRequest()) }
         assertThat(exception.body.detail).isEqualTo("Shelter with id 99 not found")
     }
 
@@ -299,7 +332,7 @@ class ShelterServiceTest {
         assertThat(exception.body.detail).isEqualTo("Shelter with id 99 not found")
     }
 
-    private fun testShelter3ShelterModel() = Shelter(
+    private fun testShelter3ShelterRequest() = ShelterRequest(
         id = testShelter3.id!!,
         name = testShelter3.name!!,
         addressStreet = testShelter3.addressStreet!!,

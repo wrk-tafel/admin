@@ -87,7 +87,7 @@ There are no explicit `@NamedInterface`/`@org.springframework.modulith.NamedInte
 in this module. Spring Modulith's default rule applies instead: **a module's root package is its default
 public API; everything under `internal` is hidden from other modules.** Concretely, the classes sitting
 directly in `modules.reporting` (`DailyReportService`, `StatisticExportService`, `StatisticExportFile`,
-`StatisticsController` and the `StatisticsSettings`/`StatisticsData`/... DTOs) are importable by other
+`StatisticsController` and the `StatisticsSettingsResponse`/`StatisticsResponse`/... DTOs) are importable by other
 modules; everything in `modules.reporting.internal.*` (the `StatisticsService`, the PDF model, the
 exporters, and the listener below) is not. In practice nothing outside `reporting` imports
 `DailyReportService`/`StatisticExportService`/`StatisticExportFile` anymore (checked) — they're only public

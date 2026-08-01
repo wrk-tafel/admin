@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test
 class CarsResponseModelTest {
 
     @Test
-    fun `car with blank fields is invalid`() {
-        val car = Car(id = null, licensePlate = "", name = "", enabled = true, sortOrder = 0)
+    fun `car request with blank fields is invalid`() {
+        val car = CarRequest(id = null, licensePlate = "", name = "", enabled = true, sortOrder = 0)
 
         val violations = validator.validate(car)
 
@@ -17,8 +17,8 @@ class CarsResponseModelTest {
     }
 
     @Test
-    fun `car with filled fields is valid`() {
-        val car = Car(id = null, licensePlate = "W-12345", name = "Car", enabled = true, sortOrder = 0)
+    fun `car request with filled fields is valid`() {
+        val car = CarRequest(id = null, licensePlate = "W-12345", name = "Car", enabled = true, sortOrder = 0)
 
         val violations = validator.validate(car)
 

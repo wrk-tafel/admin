@@ -24,13 +24,13 @@ class StatisticsController(
 ) {
 
     @GetMapping("/settings")
-    fun getSettings(): StatisticsSettings = statisticsService.getSettings()
+    fun getSettings(): StatisticsSettingsResponse = statisticsService.getSettings()
 
     @GetMapping("/data")
     fun getData(
         @RequestParam fromDate: LocalDate,
         @RequestParam toDate: LocalDate,
-    ): StatisticsData = statisticsService.getData(fromDate, toDate)
+    ): StatisticsResponse = statisticsService.getData(fromDate, toDate)
 
     @GetMapping("/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun generateCsv(
@@ -46,7 +46,7 @@ class StatisticsController(
         @RequestParam ageMin: Int,
         @RequestParam ageMax: Int,
         @RequestParam page: Int? = null,
-    ): PagedResponse<SchoolStarterPackageEntry> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page)
+    ): PagedResponse<SchoolStarterPackageItem> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page)
 
     @GetMapping("/generate-school-starter-package-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun generateSchoolStarterPackageCsv(
@@ -72,7 +72,7 @@ class StatisticsController(
     }
 }
 
-data class StatisticsSettings(
+data class StatisticsSettingsResponse(
     val availableYears: List<Int>,
     val distributions: List<StatisticsDistribution>,
 )
@@ -82,27 +82,27 @@ data class StatisticsDistribution(
     val endDate: LocalDateTime,
 )
 
-data class StatisticsData(
-    val beneficiaryCustomers: StatisticsDetailData,
-    val beneficiaryPersons: StatisticsDetailData,
-    val beneficiaryCustomersWithChildren: StatisticsDetailData,
-    val singleParentHouseholds: StatisticsDetailData,
-    val sheltersCount: StatisticsDetailData,
-    val sheltersAverage: StatisticsDetailData,
-    val sheltersPersonsCount: StatisticsDetailData,
-    val shopsCount: StatisticsDetailData,
-    val shopItemsTotal: StatisticsDetailData,
-    val shopItemsAverage: StatisticsDetailData,
+data class StatisticsResponse(
+    val beneficiaryCustomers: StatisticsDetail,
+    val beneficiaryPersons: StatisticsDetail,
+    val beneficiaryCustomersWithChildren: StatisticsDetail,
+    val singleParentHouseholds: StatisticsDetail,
+    val sheltersCount: StatisticsDetail,
+    val sheltersAverage: StatisticsDetail,
+    val sheltersPersonsCount: StatisticsDetail,
+    val shopsCount: StatisticsDetail,
+    val shopItemsTotal: StatisticsDetail,
+    val shopItemsAverage: StatisticsDetail,
 )
 
-data class StatisticsDetailData(
+data class StatisticsDetail(
     val title: String,
     val subTitle: String,
     val labels: List<String>,
     val dataPoints: List<Number>,
 )
 
-data class SchoolStarterPackageEntry(
+data class SchoolStarterPackageItem(
     val householdId: Long,
     val firstname: String,
     val lastname: String,

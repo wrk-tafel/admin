@@ -2,10 +2,10 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.RouteService
 import at.wrk.tafel.admin.backend.modules.logistics.internal.ShopService
-import at.wrk.tafel.admin.backend.modules.logistics.model.Route
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteShopsResponse
-import at.wrk.tafel.admin.backend.modules.logistics.model.Shop
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShopItem
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -28,11 +28,11 @@ class RouteControllerTest {
 
     @Test
     fun `get routes`() {
-        val route1 = Route(
+        val route1 = RouteItem(
             id = 1,
             name = "Route 1",
         )
-        val route2 = Route(
+        val route2 = RouteItem(
             id = 2,
             name = "Route 2",
         )
@@ -54,8 +54,8 @@ class RouteControllerTest {
     fun `get shops of route`() {
         val routeId = testRoute1.id!!
         val shopList = listOf(
-            Shop(id = 1, number = 111, name = "Billa", address = "Street 1, 1010 City"),
-            Shop(id = 2, number = 222, name = "Hofer", address = "Street 2, 1020 City"),
+            ShopItem(id = 1, number = 111, name = "Billa", address = "Street 1, 1010 City"),
+            ShopItem(id = 2, number = 222, name = "Hofer", address = "Street 2, 1020 City"),
         )
         every { shopService.getShopsForRouteId(routeId) } returns shopList
 
