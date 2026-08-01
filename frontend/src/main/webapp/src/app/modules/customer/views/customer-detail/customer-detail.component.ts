@@ -208,7 +208,7 @@ export class CustomerDetailComponent {
       },
       error: (error: any) => {
         if (error.status === 409) {
-          this.openConfirmUpdateCustomerDialog(updatedCustomerData, error.error.message);
+          this.openConfirmUpdateCustomerDialog(updatedCustomerData, error.error.detail);
         } else {
           this.toastr.error('Verlängerung fehlgeschlagen!');
         }

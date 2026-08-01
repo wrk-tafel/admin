@@ -8,7 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.Country
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.household.Household
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
@@ -280,12 +280,12 @@ class HouseholdServiceTest {
             amountExceededLimit = BigDecimal("4"),
         )
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<ConflictException> {
             service.createHousehold(testHousehold, false, true)
         }
 
-        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
-        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
+        assertThat(exception.body.detail).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+        assertThat(exception.statusCode).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
         verify(exactly = 0) { householdRepository.saveAndFlush(any()) }
     }
 
@@ -406,12 +406,12 @@ class HouseholdServiceTest {
             amountExceededLimit = BigDecimal("4"),
         )
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<ConflictException> {
             service.updateHousehold(testHouseholdUpdate.id!!, testHouseholdUpdate, force = false, isSupervisor = true)
         }
 
-        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
-        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
+        assertThat(exception.body.detail).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+        assertThat(exception.statusCode).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
         verify(exactly = 0) { householdRepository.saveAndFlush(any()) }
     }
 

@@ -5,7 +5,8 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -13,8 +14,8 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -165,14 +166,13 @@ class EmployeeServiceTest {
     fun `update employee throws exception when not found`() {
         every { employeeRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy {
+        val exception = assertThrows<NotFoundException> {
             employeeService.updateEmployee(
                 99L,
                 EmployeeCreateRequest(personnelNumber = "00001", firstname = "first", lastname = "last"),
             )
         }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Employee with id 99 not found")
+        assertThat(exception.body.detail).isEqualTo("Employee with id 99 not found")
     }
 
     @Test
@@ -187,13 +187,12 @@ class EmployeeServiceTest {
         every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
         every { employeeRepository.existsByPersonnelNumberAndIdNot("00002", employeeId) } returns true
 
-        assertThatThrownBy {
+        val exception = assertThrows<ConflictException> {
             employeeService.updateEmployee(
                 employeeId,
                 EmployeeCreateRequest(personnelNumber = "00002", firstname = "first", lastname = "last"),
             )
         }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Mitarbeiter 00002 ist bereits vorhanden!")
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter 00002 ist bereits vorhanden!")
     }
 }

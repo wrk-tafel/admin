@@ -5,7 +5,8 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -36,7 +37,7 @@ class EmployeeService(
     @Transactional
     fun saveEmployee(employeeCreateRequest: EmployeeCreateRequest): Employee {
         if (employeeRepository.existsByPersonnelNumber(employeeCreateRequest.personnelNumber)) {
-            throw TafelValidationException("Mitarbeiter ${employeeCreateRequest.personnelNumber} ist bereits vorhanden!")
+            throw ConflictException("Mitarbeiter ${employeeCreateRequest.personnelNumber} ist bereits vorhanden!")
         }
 
         val employeeEntity = EmployeeEntity().apply {
@@ -51,10 +52,10 @@ class EmployeeService(
     @Transactional
     fun updateEmployee(employeeId: Long, employeeUpdateRequest: EmployeeCreateRequest): Employee {
         val employeeEntity = employeeRepository.findByIdOrNull(employeeId)
-            ?: throw TafelValidationException("Employee with id $employeeId not found")
+            ?: throw NotFoundException("Employee with id $employeeId not found")
 
         if (employeeRepository.existsByPersonnelNumberAndIdNot(employeeUpdateRequest.personnelNumber, employeeId)) {
-            throw TafelValidationException("Mitarbeiter ${employeeUpdateRequest.personnelNumber} ist bereits vorhanden!")
+            throw ConflictException("Mitarbeiter ${employeeUpdateRequest.personnelNumber} ist bereits vorhanden!")
         }
 
         employeeEntity.personnelNumber = employeeUpdateRequest.personnelNumber.trim()

@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContact
 import org.springframework.data.repository.findByIdOrNull
@@ -78,7 +78,7 @@ class ShelterService(
 
     fun updateShelter(shelterId: Long, updatedShelter: Shelter): Shelter {
         val shelterEntity = shelterRepository.findByIdOrNull(shelterId)
-            ?: throw TafelValidationException("Shelter with id $shelterId not found")
+            ?: throw NotFoundException("Shelter with id $shelterId not found")
 
         shelterEntity.name = updatedShelter.name
         shelterEntity.addressStreet = updatedShelter.addressStreet
@@ -110,7 +110,7 @@ class ShelterService(
     fun reorderShelters(shelterIds: List<Long>) {
         shelterIds.forEachIndexed { index, shelterId ->
             val entity = shelterRepository.findByIdOrNull(shelterId)
-                ?: throw TafelValidationException("Shelter with id $shelterId not found")
+                ?: throw NotFoundException("Shelter with id $shelterId not found")
 
             entity.sortOrder = index + 1
             shelterRepository.save(entity)

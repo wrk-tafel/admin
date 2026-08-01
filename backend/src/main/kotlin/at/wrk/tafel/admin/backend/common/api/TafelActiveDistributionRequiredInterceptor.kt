@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.common.api
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
@@ -23,7 +23,7 @@ class TafelActiveDistributionRequiredInterceptor(
 
             // Check if the method/class requires an active distribution and none exists
             if ((methodAnnotation != null || classAnnotation != null) && distributionRepository.getCurrentDistribution() == null) {
-                throw TafelValidationException("Ausgabe nicht gestartet!")
+                throw BusinessRuleException("Ausgabe nicht gestartet!")
             }
         }
         return true

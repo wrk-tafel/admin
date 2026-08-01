@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContact
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
@@ -15,8 +15,8 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 
@@ -259,9 +259,8 @@ class ShelterServiceTest {
     fun `update shelter throws exception when not found`() {
         every { shelterRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy { service.updateShelter(99L, testShelter3ShelterModel()) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Shelter with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.updateShelter(99L, testShelter3ShelterModel()) }
+        assertThat(exception.body.detail).isEqualTo("Shelter with id 99 not found")
     }
 
     @Test
@@ -296,9 +295,8 @@ class ShelterServiceTest {
     fun `reorder shelters throws exception when a shelter is not found`() {
         every { shelterRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy { service.reorderShelters(listOf(99L)) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Shelter with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.reorderShelters(listOf(99L)) }
+        assertThat(exception.body.detail).isEqualTo("Shelter with id 99 not found")
     }
 
     private fun testShelter3ShelterModel() = Shelter(

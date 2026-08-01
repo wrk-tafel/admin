@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
@@ -106,7 +106,7 @@ class SettingsService(
     )
     fun updateStaticValue(staticValueId: Long, item: StaticValueItem): StaticValueItem {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
-            ?: throw TafelValidationException("Statischer Wert mit ID $staticValueId nicht gefunden")
+            ?: throw NotFoundException("Statischer Wert mit ID $staticValueId nicht gefunden")
 
         val today = LocalDate.now()
 

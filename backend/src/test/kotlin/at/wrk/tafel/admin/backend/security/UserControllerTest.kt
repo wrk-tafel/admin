@@ -5,7 +5,9 @@ import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -138,9 +140,9 @@ class UserControllerTest {
     fun `get user not found`() {
         every { userDetailsManager.loadUserById(any()) } returns null
 
-        val exception = assertThrows<TafelValidationException> { controller.getUser(1) }
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(exception.message).isEqualTo("Benutzer (ID: 1) nicht gefunden!")
+        val exception = assertThrows<NotFoundException> { controller.getUser(1) }
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 1) nicht gefunden!")
     }
 
     @Test
@@ -170,9 +172,9 @@ class UserControllerTest {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns null
 
         val exception =
-            assertThrows<TafelValidationException> { controller.getUserByPersonnelNumber(testUser.personnelNumber) }
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(exception.message).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) nicht gefunden!")
+            assertThrows<NotFoundException> { controller.getUserByPersonnelNumber(testUser.personnelNumber) }
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) nicht gefunden!")
     }
 
     @Test
@@ -243,8 +245,8 @@ class UserControllerTest {
     fun `create user exists by username`() {
         every { userDetailsManager.loadUserByUsername(any()) } returns testUser
 
-        val exception = assertThrows<TafelValidationException> { controller.createUser(user = testUserApiResponse) }
-        assertThat(exception.message).isEqualTo("Benutzer (Benutzername: test-username) existiert bereits!")
+        val exception = assertThrows<ConflictException> { controller.createUser(user = testUserApiResponse) }
+        assertThat(exception.body.detail).isEqualTo("Benutzer (Benutzername: test-username) existiert bereits!")
     }
 
     @Test
@@ -252,8 +254,8 @@ class UserControllerTest {
         every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
         every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns testUser
 
-        val exception = assertThrows<TafelValidationException> { controller.createUser(user = testUserApiResponse) }
-        assertThat(exception.message).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) existiert bereits!")
+        val exception = assertThrows<ConflictException> { controller.createUser(user = testUserApiResponse) }
+        assertThat(exception.body.detail).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) existiert bereits!")
     }
 
     @Test
@@ -261,10 +263,10 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns null
 
         val exception =
-            assertThrows<TafelValidationException> { controller.updateUser(userId = 123, user = testUserApiResponse) }
+            assertThrows<NotFoundException> { controller.updateUser(userId = 123, user = testUserApiResponse) }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(exception.message).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
     }
 
     @Test
@@ -326,15 +328,15 @@ class UserControllerTest {
     fun `update user with passwords not matching`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<BusinessRuleException> {
             controller.updateUser(
                 userId = 123,
                 user = testUserApiResponse.copy(password = "123", passwordRepeat = "456"),
             )
         }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(exception.message).isEqualTo("Passwörter stimmen nicht überein!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(exception.body.detail).isEqualTo("Passwörter stimmen nicht überein!")
     }
 
     @Test
@@ -342,10 +344,10 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns null
 
         val exception =
-            assertThrows<TafelValidationException> { controller.deleteUser(userId = 123) }
+            assertThrows<NotFoundException> { controller.deleteUser(userId = 123) }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(exception.message).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
     }
 
     @Test

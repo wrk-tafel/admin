@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shop
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -15,7 +15,7 @@ class ShopService(
     @Transactional(readOnly = true)
     fun getShopsForRouteId(routeId: Long): List<Shop> {
         val route =
-            routeRepository.findByIdOrNull(routeId) ?: throw TafelValidationException("Route $routeId nicht gefunden!")
+            routeRepository.findByIdOrNull(routeId) ?: throw NotFoundException("Route $routeId nicht gefunden!")
         return route.stops.sortedBy { it.time }
             .mapNotNull { it.shop }
             .map { shop ->

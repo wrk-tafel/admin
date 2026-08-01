@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Car
 import at.wrk.tafel.admin.backend.modules.logistics.testCar1
 import at.wrk.tafel.admin.backend.modules.logistics.testCar2
@@ -12,8 +12,8 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 
@@ -91,14 +91,13 @@ class CarServiceTest {
     fun `update car throws exception when not found`() {
         every { carRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy {
+        val exception = assertThrows<NotFoundException> {
             service.updateCar(
                 99L,
                 Car(id = 99L, licensePlate = "X", name = "X", enabled = true, sortOrder = 1),
             )
         }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Car with id 99 not found")
+        assertThat(exception.body.detail).isEqualTo("Car with id 99 not found")
     }
 
     @Test
@@ -185,8 +184,7 @@ class CarServiceTest {
     fun `reorder cars throws exception when a car is not found`() {
         every { carRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy { service.reorderCars(listOf(99L)) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Car with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.reorderCars(listOf(99L)) }
+        assertThat(exception.body.detail).isEqualTo("Car with id 99 not found")
     }
 }

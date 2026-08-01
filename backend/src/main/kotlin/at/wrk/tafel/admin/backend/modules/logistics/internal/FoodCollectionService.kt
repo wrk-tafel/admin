@@ -9,7 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -150,9 +150,9 @@ class FoodCollectionService(
             items.add(
                 FoodCollectionItemEntity().apply {
                     category = foodCategoryRepository.findByIdOrNull(categoryId)
-                        ?: throw TafelValidationException("Kategorie ungültig!")
+                        ?: throw NotFoundException("Kategorie nicht gefunden!")
                     shop = shopRepository.findByIdOrNull(shopId)
-                        ?: throw TafelValidationException("Filiale ungültig!")
+                        ?: throw NotFoundException("Filiale nicht gefunden!")
                     amount = newAmount
                 },
             )
@@ -167,7 +167,7 @@ class FoodCollectionService(
     } ?: FoodCollectionEntity().apply {
         distribution = distributionEntity
         route = routeRepository.findByIdOrNull(routeId)
-            ?: throw TafelValidationException("Route $routeId nicht gefunden!")
+            ?: throw NotFoundException("Route $routeId nicht gefunden!")
     }
 
     private fun mapEmployee(employee: EmployeeEntity): Employee = Employee(
@@ -189,13 +189,13 @@ class FoodCollectionService(
         return entity.apply {
             distribution = distributionEntity
             route = routeRepository.findByIdOrNull(routeId)
-                ?: throw TafelValidationException("Route $routeId nicht gefunden!")
+                ?: throw NotFoundException("Route $routeId nicht gefunden!")
             car = carRepository.findByIdOrNull(data.carId)
-                ?: throw TafelValidationException("Ungültiges KFZ!")
+                ?: throw NotFoundException("KFZ nicht gefunden!")
             driver = employeeRepository.findByIdOrNull(data.driverId)
-                ?: throw TafelValidationException("Ungültiger Fahrer!")
+                ?: throw NotFoundException("Fahrer nicht gefunden!")
             coDriver = employeeRepository.findByIdOrNull(data.coDriverId)
-                ?: throw TafelValidationException("Ungültiger Beifahrer!")
+                ?: throw NotFoundException("Beifahrer nicht gefunden!")
             kmStart = data.kmStart
             kmEnd = data.kmEnd
         }
@@ -213,7 +213,7 @@ class FoodCollectionService(
         return entity.apply {
             distribution = distributionEntity
             route = routeRepository.findByIdOrNull(routeId)
-                ?: throw TafelValidationException("Route $routeId nicht gefunden!")
+                ?: throw NotFoundException("Route $routeId nicht gefunden!")
             items = mapItemsToEntity(data.items)
         }
     }
@@ -221,9 +221,9 @@ class FoodCollectionService(
     private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> = items.map {
         FoodCollectionItemEntity().apply {
             category = foodCategoryRepository.findByIdOrNull(it.categoryId)
-                ?: throw TafelValidationException("Kategorie ungültig!")
+                ?: throw NotFoundException("Kategorie nicht gefunden!")
             shop = shopRepository.findByIdOrNull(it.shopId)
-                ?: throw TafelValidationException("Filiale ungültig!")
+                ?: throw NotFoundException("Filiale nicht gefunden!")
             amount = it.amount
         }
     }

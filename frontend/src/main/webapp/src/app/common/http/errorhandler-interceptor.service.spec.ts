@@ -147,7 +147,7 @@ describe('ErrorHandlerInterceptor', () => {
         };
 
         const errorBody: TafelErrorResponse = {
-            message: 'Custom message from body'
+            detail: 'Custom message from body'
         };
         mockReq.flush(errorBody, mockErrorResponse);
         httpTestingController.verify();

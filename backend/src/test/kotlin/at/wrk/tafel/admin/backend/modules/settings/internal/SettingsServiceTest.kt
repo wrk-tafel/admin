@@ -13,7 +13,7 @@ import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO2
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
@@ -346,6 +346,6 @@ class SettingsServiceTest {
         )
 
         assertThatThrownBy { service.updateStaticValue(99L, updated) }
-            .isInstanceOf(TafelValidationException::class.java)
+            .isInstanceOf(NotFoundException::class.java)
     }
 }

@@ -2,7 +2,8 @@ package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import jakarta.validation.Valid
@@ -46,7 +47,7 @@ class HouseholdController(
 
         household.id?.let {
             if (householdService.existsByHouseholdId(it)) {
-                throw TafelValidationException("Kunde Nr. $it bereits vorhanden!")
+                throw ConflictException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
@@ -65,10 +66,7 @@ class HouseholdController(
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
         if (!householdService.existsByHouseholdId(householdId)) {
-            throw TafelValidationException(
-                message = "Kunde Nr. $householdId nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
         }
 
         return householdService.updateHousehold(householdId, household, force, isSupervisor)
@@ -77,10 +75,7 @@ class HouseholdController(
     @GetMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getHousehold(@PathVariable householdId: Long): Household = householdService.findByHouseholdId(householdId)
-        ?: throw TafelValidationException(
-            message = "Kunde Nr. $householdId nicht gefunden!",
-            status = HttpStatus.NOT_FOUND,
-        )
+        ?: throw NotFoundException("Kunde Nr. $householdId nicht gefunden!")
 
     @GetMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -113,10 +108,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun deleteHousehold(@PathVariable householdId: Long): ResponseEntity<Unit> {
         if (!householdService.existsByHouseholdId(householdId)) {
-            throw TafelValidationException(
-                message = "Kunde Nr. $householdId nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
         }
 
         householdService.deleteHouseholdByHouseholdId(householdId)
@@ -142,10 +134,7 @@ class HouseholdController(
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
-        } ?: throw TafelValidationException(
-            message = "Kunde Nr. $householdId nicht vorhanden!",
-            status = HttpStatus.NOT_FOUND,
-        )
+        } ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
     }
 
     @GetMapping("/above-limit")

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import org.slf4j.LoggerFactory
@@ -39,7 +39,7 @@ class DistributionTicketController(
     ): ResponseEntity<Unit> {
         val deleted = service.deleteCurrentTicket(householdId)
         if (!deleted) {
-            throw TafelValidationException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
+            throw BusinessRuleException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
         }
         return ResponseEntity.noContent().build()
     }

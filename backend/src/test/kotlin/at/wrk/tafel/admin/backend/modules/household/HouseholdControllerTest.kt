@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.modules.base.country.Country
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -157,9 +158,9 @@ class HouseholdControllerTest {
     fun `create household - given id and exists already`() {
         every { householdService.existsByHouseholdId(testHousehold.id!!) } returns true
 
-        val exception = assertThrows<TafelValidationException> { controller.createHousehold(false, testHousehold) }
+        val exception = assertThrows<ConflictException> { controller.createHousehold(false, testHousehold) }
 
-        assertThat(exception.message).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
 
     @Test
@@ -203,12 +204,12 @@ class HouseholdControllerTest {
         every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
 
         val exception =
-            assertThrows<TafelValidationException> {
+            assertThrows<NotFoundException> {
                 controller.updateHousehold(testHousehold.id!!, false, testHousehold)
             }
 
-        assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }
 
     @Test
@@ -270,10 +271,10 @@ class HouseholdControllerTest {
         every { householdService.findByHouseholdId(testHousehold.id!!) } returns null
 
         val exception =
-            assertThrows<TafelValidationException> { controller.getHousehold(testHousehold.id!!) }
+            assertThrows<NotFoundException> { controller.getHousehold(testHousehold.id!!) }
 
-        assertThat(exception.message).isEqualTo("Kunde Nr. ${testHousehold.id} nicht gefunden!")
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. ${testHousehold.id} nicht gefunden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         verify { householdService.findByHouseholdId(testHousehold.id!!) }
     }
 
@@ -292,10 +293,10 @@ class HouseholdControllerTest {
         every { householdService.existsByHouseholdId(testHousehold.id!!) } returns false
 
         val exception =
-            assertThrows<TafelValidationException> { controller.deleteHousehold(testHousehold.id!!) }
+            assertThrows<NotFoundException> { controller.deleteHousehold(testHousehold.id!!) }
 
-        assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         verify { householdService.existsByHouseholdId(testHousehold.id!!) }
     }
 
@@ -383,10 +384,10 @@ class HouseholdControllerTest {
     fun `generate pdf - no result`() {
         every { householdService.generatePdf(any(), any()) } returns null
 
-        val exception = assertThrows<TafelValidationException> { controller.generatePdf(123, HouseholdPdfType.COMBINED) }
+        val exception = assertThrows<NotFoundException> { controller.generatePdf(123, HouseholdPdfType.COMBINED) }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(exception.message).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
     }
 
     @Test

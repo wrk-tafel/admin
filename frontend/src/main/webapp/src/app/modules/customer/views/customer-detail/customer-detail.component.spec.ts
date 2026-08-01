@@ -800,7 +800,7 @@ describe('CustomerDetailComponent', () => {
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
       status: 409,
       error: {
-        message: 'Conflict: customer was updated by another user',
+        detail: 'Conflict: customer was updated by another user',
         body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' }
       }
     })));
@@ -824,7 +824,7 @@ describe('CustomerDetailComponent', () => {
 
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
       status: 500,
-      error: { message: 'Internal server error' }
+      error: { detail: 'Internal server error' }
     })));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);

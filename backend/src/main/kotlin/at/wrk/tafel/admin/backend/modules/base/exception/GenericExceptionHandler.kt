@@ -3,145 +3,107 @@ package at.wrk.tafel.admin.backend.modules.base.exception
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.databind.json.JsonMapper
-import java.time.LocalDateTime
-import java.util.*
 
 @ControllerAdvice
 class GenericExceptionHandler(
     private val messageSource: MessageSource,
     private val jsonMapper: JsonMapper,
-) {
+) : ResponseEntityExceptionHandler() {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(GenericExceptionHandler::class.java)
-    }
-
-    @ExceptionHandler(TafelException::class)
-    fun handleTafelException(
-        exception: TafelException,
-        request: WebRequest,
-        locale: Locale,
-    ): ResponseEntity<Any> {
-        logger.warn(exception.message, exception)
-
-        val status = exception.status ?: HttpStatus.BAD_REQUEST
-        return createErrorResponse(
-            exception = exception,
-            status = status,
-            request = request,
-            locale = locale,
-        )
-    }
-
-    @ExceptionHandler(TafelValidationException::class)
-    fun handleTafelValidationException(
-        exception: TafelValidationException,
-        request: WebRequest,
-        locale: Locale,
-    ): ResponseEntity<Any> {
-        logger.debug(exception.message, exception)
-
-        val status = exception.status ?: HttpStatus.BAD_REQUEST
-        return createErrorResponse(
-            exception = exception,
-            status = status,
-            request = request,
-            locale = locale,
-        )
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleMethodArgumentNotValidException(
-        exception: MethodArgumentNotValidException,
-        request: WebRequest,
-        locale: Locale,
-    ): ResponseEntity<Any> {
-        logger.debug(exception.message, exception)
-
-        val message = exception.bindingResult.fieldErrors.joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
-        return createErrorResponse(
-            exception = exception,
-            status = HttpStatus.BAD_REQUEST,
-            message = message,
-            request = request,
-            locale = locale,
-        )
-    }
-
-    @ExceptionHandler(Exception::class)
-    fun handleException(
-        exception: Exception,
-        request: WebRequest,
-        locale: Locale,
-    ): ResponseEntity<Any> {
-        logger.error(exception.message, exception)
-
-        return createErrorResponse(
-            exception = exception,
-            status = HttpStatus.INTERNAL_SERVER_ERROR,
-            request = request,
-            locale = locale,
-        )
+        private val log = LoggerFactory.getLogger(GenericExceptionHandler::class.java)
     }
 
     /**
-     * Builds the error response, special-casing SSE requests.
-     *
+     * Central hook every default handler in [ResponseEntityExceptionHandler] funnels through
+     * (bean-validation failures via [handleMethodArgumentNotValid], and [TafelApiException] and its
+     * subclasses via the inherited `handleErrorResponseException`). Localizes the [ProblemDetail]'s
+     * title and renders the response, special-casing SSE requests.
+     */
+    public override fun handleExceptionInternal(
+        ex: Exception,
+        body: Any?,
+        headers: HttpHeaders,
+        statusCode: HttpStatusCode,
+        request: WebRequest,
+    ): ResponseEntity<Any> {
+        log.debug(ex.message, ex)
+
+        val status = HttpStatus.valueOf(statusCode.value())
+        val problemDetail = (body as? ProblemDetail) ?: ProblemDetail.forStatusAndDetail(statusCode, ex.message)
+        problemDetail.title = localizedTitle(status, request)
+
+        return renderResponse(problemDetail, status, request)
+    }
+
+    public override fun handleMethodArgumentNotValid(
+        ex: MethodArgumentNotValidException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest,
+    ): ResponseEntity<Any> {
+        val problemDetail = createProblemDetail(ex, status, "Validierung fehlgeschlagen", null, null, request)
+        problemDetail.setProperty(
+            "errors",
+            ex.bindingResult.fieldErrors.map { FieldErrorItem(field = it.field, message = it.defaultMessage) },
+        )
+        return handleExceptionInternal(ex, problemDetail, headers, status, request)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleGenericException(
+        exception: Exception,
+        request: WebRequest,
+    ): ResponseEntity<Any> {
+        log.error(exception.message, exception)
+
+        val status = HttpStatus.INTERNAL_SERVER_ERROR
+        val problemDetail = ProblemDetail.forStatusAndDetail(status, exception.message)
+        problemDetail.title = localizedTitle(status, request)
+
+        return renderResponse(problemDetail, status, request)
+    }
+
+    private fun localizedTitle(status: HttpStatus, request: WebRequest): String = messageSource.getMessage(
+        "http-error.${status.value()}.title",
+        arrayOf<Any>(),
+        request.locale,
+    )
+
+    /**
      * If the incoming request's `Accept` header contains `text/event-stream`, a normal JSON error
      * body would not be understood by the open `EventSource` - it's written instead as an
      * `event: error` SSE frame so an in-flight SSE connection doesn't just look like it silently
      * broke.
      */
-    private fun createErrorResponse(
-        exception: Exception,
-        status: HttpStatus,
-        request: WebRequest,
-        locale: Locale,
-        message: String? = exception.message,
-    ): ResponseEntity<Any> {
-        val localizedErrorTitle: String = messageSource.getMessage(
-            "http-error.${status.value()}.title",
-            arrayOf<Any>(),
-            locale,
-        )
-
-        val error = TafelErrorResponse(
-            timestamp = LocalDateTime.now(),
-            status = status.value(),
-            error = localizedErrorTitle,
-            message = message,
-            trace = exception.stackTraceToString(),
-            path = (request as ServletWebRequest).request.requestURI,
-        )
-
+    private fun renderResponse(problemDetail: ProblemDetail, status: HttpStatus, request: WebRequest): ResponseEntity<Any> {
         val isSseRequest = request.getHeader("Accept")?.contains("text/event-stream") == true
         return if (isSseRequest) {
-            val errorMessage = jsonMapper.writeValueAsString(error)
+            val errorMessage = jsonMapper.writeValueAsString(problemDetail)
             ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.TEXT_EVENT_STREAM)
-                .body("event: error\ndata: $errorMessage\n\n")
+                .body<Any>("event: error\ndata: $errorMessage\n\n")
         } else {
-            ResponseEntity.status(status).body(error)
+            ResponseEntity.status(status).body<Any>(problemDetail)
         }
     }
 }
 
 @ExcludeFromTestCoverage
-data class TafelErrorResponse(
-    val timestamp: LocalDateTime,
-    val status: Int,
-    val error: String,
+data class FieldErrorItem(
+    val field: String,
     val message: String?,
-    val trace: String?,
-    val path: String?,
 )

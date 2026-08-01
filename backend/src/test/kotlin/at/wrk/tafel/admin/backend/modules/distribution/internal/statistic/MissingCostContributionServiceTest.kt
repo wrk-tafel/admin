@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
@@ -83,7 +83,7 @@ class MissingCostContributionServiceTest {
 
         val distribution = mockk<DistributionEntity>()
 
-        val exception = assertThrows<TafelValidationException> { service.addMissingCostContributions(distribution) }
-        assertThat(exception.message).isEqualTo("No cost contribution value found. Skipping missing cost contribution post processing.")
+        val exception = assertThrows<BusinessRuleException> { service.addMissingCostContributions(distribution) }
+        assertThat(exception.body.detail).isEqualTo("No cost contribution value found. Skipping missing cost contribution post processing.")
     }
 }

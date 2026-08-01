@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.Car
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -37,7 +37,7 @@ class CarService(
 
     fun updateCar(carId: Long, updatedCar: Car): Car {
         val carEntity = carRepository.findByIdOrNull(carId)
-            ?: throw TafelValidationException("Car with id $carId not found")
+            ?: throw NotFoundException("Car with id $carId not found")
 
         carEntity.licensePlate = updatedCar.licensePlate
         carEntity.name = updatedCar.name
@@ -52,7 +52,7 @@ class CarService(
     fun reorderCars(carIds: List<Long>) {
         carIds.forEachIndexed { index, carId ->
             val entity = carRepository.findByIdOrNull(carId)
-                ?: throw TafelValidationException("Car with id $carId not found")
+                ?: throw NotFoundException("Car with id $carId not found")
 
             entity.sortOrder = index + 1
             carRepository.save(entity)
