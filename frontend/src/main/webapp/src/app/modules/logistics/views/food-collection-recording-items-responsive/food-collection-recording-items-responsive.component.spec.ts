@@ -5,9 +5,26 @@ import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingItemsResponsiveComponent} from './food-collection-recording-items-responsive.component';
 import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
+import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
+import {signal} from '@angular/core';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
+  let offlineQueueService: {
+    enqueue: ReturnType<typeof vi.fn>;
+    getPendingForShop: ReturnType<typeof vi.fn>;
+    pendingCount: ReturnType<typeof signal<number>>;
+  };
+  let onlineSignal: ReturnType<typeof signal<boolean>>;
+
   beforeEach(() => {
+    offlineQueueService = {
+      enqueue: vi.fn(),
+      getPendingForShop: vi.fn().mockReturnValue([]),
+      pendingCount: signal(0)
+    };
+    onlineSignal = signal(true);
+
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule
@@ -15,7 +32,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+        { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } },
+        { provide: FoodCollectionOfflineQueueService, useValue: offlineQueueService },
+        { provide: ConnectivityService, useValue: { isOnline: () => onlineSignal.asReadonly() } }
       ]
     }).compileComponents();
   });
@@ -144,7 +163,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(toastSpy).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
   });
 
-  it('should update categoryValues and call patchItems when onValueChange is called', () => {
+  it('should update categoryValues and enqueue the change via the offline queue when onValueChange is called', () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
@@ -159,12 +178,6 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[0]);
-
-    const apiService = TestBed.inject(FoodCollectionsApiService);
-    const patchItemsSpy = vi.spyOn(apiService, 'patchItems').mockReturnValue({
-      subscribe: () => {
-      }
-    } as any);
 
     const valueChange = {
       key: mockFoodCategories[0].id,
@@ -174,59 +187,11 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.onValueChange(valueChange);
 
     expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(7);
-    expect(patchItemsSpy).toHaveBeenCalledWith(
+    expect(offlineQueueService.enqueue).toHaveBeenCalledWith(
       mockRoute.id,
-      {
-        categoryId: mockFoodCategories[0].id,
-        shopId: mockShops[0].id,
-        amount: 7
-      }
-    );
-  });
-
-  it('should queue patchItems requests so a rapid second value change is not sent until the first completes', () => {
-    const mockRouteData = {
-      route: mockRoute,
-      shops: mockShops,
-      foodCollectionData: {items: []}
-    };
-
-    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-
-    componentRef.setInput('foodCategories', mockFoodCategories);
-    componentRef.setInput('selectedRouteData', mockRouteData);
-
-    component.currentShop.set(mockShops[0]);
-
-    const pendingObservers: any[] = [];
-    const apiService = TestBed.inject(FoodCollectionsApiService);
-    const patchItemsSpy = vi.spyOn(apiService, 'patchItems').mockImplementation(() => ({
-      subscribe: (observer: any) => {
-        pendingObservers.push(observer);
-      }
-    } as any));
-
-    // Simulates typing "12": two keystrokes fire two value changes back to back,
-    // before either patch request's response has come back.
-    component.onValueChange({key: mockFoodCategories[0].id, value: 1});
-    component.onValueChange({key: mockFoodCategories[0].id, value: 12});
-
-    // Only the first request is in flight - the second must wait, otherwise a
-    // slower response to the first request could overwrite the second's value.
-    expect(patchItemsSpy).toHaveBeenCalledTimes(1);
-    expect(patchItemsSpy).toHaveBeenCalledWith(
-      mockRoute.id,
-      {categoryId: mockFoodCategories[0].id, shopId: mockShops[0].id, amount: 1}
-    );
-
-    pendingObservers[0].next();
-
-    expect(patchItemsSpy).toHaveBeenCalledTimes(2);
-    expect(patchItemsSpy).toHaveBeenCalledWith(
-      mockRoute.id,
-      {categoryId: mockFoodCategories[0].id, shopId: mockShops[0].id, amount: 12}
+      mockShops[0].id,
+      mockFoodCategories[0].id,
+      7
     );
   });
 
@@ -269,11 +234,15 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component.categoryValues()[mockFoodCategories[1].id]).toBe(0);
   });
 
-  it('should show error toast when selectShop fails', () => {
+  it('falls back to the route-level snapshot and shows a warning when selectShop fails', () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
-      foodCollectionData: {items: []}
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[1].id, categoryId: mockFoodCategories[0].id, amount: 6}
+        ]
+      }
     };
 
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
@@ -291,11 +260,100 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     } as any);
 
     const toastr = TestBed.inject(TafelToastrService);
-    const toastSpy = vi.spyOn(toastr, 'error');
+    const toastSpy = vi.spyOn(toastr, 'warning');
 
     component.selectShop(mockShops[1]);
 
-    expect(toastSpy).toHaveBeenCalledWith('Laden fehlgeschlagen!');
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(6);
+    expect(toastSpy).toHaveBeenCalledWith('Laden fehlgeschlagen, zuletzt bekannter Stand wird angezeigt.');
+  });
+
+  it('skips the live request and uses the fallback directly when offline', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[1].id, categoryId: mockFoodCategories[0].id, amount: 6}
+        ]
+      }
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    onlineSignal.set(false);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop');
+
+    const toastr = TestBed.inject(TafelToastrService);
+    const toastSpy = vi.spyOn(toastr, 'warning');
+
+    component.selectShop(mockShops[1]);
+
+    expect(getItemsSpy).not.toHaveBeenCalled();
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(6);
+    expect(toastSpy).toHaveBeenCalledWith('Offline - zuletzt bekannter Stand wird angezeigt.');
+  });
+
+  it('prefers a same-session local edit over the stale route-level snapshot in the offline fallback', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[0].id, categoryId: mockFoodCategories[0].id, amount: 6}
+        ]
+      }
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    // Edit shop 1 while online (goes through the normal enqueue path)...
+    component.currentShop.set(mockShops[0]);
+    component.onValueChange({key: mockFoodCategories[0].id, value: 42});
+
+    // ...then go offline and switch away and back to shop 1.
+    onlineSignal.set(false);
+    component.selectShop(mockShops[0]);
+
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(42);
+  });
+
+  it('overlays not-yet-sent queued items on top of the offline fallback', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {items: []}
+    };
+
+    offlineQueueService.getPendingForShop.mockReturnValue([
+      {categoryId: mockFoodCategories[0].id, shopId: mockShops[1].id, amount: 11}
+    ]);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    onlineSignal.set(false);
+    component.selectShop(mockShops[1]);
+
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(11);
   });
 
   it('should navigate to previous shop correctly', () => {
@@ -319,6 +377,61 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.selectPreviousShop();
 
     expect(selectShopSpy).toHaveBeenCalledWith(mockShops[0]);
+  });
+
+  it('does not show the offline indicator when online with nothing pending', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator).toBeNull();
+  });
+
+  it('shows an offline indicator without a pending count when offline with nothing queued', () => {
+    onlineSignal.set(false);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Offline');
+  });
+
+  it('shows the pending count in the offline indicator while offline', () => {
+    onlineSignal.set(false);
+    offlineQueueService.pendingCount.set(3);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Offline - 3 Änderungen ausstehend, wird automatisch synchronisiert');
+  });
+
+  it('does not show any indicator while online even with items still pending, to avoid flicker on every save', () => {
+    offlineQueueService.pendingCount.set(1);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator).toBeNull();
   });
 
   it('should navigate to next shop correctly', () => {
