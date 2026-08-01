@@ -420,7 +420,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Offline - 3 Änderungen ausstehend, wird automatisch synchronisiert');
   });
 
-  it('shows a syncing indicator while online with a still-pending queue', () => {
+  it('does not show any indicator while online even with items still pending, to avoid flicker on every save', () => {
     offlineQueueService.pendingCount.set(1);
 
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
@@ -431,7 +431,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     fixture.detectChanges();
 
     const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
-    expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('1 Änderung wird synchronisiert...');
+    expect(indicator).toBeNull();
   });
 
   it('should navigate to next shop correctly', () => {
