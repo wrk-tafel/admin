@@ -1,5 +1,5 @@
 import {Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
-import {HttpContext, HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import dayjs from 'dayjs';
@@ -26,7 +26,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
-import {SUPPRESS_ERROR_TOAST} from '../../../../common/http/suppress-error-toast.token';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
     selector: 'tafel-checkin',
@@ -227,8 +227,7 @@ export class CheckinComponent {
     };
 
     if (this.customerId()) {
-      const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-      this.customerApiService.getCustomer(this.customerId()!, context).subscribe(observer);
+      this.customerApiService.getCustomer(this.customerId()!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
     } else {
       this.toastr.warning('Keine Kundennummer angegeben!');
     }

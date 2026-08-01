@@ -1,9 +1,9 @@
-import {HttpClient, HttpContext, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import {inject, Service, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
-import {SUPPRESS_ERROR_TOAST} from '../http/suppress-error-toast.token';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../http/suppress-error-toast.token';
 
 @Service()
 export class AuthenticationService {
@@ -62,8 +62,7 @@ export class AuthenticationService {
   }
 
   public loadUserInfo(): Promise<UserInfo | null> {
-    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-    return firstValueFrom(this.http.get<UserInfo>('/users/info', {context})
+    return firstValueFrom(this.http.get<UserInfo>('/users/info', {context: SUPPRESS_ERROR_TOAST_CONTEXT})
       .pipe(tap(userInfo => {
           this.userInfo.set(userInfo);
           return of(userInfo);
@@ -77,7 +76,7 @@ export class AuthenticationService {
     const encodedCredentials = btoa(username + ':' + password);
     const options = {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials),
-      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
+      context: SUPPRESS_ERROR_TOAST_CONTEXT
     };
     return this.http.post<LoginResponse>('/login', undefined, options);
   }

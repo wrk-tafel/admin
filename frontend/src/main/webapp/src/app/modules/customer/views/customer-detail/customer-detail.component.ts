@@ -8,7 +8,7 @@ import {
   CustomerData,
   CustomerUpdateResponse
 } from '../../../../api/customer-api.service';
-import {HttpContext, HttpErrorResponse, HttpResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {
   CustomerNoteApiService,
   CustomerNoteItem,
@@ -43,7 +43,7 @@ import {
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
-import {SUPPRESS_ERROR_TOAST} from '../../../../common/http/suppress-error-toast.token';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -164,8 +164,7 @@ export class CustomerDetailComponent {
     this.dialog.open(DeleteCustomerDialogComponent)
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-        this.customerApiService.deleteCustomer(this.customerData().id!, context).subscribe({
+        this.customerApiService.deleteCustomer(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: async () => {
             this.toastr.success('Kunde wurde gelöscht!');
             await this.router.navigate(['/kunden/suchen']);
@@ -185,8 +184,7 @@ export class CustomerDetailComponent {
       }
     }).afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-        this.customerApiService.updateCustomer(customerData, true, context).subscribe({
+        this.customerApiService.updateCustomer(customerData, true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: () => {
             this.toastr.success('Kunde wurde verlängert!');
           },
@@ -219,8 +217,7 @@ export class CustomerDetailComponent {
       },
     };
 
-    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-    this.customerApiService.updateCustomer(updatedCustomerData, false, context).subscribe(observer);
+    this.customerApiService.updateCustomer(updatedCustomerData, false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
   }
 
   disableCustomer() {
@@ -294,8 +291,7 @@ export class CustomerDetailComponent {
   assignTicket() {
     const ticketNumber = this.ticketNumberInput()!;
     const customerId = this.customerData().id!;
-    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-    this.distributionApiService.assignCustomer(customerId, ticketNumber, context).subscribe({
+    this.distributionApiService.assignCustomer(customerId, ticketNumber, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
       next: () => {
         this.ticketNumber.set(ticketNumber);
         this.ticketNumberInput.set(null);
@@ -309,8 +305,7 @@ export class CustomerDetailComponent {
 
   deleteTicket() {
     const customerId = this.customerData().id!;
-    const context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId, context).subscribe({
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
       next: () => {
         this.ticketNumber.set(null);
         this.toastr.success('Ticket wurde gelöscht!');
