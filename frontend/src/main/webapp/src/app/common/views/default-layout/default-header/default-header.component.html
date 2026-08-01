@@ -1,8 +1,15 @@
 <div class="flex items-center justify-between border-b border-gray-200 px-6 h-16">
-  <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
-          class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
-    <fa-icon [icon]="faBars"></fa-icon>
-  </button>
+  <div class="flex items-center gap-2">
+    <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
+            class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
+      <fa-icon [icon]="faBars"></fa-icon>
+    </button>
+
+    <button (click)="openSupportDialog()" testid="supportButton" aria-label="Support-Anfrage senden"
+            class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
+      <fa-icon [icon]="faCircleQuestion"></fa-icon>
+    </button>
+  </div>
 
   <div class="flex items-center gap-6">
     <span class="badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">Live-Verbindung</span>

@@ -33,6 +33,10 @@ tafeladmin:
     from: "dummy@localhost"
     defaultRecipientsBcc:
       - "bcc1@localhost"
+  support:
+    # Set a GitHub personal access token (Issues: Read and write) here locally to test the support
+    # contact feature end-to-end; leave unset otherwise (the endpoint fails with a clear error).
+    githubToken: ~
 
 springdoc:
   api-docs.enabled: true

@@ -83,3 +83,5 @@ tafeladmin:
   buildTime: unknown
   server:
     relativeBaseUrl: /
+  support:
+    githubRepository: wrk-tafel/admin
