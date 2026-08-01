@@ -59,7 +59,11 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAppInitializer(() => inject(SwUpdateService).init()),
     provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
+      // An active service worker serves navigations from its own cache, bypassing Cypress's
+      // network layer - this made cy.visit() unreliable (e.g. a fresh navigation's onBeforeLoad
+      // never firing) once a prior test in the same run had let the worker take control of the
+      // page. window.Cypress is only defined when the app runs inside a Cypress test.
+      enabled: !isDevMode() && !(window as unknown as {Cypress?: unknown}).Cypress,
       registrationStrategy: 'registerWhenStable:30000'
     }),
     provideAnimationsAsync(),
