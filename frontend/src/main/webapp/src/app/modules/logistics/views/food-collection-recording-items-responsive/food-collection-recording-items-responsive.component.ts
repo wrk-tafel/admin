@@ -48,6 +48,9 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   private readonly offlineQueueService = inject(FoodCollectionOfflineQueueService);
   private readonly connectivityService = inject(ConnectivityService);
 
+  protected readonly isOnline = this.connectivityService.isOnline();
+  protected readonly pendingSyncCount = this.offlineQueueService.pendingCount;
+
   // Last known values per shop for this session, used as a fallback while offline. Seeded from
   // the route-level snapshot on first read of a shop, refreshed on every successful live load,
   // and updated immediately on every local edit so a same-session change is never masked by a

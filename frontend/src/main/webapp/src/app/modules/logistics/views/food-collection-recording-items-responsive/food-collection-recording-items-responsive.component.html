@@ -1,3 +1,15 @@
+@if (!isOnline() || pendingSyncCount() > 0) {
+  <div class="bg-[#f89406] text-white text-center py-2 px-3 rounded mb-4" testid="offline-indicator">
+    @if (!isOnline()) {
+      Offline
+      @if (pendingSyncCount() > 0) {
+        - {{ pendingSyncCount() }} Änderung{{ pendingSyncCount() === 1 ? '' : 'en' }} ausstehend, wird automatisch synchronisiert
+      }
+    } @else {
+      {{ pendingSyncCount() }} Änderung{{ pendingSyncCount() === 1 ? '' : 'en' }} {{ pendingSyncCount() === 1 ? 'wird' : 'werden' }} synchronisiert...
+    }
+  </div>
+}
 @if (currentShop(); as shop) {
   <div class="mt-4 mb-4">
     <div class="grid grid-cols-12">

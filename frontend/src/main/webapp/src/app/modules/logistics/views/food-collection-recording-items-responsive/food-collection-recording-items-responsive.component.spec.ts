@@ -10,11 +10,19 @@ import {ConnectivityService} from '../../../../common/connectivity/connectivity.
 import {signal} from '@angular/core';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
-  let offlineQueueService: {enqueue: ReturnType<typeof vi.fn>; getPendingForShop: ReturnType<typeof vi.fn>};
+  let offlineQueueService: {
+    enqueue: ReturnType<typeof vi.fn>;
+    getPendingForShop: ReturnType<typeof vi.fn>;
+    pendingCount: ReturnType<typeof signal<number>>;
+  };
   let onlineSignal: ReturnType<typeof signal<boolean>>;
 
   beforeEach(() => {
-    offlineQueueService = {enqueue: vi.fn(), getPendingForShop: vi.fn().mockReturnValue([])};
+    offlineQueueService = {
+      enqueue: vi.fn(),
+      getPendingForShop: vi.fn().mockReturnValue([]),
+      pendingCount: signal(0)
+    };
     onlineSignal = signal(true);
 
     TestBed.configureTestingModule({
@@ -369,6 +377,61 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.selectPreviousShop();
 
     expect(selectShopSpy).toHaveBeenCalledWith(mockShops[0]);
+  });
+
+  it('does not show the offline indicator when online with nothing pending', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator).toBeNull();
+  });
+
+  it('shows an offline indicator without a pending count when offline with nothing queued', () => {
+    onlineSignal.set(false);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Offline');
+  });
+
+  it('shows the pending count in the offline indicator while offline', () => {
+    onlineSignal.set(false);
+    offlineQueueService.pendingCount.set(3);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Offline - 3 Änderungen ausstehend, wird automatisch synchronisiert');
+  });
+
+  it('shows a syncing indicator while online with a still-pending queue', () => {
+    offlineQueueService.pendingCount.set(1);
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    const indicator = (fixture.nativeElement as HTMLElement).querySelector('[testid="offline-indicator"]');
+    expect(indicator?.textContent?.replace(/\s+/g, ' ').trim()).toBe('1 Änderung wird synchronisiert...');
   });
 
   it('should navigate to next shop correctly', () => {
