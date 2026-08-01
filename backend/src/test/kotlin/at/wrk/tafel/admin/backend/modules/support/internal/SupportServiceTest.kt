@@ -25,9 +25,13 @@ class SupportServiceTest {
     private val restClient = restClientBuilder.baseUrl("https://api.github.com").build()
 
     @Test
-    fun `creates a github issue with the support prefix and full text as body`() {
+    fun `creates a github issue with the configured title prefix and full text as body`() {
         val properties = TafelAdminProperties(
-            support = TafelAdminSupportProperties(githubToken = "test-token", githubRepository = "wrk-tafel/admin"),
+            support = TafelAdminSupportProperties(
+                githubToken = "test-token",
+                githubRepository = "wrk-tafel/admin",
+                titlePrefix = "[PROD]",
+            ),
         )
         val service = SupportService(properties, restClient)
 
@@ -37,27 +41,14 @@ class SupportServiceTest {
             .andExpect(header(HttpHeaders.ACCEPT, "application/vnd.github+json"))
             .andExpect(header("X-GitHub-Api-Version", "2022-11-28"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().json("""{"title":"Support: Something is broken","body":"Something is broken\nmore details"}"""))
+            .andExpect(
+                content().json(
+                    """{"title":"[PROD] Something is broken","body":"Something is broken\nmore details"}""",
+                ),
+            )
             .andRespond(withStatus(HttpStatus.CREATED))
 
-        service.createSupportIssue("Something is broken\nmore details")
-
-        mockServer.verify()
-    }
-
-    @Test
-    fun `truncates a long first line for the issue title`() {
-        val properties = TafelAdminProperties(
-            support = TafelAdminSupportProperties(githubToken = "test-token", githubRepository = "wrk-tafel/admin"),
-        )
-        val service = SupportService(properties, restClient)
-        val longText = "x".repeat(120)
-
-        mockServer.expect(requestTo("https://api.github.com/repos/wrk-tafel/admin/issues"))
-            .andExpect(content().json("""{"title":"Support: ${"x".repeat(80)}","body":"$longText"}"""))
-            .andRespond(withStatus(HttpStatus.CREATED))
-
-        service.createSupportIssue(longText)
+        service.createSupportIssue("Something is broken", "Something is broken\nmore details")
 
         mockServer.verify()
     }
@@ -65,11 +56,15 @@ class SupportServiceTest {
     @Test
     fun `fails clearly when no github token is configured`() {
         val properties = TafelAdminProperties(
-            support = TafelAdminSupportProperties(githubToken = null, githubRepository = "wrk-tafel/admin"),
+            support = TafelAdminSupportProperties(
+                githubToken = null,
+                githubRepository = "wrk-tafel/admin",
+                titlePrefix = "[PROD]",
+            ),
         )
         val service = SupportService(properties, restClient)
 
-        assertThatThrownBy { service.createSupportIssue("Something is broken") }
+        assertThatThrownBy { service.createSupportIssue("Something is broken", "Something is broken") }
             .isInstanceOf(TafelApiException::class.java)
             .satisfies({ ex ->
                 assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -84,7 +79,7 @@ class SupportServiceTest {
         val properties = TafelAdminProperties(support = null)
         val service = SupportService(properties, restClient)
 
-        assertThatThrownBy { service.createSupportIssue("Something is broken") }
+        assertThatThrownBy { service.createSupportIssue("Something is broken", "Something is broken") }
             .isInstanceOf(TafelApiException::class.java)
             .satisfies({ ex ->
                 assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)

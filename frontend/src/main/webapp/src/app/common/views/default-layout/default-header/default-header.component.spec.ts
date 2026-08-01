@@ -101,7 +101,7 @@ describe('DefaultHeaderComponent', () => {
     });
 
     it('open support dialog and submit sends the support request', () => {
-        dialog.open.mockReturnValueOnce({afterClosed: () => of('Something is broken')} as any);
+        dialog.open.mockReturnValueOnce({afterClosed: () => of({title: 'Bug in login', text: 'Something is broken'})} as any);
         supportApiService.createSupportRequest.mockReturnValueOnce(of(undefined));
 
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
@@ -110,7 +110,7 @@ describe('DefaultHeaderComponent', () => {
         component.openSupportDialog();
 
         expect(dialog.open).toHaveBeenCalled();
-        expect(supportApiService.createSupportRequest).toHaveBeenCalledWith('Something is broken');
+        expect(supportApiService.createSupportRequest).toHaveBeenCalledWith('Bug in login', 'Something is broken');
         expect(toastrService.success).toHaveBeenCalled();
     });
 

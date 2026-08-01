@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
 private const val GITHUB_API_BASE_URL = "https://api.github.com"
-private const val TITLE_MAX_LENGTH = 80
 
 @Service
 class SupportService(
@@ -17,7 +16,7 @@ class SupportService(
     private val restClient: RestClient = RestClient.builder().baseUrl(GITHUB_API_BASE_URL).build(),
 ) {
 
-    fun createSupportIssue(text: String) {
+    fun createSupportIssue(title: String, text: String) {
         val supportProperties = tafelAdminProperties.support
             ?: throw TafelApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Support-Kontakt ist nicht konfiguriert")
         val githubToken = supportProperties.githubToken
@@ -26,7 +25,7 @@ class SupportService(
                 "Support-Kontakt ist nicht konfiguriert (GitHub-Token fehlt)",
             )
 
-        val title = "Support: " + text.trim().lineSequence().first().take(TITLE_MAX_LENGTH)
+        val issueTitle = "${supportProperties.titlePrefix} $title"
 
         // githubRepository is an "owner/repo" string from trusted app config (not user input), so it's
         // interpolated directly - a {repository} URI template variable would percent-encode the "/".
@@ -36,7 +35,7 @@ class SupportService(
             .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(GithubCreateIssueRequest(title = title, body = text))
+            .body(GithubCreateIssueRequest(title = issueTitle, body = text))
             .retrieve()
             .toBodilessEntity()
     }

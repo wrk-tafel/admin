@@ -37,6 +37,7 @@ tafeladmin:
     # Set a GitHub personal access token (Issues: Read and write) here locally to test the support
     # contact feature end-to-end; leave unset otherwise (the endpoint fails with a clear error).
     githubToken: ~
+    titlePrefix: "[LOCAL]"
 
 springdoc:
   api-docs.enabled: true

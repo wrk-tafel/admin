@@ -31,4 +31,6 @@ data class TafelAdminSupportProperties(
     // GitHub REST API. Not set here on purpose - only mounted in prod via /app/config/config.yml.
     val githubToken: String? = null,
     val githubRepository: String,
+    // Prepended to every issue title so it's obvious which environment a support request came from.
+    val titlePrefix: String,
 )

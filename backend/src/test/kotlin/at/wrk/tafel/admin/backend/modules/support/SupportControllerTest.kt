@@ -20,10 +20,10 @@ class SupportControllerTest {
 
     @Test
     fun `create support request`() {
-        val request = SupportRequest(text = "Something is broken")
+        val request = SupportRequest(title = "Bug in login", text = "Something is broken")
 
         supportController.createSupportRequest(request)
 
-        verify(exactly = 1) { supportService.createSupportIssue("Something is broken") }
+        verify(exactly = 1) { supportService.createSupportIssue("Bug in login", "Something is broken") }
     }
 }

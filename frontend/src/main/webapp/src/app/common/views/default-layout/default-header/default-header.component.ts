@@ -5,12 +5,12 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog} from '@angular/material/dialog';
 import {NgClass, NgOptimizedImage} from '@angular/common';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faBars, faCircleQuestion, faKey, faLock} from '@fortawesome/free-solid-svg-icons';
+import {faBars, faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
 import {TafelToastrService} from '../../../components/tafel-toastr/tafel-toastr.service';
-import {SupportDialogComponent} from './dialogs/support-dialog.component';
+import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dialog.component';
 
 @Component({
   selector: 'tafel-default-header',
@@ -42,9 +42,9 @@ export class DefaultHeaderComponent {
   }
 
   public openSupportDialog() {
-    this.dialog.open(SupportDialogComponent).afterClosed().subscribe(supportText => {
-      if (supportText) {
-        this.supportApiService.createSupportRequest(supportText).subscribe(() => {
+    this.dialog.open(SupportDialogComponent).afterClosed().subscribe((result: SupportDialogResult) => {
+      if (result) {
+        this.supportApiService.createSupportRequest(result.title, result.text).subscribe(() => {
           this.toastr.success('Support-Anfrage wurde übermittelt!');
         });
       }
@@ -52,7 +52,6 @@ export class DefaultHeaderComponent {
   }
 
   protected readonly faBars = faBars;
-  protected readonly faCircleQuestion = faCircleQuestion;
   protected readonly faKey = faKey;
   protected readonly faLock = faLock;
 }

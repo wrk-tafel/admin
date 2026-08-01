@@ -19,6 +19,6 @@ class SupportController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createSupportRequest(@Valid @RequestBody request: SupportRequest) {
-        supportService.createSupportIssue(request.text)
+        supportService.createSupportIssue(request.title, request.text)
     }
 }

@@ -21,13 +21,13 @@ describe('SupportApiService', () => {
   });
 
   it('create support request', () => {
-    apiService.createSupportRequest('Something is broken').subscribe();
+    apiService.createSupportRequest('Bug in login', 'Something is broken').subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/support'});
     req.flush(null);
     httpMock.verify();
 
-    expect(req.request.body).toEqual({text: 'Something is broken'});
+    expect(req.request.body).toEqual({title: 'Bug in login', text: 'Something is broken'});
   });
 
 });

@@ -6,7 +6,7 @@ import {Observable} from 'rxjs';
 export class SupportApiService {
   private readonly http = inject(HttpClient);
 
-  createSupportRequest(text: string): Observable<void> {
-    return this.http.post<void>('/support', {text});
+  createSupportRequest(title: string, text: string): Observable<void> {
+    return this.http.post<void>('/support', {title, text});
   }
 }

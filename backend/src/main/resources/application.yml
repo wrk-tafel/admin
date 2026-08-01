@@ -85,3 +85,4 @@ tafeladmin:
     relativeBaseUrl: /
   support:
     githubRepository: wrk-tafel/admin
+    titlePrefix: "[PROD]"
