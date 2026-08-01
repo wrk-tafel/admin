@@ -113,6 +113,102 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  it('queues a change made while offline and syncs it automatically once back online', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      enterRouteData();
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+
+      cy.byTestId('save-routedata-button').click();
+
+      cy.byTestId('km-diff-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+
+      assertSavedToast();
+
+      cy.byTestId('select-items-tab').click();
+
+      cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
+
+      cy.byTestId('offline-indicator').should('not.exist');
+
+      // ConnectivityService only reacts to the online/offline window events, not a live network
+      // cut - dispatching them directly is the standard way to exercise this without relying on
+      // browser/OS-level network emulation.
+      goOffline();
+      cy.byTestId('offline-indicator').should('contain.text', 'Offline').and('not.contain.text', 'ausstehend');
+
+      cy.byTestId('category-1-input').type('7');
+
+      cy.byTestId('offline-indicator')
+        .should('contain.text', 'Offline')
+        .and('contain.text', '1 Änderung ausstehend');
+      cy.get('@patchItem.all').should('have.length', 0);
+
+      goOnline();
+
+      cy.wait('@patchItem').its('request.body').should('deep.equal', {
+        categoryId: 1,
+        shopId: 20,
+        amount: 7
+      });
+      cy.byTestId('offline-indicator').should('not.exist');
+    });
+  });
+
+  it('keeps a change queued across a reload while offline and sends it once reopened online', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      enterRouteData();
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+
+      cy.byTestId('save-routedata-button').click();
+
+      cy.byTestId('km-diff-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+
+      assertSavedToast();
+
+      cy.byTestId('select-items-tab').click();
+
+      goOffline();
+      cy.byTestId('category-2-input').type('9');
+      cy.byTestId('offline-indicator').should('contain.text', '1 Änderung ausstehend');
+
+      // The reload lands back in a real (online) browser, so the persisted queue - which
+      // survives the reload via localStorage - should flush on its own once the item screen is
+      // reopened, without dispatching another online event or any other manual action.
+      cy.reload();
+
+      cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
+
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 2').click();
+      cy.byTestId('select-items-tab').click();
+
+      cy.wait('@patchItem').its('request.body').should('deep.equal', {
+        categoryId: 2,
+        shopId: 20,
+        amount: 9
+      });
+      cy.byTestId('category-2-input').should('have.value', '9');
+    });
+  });
+
   it('food collection recording shows the desktop-style item grid at tablet breakpoint', () => {
     // At the tablet width the sidenav is already in mobile ("over") mode, but page content
     // switches to the desktop item grid at the app's md: (768px) breakpoint - verify both hold.
@@ -192,6 +288,14 @@ describe('Food Collection Recording', () => {
         cy.byTestId('select-employee-button-1').click();
       });
     cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
+  }
+
+  function goOffline() {
+    cy.window().then((win) => win.dispatchEvent(new Event('offline')));
+  }
+
+  function goOnline() {
+    cy.window().then((win) => win.dispatchEvent(new Event('online')));
   }
 
   function fillCategories() {
