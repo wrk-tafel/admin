@@ -47,6 +47,23 @@ internal class ScannerFileServiceTest {
     }
 
     @Test
+    fun `listFiles numbers entries by recency, newest first`() {
+        val older = tempDir.resolve("scan1.pdf")
+        Files.writeString(older, "content1")
+        Thread.sleep(1100) // ensure a distinct mtime even on filesystems with 1s resolution
+        val newer = tempDir.resolve("scan2.pdf")
+        Files.writeString(newer, "content2")
+        val service = serviceWithScannerPath(tempDir.toString())
+
+        val files = service.listFiles()
+
+        assertThat(files[0].fileName).isEqualTo("scan2.pdf")
+        assertThat(files[0].displayName).isEqualTo("Scan 1")
+        assertThat(files[1].fileName).isEqualTo("scan1.pdf")
+        assertThat(files[1].displayName).isEqualTo("Scan 2")
+    }
+
+    @Test
     fun `read returns the file's bytes`() {
         Files.writeString(tempDir.resolve("scan1.pdf"), "content1")
         val service = serviceWithScannerPath(tempDir.toString())

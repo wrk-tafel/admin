@@ -30,7 +30,7 @@ describe('DocumentScannerApiService', () => {
 
   it('get scanner files', () => {
     const mockResponse: ScannerFilesResponse = {
-      items: [{fileName: 'scan1.pdf', sizeBytes: 100, modifiedAt: new Date()}]
+      items: [{fileName: 'scan1.pdf', displayName: 'Scan 1', sizeBytes: 100, modifiedAt: new Date()}]
     };
 
     apiService.getScannerFiles().subscribe((response) => {

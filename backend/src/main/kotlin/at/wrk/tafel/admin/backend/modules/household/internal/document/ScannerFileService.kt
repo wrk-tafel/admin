@@ -29,12 +29,15 @@ class ScannerFileService(
             return emptyList()
         }
 
-        return Files.list(scannerDir).use { stream ->
+        val sortedPaths = Files.list(scannerDir).use { stream ->
             stream
                 .filter { Files.isRegularFile(it) && isSupportedExtension(it.fileName.toString()) }
-                .map { toScannerFileItem(it) }
                 .toList()
-        }.sortedByDescending { it.modifiedAt }
+        }.sortedByDescending { Files.getLastModifiedTime(it) }
+
+        // "Scan 1" is the newest file (top of the list) - matches reading order, so the numbering
+        // doesn't visually contradict where each entry sits.
+        return sortedPaths.mapIndexed { index, path -> toScannerFileItem(path, displayName = "Scan ${index + 1}") }
     }
 
     fun read(fileName: String): ByteArray = Files.readAllBytes(resolveSafely(fileName))
@@ -69,8 +72,9 @@ class ScannerFileService(
         return resolved
     }
 
-    private fun toScannerFileItem(path: Path): ScannerFileItem = ScannerFileItem(
+    private fun toScannerFileItem(path: Path, displayName: String): ScannerFileItem = ScannerFileItem(
         fileName = path.fileName.toString(),
+        displayName = displayName,
         sizeBytes = Files.size(path),
         modifiedAt = LocalDateTime.ofInstant(Files.getLastModifiedTime(path).toInstant(), ZoneId.systemDefault()),
     )

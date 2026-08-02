@@ -109,7 +109,7 @@ internal class HouseholdDocumentServiceTest {
     fun `upload document - with person`() {
         val file = MockMultipartFile("file", "enrollment.png", "image/png", "test-content".toByteArray())
 
-        val result = service.uploadDocument(100L, 5L, DocumentType.SCHOOL_ENROLLMENT, file)
+        val result = service.uploadDocument(100L, 5L, DocumentType.OTHER, file)
 
         assertThat(result.personId).isEqualTo(5L)
     }
@@ -227,8 +227,14 @@ internal class HouseholdDocumentServiceTest {
         val result = service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.OTHER)
 
         assertThat(result.id).isEqualTo(42L)
-        assertThat(result.fileName).isEqualTo("scan1.pdf")
-        verify { documentStorageService.store(100L, "scan1.pdf", "scanned-content".toByteArray()) }
+        // the imported document's filename is derived from the document type + import time, not
+        // the scanner's own generic filename
+        assertThat(result.fileName).matches("Sonstiges_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
+
+        val storedFileNameSlot = slot<String>()
+        verify { documentStorageService.store(eq(100L), capture(storedFileNameSlot), eq("scanned-content".toByteArray())) }
+        assertThat(storedFileNameSlot.captured).matches("Sonstiges_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
+
         verify { scannerFileService.delete("scan1.pdf") }
         verify { documentScannerWatcherService.publishIfChanged() }
     }

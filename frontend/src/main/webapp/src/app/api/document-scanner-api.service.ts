@@ -34,6 +34,7 @@ export interface ScannerFilesResponse {
 
 export interface ScannerFileItem {
   fileName: string;
+  displayName: string;
   sizeBytes: number;
   modifiedAt: Date;
 }

@@ -24,7 +24,7 @@ internal class DocumentScannerWatcherServiceTest {
 
     @Test
     fun `publishIfChanged publishes when the listing changed`() {
-        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
+        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", displayName = "Scan 1", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
         every { scannerFileService.listFiles() } returns files
 
         service.publishIfChanged()
@@ -36,7 +36,7 @@ internal class DocumentScannerWatcherServiceTest {
 
     @Test
     fun `publishIfChanged does not publish again when the listing is unchanged`() {
-        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
+        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", displayName = "Scan 1", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
         every { scannerFileService.listFiles() } returns files
 
         service.publishIfChanged()
@@ -49,8 +49,8 @@ internal class DocumentScannerWatcherServiceTest {
 
     @Test
     fun `publishIfChanged publishes again once the listing changes`() {
-        val files1 = listOf(ScannerFileItem(fileName = "scan1.pdf", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
-        val files2 = files1 + ScannerFileItem(fileName = "scan2.pdf", sizeBytes = 200, modifiedAt = LocalDateTime.now())
+        val files1 = listOf(ScannerFileItem(fileName = "scan1.pdf", displayName = "Scan 1", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
+        val files2 = files1 + ScannerFileItem(fileName = "scan2.pdf", displayName = "Scan 2", sizeBytes = 200, modifiedAt = LocalDateTime.now())
         every { scannerFileService.listFiles() } returns files1 andThen files2
 
         service.publishIfChanged()

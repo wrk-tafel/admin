@@ -309,7 +309,7 @@
                           <div class="font-bold truncate" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
                           <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
                           <div [attr.testid]="'document-' + i + '-metaText'">
-                            {{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm' }}{{ doc.uploadedBy ? ' - ' + doc.uploadedBy : '' }}
+                            {{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm:ss' }}{{ doc.uploadedBy ? ' - ' + doc.uploadedBy : '' }}
                           </div>
                         </div>
                         <div class="flex gap-2 shrink-0">

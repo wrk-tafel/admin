@@ -14,7 +14,6 @@ import java.time.LocalDateTime
 enum class DocumentType {
     PROOF_OF_INCOME,
     ID,
-    SCHOOL_ENROLLMENT,
     OTHER,
 }
 
@@ -61,6 +60,13 @@ data class DocumentFileResult(
 @ExcludeFromTestCoverage
 data class ScannerFileItem(
     val fileName: String,
+    /**
+     * Position-based label ("Scan 1", "Scan 2", ...), computed server-side purely for display -
+     * scanner-generated filenames are usually near-identical (e.g. sequential counters or a
+     * timestamp), so showing the raw filename as the primary label doesn't help staff tell
+     * multiple files apart. The physical file itself is never renamed - see [ScannerFileService].
+     */
+    val displayName: String,
     val sizeBytes: Long,
     val modifiedAt: LocalDateTime,
 )

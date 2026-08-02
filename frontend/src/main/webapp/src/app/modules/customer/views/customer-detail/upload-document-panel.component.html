@@ -57,12 +57,15 @@
                  [checked]="selectedScannerFileName() === file.fileName"
                  (change)="selectedScannerFileName.set(file.fileName)">
           <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
-             target="_blank" rel="noopener" matButton="filled" class="shrink-0" (click)="$event.stopPropagation()"
-             title="Vorschau öffnen">
-            <fa-icon [icon]="faEye"></fa-icon>
+             target="_blank" rel="noopener" matButton="filled" class="shrink-0 !inline-flex !items-center !justify-center"
+             (click)="$event.stopPropagation()" title="Vorschau öffnen">
+            <fa-icon [icon]="faEye" class="block"></fa-icon>
           </a>
-          <label [for]="'scannerFile-' + file.fileName">
-            {{ file.fileName }} ({{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB, {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm' }})
+          <label [for]="'scannerFile-' + file.fileName" class="min-w-0">
+            <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>
+            <div class="text-sm text-gray-500 truncate" [title]="file.fileName">
+              {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB
+            </div>
           </label>
         </div>
       }

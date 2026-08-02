@@ -55,14 +55,12 @@ export interface CustomerDocumentItem {
 export enum DocumentType {
   PROOF_OF_INCOME = 'PROOF_OF_INCOME',
   ID = 'ID',
-  SCHOOL_ENROLLMENT = 'SCHOOL_ENROLLMENT',
   OTHER = 'OTHER'
 }
 
 export const documentTypeLabel: { [key in DocumentType]: string } = {
   [DocumentType.PROOF_OF_INCOME]: 'Einkommensnachweis',
   [DocumentType.ID]: 'Ausweis',
-  [DocumentType.SCHOOL_ENROLLMENT]: 'Schulbestätigung',
   [DocumentType.OTHER]: 'Sonstiges'
 };
 

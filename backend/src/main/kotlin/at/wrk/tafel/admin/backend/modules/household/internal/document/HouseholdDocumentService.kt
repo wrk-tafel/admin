@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType as DocumentTypeEntity
 
 @Service
@@ -29,6 +31,7 @@ class HouseholdDocumentService(
         private val ALLOWED_CONTENT_TYPES = setOf(MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE)
         private const val MAX_FILE_SIZE_MB = 25
         private const val MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024L
+        private val IMPORT_FILE_NAME_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
     }
 
     @Transactional
@@ -81,9 +84,16 @@ class HouseholdDocumentService(
         validateSize(bytes.size.toLong())
         validateContentType(contentType)
 
+        // Scanner-generated filenames (e.g. "document_20260802_143022.pdf") are generic and, once
+        // imported, would sit in the household's document list indistinguishable from any other
+        // scan - derive a meaningful one from what's actually known at import time instead of
+        // preserving the scanner's own name. Local uploads (uploadDocument above) keep the user's
+        // own filename as-is - it's usually already meaningful, unlike a scanner's.
+        val importedFileName = deriveScannerImportFileName(documentType, fileName)
+
         val storagePath = documentStorageService.store(
             householdId = householdId,
-            originalFileName = fileName,
+            originalFileName = importedFileName,
             bytes = bytes,
         )
 
@@ -91,7 +101,7 @@ class HouseholdDocumentService(
             this.household = household
             this.person = person
             this.documentType = DocumentTypeEntity.valueOf(documentType.name)
-            this.fileName = fileName
+            this.fileName = importedFileName
             this.contentType = contentType
             this.storagePath = storagePath
             this.uploadedByUser = currentUser()
@@ -151,6 +161,21 @@ class HouseholdDocumentService(
 
     private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
         ?.let { userRepository.findByUsername(it) }
+
+    private fun deriveScannerImportFileName(documentType: DocumentType, originalFileName: String): String {
+        val extension = originalFileName.substringAfterLast('.', missingDelimiterValue = "")
+        val timestamp = LocalDateTime.now().format(IMPORT_FILE_NAME_TIMESTAMP_FORMAT)
+        val label = germanLabel(documentType)
+        return if (extension.isBlank()) "${label}_$timestamp" else "${label}_$timestamp.$extension"
+    }
+
+    // ASCII-only on purpose (no umlauts) - this becomes part of a filename/Content-Disposition
+    // header, not just UI text like the frontend's equivalent documentTypeLabel map.
+    private fun germanLabel(documentType: DocumentType): String = when (documentType) {
+        DocumentType.PROOF_OF_INCOME -> "Einkommensnachweis"
+        DocumentType.ID -> "Ausweis"
+        DocumentType.OTHER -> "Sonstiges"
+    }
 
     private fun mapToItem(entity: DocumentEntity): DocumentItem {
         val employee = entity.uploadedByUser?.employee

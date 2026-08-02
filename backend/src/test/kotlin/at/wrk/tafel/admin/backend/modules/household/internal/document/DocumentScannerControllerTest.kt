@@ -21,7 +21,7 @@ internal class DocumentScannerControllerTest {
 
     @Test
     fun `get scanner files`() {
-        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
+        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", displayName = "Scan 1", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
         every { scannerFileService.listFiles() } returns files
 
         val response = controller.getScannerFiles()

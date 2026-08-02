@@ -297,7 +297,9 @@ describe('Customer Detail', () => {
         cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible').click();
         cy.byTestId('okButton').click();
 
-        cy.byTestId('document-0-fileNameText').should('have.text', scannerFileName);
+        // the imported document's filename is derived from the document type + import time, not
+        // the scanner's own generic filename (see HouseholdDocumentService.deriveScannerImportFileName)
+        cy.byTestId('document-0-fileNameText').invoke('text').should('match', /^Sonstiges_\d{4}-\d{2}-\d{2}_\d{4}\.pdf$/);
 
         // the imported file is removed from the scanner inbox, so it must not be offered again -
         // the panel's scanner list is live (SSE) and stays mounted (no dialog reopen needed)
