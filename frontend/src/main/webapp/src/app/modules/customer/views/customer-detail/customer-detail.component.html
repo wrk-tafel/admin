@@ -308,10 +308,9 @@
                         <div class="min-w-0">
                           <div class="font-bold truncate" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
                           <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
-                          <div [attr.testid]="'document-' + i + '-metaText'" class="flex flex-col md:flex-row md:gap-1">
+                          <div [attr.testid]="'document-' + i + '-metaText'" class="flex flex-col md:flex-row md:gap-2">
                             <span [attr.testid]="'document-' + i + '-metaText-date'">{{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm:ss' }}</span>
                             @if (doc.uploadedBy) {
-                              <span class="hidden md:inline">-</span>
                               <span [attr.testid]="'document-' + i + '-metaText-user'">{{ doc.uploadedBy }}</span>
                             }
                           </div>
