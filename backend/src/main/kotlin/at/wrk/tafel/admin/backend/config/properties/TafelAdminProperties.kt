@@ -10,6 +10,7 @@ data class TafelAdminProperties(
     val buildTime: String = "unknown",
     val mail: TafelAdminMailProperties? = null,
     val server: TafelAdminServerProperties = TafelAdminServerProperties(),
+    val support: TafelAdminSupportProperties? = null,
 )
 
 @ExcludeFromTestCoverage
@@ -22,4 +23,14 @@ data class TafelAdminMailProperties(
 @ExcludeFromTestCoverage
 data class TafelAdminServerProperties(
     val relativeBaseUrl: String = "/",
+)
+
+@ExcludeFromTestCoverage
+data class TafelAdminSupportProperties(
+    // Personal access token (Issues: Read and write) for creating support-request issues via the
+    // GitHub REST API. Not set here on purpose - only mounted in prod via /app/config/config.yml.
+    val githubToken: String? = null,
+    val githubRepository: String,
+    // Prepended to every issue title so it's obvious which environment a support request came from.
+    val titlePrefix: String,
 )

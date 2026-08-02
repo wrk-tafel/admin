@@ -31,6 +31,13 @@ export class FoodCollectionOfflineQueueService {
   private readonly queue = signal<Record<string, QueuedItem>>(this.loadFromStorage());
   private flushInFlight = false;
 
+  // Bridges the gap between a successful send and the next shop-values load: a `selectShop()`
+  // GET can be in flight concurrently with a flush (e.g. right after a reload, where both fire
+  // around the same time) and resolve with a pre-commit snapshot *after* the queue entry it
+  // should have merged with was already removed. Kept only until the next `getPendingForShop()`
+  // read for that key, which is exactly the one load this is meant to protect.
+  private readonly recentlySent: Record<string, QueuedItem> = {};
+
   readonly pendingCount = computed(() => Object.keys(this.queue()).length);
 
   constructor() {
@@ -56,11 +63,35 @@ export class FoodCollectionOfflineQueueService {
     return this.queue()[keyOf({routeId, shopId, categoryId})]?.amount;
   }
 
-  /** All pending (not yet sent) items for a shop, e.g. to merge into a freshly loaded/cached view. */
+  /**
+   * All pending (not yet sent) items for a shop, e.g. to merge into a freshly loaded/cached view,
+   * plus any not-yet-consumed `recentlySent` items for that shop (see field doc).
+   */
   getPendingForShop(routeId: number, shopId: number): FoodCollectionItem[] {
-    return Object.values(this.queue())
-      .filter(item => item.routeId === routeId && item.shopId === shopId)
-      .map(({categoryId, shopId: itemShopId, amount}) => ({categoryId, shopId: itemShopId, amount}));
+    const matches = (item: QueuedItem) => item.routeId === routeId && item.shopId === shopId;
+    const pending = this.queue();
+
+    const merged: Record<string, QueuedItem> = {};
+    for (const [key, item] of Object.entries(this.recentlySent)) {
+      if (matches(item)) {
+        merged[key] = item;
+      }
+    }
+    for (const [key, item] of Object.entries(pending)) {
+      if (matches(item)) {
+        merged[key] = item; // not-yet-sent always wins over a stale recently-sent record
+      }
+    }
+
+    // One-shot: this load has now merged the bridging record in, so it's done its job - any
+    // further load for this shop/category should trust the server response on its own again.
+    for (const key of Object.keys(merged)) {
+      if (!pending[key]) {
+        delete this.recentlySent[key];
+      }
+    }
+
+    return Object.values(merged).map(({categoryId, shopId: itemShopId, amount}) => ({categoryId, shopId: itemShopId, amount}));
   }
 
   private flush() {
@@ -94,11 +125,12 @@ export class FoodCollectionOfflineQueueService {
   // overwrote it while this send was in flight, that value hasn't been sent yet and must stay
   // queued for the next flush() to pick up, instead of being silently discarded.
   private removeIfUnchanged(sent: QueuedItem) {
+    const key = keyOf(sent);
     this.queue.update(current => {
-      const key = keyOf(sent);
       if (current[key]?.amount !== sent.amount) {
         return current;
       }
+      this.recentlySent[key] = sent;
       const updated = {...current};
       delete updated[key];
       return updated;
