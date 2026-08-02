@@ -203,4 +203,34 @@ describe('FoodCollectionOfflineQueueService', () => {
     expect(service.getPendingForShop(1, 2).length).toBe(2);
   });
 
+  it('still surfaces a just-sent item for one more shop load, so a racing pre-commit GET response does not clobber it', () => {
+    const {service} = setup({online: true});
+
+    service.enqueue(1, 2, 3, 9);
+    // The send already completed synchronously (patchItems resolves with `of(undefined)`), so the
+    // queue itself is now empty - but a `selectShop()` GET that was in flight at the same time
+    // (e.g. right after a reload) must still see the value it should merge in.
+    expect(service.pendingCount()).toBe(0);
+
+    expect(service.getPendingForShop(1, 2)).toEqual([{categoryId: 3, shopId: 2, amount: 9}]);
+
+    // One-shot: the next load for that shop is expected to trust the (by-then-consistent) server
+    // response on its own again.
+    expect(service.getPendingForShop(1, 2)).toEqual([]);
+  });
+
+  it('lets a fresh pending edit for the same key take priority over a stale recently-sent record', () => {
+    const {service, patchItems} = setup({online: true});
+
+    service.enqueue(1, 2, 3, 9);
+    expect(service.pendingCount()).toBe(0);
+
+    patchItems.mockReturnValue(new Observable<void>(() => {
+      // never resolves - simulates the second send still being in flight
+    }));
+    service.enqueue(1, 2, 3, 20);
+
+    expect(service.getPendingForShop(1, 2)).toEqual([{categoryId: 3, shopId: 2, amount: 20}]);
+  });
+
 });
