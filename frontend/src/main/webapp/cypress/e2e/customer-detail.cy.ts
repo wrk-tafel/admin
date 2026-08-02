@@ -253,8 +253,7 @@ describe('Customer Detail', () => {
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('nodocuments-label').should('be.visible');
 
-        cy.byTestId('uploaddocument-button').click();
-        cy.byTestId('upload-document-dialog').should('be.visible');
+        cy.byTestId('upload-document-panel').should('be.visible');
         cy.byTestId('documentTypeInput').click();
         cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
         cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
@@ -289,8 +288,7 @@ describe('Customer Detail', () => {
         cy.visit('/#/kunden/detail/' + customerId);
 
         cy.byTestId('documents-tab-label').click();
-        cy.byTestId('uploaddocument-button').click();
-        cy.byTestId('upload-document-dialog').should('be.visible');
+        cy.byTestId('upload-document-panel').should('be.visible');
 
         cy.byTestId('documentTypeInput').click();
         cy.byTestId('documentTypeInput-option-OTHER').click();
@@ -301,11 +299,9 @@ describe('Customer Detail', () => {
 
         cy.byTestId('document-0-fileNameText').should('have.text', scannerFileName);
 
-        // the imported file is removed from the scanner inbox, so it must not be offered again
-        cy.byTestId('uploaddocument-button').click();
-        cy.byTestId('documentSourceScanner').click();
+        // the imported file is removed from the scanner inbox, so it must not be offered again -
+        // the panel's scanner list is live (SSE) and stays mounted (no dialog reopen needed)
         cy.byTestId('noScannerFiles', {timeout: 10000}).should('be.visible');
-        cy.byTestId('cancelButton').click();
       });
     });
   });

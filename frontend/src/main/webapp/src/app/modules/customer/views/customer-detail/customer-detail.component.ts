@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -24,7 +24,7 @@ import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.co
 import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
 import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
-import {UploadDocumentDialogComponent, UploadDocumentDialogResult} from './dialogs/upload-document-dialog.component';
+import {UploadDocumentPanelComponent, UploadDocumentPanelResult} from './upload-document-panel.component';
 import {DeleteDocumentDialogComponent} from './dialogs/delete-document-dialog.component';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
@@ -71,7 +71,8 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     TafelIfDistributionActiveDirective,
     FormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    UploadDocumentPanelComponent
   ]
 })
 export class CustomerDetailComponent {
@@ -109,6 +110,8 @@ export class CustomerDetailComponent {
   private readonly globalStateService = inject(GlobalStateService);
 
   readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
+
+  uploadDocumentPanel = viewChild(UploadDocumentPanelComponent);
 
   constructor() {
     // Process notes when the notes response changes (from input or local updates)
@@ -309,31 +312,26 @@ export class CustomerDetailComponent {
     });
   }
 
-  openUploadDocumentDialog() {
-    this.dialog.open(UploadDocumentDialogComponent).afterClosed().subscribe((result: UploadDocumentDialogResult | undefined) => {
-      if (!result) {
-        return;
+  onDocumentUpload(result: UploadDocumentPanelResult) {
+    const customerId = this.customerData().id!;
+    const upload$ = result.mode === 'upload'
+      ? this.customerDocumentApiService.uploadDocument(customerId, result.documentType, result.file)
+      : this.customerDocumentApiService.importScannerDocument(customerId, result.fileName, result.documentType);
+
+    upload$.subscribe({
+      next: (newDocument) => {
+        this.customerDocuments.update(documents => [newDocument, ...documents]);
+        const currentResponse = this.customerDocumentsResponse();
+        this.customerDocumentsResponse.set({
+          ...currentResponse,
+          items: [newDocument, ...currentResponse.items]
+        });
+        this.uploadDocumentPanel()?.reset();
+        this.toastr.success('Dokument wurde hochgeladen!');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Hochladen fehlgeschlagen!');
       }
-
-      const customerId = this.customerData().id!;
-      const upload$ = result.mode === 'upload'
-        ? this.customerDocumentApiService.uploadDocument(customerId, result.documentType, result.file)
-        : this.customerDocumentApiService.importScannerDocument(customerId, result.fileName, result.documentType);
-
-      upload$.subscribe({
-        next: (newDocument) => {
-          this.customerDocuments.update(documents => [newDocument, ...documents]);
-          const currentResponse = this.customerDocumentsResponse();
-          this.customerDocumentsResponse.set({
-            ...currentResponse,
-            items: [newDocument, ...currentResponse.items]
-          });
-          this.toastr.success('Dokument wurde hochgeladen!');
-        },
-        error: (error: HttpErrorResponse) => {
-          this.toastr.error(extractErrorMessage(error), 'Hochladen fehlgeschlagen!');
-        }
-      });
     });
   }
 

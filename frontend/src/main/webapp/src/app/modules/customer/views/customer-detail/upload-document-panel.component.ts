@@ -1,31 +1,31 @@
-import {Component, DestroyRef, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, DestroyRef, ElementRef, inject, output, signal, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
 import {FormsModule} from '@angular/forms';
 import {Subscription} from 'rxjs';
-import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
-import {DocumentType, documentTypeLabel} from '../../../../../api/customer-document-api.service';
-import {DocumentScannerApiService, ScannerFileItem} from '../../../../../api/document-scanner-api.service';
+import {DocumentType, documentTypeLabel} from '../../../../api/customer-document-api.service';
+import {DocumentScannerApiService, ScannerFileItem} from '../../../../api/document-scanner-api.service';
 
-export type UploadDocumentDialogResult =
+export type UploadDocumentPanelResult =
   | { mode: 'upload'; documentType: DocumentType; file: File }
   | { mode: 'scanner'; documentType: DocumentType; fileName: string };
 
 type DocumentSource = 'upload' | 'scanner';
 
 @Component({
-  selector: 'tafel-upload-document-dialog',
-  imports: [TafelDialogComponent, CommonModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, FormsModule],
-  templateUrl: 'upload-document-dialog.component.html',
+  selector: 'tafel-upload-document-panel',
+  imports: [CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, FormsModule],
+  templateUrl: 'upload-document-panel.component.html',
 })
-export class UploadDocumentDialogComponent {
-  readonly dialogRef = inject(MatDialogRef<UploadDocumentDialogComponent>);
+export class UploadDocumentPanelComponent {
   private readonly documentScannerApiService = inject(DocumentScannerApiService);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly upload = output<UploadDocumentPanelResult>();
 
   fileInputRef = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
@@ -87,20 +87,26 @@ export class UploadDocumentDialogComponent {
     }
   }
 
-  canSave(): boolean {
+  canUpload(): boolean {
     if (!this.documentType()) {
       return false;
     }
     return this.source() === 'upload' ? !!this.selectedFile() : !!this.selectedScannerFileName();
   }
 
-  save() {
+  submit() {
     const documentType = this.documentType()!;
 
-    const result: UploadDocumentDialogResult = this.source() === 'upload'
+    const result: UploadDocumentPanelResult = this.source() === 'upload'
       ? {mode: 'upload', documentType, file: this.selectedFile()!}
       : {mode: 'scanner', documentType, fileName: this.selectedScannerFileName()!};
 
-    this.dialogRef.close(result);
+    this.upload.emit(result);
+  }
+
+  reset() {
+    this.documentType.set(null);
+    this.selectedFile.set(null);
+    this.selectedScannerFileName.set(null);
   }
 }

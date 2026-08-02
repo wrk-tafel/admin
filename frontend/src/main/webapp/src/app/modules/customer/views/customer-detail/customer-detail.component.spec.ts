@@ -19,6 +19,7 @@ import {
   CustomerDocumentsResponse,
   DocumentType
 } from '../../../../api/customer-document-api.service';
+import {DocumentScannerApiService} from '../../../../api/document-scanner-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {provideRouter} from '@angular/router';
@@ -164,6 +165,11 @@ describe('CustomerDetailComponent', () => {
       downloadDocument: vi.fn().mockName('CustomerDocumentApiService.downloadDocument'),
       deleteDocument: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerDocumentApiService.deleteDocument')
     };
+    const documentScannerApiServiceSpy = {
+      getScannerFiles: vi.fn().mockReturnValue(of({items: []})).mockName('DocumentScannerApiService.getScannerFiles'),
+      listenForScannerFileChanges: vi.fn().mockReturnValue(of({items: []}))
+        .mockName('DocumentScannerApiService.listenForScannerFileChanges')
+    };
     const fileHelperServiceSpy = {
       downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
     };
@@ -203,6 +209,10 @@ describe('CustomerDetailComponent', () => {
         {
           provide: CustomerDocumentApiService,
           useValue: customerDocumentApiServiceSpy
+        },
+        {
+          provide: DocumentScannerApiService,
+          useValue: documentScannerApiServiceSpy
         },
         {
           provide: FileHelperService,
@@ -895,12 +905,6 @@ describe('CustomerDetailComponent', () => {
   });
 
   it('upload document to customer', () => {
-    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-    const dialogResult = {
-      mode: 'upload', documentType: DocumentType.PROOF_OF_INCOME, file: new File(['content'], 'proof.pdf')
-    };
-    matDialog.open.mockReturnValue({afterClosed: () => of(dialogResult)} as any);
-
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
@@ -911,20 +915,17 @@ describe('CustomerDetailComponent', () => {
     const resultDocument = mockCustomerDocumentsResponse.items[0];
     customerDocumentApiService.uploadDocument.mockReturnValue(of(resultDocument));
 
-    component.openUploadDocumentDialog();
+    const file = new File(['content'], 'proof.pdf');
+    component.onDocumentUpload({mode: 'upload', documentType: DocumentType.PROOF_OF_INCOME, file});
 
     expect(customerDocumentApiService.uploadDocument).toHaveBeenCalledWith(
-      mockCustomer.id, DocumentType.PROOF_OF_INCOME, dialogResult.file
+      mockCustomer.id, DocumentType.PROOF_OF_INCOME, file
     );
     expect(component.customerDocuments()[0]).toEqual(resultDocument);
     expect(toastr.success).toHaveBeenCalledWith('Dokument wurde hochgeladen!');
   });
 
   it('import scanner document to customer', () => {
-    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-    const dialogResult = {mode: 'scanner', documentType: DocumentType.OTHER, fileName: 'scan1.pdf'};
-    matDialog.open.mockReturnValue({afterClosed: () => of(dialogResult)} as any);
-
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
@@ -935,7 +936,7 @@ describe('CustomerDetailComponent', () => {
     const resultDocument = mockCustomerDocumentsResponse.items[0];
     customerDocumentApiService.importScannerDocument.mockReturnValue(of(resultDocument));
 
-    component.openUploadDocumentDialog();
+    component.onDocumentUpload({mode: 'scanner', documentType: DocumentType.OTHER, fileName: 'scan1.pdf'});
 
     expect(customerDocumentApiService.importScannerDocument).toHaveBeenCalledWith(
       mockCustomer.id, 'scan1.pdf', DocumentType.OTHER
