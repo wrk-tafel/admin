@@ -68,6 +68,7 @@ jobs:
     with:
       imageTags: ${{ needs.version.outputs.version }}
       version: ${{ needs.version.outputs.version }}
+      scanImage: true
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
