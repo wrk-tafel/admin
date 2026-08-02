@@ -112,6 +112,25 @@ internal class MailSenderServiceTest {
     }
 
     @Test
+    fun `sendTextMail successfully - no subject prefix configured`() {
+        val fromAddress = "from-address"
+        every { properties.mail!!.from } returns fromAddress
+        every { properties.mail!!.subjectPrefix } returns null
+
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
+
+        val subject = "subj"
+        service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
+
+        val mailMessageSlot = slot<MimeMessage>()
+        verify { mailSender.send(capture(mailMessageSlot)) }
+
+        // Regression guard: an unset prefix must not leave a stray leading space in the subject.
+        assertThat(mailMessageSlot.captured.subject).isEqualTo(subject)
+    }
+
+    @Test
     fun `sendHtmlMail - mailing disabled`() {
         val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine)
         every { properties.mail!!.from } returns "from-address"
