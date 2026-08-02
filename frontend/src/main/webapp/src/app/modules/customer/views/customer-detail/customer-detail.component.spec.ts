@@ -14,6 +14,11 @@ import {
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
+import {
+  CustomerDocumentApiService,
+  CustomerDocumentsResponse,
+  DocumentType
+} from '../../../../api/customer-document-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {provideRouter} from '@angular/router';
@@ -31,6 +36,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 describe('CustomerDetailComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let customerNoteApiService: MockedObject<CustomerNoteApiService>;
+  let customerDocumentApiService: MockedObject<CustomerDocumentApiService>;
   let fileHelperService: MockedObject<FileHelperService>;
   let toastr: MockedObject<TafelToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
@@ -121,6 +127,17 @@ describe('CustomerDetailComponent', () => {
     totalPages: 1,
     pageSize: 10
   };
+  const mockCustomerDocumentsResponse: CustomerDocumentsResponse = {
+    items: [
+      {
+        id: 1,
+        documentType: DocumentType.ID,
+        fileName: 'ausweis.jpg',
+        uploadedAt: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
+        uploadedBy: 'author1'
+      }
+    ]
+  };
 
   const mockUpdateSuccessResponse: CustomerUpdateResponse = {
     data: mockCustomer,
@@ -139,6 +156,13 @@ describe('CustomerDetailComponent', () => {
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName('CustomerNoteApiService.createNewNote'),
       getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
+    };
+    const customerDocumentApiServiceSpy = {
+      getDocumentsForCustomer: vi.fn().mockName('CustomerDocumentApiService.getDocumentsForCustomer'),
+      uploadDocument: vi.fn().mockName('CustomerDocumentApiService.uploadDocument'),
+      importScannerDocument: vi.fn().mockName('CustomerDocumentApiService.importScannerDocument'),
+      downloadDocument: vi.fn().mockName('CustomerDocumentApiService.downloadDocument'),
+      deleteDocument: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerDocumentApiService.deleteDocument')
     };
     const fileHelperServiceSpy = {
       downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
@@ -175,6 +199,10 @@ describe('CustomerDetailComponent', () => {
         {
           provide: CustomerNoteApiService,
           useValue: customerNoteApiServiceSpy
+        },
+        {
+          provide: CustomerDocumentApiService,
+          useValue: customerDocumentApiServiceSpy
         },
         {
           provide: FileHelperService,
@@ -218,6 +246,7 @@ describe('CustomerDetailComponent', () => {
 
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as MockedObject<CustomerNoteApiService>;
+    customerDocumentApiService = TestBed.inject(CustomerDocumentApiService) as MockedObject<CustomerDocumentApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
@@ -235,6 +264,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
 
     fixture.detectChanges();
@@ -306,6 +336,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
 
     fixture.detectChanges();
@@ -327,6 +358,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
 
     fixture.detectChanges();
@@ -348,6 +380,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
 
     fixture.detectChanges();
@@ -363,6 +396,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -378,6 +412,7 @@ describe('CustomerDetailComponent', () => {
       validUntil: dayjs().subtract(1, 'days').toDate()
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -396,6 +431,7 @@ describe('CustomerDetailComponent', () => {
       validUntil: dayjs().toDate()
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -414,6 +450,7 @@ describe('CustomerDetailComponent', () => {
       validUntil: dayjs().add(1, 'days').toDate()
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -432,6 +469,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -454,6 +492,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -470,6 +509,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -493,6 +533,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -520,6 +561,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -549,6 +591,7 @@ describe('CustomerDetailComponent', () => {
       lockReason: 'lock-text'
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -584,6 +627,7 @@ describe('CustomerDetailComponent', () => {
       totalPages: 0,
       pageSize: 10
     });
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -609,6 +653,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -631,6 +676,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -649,6 +695,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -667,6 +714,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -687,6 +735,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
@@ -709,6 +758,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
@@ -729,6 +779,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -753,6 +804,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -777,6 +829,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -808,6 +861,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -830,6 +884,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
@@ -837,6 +892,94 @@ describe('CustomerDetailComponent', () => {
 
     expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
     expect(toastr.error).toHaveBeenCalledWith('Internal server error', 'Verlängerung fehlgeschlagen!');
+  });
+
+  it('upload document to customer', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const dialogResult = {
+      mode: 'upload', documentType: DocumentType.PROOF_OF_INCOME, personId: undefined, file: new File(['content'], 'proof.pdf')
+    };
+    matDialog.open.mockReturnValue({afterClosed: () => of(dialogResult)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', {items: []});
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const resultDocument = mockCustomerDocumentsResponse.items[0];
+    customerDocumentApiService.uploadDocument.mockReturnValue(of(resultDocument));
+
+    component.openUploadDocumentDialog();
+
+    expect(customerDocumentApiService.uploadDocument).toHaveBeenCalledWith(
+      mockCustomer.id, DocumentType.PROOF_OF_INCOME, dialogResult.file, undefined
+    );
+    expect(component.customerDocuments()[0]).toEqual(resultDocument);
+    expect(toastr.success).toHaveBeenCalledWith('Dokument wurde hochgeladen!');
+  });
+
+  it('import scanner document to customer', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const dialogResult = {mode: 'scanner', documentType: DocumentType.OTHER, personId: 1, fileName: 'scan1.pdf'};
+    matDialog.open.mockReturnValue({afterClosed: () => of(dialogResult)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', {items: []});
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const resultDocument = mockCustomerDocumentsResponse.items[0];
+    customerDocumentApiService.importScannerDocument.mockReturnValue(of(resultDocument));
+
+    component.openUploadDocumentDialog();
+
+    expect(customerDocumentApiService.importScannerDocument).toHaveBeenCalledWith(
+      mockCustomer.id, 'scan1.pdf', DocumentType.OTHER, 1
+    );
+    expect(component.customerDocuments()[0]).toEqual(resultDocument);
+  });
+
+  it('download document', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const blob = new Blob(['content']);
+    customerDocumentApiService.downloadDocument.mockReturnValue(of(new HttpResponse({body: blob})));
+
+    const document = mockCustomerDocumentsResponse.items[0];
+    component.downloadDocument(document);
+
+    expect(customerDocumentApiService.downloadDocument).toHaveBeenCalledWith(mockCustomer.id, document.id);
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith(document.fileName, blob);
+  });
+
+  it('delete document from customer', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    customerDocumentApiService.deleteDocument.mockReturnValue(of(undefined));
+
+    const document = mockCustomerDocumentsResponse.items[0];
+    component.openDeleteDocumentDialog(document);
+
+    expect(customerDocumentApiService.deleteDocument).toHaveBeenCalledWith(mockCustomer.id, document.id);
+    expect(component.customerDocuments()).toEqual([]);
+    expect(toastr.success).toHaveBeenCalledWith('Dokument wurde gelöscht!');
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

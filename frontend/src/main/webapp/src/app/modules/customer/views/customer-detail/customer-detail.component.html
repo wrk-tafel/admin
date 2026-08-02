@@ -290,6 +290,46 @@
           }
         </div>
       </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
+        </ng-template>
+        <div class="mt-4">
+          <div class="flex justify-end mb-2">
+            <button testid="uploaddocument-button" matButton="filled" class="button-success" (click)="openUploadDocumentDialog()">
+              <fa-icon [icon]="faPlus"></fa-icon>&nbsp;Dokument hochladen
+            </button>
+          </div>
+          @if (customerDocuments()?.length === 0) {
+            <h6 testid="nodocuments-label" class="mt-4">Keine Dokumente vorhanden</h6>
+          }
+          @if ((customerDocuments()?.length ?? 0) > 0) {
+            <div class="grid grid-cols-1 gap-2 mt-2">
+              @for (doc of customerDocuments(); track doc.id; let i = $index) {
+                <mat-card>
+                  <mat-card-content class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+                    <div>
+                      <div class="font-bold" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
+                      <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
+                      <div [attr.testid]="'document-' + i + '-metaText'">
+                        {{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm' }}{{ doc.uploadedBy ? ' - ' + doc.uploadedBy : '' }}
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)">
+                        <fa-icon [icon]="faDownload"></fa-icon>
+                      </button>
+                      <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)">
+                        <fa-icon [icon]="faTrashCan"></fa-icon>
+                      </button>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
     </mat-tab-group>
   </div>
 </div>

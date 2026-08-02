@@ -19,6 +19,7 @@ import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
+import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
@@ -38,6 +39,7 @@ class HouseholdService(
     private val householdRepository: HouseholdRepository,
     private val householdPdfService: HouseholdPdfService,
     private val householdConverter: HouseholdConverter,
+    private val documentStorageService: DocumentStorageService,
 ) {
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -260,6 +262,10 @@ class HouseholdService(
         // would violate the households -> persons foreign key
         household.mainPerson = null
         householdRepository.saveAndFlush(household)
+
+        // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
+        // those have to be cleaned up explicitly.
+        household.documents.forEach { documentStorageService.delete(it.storagePath!!) }
 
         householdRepository.delete(household)
     }

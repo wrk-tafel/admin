@@ -244,6 +244,42 @@ describe('Customer Detail', () => {
     cy.byTestId('editCustomerToggleButton').click();
   }
 
+  describe('documents', () => {
+    it('upload, download and delete a document', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('nodocuments-label').should('be.visible');
+
+        cy.byTestId('uploaddocument-button').click();
+        cy.byTestId('upload-document-dialog').should('be.visible');
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('nodocuments-label').should('not.exist');
+        cy.byTestId('document-0-fileNameText').should('have.text', 'test-document.pdf');
+
+        const downloadsFolder = Cypress.config('downloadsFolder');
+        const downloadedFilePath = path.join(downloadsFolder, 'test-document.pdf');
+        cy.byTestId('document-0-downloadButton').click();
+        cy.readFile(downloadedFilePath, 'binary', {timeout: 15000})
+          .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
+
+        cy.byTestId('document-0-deleteButton').click();
+        cy.byTestId('deletedocument-dialog').should('be.visible');
+        cy.byTestId('deletedocument-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('nodocuments-label').should('be.visible');
+      });
+    });
+  });
+
   describe('Supervisor', () => {
     beforeEach(() => {
       cy.loginDefault();

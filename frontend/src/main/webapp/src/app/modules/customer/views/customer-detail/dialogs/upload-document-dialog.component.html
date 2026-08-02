@@ -1,0 +1,59 @@
+<tafel-dialog testId="upload-document-dialog" type="info" title="Dokument hochladen">
+  <div tafel-dialog-content>
+    <mat-form-field class="w-full">
+      <mat-label>Dokumenttyp</mat-label>
+      <mat-select testid="documentTypeInput" [ngModel]="documentType()" (ngModelChange)="documentType.set($event)">
+        @for (type of documentTypes; track type) {
+          <mat-option [value]="type" [attr.testid]="'documentTypeInput-option-' + type">{{ documentTypeLabel[type] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="w-full">
+      <mat-label>Person</mat-label>
+      <mat-select testid="documentPersonInput" [ngModel]="personId()" (ngModelChange)="personId.set($event)">
+        <mat-option [value]="null">Kein bestimmter Person</mat-option>
+        @for (person of data.additionalPersons; track person.id) {
+          <mat-option [value]="person.id" [attr.testid]="'documentPersonInput-option-' + person.id">{{ person.lastname }} {{ person.firstname }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-button-toggle-group testid="documentSourceToggle" class="w-full mb-4" [value]="source()"
+                              (change)="selectSource($event.value)">
+      <mat-button-toggle testid="documentSourceUpload" value="upload" class="flex-1">Lokale Datei</mat-button-toggle>
+      <mat-button-toggle testid="documentSourceScanner" value="scanner" class="flex-1">Scanner-Ordner</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (source() === 'upload') {
+      <input testid="documentFileInput" type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
+    }
+
+    @if (source() === 'scanner') {
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-bold">Dateien im Scanner-Ordner</span>
+        <button type="button" testid="refreshScannerFilesButton" matButton="outlined" (click)="refreshScannerFiles()">
+          Aktualisieren
+        </button>
+      </div>
+      @if (scannerFiles().length === 0) {
+        <div testid="noScannerFiles">Keine Dateien vorhanden</div>
+      }
+      @for (file of scannerFiles(); track file.fileName) {
+        <div class="flex items-center gap-2 mb-1">
+          <input type="radio" name="scannerFile" [id]="'scannerFile-' + file.fileName"
+                 [attr.testid]="'scannerFile-' + file.fileName"
+                 [checked]="selectedScannerFileName() === file.fileName"
+                 (change)="selectedScannerFileName.set(file.fileName)">
+          <label [for]="'scannerFile-' + file.fileName">
+            {{ file.fileName }} ({{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB, {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm' }})
+          </label>
+        </div>
+      }
+    }
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="save()" [disabled]="!canSave()">Hochladen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

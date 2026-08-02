@@ -11,10 +11,14 @@ ENV TAFELADMIN_VERSION=$VERSION
 ENV TAFELADMIN_BUILD_TIME=$BUILD_TIME
 VOLUME /app/config
 VOLUME /app/logs
+VOLUME /app/documents
+VOLUME /app/scanner
 
 RUN mkdir /app
 RUN mkdir /app/config
 RUN mkdir /app/logs
+RUN mkdir /app/documents
+RUN mkdir /app/scanner
 
 WORKDIR /app
 COPY --from=builder /builder/extracted/dependencies/ ./

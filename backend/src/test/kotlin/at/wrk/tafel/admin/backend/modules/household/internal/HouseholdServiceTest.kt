@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -18,6 +19,7 @@ import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
+import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
@@ -65,6 +67,9 @@ class HouseholdServiceTest {
 
     @RelaxedMockK
     private lateinit var householdConverter: HouseholdConverter
+
+    @RelaxedMockK
+    private lateinit var documentStorageService: DocumentStorageService
 
     @InjectMockKs
     private lateinit var service: HouseholdService
@@ -629,6 +634,22 @@ class HouseholdServiceTest {
         assertThat(testHouseholdEntity.mainPerson).isNull()
         verify(exactly = 1) { householdRepository.saveAndFlush(testHouseholdEntity) }
         verify(exactly = 1) { householdRepository.delete(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `delete household by householdId deletes document files from disk`() {
+        val householdId = 123L
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
+        val document1 = DocumentEntity().apply { storagePath = "/documents/123/doc1.pdf" }
+        val document2 = DocumentEntity().apply { storagePath = "/documents/123/doc2.png" }
+        testHouseholdEntity.documents = mutableListOf(document1, document2)
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+
+        service.deleteHouseholdByHouseholdId(householdId)
+
+        verify(exactly = 1) { documentStorageService.delete("/documents/123/doc1.pdf") }
+        verify(exactly = 1) { documentStorageService.delete("/documents/123/doc2.png") }
     }
 
     @Test

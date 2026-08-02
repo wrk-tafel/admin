@@ -38,6 +38,9 @@ tafeladmin:
     # contact feature end-to-end; leave unset otherwise (the endpoint fails with a clear error).
     githubToken: ~
     titlePrefix: "[LOCAL]"
+  storage:
+    # Drop a file here manually to test the "scanner folder" document picker locally.
+    scannerPath: ${user.dir}/scanner-inbox
 
 springdoc:
   api-docs.enabled: true
