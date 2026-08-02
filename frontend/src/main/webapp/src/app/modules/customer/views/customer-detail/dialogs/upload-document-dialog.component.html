@@ -9,29 +9,35 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="w-full">
-      <mat-label>Person</mat-label>
-      <mat-select testid="documentPersonInput" [ngModel]="personId()" (ngModelChange)="personId.set($event)">
-        <mat-option [value]="null">Kein bestimmter Person</mat-option>
-        @for (person of data.additionalPersons; track person.id) {
-          <mat-option [value]="person.id" [attr.testid]="'documentPersonInput-option-' + person.id">{{ person.lastname }} {{ person.firstname }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
     <mat-button-toggle-group testid="documentSourceToggle" class="w-full mb-4" [value]="source()"
                               (change)="selectSource($event.value)">
       <mat-button-toggle testid="documentSourceUpload" value="upload" class="flex-1">Lokale Datei</mat-button-toggle>
-      <mat-button-toggle testid="documentSourceScanner" value="scanner" class="flex-1">Scanner-Ordner</mat-button-toggle>
+      <mat-button-toggle testid="documentSourceScanner" value="scanner" class="flex-1">Scanner</mat-button-toggle>
     </mat-button-toggle-group>
 
     @if (source() === 'upload') {
-      <input testid="documentFileInput" type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
+      <div testid="documentDropzone"
+           class="border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors"
+           [class.border-blue-500]="isDragOver()" [class.bg-blue-50]="isDragOver()" [class.border-gray-300]="!isDragOver()"
+           (click)="triggerFileInput()"
+           (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+        @if (selectedFile()) {
+          <div testid="selectedFileName" class="font-bold">{{ selectedFile()!.name }}</div>
+          <button type="button" testid="chooseFileButton" matButton="outlined" class="mt-2"
+                  (click)="$event.stopPropagation(); triggerFileInput()">Andere Datei wählen</button>
+        } @else {
+          <div class="mb-2">Datei hierher ziehen oder</div>
+          <button type="button" testid="chooseFileButton" matButton="outlined"
+                  (click)="$event.stopPropagation(); triggerFileInput()">Datei auswählen</button>
+        }
+      </div>
+      <input #fileInput testid="documentFileInput" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+             (change)="onFileSelected($event)">
     }
 
     @if (source() === 'scanner') {
       <div class="flex justify-between items-center mb-2">
-        <span class="font-bold">Dateien im Scanner-Ordner</span>
+        <span class="font-bold">Dateien im Scanner</span>
         <button type="button" testid="refreshScannerFilesButton" matButton="outlined" (click)="refreshScannerFiles()">
           Aktualisieren
         </button>

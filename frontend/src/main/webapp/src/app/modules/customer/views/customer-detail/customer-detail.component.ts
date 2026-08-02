@@ -310,19 +310,15 @@ export class CustomerDetailComponent {
   }
 
   openUploadDocumentDialog() {
-    this.dialog.open(UploadDocumentDialogComponent, {
-      data: {
-        additionalPersons: this.customerData().additionalPersons ?? []
-      }
-    }).afterClosed().subscribe((result: UploadDocumentDialogResult | undefined) => {
+    this.dialog.open(UploadDocumentDialogComponent).afterClosed().subscribe((result: UploadDocumentDialogResult | undefined) => {
       if (!result) {
         return;
       }
 
       const customerId = this.customerData().id!;
       const upload$ = result.mode === 'upload'
-        ? this.customerDocumentApiService.uploadDocument(customerId, result.documentType, result.file, result.personId)
-        : this.customerDocumentApiService.importScannerDocument(customerId, result.fileName, result.documentType, result.personId);
+        ? this.customerDocumentApiService.uploadDocument(customerId, result.documentType, result.file)
+        : this.customerDocumentApiService.importScannerDocument(customerId, result.fileName, result.documentType);
 
       upload$.subscribe({
         next: (newDocument) => {

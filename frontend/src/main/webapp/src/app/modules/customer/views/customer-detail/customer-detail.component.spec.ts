@@ -897,7 +897,7 @@ describe('CustomerDetailComponent', () => {
   it('upload document to customer', () => {
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     const dialogResult = {
-      mode: 'upload', documentType: DocumentType.PROOF_OF_INCOME, personId: undefined, file: new File(['content'], 'proof.pdf')
+      mode: 'upload', documentType: DocumentType.PROOF_OF_INCOME, file: new File(['content'], 'proof.pdf')
     };
     matDialog.open.mockReturnValue({afterClosed: () => of(dialogResult)} as any);
 
@@ -914,7 +914,7 @@ describe('CustomerDetailComponent', () => {
     component.openUploadDocumentDialog();
 
     expect(customerDocumentApiService.uploadDocument).toHaveBeenCalledWith(
-      mockCustomer.id, DocumentType.PROOF_OF_INCOME, dialogResult.file, undefined
+      mockCustomer.id, DocumentType.PROOF_OF_INCOME, dialogResult.file
     );
     expect(component.customerDocuments()[0]).toEqual(resultDocument);
     expect(toastr.success).toHaveBeenCalledWith('Dokument wurde hochgeladen!');
@@ -922,7 +922,7 @@ describe('CustomerDetailComponent', () => {
 
   it('import scanner document to customer', () => {
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-    const dialogResult = {mode: 'scanner', documentType: DocumentType.OTHER, personId: 1, fileName: 'scan1.pdf'};
+    const dialogResult = {mode: 'scanner', documentType: DocumentType.OTHER, fileName: 'scan1.pdf'};
     matDialog.open.mockReturnValue({afterClosed: () => of(dialogResult)} as any);
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -938,7 +938,7 @@ describe('CustomerDetailComponent', () => {
     component.openUploadDocumentDialog();
 
     expect(customerDocumentApiService.importScannerDocument).toHaveBeenCalledWith(
-      mockCustomer.id, 'scan1.pdf', DocumentType.OTHER, 1
+      mockCustomer.id, 'scan1.pdf', DocumentType.OTHER
     );
     expect(component.customerDocuments()[0]).toEqual(resultDocument);
   });
