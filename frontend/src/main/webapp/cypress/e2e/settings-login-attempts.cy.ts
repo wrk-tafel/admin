@@ -13,7 +13,8 @@ describe('Settings - Anmelde-Versuche', () => {
     cy.byTestId('login-attempts-table').should('contain.text', 'fehlversuch1');
   });
 
-  it('shows a paginator', () => {
+  it('shows a paginator above and below the table', () => {
+    cy.get('.tafel-paginator-responsive').should('have.length', 2);
     cy.byTestId('login-attempts-paginator').should('exist');
   });
 

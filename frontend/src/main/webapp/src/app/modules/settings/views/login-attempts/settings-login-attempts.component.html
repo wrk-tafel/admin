@@ -5,6 +5,13 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    @if (loginAttempts()) {
+      <mat-paginator class="tafel-paginator-responsive mb-4" [length]="loginAttempts()!.totalCount" [pageSize]="loginAttempts()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="loginAttempts()!.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="loadLoginAttempts($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+    }
+
     <table mat-table [dataSource]="loginAttempts()?.items ?? []" testid="login-attempts-table">
       <ng-container matColumnDef="username">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Benutzername</th>

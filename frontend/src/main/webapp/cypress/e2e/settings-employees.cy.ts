@@ -13,6 +13,7 @@ describe('Settings - Employees', () => {
   });
 
   it('paginates through the employee list', () => {
+    cy.get('.tafel-paginator-responsive').should('have.length', 2);
     cy.byTestId('employees-paginator').should('exist');
     cy.byTestId('employees-row-0').invoke('text').then((firstPageText) => {
       cy.byTestId('employees-paginator').find('.mat-mdc-paginator-navigation-next').click();

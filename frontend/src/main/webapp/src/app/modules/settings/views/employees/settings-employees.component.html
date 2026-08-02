@@ -20,6 +20,13 @@
       </button>
     </div>
 
+    @if (employees()) {
+      <mat-paginator class="tafel-paginator-responsive mb-4" [length]="employees()!.totalCount" [pageSize]="employees()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="employees()!.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="loadEmployees($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+    }
+
     <table mat-table [dataSource]="employees()?.items ?? []" testid="employees-table">
       <ng-container matColumnDef="personnelNumber">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personalnummer</th>
