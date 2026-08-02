@@ -4,10 +4,12 @@ import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import io.mockk.Runs
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -74,5 +76,22 @@ class SettingsControllerTest {
 
         assertThat(response).isEqualTo(staticValueResponse)
         verify(exactly = 1) { settingsService.updateStaticValue(42L, staticValueRequest) }
+    }
+
+    @Test
+    fun `get login attempts`() {
+        settingsController.getLoginAttempts()
+
+        verify(exactly = 1) { settingsService.getLoginAttempts() }
+    }
+
+    @Test
+    fun `delete login attempt`() {
+        every { settingsService.deleteLoginAttempt(any()) } just Runs
+
+        val response = settingsController.deleteLoginAttempt(42L)
+
+        assertThat(response.statusCode.value()).isEqualTo(204)
+        verify(exactly = 1) { settingsService.deleteLoginAttempt(42L) }
     }
 }

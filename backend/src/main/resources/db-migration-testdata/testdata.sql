@@ -20,6 +20,7 @@ SELECT setval('shelters_seq', 10000, false);
 SELECT setval('shelters_contacts_seq', 10000, false);
 SELECT setval('distributions_statistics_shelters_seq', 10000, false);
 SELECT setval('mail_recipients_seq', 10000, false);
+SELECT setval('login_attempts_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -866,3 +867,9 @@ INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (5, 'STATISTICS', 'TO', 'statistics-to@domain.com');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (6, 'RETURN_BOXES', 'TO', 'returnboxes-to@domain.com');
+
+-- login attempts
+INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
+VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW(), NOW() + interval '15 minutes');
+INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
+VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW(), NULL);
