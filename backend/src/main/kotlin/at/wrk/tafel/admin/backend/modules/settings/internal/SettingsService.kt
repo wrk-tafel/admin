@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
+import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -7,6 +9,8 @@ import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -25,6 +29,7 @@ import java.time.LocalDate
 class SettingsService(
     private val mailRecipientRepository: MailRecipientRepository,
     private val staticValueRepository: StaticValueRepository,
+    private val loginAttemptService: LoginAttemptService,
 ) {
 
     companion object {
@@ -132,6 +137,26 @@ class SettingsService(
 
         return mapStaticValue(staticValueRepository.save(historizedEntity))
     }
+
+    fun getLoginAttempts(): LoginAttemptListResponse {
+        val loginAttempts = loginAttemptService.findAll()
+            .sortedByDescending { it.lastFailureAt }
+            .map { mapLoginAttempt(it) }
+
+        return LoginAttemptListResponse(loginAttempts = loginAttempts)
+    }
+
+    fun deleteLoginAttempt(loginAttemptId: Long) {
+        loginAttemptService.deleteById(loginAttemptId)
+    }
+
+    private fun mapLoginAttempt(entity: LoginAttemptEntity) = LoginAttemptItem(
+        id = entity.id!!,
+        username = entity.username!!,
+        failureCount = entity.failureCount ?: 0,
+        lastFailureAt = entity.lastFailureAt!!,
+        lockedUntil = entity.lockedUntil,
+    )
 
     private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean {
         val validFrom = entity.validFrom

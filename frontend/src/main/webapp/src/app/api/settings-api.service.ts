@@ -22,6 +22,14 @@ export class SettingsApiService {
     return this.http.put<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
   }
 
+  getLoginAttempts(): Observable<LoginAttemptListResponse> {
+    return this.http.get<LoginAttemptListResponse>('/settings/login-attempts');
+  }
+
+  deleteLoginAttempt(loginAttemptId: number): Observable<void> {
+    return this.http.delete<void>(`/settings/login-attempts/${loginAttemptId}`);
+  }
+
 }
 
 export interface MailRecipients {
@@ -74,4 +82,16 @@ export enum StaticValueTypeEnum {
   CHILD_TAX_ALLOWANCE = 'CHILD_TAX_ALLOWANCE',
   SIBLING_ADDITION = 'SIBLING_ADDITION',
   COST_CONTRIBUTION = 'COST_CONTRIBUTION'
+}
+
+export interface LoginAttemptListResponse {
+  loginAttempts: LoginAttemptItem[];
+}
+
+export interface LoginAttemptItem {
+  id: number;
+  username: string;
+  failureCount: number;
+  lastFailureAt: string;
+  lockedUntil: string | null;
 }

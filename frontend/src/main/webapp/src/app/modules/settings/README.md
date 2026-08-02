@@ -36,6 +36,9 @@ settings/
     employees/                     # route: einstellungen/mitarbeiter
       dialogs/
         employee-create-dialog.component.ts
+    login-attempts/                 # route: einstellungen/login-versuche
+      dialogs/
+        delete-login-attempt-dialog.component.ts
   settings.routes.ts
 ```
 
@@ -202,12 +205,39 @@ that reflect the domain:
   dialog title, calls the API itself and closes with the saved entity) rather
   than a generic create dialog — reusing it here would have been misleading.
 
+## `login-attempts` (`SettingsLoginAttemptsComponent`)
+
+Read + delete view over the `login_attempts` table (`LoginAttemptEntity`,
+`common/auth/components/LoginAttemptService.kt`) that backs failed-login
+lockout tracking (`TafelLoginProvider`) — added so an admin can see who's
+currently tracked/locked and clear an entry to lift a lockout immediately
+instead of waiting out `lockoutDurationInSeconds` (#2870).
+
+- Loads via `SettingsApiService.getLoginAttempts()` (unpaginated, like most
+  other views here) into a signal (`_loginAttempts`); the backend sorts by
+  most recent failure first. Table columns: `['username', 'failureCount',
+  'lastFailureAt', 'lockedUntil', 'actions']`.
+- **No create, no edit** — this view only ever displays what
+  `LoginAttemptService` already tracks from real login attempts.
+- **Status column**: `isLocked()` compares `lockedUntil` against `Date.now()`
+  client-side (the backend doesn't send a precomputed boolean) so a lock that
+  has since expired shows as inactive without needing a reload.
+- **Delete** goes through a confirm dialog
+  (`delete-login-attempt-dialog.component.ts`, twin of
+  `customer/views/customer-detail/dialogs/delete-customer-dialog.component.ts`)
+  since deleting is the only destructive action in this view — unlike the
+  inline-edit views above there's no "undo via cancel". Deleting clears the
+  row entirely (same effect as a successful login via
+  `LoginAttemptService.recordSuccess()`), which is what actually lifts a lock,
+  not just a `lockedUntil = null` update.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
 
 - `settings-api.service.ts` — mail recipients, static values, and their
-  `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions.
+  `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions; also
+  `getLoginAttempts()`/`deleteLoginAttempt()` for the `login-attempts` view.
 - `shelter-api.service.ts` — `ShelterApiService`, including `reorderShelters()`.
 - `car-api.service.ts` — `CarApiService`, including `reorderCars()`; also used
   by `logistics`' `CarDataResolver` for the read-only `getActiveCars()` side.

@@ -5,6 +5,7 @@ import {SettingsStaticValuesComponent} from './views/static-values/settings-stat
 import {SettingsFoodCategoriesComponent} from './views/food-categories/settings-food-categories.component';
 import {SettingsCarsComponent} from './views/cars/settings-cars.component';
 import {SettingsEmployeesComponent} from './views/employees/settings-employees.component';
+import {SettingsLoginAttemptsComponent} from './views/login-attempts/settings-login-attempts.component';
 
 export const routes: Routes = [
   {
@@ -30,5 +31,9 @@ export const routes: Routes = [
   {
     path: 'mitarbeiter',
     component: SettingsEmployeesComponent,
+  },
+  {
+    path: 'login-versuche',
+    component: SettingsLoginAttemptsComponent,
   },
 ];

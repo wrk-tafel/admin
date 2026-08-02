@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -56,6 +57,17 @@ class LoginAttemptService(
     @Transactional
     fun recordSuccess(username: String) {
         loginAttemptRepository.deleteByUsername(normalize(username))
+    }
+
+    @Transactional(readOnly = true)
+    fun findAll(): List<LoginAttemptEntity> = loginAttemptRepository.findAll()
+
+    @Transactional
+    fun deleteById(id: Long) {
+        if (!loginAttemptRepository.existsById(id)) {
+            throw NotFoundException("Login-Versuch (ID: $id) nicht vorhanden!")
+        }
+        loginAttemptRepository.deleteById(id)
     }
 
     // A row whose last failure is older than the lockout duration is irrelevant: an active lock

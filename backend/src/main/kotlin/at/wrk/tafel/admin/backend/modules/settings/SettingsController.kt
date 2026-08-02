@@ -1,13 +1,16 @@
 package at.wrk.tafel.admin.backend.modules.settings
 
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -38,4 +41,13 @@ class SettingsController(
         @PathVariable staticValueId: Long,
         @Valid @RequestBody staticValue: StaticValueRequest,
     ): StaticValueResponse = settingsService.updateStaticValue(staticValueId, staticValue)
+
+    @GetMapping("/login-attempts")
+    fun getLoginAttempts(): LoginAttemptListResponse = settingsService.getLoginAttempts()
+
+    @DeleteMapping("/login-attempts/{loginAttemptId}")
+    fun deleteLoginAttempt(@PathVariable loginAttemptId: Long): ResponseEntity<Unit> {
+        settingsService.deleteLoginAttempt(loginAttemptId)
+        return ResponseEntity.noContent().build()
+    }
 }

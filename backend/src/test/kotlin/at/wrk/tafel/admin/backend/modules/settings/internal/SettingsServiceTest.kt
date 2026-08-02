@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
+import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -19,6 +21,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import io.mockk.every
@@ -44,6 +47,9 @@ class SettingsServiceTest {
 
     @RelaxedMockK
     private lateinit var staticValueRepository: StaticValueRepository
+
+    @RelaxedMockK
+    private lateinit var loginAttemptService: LoginAttemptService
 
     @InjectMockKs
     private lateinit var service: SettingsService
@@ -349,5 +355,50 @@ class SettingsServiceTest {
 
         assertThatThrownBy { service.updateStaticValue(99L, updated) }
             .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `fetch login attempts sorted by most recent failure first`() {
+        val older = LoginAttemptEntity().apply {
+            id = 1
+            username = "user1"
+            failureCount = 1
+            lastFailureAt = LocalDate.of(2026, 1, 1).atStartOfDay()
+            lockedUntil = null
+        }
+        val newer = LoginAttemptEntity().apply {
+            id = 2
+            username = "user2"
+            failureCount = 3
+            lastFailureAt = LocalDate.of(2026, 1, 2).atStartOfDay()
+            lockedUntil = LocalDate.of(2026, 1, 2).atStartOfDay().plusMinutes(15)
+        }
+        every { loginAttemptService.findAll() } returns listOf(older, newer)
+
+        val response = service.getLoginAttempts()
+
+        assertThat(response.loginAttempts).containsExactly(
+            LoginAttemptItem(
+                id = 2,
+                username = "user2",
+                failureCount = 3,
+                lastFailureAt = newer.lastFailureAt!!,
+                lockedUntil = newer.lockedUntil,
+            ),
+            LoginAttemptItem(
+                id = 1,
+                username = "user1",
+                failureCount = 1,
+                lastFailureAt = older.lastFailureAt!!,
+                lockedUntil = null,
+            ),
+        )
+    }
+
+    @Test
+    fun `delete login attempt`() {
+        service.deleteLoginAttempt(1L)
+
+        verify(exactly = 1) { loginAttemptService.deleteById(1L) }
     }
 }

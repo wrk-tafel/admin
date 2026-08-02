@@ -8,10 +8,12 @@ import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -39,6 +41,7 @@ internal class LoginAttemptServiceTest {
 
     private val entries = mutableMapOf<String, LoginAttemptEntity>()
     private val clock = MutableClock(Instant.parse("2024-01-01T10:00:00Z"))
+    private var nextId = 1L
 
     private lateinit var loginAttemptRepository: LoginAttemptRepository
     private lateinit var advisoryLockService: AdvisoryLockService
@@ -50,8 +53,12 @@ internal class LoginAttemptServiceTest {
 
         loginAttemptRepository = mockk()
         every { loginAttemptRepository.findByUsername(any()) } answers { entries[firstArg()] }
+        every { loginAttemptRepository.findAll() } answers { entries.values.toList() }
         every { loginAttemptRepository.save(any()) } answers {
             val entity = firstArg<LoginAttemptEntity>()
+            if (entity.id == null) {
+                entity.id = nextId++
+            }
             entries[entity.username!!] = entity
             entity
         }
@@ -61,6 +68,12 @@ internal class LoginAttemptServiceTest {
         every { loginAttemptRepository.deleteAllByLastFailureAtBefore(any()) } answers {
             val date = firstArg<LocalDateTime>()
             entries.values.removeIf { it.lastFailureAt!!.isBefore(date) }
+        }
+        every { loginAttemptRepository.existsById(any()) } answers {
+            entries.values.any { it.id == firstArg<Long>() }
+        }
+        every { loginAttemptRepository.deleteById(any()) } answers {
+            entries.values.removeIf { it.id == firstArg<Long>() }
         }
 
         advisoryLockService = mockk()
@@ -174,5 +187,31 @@ internal class LoginAttemptServiceTest {
         service.cleanupStaleEntries()
 
         assertThat(entries).containsOnlyKeys("recent-user")
+    }
+
+    @Test
+    fun `findAll returns all tracked entries`() {
+        service.recordFailure("user1")
+        service.recordFailure("user2")
+
+        assertThat(service.findAll()).extracting<String> { it.username }
+            .containsExactlyInAnyOrder("user1", "user2")
+    }
+
+    @Test
+    fun `deleteById removes the entry, clearing any lock`() {
+        repeat(MAX_FAILURES) { service.recordFailure("user") }
+        val id = entries.getValue("user").id!!
+
+        service.deleteById(id)
+
+        assertThat(entries).isEmpty()
+        assertThat(service.isLocked("user")).isFalse
+    }
+
+    @Test
+    fun `deleteById fails when id is not found`() {
+        assertThatThrownBy { service.deleteById(999L) }
+            .isInstanceOf(NotFoundException::class.java)
     }
 }
