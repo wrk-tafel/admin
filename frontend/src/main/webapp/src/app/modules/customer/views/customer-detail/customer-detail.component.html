@@ -98,7 +98,7 @@
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Allgemeine Daten">
-        <div class="mt-4">
+        <div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
             <div>
               <mat-card>
@@ -231,7 +231,7 @@
         <ng-template mat-tab-label>
           <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
         </ng-template>
-        <div class="mt-4">
+        <div>
           @if (customerData()?.additionalPersons?.length === 0) {
             <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
           }
@@ -294,12 +294,9 @@
         <ng-template mat-tab-label>
           <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
         </ng-template>
-        <div class="mt-4">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div>
+          <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
             <div>
-              <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
-            </div>
-            <div class="lg:col-span-2">
               @if (customerDocuments()?.length === 0) {
                 <h6 testid="nodocuments-label">Keine Dokumente vorhanden</h6>
               }
@@ -328,6 +325,9 @@
                   }
                 </div>
               }
+            </div>
+            <div>
+              <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
             </div>
           </div>
         </div>

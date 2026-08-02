@@ -8,3 +8,10 @@
 .mat-mdc-tab-body-wrapper {
   background-color: white;
 }
+
+// Material renders each tab's projected content inside this wrapper with no padding of its own,
+// so it sits flush against the tab body's edges. Give every tab some breathing room instead of
+// relying on each tab's own template to add it ad hoc.
+.mat-mdc-tab-body-content {
+  padding: 1rem;
+}

@@ -7,7 +7,9 @@ import * as os from 'os';
 // os.tmpdir() and Java's java.io.tmpdir resolve to the same OS-level temp directory on the machine
 // running both the Cypress process and the backend under test (true both locally and in CI, where
 // they run on the same runner), unlike `user.dir`, which differs between a local `bootRun` and the
-// CI job's `java -jar` invocation.
+// CI job's `java -jar` invocation. The backend under test always runs with the "e2e" profile
+// (application-e2e.yml) - that's the profile that exists specifically for this - so there's only
+// ever one location to write to.
 const scannerInboxDir = path.join(os.tmpdir(), 'tafeladmin-e2e-scanner-inbox');
 
 export default defineConfig({
