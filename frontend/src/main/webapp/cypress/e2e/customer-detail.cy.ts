@@ -311,14 +311,36 @@ describe('Customer Detail', () => {
           });
         }
 
-        // desktop (default 1024x768 viewport): actions sit beside the info block, same row
+        function expectMetaDateAndUserOnSameLine() {
+          cy.byTestId('document-0-metaText-date').then(($date) => {
+            const dateTop = $date[0].getBoundingClientRect().top;
+            cy.byTestId('document-0-metaText-user').then(($user) => {
+              expect($user[0].getBoundingClientRect().top).to.be.closeTo(dateTop, 2);
+            });
+          });
+        }
+
+        function expectMetaDateAndUserOnSeparateLines() {
+          cy.byTestId('document-0-metaText-date').then(($date) => {
+            const dateBottom = $date[0].getBoundingClientRect().bottom;
+            cy.byTestId('document-0-metaText-user').then(($user) => {
+              expect($user[0].getBoundingClientRect().top).to.be.greaterThan(dateBottom - 1);
+            });
+          });
+        }
+
+        // desktop (default 1024x768 viewport): actions sit beside the info block, same row;
+        // upload date and uploading user share one line
         expectActionsBesideInfo();
+        expectMetaDateAndUserOnSameLine();
 
         cy.viewport(TABLET_VIEWPORT);
         expectActionsBesideInfo();
+        expectMetaDateAndUserOnSameLine();
 
         cy.viewport(PHONE_VIEWPORT);
         expectActionsBelowInfo();
+        expectMetaDateAndUserOnSeparateLines();
       });
     });
 
