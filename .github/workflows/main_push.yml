@@ -43,6 +43,11 @@ jobs:
           distribution: 'corretto'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+      - name: Install Graphviz
+        # PlantUML needs the `dot` binary to lay out the component diagram; without it,
+        # ModularityTest.createModuleDocumentation() writes an SVG containing a "Cannot
+        # find Graphviz" error graphic instead of the actual diagram (see #2906).
+        run: sudo apt-get update && sudo apt-get install -y graphviz
       - name: Regenerate module structure diagram
         run: ./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.architecture.ModularityTest"
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
