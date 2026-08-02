@@ -60,7 +60,7 @@ class MailSenderService(
         if (mailSender != null) {
             val messageHelper = MimeMessageHelper(mailSender.createMimeMessage(), true)
 
-            val subjectPrefix = tafelAdminProperties.mail?.subjectPrefix ?: ""
+            val subjectPrefix = "${tafelAdminProperties.mail?.subjectPrefix ?: ""} "
             messageHelper.setSubject(subjectPrefix + subject)
             messageHelper.setText(content, isHtmlMail)
 

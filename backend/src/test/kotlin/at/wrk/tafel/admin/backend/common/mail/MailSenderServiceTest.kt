@@ -60,7 +60,7 @@ internal class MailSenderServiceTest {
         val fromAddress = "from-address"
         every { properties.mail!!.from } returns fromAddress
 
-        val subjectPrefix = "PREFIX - "
+        val subjectPrefix = "[PREFIX]"
         every { properties.mail!!.subjectPrefix } returns subjectPrefix
 
         val recipientAddresses = listOf(
@@ -88,9 +88,9 @@ internal class MailSenderServiceTest {
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
-        assertThat(mailMessage.subject).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.subject).isEqualTo("$subjectPrefix $subject")
 
-        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo("$subjectPrefix $subject")
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(fromAddress)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
@@ -132,7 +132,7 @@ internal class MailSenderServiceTest {
         val fromAddress = "from-address"
         every { properties.mail!!.from } returns fromAddress
 
-        val subjectPrefix = "PREFIX - "
+        val subjectPrefix = "[PREFIX]"
         every { properties.mail!!.subjectPrefix } returns subjectPrefix
 
         val recipientAddresses = listOf(
@@ -168,9 +168,9 @@ internal class MailSenderServiceTest {
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
-        assertThat(mailMessage.subject).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.subject).isEqualTo("$subjectPrefix $subject")
 
-        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo("$subjectPrefix $subject")
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(fromAddress)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
