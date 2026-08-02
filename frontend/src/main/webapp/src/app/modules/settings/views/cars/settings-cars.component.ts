@@ -2,7 +2,7 @@ import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular
 import {MatDialog} from '@angular/material/dialog';
 import {CarCreateDialogComponent} from './dialogs/car-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
   MatCellDef,
@@ -29,6 +29,7 @@ import {MatInputModule} from '@angular/material/input';
   templateUrl: 'settings-cars.component.html',
   imports: [
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
@@ -65,11 +66,15 @@ export class SettingsCarsComponent {
   protected licensePlateControl = new FormControl<string>('', {nonNullable: true});
   protected nameControl = new FormControl<string>('', {nonNullable: true});
   private licensePlateInput = viewChild<ElementRef<HTMLInputElement>>('licensePlateInput');
+  private licensePlateInputMobile = viewChild<ElementRef<HTMLInputElement>>('licensePlateInputMobile');
 
   constructor() {
     this.loadCars();
 
-    effect(() => this.licensePlateInput()?.nativeElement.focus());
+    effect(() => {
+      this.licensePlateInput()?.nativeElement.focus();
+      this.licensePlateInputMobile()?.nativeElement.focus();
+    });
   }
 
   private loadCars() {

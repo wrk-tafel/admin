@@ -5,6 +5,7 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <div class="hidden md:block">
     <table mat-table [dataSource]="staticValues()?.staticValues ?? []" testid="static-values-table">
       <ng-container matColumnDef="type">
         <th mat-header-cell *matHeaderCellDef>Typ</th>
@@ -65,5 +66,56 @@
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
           [attr.testid]="'static-values-row-' + i"></tr>
     </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="static-values-cards">
+        @for (staticValue of staticValues()?.staticValues ?? []; track staticValue.id; let i = $index) {
+          <mat-card class="shadow-sm" [attr.testid]="'static-values-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="text-base font-semibold">{{ typeLabel(staticValue.type) }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2 items-center">
+                <div class="font-bold">Anz. Erwachsene:</div>
+                <div>{{ staticValue.countAdults }}</div>
+                <div class="font-bold">Anz. Kinder:</div>
+                <div>{{ staticValue.countChildren }}</div>
+                <div class="font-bold">Alter:</div>
+                <div>{{ staticValue.age }}</div>
+                <div class="font-bold">Betrag:</div>
+                <div>
+                  @if (editingId() === staticValue.id) {
+                    <mat-form-field subscriptSizing="dynamic">
+                      <input #amountInputMobile matInput type="number" step="0.01" [formControl]="amountControl"
+                             [attr.testid]="'staticValueAmountInputMobile-' + i"
+                             (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
+                      <span matTextSuffix>&nbsp;€</span>
+                    </mat-form-field>
+                  } @else {
+                    {{ staticValue.amount !== null ? (staticValue.amount | currency) : '' }}
+                  }
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              @if (editingId() === staticValue.id) {
+                <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + i" (click)="saveEdit(staticValue)">
+                  <fa-icon [icon]="faCheck"></fa-icon>
+                </button>
+                <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + i" (click)="cancelEdit()">
+                  <fa-icon [icon]="faXmark"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButtonMobile-' + i"
+                        (click)="startEdit(staticValue)">
+                  <fa-icon [icon]="faPencil"></fa-icon>
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
   </mat-card-content>
 </mat-card>

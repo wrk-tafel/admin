@@ -49,14 +49,35 @@ describe('Settings - Anmelde-Versuche', () => {
     cy.byTestId('login-attempts-table').should('contain.text', 'fehlversuch1');
   });
 
-  it('remains usable on mobile viewports', () => {
-    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
-      cy.viewport(viewport);
-      cy.reload();
+  it('renders as a card list on phone and stays usable', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.reload();
 
-      cy.byTestId('login-attempts-table').should('exist');
-      cy.byTestId('login-attempts-table').should('contain.text', 'fehlversuch1');
-    });
+    cy.byTestId('login-attempts-table').should('not.be.visible');
+    cy.byTestId('login-attempts-cards').should('be.visible').and('contain.text', 'fehlversuch1');
+
+    // 'gesperrt1' was already deleted by the 'deletes a login attempt' test above (e2e tests share
+    // a persistent DB within a spec run) - use 'fehlversuch1' here instead, which is only
+    // cancel-tested elsewhere in this file and so is still guaranteed to exist.
+    cy.byTestId('login-attempts-cards').contains('mat-card', 'fehlversuch1')
+      .find('[testid^="loginAttemptNotLockedMobile-"]').should('exist');
+
+    cy.byTestId('login-attempts-cards').contains('mat-card', 'fehlversuch1')
+      .find('[testid^="deleteLoginAttemptButtonMobile-"]').click();
+
+    cy.byTestId('deleteloginattempt-dialog').should('be.visible');
+    cy.byTestId('okButton').click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'gelöscht');
+    cy.byTestId('login-attempts-cards').should('not.contain.text', 'fehlversuch1');
+  });
+
+  it('renders as a table at tablet breakpoint', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.reload();
+
+    cy.byTestId('login-attempts-table').should('be.visible');
+    cy.byTestId('login-attempts-cards').should('not.be.visible');
   });
 
 });
