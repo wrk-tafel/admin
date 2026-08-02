@@ -11,6 +11,7 @@ import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
 import {TafelToastrService} from '../../../components/tafel-toastr/tafel-toastr.service';
 import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dialog.component';
+import {MatButton} from "@angular/material/button";
 
 @Component({
   selector: 'tafel-default-header',
@@ -21,7 +22,8 @@ import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dia
     MatDividerModule,
     NgClass,
     NgOptimizedImage,
-    FaIconComponent
+    FaIconComponent,
+    MatButton
   ]
 })
 export class DefaultHeaderComponent {
