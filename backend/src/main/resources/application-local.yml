@@ -39,9 +39,12 @@ tafeladmin:
     githubToken: ~
     titlePrefix: "[LOCAL]"
   storage:
-    documentsPath: ${user.dir}/documents
+    # Relative paths resolve against the backend process's working directory (the "backend" module
+    # folder when started via `./gradlew :backend:bootRun`), so these stay inside the repo - both
+    # are gitignored (see .gitignore).
+    documentsPath: documents
     # Drop a file here manually to test the "scanner folder" document picker locally.
-    scannerPath: ${user.dir}/scanner-inbox
+    scannerPath: scanner-inbox
 
 springdoc:
   api-docs.enabled: true
