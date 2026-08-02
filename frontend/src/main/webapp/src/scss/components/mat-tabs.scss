@@ -1,0 +1,29 @@
+// Without the [backgroundColor] input set (which this app never uses), Material leaves the tab
+// header and body areas transparent - --mat-tab-background-color only applies once a tab group
+// opts into the .mat-tabs-with-background modifier - so the page's gray background (see
+// _theme.scss's `body`) shows straight through, unlike every other surface in the app (mat-card,
+// mat-menu/select/autocomplete panels - see mat-card.scss/mat-menu.scss), which is explicitly
+// white. No custom-property equivalent exists for this default case, so it stays a raw override.
+.mat-mdc-tab-header,
+.mat-mdc-tab-body-wrapper {
+  background-color: white;
+}
+
+// Give the whole tab group the same rounded-corner, bordered "card" look mat-card.scss uses
+// (mat-card.scss doesn't override --mat-card-outlined-container-shape, so it renders at
+// --mat-sys-corner-medium too - reusing that same token here keeps them in sync). Rounding is
+// applied to the outer group rather than the header/body separately, with overflow hidden to clip
+// their square white backgrounds to the rounded shape - the same technique mat-menu.scss uses to
+// clip its panel content to its own rounded corners.
+.mat-mdc-tab-group {
+  border: var(--tafel-border-color) solid 1px;
+  border-radius: var(--mat-sys-corner-medium);
+  overflow: hidden;
+}
+
+// Material renders each tab's projected content inside this wrapper with no padding of its own,
+// so it sits flush against the tab body's edges. Give every tab some breathing room instead of
+// relying on each tab's own template to add it ad hoc.
+.mat-mdc-tab-body-content {
+  padding: 1rem;
+}

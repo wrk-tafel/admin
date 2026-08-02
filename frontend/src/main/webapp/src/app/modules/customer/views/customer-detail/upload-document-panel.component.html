@@ -1,0 +1,77 @@
+<mat-card testid="upload-document-panel">
+  <mat-card-header>
+    <mat-card-title>
+      <h5 class="m-0">Dokument hochladen</h5>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <mat-form-field class="w-full">
+      <mat-label>Dokumenttyp</mat-label>
+      <mat-select testid="documentTypeInput" [ngModel]="documentType()" (ngModelChange)="documentType.set($event)">
+        @for (type of documentTypes; track type) {
+          <mat-option [value]="type" [attr.testid]="'documentTypeInput-option-' + type">{{ documentTypeLabel[type] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-button-toggle-group testid="documentSourceToggle" class="w-full mb-4" [value]="source()"
+                              (change)="selectSource($event.value)">
+      <mat-button-toggle testid="documentSourceUpload" value="upload" class="flex-1">Datei hochladen</mat-button-toggle>
+      <mat-button-toggle testid="documentSourceScanner" value="scanner" class="flex-1">Scanner</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (source() === 'upload') {
+      <div testid="documentDropzone"
+           class="border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors"
+           [class.border-blue-500]="isDragOver()" [class.bg-blue-50]="isDragOver()" [class.border-gray-300]="!isDragOver()"
+           (click)="triggerFileInput()"
+           (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+        @if (selectedFile()) {
+          <div testid="selectedFileName" class="font-bold">{{ selectedFile()!.name }}</div>
+          <button type="button" testid="chooseFileButton" matButton="outlined" class="mt-2"
+                  (click)="$event.stopPropagation(); triggerFileInput()">Andere Datei wählen</button>
+        } @else {
+          <div class="mb-2">Datei hierher ziehen oder</div>
+          <button type="button" testid="chooseFileButton" matButton="outlined"
+                  (click)="$event.stopPropagation(); triggerFileInput()">Datei auswählen</button>
+        }
+      </div>
+      <input #fileInput testid="documentFileInput" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+             (change)="onFileSelected($event)">
+    }
+
+    @if (source() === 'scanner') {
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-bold">Dateien im Scanner</span>
+        <button type="button" testid="refreshScannerFilesButton" matButton="outlined" (click)="refreshScannerFiles()">
+          Aktualisieren
+        </button>
+      </div>
+      @if (scannerFiles().length === 0) {
+        <div testid="noScannerFiles">Keine Dateien vorhanden</div>
+      }
+      @for (file of scannerFiles(); track file.fileName) {
+        <div class="flex items-center gap-2 mb-1">
+          <input type="radio" name="scannerFile" [id]="'scannerFile-' + file.fileName"
+                 [attr.testid]="'scannerFile-' + file.fileName"
+                 [checked]="selectedScannerFileName() === file.fileName"
+                 (change)="selectedScannerFileName.set(file.fileName)">
+          <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
+             target="_blank" rel="noopener" matButton="filled" class="shrink-0 !inline-flex !items-center !justify-center"
+             (click)="$event.stopPropagation()" title="Vorschau öffnen">
+            <fa-icon [icon]="faEye" class="block"></fa-icon>
+          </a>
+          <label [for]="'scannerFile-' + file.fileName" class="min-w-0">
+            <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>
+            <div class="text-sm text-gray-500 truncate" [title]="file.fileName">
+              {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB
+            </div>
+          </label>
+        </div>
+      }
+    }
+  </mat-card-content>
+  <mat-card-actions>
+    <button testid="okButton" matButton="filled" (click)="submit()" [disabled]="!canUpload()">Hochladen</button>
+  </mat-card-actions>
+</mat-card>

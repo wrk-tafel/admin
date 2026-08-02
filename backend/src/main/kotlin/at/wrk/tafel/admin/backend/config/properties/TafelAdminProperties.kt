@@ -11,6 +11,7 @@ data class TafelAdminProperties(
     val mail: TafelAdminMailProperties? = null,
     val server: TafelAdminServerProperties = TafelAdminServerProperties(),
     val support: TafelAdminSupportProperties? = null,
+    val storage: TafelAdminStorageProperties = TafelAdminStorageProperties(),
 )
 
 @ExcludeFromTestCoverage
@@ -33,4 +34,12 @@ data class TafelAdminSupportProperties(
     val githubRepository: String,
     // Prepended to every issue title so it's obvious which environment a support request came from.
     val titlePrefix: String,
+)
+
+@ExcludeFromTestCoverage
+data class TafelAdminStorageProperties(
+    val documentsPath: String = "documents",
+    // Mount point for a NAS share a physical scanner writes to. Not every environment has one, so
+    // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.githubToken).
+    val scannerPath: String? = null,
 )

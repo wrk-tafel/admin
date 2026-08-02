@@ -222,6 +222,12 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
 - Open Cypress UI: `npm run cy:open-local` (for local development)
+- **Any new or changed frontend user-facing behavior (a new dialog, form field, button, tab, flow)
+  must come with an added/updated Cypress e2e case** covering it end-to-end, not just a Vitest unit
+  spec — this is easy to forget since unit tests alone can pass while the real flow is broken (e.g.
+  a required DB sequence missing only shows up when a real request round-trips through a real
+  backend, which only e2e/integration tests exercise). Before calling frontend work done, check
+  whether `cypress/e2e/*.cy.ts` needs a new `it(...)` for what changed.
 
 ## Code Conventions
 
@@ -437,6 +443,13 @@ You can invoke these skills using `/fix-e2e` in conversations.
 2. Use next available number for XXXXX (check current highest number in the directory)
 3. Include IF NOT EXISTS clauses for repeatability
 4. Test migration with clean database
+5. **A brand-new entity table needs its own `<table>_seq` sequence in the same migration** (e.g.
+   `create sequence if not exists <table>_seq start with 1 increment by 50 owned by <table>.id;`).
+   Hibernate's `id.db_structure_naming_strategy` is `standard` here (see
+   `R__00070_migrate_id_sequences.sql`), so every `@GeneratedValue` entity requires a matching
+   `<table>_seq` — without it, inserts fail at runtime with `relation "<table>_seq" does not exist`.
+   A MockK-based unit test with a mocked repository will not catch this; only a real Postgres run
+   (an `*IT.kt` test via `TafelBaseIntegrationTest`, or manual testing) will.
 
 ### Adding a New Permission
 1. Add permission to `UserPermissions` enum in backend

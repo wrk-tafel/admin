@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -14,10 +14,18 @@ import {
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
+import {
+  CustomerDocumentApiService,
+  CustomerDocumentItem,
+  CustomerDocumentsResponse,
+  documentTypeLabel
+} from '../../../../api/customer-document-api.service';
 import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
 import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
 import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
+import {UploadDocumentPanelComponent, UploadDocumentPanelResult} from './upload-document-panel.component';
+import {DeleteDocumentDialogComponent} from './dialogs/delete-document-dialog.component';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -31,7 +39,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {CommonModule} from '@angular/common';
-import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
+import {faDownload, faPlus, faTrashCan, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
@@ -63,7 +71,8 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     TafelIfDistributionActiveDirective,
     FormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    UploadDocumentPanelComponent
   ]
 })
 export class CustomerDetailComponent {
@@ -73,13 +82,17 @@ export class CustomerDetailComponent {
   customerDataInput = input.required<CustomerData>({alias: 'customerData'});
   // eslint-disable-next-line @angular-eslint/no-input-rename
   customerNotesResponseInput = input.required<CustomerNotesResponse>({alias: 'customerNotesResponse'});
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  customerDocumentsResponseInput = input.required<CustomerDocumentsResponse>({alias: 'customerDocumentsResponse'});
 
   // Writable signals linked to inputs - reset when input changes, locally writable for API updates
   readonly customerData = linkedSignal(() => this.customerDataInput());
   readonly customerNotesResponse = linkedSignal(() => this.customerNotesResponseInput());
+  readonly customerDocumentsResponse = linkedSignal(() => this.customerDocumentsResponseInput());
 
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
+  customerDocuments = signal<CustomerDocumentItem[]>([]);
 
   // Ticket signals
   ticketNumber = signal<number | null>(null);
@@ -87,6 +100,7 @@ export class CustomerDetailComponent {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
+  private readonly customerDocumentApiService = inject(CustomerDocumentApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
@@ -97,12 +111,22 @@ export class CustomerDetailComponent {
 
   readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
 
+  uploadDocumentPanel = viewChild(UploadDocumentPanelComponent);
+
   constructor() {
     // Process notes when the notes response changes (from input or local updates)
     effect(() => {
       const notesResponse = this.customerNotesResponse();
       if (notesResponse) {
         this.processCustomerNoteResponse(notesResponse);
+      }
+    });
+
+    // Process documents when the documents response changes (from input or local updates)
+    effect(() => {
+      const documentsResponse = this.customerDocumentsResponse();
+      if (documentsResponse) {
+        this.customerDocuments.set(documentsResponse.items);
       }
     });
 
@@ -288,6 +312,59 @@ export class CustomerDetailComponent {
     });
   }
 
+  onDocumentUpload(result: UploadDocumentPanelResult) {
+    const customerId = this.customerData().id!;
+    const upload$ = result.mode === 'upload'
+      ? this.customerDocumentApiService.uploadDocument(customerId, result.documentType, result.file)
+      : this.customerDocumentApiService.importScannerDocument(customerId, result.fileName, result.documentType);
+
+    upload$.subscribe({
+      next: (newDocument) => {
+        this.customerDocuments.update(documents => [newDocument, ...documents]);
+        const currentResponse = this.customerDocumentsResponse();
+        this.customerDocumentsResponse.set({
+          ...currentResponse,
+          items: [newDocument, ...currentResponse.items]
+        });
+        this.uploadDocumentPanel()?.reset();
+        this.toastr.success('Dokument wurde hochgeladen!');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Hochladen fehlgeschlagen!');
+      }
+    });
+  }
+
+  downloadDocument(doc: CustomerDocumentItem) {
+    this.customerDocumentApiService.downloadDocument(this.customerData().id!, doc.id).subscribe({
+      next: (response) => this.fileHelperService.downloadFile(doc.fileName, response.body!),
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Download fehlgeschlagen!');
+      }
+    });
+  }
+
+  openDeleteDocumentDialog(doc: CustomerDocumentItem) {
+    this.dialog.open(DeleteDocumentDialogComponent).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.customerDocumentApiService.deleteDocument(this.customerData().id!, doc.id).subscribe({
+          next: () => {
+            this.customerDocuments.update(documents => documents.filter(d => d.id !== doc.id));
+            const currentResponse = this.customerDocumentsResponse();
+            this.customerDocumentsResponse.set({
+              ...currentResponse,
+              items: currentResponse.items.filter(d => d.id !== doc.id)
+            });
+            this.toastr.success('Dokument wurde gelöscht!');
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+          }
+        });
+      }
+    });
+  }
+
   assignTicket() {
     const ticketNumber = this.ticketNumberInput()!;
     const customerId = this.customerData().id!;
@@ -328,5 +405,8 @@ export class CustomerDetailComponent {
 
   protected readonly faUsers = faUsers;
   protected readonly faPlus = faPlus;
+  protected readonly faDownload = faDownload;
+  protected readonly faTrashCan = faTrashCan;
+  protected readonly documentTypeLabel = documentTypeLabel;
   protected readonly Number = Number;
 }

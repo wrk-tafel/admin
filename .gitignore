@@ -21,3 +21,7 @@ build/
 !/.claude/skills/
 /.kotlin/
 /backend/logs/
+/documents/
+/backend/documents/
+/scanner-inbox/
+/backend/scanner-inbox/

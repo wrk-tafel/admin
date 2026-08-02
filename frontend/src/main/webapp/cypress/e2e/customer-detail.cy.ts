@@ -244,6 +244,169 @@ describe('Customer Detail', () => {
     cy.byTestId('editCustomerToggleButton').click();
   }
 
+  describe('documents', () => {
+    it('upload, download and delete a document', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('nodocuments-label').should('be.visible');
+
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('nodocuments-label').should('not.exist');
+        cy.byTestId('document-0-fileNameText').should('have.text', 'test-document.pdf');
+
+        const downloadsFolder = Cypress.config('downloadsFolder');
+        const downloadedFilePath = path.join(downloadsFolder, 'test-document.pdf');
+        cy.byTestId('document-0-downloadButton').click();
+        cy.readFile(downloadedFilePath, 'binary', {timeout: 15000})
+          .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
+
+        cy.byTestId('document-0-deleteButton').click();
+        cy.byTestId('deletedocument-dialog').should('be.visible');
+        cy.byTestId('deletedocument-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('nodocuments-label').should('be.visible');
+      });
+    });
+
+    it('moves document actions below the filename on phone, keeps them alongside it on tablet/desktop', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+        cy.byTestId('document-0-metaText').should('be.visible');
+
+        // "same row" means the button's vertical range overlaps the (3-line) info block's -
+        // "moved below" means the button starts only after the info block ends
+        function expectActionsBesideInfo() {
+          cy.byTestId('document-0-metaText').then(($metaText) => {
+            const infoBottom = $metaText[0].getBoundingClientRect().bottom;
+            cy.byTestId('document-0-downloadButton').then(($downloadButton) => {
+              expect($downloadButton[0].getBoundingClientRect().top).to.be.lessThan(infoBottom);
+            });
+          });
+        }
+
+        function expectActionsBelowInfo() {
+          cy.byTestId('document-0-metaText').then(($metaText) => {
+            const infoBottom = $metaText[0].getBoundingClientRect().bottom;
+            cy.byTestId('document-0-downloadButton').then(($downloadButton) => {
+              expect($downloadButton[0].getBoundingClientRect().top).to.be.greaterThan(infoBottom - 1);
+            });
+          });
+        }
+
+        function expectMetaDateAndUserOnSameLine() {
+          cy.byTestId('document-0-metaText-date').then(($date) => {
+            const dateTop = $date[0].getBoundingClientRect().top;
+            cy.byTestId('document-0-metaText-user').then(($user) => {
+              expect($user[0].getBoundingClientRect().top).to.be.closeTo(dateTop, 2);
+            });
+          });
+        }
+
+        function expectMetaDateAndUserOnSeparateLines() {
+          cy.byTestId('document-0-metaText-date').then(($date) => {
+            const dateBottom = $date[0].getBoundingClientRect().bottom;
+            cy.byTestId('document-0-metaText-user').then(($user) => {
+              expect($user[0].getBoundingClientRect().top).to.be.greaterThan(dateBottom - 1);
+            });
+          });
+        }
+
+        // desktop (default 1024x768 viewport): actions sit beside the info block, same row;
+        // upload date and uploading user share one line
+        expectActionsBesideInfo();
+        expectMetaDateAndUserOnSameLine();
+
+        cy.viewport(TABLET_VIEWPORT);
+        expectActionsBesideInfo();
+        expectMetaDateAndUserOnSameLine();
+
+        cy.viewport(PHONE_VIEWPORT);
+        expectActionsBelowInfo();
+        expectMetaDateAndUserOnSeparateLines();
+      });
+    });
+
+    it('import a document from the scanner folder', () => {
+      cy.task('clearScannerInbox');
+      const scannerFileName = 'scan-e2e-test.pdf';
+      cy.task('writeScannerFile', {fileName: scannerFileName, content: '%PDF-1.1 test content'});
+
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-OTHER').click();
+
+        cy.byTestId('documentSourceScanner').click();
+        cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('okButton').click();
+
+        // the imported document's filename is derived from the document type + import time, not
+        // the scanner's own generic filename (see HouseholdDocumentService.deriveScannerImportFileName)
+        cy.byTestId('document-0-fileNameText').invoke('text').should('match', /^Sonstiges_\d{4}-\d{2}-\d{2}_\d{4}\.pdf$/);
+
+        // the imported file is removed from the scanner inbox, so it must not be offered again -
+        // the panel's scanner list is live (SSE) and stays mounted (no dialog reopen needed)
+        cy.byTestId('noScannerFiles', {timeout: 10000}).should('be.visible');
+      });
+    });
+
+    it('imports the selected scanner file, not just the newest one', () => {
+      cy.task('clearScannerInbox');
+      const olderFileName = 'scan-older.pdf';
+      const newerFileName = 'scan-newer.pdf';
+      cy.task('writeScannerFile', {fileName: olderFileName, content: '%PDF-1.1 OLDER-CONTENT'});
+      cy.wait(1100);
+      cy.task('writeScannerFile', {fileName: newerFileName, content: '%PDF-1.1 NEWER-CONTENT'});
+
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-OTHER').click();
+
+        cy.byTestId('documentSourceScanner').click();
+        // deliberately select the OLDER file (not the default/newest one)
+        cy.byTestId('scannerFile-' + olderFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-fileNameText').should('be.visible').invoke('text').then((fileName) => {
+          const downloadsFolder = Cypress.config('downloadsFolder');
+          const downloadedFilePath = path.join(downloadsFolder, fileName);
+          cy.byTestId('document-0-downloadButton').click();
+          cy.readFile(downloadedFilePath, 'utf8', {timeout: 15000})
+            .should('include', 'OLDER-CONTENT');
+        });
+      });
+    });
+  });
+
   describe('Supervisor', () => {
     beforeEach(() => {
       cy.loginDefault();

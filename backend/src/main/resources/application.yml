@@ -59,6 +59,13 @@ spring:
   mvc:
     async:
       request-timeout: 3600000 # 1 hour
+  servlet:
+    multipart:
+      # Safety net only - the real 25MB per-file business limit is enforced explicitly in
+      # HouseholdDocumentService, so a too-large upload comes back as a clean 400 instead of
+      # Spring's MaxUploadSizeExceededException.
+      max-file-size: 30MB
+      max-request-size: 30MB
 
 security:
   jwtToken:

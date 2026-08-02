@@ -108,6 +108,9 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
     @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
     var persons: MutableList<PersonEntity> = mutableListOf()
 
+    @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var documents: MutableList<DocumentEntity> = mutableListOf()
+
     /**
      * All household members except the main person - the direct equivalent of the former
      * `CustomerEntity.additionalPersons`.

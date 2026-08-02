@@ -98,7 +98,7 @@
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Allgemeine Daten">
-        <div class="mt-4">
+        <div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
             <div>
               <mat-card>
@@ -231,7 +231,7 @@
         <ng-template mat-tab-label>
           <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
         </ng-template>
-        <div class="mt-4">
+        <div>
           @if (customerData()?.additionalPersons?.length === 0) {
             <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
           }
@@ -288,6 +288,51 @@
               }
             </div>
           }
+        </div>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
+        </ng-template>
+        <div>
+          <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
+            <div>
+              @if (customerDocuments()?.length === 0) {
+                <h6 testid="nodocuments-label">Keine Dokumente vorhanden</h6>
+              }
+              @if ((customerDocuments()?.length ?? 0) > 0) {
+                <div class="grid grid-cols-1 gap-2">
+                  @for (doc of customerDocuments(); track doc.id; let i = $index) {
+                    <mat-card>
+                      <mat-card-content class="!flex !flex-col md:!flex-row md:!items-center !justify-between gap-2 !py-2">
+                        <div class="min-w-0">
+                          <div class="font-bold truncate" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
+                          <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
+                          <div [attr.testid]="'document-' + i + '-metaText'" class="flex flex-col md:flex-row md:gap-2">
+                            <span [attr.testid]="'document-' + i + '-metaText-date'">{{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm:ss' }}</span>
+                            @if (doc.uploadedBy) {
+                              <span [attr.testid]="'document-' + i + '-metaText-user'">{{ doc.uploadedBy }}</span>
+                            }
+                          </div>
+                        </div>
+                        <div class="flex gap-2 shrink-0 justify-end">
+                          <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)">
+                            <fa-icon [icon]="faDownload"></fa-icon>
+                          </button>
+                          <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)">
+                            <fa-icon [icon]="faTrashCan"></fa-icon>
+                          </button>
+                        </div>
+                      </mat-card-content>
+                    </mat-card>
+                  }
+                </div>
+              }
+            </div>
+            <div>
+              <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
+            </div>
+          </div>
         </div>
       </mat-tab>
     </mat-tab-group>
