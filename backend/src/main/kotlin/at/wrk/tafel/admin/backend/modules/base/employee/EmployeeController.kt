@@ -25,7 +25,8 @@ class EmployeeController(
     fun findEmployees(
         @RequestParam searchInput: String? = null,
         @RequestParam page: Int? = null,
-    ): EmployeeListResponse = employeeService.findEmployees(searchInput, page)
+        @RequestParam pageSize: Int? = null,
+    ): EmployeeListResponse = employeeService.findEmployees(searchInput, page, pageSize)
 
     @PostMapping
     fun saveEmployee(

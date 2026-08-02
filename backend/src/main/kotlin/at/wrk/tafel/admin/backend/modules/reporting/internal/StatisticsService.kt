@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -432,9 +433,10 @@ class StatisticsService(
         ageMin: Int,
         ageMax: Int,
         page: Int? = null,
+        pageSize: Int? = null,
     ): PagedResponse<SchoolStarterPackageItem> {
         val today = LocalDate.now()
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today), pageRequest)
 
         return PagedResponse(

@@ -10,6 +10,7 @@ import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-sv
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -102,4 +103,7 @@ export class CustomerDuplicatesComponent {
   protected readonly faCheck = faCheck;
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
   protected readonly faTrashCan = faTrashCan;
+  // Not enabled here (hidePageSize stays true) - page size is fixed at 1 pair per page, which
+  // mergeCustomers() below relies on. Only kept for structural consistency with the other pages.
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

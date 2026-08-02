@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.security.components
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -467,7 +468,7 @@ class TafelUserDetailsManagerTest {
         userEntity.passwordChangeRequired = true
 
         val selectedPage = 3
-        val pageRequest = PageRequest.of(selectedPage - 1, 25)
+        val pageRequest = PageRequest.of(selectedPage - 1, PaginationDefaults.DEFAULT_PAGE_SIZE)
         val page = PageImpl(listOf(userEntity), pageRequest, 123)
         every { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) } returns page
 
@@ -482,7 +483,7 @@ class TafelUserDetailsManagerTest {
         assertThat(searchResult).isNotNull
 
         assertThat(searchResult.currentPage).isEqualTo(selectedPage)
-        assertThat(searchResult.totalPages).isEqualTo(5)
+        assertThat(searchResult.totalPages).isEqualTo(page.totalPages)
         assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
         assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
 
@@ -494,6 +495,16 @@ class TafelUserDetailsManagerTest {
         assertThat(user.lastname).isEqualTo(userEntity.employee!!.lastname)
 
         verify(exactly = 1) { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) }
+    }
+
+    @Test
+    fun `loadUsers with invalid pageSize falls back to default`() {
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        every { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val searchResult = manager.loadUsers(username = null, firstname = null, lastname = null, enabled = null, page = 1, pageSize = 999)
+
+        assertThat(searchResult.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test

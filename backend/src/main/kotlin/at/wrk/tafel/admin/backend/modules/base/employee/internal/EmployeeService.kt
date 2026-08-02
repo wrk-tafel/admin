@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
@@ -18,8 +19,8 @@ class EmployeeService(
     private val employeeRepository: EmployeeRepository,
 ) {
 
-    fun findEmployees(searchInput: String? = null, page: Int? = null): EmployeeListResponse {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5, Sort.by("id"))
+    fun findEmployees(searchInput: String? = null, page: Int? = null, pageSize: Int? = null): EmployeeListResponse {
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize), Sort.by("id"))
         val pagedResult = if (searchInput != null) {
             employeeRepository.findBySearchInput(searchInput, pageRequest)
         } else {

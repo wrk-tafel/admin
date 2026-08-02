@@ -190,8 +190,9 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
 
             fun orderByUpdatedAtDesc(spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val updatedAt: Expression<LocalDate> = root["updatedAt"]
+                val id: Expression<Long> = root["id"]
 
-                cq!!.orderBy(cb.desc(updatedAt))
+                cq!!.orderBy(cb.desc(updatedAt), cb.desc(id))
                 spec.toPredicate(root, cq, cb)
             }
 

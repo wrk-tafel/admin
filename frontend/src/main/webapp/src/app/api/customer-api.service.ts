@@ -74,7 +74,8 @@ export class CustomerApiService {
     postProcessing?: boolean | null,
     costContribution?: boolean | null,
     valid?: boolean | null,
-    page?: number
+    page?: number,
+    pageSize?: number
   ): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
@@ -94,6 +95,9 @@ export class CustomerApiService {
     }
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<HouseholdSearchResult>('/households', {params: queryParams}).pipe(
       map(response => ({...response, items: (response?.items ?? []).map(mapHouseholdToCustomer)}))
@@ -116,10 +120,13 @@ export class CustomerApiService {
     );
   }
 
-  getCustomersAboveLimit(page?: number): Observable<CustomerAboveLimitResponse> {
+  getCustomersAboveLimit(page?: number, pageSize?: number): Observable<CustomerAboveLimitResponse> {
     let queryParams = new HttpParams();
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<HouseholdAboveLimitResponse>('/households/above-limit', {params: queryParams}).pipe(
       map(response => ({

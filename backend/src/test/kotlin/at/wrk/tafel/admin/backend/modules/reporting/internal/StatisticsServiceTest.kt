@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -561,7 +562,7 @@ internal class StatisticsServiceTest {
         )
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
-        assertThat(result.pageSize).isEqualTo(25)
+        assertThat(result.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
@@ -591,7 +592,7 @@ internal class StatisticsServiceTest {
         service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
 
         assertThat(pageableSlot.captured.pageNumber).isEqualTo(1)
-        assertThat(pageableSlot.captured.pageSize).isEqualTo(25)
+        assertThat(pageableSlot.captured.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
@@ -605,5 +606,17 @@ internal class StatisticsServiceTest {
 
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(pageableSlot.captured.pageNumber).isEqualTo(0)
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData with invalid pageSize falls back to default`() {
+        val pageableSlot = slot<Pageable>()
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
+        } returns PageImpl(emptyList(), PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE), 0)
+
+        service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1, pageSize = 999)
+
+        assertThat(pageableSlot.captured.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 }

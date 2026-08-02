@@ -46,7 +46,8 @@ class StatisticsController(
         @RequestParam ageMin: Int,
         @RequestParam ageMax: Int,
         @RequestParam page: Int? = null,
-    ): PagedResponse<SchoolStarterPackageItem> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page)
+        @RequestParam pageSize: Int? = null,
+    ): PagedResponse<SchoolStarterPackageItem> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page, pageSize)
 
     @GetMapping("/generate-school-starter-package-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun generateSchoolStarterPackageCsv(

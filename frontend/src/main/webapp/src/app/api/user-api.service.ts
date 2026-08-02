@@ -24,7 +24,8 @@ export class UserApiService {
     enabled?: boolean | null,
     lastname?: string | null,
     firstname?: string | null,
-    page?: number
+    page?: number,
+    pageSize?: number
   ): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
     if (username) {
@@ -41,6 +42,9 @@ export class UserApiService {
     }
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
   }

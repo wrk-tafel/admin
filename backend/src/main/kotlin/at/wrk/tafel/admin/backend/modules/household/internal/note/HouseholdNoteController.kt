@@ -24,8 +24,9 @@ class HouseholdNoteController(
     fun getNotes(
         @PathVariable householdId: Long,
         @RequestParam("page") page: Int?,
+        @RequestParam("pageSize") pageSize: Int? = null,
     ): PagedResponse<HouseholdNoteItem> {
-        val searchResult = service.getNotes(householdId = householdId, page = page)
+        val searchResult = service.getNotes(householdId = householdId, page = page, pageSize = pageSize)
         return PagedResponse(
             items = searchResult.items,
             totalCount = searchResult.totalCount,

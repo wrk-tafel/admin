@@ -90,8 +90,9 @@
     @if (employees()) {
       <mat-paginator class="tafel-paginator-responsive mt-4" testid="employees-paginator"
                      [length]="employees()!.totalCount" [pageSize]="employees()!.pageSize"
-                     [pageIndex]="employees()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
-                     (page)="loadEmployees($event.pageIndex + 1)"></mat-paginator>
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="employees()!.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="loadEmployees($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
     }
   </mat-card-content>
 </mat-card>

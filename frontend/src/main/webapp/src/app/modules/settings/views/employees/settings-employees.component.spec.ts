@@ -71,7 +71,7 @@ describe('SettingsEmployeesComponent', () => {
     const component = fixture.componentInstance;
     expect(component['employees']()).toBeDefined();
     expect(component['employees']()?.items.length).toBe(2);
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined, undefined);
   });
 
   it('search() reloads from page 1 with the search input', () => {
@@ -82,7 +82,7 @@ describe('SettingsEmployeesComponent', () => {
     component['searchControl'].setValue('00001');
     component['search']();
 
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize);
   });
 
   it('startEdit() enters edit mode for the given row and prefills the fields', () => {

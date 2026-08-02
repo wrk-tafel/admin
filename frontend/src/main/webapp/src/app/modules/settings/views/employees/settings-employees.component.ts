@@ -17,6 +17,7 @@ import {
 } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {CreateEmployeeRequest, EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../../api/employee-api.service';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
 import {faCheck, faMagnifyingGlass, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
@@ -74,11 +75,11 @@ export class SettingsEmployeesComponent {
   }
 
   protected search() {
-    this.loadEmployees(1);
+    this.loadEmployees(1, this.employees()?.pageSize);
   }
 
-  protected loadEmployees(page?: number) {
-    this.employeeApiService.findEmployees(this.searchControl.value || undefined, page).subscribe({
+  protected loadEmployees(page?: number, pageSize?: number) {
+    this.employeeApiService.findEmployees(this.searchControl.value || undefined, page, pageSize).subscribe({
       next: data => this._employees.set(data),
       error: () => this.toastr.error('Fehler beim Laden der Mitarbeiter', 'Fehler')
     });
@@ -106,7 +107,7 @@ export class SettingsEmployeesComponent {
       next: () => {
         this.toastr.success('Mitarbeiter gespeichert', 'Erfolgreich');
         this.editingId.set(null);
-        this.loadEmployees(this.employees()?.currentPage);
+        this.loadEmployees(this.employees()?.currentPage, this.employees()?.pageSize);
       },
       error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
     });
@@ -122,7 +123,7 @@ export class SettingsEmployeesComponent {
         this.employeeApiService.saveEmployee(created).subscribe({
           next: () => {
             this.toastr.success('Mitarbeiter erstellt', 'Erfolgreich');
-            this.loadEmployees(this.employees()?.currentPage);
+            this.loadEmployees(this.employees()?.currentPage, this.employees()?.pageSize);
           },
           error: () => this.toastr.error('Erstellen fehlgeschlagen', 'Fehler')
         });
@@ -135,4 +136,5 @@ export class SettingsEmployeesComponent {
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

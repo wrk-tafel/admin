@@ -7,10 +7,13 @@ import {PagedResponse} from '../common/api/paged-response';
 export class CustomerNoteApiService {
   private http = inject(HttpClient);
 
-  getNotesForCustomer(customerId: number, page?: number): Observable<CustomerNotesResponse> {
+  getNotesForCustomer(customerId: number, page?: number, pageSize?: number): Observable<CustomerNotesResponse> {
     let queryParams = new HttpParams();
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<CustomerNotesResponse>(`/households/${customerId}/notes`, {params: queryParams});
   }

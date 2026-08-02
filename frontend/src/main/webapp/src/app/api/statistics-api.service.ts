@@ -33,12 +33,17 @@ export class StatisticsApiService {
       });
   }
 
-  getSchoolStarterPackageData(ageMin: number, ageMax: number, page?: number): Observable<SchoolStarterPackageSearchResult> {
+  getSchoolStarterPackageData(
+    ageMin: number, ageMax: number, page?: number, pageSize?: number
+  ): Observable<SchoolStarterPackageSearchResult> {
     let queryParams = new HttpParams();
     queryParams = queryParams.set('ageMin', ageMin);
     queryParams = queryParams.set('ageMax', ageMax);
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
 
     return this.http.get<SchoolStarterPackageSearchResult>('/statistics/school-starter-package', {params: queryParams});

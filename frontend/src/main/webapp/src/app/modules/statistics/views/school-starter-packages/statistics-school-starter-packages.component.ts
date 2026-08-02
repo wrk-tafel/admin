@@ -22,6 +22,7 @@ import {SchoolStarterPackageSearchResult, StatisticsApiService} from '../../../.
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faSave} from '@fortawesome/free-solid-svg-icons';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 
 @Component({
   selector: 'tafel-statistics-school-starter-packages',
@@ -79,14 +80,15 @@ export class StatisticsSchoolStarterPackagesComponent {
   }
 
   onPageChange(event: PageEvent) {
-    this.loadSchoolStarterPackageData(event.pageIndex + 1);
+    this.loadSchoolStarterPackageData(event.pageIndex + 1, event.pageSize);
   }
 
-  private loadSchoolStarterPackageData(page?: number) {
+  private loadSchoolStarterPackageData(page?: number, pageSize?: number) {
     this.statisticsApiService.getSchoolStarterPackageData(
       this.schoolStarterPackageAgeMin(),
       this.schoolStarterPackageAgeMax(),
-      page
+      page,
+      pageSize
     ).subscribe((response) => this.schoolStarterPackageData.set(response));
   }
 
@@ -104,4 +106,5 @@ export class StatisticsSchoolStarterPackagesComponent {
   }
 
   protected readonly faSave = faSave;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }
