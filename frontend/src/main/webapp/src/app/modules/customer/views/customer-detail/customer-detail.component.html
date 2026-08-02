@@ -304,7 +304,7 @@
                 <div class="grid grid-cols-1 gap-2">
                   @for (doc of customerDocuments(); track doc.id; let i = $index) {
                     <mat-card>
-                      <mat-card-content class="flex items-start justify-between gap-2 !py-2">
+                      <mat-card-content class="!flex !flex-row !items-start !justify-between gap-2 !py-2">
                         <div class="min-w-0">
                           <div class="font-bold truncate" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
                           <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
