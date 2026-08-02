@@ -39,6 +39,7 @@ tafeladmin:
     githubToken: ~
     titlePrefix: "[LOCAL]"
   storage:
+    documentsPath: ${user.dir}/documents
     # Drop a file here manually to test the "scanner folder" document picker locally.
     scannerPath: ${user.dir}/scanner-inbox
 

@@ -93,5 +93,3 @@ tafeladmin:
   support:
     githubRepository: wrk-tafel/admin
     titlePrefix: ""
-  storage:
-    documentsPath: ${user.dir}/documents
