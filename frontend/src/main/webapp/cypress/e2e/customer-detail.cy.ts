@@ -278,6 +278,50 @@ describe('Customer Detail', () => {
       });
     });
 
+    it('moves document actions below the filename on phone, keeps them alongside it on tablet/desktop', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+        cy.byTestId('document-0-metaText').should('be.visible');
+
+        // "same row" means the button's vertical range overlaps the (3-line) info block's -
+        // "moved below" means the button starts only after the info block ends
+        function expectActionsBesideInfo() {
+          cy.byTestId('document-0-metaText').then(($metaText) => {
+            const infoBottom = $metaText[0].getBoundingClientRect().bottom;
+            cy.byTestId('document-0-downloadButton').then(($downloadButton) => {
+              expect($downloadButton[0].getBoundingClientRect().top).to.be.lessThan(infoBottom);
+            });
+          });
+        }
+
+        function expectActionsBelowInfo() {
+          cy.byTestId('document-0-metaText').then(($metaText) => {
+            const infoBottom = $metaText[0].getBoundingClientRect().bottom;
+            cy.byTestId('document-0-downloadButton').then(($downloadButton) => {
+              expect($downloadButton[0].getBoundingClientRect().top).to.be.greaterThan(infoBottom - 1);
+            });
+          });
+        }
+
+        // desktop (default 1024x768 viewport): actions sit beside the info block, same row
+        expectActionsBesideInfo();
+
+        cy.viewport(TABLET_VIEWPORT);
+        expectActionsBesideInfo();
+
+        cy.viewport(PHONE_VIEWPORT);
+        expectActionsBelowInfo();
+      });
+    });
+
     it('import a document from the scanner folder', () => {
       cy.task('clearScannerInbox');
       const scannerFileName = 'scan-e2e-test.pdf';
@@ -304,6 +348,39 @@ describe('Customer Detail', () => {
         // the imported file is removed from the scanner inbox, so it must not be offered again -
         // the panel's scanner list is live (SSE) and stays mounted (no dialog reopen needed)
         cy.byTestId('noScannerFiles', {timeout: 10000}).should('be.visible');
+      });
+    });
+
+    it('imports the selected scanner file, not just the newest one', () => {
+      cy.task('clearScannerInbox');
+      const olderFileName = 'scan-older.pdf';
+      const newerFileName = 'scan-newer.pdf';
+      cy.task('writeScannerFile', {fileName: olderFileName, content: '%PDF-1.1 OLDER-CONTENT'});
+      cy.wait(1100);
+      cy.task('writeScannerFile', {fileName: newerFileName, content: '%PDF-1.1 NEWER-CONTENT'});
+
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-OTHER').click();
+
+        cy.byTestId('documentSourceScanner').click();
+        // deliberately select the OLDER file (not the default/newest one)
+        cy.byTestId('scannerFile-' + olderFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-fileNameText').should('be.visible').invoke('text').then((fileName) => {
+          const downloadsFolder = Cypress.config('downloadsFolder');
+          const downloadedFilePath = path.join(downloadsFolder, fileName);
+          cy.byTestId('document-0-downloadButton').click();
+          cy.readFile(downloadedFilePath, 'utf8', {timeout: 15000})
+            .should('include', 'OLDER-CONTENT');
+        });
       });
     });
   });
