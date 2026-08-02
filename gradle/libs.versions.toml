@@ -4,6 +4,9 @@ kotlinx-coroutines = "1.11.0"
 spring-boot = "4.1.0"
 spring-modulith = "2.1.0"
 jackson = "3.2.1"
+# Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
+# used directly by this project. Pinned separately to patch known CVEs in that transitive line.
+jackson-legacy = "2.21.5"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85"
@@ -67,6 +70,7 @@ micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-p
 # Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jackson-dataformat-xml = { module = "tools.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
+jackson-databind-legacy = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-legacy" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
