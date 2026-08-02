@@ -56,7 +56,23 @@ describe('Settings - Employees', () => {
   });
 
   it('edits an employee inline', () => {
+    // Uses a dedicated, freshly-created employee rather than editing row 0 directly - row 0 is
+    // deterministically the lowest-id employee, which is a shared fixture (the logged-in e2e
+    // user, also relied on as a driver by other specs), and editing it would corrupt that fixture.
     cy.getAnyRandomNumber().then((randomId) => {
+      const personnelNumber = 'EDIT-' + randomId;
+
+      cy.byTestId('addEmployeeButton').click();
+      cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type(personnelNumber);
+      cy.byTestId('employeeCreateFirstnameInput').type('Edit');
+      cy.byTestId('employeeCreateLastnameInput').type('Original');
+      cy.byTestId('employeeCreateSaveButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+
+      cy.byTestId('employeeSearchInput').type(personnelNumber);
+      cy.byTestId('searchEmployeeButton').click();
+      cy.byTestId('employees-row-0').should('contain.text', personnelNumber);
+
       cy.byTestId('editEmployeeButton-0').click();
 
       const newLastname = 'Updated ' + randomId;
