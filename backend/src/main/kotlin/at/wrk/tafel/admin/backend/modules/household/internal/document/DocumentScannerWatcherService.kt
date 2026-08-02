@@ -23,7 +23,7 @@ class DocumentScannerWatcherService(
     @Volatile
     private var lastKnownListing: List<ScannerFileItem> = emptyList()
 
-    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     fun pollForChanges() {
         publishIfChanged()
     }
