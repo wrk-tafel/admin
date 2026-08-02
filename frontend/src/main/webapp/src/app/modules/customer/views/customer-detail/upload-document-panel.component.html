@@ -56,16 +56,11 @@
                  [attr.testid]="'scannerFile-' + file.fileName"
                  [checked]="selectedScannerFileName() === file.fileName"
                  (change)="selectedScannerFileName.set(file.fileName)">
-          @if (isPreviewableImage(file.fileName)) {
-            <img [attr.testid]="'scannerFilePreview-' + file.fileName" [src]="scannerFileContentUrl(file.fileName)"
-                 [alt]="file.fileName" class="w-10 h-10 object-cover rounded border border-gray-300 shrink-0">
-          } @else {
-            <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
-               target="_blank" rel="noopener" class="shrink-0" (click)="$event.stopPropagation()"
-               title="Vorschau öffnen">
-              <fa-icon [icon]="faFilePdf" size="2x"></fa-icon>
-            </a>
-          }
+          <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
+             target="_blank" rel="noopener" class="shrink-0" (click)="$event.stopPropagation()"
+             title="Vorschau öffnen">
+            <fa-icon [icon]="faEye" size="lg"></fa-icon>
+          </a>
           <label [for]="'scannerFile-' + file.fileName">
             {{ file.fileName }} ({{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB, {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm' }})
           </label>
