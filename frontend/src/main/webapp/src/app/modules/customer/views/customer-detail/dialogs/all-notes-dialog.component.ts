@@ -5,6 +5,7 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {CommonModule} from '@angular/common';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../../api/customer-note-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
+import {PAGE_SIZE_OPTIONS} from '../../../../../common/api/paged-response';
 
 export interface AllNotesDialogData {
   customerId: number;
@@ -22,9 +23,10 @@ export class AllNotesDialogComponent {
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
 
   notesResponse = signal<CustomerNotesResponse>(this.data.initialNotesResponse);
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 
-  getCustomerNotes(page: number) {
-    this.customerNoteApiService.getNotesForCustomer(this.data.customerId, page).subscribe((response) => {
+  getCustomerNotes(page: number, pageSize?: number) {
+    this.customerNoteApiService.getNotesForCustomer(this.data.customerId, page, pageSize).subscribe((response) => {
       this.notesResponse.set(response);
     });
   }

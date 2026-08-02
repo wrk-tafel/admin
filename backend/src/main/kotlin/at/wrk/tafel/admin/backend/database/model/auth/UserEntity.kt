@@ -88,7 +88,8 @@ class UserEntity : BaseChangeTrackingEntity() {
             fun orderByUpdatedAtDesc(spec: Specification<UserEntity>): Specification<UserEntity> = Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
 
                 val updatedAt: Expression<LocalDateTime> = root["updatedAt"]
-                cq!!.orderBy(cb.desc(updatedAt))
+                val id: Expression<Long> = root["id"]
+                cq!!.orderBy(cb.desc(updatedAt), cb.desc(id))
                 spec.toPredicate(root, cq, cb)
             }
         }

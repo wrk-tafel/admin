@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface HouseholdNoteRepository : JpaRepository<HouseholdNoteEntity, Long> {
 
-    fun findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(
+    fun findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(
         householdId: Long,
         pageRequest: PageRequest,
     ): Page<HouseholdNoteEntity>

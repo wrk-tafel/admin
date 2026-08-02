@@ -104,6 +104,7 @@ class UserController(
         @RequestParam lastname: String? = null,
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
+        @RequestParam pageSize: Int? = null,
     ): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
             username = username?.trim(),
@@ -111,6 +112,7 @@ class UserController(
             lastname = lastname?.trim(),
             enabled = enabled,
             page = page,
+            pageSize = pageSize,
         )
         return PagedResponse(
             items = userSearchResult.items.map { mapToResponse(it) },

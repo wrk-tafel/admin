@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
@@ -462,7 +464,7 @@ class HouseholdServiceTest {
         every { householdConverter.mapEntityToHousehold(any()) } returns testHousehold
 
         val selectedPage = 3
-        val pageRequest = PageRequest.of(selectedPage - 1, 25)
+        val pageRequest = PageRequest.of(selectedPage - 1, PaginationDefaults.DEFAULT_PAGE_SIZE)
         val page = PageImpl(listOf(testHouseholdEntity1, testHouseholdEntity2), pageRequest, 123)
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), pageRequest) } returns page
 
@@ -470,7 +472,7 @@ class HouseholdServiceTest {
             service.getHouseholds(page = selectedPage, postProcessing = true, costContribution = true, valid = true)
 
         assertThat(searchResult.currentPage).isEqualTo(selectedPage)
-        assertThat(searchResult.totalPages).isEqualTo(5)
+        assertThat(searchResult.totalPages).isEqualTo(page.totalPages)
         assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
         assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
 
@@ -489,7 +491,7 @@ class HouseholdServiceTest {
         val validHousehold = mockk<HouseholdResponse>(relaxed = true)
         val invalidHousehold = mockk<HouseholdResponse>(relaxed = true)
 
-        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns listOf(
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns listOf(
             testHouseholdEntity1,
             testHouseholdEntity2,
         )
@@ -523,7 +525,7 @@ class HouseholdServiceTest {
         assertThat(result.totalCount).isEqualTo(1)
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
-        assertThat(result.pageSize).isEqualTo(25)
+        assertThat(result.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
@@ -531,7 +533,7 @@ class HouseholdServiceTest {
         val testHouseholdEntities = (1..30).map { mockk<HouseholdEntity>(relaxed = true) }
         val invalidHouseholds = (1..30).map { mockk<HouseholdResponse>(relaxed = true) }
 
-        every { householdRepository.findAll(any<Specification<HouseholdEntity>>()) } returns testHouseholdEntities
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns testHouseholdEntities
         testHouseholdEntities.forEachIndexed { index, entity ->
             every { householdConverter.mapEntityToHousehold(entity) } returns invalidHouseholds[index]
         }
@@ -544,7 +546,7 @@ class HouseholdServiceTest {
             amountExceededLimit = BigDecimal("500"),
         )
 
-        val firstPage = service.getHouseholdsAboveLimit(page = 1)
+        val firstPage = service.getHouseholdsAboveLimit(page = 1, pageSize = 25)
         assertThat(firstPage.items).hasSize(25)
         assertThat(firstPage.items.first().household).isEqualTo(invalidHouseholds[0])
         assertThat(firstPage.totalCount).isEqualTo(30)
@@ -552,7 +554,7 @@ class HouseholdServiceTest {
         assertThat(firstPage.totalPages).isEqualTo(2)
         assertThat(firstPage.pageSize).isEqualTo(25)
 
-        val secondPage = service.getHouseholdsAboveLimit(page = 2)
+        val secondPage = service.getHouseholdsAboveLimit(page = 2, pageSize = 25)
         assertThat(secondPage.items).hasSize(5)
         assertThat(secondPage.items.first().household).isEqualTo(invalidHouseholds[25])
         assertThat(secondPage.currentPage).isEqualTo(2)

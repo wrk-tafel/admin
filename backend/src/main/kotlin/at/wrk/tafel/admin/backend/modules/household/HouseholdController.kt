@@ -86,6 +86,7 @@ class HouseholdController(
         @RequestParam postProcessing: Boolean? = null,
         @RequestParam costContribution: Boolean? = null,
         @RequestParam valid: Boolean? = null,
+        @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
             firstname = firstname?.trim(),
@@ -94,6 +95,7 @@ class HouseholdController(
             postProcessing = postProcessing,
             costContribution = costContribution,
             valid = valid,
+            pageSize = pageSize,
         )
         return PagedResponse(
             items = householdSearchResult.items,
@@ -141,8 +143,9 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
+        @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdAboveLimitItem> {
-        val result = householdService.getHouseholdsAboveLimit(page)
+        val result = householdService.getHouseholdsAboveLimit(page, pageSize)
         return PagedResponse(
             items = result.items,
             totalCount = result.totalCount,

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
@@ -34,7 +35,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `find employees with searchInput and page`() {
-        val pageRequest = PageRequest.of(0, 5, Sort.by("id"))
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
         val searchInput = "test-input"
 
         val employee1 = EmployeeEntity()
@@ -76,7 +77,7 @@ class EmployeeServiceTest {
         employee1.firstname = "first 1"
         employee1.lastname = "last 1"
 
-        val pageRequest = PageRequest.of(0, 5, Sort.by("id"))
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
         val pagedResult = PageImpl(listOf(employee1), pageRequest, 123)
         every { employeeRepository.findAll(pageRequest) } returns pagedResult
 
@@ -87,6 +88,26 @@ class EmployeeServiceTest {
                 EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
             ),
         )
+    }
+
+    @Test
+    fun `find employees with explicit valid pageSize`() {
+        val pageRequest = PageRequest.of(0, 25, Sort.by("id"))
+        every { employeeRepository.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = employeeService.findEmployees(page = 1, pageSize = 25)
+
+        assertThat(response.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `find employees with invalid pageSize falls back to default`() {
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
+        every { employeeRepository.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = employeeService.findEmployees(page = 1, pageSize = 7)
+
+        assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test

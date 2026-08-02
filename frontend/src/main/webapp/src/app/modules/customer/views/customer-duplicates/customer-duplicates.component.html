@@ -36,6 +36,7 @@
     @if ((customerDuplicatesData()?.items?.length ?? 0) > 0) {
     <div>
       <mat-paginator class="tafel-paginator-responsive" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
                      [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                      (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
 
@@ -131,6 +132,7 @@
       </div>
 
       <mat-paginator class="tafel-paginator-responsive mt-4" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
                      [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                      (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
     </div>

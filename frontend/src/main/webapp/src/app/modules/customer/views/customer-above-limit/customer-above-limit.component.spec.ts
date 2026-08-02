@@ -86,7 +86,7 @@ describe('CustomerAboveLimitComponent', () => {
 
     component.getAboveLimit(page);
 
-    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(page);
+    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(page, undefined);
     expect(component.customerAboveLimitData()).toEqual(mockCustomerAboveLimitResponse);
   });
 

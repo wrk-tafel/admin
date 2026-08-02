@@ -32,7 +32,7 @@
         <h5 class="mb-4">{{ schoolStarterPackageData()!.totalCount }} Schulstartpakete benötigt</h5>
         <mat-paginator class="tafel-paginator-responsive" [length]="schoolStarterPackageData()!.totalCount"
                        [pageSize]="schoolStarterPackageData()!.pageSize" [pageIndex]="schoolStarterPackageData()!.currentPage - 1"
-                       [hidePageSize]="true" [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
+                       [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
 
         <table mat-table [dataSource]="schoolStarterPackageData()!.items" class="w-full mt-4"
                testid="school-starter-package-table">
@@ -58,7 +58,7 @@
 
         <mat-paginator class="tafel-paginator-responsive mt-4" [length]="schoolStarterPackageData()!.totalCount"
                        [pageSize]="schoolStarterPackageData()!.pageSize" [pageIndex]="schoolStarterPackageData()!.currentPage - 1"
-                       [hidePageSize]="true" [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
+                       [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
       </div>
     }
   </mat-card-content>

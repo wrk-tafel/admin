@@ -49,7 +49,7 @@ describe('StatisticsSchoolStarterPackagesComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(6, 10, undefined);
+    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(6, 10, undefined, undefined);
     expect(component.schoolStarterPackageData()).toEqual(mockResult);
   });
 
@@ -61,12 +61,12 @@ describe('StatisticsSchoolStarterPackagesComponent', () => {
     component.onAgeMinChange(0);
 
     expect(component.schoolStarterPackageAgeMin()).toBe(0);
-    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(0, 10, undefined);
+    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(0, 10, undefined, undefined);
 
     component.onAgeMaxChange(3);
 
     expect(component.schoolStarterPackageAgeMax()).toBe(3);
-    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(0, 3, undefined);
+    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(0, 3, undefined, undefined);
   });
 
   it('loads the requested page on paginator page change', () => {
@@ -76,7 +76,7 @@ describe('StatisticsSchoolStarterPackagesComponent', () => {
 
     component.onPageChange({pageIndex: 1, pageSize: 25, length: 30});
 
-    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(6, 10, 2);
+    expect(statisticsApiService.getSchoolStarterPackageData).toHaveBeenCalledWith(6, 10, 2, 25);
   });
 
 });

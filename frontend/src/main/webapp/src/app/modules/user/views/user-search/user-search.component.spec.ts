@@ -129,7 +129,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('username', true, 'lastname', 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('username', true, 'lastname', 'firstname', undefined, undefined);
 
     fixture.detectChanges();
     // mat-table renders rows; query by attribute selector on nativeElement
@@ -157,7 +157,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined, undefined);
   });
 
   it('search with firstname no results', () => {
@@ -176,7 +176,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined, undefined);
     expect(toastr.info).toHaveBeenCalledWith('Keine Benutzer gefunden!');
   });
 

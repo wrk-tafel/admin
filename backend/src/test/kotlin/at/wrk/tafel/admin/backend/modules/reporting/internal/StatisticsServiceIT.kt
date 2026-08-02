@@ -104,12 +104,12 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
         testEntityManager.clear()
 
-        val firstPage = statisticsService.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
+        val firstPage = statisticsService.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1, pageSize = 25)
         assertThat(firstPage.items).hasSize(25)
         assertThat(firstPage.totalCount).isEqualTo(30L)
         assertThat(firstPage.totalPages).isEqualTo(2)
 
-        val secondPage = statisticsService.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
+        val secondPage = statisticsService.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2, pageSize = 25)
         assertThat(secondPage.items).hasSize(5)
         assertThat(secondPage.totalCount).isEqualTo(30L)
     }
