@@ -36,17 +36,24 @@ Entities backing this module are **not** colocated with it: they live under `dat
 
 ### `employee` — `@NamedInterface("employee")`
 - [`EmployeeController`](employee/EmployeeController.kt): `GET /api/employees` (paginated search by
-  name/personnel number) and `POST /api/employees` (create), both gated behind `LOGISTICS`
-  authority (not a typo — employee management is treated as a logistics concern, since employees are
-  mainly used to track who staffed a distribution/collection).
+  name/personnel number), `POST /api/employees` (create), and `PUT /api/employees/{employeeId}`
+  (update). Class-level `@PreAuthorize("hasAuthority('LOGISTICS') or hasAuthority('SETTINGS')")` —
+  originally `LOGISTICS`-only (employee management was treated purely as a logistics concern, since
+  employees are mainly used to track who staffed a distribution/collection), widened to also accept
+  `SETTINGS` for the employee admin/maintenance screen added under the frontend's `settings` module
+  (`SettingsEmployeesComponent`, #2868) without narrowing the original `logistics` call site's access.
 - [`EmployeeModel.kt`](employee/EmployeeModel.kt): `EmployeeResponse(id, personnelNumber,
   firstname, lastname)`, `EmployeeListResponse`, `EmployeeRequest` (used for both create and
   update).
 - Backed by `EmployeeRepository`/`EmployeeEntity` in `database/model/base` (table `employees`).
-- **Only consumer:** the `logistics` module (`FoodCollectionService`, `FoodCollectionsModel`), which
-  declares `base::employee` in its `allowedDependencies`. Note that `household` does **not** depend
-  on `base::employee` even though `HouseholdEntity.issuer` and `HouseholdNoteEntity.employee` are
-  both `EmployeeEntity` references — `household` reaches `EmployeeEntity` directly through
+- **Backend consumer:** the `logistics` module (`FoodCollectionService`, `FoodCollectionsModel`),
+  which declares `base::employee` in its `allowedDependencies` — this is a Spring Modulith
+  named-interface dependency between backend modules, not the same thing as "who calls the REST
+  endpoint"; the frontend's `settings` module now also calls `/api/employees` directly over HTTP for
+  its maintenance screen, which doesn't require any backend `allowedDependencies` change since it
+  doesn't import Kotlin types from this package. Note that `household` does **not** depend on
+  `base::employee` even though `HouseholdEntity.issuer` and `HouseholdNoteEntity.employee` are both
+  `EmployeeEntity` references — `household` reaches `EmployeeEntity` directly through
   `UserEntity.employee` (a `database.model` type, not a `modules.base.employee` type), so it never
   needs this named interface.
 

@@ -1,5 +1,5 @@
 <form [formGroup]="form" autocomplete="off">
-  <mat-card appearance="outlined">
+  <mat-card>
     <mat-card-content>
       <div class="mb-4">
         <h5 class="text-lg font-semibold">Kunden-Suche</h5>
@@ -140,7 +140,7 @@
           <div class="block md:hidden">
             <div class="flex flex-col gap-4 mb-4">
               @for (customer of searchResult()!.items; track customer.id; let i = $index) {
-                <mat-card appearance="outlined">
+                <mat-card>
                   <mat-card-header class="font-semibold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</mat-card-header>
                   <mat-card-content>
                     <div class="grid grid-cols-2 gap-2">

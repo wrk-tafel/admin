@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/employees")
-@PreAuthorize("hasAuthority('LOGISTICS')")
+@PreAuthorize("hasAuthority('LOGISTICS') or hasAuthority('SETTINGS')")
 class EmployeeController(
     private val employeeService: EmployeeService,
 ) {

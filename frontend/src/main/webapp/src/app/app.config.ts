@@ -28,6 +28,7 @@ import {SwUpdateService} from './common/pwa/sw-update.service';
 import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
+import {MAT_CARD_CONFIG} from '@angular/material/card';
 import {MatPaginatorIntl} from '@angular/material/paginator';
 import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
 
@@ -97,6 +98,10 @@ export const appConfig: ApplicationConfig = {
         appearance: 'outline',
         floatLabel: 'always',
       }
+    },
+    {
+      provide: MAT_CARD_CONFIG,
+      useValue: {appearance: 'outlined'}
     },
     {
       provide: MatPaginatorIntl,

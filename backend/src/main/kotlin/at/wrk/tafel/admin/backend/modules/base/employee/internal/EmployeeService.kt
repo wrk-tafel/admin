@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,7 +19,7 @@ class EmployeeService(
 ) {
 
     fun findEmployees(searchInput: String? = null, page: Int? = null): EmployeeListResponse {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5, Sort.by("id"))
         val pagedResult = if (searchInput != null) {
             employeeRepository.findBySearchInput(searchInput, pageRequest)
         } else {

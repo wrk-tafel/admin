@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 
 @ExtendWith(MockKExtension::class)
@@ -33,7 +34,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `find employees with searchInput and page`() {
-        val pageRequest = PageRequest.of(0, 5)
+        val pageRequest = PageRequest.of(0, 5, Sort.by("id"))
         val searchInput = "test-input"
 
         val employee1 = EmployeeEntity()
@@ -75,7 +76,7 @@ class EmployeeServiceTest {
         employee1.firstname = "first 1"
         employee1.lastname = "last 1"
 
-        val pageRequest = PageRequest.of(0, 5)
+        val pageRequest = PageRequest.of(0, 5, Sort.by("id"))
         val pagedResult = PageImpl(listOf(employee1), pageRequest, 123)
         every { employeeRepository.findAll(pageRequest) } returns pagedResult
 

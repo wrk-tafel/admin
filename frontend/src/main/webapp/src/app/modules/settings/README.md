@@ -33,6 +33,9 @@ settings/
     cars/                          # route: einstellungen/fahrzeuge
       dialogs/
         car-create-dialog.component.ts
+    employees/                     # route: einstellungen/mitarbeiter
+      dialogs/
+        employee-create-dialog.component.ts
   settings.routes.ts
 ```
 
@@ -163,6 +166,42 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
   dropdown (`CarDataResolver`) — same relationship as food categories'
   enabled/active split.
 
+## `employees` (`SettingsEmployeesComponent`)
+
+Admin CRUD for employees (Mitarbeiter, #2868), added because `EmployeeEntity`
+(`database/model/base/EmployeeEntity.kt`) previously had no maintenance UI at
+all — it could only be created inline via `CreateEmployeeDialogComponent` in
+`modules/logistics` while recording a food collection. This view is the twin
+of `cars` (inline editing, dialog-based creation), but differs in two ways
+that reflect the domain:
+
+- **No drag-and-drop reordering** — employees have no `sortOrder` field, so
+  unlike shelters/food-categories/cars there's nothing to reorder here.
+- **Paginated + searchable**, unlike every other view in this module (all of
+  which load their full unpaginated list in one call). This is because
+  `EmployeeController`/`EmployeeService` (in `modules/base/employee`,
+  pre-existing, shared with the `logistics` module's create-employee flow)
+  already implement `GET /api/employees?searchInput=&page=` server-side
+  (page size fixed at 5), so this view is the first in `settings` to drive a
+  `mat-paginator` off a `PagedResponse` — same wiring as `customer`'s
+  `customer-search.component.ts` (`length`/`pageSize`/`pageIndex` bound to the
+  response, 1-based backend page vs 0-based `mat-paginator` index).
+- Employees also have no `enabled` flag and no delete endpoint — same
+  "no hard delete" convention as the rest of the app, but here there isn't
+  even a soft-disable toggle, so the edit button is never disabled.
+- `EmployeeController` was widened from `@PreAuthorize("hasAuthority('LOGISTICS')")`
+  to `hasAuthority('LOGISTICS') or hasAuthority('SETTINGS')` at the class level
+  so this view's `SETTINGS`-only users can reach it too, without changing
+  access for the existing `LOGISTICS` call site.
+- **Creation** uses a dialog (`employee-create-dialog.component.ts`), structurally
+  the twin of `car-create-dialog.component.ts` — plain `personnelNumber`/
+  `firstname`/`lastname` fields, all required with a 50-char limit matching the
+  `employees` table's `varchar(50)` columns. This is a *different* component
+  from `logistics`' `CreateEmployeeDialogComponent`, which is purpose-built
+  for the "employee not found while recording a food collection" flow (fixed
+  dialog title, calls the API itself and closes with the saved entity) rather
+  than a generic create dialog — reusing it here would have been misleading.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
@@ -177,3 +216,7 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
   exercised from this module).
 - `distribution-api.service.ts` — used by `send-mails` to list distributions and
   trigger re-sends.
+- `employee-api.service.ts` — `EmployeeApiService`; `findEmployees()` (paged,
+  optional `searchInput`) and `saveEmployee()` predate this view (shared with
+  `logistics`' create-employee flow), `updateEmployee()` was added for this
+  view's inline editing.

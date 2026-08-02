@@ -101,7 +101,7 @@
         <div class="mt-4">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
             <div>
-              <mat-card appearance="outlined">
+              <mat-card>
                 <mat-card-header class="justify-center text-center w-full">
                   <h5>Hauptbezieher</h5>
                 </mat-card-header>
@@ -190,7 +190,7 @@
               </mat-card>
             </div>
             <div>
-              <mat-card appearance="outlined">
+              <mat-card>
                 <mat-card-header class="w-full">
                   <div class="flex justify-between items-center w-full">
                     <h5 class="m-0">Aktuellste Notiz</h5>
@@ -239,7 +239,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               @for (addPerson of customerData()?.additionalPersons; track addPerson.id; let i = $index) {
                 <div>
-                  <mat-card appearance="outlined">
+                  <mat-card>
                     <mat-card-content>
                       <div class="flex justify-between">
                         <span class="font-bold"
