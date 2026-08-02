@@ -1,6 +1,11 @@
 tafeladmin:
   testdata:
     enabled: true
+  storage:
+    # Written to by the Cypress e2e run via a Node fs task (see cypress.config.ts) - java.io.tmpdir
+    # and Node's os.tmpdir() resolve to the same OS temp directory on the runner both processes
+    # share, unlike user.dir which differs between a local bootRun and CI's `java -jar`.
+    scannerPath: ${java.io.tmpdir}/tafeladmin-e2e-scanner-inbox
 
 spring:
   datasource:

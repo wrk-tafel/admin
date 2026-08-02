@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal.document
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.nio.file.Path
@@ -28,13 +29,12 @@ class ScannerFileService(
             return emptyList()
         }
 
-        val files = Files.list(scannerDir).use { stream ->
+        return Files.list(scannerDir).use { stream ->
             stream
                 .filter { Files.isRegularFile(it) && isSupportedExtension(it.fileName.toString()) }
                 .map { toScannerFileItem(it) }
                 .toList()
-        }
-        return files.sortedByDescending { it.modifiedAt }
+        }.sortedByDescending { it.modifiedAt }
     }
 
     fun read(fileName: String): ByteArray = Files.readAllBytes(resolveSafely(fileName))
@@ -77,10 +77,10 @@ class ScannerFileService(
 
     companion object {
         private val CONTENT_TYPES_BY_EXTENSION = mapOf(
-            "pdf" to "application/pdf",
-            "jpg" to "image/jpeg",
-            "jpeg" to "image/jpeg",
-            "png" to "image/png",
+            "pdf" to MediaType.APPLICATION_PDF_VALUE,
+            "jpg" to MediaType.IMAGE_JPEG_VALUE,
+            "jpeg" to MediaType.IMAGE_JPEG_VALUE,
+            "png" to MediaType.IMAGE_PNG_VALUE,
         )
     }
 }

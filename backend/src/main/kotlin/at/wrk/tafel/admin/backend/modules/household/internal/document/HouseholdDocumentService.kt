@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,8 +26,9 @@ class HouseholdDocumentService(
 ) {
 
     companion object {
-        private val ALLOWED_CONTENT_TYPES = setOf("application/pdf", "image/jpeg", "image/png")
-        private const val MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024L
+        private val ALLOWED_CONTENT_TYPES = setOf(MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE)
+        private const val MAX_FILE_SIZE_MB = 25
+        private const val MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024L
     }
 
     @Transactional
@@ -137,7 +139,7 @@ class HouseholdDocumentService(
 
     private fun validateSize(sizeBytes: Long) {
         if (sizeBytes > MAX_FILE_SIZE_BYTES) {
-            throw BusinessRuleException("Datei ist zu groß (max. 25 MB)!")
+            throw BusinessRuleException("Datei ist zu groß (max. $MAX_FILE_SIZE_MB MB)!")
         }
     }
 

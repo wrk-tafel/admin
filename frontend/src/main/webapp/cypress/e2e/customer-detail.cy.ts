@@ -278,6 +278,36 @@ describe('Customer Detail', () => {
         cy.byTestId('nodocuments-label').should('be.visible');
       });
     });
+
+    it('import a document from the scanner folder', () => {
+      cy.task('clearScannerInbox');
+      const scannerFileName = 'scan-e2e-test.pdf';
+      cy.task('writeScannerFile', {fileName: scannerFileName, content: '%PDF-1.1 test content'});
+
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('uploaddocument-button').click();
+        cy.byTestId('upload-document-dialog').should('be.visible');
+
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-OTHER').click();
+
+        cy.byTestId('documentSourceScanner').click();
+        cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-fileNameText').should('have.text', scannerFileName);
+
+        // the imported file is removed from the scanner inbox, so it must not be offered again
+        cy.byTestId('uploaddocument-button').click();
+        cy.byTestId('documentSourceScanner').click();
+        cy.byTestId('noScannerFiles', {timeout: 10000}).should('be.visible');
+        cy.byTestId('cancelButton').click();
+      });
+    });
   });
 
   describe('Supervisor', () => {
