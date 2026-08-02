@@ -63,7 +63,7 @@ class HouseholdDocumentService(
             this.uploadedByUser = currentUser()
         }
 
-        return mapToItem(documentRepository.save(entity))
+        return mapToItem(documentRepository.saveAndFlush(entity))
     }
 
     @Transactional
@@ -97,7 +97,7 @@ class HouseholdDocumentService(
             this.uploadedByUser = currentUser()
         }
 
-        val savedEntity = documentRepository.save(entity)
+        val savedEntity = documentRepository.saveAndFlush(entity)
 
         scannerFileService.delete(fileName)
         documentScannerWatcherService.publishIfChanged()

@@ -1,0 +1,10 @@
+// Without the [backgroundColor] input set (which this app never uses), Material leaves the tab
+// header and body areas transparent - --mat-tab-background-color only applies once a tab group
+// opts into the .mat-tabs-with-background modifier - so the page's gray background (see
+// _theme.scss's `body`) shows straight through, unlike every other surface in the app (mat-card,
+// mat-menu/select/autocomplete panels - see mat-card.scss/mat-menu.scss), which is explicitly
+// white. No custom-property equivalent exists for this default case, so it stays a raw override.
+.mat-mdc-tab-header,
+.mat-mdc-tab-body-wrapper {
+  background-color: white;
+}

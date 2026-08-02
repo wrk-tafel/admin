@@ -72,7 +72,7 @@ internal class HouseholdDocumentServiceTest {
 
         every { householdRepository.findByHouseholdId(100L) } returns testHousehold
         every { documentStorageService.store(any(), any(), any()) } returns "/documents/100/stored.pdf"
-        every { documentRepository.save(any()) } answers {
+        every { documentRepository.saveAndFlush(any()) } answers {
             firstArg<DocumentEntity>().apply {
                 id = 42
                 createdAt = LocalDateTime.now()
@@ -98,7 +98,7 @@ internal class HouseholdDocumentServiceTest {
         assertThat(result.uploadedBy).isEqualTo("test-personnelnumber test-firstname test-lastname")
 
         val entitySlot = slot<DocumentEntity>()
-        verify { documentRepository.save(capture(entitySlot)) }
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
         assertThat(entitySlot.captured.household).isEqualTo(testHousehold)
         assertThat(entitySlot.captured.contentType).isEqualTo("application/pdf")
         assertThat(entitySlot.captured.storagePath).isEqualTo("/documents/100/stored.pdf")
