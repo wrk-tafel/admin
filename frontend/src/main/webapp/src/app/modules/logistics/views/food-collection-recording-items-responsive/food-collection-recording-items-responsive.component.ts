@@ -17,6 +17,8 @@ import {
   TafelCounterInputValueChange
 } from '../../../../common/components/tafel-counter-input/tafel-counter-input.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
+import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-responsive',
@@ -43,12 +45,17 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly toastr = inject(TafelToastrService);
+  private readonly offlineQueueService = inject(FoodCollectionOfflineQueueService);
+  private readonly connectivityService = inject(ConnectivityService);
 
-  // Keystroke-driven value changes fire one patch request each; queuing them one at a
-  // time (instead of firing them all in parallel) guarantees a slower earlier response
-  // can never overwrite a value typed afterwards.
-  private itemPatchQueue: { routeId: number; data: FoodCollectionItem }[] = [];
-  private itemPatchInFlight = false;
+  protected readonly isOnline = this.connectivityService.isOnline();
+  protected readonly pendingSyncCount = this.offlineQueueService.pendingCount;
+
+  // Last known values per shop for this session, used as a fallback while offline. Seeded from
+  // the route-level snapshot on first read of a shop, refreshed on every successful live load,
+  // and updated immediately on every local edit so a same-session change is never masked by a
+  // stale fallback even before it's confirmed sent.
+  private readonly shopValuesCache = new Map<number, Record<number, number>>();
 
   loadEffect = effect(() => {
     if (this.selectedRouteData()) {
@@ -117,42 +124,18 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
     const routeId = this.selectedRouteData()!.route.id;
     const shopId = this.currentShop()!.id;
+    const categoryId = valueChange.key as number;
 
     this.categoryValues.update(values => ({
       ...values,
-      [valueChange.key as number]: valueChange.value
+      [categoryId]: valueChange.value
     }));
+    this.shopValuesCache.set(shopId, {...this.shopValuesCache.get(shopId), [categoryId]: valueChange.value});
 
-    const data: FoodCollectionItem = {
-      categoryId: valueChange.key as number,
-      shopId: shopId,
-      amount: valueChange.value
-    };
-    this.itemPatchQueue.push({routeId, data});
-    this.processItemPatchQueue();
-  }
-
-  private processItemPatchQueue() {
-    if (this.itemPatchInFlight) {
-      return;
-    }
-
-    const next = this.itemPatchQueue.shift();
-    if (!next) {
-      return;
-    }
-
-    this.itemPatchInFlight = true;
-    this.foodCollectionsApiService.patchItems(next.routeId, next.data).subscribe({
-      next: () => {
-        this.itemPatchInFlight = false;
-        this.processItemPatchQueue();
-      },
-      error: () => {
-        this.itemPatchInFlight = false;
-        this.processItemPatchQueue();
-      }
-    });
+    // Handed off to the offline queue rather than sent directly: it persists the change, sends it
+    // straight away when online, and otherwise keeps retrying once connectivity returns - needed
+    // since this screen is used by the codriver on their phone on the road.
+    this.offlineQueueService.enqueue(routeId, shopId, categoryId, valueChange.value);
   }
 
   selectShop(shop: Shop) {
@@ -163,24 +146,56 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     const routeId = this.selectedRouteData()!.route.id;
     const shopId = shop.id;
 
+    if (!this.connectivityService.isOnline()()) {
+      this.applyFallbackShopValues(shop, 'Offline - zuletzt bekannter Stand wird angezeigt.');
+      return;
+    }
+
     const observer = {
       next: (data: FoodCollectionItemsPerShopResponse) => {
-        const newValues: Record<number, number> = {};
-        for (const category of this.foodCategories()) {
-          newValues[category.id] = this.getCurrentValue(
-            data?.items ?? [],
-            category,
-            shop
-          );
-        }
-        this.categoryValues.set(newValues);
-        this.currentShop.set(shop);
+        this.applyShopValues(shop, data?.items ?? []);
       },
       error: () => {
-        this.toastr.error('Laden fehlgeschlagen!');
+        this.applyFallbackShopValues(shop, 'Laden fehlgeschlagen, zuletzt bekannter Stand wird angezeigt.');
       }
     };
     this.foodCollectionsApiService.getItemsPerShop(routeId, shopId).subscribe(observer);
+  }
+
+  private applyShopValues(shop: Shop, items: FoodCollectionItem[]) {
+    const newValues: Record<number, number> = {};
+    for (const category of this.foodCategories()) {
+      newValues[category.id] = this.getCurrentValue(items, category, shop);
+    }
+    this.mergePendingValues(shop, newValues);
+
+    this.shopValuesCache.set(shop.id, newValues);
+    this.categoryValues.set(newValues);
+    this.currentShop.set(shop);
+  }
+
+  private applyFallbackShopValues(shop: Shop, warningMessage: string) {
+    const initialItems = this.selectedRouteData()!.foodCollectionData?.items ?? [];
+    const cached = this.shopValuesCache.get(shop.id);
+
+    const newValues: Record<number, number> = {...cached};
+    if (!cached) {
+      for (const category of this.foodCategories()) {
+        newValues[category.id] = this.getCurrentValue(initialItems, category, shop);
+      }
+    }
+    this.mergePendingValues(shop, newValues);
+
+    this.categoryValues.set(newValues);
+    this.currentShop.set(shop);
+    this.toastr.warning(warningMessage);
+  }
+
+  private mergePendingValues(shop: Shop, values: Record<number, number>) {
+    const routeId = this.selectedRouteData()!.route.id;
+    for (const pending of this.offlineQueueService.getPendingForShop(routeId, shop.id)) {
+      values[pending.categoryId] = pending.amount;
+    }
   }
 
   selectPreviousShop() {

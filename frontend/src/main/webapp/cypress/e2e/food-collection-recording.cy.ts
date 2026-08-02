@@ -1,3 +1,4 @@
+import {recurse} from 'cypress-recurse';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Food Collection Recording', () => {
@@ -70,8 +71,11 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('select-items-tab').click();
 
-      // the item-patch queue sends autosave requests sequentially, one per value change - alias
-      // it so the reload below can wait for every queued patch to land instead of racing them
+      // The offline queue coalesces rapid same-field changes into fewer requests than one per
+      // keystroke/click if a later change overwrites an earlier one before it's sent - so the
+      // exact request count isn't a stable thing to wait on. Instead wait until the two fields'
+      // *final* settled values have each been seen in some PATCH request, in whatever order/count
+      // they actually land.
       cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
 
       cy.byTestId('category-1-input').type('12');
@@ -80,8 +84,10 @@ describe('Food Collection Recording', () => {
       cy.byTestId('category-2-increment-button').click();
       cy.byTestId('category-2-decrement-button').click();
 
-      // category-1's two keystrokes ('1' then '12') plus category-2's 3 increments + 1 decrement
-      cy.wait(new Array(6).fill('@patchItem'));
+      waitForFinalPatches([
+        {categoryId: 1, shopId: 20, amount: 12},
+        {categoryId: 2, shopId: 20, amount: 2}
+      ]);
 
       // validate auto-save on input change
       cy.reload();
@@ -110,6 +116,102 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('previous-shop-button').click();
       cy.byTestId('shop-title').should('have.text', '20 - Lidl');
+    });
+  });
+
+  it('queues a change made while offline and syncs it automatically once back online', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      enterRouteData();
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+
+      cy.byTestId('save-routedata-button').click();
+
+      cy.byTestId('km-diff-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+
+      assertSavedToast();
+
+      cy.byTestId('select-items-tab').click();
+
+      cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
+
+      cy.byTestId('offline-indicator').should('not.exist');
+
+      // ConnectivityService only reacts to the online/offline window events, not a live network
+      // cut - dispatching them directly is the standard way to exercise this without relying on
+      // browser/OS-level network emulation.
+      goOffline();
+      cy.byTestId('offline-indicator').should('contain.text', 'Offline').and('not.contain.text', 'ausstehend');
+
+      cy.byTestId('category-1-input').type('7');
+
+      cy.byTestId('offline-indicator')
+        .should('contain.text', 'Offline')
+        .and('contain.text', '1 Änderung ausstehend');
+      cy.get('@patchItem.all').should('have.length', 0);
+
+      goOnline();
+
+      cy.wait('@patchItem').its('request.body').should('deep.equal', {
+        categoryId: 1,
+        shopId: 20,
+        amount: 7
+      });
+      cy.byTestId('offline-indicator').should('not.exist');
+    });
+  });
+
+  it('keeps a change queued across a reload while offline and sends it once reopened online', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      enterRouteData();
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+
+      cy.byTestId('save-routedata-button').click();
+
+      cy.byTestId('km-diff-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+
+      assertSavedToast();
+
+      cy.byTestId('select-items-tab').click();
+
+      goOffline();
+      cy.byTestId('category-2-input').type('9');
+      cy.byTestId('offline-indicator').should('contain.text', '1 Änderung ausstehend');
+
+      // The reload lands back in a real (online) browser, so the persisted queue - which
+      // survives the reload via localStorage - should flush on its own once the item screen is
+      // reopened, without dispatching another online event or any other manual action.
+      cy.reload();
+
+      cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
+
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 2').click();
+      cy.byTestId('select-items-tab').click();
+
+      cy.wait('@patchItem').its('request.body').should('deep.equal', {
+        categoryId: 2,
+        shopId: 20,
+        amount: 9
+      });
+      cy.byTestId('category-2-input').should('have.value', '9');
     });
   });
 
@@ -192,6 +294,32 @@ describe('Food Collection Recording', () => {
         cy.byTestId('select-employee-button-1').click();
       });
     cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
+  }
+
+  // Recurses over intercepted '@patchItem' requests until a request body matching each of
+  // `targets` has been seen at least once, regardless of order or how many requests it takes -
+  // the offline queue only guarantees the final value per field eventually gets sent, not one
+  // request per interaction.
+  function waitForFinalPatches(targets: { categoryId: number; shopId: number; amount: number }[]) {
+    const seen: string[] = [];
+    const remaining = () => targets.filter(t => !seen.includes(JSON.stringify(t)));
+
+    recurse(
+      () => cy.wait('@patchItem').its('request.body'),
+      (body) => {
+        seen.push(JSON.stringify(body));
+        return remaining().length === 0;
+      },
+      {timeout: 20000, delay: 0}
+    );
+  }
+
+  function goOffline() {
+    cy.window().then((win) => win.dispatchEvent(new Event('offline')));
+  }
+
+  function goOnline() {
+    cy.window().then((win) => win.dispatchEvent(new Event('online')));
   }
 
   function fillCategories() {
