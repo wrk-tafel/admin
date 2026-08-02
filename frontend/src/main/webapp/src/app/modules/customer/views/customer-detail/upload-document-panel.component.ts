@@ -7,6 +7,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
 import {FormsModule} from '@angular/forms';
 import {Subscription} from 'rxjs';
+import {faFilePdf} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {DocumentType, documentTypeLabel} from '../../../../api/customer-document-api.service';
 import {DocumentScannerApiService, ScannerFileItem} from '../../../../api/document-scanner-api.service';
 
@@ -18,7 +20,9 @@ type DocumentSource = 'upload' | 'scanner';
 
 @Component({
   selector: 'tafel-upload-document-panel',
-  imports: [CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, FormsModule],
+  imports: [
+    CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, FormsModule, FaIconComponent
+  ],
   templateUrl: 'upload-document-panel.component.html',
 })
 export class UploadDocumentPanelComponent {
@@ -41,6 +45,7 @@ export class UploadDocumentPanelComponent {
 
   protected readonly documentTypeLabel = documentTypeLabel;
   protected readonly documentTypes = Object.values(DocumentType);
+  protected readonly faFilePdf = faFilePdf;
 
   constructor() {
     this.destroyRef.onDestroy(() => this.scannerSubscription?.unsubscribe());
@@ -57,6 +62,18 @@ export class UploadDocumentPanelComponent {
 
   refreshScannerFiles() {
     this.documentScannerApiService.getScannerFiles().subscribe((response) => this.scannerFiles.set(response.items));
+  }
+
+  scannerFileContentUrl(fileName: string): string {
+    return this.documentScannerApiService.getScannerFileContentUrl(fileName);
+  }
+
+  // Scanner-generated filenames are usually near-identical (e.g. sequential counters), so an image
+  // thumbnail is the only reliable way to tell multiple files apart at a glance. PDFs are opened in
+  // a new tab instead - client-side PDF thumbnailing isn't worth the added dependency for this.
+  isPreviewableImage(fileName: string): boolean {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    return extension === 'jpg' || extension === 'jpeg' || extension === 'png';
   }
 
   triggerFileInput() {
