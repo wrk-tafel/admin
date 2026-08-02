@@ -56,7 +56,11 @@ class ScannerFileService(
             ?: throw NotFoundException("Datei $fileName nicht vorhanden!")
         val scannerDir = Paths.get(scannerPath).toAbsolutePath().normalize()
         val resolved = scannerDir.resolve(fileName).normalize()
-        if (resolved.parent != scannerDir) {
+        // `startsWith` is the check static analysis (correctly) looks for to prove `resolved` can't
+        // have escaped `scannerDir` - `resolved.parent != scannerDir` alone is equally correct
+        // (and additionally rejects subdirectories, kept for the flat-directory business rule) but
+        // isn't recognized as a path-traversal sanitizer.
+        if (!resolved.startsWith(scannerDir) || resolved.parent != scannerDir) {
             throw BusinessRuleException("Ungültiger Dateiname!")
         }
         if (!Files.isRegularFile(resolved)) {
