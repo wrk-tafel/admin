@@ -23,43 +23,6 @@ jobs:
     needs: test
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  update-module-diagram:
-    # ModularityTest regenerates docs/module-structure.svg on every run from the current
-    # package-info.java module boundaries (see ModularityTest.createModuleDocumentation).
-    # Commits and pushes straight to main (requires main's branch protection to allow this
-    # job's token to bypass review) rather than opening a PR, only when the diagram actually
-    # changed.
-    runs-on: ubuntu-latest
-    needs: test
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Set up JDK
-        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
-        with:
-          java-version: '26'
-          distribution: 'corretto'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
-      - name: Install Graphviz
-        # PlantUML needs the `dot` binary to lay out the component diagram; without it,
-        # ModularityTest.createModuleDocumentation() writes an SVG containing a "Cannot
-        # find Graphviz" error graphic instead of the actual diagram (see #2906).
-        run: sudo apt-get update && sudo apt-get install -y graphviz
-      - name: Regenerate module structure diagram
-        run: ./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.architecture.ModularityTest"
-      - name: Commit and push if changed
-        run: |
-          if git diff --quiet -- docs/module-structure.svg; then
-            echo "No change to docs/module-structure.svg, skipping commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/module-structure.svg
-          git commit -m "docs: update module structure diagram"
-          git push origin HEAD:main
   lint:
     uses: ./.github/workflows/subflow_lint.yml
   build-push-image:

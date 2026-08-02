@@ -25,7 +25,6 @@ testcontainers = "2.0.5"
 apache-pdfbox = "3.0.8"
 image-comparison = "4.4.0"
 awaitility = "4.3.0"
-plantuml = "1.2026.6"
 
 # Plugin versions
 sonarqube = "7.3.1.8318"
@@ -109,7 +108,6 @@ testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgr
 apache-pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "apache-pdfbox" }
 image-comparison = { module = "com.github.romankh3:image-comparison", version.ref = "image-comparison" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
-plantuml-mit = { module = "net.sourceforge.plantuml:plantuml-mit", version.ref = "plantuml" }
 
 # BOMs
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
