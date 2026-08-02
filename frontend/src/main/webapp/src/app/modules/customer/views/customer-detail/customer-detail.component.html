@@ -295,11 +295,11 @@
           <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
         </ng-template>
         <div class="mt-4">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
               <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
             </div>
-            <div>
+            <div class="lg:col-span-2">
               @if (customerDocuments()?.length === 0) {
                 <h6 testid="nodocuments-label">Keine Dokumente vorhanden</h6>
               }
