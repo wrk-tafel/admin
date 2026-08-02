@@ -66,4 +66,19 @@ describe('EmployeeApiService', () => {
     expect(req.request.body).toEqual(mockCreateEmployeeRequest);
   });
 
+  it('update employee', () => {
+    const mockUpdateEmployeeRequest: CreateEmployeeRequest = {
+      personnelNumber: '00001',
+      firstname: 'first 1',
+      lastname: 'last 1'
+    };
+    apiService.updateEmployee(1, mockUpdateEmployeeRequest).subscribe();
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/employees/1'});
+    req.flush(mockUpdateEmployeeRequest);
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockUpdateEmployeeRequest);
+  });
+
 });

@@ -22,6 +22,10 @@ export class EmployeeApiService {
     return this.http.post<EmployeeData>('/employees', createEmployeeRequest);
   }
 
+  updateEmployee(employeeId: number, employeeRequest: CreateEmployeeRequest): Observable<EmployeeData> {
+    return this.http.put<EmployeeData>(`/employees/${employeeId}`, employeeRequest);
+  }
+
 }
 
 export type EmployeeListResponse = PagedResponse<EmployeeData>;

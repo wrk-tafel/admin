@@ -1,0 +1,97 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <div class="flex items-center gap-2">
+        <h5 class="mb-0 mt-1">Mitarbeiter</h5>
+        <button matButton="filled" class="button-success" testid="addEmployeeButton" (click)="addEmployee()">
+          <fa-icon [icon]="faPlus"></fa-icon>
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="flex items-center gap-2 mb-4">
+      <mat-form-field subscriptSizing="dynamic" class="w-full sm:w-1/3">
+        <mat-label>Suche</mat-label>
+        <input matInput testid="employeeSearchInput" [formControl]="searchControl" (keydown.enter)="search()"/>
+      </mat-form-field>
+      <button matButton="filled" testid="searchEmployeeButton" (click)="search()">
+        <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+      </button>
+    </div>
+
+    <table mat-table [dataSource]="employees()?.items ?? []" testid="employees-table">
+      <ng-container matColumnDef="personnelNumber">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personalnummer</th>
+        <td mat-cell *matCellDef="let employee; let i = index">
+          @if (editingId() === employee.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input #personnelNumberInput matInput [formControl]="personnelNumberControl"
+                     [attr.testid]="'employeePersonnelNumberInput-' + i"
+                     (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ employee.personnelNumber }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="firstname">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Vorname</th>
+        <td mat-cell *matCellDef="let employee; let i = index">
+          @if (editingId() === employee.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input matInput [formControl]="firstnameControl" [attr.testid]="'employeeFirstnameInput-' + i"
+                     (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ employee.firstname }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastname">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Nachname</th>
+        <td mat-cell *matCellDef="let employee; let i = index">
+          @if (editingId() === employee.id) {
+            <mat-form-field subscriptSizing="dynamic">
+              <input matInput [formControl]="lastnameControl" [attr.testid]="'employeeLastnameInput-' + i"
+                     (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+            </mat-form-field>
+          } @else {
+            {{ employee.lastname }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+        <td mat-cell *matCellDef="let employee; let i = index">
+          @if (editingId() === employee.id) {
+            <button matButton="filled" [attr.testid]="'saveEmployeeButton-' + i" (click)="saveEdit(employee)">
+              <fa-icon [icon]="faCheck"></fa-icon>
+            </button>
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelEmployeeButton-' + i" (click)="cancelEdit()">
+              <fa-icon [icon]="faXmark"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButton-' + i"
+                    (click)="startEdit(employee)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" [attr.testid]="'employees-row-' + i"></tr>
+    </table>
+
+    @if (employees()) {
+      <mat-paginator class="tafel-paginator-responsive mt-4" testid="employees-paginator"
+                     [length]="employees()!.totalCount" [pageSize]="employees()!.pageSize"
+                     [pageIndex]="employees()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="loadEmployees($event.pageIndex + 1)"></mat-paginator>
+    }
+  </mat-card-content>
+</mat-card>

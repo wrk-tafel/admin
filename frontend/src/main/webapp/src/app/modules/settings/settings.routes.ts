@@ -4,6 +4,7 @@ import {SettingsSheltersComponent} from './views/shelters/settings-shelters.comp
 import {SettingsStaticValuesComponent} from './views/static-values/settings-static-values.component';
 import {SettingsFoodCategoriesComponent} from './views/food-categories/settings-food-categories.component';
 import {SettingsCarsComponent} from './views/cars/settings-cars.component';
+import {SettingsEmployeesComponent} from './views/employees/settings-employees.component';
 
 export const routes: Routes = [
   {
@@ -25,5 +26,9 @@ export const routes: Routes = [
   {
     path: 'fahrzeuge',
     component: SettingsCarsComponent,
+  },
+  {
+    path: 'mitarbeiter',
+    component: SettingsEmployeesComponent,
   },
 ];

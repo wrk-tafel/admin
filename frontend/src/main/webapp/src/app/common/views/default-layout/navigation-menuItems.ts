@@ -150,6 +150,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/statische-werte'
       },
       {
+        name: 'Mitarbeiter',
+        url: '/einstellungen/mitarbeiter'
+      },
+      {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen'
       },

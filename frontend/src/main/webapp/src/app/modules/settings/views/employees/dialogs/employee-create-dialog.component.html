@@ -1,0 +1,43 @@
+<tafel-dialog title="Mitarbeiter erstellen" testid="employee-create-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1" autocomplete="off">
+      <mat-form-field>
+        <mat-label>Personalnummer</mat-label>
+        <input matInput testid="employeeCreatePersonnelNumberInput" formControlName="personnelNumber"/>
+        @if (personnelNumber.errors?.required && personnelNumber.touched) {
+          <mat-error>Pflichtfeld</mat-error>
+        }
+        @if (personnelNumber.errors?.maxlength && personnelNumber.touched) {
+          <mat-error>Personalnummer zu lang (Limit: {{ personnelNumber.errors?.maxlength.requiredLength }})</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Vorname</mat-label>
+        <input matInput testid="employeeCreateFirstnameInput" formControlName="firstname"/>
+        @if (firstname.errors?.required && firstname.touched) {
+          <mat-error>Pflichtfeld</mat-error>
+        }
+        @if (firstname.errors?.maxlength && firstname.touched) {
+          <mat-error>Vorname zu lang (Limit: {{ firstname.errors?.maxlength.requiredLength }})</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Nachname</mat-label>
+        <input matInput testid="employeeCreateLastnameInput" formControlName="lastname"/>
+        @if (lastname.errors?.required && lastname.touched) {
+          <mat-error>Pflichtfeld</mat-error>
+        }
+        @if (lastname.errors?.maxlength && lastname.touched) {
+          <mat-error>Nachname zu lang (Limit: {{ lastname.errors?.maxlength.requiredLength }})</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" testid="employeeCreateSaveButton" (click)="save()">Speichern</button>
+    <button matButton="outlined" testid="employeeCreateCancelButton" (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>
