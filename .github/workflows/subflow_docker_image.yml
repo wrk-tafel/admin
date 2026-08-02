@@ -14,6 +14,11 @@ on:
         description: 'Baked into the image as TAFELADMIN_VERSION and shown in the frontend UI, e.g. "1.0.0", or a full commit SHA for non-release builds (auto-shortened to 7 chars below)'
         type: string
         required: true
+      scanImage:
+        description: 'Scan the built image for vulnerabilities and upload results to the Security tab. GitHub only surfaces code-scanning alerts there for branches with their own analysis history (main, release), so pass true only from those pipelines - scanning PR builds would produce results nobody can see.'
+        type: boolean
+        required: false
+        default: false
     secrets:
       githubToken:
         required: true
@@ -24,6 +29,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -54,6 +60,9 @@ jobs:
             done <<< "${IMAGE_TAGS}"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
+          # Any one of the pushed tags refers to the same image, so the scan step below just
+          # needs the first one to have something to pull.
+          echo "primaryTag=${REGISTRY}/wrk-tafel/admin:$(head -n1 <<< "${IMAGE_TAGS}")" >> "$GITHUB_OUTPUT"
       - name: Determine build metadata
         id: metadata
         env:
@@ -79,3 +88,16 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Scan image for vulnerabilities
+        if: inputs.scanImage
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.tags.outputs.primaryTag }}
+          format: sarif
+          output: trivy-results.sarif
+          ignore-unfixed: true
+      - name: Upload scan results to the Security tab
+        if: always() && inputs.scanImage
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
+        with:
+          sarif_file: trivy-results.sarif
