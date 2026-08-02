@@ -870,6 +870,6 @@ VALUES (6, 'RETURN_BOXES', 'TO', 'returnboxes-to@domain.com');
 
 -- login attempts
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
-VALUES (1, NOW(), NOW(), 'lockeduser', 5, NOW(), NOW() + interval '15 minutes');
+VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW(), NOW() + interval '15 minutes');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
-VALUES (2, NOW(), NOW(), 'flakyuser', 2, NOW(), NULL);
+VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW(), NULL);

@@ -10,14 +10,14 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 describe('SettingsLoginAttemptsComponent', () => {
   const lockedLoginAttempt: LoginAttemptItem = {
     id: 1,
-    username: 'lockeduser',
+    username: 'gesperrt1',
     failureCount: 5,
     lastFailureAt: '2026-01-01T10:00:00',
     lockedUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString()
   };
   const notLockedLoginAttempt: LoginAttemptItem = {
     id: 2,
-    username: 'flakyuser',
+    username: 'fehlversuch1',
     failureCount: 2,
     lastFailureAt: '2026-01-01T09:00:00',
     lockedUntil: null
