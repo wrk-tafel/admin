@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.settings
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
-import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptListResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -43,7 +45,10 @@ class SettingsController(
     ): StaticValueResponse = settingsService.updateStaticValue(staticValueId, staticValue)
 
     @GetMapping("/login-attempts")
-    fun getLoginAttempts(): LoginAttemptListResponse = settingsService.getLoginAttempts()
+    fun getLoginAttempts(
+        @RequestParam page: Int? = null,
+        @RequestParam pageSize: Int? = null,
+    ): PagedResponse<LoginAttemptItem> = settingsService.getLoginAttempts(page, pageSize)
 
     @DeleteMapping("/login-attempts/{loginAttemptId}")
     fun deleteLoginAttempt(@PathVariable loginAttemptId: Long): ResponseEntity<Unit> {

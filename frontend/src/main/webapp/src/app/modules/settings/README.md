@@ -36,7 +36,7 @@ settings/
     employees/                     # route: einstellungen/mitarbeiter
       dialogs/
         employee-create-dialog.component.ts
-    login-attempts/                 # route: einstellungen/login-versuche
+    login-attempts/                 # route: einstellungen/anmelde-versuche
       dialogs/
         delete-login-attempt-dialog.component.ts
   settings.routes.ts
@@ -213,10 +213,13 @@ lockout tracking (`TafelLoginProvider`) — added so an admin can see who's
 currently tracked/locked and clear an entry to lift a lockout immediately
 instead of waiting out `lockoutDurationInSeconds` (#2870).
 
-- Loads via `SettingsApiService.getLoginAttempts()` (unpaginated, like most
-  other views here) into a signal (`_loginAttempts`); the backend sorts by
-  most recent failure first. Table columns: `['username', 'failureCount',
-  'lastFailureAt', 'lockedUntil', 'actions']`.
+- Loads via `SettingsApiService.getLoginAttempts()`, paginated like `employees`
+  above (`mat-paginator` bound to a `PagedResponse<LoginAttemptItem>` signal,
+  `PAGE_SIZE_OPTIONS`, 1-based backend page vs 0-based `mat-paginator` index);
+  the backend sorts by most recent failure first, with `id` as a stable
+  tiebreaker (`LoginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc`).
+  Table columns: `['username', 'failureCount', 'lastFailureAt', 'lockedUntil',
+  'actions']`.
 - **No create, no edit** — this view only ever displays what
   `LoginAttemptService` already tracks from real login attempts.
 - **Status column**: `isLocked()` compares `lockedUntil` against `Date.now()`

@@ -16,6 +16,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -53,7 +55,11 @@ internal class LoginAttemptServiceTest {
 
         loginAttemptRepository = mockk()
         every { loginAttemptRepository.findByUsername(any()) } answers { entries[firstArg()] }
-        every { loginAttemptRepository.findAll() } answers { entries.values.toList() }
+        every { loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(any()) } answers {
+            val pageRequest = firstArg<PageRequest>()
+            val sorted = entries.values.sortedWith(compareByDescending<LoginAttemptEntity> { it.lastFailureAt }.thenByDescending { it.id })
+            PageImpl(sorted, pageRequest, sorted.size.toLong())
+        }
         every { loginAttemptRepository.save(any()) } answers {
             val entity = firstArg<LoginAttemptEntity>()
             if (entity.id == null) {
@@ -190,12 +196,15 @@ internal class LoginAttemptServiceTest {
     }
 
     @Test
-    fun `findAll returns all tracked entries`() {
+    fun `findAll returns a page of tracked entries, most recent failure first`() {
         service.recordFailure("user1")
+        clock.advanceBy(Duration.ofSeconds(1))
         service.recordFailure("user2")
 
-        assertThat(service.findAll()).extracting<String> { it.username }
-            .containsExactlyInAnyOrder("user1", "user2")
+        val page = service.findAll(PageRequest.of(0, 10))
+
+        assertThat(page.content).extracting<String> { it.username }.containsExactly("user2", "user1")
+        assertThat(page.totalElements).isEqualTo(2)
     }
 
     @Test

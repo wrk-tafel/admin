@@ -6,6 +6,8 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -60,12 +62,12 @@ class LoginAttemptService(
     }
 
     @Transactional(readOnly = true)
-    fun findAll(): List<LoginAttemptEntity> = loginAttemptRepository.findAll()
+    fun findAll(pageRequest: PageRequest): Page<LoginAttemptEntity> = loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(pageRequest)
 
     @Transactional
     fun deleteById(id: Long) {
         if (!loginAttemptRepository.existsById(id)) {
-            throw NotFoundException("Login-Versuch (ID: $id) nicht vorhanden!")
+            throw NotFoundException("Anmelde-Versuch (ID: $id) nicht vorhanden!")
         }
         loginAttemptRepository.deleteById(id)
     }

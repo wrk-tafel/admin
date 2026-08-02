@@ -150,8 +150,8 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/statische-werte'
       },
       {
-        name: 'Login-Versuche',
-        url: '/einstellungen/login-versuche'
+        name: 'Anmelde-Versuche',
+        url: '/einstellungen/anmelde-versuche'
       },
       {
         name: 'Mitarbeiter',

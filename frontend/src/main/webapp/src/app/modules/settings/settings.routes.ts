@@ -33,7 +33,7 @@ export const routes: Routes = [
     component: SettingsEmployeesComponent,
   },
   {
-    path: 'login-versuche',
+    path: 'anmelde-versuche',
     component: SettingsLoginAttemptsComponent,
   },
 ];

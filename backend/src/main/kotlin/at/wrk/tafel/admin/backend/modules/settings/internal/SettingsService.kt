@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
@@ -10,7 +12,6 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
-import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -20,6 +21,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import org.springframework.cache.annotation.CacheEvict
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -138,12 +140,17 @@ class SettingsService(
         return mapStaticValue(staticValueRepository.save(historizedEntity))
     }
 
-    fun getLoginAttempts(): LoginAttemptListResponse {
-        val loginAttempts = loginAttemptService.findAll()
-            .sortedByDescending { it.lastFailureAt }
-            .map { mapLoginAttempt(it) }
+    fun getLoginAttempts(page: Int? = null, pageSize: Int? = null): PagedResponse<LoginAttemptItem> {
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pagedResult = loginAttemptService.findAll(pageRequest)
 
-        return LoginAttemptListResponse(loginAttempts = loginAttempts)
+        return PagedResponse(
+            items = pagedResult.map { mapLoginAttempt(it) }.toList(),
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize,
+        )
     }
 
     fun deleteLoginAttempt(loginAttemptId: Long) {

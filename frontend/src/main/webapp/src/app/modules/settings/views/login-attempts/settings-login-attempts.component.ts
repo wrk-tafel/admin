@@ -13,8 +13,10 @@ import {
   MatRowDef,
   MatTable
 } from '@angular/material/table';
+import {MatPaginatorModule} from '@angular/material/paginator';
 import {DatePipe} from '@angular/common';
-import {LoginAttemptItem, LoginAttemptListResponse, SettingsApiService} from '../../../../api/settings-api.service';
+import {LoginAttemptItem, SettingsApiService} from '../../../../api/settings-api.service';
+import {PagedResponse, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
 import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
@@ -39,6 +41,7 @@ import {DeleteLoginAttemptDialogComponent} from './dialogs/delete-login-attempt-
     MatRowDef,
     MatTable,
     MatHeaderCellDef,
+    MatPaginatorModule,
     DatePipe,
     FaIconComponent,
     MatButton,
@@ -49,7 +52,7 @@ export class SettingsLoginAttemptsComponent {
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
-  private _loginAttempts = signal<LoginAttemptListResponse | null>(null);
+  private _loginAttempts = signal<PagedResponse<LoginAttemptItem> | null>(null);
   protected loginAttempts = this._loginAttempts;
   displayedColumns = ['username', 'failureCount', 'lastFailureAt', 'lockedUntil', 'actions'];
 
@@ -61,10 +64,10 @@ export class SettingsLoginAttemptsComponent {
     return !!loginAttempt.lockedUntil && new Date(loginAttempt.lockedUntil).getTime() > Date.now();
   }
 
-  private loadLoginAttempts() {
-    this.settingsApiService.getLoginAttempts().subscribe({
+  protected loadLoginAttempts(page?: number, pageSize?: number) {
+    this.settingsApiService.getLoginAttempts(page, pageSize).subscribe({
       next: data => this._loginAttempts.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Login-Versuche', 'Fehler')
+      error: () => this.toastr.error('Fehler beim Laden der Anmelde-Versuche', 'Fehler')
     });
   }
 
@@ -74,8 +77,8 @@ export class SettingsLoginAttemptsComponent {
       if (confirmed) {
         this.settingsApiService.deleteLoginAttempt(loginAttempt.id).subscribe({
           next: () => {
-            this.toastr.success('Login-Versuch gelöscht', 'Erfolgreich');
-            this.loadLoginAttempts();
+            this.toastr.success('Anmelde-Versuch gelöscht', 'Erfolgreich');
+            this.loadLoginAttempts(this.loginAttempts()?.currentPage, this.loginAttempts()?.pageSize);
           },
           error: () => this.toastr.error('Löschen fehlgeschlagen', 'Fehler')
         });
@@ -84,4 +87,5 @@ export class SettingsLoginAttemptsComponent {
   }
 
   protected readonly faTrashCan = faTrashCan;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

@@ -1,11 +1,11 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
     <mat-card-title>
-      <h5 class="mb-0 mt-1">Login-Versuche</h5>
+      <h5 class="mb-0 mt-1">Anmelde-Versuche</h5>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <table mat-table [dataSource]="loginAttempts()?.loginAttempts ?? []" testid="login-attempts-table">
+    <table mat-table [dataSource]="loginAttempts()?.items ?? []" testid="login-attempts-table">
       <ng-container matColumnDef="username">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Benutzername</th>
         <td mat-cell *matCellDef="let loginAttempt">{{ loginAttempt.username }}</td>
@@ -48,8 +48,16 @@
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" [attr.testid]="'login-attempts-row-' + i"></tr>
     </table>
 
-    @if (loginAttempts()?.loginAttempts?.length === 0) {
-      <div class="mt-4 text-center" testid="login-attempts-empty">Keine Login-Versuche vorhanden.</div>
+    @if (loginAttempts()?.items?.length === 0) {
+      <div class="mt-4 text-center" testid="login-attempts-empty">Keine Anmelde-Versuche vorhanden.</div>
+    }
+
+    @if (loginAttempts()) {
+      <mat-paginator class="tafel-paginator-responsive mt-4" testid="login-attempts-paginator"
+                     [length]="loginAttempts()!.totalCount" [pageSize]="loginAttempts()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="loginAttempts()!.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="loadLoginAttempts($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
     }
   </mat-card-content>
 </mat-card>

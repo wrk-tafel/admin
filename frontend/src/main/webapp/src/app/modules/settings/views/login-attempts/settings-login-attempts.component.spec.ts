@@ -2,7 +2,8 @@ import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {SettingsLoginAttemptsComponent} from './settings-login-attempts.component';
-import {LoginAttemptItem, LoginAttemptListResponse, SettingsApiService} from '../../../../api/settings-api.service';
+import {LoginAttemptItem, SettingsApiService} from '../../../../api/settings-api.service';
+import {PagedResponse} from '../../../../common/api/paged-response';
 import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -22,6 +23,13 @@ describe('SettingsLoginAttemptsComponent', () => {
     lastFailureAt: '2026-01-01T09:00:00',
     lockedUntil: null
   };
+  const pagedResponse: PagedResponse<LoginAttemptItem> = {
+    items: [lockedLoginAttempt, notLockedLoginAttempt],
+    totalCount: 2,
+    currentPage: 1,
+    totalPages: 1,
+    pageSize: 10
+  };
 
   let settingsApiMock: Partial<SettingsApiService>;
   let toastrMock: Partial<TafelToastrService>;
@@ -29,7 +37,7 @@ describe('SettingsLoginAttemptsComponent', () => {
 
   beforeEach(() => {
     settingsApiMock = {
-      getLoginAttempts: vi.fn(() => of<LoginAttemptListResponse>({loginAttempts: [lockedLoginAttempt, notLockedLoginAttempt]})),
+      getLoginAttempts: vi.fn(() => of<PagedResponse<LoginAttemptItem>>(pagedResponse)),
       deleteLoginAttempt: vi.fn(() => of(undefined))
     };
 
@@ -64,7 +72,18 @@ describe('SettingsLoginAttemptsComponent', () => {
     const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
-    expect(component['loginAttempts']()?.loginAttempts.length).toBe(2);
+    expect(component['loginAttempts']()?.items.length).toBe(2);
+    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledWith(undefined, undefined);
+  });
+
+  it('loadLoginAttempts() requests the given page and page size', () => {
+    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['loadLoginAttempts'](2, 25);
+
+    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledWith(2, 25);
   });
 
   it('shows an error toast when loading fails', () => {
@@ -100,7 +119,7 @@ describe('SettingsLoginAttemptsComponent', () => {
     expect(component['isLocked']({...lockedLoginAttempt, lockedUntil: new Date(Date.now() - 1000).toISOString()})).toBe(false);
   });
 
-  it('deleteLoginAttempt() deletes after confirmation, shows a success toast and reloads', () => {
+  it('deleteLoginAttempt() deletes after confirmation, shows a success toast and reloads the current page', () => {
     const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
@@ -109,7 +128,7 @@ describe('SettingsLoginAttemptsComponent', () => {
 
     expect(settingsApiMock.deleteLoginAttempt).toHaveBeenCalledWith(lockedLoginAttempt.id);
     expect(toastrMock.success).toHaveBeenCalled();
-    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledTimes(2);
+    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize);
   });
 
   it('deleteLoginAttempt() does nothing when the dialog is cancelled', () => {

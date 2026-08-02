@@ -1,16 +1,20 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
-describe('Settings - Login-Versuche', () => {
+describe('Settings - Anmelde-Versuche', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/login-versuche');
+    cy.visit('/#/einstellungen/anmelde-versuche');
   });
 
   it('lists login attempts', () => {
     cy.byTestId('login-attempts-table').should('exist');
     cy.byTestId('login-attempts-table').should('contain.text', 'gesperrt1');
     cy.byTestId('login-attempts-table').should('contain.text', 'fehlversuch1');
+  });
+
+  it('shows a paginator', () => {
+    cy.byTestId('login-attempts-paginator').should('exist');
   });
 
   it('shows the locked status for a currently locked entry', () => {

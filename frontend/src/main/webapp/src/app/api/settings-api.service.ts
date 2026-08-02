@@ -1,6 +1,7 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class SettingsApiService {
@@ -22,8 +23,15 @@ export class SettingsApiService {
     return this.http.put<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
   }
 
-  getLoginAttempts(): Observable<LoginAttemptListResponse> {
-    return this.http.get<LoginAttemptListResponse>('/settings/login-attempts');
+  getLoginAttempts(page?: number, pageSize?: number): Observable<PagedResponse<LoginAttemptItem>> {
+    let queryParams = new HttpParams();
+    if (page) {
+      queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
+    }
+    return this.http.get<PagedResponse<LoginAttemptItem>>('/settings/login-attempts', {params: queryParams});
   }
 
   deleteLoginAttempt(loginAttemptId: number): Observable<void> {
@@ -82,10 +90,6 @@ export enum StaticValueTypeEnum {
   CHILD_TAX_ALLOWANCE = 'CHILD_TAX_ALLOWANCE',
   SIBLING_ADDITION = 'SIBLING_ADDITION',
   COST_CONTRIBUTION = 'COST_CONTRIBUTION'
-}
-
-export interface LoginAttemptListResponse {
-  loginAttempts: LoginAttemptItem[];
 }
 
 export interface LoginAttemptItem {
