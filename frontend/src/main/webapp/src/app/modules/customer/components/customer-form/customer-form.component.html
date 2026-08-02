@@ -1,6 +1,6 @@
 <form>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-    <mat-card appearance="outlined">
+    <mat-card>
       <mat-card-header>
         <h5>Hauptbezieher</h5>
       </mat-card-header>
@@ -176,7 +176,7 @@
       </mat-card-content>
     </mat-card>
     <div class="mt-4 md:mt-0">
-      <mat-card appearance="outlined">
+      <mat-card>
         <mat-card-header class="w-full">
           <div class="flex justify-between items-center w-full">
             <h5>Weitere Personen</h5>
@@ -191,7 +191,7 @@
           }
           @for (person of customerForm.additionalPersons().value(); track person.key; let i = $index) {
             <div class="mt-4">
-              <mat-card appearance="outlined">
+              <mat-card>
                 <mat-card-content [attr.testid]="'personform-' + i">
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <mat-form-field>

@@ -1,4 +1,4 @@
-<mat-card appearance="outlined">
+<mat-card>
   <mat-card-header class="mb-2">
     <h2 class="text-2xl font-semibold">Kunden-Annahme</h2>
   </mat-card-header>
@@ -40,7 +40,7 @@
     </div>
   </mat-card-content>
   @if (customer() !== undefined) {
-    <mat-card appearance="outlined" class="mt-6 md:m-4" testid="customerDetailPanel">
+    <mat-card class="mt-6 md:m-4" testid="customerDetailPanel">
       <mat-card-header>
         <h2 class="flex gap-2 text-xl font-semibold">
           <div class="badge"
@@ -94,7 +94,7 @@
                 @if ((customer()?.additionalPersons?.length ?? 0) > 0) {
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     @for (addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
-                      <mat-card appearance="outlined">
+                      <mat-card>
                         <mat-card-content>
                           <div class="flex justify-between">
                             <div class="font-semibold"
@@ -131,7 +131,7 @@
             </mat-tab-group>
           </div>
           <div>
-            <mat-card appearance="outlined">
+            <mat-card>
               <mat-card-header>
                 <div class="font-semibold">Aktuellste Notiz</div>
               </mat-card-header>
