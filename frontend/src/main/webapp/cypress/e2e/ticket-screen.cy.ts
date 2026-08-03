@@ -43,6 +43,15 @@ describe('TicketScreen', () => {
     }
   });
 
+  it('does not show the disconnected indicator while the SSE connection is up', () => {
+    // This fullscreen kiosk display has no header/badge like the rest of the app (see
+    // sse.service.spec.ts / ticket-screen.component.ts), so its own indicator must stay hidden
+    // on a healthy connection - otherwise it would falsely look "disconnected" all the time.
+    cy.visit('/#/anmeldung/ticketmonitor');
+    cy.byTestId('title').should('exist');
+    cy.byTestId('connectionState').should('not.exist');
+  });
+
   describe('with distribution and tickets', () => {
 
     beforeEach(() => {

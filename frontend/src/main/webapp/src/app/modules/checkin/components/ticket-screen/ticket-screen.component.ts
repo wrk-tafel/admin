@@ -1,4 +1,4 @@
-import {Component, computed, inject, Signal} from '@angular/core';
+import {Component, computed, inject, Signal, signal} from '@angular/core';
 import {SseService} from '../../../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 
@@ -9,8 +9,14 @@ import {toSignal} from '@angular/core/rxjs-interop';
 export class TicketScreenComponent {
   private readonly sseService = inject(SseService);
 
+  // This fullscreen kiosk display has no header/layout chrome (see app.routes.ts), so unlike
+  // every other authenticated screen it gets no "Live-Verbindung" badge for free - without this,
+  // a dropped connection during the ~12h unattended Saturday event would look identical to "no
+  // ticket called yet", with nothing on screen telling on-site staff it's actually stale.
+  readonly connected = signal(true);
+
   private readonly ticketScreenData: Signal<TicketScreenText | undefined> = toSignal(
-    this.sseService.listen<TicketScreenText>('/sse/distributions/ticket-screen/current')
+    this.sseService.listen<TicketScreenText>('/sse/distributions/ticket-screen/current', (connected) => this.connected.set(connected))
   );
 
   readonly text = computed(() => this.ticketScreenData()?.text ?? undefined);
