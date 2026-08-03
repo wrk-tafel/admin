@@ -4,6 +4,7 @@ import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
+import {MatDialog} from '@angular/material/dialog';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
@@ -11,6 +12,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
+import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -37,6 +39,7 @@ export class CustomerDuplicatesComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
+  private readonly dialog = inject(MatDialog);
 
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)
@@ -51,6 +54,15 @@ export class CustomerDuplicatesComponent {
 
   showCustomerDetail(customerId: number) {
     this.router.navigate(['/kunden/detail/' + customerId]);
+  }
+
+  openDeleteCustomerDialog(customerId: number) {
+    this.dialog.open(DeleteCustomerDialogComponent)
+      .afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.deleteCustomer(customerId);
+      }
+    });
   }
 
   deleteCustomer(customerId: number) {

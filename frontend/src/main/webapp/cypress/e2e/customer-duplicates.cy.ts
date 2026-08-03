@@ -42,12 +42,25 @@ describe('Customer Duplicates', () => {
     });
   });
 
-  it('deletes a single customer from the duplicate pair', () => {
+  it('deletes a single customer from the duplicate pair after confirming', () => {
     createDuplicatePair().then(({second}) => {
       const customer2 = second.body.data;
 
       cy.visit('/#/kunden/duplikate');
       cy.byTestId('duplicate-delete-button-' + customer2.id).click();
+
+      cy.byTestId('deletecustomer-dialog').should('be.visible');
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+
+      cy.byTestId('deletecustomer-dialog').should('not.exist');
+      cy.byTestId('duplicate-customer-' + customer2.id).should('exist');
+
+      cy.byTestId('duplicate-delete-button-' + customer2.id).click();
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde wurde gelöscht!');
       cy.byTestId('duplicate-customer-' + customer2.id).should('not.exist');
@@ -90,6 +103,9 @@ describe('Customer Duplicates', () => {
       });
 
       cy.byTestId('duplicate-delete-button-' + customer2.id).click();
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde wurde gelöscht!');
       cy.byTestId('duplicate-customer-' + customer2.id).should('not.exist');
