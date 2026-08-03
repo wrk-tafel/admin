@@ -206,6 +206,11 @@ joins through `households.main_person_id` (see the `MAIN_PERSON_CTE` companion c
 reading name columns directly off `households`. Pagination here is one duplicate *group* per page
 (`PageRequest.of(page, 1)`), not one household per page.
 
+The self-join condition anchors each match on the *smaller* `household_id`
+(`household.household_id < compare.household_id`, not `<>`) so an unordered pair {A, B} surfaces as
+exactly one row - anchored on whichever of A/B has the lower id - instead of two mirrored rows (once
+per direction).
+
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
 re-parenting work.
