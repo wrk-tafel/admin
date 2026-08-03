@@ -41,4 +41,12 @@ interface DocumentRepository : JpaRepository<DocumentEntity, Long> {
         @Param("targetPerson") targetPerson: PersonEntity,
         @Param("sourcePersonId") sourcePersonId: Long,
     ): Int
+
+    /**
+     * Used by [at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageCleanupService]
+     * to find files on disk that no longer have a DB row - a plain column projection instead of
+     * loading full entities since only the path is needed.
+     */
+    @Query("select d.storagePath from Document d")
+    fun findAllStoragePaths(): List<String>
 }

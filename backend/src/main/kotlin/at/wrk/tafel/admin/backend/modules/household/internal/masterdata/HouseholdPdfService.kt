@@ -33,11 +33,6 @@ class HouseholdPdfService(
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl")
     }
 
-    fun generateCombinedPdf(household: HouseholdEntity): ByteArray {
-        val data = createHouseholdPdfData(household)
-        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-idcard-document.xsl")
-    }
-
     private fun createHouseholdPdfData(household: HouseholdEntity): PdfData {
         val issuer = household.issuer?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" }
 

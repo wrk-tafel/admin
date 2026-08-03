@@ -607,22 +607,6 @@ class HouseholdServiceTest {
     }
 
     @Test
-    fun `generate pdf household - COMBINED type`() {
-        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
-
-        val pdfBytes = ByteArray(10)
-        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity
-        every { householdPdfService.generateCombinedPdf(any()) } returns pdfBytes
-
-        val result = service.generatePdf(1, HouseholdPdfType.COMBINED)
-
-        assertThat(result).isNotNull
-        assertThat(result?.filename).isEqualTo("stammdaten-ausweis-100-mustermann-max.pdf")
-        assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
-        verify(exactly = 1) { householdPdfService.generateCombinedPdf(testHouseholdEntity) }
-    }
-
-    @Test
     fun `delete household by householdId releases the main person pointer first`() {
         val householdId = 123L
         val testHouseholdEntity = testHouseholdEntityWithMainPerson()

@@ -256,14 +256,6 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
-  it('generate combined pdf', () => {
-    apiService.generatePdf(1, 'COMBINED').subscribe();
-
-    const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=COMBINED'});
-    req.flush(null);
-    httpMock.verify();
-  });
-
   it('search customer with firstname and lastname', () => {
     apiService.searchCustomer('mustermann', 'max').subscribe();
 

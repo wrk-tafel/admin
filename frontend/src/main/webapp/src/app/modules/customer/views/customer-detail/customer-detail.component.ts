@@ -155,11 +155,6 @@ export class CustomerDetailComponent {
       .subscribe((response) => this.processPdfResponse(response));
   }
 
-  printCombined() {
-    this.customerApiService.generatePdf(this.customerData().id!, 'COMBINED')
-      .subscribe((response) => this.processPdfResponse(response));
-  }
-
   formatAddressLine1(address: CustomerAddressData): string {
     const formatted = [
       [address.street, address.houseNumber].join(' ').trim(),

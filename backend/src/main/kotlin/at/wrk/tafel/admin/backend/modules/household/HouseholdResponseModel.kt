@@ -137,7 +137,6 @@ data class ValidateHouseholdResponse(
 enum class HouseholdPdfType {
     MASTERDATA,
     IDCARD,
-    COMBINED,
 }
 
 @ExcludeFromTestCoverage

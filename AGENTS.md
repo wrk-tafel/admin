@@ -300,7 +300,11 @@ PR_TITLE` in the repo settings, so the title is what `release.yml` actually sees
 individual commits).
 
 When committing on this repo's behalf, write commit messages and PR titles in this format
-without being asked.
+without being asked. This has been missed in practice more than once (e.g. a PR left titled
+"Remove combined customer PDF (idcard + masterdata)" with no type prefix, failing
+`pr-title-lint`), so treat it as a hard checklist item: before opening or editing a PR, and
+whenever a CI failure turns out to be `pr-title-lint`/`commitlint`, check the PR title and commit
+subjects against these rules yourself rather than waiting for CI to flag it.
 
 ## API Structure
 
