@@ -25,7 +25,8 @@
           <div [attr.testid]="'merge-field-row-' + field">
             <div class="font-bold mb-1">{{fieldDefinitions[field].label}}</div>
             <mat-radio-group
-              [value]="selectedSourceIdFor(field) ?? 'target'"
+              class="merge-radio-group"
+              [value]="(selectedSourceIdFor(field) ?? 'target').toString()"
               (change)="selectField(field, $event.value === 'target' ? undefined : +$event.value)">
               <div class="flex flex-col gap-1">
                 <mat-radio-button value="target" [attr.testid]="'merge-field-' + field + '-target'">

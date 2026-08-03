@@ -229,7 +229,9 @@
       </mat-tab>
       <mat-tab>
         <ng-template mat-tab-label>
-          <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
+          <span testid="additionalpersons-tab-label">
+            <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
+          </span>
         </ng-template>
         <div>
           @if (customerData()?.additionalPersons?.length === 0) {

@@ -21,6 +21,7 @@ import {ALL_CUSTOMER_MERGE_FIELDS, CUSTOMER_MERGE_FIELDS} from './customer-merge
 @Component({
   selector: 'tafel-customer-merge',
   templateUrl: 'customer-merge.component.html',
+  styleUrls: ['customer-merge.component.scss'],
   providers: [DatePipe],
   imports: [MatCardModule, MatButtonModule, MatRadioModule, FaIconComponent, DatePipe]
 })

@@ -167,6 +167,7 @@ describe('Customer Merge', () => {
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
       cy.url().should('include', '/kunden/detail/' + target.id);
+      cy.byTestId('additionalpersons-tab-label').click();
       cy.byTestId('addperson-0-lastnameText').should('contain.text', 'Novak');
     });
   });
@@ -196,6 +197,7 @@ describe('Customer Merge', () => {
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
       cy.url().should('include', '/kunden/detail/' + target.id);
+      cy.byTestId('additionalpersons-tab-label').click();
       cy.byTestId('addperson-0-lastnameText').should('contain.text', 'Schmidt');
       cy.byTestId('addperson-1-lastnameText').should('not.exist');
     });
