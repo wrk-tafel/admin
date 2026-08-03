@@ -141,10 +141,63 @@ export class CustomerApiService {
     );
   }
 
-  mergeCustomers(targetCustomerId: number, sourceCustomerIds: number[]): Observable<void> {
-    const request: CustomerMergeRequest = {sourceCustomerIds: sourceCustomerIds};
-    const body: HouseholdMergeRequest = {sourceHouseholdIds: request.sourceCustomerIds};
-    return this.http.post<void>(`/households/${targetCustomerId}/merge`, body);
+  getMergePreview(targetCustomerId: number, sourceCustomerIds: number[]): Observable<CustomerMergePreview> {
+    let queryParams = new HttpParams();
+    sourceCustomerIds.forEach(sourceCustomerId => {
+      queryParams = queryParams.append('sourceHouseholdIds', sourceCustomerId);
+    });
+
+    return this.http.get<HouseholdMergePreviewResponse>(`/households/${targetCustomerId}/merge-preview`, {params: queryParams}).pipe(
+      map(response => ({
+        target: mapHouseholdToCustomer(response.target),
+        sources: (response.sources ?? []).map(mapHouseholdToCustomer),
+        fieldConflicts: (response.fieldConflicts ?? []).map(item => ({
+          field: item.field,
+          conflictingSourceCustomerIds: item.conflictingSourceHouseholdIds
+        })),
+        persons: (response.persons ?? []).map(item => ({
+          sourceCustomerId: item.sourceHouseholdId,
+          person: mapPersonToAddPersonData(item.person),
+          duplicate: item.duplicate,
+          matchedPersonId: item.matchedPersonId
+        })),
+        distributionCollisions: (response.distributionCollisions ?? []).map(item => ({
+          distributionId: item.distributionId,
+          distributionStartedAt: item.distributionStartedAt,
+          sourceCustomerId: item.sourceHouseholdId,
+          targetTicketNumber: item.targetTicketNumber,
+          sourceTicketNumber: item.sourceTicketNumber
+        })),
+        noteCount: response.noteCount,
+        documentCount: response.documentCount
+      }))
+    );
+  }
+
+  mergeCustomers(
+    targetCustomerId: number,
+    sourceCustomerIds: number[],
+    fieldSelections: CustomerMergeFieldSelection[] = []
+  ): Observable<CustomerMergeResult> {
+    const body: HouseholdMergeRequest = {
+      sourceHouseholdIds: sourceCustomerIds,
+      fieldSelections: fieldSelections.map(selection => ({
+        field: selection.field,
+        sourceHouseholdId: selection.sourceCustomerId ?? null
+      }))
+    };
+    return this.http.post<HouseholdMergeResponse>(`/households/${targetCustomerId}/merge`, body).pipe(
+      map(response => ({
+        target: mapHouseholdToCustomer(response.target),
+        movedPersonCount: response.movedPersonCount,
+        droppedDuplicatePersonCount: response.droppedDuplicatePersonCount,
+        movedNoteCount: response.movedNoteCount,
+        movedDocumentCount: response.movedDocumentCount,
+        movedDistributionCount: response.movedDistributionCount,
+        droppedDistributionCount: response.droppedDistributionCount,
+        deletedCustomerIds: response.deletedHouseholdIds
+      }))
+    );
   }
 
 }
@@ -251,8 +304,68 @@ export interface CustomerAboveLimitItem {
   amountExceededLimit: number;
 }
 
-export interface CustomerMergeRequest {
-  sourceCustomerIds: number[];
+export type CustomerMergeField =
+  | 'ADDRESS'
+  | 'TELEPHONE_NUMBER'
+  | 'EMAIL'
+  | 'VALID_UNTIL'
+  | 'LOCK_STATE'
+  | 'PENDING_COST_CONTRIBUTION'
+  | 'SINGLE_PARENT'
+  | 'MAIN_PERSON_FIRSTNAME'
+  | 'MAIN_PERSON_LASTNAME'
+  | 'MAIN_PERSON_BIRTHDATE'
+  | 'MAIN_PERSON_GENDER'
+  | 'MAIN_PERSON_COUNTRY'
+  | 'MAIN_PERSON_EMPLOYER'
+  | 'MAIN_PERSON_INCOME'
+  | 'MAIN_PERSON_INCOME_DUE';
+
+/** `sourceCustomerId` undefined/null means "keep the target's value". */
+export interface CustomerMergeFieldSelection {
+  field: CustomerMergeField;
+  sourceCustomerId?: number | null;
+}
+
+export interface CustomerMergeFieldConflict {
+  field: CustomerMergeField;
+  conflictingSourceCustomerIds: number[];
+}
+
+export interface CustomerMergePersonEntry {
+  sourceCustomerId: number;
+  person: CustomerAddPersonData;
+  duplicate: boolean;
+  matchedPersonId?: number;
+}
+
+export interface CustomerMergeDistributionCollision {
+  distributionId: number;
+  distributionStartedAt?: Date;
+  sourceCustomerId: number;
+  targetTicketNumber?: number;
+  sourceTicketNumber?: number;
+}
+
+export interface CustomerMergePreview {
+  target: CustomerData;
+  sources: CustomerData[];
+  fieldConflicts: CustomerMergeFieldConflict[];
+  persons: CustomerMergePersonEntry[];
+  distributionCollisions: CustomerMergeDistributionCollision[];
+  noteCount: number;
+  documentCount: number;
+}
+
+export interface CustomerMergeResult {
+  target: CustomerData;
+  movedPersonCount: number;
+  droppedDuplicatePersonCount: number;
+  movedNoteCount: number;
+  movedDocumentCount: number;
+  movedDistributionCount: number;
+  droppedDistributionCount: number;
+  deletedCustomerIds: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -313,8 +426,55 @@ interface HouseholdDuplicatesItem {
   similarHouseholds: HouseholdData[];
 }
 
+interface HouseholdMergeFieldSelectionItem {
+  field: CustomerMergeField;
+  sourceHouseholdId?: number | null;
+}
+
 interface HouseholdMergeRequest {
   sourceHouseholdIds: number[];
+  fieldSelections?: HouseholdMergeFieldSelectionItem[];
+}
+
+interface HouseholdMergeFieldConflictItem {
+  field: CustomerMergeField;
+  conflictingSourceHouseholdIds: number[];
+}
+
+interface HouseholdMergePersonItem {
+  sourceHouseholdId: number;
+  person: PersonData;
+  duplicate: boolean;
+  matchedPersonId?: number;
+}
+
+interface HouseholdMergeDistributionCollisionItem {
+  distributionId: number;
+  distributionStartedAt?: Date;
+  sourceHouseholdId: number;
+  targetTicketNumber?: number;
+  sourceTicketNumber?: number;
+}
+
+interface HouseholdMergePreviewResponse {
+  target: HouseholdData;
+  sources: HouseholdData[];
+  fieldConflicts: HouseholdMergeFieldConflictItem[];
+  persons: HouseholdMergePersonItem[];
+  distributionCollisions: HouseholdMergeDistributionCollisionItem[];
+  noteCount: number;
+  documentCount: number;
+}
+
+interface HouseholdMergeResponse {
+  target: HouseholdData;
+  movedPersonCount: number;
+  droppedDuplicatePersonCount: number;
+  movedNoteCount: number;
+  movedDocumentCount: number;
+  movedDistributionCount: number;
+  droppedDistributionCount: number;
+  deletedHouseholdIds: number[];
 }
 
 type HouseholdAboveLimitResponse = PagedResponse<HouseholdAboveLimitItem>;
@@ -327,6 +487,25 @@ interface HouseholdAboveLimitItem {
 }
 
 /**
+ * `key` is a form-only field and was never part of the server response either.
+ */
+function mapPersonToAddPersonData(person: PersonData): CustomerAddPersonData {
+  return {
+    id: person.id,
+    firstname: person.firstname,
+    lastname: person.lastname,
+    birthDate: person.birthDate,
+    gender: person.gender,
+    country: person.country,
+    employer: person.employer,
+    income: person.income,
+    incomeDue: person.incomeDue,
+    excludeFromHousehold: person.excludeFromHousehold,
+    receivesFamilyAllowance: person.receivesFamilyAllowance
+  } as CustomerAddPersonData;
+}
+
+/**
  * Backend -> frontend: flattens the household's main person onto the customer and exposes the
  * remaining household members as `additionalPersons`.
  */
@@ -336,20 +515,7 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
 
   const additionalPersons = persons
     .filter(person => !person.isMainPerson)
-    .map(person => ({
-      // `key` is a form-only field and was never part of the server response before either
-      id: person.id,
-      firstname: person.firstname,
-      lastname: person.lastname,
-      birthDate: person.birthDate,
-      gender: person.gender,
-      country: person.country,
-      employer: person.employer,
-      income: person.income,
-      incomeDue: person.incomeDue,
-      excludeFromHousehold: person.excludeFromHousehold,
-      receivesFamilyAllowance: person.receivesFamilyAllowance
-    }) as CustomerAddPersonData);
+    .map(mapPersonToAddPersonData);
 
   return {
     id: household?.id,

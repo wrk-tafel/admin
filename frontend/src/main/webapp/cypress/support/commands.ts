@@ -288,6 +288,16 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add(
+  'createCustomerNote',
+  (customerId: number, note: string): Cypress.Chainable<Cypress.Response<any>> =>
+    cy.request({
+      method: 'POST',
+      url: `/api/households/${customerId}/notes`,
+      body: {note: note}
+    })
+);
+
+Cypress.Commands.add(
   'createUser',
   (data: UserData): Cypress.Chainable<Cypress.Response<UserData>> =>
     cy.request({

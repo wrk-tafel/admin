@@ -103,8 +103,9 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
 (paginated search with `HouseholdEntity.Specs` JPA specifications for name/postProcessing/
 cost-contribution/valid filters), `getHouseholdsAboveLimit`, `generatePdf`,
-`deleteHouseholdByHouseholdId`, `mergeHouseholds`. Owns the `saveWithMainPerson` save-order logic
-described above.
+`deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
+Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
+below.
 
 `getHouseholdsAboveLimit` is worth knowing about if you touch it: the "above limit" filter can't be
 expressed in SQL because it depends on `IncomeValidatorService`, not stored columns, so it loads
@@ -125,6 +126,73 @@ Bidirectional mapping between the API-facing `Household`/`Person` models and
   `// TODO revisit on 01.01.2026` comment - this flag exists only to track post-refactor
   data-quality fixups and can likely be removed after that date).
 
+**Never use `mapHouseholdToEntity` for merge re-parenting**: it does
+`householdEntity.persons.clear(); householdEntity.persons.addAll(mappedPersons)`, relying on
+`orphanRemoval = true` to delete anyone not present in the incoming person list. Feeding it anything
+less than the complete target person list - which is exactly what a merge would do - silently
+deletes people. `HouseholdMergeService` re-parents persons via dedicated bulk repository updates
+instead (see below); it only calls this converter's other direction, `mapEntityToHousehold`.
+
+### `HouseholdMergeService` / `HouseholdMergePlanner` (`internal`)
+Replaces what used to be a one-way deletion (`HouseholdService.mergeHouseholds` ->
+`deleteHouseholdByHouseholdId` per source, no data preserved) with a real compare/merge, exposed as
+`GET /households/{id}/merge-preview` and an extended `POST /households/{id}/merge`
+(`HouseholdMergeRequest.fieldSelections`).
+
+**Field conflicts are resolved by side, not by value.** The client picks which household -
+`sourceHouseholdId == null` meaning the target - wins per `HouseholdMergeField`; the server then
+copies that household's already-validated value onto the target. This deliberately does **not**
+route through `updateHousehold`/`mapHouseholdToEntity`: that path re-validates income (can silently
+invalidate the target or 409 a supervisor) and requires the complete persons list (see the
+`mapHouseholdToEntity` warning above). `ADDRESS` and `LOCK_STATE` are atomic groups - all their
+sub-fields always come from the same side, since a mixed address/lock tuple would be incoherent.
+`HouseholdMergePlanner` (a stateless, DB-free object) holds the field-equality/conflict logic shared
+by preview and merge, so the two can never disagree about what counts as a conflict.
+
+**The target's main person is never replaced** - the duplicate detector already matched on main
+person names, so both sides are the same human by construction. A source's main person either
+merges away as a duplicate of the target's, or moves across as a non-main additional person.
+
+**Person de-duplication** matches on normalized `(lastname, firstname, birthDate)` - trimmed,
+lower-cased, internal whitespace collapsed; if any of the three is missing on either side, it's
+never considered a match (incomplete master data is common here, see
+`HouseholdEntity.Specs.postProcessingNecessary()`, and silently discarding a family member because of
+a blank field would be worse than an occasional missed duplicate). Matches are tracked cumulatively
+across all sources being merged, not just against the target, so two sources both carrying the same
+not-on-target person get deduplicated against each other too.
+
+**`distributions_households` has a `unique(distribution_id, household_id)` constraint** that a naive
+re-point would violate whenever the target and a source (or two sources) attended the same
+distribution. The planner resolves this by grouping every attendance row of the whole merge set by
+`distribution_id`: the target's own row wins if it has one, otherwise the lowest-id (earliest
+registered) source row does. The winner's `ticketNumber` is never overwritten; `processed` is
+OR-folded and `costContributionPaid` is AND-folded onto it from every row it beats, then the losers
+are deleted - preserving whichever record shows "did collect food" / "still owes payment" rather
+than silently picking one row and discarding the other's state.
+
+**Execution order matters** and is the part most likely to regress: `HouseholdEntity.persons`/
+`.documents` are `cascade = ALL, orphanRemoval = true`, so touching a source's collection in memory -
+even just removing an element - schedules a DELETE for a row being simultaneously re-parented, and
+deleting the source household cascades REMOVE to whatever the persistence context still believes is
+in those collections. `HouseholdMergeService.merge` therefore never mutates
+`source.persons`/`.documents` directly; every re-parent is a bulk
+`@Modifying(flushAutomatically = true, clearAutomatically = true)` repository update (new methods on
+`PersonRepository`, `HouseholdNoteRepository`, `DocumentRepository`, `DistributionHouseholdRepository`
+- `HouseholdNoteEntity`/`DistributionHouseholdEntity` have no `mappedBy` back-reference on
+`HouseholdEntity` at all, so without an explicit re-point they're invisible to JPA and would only
+ever be reached via the DB's `on delete cascade`, i.e. destroyed with the source). Field selections
+are applied first, while target/sources are still the fresh entities loaded by `resolve()`; only
+after every child row has somewhere to land is each source shell deleted via the existing, unchanged
+`HouseholdService.deleteHouseholdByHouseholdId`.
+
+**Income is deliberately not re-validated after a merge.** Moving additional persons onto the target
+can push it over the limit; rather than blocking the merge or silently invalidating the target, the
+merged household simply surfaces in the existing `GET /households/above-limit` review flow
+afterwards, same as any other over-limit household.
+
+Every new repository method added for this takes the entity primary key (`HouseholdEntity.id`),
+never the business `householdId` - mixing the two is the most likely silent bug in this area.
+
 ### `HouseholdDuplicationService` (`internal`)
 Finds potential duplicate households via a raw SQL query (`JdbcTemplate`, not JPA) comparing every
 household's main person against every other household's main person:
@@ -138,10 +206,9 @@ joins through `households.main_person_id` (see the `MAIN_PERSON_CTE` companion c
 reading name columns directly off `households`. Pagination here is one duplicate *group* per page
 (`PageRequest.of(page, 1)`), not one household per page.
 
-`HouseholdController.mergeIntoHousehold` merges duplicates by simply deleting the source households
-(`householdService.mergeHouseholds` -> `deleteHouseholdByHouseholdId` per source id) - there is no
-data-merging of person records, notes, or distribution history; merging is a one-way deletion of the
-duplicate households, keeping only the target.
+`HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
+the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
+re-parenting work.
 
 ### `IncomeValidatorService` / `IncomeValidatorServiceImpl` (`internal/income`)
 Validates a household's combined income against configurable limits stored in `StaticValueRepository`

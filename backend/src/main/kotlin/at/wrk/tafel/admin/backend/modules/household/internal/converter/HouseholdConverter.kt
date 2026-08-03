@@ -30,6 +30,12 @@ class HouseholdConverter(
     private val userRepository: UserRepository,
 ) {
 
+    /**
+     * Never use this for household-merge re-parenting: `persons.clear(); persons.addAll(...)` below
+     * relies on `orphanRemoval = true` to delete anyone not present in `householdUpdate.persons`, so
+     * feeding it anything less than the complete target person list would silently delete people.
+     * `HouseholdMergeService` re-parents persons via dedicated bulk repository updates instead.
+     */
     fun mapHouseholdToEntity(householdUpdate: HouseholdRequest, storedEntity: HouseholdEntity? = null): HouseholdEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val userEntity = userRepository.findByUsername(user.username!!)
@@ -146,7 +152,11 @@ class HouseholdConverter(
         )
     }
 
-    private fun mapPerson(personEntity: PersonEntity) = Person(
+    /**
+     * `internal` (not `private`) so `HouseholdMergeService`/`HouseholdMergePlanner` can build
+     * [Person] preview payloads for source-household persons without duplicating this mapping.
+     */
+    internal fun mapPerson(personEntity: PersonEntity) = Person(
         id = personEntity.id,
         isMainPerson = personEntity.isMainPerson,
         firstname = personEntity.firstname,

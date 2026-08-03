@@ -1,0 +1,182 @@
+package at.wrk.tafel.admin.backend.modules.household.internal
+
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
+import at.wrk.tafel.admin.backend.modules.household.HouseholdMergeField
+import at.wrk.tafel.admin.backend.modules.household.HouseholdMergeFieldSelectionItem
+import at.wrk.tafel.admin.backend.modules.household.HouseholdMergeRequest
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
+import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+
+@ExtendWith(MockKExtension::class)
+class HouseholdMergeServiceTest {
+
+    @RelaxedMockK
+    private lateinit var householdRepository: HouseholdRepository
+
+    @RelaxedMockK
+    private lateinit var personRepository: PersonRepository
+
+    @RelaxedMockK
+    private lateinit var householdNoteRepository: HouseholdNoteRepository
+
+    @RelaxedMockK
+    private lateinit var documentRepository: DocumentRepository
+
+    @RelaxedMockK
+    private lateinit var distributionHouseholdRepository: DistributionHouseholdRepository
+
+    @RelaxedMockK
+    private lateinit var householdConverter: HouseholdConverter
+
+    @RelaxedMockK
+    private lateinit var householdService: HouseholdService
+
+    @InjectMockKs
+    private lateinit var service: HouseholdMergeService
+
+    private fun testHousehold(householdId: Long, entityId: Long, firstname: String = "firstname-$householdId"): HouseholdEntity {
+        val household = HouseholdEntity().apply {
+            id = entityId
+            this.householdId = householdId
+        }
+        val mainPerson = PersonEntity().apply {
+            id = entityId * 100
+            this.household = household
+            isMainPerson = true
+            this.firstname = firstname
+            lastname = "lastname-$householdId"
+        }
+        household.mainPerson = mainPerson
+        household.persons.add(mainPerson)
+        return household
+    }
+
+    private fun mockDefaultResponse() {
+        every { householdConverter.mapEntityToHousehold(any()) } returns HouseholdResponse(address = HouseholdAddress(street = null, houseNumber = null, postalCode = null, city = null))
+        every { distributionHouseholdRepository.findAllByHouseholdEntityIds(any()) } returns emptyList()
+        every { householdNoteRepository.countByHouseholdEntityIdIn(any()) } returns 0
+        every { documentRepository.countByHouseholdIdIn(any()) } returns 0
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } answers { firstArg() }
+    }
+
+    @Test
+    fun `merge with no sources throws ConflictException`() {
+        assertThrows<ConflictException> {
+            service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = emptyList()))
+        }
+    }
+
+    @Test
+    fun `merge with duplicate source ids throws ConflictException`() {
+        assertThrows<ConflictException> {
+            service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L, 2L)))
+        }
+    }
+
+    @Test
+    fun `merge with the target listed as its own source throws ConflictException`() {
+        assertThrows<ConflictException> {
+            service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(1L)))
+        }
+    }
+
+    @Test
+    fun `merge with an unknown target throws NotFoundException`() {
+        every { householdRepository.findByHouseholdId(1L) } returns null
+
+        assertThrows<NotFoundException> {
+            service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L)))
+        }
+    }
+
+    @Test
+    fun `merge with an unknown source throws NotFoundException`() {
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns null
+
+        assertThrows<NotFoundException> {
+            service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L)))
+        }
+    }
+
+    @Test
+    fun `merge with a field selection pointing at a household outside this merge throws ConflictException`() {
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns testHousehold(2L, 20L)
+        mockDefaultResponse()
+
+        assertThrows<ConflictException> {
+            service.merge(
+                1L,
+                HouseholdMergeRequest(
+                    sourceHouseholdIds = listOf(2L),
+                    fieldSelections = listOf(HouseholdMergeFieldSelectionItem(HouseholdMergeField.TELEPHONE_NUMBER, sourceHouseholdId = 999L)),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `merge never routes field application through HouseholdConverter mapHouseholdToEntity`() {
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns testHousehold(2L, 20L)
+        mockDefaultResponse()
+
+        service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L)))
+
+        verify(exactly = 0) { householdConverter.mapHouseholdToEntity(any(), any()) }
+        verify(exactly = 0) { householdConverter.mapHouseholdToEntity(any()) }
+    }
+
+    @Test
+    fun `merge deletes every source household after re-parenting`() {
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns testHousehold(2L, 20L)
+        every { householdRepository.findByHouseholdId(3L) } returns testHousehold(3L, 30L)
+        mockDefaultResponse()
+
+        val response = service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L, 3L)))
+
+        verify(exactly = 1) { householdService.deleteHouseholdByHouseholdId(2L) }
+        verify(exactly = 1) { householdService.deleteHouseholdByHouseholdId(3L) }
+        assertThat(response.deletedHouseholdIds).containsExactlyInAnyOrder(2L, 3L)
+    }
+
+    @Test
+    fun `merge applies an explicit field selection onto the target before saving it`() {
+        val target = testHousehold(1L, 10L)
+        val source = testHousehold(2L, 20L).apply { telephoneNumber = "999" }
+        every { householdRepository.findByHouseholdId(1L) } returns target
+        every { householdRepository.findByHouseholdId(2L) } returns source
+        mockDefaultResponse()
+
+        service.merge(
+            1L,
+            HouseholdMergeRequest(
+                sourceHouseholdIds = listOf(2L),
+                fieldSelections = listOf(HouseholdMergeFieldSelectionItem(HouseholdMergeField.TELEPHONE_NUMBER, sourceHouseholdId = 2L)),
+            ),
+        )
+
+        assertThat(target.telephoneNumber).isEqualTo("999")
+        verify(exactly = 1) { householdRepository.saveAndFlush(target) }
+    }
+}

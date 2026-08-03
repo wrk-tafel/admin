@@ -7,8 +7,8 @@
         <button matButton="filled" class="button-success me-2">
           <fa-icon [icon]="faCheck"></fa-icon>
         </button>
-        <strong>Kunde übernehmen:</strong> Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere
-        hier angezeigte Kunden werden gelöscht!
+        <strong>Kunden zusammenführen:</strong> Öffnet den Datenabgleich für die ausgewählten Kunden - dort
+        können unterschiedliche Felder ausgewählt werden, bevor die Zusammenführung bestätigt wird.
       </div>
       <div>
         <button matButton="filled" class="me-2">
@@ -23,7 +23,7 @@
         <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
       </div>
       <div class="mt-2">
-        <strong>Achtung: Das Löschen oder Zusammenführen geschieht sofort und es öffnet sich kein Bestätigungsdialog (um eine schnellere Abarbeitung zu ermöglichen).</strong>
+        <strong>Achtung: Das Löschen geschieht sofort und es öffnet sich kein Bestätigungsdialog (um eine schnellere Abarbeitung zu ermöglichen). Das Zusammenführen öffnet zunächst den Datenabgleich und muss dort bestätigt werden.</strong>
       </div>
     </div>
 
@@ -50,7 +50,7 @@
                   {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
                 </div>
                 <div class="text-right pt-2 sm:pt-0">
-                  <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + item.customer.id" (click)="mergeCustomers(item.customer)">
+                  <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + item.customer.id" (click)="startMerge(item.customer)">
                     <fa-icon [icon]="faCheck"></fa-icon>
                   </button>
                   <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + item.customer.id" (click)="showCustomerDetail(item.customer.id!)">
@@ -92,7 +92,7 @@
                     {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
                   </div>
                   <div class="text-right pt-2 sm:pt-0">
-                    <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + similarCustomer.id" (click)="mergeCustomers(similarCustomer)">
+                    <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + similarCustomer.id" (click)="startMerge(similarCustomer)">
                       <fa-icon [icon]="faCheck"></fa-icon>
                     </button>
                     <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + similarCustomer.id" (click)="showCustomerDetail(similarCustomer.id!)">

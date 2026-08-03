@@ -35,6 +35,9 @@ class HouseholdControllerTest {
     @RelaxedMockK
     private lateinit var householdDuplicationService: HouseholdDuplicationService
 
+    @RelaxedMockK
+    private lateinit var householdMergeService: HouseholdMergeService
+
     @InjectMockKs
     private lateinit var controller: HouseholdController
 
@@ -507,10 +510,42 @@ class HouseholdControllerTest {
     fun `merge into household`() {
         val householdId = 100L
         val request = HouseholdMergeRequest(sourceHouseholdIds = listOf(200L, 300L))
+        val expectedResponse = HouseholdMergeResponse(
+            target = testHouseholdResponse,
+            movedPersonCount = 1,
+            droppedDuplicatePersonCount = 0,
+            movedNoteCount = 0,
+            movedDocumentCount = 0,
+            movedDistributionCount = 0,
+            droppedDistributionCount = 0,
+            deletedHouseholdIds = listOf(200L, 300L),
+        )
+        every { householdMergeService.merge(householdId, request) } returns expectedResponse
 
         val response = controller.mergeIntoHousehold(householdId, request)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        verify { householdService.mergeHouseholds(householdId, request.sourceHouseholdIds) }
+        assertThat(response).isEqualTo(expectedResponse)
+        verify { householdMergeService.merge(householdId, request) }
+    }
+
+    @Test
+    fun `get merge preview`() {
+        val householdId = 100L
+        val sourceHouseholdIds = listOf(200L, 300L)
+        val expectedResponse = HouseholdMergePreviewResponse(
+            target = testHouseholdResponse,
+            sources = emptyList(),
+            fieldConflicts = emptyList(),
+            persons = emptyList(),
+            distributionCollisions = emptyList(),
+            noteCount = 0,
+            documentCount = 0,
+        )
+        every { householdMergeService.preview(householdId, sourceHouseholdIds) } returns expectedResponse
+
+        val response = controller.getMergePreview(householdId, sourceHouseholdIds)
+
+        assertThat(response).isEqualTo(expectedResponse)
+        verify { householdMergeService.preview(householdId, sourceHouseholdIds) }
     }
 }

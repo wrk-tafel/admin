@@ -67,29 +67,20 @@ export class CustomerDuplicatesComponent {
   }
 
   /**
-   * Merges `customer` (the one whose "keep this one" button was clicked) with the rest of its
-   * duplicate pair, deleting the others. Reads the pair from `items[0]` regardless of which
-   * button in the template was clicked - safe only because the backend's duplicates endpoint
-   * hardcodes a page size of 1 (`HouseholdDuplicationService.findDuplicates`), so a page's `items`
-   * array never holds more than one pair. If that page size ever changes, this needs to look up
-   * the specific item `customer` belongs to instead of always taking `items[0]`.
+   * Opens the merge picker for `customer` (the one whose "keep this one" button was clicked) against
+   * the rest of its duplicate pair. Reads the pair from `items[0]` regardless of which button in the
+   * template was clicked - safe only because the backend's duplicates endpoint hardcodes a page size
+   * of 1 (`HouseholdDuplicationService.findDuplicates`), so a page's `items` array never holds more
+   * than one pair. If that page size ever changes, this needs to look up the specific item `customer`
+   * belongs to instead of always taking `items[0]`.
    */
-  mergeCustomers(customer: CustomerData) {
+  startMerge(customer: CustomerData) {
     const duplicatesData = this.customerDuplicatesData()!.items[0];
     const sourceCustomerIds = [duplicatesData.customer, ...duplicatesData.similarCustomers]
       .filter((filterCustomer) => filterCustomer.id !== customer.id)
       .map(mapCustomer => mapCustomer.id!);
 
-    const observer = {
-      next: () => {
-        this.toastr.success(`${sourceCustomerIds.length} Kunde(n) wurden gelöscht.`, 'Kunden wurden zusammengeführt!');
-        this.getDuplicates(1);
-      },
-      error: () => {
-        this.toastr.error('Zusammenführen der Kunden fehlgeschlagen!');
-      }
-    };
-    this.customerApiService.mergeCustomers(customer.id!, sourceCustomerIds).subscribe(observer);
+    this.router.navigate(['/kunden/zusammenfuehren', customer.id], {queryParams: {quellen: sourceCustomerIds.join(',')}});
   }
 
   trackByDuplicateItemId(index: number, item: any): number {

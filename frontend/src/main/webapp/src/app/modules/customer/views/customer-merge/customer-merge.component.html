@@ -1,0 +1,116 @@
+<div class="flex flex-col gap-4">
+  <mat-card>
+    <mat-card-header class="text-xl font-bold">Kunden zusammenführen</mat-card-header>
+    <mat-card-content>
+      <p>
+        <strong testid="merge-target-label">Ziel-Kunde: {{target().id}} - {{target().lastname}} {{target().firstname}}</strong>
+        bleibt bestehen. Folgende Kunden werden dabei zusammengeführt und anschließend gelöscht:
+      </p>
+      <ul class="list-disc list-inside">
+        @for (source of sources(); track source.id) {
+          <li [attr.testid]="'merge-source-' + source.id">{{source.id}} - {{source.lastname}} {{source.firstname}}</li>
+        }
+      </ul>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header class="font-bold">Felder abgleichen</mat-card-header>
+    <mat-card-content>
+      @if (conflictingFields().length === 0) {
+        <p>Keine unterschiedlichen Felder gefunden.</p>
+      }
+      <div class="grid gap-4">
+        @for (field of conflictingFields(); track field) {
+          <div [attr.testid]="'merge-field-row-' + field">
+            <div class="font-bold mb-1">{{fieldDefinitions[field].label}}</div>
+            <mat-radio-group
+              [value]="selectedSourceIdFor(field) ?? 'target'"
+              (change)="selectField(field, $event.value === 'target' ? undefined : +$event.value)">
+              <div class="flex flex-col gap-1">
+                <mat-radio-button value="target" [attr.testid]="'merge-field-' + field + '-target'">
+                  {{target().id}}: {{formatFieldValue(field, target())}}
+                </mat-radio-button>
+                @for (sourceId of conflictSourceIdsFor(field); track sourceId) {
+                  <mat-radio-button [value]="sourceId.toString()" [attr.testid]="'merge-field-' + field + '-source-' + sourceId">
+                    {{sourceId}}: {{formatFieldValue(field, customerFor(sourceId))}}
+                  </mat-radio-button>
+                }
+              </div>
+            </mat-radio-group>
+          </div>
+        }
+      </div>
+
+      <button matButton class="mt-4" testid="merge-toggle-identical-fields" (click)="toggleIdenticalFields()">
+        {{showIdenticalFields() ? 'Identische Felder ausblenden' : 'Identische Felder anzeigen'}}
+      </button>
+
+      @if (showIdenticalFields()) {
+        <div class="grid grid-cols-2 gap-1 mt-2">
+          @for (field of identicalFields(); track field) {
+            <div class="font-bold">{{fieldDefinitions[field].label}}:</div>
+            <div>{{formatFieldValue(field, target())}}</div>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header class="font-bold">Personen</mat-card-header>
+    <mat-card-content>
+      @if (preview()!.persons.length === 0) {
+        <p>Keine zusätzlichen Personen zu übernehmen.</p>
+      }
+      <div class="grid gap-2">
+        @for (item of preview()!.persons; track item.sourceCustomerId + '-' + item.person.id; let i = $index) {
+          <div class="flex justify-between items-center gap-4" [attr.testid]="'merge-person-' + item.sourceCustomerId + '-' + i">
+            <div>{{personLabel(item)}} - von Kunde Nr. {{item.sourceCustomerId}}</div>
+            <div class="font-bold" [class.text-green-600]="!item.duplicate" [class.text-orange-600]="item.duplicate">
+              {{item.duplicate ? 'bereits vorhanden - wird verworfen' : 'wird übernommen'}}
+            </div>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  @if (preview()!.distributionCollisions.length > 0) {
+    <mat-card>
+      <mat-card-header class="font-bold">
+        <fa-icon [icon]="faCircleExclamation" class="me-2"></fa-icon>
+        Ausgabe-Ticketnummern
+      </mat-card-header>
+      <mat-card-content>
+        <div class="grid gap-2">
+          @for (collision of preview()!.distributionCollisions; track collision.distributionId + '-' + collision.sourceCustomerId) {
+            <div [attr.testid]="'merge-distribution-collision-' + collision.distributionId + '-' + collision.sourceCustomerId">
+              Ausgabe {{collision.distributionStartedAt | date : 'dd.MM.yyyy'}}: Ticketnummer {{collision.targetTicketNumber}} bleibt bestehen,
+              Ticketnummer {{collision.sourceTicketNumber}} von Kunde Nr. {{collision.sourceCustomerId}} wird verworfen.
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-card>
+    <mat-card-header class="font-bold">Prüfen &amp; Zusammenführen</mat-card-header>
+    <mat-card-content>
+      <div class="grid grid-cols-2 gap-1 mb-4">
+        @for (field of allFields; track field) {
+          <div class="font-bold">{{fieldDefinitions[field].label}}:</div>
+          <div [attr.testid]="'merge-resolved-' + field">{{resolvedDisplayValue(field)}}</div>
+        }
+      </div>
+
+      <p>{{preview()!.noteCount}} Notiz(en) und {{preview()!.documentCount}} Dokument(e) werden übernommen.</p>
+
+      <div class="text-right mt-4">
+        <button matButton="filled" class="me-2" testid="merge-cancel-button" (click)="cancel()">Abbrechen</button>
+        <button matButton="filled" class="button-danger" testid="merge-confirm-button" (click)="confirm()">Zusammenführen</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

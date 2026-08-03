@@ -54,7 +54,7 @@ describe('Customer Duplicates', () => {
     });
   });
 
-  it('merges the duplicate pair, deleting the other customer', () => {
+  it('opens the merge picker for the duplicate pair', () => {
     createDuplicateCustomerPair().then(({first, second}) => {
       const customer1 = first.body.data;
       const customer2 = second.body.data;
@@ -62,11 +62,8 @@ describe('Customer Duplicates', () => {
       cy.visit('/#/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + customer1.id).click();
 
-      cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde(n) wurden gelöscht');
-      cy.byTestId('duplicate-customer-' + customer2.id).should('not.exist');
-
-      cy.visit('/#/kunden/detail/' + customer1.id);
-      cy.url().should('include', '/kunden/detail/' + customer1.id);
+      cy.url().should('include', `/kunden/zusammenfuehren/${customer1.id}`);
+      cy.url().should('include', `quellen=${customer2.id}`);
     });
   });
 
@@ -118,8 +115,7 @@ describe('Customer Duplicates', () => {
 
       cy.byTestId('duplicate-merge-button-' + customer1.id).click();
 
-      cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde(n) wurden gelöscht');
-      cy.byTestId('duplicate-customer-' + customer2.id).should('not.exist');
+      cy.url().should('include', `/kunden/zusammenfuehren/${customer1.id}`);
     });
   });
 

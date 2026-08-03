@@ -698,27 +698,6 @@ class HouseholdServiceTest {
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(any(), any()) }
     }
 
-    @Test
-    fun `merge households`() {
-        val targetHousehold = 1L
-        val sourceHouseholds = listOf(2L, 3L, 4L)
-
-        val entity2 = testHouseholdEntityWithMainPerson().apply { id = 2 }
-        val entity3 = testHouseholdEntityWithMainPerson().apply { id = 3 }
-        val entity4 = testHouseholdEntityWithMainPerson().apply { id = 4 }
-        every { householdRepository.findByHouseholdId(2L) } returns entity2
-        every { householdRepository.findByHouseholdId(3L) } returns entity3
-        every { householdRepository.findByHouseholdId(4L) } returns entity4
-        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns entity2
-
-        service.mergeHouseholds(targetHousehold, sourceHouseholds)
-
-        verify(exactly = 1) { householdRepository.delete(entity2) }
-        verify(exactly = 1) { householdRepository.delete(entity3) }
-        verify(exactly = 1) { householdRepository.delete(entity4) }
-        verify(exactly = 0) { householdRepository.findByHouseholdId(1L) }
-    }
-
     private fun testHouseholdEntityWithMainPerson(): HouseholdEntity {
         val household = HouseholdEntity().apply { householdId = 100 }
         val mainPerson = PersonEntity().apply {

@@ -199,7 +199,7 @@ describe('CustomerDuplicatesComponent', () => {
     expect(toastr.success).toHaveBeenCalledWith('Kunde wurde gelöscht!');
   });
 
-  it('merge customer failed', () => {
+  it('start merge navigates to the merge picker with the remaining pair as sources', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
@@ -217,44 +217,12 @@ describe('CustomerDuplicatesComponent', () => {
     };
     component.customerDuplicatesData.set(customerDuplicatesData);
 
-    customerApiService.mergeCustomers.mockReturnValue(throwError(() => ({status: 404})));
+    component.startMerge(mockCustomer1);
 
-    component.mergeCustomers(customerDuplicatesData.items[0].customer);
-
-    expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
-      mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/kunden/zusammenfuehren', mockCustomer1.id],
+      {queryParams: {quellen: `${mockCustomer2.id},${mockCustomer3.id}`}}
     );
-    expect(toastr.error).toHaveBeenCalledWith('Zusammenführen der Kunden fehlgeschlagen!');
-  });
-
-  it('merge customers successful', () => {
-    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
-    const component = fixture.componentInstance;
-
-    const customerDuplicatesData: CustomerDuplicatesResponse = {
-      items: [
-        {
-          customer: mockCustomer1,
-          similarCustomers: [mockCustomer2, mockCustomer3]
-        }
-      ],
-      totalCount: 100,
-      currentPage: 3,
-      totalPages: 10,
-      pageSize: 10
-    };
-    component.customerDuplicatesData.set(customerDuplicatesData);
-
-    customerApiService.mergeCustomers.mockReturnValue(of(undefined));
-    customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
-
-    component.mergeCustomers(mockCustomer1);
-
-    expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
-      mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
-    );
-    expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
-    expect(toastr.success).toHaveBeenCalledWith('2 Kunde(n) wurden gelöscht.', 'Kunden wurden zusammengeführt!');
   });
 
 });
