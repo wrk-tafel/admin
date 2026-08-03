@@ -36,6 +36,13 @@ describe('Food Collection Recording', () => {
       cy.byTestId('save-items-button').click();
       assertSavedToast();
 
+      // Route 2 now has both base data and food items entered, so the dashboard panel should
+      // count it as fully recorded and list it by name - other routes (untouched) must not count.
+      cy.visit('/#/');
+      cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 3');
+      cy.byTestId('recorded-food-collections-route-names').should('have.text', 'Route 2');
+      cy.visit('/#/logistik/warenerfassung');
+
       // check if existing data is filled again
       cy.byTestId('routeInput').click();
       cy.get('mat-option').contains('Route 1').click();

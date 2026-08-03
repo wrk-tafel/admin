@@ -8,7 +8,8 @@
 <mat-divider class="!m-4"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
   <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
-                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
+                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null"
+                                   [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
   </tafel-recorded-food-collections>
   <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal ?? null">
   </tafel-food-amount>

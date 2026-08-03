@@ -5,15 +5,24 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseh
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
+import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
+import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
+import at.wrk.tafel.admin.backend.modules.logistics.testCar1
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute2
+import at.wrk.tafel.admin.backend.modules.logistics.testRoute3
+import at.wrk.tafel.admin.backend.modules.logistics.testRoute4
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
+import at.wrk.tafel.admin.backend.modules.logistics.testShop1
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -149,11 +158,55 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get logistics`() {
+        // base data present, but no food items entered yet -> not fully recorded
+        val notDoneMissingItems = FoodCollectionEntity().apply {
+            route = testRoute2
+            car = testCar1
+            driver = testEmployee1
+            coDriver = testEmployee2
+            kmStart = 100
+            kmEnd = 200
+            items = emptyList()
+        }
+        // food items entered, but base data (car/driver/co-driver) missing -> not fully recorded
+        val notDoneMissingBaseData = FoodCollectionEntity().apply {
+            route = testRoute3
+            kmStart = 10
+            kmEnd = 20
+            items = listOf(
+                FoodCollectionItemEntity().apply {
+                    category = testFoodCategory1
+                    shop = testShop1
+                    amount = 0
+                },
+            )
+        }
+        // fully recorded, same as testFoodCollectionRoute1Entity but for a different/later route -
+        // verifies recordedRouteNames covers more than one route and sorts by route number
+        val doneRoute4 = FoodCollectionEntity().apply {
+            route = testRoute4
+            car = testCar1
+            driver = testEmployee1
+            coDriver = testEmployee2
+            kmStart = 10
+            kmEnd = 20
+            items = listOf(
+                FoodCollectionItemEntity().apply {
+                    category = testFoodCategory1
+                    shop = testShop1
+                    amount = 0
+                },
+            )
+        }
+
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             endedAt = null
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity,
+                notDoneMissingItems,
+                notDoneMissingBaseData,
+                doneRoute4,
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -161,12 +214,15 @@ internal class DashboardServiceTest {
         every { routeRepository.findAll() } returns listOf(
             testRoute1,
             testRoute2,
+            testRoute3,
+            testRoute4,
         )
 
         val data = service.getData()
 
-        assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(1)
-        assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(2)
+        assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(2)
+        assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
+        assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
         assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(100))
     }
 

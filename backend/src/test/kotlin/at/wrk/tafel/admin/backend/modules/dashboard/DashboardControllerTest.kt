@@ -41,6 +41,7 @@ internal class DashboardControllerTest {
             logistics = DashboardLogisticsData(
                 foodCollectionsRecordedCount = 1,
                 foodCollectionsTotalCount = 2,
+                recordedRouteNames = listOf("Route 1"),
                 foodAmountTotal = BigDecimal(3),
             ),
             notes = "test-notes",

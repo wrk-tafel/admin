@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
@@ -60,12 +61,26 @@ class DashboardService(
             ?.mapNotNull { it.name } ?: emptyList(),
     )
 
-    private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData = DashboardLogisticsData(
-        foodCollectionsRecordedCount = currentDistribution.foodCollections.size,
-        foodCollectionsTotalCount = routeRepository.findAll().size,
-        foodAmountTotal = currentDistribution.foodCollections
-            .flatMap { it.items ?: emptyList() }
-            .map { it.calculateWeight() }
-            .sumOf { it },
-    )
+    private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {
+        // A route only counts as "recorded" once the whole trip is done: base data (car/driver/
+        // co-driver/mileage) plus the picked-up food items - a FoodCollectionEntity can otherwise
+        // exist with only one of the two (see FoodCollectionService.getOrCreateFoodCollectionEntity).
+        val doneFoodCollections = currentDistribution.foodCollections.filter { it.isFullyRecorded() }
+
+        return DashboardLogisticsData(
+            foodCollectionsRecordedCount = doneFoodCollections.size,
+            foodCollectionsTotalCount = routeRepository.findAll().size,
+            recordedRouteNames = doneFoodCollections
+                .sortedWith(compareBy({ it.route?.number ?: 0.0 }, { it.route?.name ?: "" }))
+                .mapNotNull { it.route?.name },
+            foodAmountTotal = currentDistribution.foodCollections
+                .flatMap { it.items ?: emptyList() }
+                .map { it.calculateWeight() }
+                .sumOf { it },
+        )
+    }
+
+    private fun FoodCollectionEntity.isFullyRecorded(): Boolean =
+        car != null && driver != null && coDriver != null &&
+            kmStart != null && kmEnd != null && !items.isNullOrEmpty()
 }
