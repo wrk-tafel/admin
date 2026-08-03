@@ -27,4 +27,9 @@ COPY --from=builder /builder/extracted/snapshot-dependencies/ ./
 COPY --from=builder /builder/extracted/application/ ./
 COPY ./frontend-dist/ ./static/
 
-ENTRYPOINT ["java","-Duser.timezone=Europe/Vienna","-Duser.language=de","-Duser.country=DE","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
+# -XX:MaxRAMPercentage raises the JVM's default 25% heap cap (meant for very large hosts) to a
+# percentage that actually uses the memory given to this container. -XX:+ExitOnOutOfMemoryError
+# makes an OOM kill the process instead of leaving it running in a corrupted state, so the
+# container's restart policy is what recovers it (see issue #2879/#2935) rather than a wedged app
+# silently serving errors until someone notices.
+ENTRYPOINT ["java","-Duser.timezone=Europe/Vienna","-Duser.language=de","-Duser.country=DE","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
