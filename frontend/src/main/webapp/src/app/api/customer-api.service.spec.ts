@@ -408,16 +408,91 @@ describe('CustomerApiService', () => {
     expect(result!.totalCount).toEqual(1);
   });
 
-  it('merge customers', () => {
+  it('merge customers without field selections', () => {
     const targetCustomerId = 123;
     const sourceCustomerIds = [456, 789];
-    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds).subscribe();
+    let result;
+    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds).subscribe(response => result = response);
 
     const req = httpMock.expectOne({method: 'POST', url: `/households/${targetCustomerId}/merge`});
-    expect(req.request.body).toEqual({sourceHouseholdIds: sourceCustomerIds});
+    expect(req.request.body).toEqual({sourceHouseholdIds: sourceCustomerIds, fieldSelections: []});
 
-    req.flush(null);
+    req.flush({
+      target: mockHousehold,
+      movedPersonCount: 1,
+      droppedDuplicatePersonCount: 0,
+      movedNoteCount: 2,
+      movedDocumentCount: 0,
+      movedDistributionCount: 0,
+      droppedDistributionCount: 0,
+      deletedHouseholdIds: sourceCustomerIds
+    });
     httpMock.verify();
+
+    expect(result!.target.lastname).toEqual('Mustermann');
+    expect(result!.movedPersonCount).toEqual(1);
+    expect(result!.movedNoteCount).toEqual(2);
+    expect(result!.deletedCustomerIds).toEqual(sourceCustomerIds);
+  });
+
+  it('merge customers with field selections maps sourceCustomerId to sourceHouseholdId', () => {
+    const targetCustomerId = 123;
+    const sourceCustomerIds = [456];
+    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds, [
+      {field: 'TELEPHONE_NUMBER', sourceCustomerId: 456},
+      {field: 'EMAIL'}
+    ]).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/households/${targetCustomerId}/merge`});
+    expect(req.request.body).toEqual({
+      sourceHouseholdIds: sourceCustomerIds,
+      fieldSelections: [
+        {field: 'TELEPHONE_NUMBER', sourceHouseholdId: 456},
+        {field: 'EMAIL', sourceHouseholdId: null}
+      ]
+    });
+
+    req.flush({
+      target: mockHousehold,
+      movedPersonCount: 0,
+      droppedDuplicatePersonCount: 0,
+      movedNoteCount: 0,
+      movedDocumentCount: 0,
+      movedDistributionCount: 0,
+      droppedDistributionCount: 0,
+      deletedHouseholdIds: sourceCustomerIds
+    });
+    httpMock.verify();
+  });
+
+  it('get merge preview maps household target/sources/persons to customer shape', () => {
+    const targetCustomerId = 123;
+    const sourceCustomerIds = [456];
+    let result;
+    apiService.getMergePreview(targetCustomerId, sourceCustomerIds).subscribe(response => result = response);
+
+    const req = httpMock.expectOne(
+      req => req.method === 'GET' && req.url === `/households/${targetCustomerId}/merge-preview`
+    );
+    expect(req.request.params.getAll('sourceHouseholdIds')).toEqual(['456']);
+
+    req.flush({
+      target: mockHousehold,
+      sources: [mockHousehold],
+      fieldConflicts: [{field: 'TELEPHONE_NUMBER', conflictingSourceHouseholdIds: [456]}],
+      persons: [{sourceHouseholdId: 456, person: mockHousehold.persons[0], duplicate: false}],
+      distributionCollisions: [],
+      noteCount: 1,
+      documentCount: 0
+    });
+    httpMock.verify();
+
+    expect(result!.target.lastname).toEqual('Mustermann');
+    expect(result!.sources).toHaveLength(1);
+    expect(result!.fieldConflicts).toEqual([{field: 'TELEPHONE_NUMBER', conflictingSourceCustomerIds: [456]}]);
+    expect(result!.persons[0].sourceCustomerId).toEqual(456);
+    expect(result!.persons[0].person.lastname).toEqual('Mustermann');
+    expect(result!.noteCount).toEqual(1);
   });
 
 });

@@ -108,11 +108,13 @@ modules/customer/
   │   ├── customer-detail/                # detail page + its dialogs/ (notes, lock, delete)
   │   ├── customer-duplicates/            # list of already-flagged duplicate customer pairs
   │   ├── customer-edit/                  # create (no id) / edit (:id) — hosts customer-form + its dialogs/
+  │   ├── customer-merge/                 # field-conflict picker + confirm screen for merging a duplicate group
   │   └── customer-search/                # search by id or lastname/firstname + filters
   ├── resolver/
   │   ├── customerdata-resolver.component.ts
   │   ├── customernotes-resolver.component.ts
   │   ├── customer-duplicates-data-resolver.component.ts
+  │   ├── customer-merge-preview-resolver.component.ts
   │   └── customer-above-limit-data-resolver.component.ts
   └── customer.routes.ts
 ```
@@ -135,6 +137,7 @@ to this module) rather than a class with an `@Injectable()`-style suffix.
 | `bearbeiten/:id` | `CustomerEditComponent` (edit mode) | `CustomerDataResolver` |
 | `suchen` | `CustomerSearchComponent` | — |
 | `duplikate` | `CustomerDuplicatesComponent` | `CustomerDuplicatesDataResolver` |
+| `zusammenfuehren/:id` | `CustomerMergeComponent` | `CustomerMergePreviewResolver` (reads `?quellen=` too) |
 | `ueber-limit` | `CustomerAboveLimitComponent` | `CustomerAboveLimitDataResolver` |
 
 `CustomerEditComponent` doubles as both the create and edit view: `editMode` is a
@@ -156,13 +159,44 @@ There are two separate duplicate-related UI paths in this module; don't conflate
    `CustomerDuplicatesDataResolver`. Backed by `GET /households/duplicates` (via
    `CustomerApiService.getCustomerDuplicates()`), it lists pairs of *already saved*
    customers the backend considers duplicates so staff can review them later: open a
-   candidate's detail, delete one outright (`deleteCustomer`), or merge one or more
-   candidates into a surviving customer (`mergeCustomers(targetId, sourceIds)` → `POST
-   /households/{id}/merge`, deleting the merged-away records).
+   candidate's detail, delete one outright (`deleteCustomer`), or start a merge.
 
 Both ultimately go through `customer-api.service.ts`'s translation layer — the
 duplicates response has the same `HouseholdDuplicatesResponse` → `{customer,
 similarCustomers}` mapping as everything else.
+
+### Merging duplicates, `views/customer-merge/`
+
+Merging is **not** a one-click delete-the-others action. Clicking the green button on
+`customer-duplicates.component.ts` (`startMerge()`) doesn't call the API at all - it just
+navigates to `/kunden/zusammenfuehren/:id?quellen=<comma-separated source ids>`, with the
+clicked customer as `:id` (the target) and everyone else in the pair as sources (the same
+`items[0]`-and-page-size-1 assumption `startMerge` inherited from the old `mergeCustomers`
+still applies - see the comment on that method).
+
+`CustomerMergePreviewResolver` reads both route params and calls
+`CustomerApiService.getMergePreview(targetId, sourceIds)` →
+`GET /households/{id}/merge-preview`, which returns a `CustomerMergePreview`: the target
+and source customers, which fields conflict between them (`fieldConflicts`), a
+reconciled/deduplicated `persons` list, any same-distribution ticket collisions, and
+note/document counts. `CustomerMergeComponent` renders this as three sections - a
+field-by-field picker (radios: target vs. each conflicting source; non-conflicting fields
+collapsed behind a toggle), a read-only person reconciliation list (dedup is automatic,
+nothing to pick), and a review/confirm step showing the resulting values plus what gets
+moved/deleted. Confirming calls
+`CustomerApiService.mergeCustomers(targetId, sourceIds, fieldSelections)` →
+`POST /households/{id}/merge`, then navigates to the target's detail page.
+
+`customer-merge-fields.ts` is the one place the backend's `CustomerMergeField` protocol
+enum meets UI labels/icons (borrowed from `customer-form.component.ts`'s vocabulary) -
+kept out of `customer-api.service.ts` since labels are UI, not wire format. If the backend
+adds a new `HouseholdMergeField` entry, add the matching entry here too (or the field
+picker silently won't offer it) - `customer-merge-fields.spec.ts` only checks that every
+*existing* entry has a label, it can't catch a missing one.
+
+`CustomerMergeField` itself is exported from `customer-api.service.ts` (unlike
+`HouseholdData`/`PersonData`) - it's a protocol enum, not a household/person shape, so it
+doesn't violate the "don't leak the household model" rule below.
 
 ## Income validation feedback
 
@@ -227,3 +261,8 @@ Two independent layers, both scoped to the flat `CustomerData`/form model:
 - Don't rename this module's routes, folders, classes or DTOs to "household"/"person"
   in a partial PR. The mismatch with the backend is intentional and repo-wide (see
   `AGENTS.md`); a half-renamed module would be worse than a consistently old-named one.
+- The merge feature's `CustomerMergeField`/`CustomerMergeFieldSelection` types are fine to
+  export (they're a protocol enum + selection payload, not a household/person shape), but
+  `HouseholdMergePreviewResponse`/`HouseholdMergeResponse`/`HouseholdData`/`PersonData`
+  still must never leave `customer-api.service.ts` - the same rule as everywhere else in
+  this module.

@@ -381,7 +381,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 ## Special Considerations
 
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
-- **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers.
+- **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.

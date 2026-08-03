@@ -285,13 +285,6 @@ class HouseholdService(
 
         return additionalValidatorPersons + listOfNotNull(mainValidatorPerson)
     }
-
-    @Transactional
-    fun mergeHouseholds(targetHousehold: Long, sourceHouseholds: List<Long>) {
-        sourceHouseholds.forEach { householdId ->
-            deleteHouseholdByHouseholdId(householdId)
-        }
-    }
 }
 
 @ExcludeFromTestCoverage

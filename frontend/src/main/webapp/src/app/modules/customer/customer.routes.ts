@@ -10,6 +10,8 @@ import {CustomerDuplicatesComponent} from './views/customer-duplicates/customer-
 import {CustomerDuplicatesDataResolver} from './resolver/customer-duplicates-data-resolver.component';
 import {CustomerAboveLimitComponent} from './views/customer-above-limit/customer-above-limit.component';
 import {CustomerAboveLimitDataResolver} from './resolver/customer-above-limit-data-resolver.component';
+import {CustomerMergeComponent} from './views/customer-merge/customer-merge.component';
+import {CustomerMergePreviewResolver} from './resolver/customer-merge-preview-resolver.component';
 
 export const routes: Routes = [
   {
@@ -48,6 +50,13 @@ export const routes: Routes = [
     component: CustomerAboveLimitComponent,
     resolve: {
       customerAboveLimitData: CustomerAboveLimitDataResolver
+    }
+  },
+  {
+    path: 'zusammenfuehren/:id',
+    component: CustomerMergeComponent,
+    resolve: {
+      customerMergePreviewData: CustomerMergePreviewResolver
     }
   },
 ];

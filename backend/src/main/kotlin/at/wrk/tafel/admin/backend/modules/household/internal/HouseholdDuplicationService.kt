@@ -29,6 +29,13 @@ import org.springframework.transaction.annotation.Transactional
  * Implemented as raw SQL (via [JdbcTemplate]) rather than JPA/Specifications because `soundex`
  * and `levenshtein` are Postgres functions with no JPQL equivalent; the query self-joins
  * `households`/`persons` twice (`household` vs `compare`) to compare every pair.
+ *
+ * `household.household_id < compare.household_id` in [DUPLICATE_CONDITIONS] is deliberately a
+ * strict inequality, not `<>`: the self-join is symmetric, so an unordered match {A, B} would
+ * otherwise surface as two separate rows - once anchored on A (with B as the only similar
+ * household) and once anchored on B (with A as the only similar household) - showing the exact
+ * same pair to the reviewer twice. Requiring the anchor's `household_id` to be the *smaller* of
+ * the two collapses that back down to a single row.
  */
 @Service
 class HouseholdDuplicationService(
@@ -61,7 +68,7 @@ class HouseholdDuplicationService(
         """.trimIndent()
 
         private val DUPLICATE_CONDITIONS = """
-            WHERE household.household_id <> compare.household_id
+            WHERE household.household_id < compare.household_id
               AND household.id <> compare.id
               AND soundex(household.lastname) = soundex(compare.lastname)
               AND soundex(household.firstname) = soundex(compare.firstname)

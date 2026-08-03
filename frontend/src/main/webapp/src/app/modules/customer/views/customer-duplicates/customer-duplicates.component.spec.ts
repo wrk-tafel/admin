@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
+import {MatDialog} from '@angular/material/dialog';
 import dayjs from 'dayjs';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -11,6 +12,7 @@ describe('CustomerDuplicatesComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
+  let matDialog: MockedObject<MatDialog>;
 
   const mockCustomer1 = {
     id: 133,
@@ -115,6 +117,12 @@ describe('CustomerDuplicatesComponent', () => {
         {
           provide: TafelToastrService,
           useValue: toastrSpy
+        },
+        {
+          provide: MatDialog,
+          useValue: {
+            open: vi.fn().mockReturnValue({afterClosed: () => of(true)})
+          }
         }
       ]
     }).compileComponents();
@@ -122,6 +130,7 @@ describe('CustomerDuplicatesComponent', () => {
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+    matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
   });
 
   it('component can be created', () => {
@@ -169,8 +178,9 @@ describe('CustomerDuplicatesComponent', () => {
     customerApiService.deleteCustomer.mockReturnValue(throwError(() => ({status: 404})));
 
     const customerId = 123;
-    component.deleteCustomer(customerId);
+    component.openDeleteCustomerDialog(customerId);
 
+    expect(matDialog.open).toHaveBeenCalled();
     expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
     expect(toastr.error).toHaveBeenCalledWith('Löschen fehlgeschlagen!');
   });
@@ -192,42 +202,27 @@ describe('CustomerDuplicatesComponent', () => {
     });
     customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
 
-    component.deleteCustomer(customerId);
+    component.openDeleteCustomerDialog(customerId);
 
+    expect(matDialog.open).toHaveBeenCalled();
     expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
     expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(page);
     expect(toastr.success).toHaveBeenCalledWith('Kunde wurde gelöscht!');
   });
 
-  it('merge customer failed', () => {
+  it('delete customer does not call the API when the confirmation dialog is cancelled', () => {
+    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
-    const customerDuplicatesData: CustomerDuplicatesResponse = {
-      items: [
-        {
-          customer: mockCustomer1,
-          similarCustomers: [mockCustomer2, mockCustomer3]
-        }
-      ],
-      totalCount: 100,
-      currentPage: 3,
-      totalPages: 10,
-      pageSize: 10
-    };
-    component.customerDuplicatesData.set(customerDuplicatesData);
+    component.openDeleteCustomerDialog(123);
 
-    customerApiService.mergeCustomers.mockReturnValue(throwError(() => ({status: 404})));
-
-    component.mergeCustomers(customerDuplicatesData.items[0].customer);
-
-    expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
-      mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
-    );
-    expect(toastr.error).toHaveBeenCalledWith('Zusammenführen der Kunden fehlgeschlagen!');
+    expect(matDialog.open).toHaveBeenCalled();
+    expect(customerApiService.deleteCustomer).not.toHaveBeenCalled();
   });
 
-  it('merge customers successful', () => {
+  it('start merge navigates to the merge picker with the remaining pair as sources', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
@@ -245,16 +240,12 @@ describe('CustomerDuplicatesComponent', () => {
     };
     component.customerDuplicatesData.set(customerDuplicatesData);
 
-    customerApiService.mergeCustomers.mockReturnValue(of(undefined));
-    customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
+    component.startMerge(mockCustomer1);
 
-    component.mergeCustomers(mockCustomer1);
-
-    expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
-      mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/kunden/zusammenfuehren', mockCustomer1.id],
+      {queryParams: {quellen: `${mockCustomer2.id},${mockCustomer3.id}`}}
     );
-    expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
-    expect(toastr.success).toHaveBeenCalledWith('2 Kunde(n) wurden gelöscht.', 'Kunden wurden zusammengeführt!');
   });
 
 });

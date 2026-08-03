@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
@@ -22,6 +23,7 @@ import java.io.ByteArrayInputStream
 class HouseholdController(
     private val householdService: HouseholdService,
     private val householdDuplicationService: HouseholdDuplicationService,
+    private val householdMergeService: HouseholdMergeService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -175,13 +177,17 @@ class HouseholdController(
         )
     }
 
+    @GetMapping("/{householdId}/merge-preview")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    fun getMergePreview(
+        @PathVariable householdId: Long,
+        @RequestParam sourceHouseholdIds: List<Long>,
+    ): HouseholdMergePreviewResponse = householdMergeService.preview(householdId, sourceHouseholdIds)
+
     @PostMapping("/{householdId}/merge")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoHousehold(
         @PathVariable householdId: Long,
         @Valid @RequestBody request: HouseholdMergeRequest,
-    ): ResponseEntity<Any> {
-        householdService.mergeHouseholds(householdId, request.sourceHouseholdIds)
-        return ResponseEntity.ok().build()
-    }
+    ): HouseholdMergeResponse = householdMergeService.merge(householdId, request)
 }
