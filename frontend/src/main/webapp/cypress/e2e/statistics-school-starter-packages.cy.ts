@@ -67,23 +67,23 @@ describe('Statistics School Starter Packages', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
   });
 
-  // This page has no page-specific responsive Tailwind classes - the only viewport-dependent
-  // behavior is the paginator centering below the 768px breakpoint (tafel-paginator-responsive,
-  // see mat-paginator.scss). Just confirm the page renders and the paginator stays usable.
-  it('page loads and the paginator is usable on phone', () => {
+  it('renders as a card list on phone and stays usable', () => {
     cy.viewport(PHONE_VIEWPORT);
 
-    createCustomerWithChildAge(8).then(() => {
+    createCustomerWithChildAge(8).then((response) => {
+      const child = response.body.data.additionalPersons![0];
+
       cy.visit('/#/statistiken/schulstartpakete');
 
       cy.byTestId('schoolStarterPackageAgeMinInput').should('be.visible');
-      cy.byTestId('school-starter-package-table').should('be.visible');
+      cy.byTestId('school-starter-package-table').should('not.be.visible');
+      cy.byTestId('school-starter-package-cards').should('be.visible').and('contain.text', child.lastname);
       cy.get('.tafel-paginator-responsive').should('have.length', 2);
       cy.get('.tafel-paginator-responsive').first().should('be.visible');
     });
   });
 
-  it('page loads and the paginator is usable on tablet', () => {
+  it('renders as a table at tablet breakpoint', () => {
     cy.viewport(TABLET_VIEWPORT);
 
     createCustomerWithChildAge(8).then(() => {
@@ -91,6 +91,7 @@ describe('Statistics School Starter Packages', () => {
 
       cy.byTestId('schoolStarterPackageAgeMinInput').should('be.visible');
       cy.byTestId('school-starter-package-table').should('be.visible');
+      cy.byTestId('school-starter-package-cards').should('not.be.visible');
       cy.get('.tafel-paginator-responsive').should('have.length', 2);
       cy.get('.tafel-paginator-responsive').first().should('be.visible');
     });

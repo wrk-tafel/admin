@@ -6,13 +6,15 @@
       </mat-card-header>
       <mat-card-content>
         <div class="font-bold mb-2">Zeitraum</div>
-        <mat-button-toggle-group testid="dateRangeModeInput" [value]="selectedMode()"
-                                  (change)="onModeChange($event.value)">
-          <mat-button-toggle value="year">Jahr</mat-button-toggle>
-          <mat-button-toggle value="currentMonth">Aktuelles Monat</mat-button-toggle>
-          <mat-button-toggle value="distribution">Ausgabe</mat-button-toggle>
-          <mat-button-toggle value="custom">Benutzerdefiniert</mat-button-toggle>
-        </mat-button-toggle-group>
+        <div class="overflow-x-auto">
+          <mat-button-toggle-group testid="dateRangeModeInput" [value]="selectedMode()"
+                                    (change)="onModeChange($event.value)">
+            <mat-button-toggle value="year">Jahr</mat-button-toggle>
+            <mat-button-toggle value="currentMonth">Aktuelles Monat</mat-button-toggle>
+            <mat-button-toggle value="distribution">Ausgabe</mat-button-toggle>
+            <mat-button-toggle value="custom">Benutzerdefiniert</mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-4">
           @switch (selectedMode()) {
