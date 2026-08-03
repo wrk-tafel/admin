@@ -111,6 +111,14 @@ declare global {
       closeDistribution(): void;
 
       /**
+       * Marks a household's only distribution ticket as "not paid", closes the distribution and
+       * waits until the resulting Unkostenbeitrag debt has actually been accrued on the household
+       * (runs asynchronously right after the distribution closes).
+       * @example cy.accrueCostContributionDebt(customerId);
+       */
+      accrueCostContributionDebt(customerId: number): void;
+
+      /**
        * Custom command to generate a random number in a given range.
        * @example cy.getRandomNumber(min, max);
        */

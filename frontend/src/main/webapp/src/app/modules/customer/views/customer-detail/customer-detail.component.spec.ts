@@ -152,7 +152,8 @@ describe('CustomerDetailComponent', () => {
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
         errorMsg: null
-      }))
+      })),
+      payCostContribution: vi.fn().mockName('CustomerApiService.payCostContribution')
     };
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName('CustomerNoteApiService.createNewNote'),
@@ -958,6 +959,44 @@ describe('CustomerDetailComponent', () => {
     expect(customerDocumentApiService.deleteDocument).toHaveBeenCalledWith(mockCustomer.id, document.id);
     expect(component.customerDocuments()).toEqual([]);
     expect(toastr.success).toHaveBeenCalledWith('Dokument wurde gelöscht!');
+  });
+
+  it('pay cost contribution - all', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const expectedCustomerData = {...mockCustomer, pendingCostContribution: 0};
+    customerApiService.payCostContribution.mockReturnValue(of(expectedCustomerData));
+
+    component.payCostContributionAll();
+
+    expect(customerApiService.payCostContribution).toHaveBeenCalledWith(mockCustomer.id, undefined);
+    expect(component.customerData()).toEqual(expectedCustomerData);
+    expect(toastr.success).toHaveBeenCalledWith('Unkostenbeitrag wurde aktualisiert!');
+  });
+
+  it('pay cost contribution - specific amount via dialog', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(50)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const expectedCustomerData = {...mockCustomer, pendingCostContribution: 73};
+    customerApiService.payCostContribution.mockReturnValue(of(expectedCustomerData));
+
+    component.openPayCostContributionDialog();
+
+    expect(customerApiService.payCostContribution).toHaveBeenCalledWith(mockCustomer.id, 50);
+    expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

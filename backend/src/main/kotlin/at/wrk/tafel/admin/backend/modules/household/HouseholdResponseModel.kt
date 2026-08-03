@@ -152,6 +152,12 @@ data class HouseholdDuplicationItem(
 )
 
 @ExcludeFromTestCoverage
+data class HouseholdCostContributionPaymentRequest(
+    @field:Positive
+    val amount: BigDecimal? = null,
+)
+
+@ExcludeFromTestCoverage
 data class HouseholdAboveLimitItem(
     val household: HouseholdResponse,
     val totalSum: BigDecimal,

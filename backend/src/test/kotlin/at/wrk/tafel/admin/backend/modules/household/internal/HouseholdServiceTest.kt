@@ -682,6 +682,52 @@ class HouseholdServiceTest {
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(any(), any()) }
     }
 
+    @Test
+    fun `pay cost contribution - null amount pays off the full pending amount`() {
+        val householdId = 123L
+        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+
+        val result = service.payCostContribution(householdId, null)
+
+        assertThat(result).isEqualTo(testHouseholdResponse)
+        assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal.ZERO)
+        verify(exactly = 1) { householdRepository.saveAndFlush(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `pay cost contribution - amount is subtracted from the pending amount`() {
+        val householdId = 123L
+        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+
+        val result = service.payCostContribution(householdId, BigDecimal("4.00"))
+
+        assertThat(result).isEqualTo(testHouseholdResponse)
+        assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal("16.00"))
+    }
+
+    @Test
+    fun `pay cost contribution - amount larger than the pending amount clamps at zero`() {
+        val householdId = 123L
+        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("4.00") }
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+
+        val result = service.payCostContribution(householdId, BigDecimal("20.00"))
+
+        assertThat(result).isEqualTo(testHouseholdResponse)
+        assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal.ZERO)
+    }
+
     private fun testHouseholdEntityWithMainPerson(): HouseholdEntity {
         val household = HouseholdEntity().apply { householdId = 100 }
         val mainPerson = PersonEntity().apply {

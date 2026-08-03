@@ -200,6 +200,11 @@ export class CustomerApiService {
     );
   }
 
+  payCostContribution(householdId: number, amount?: number): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${householdId}/cost-contribution/pay`, {amount})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
 }
 
 export interface ValidateCustomerResponse {

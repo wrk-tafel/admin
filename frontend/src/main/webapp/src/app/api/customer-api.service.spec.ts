@@ -495,4 +495,29 @@ describe('CustomerApiService', () => {
     expect(result!.noteCount).toEqual(1);
   });
 
+  it('pay cost contribution with an amount', () => {
+    apiService.payCostContribution(133, 4).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/cost-contribution/pay'});
+    expect(req.request.body).toEqual({amount: 4});
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+  });
+
+  it('pay cost contribution without an amount maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.payCostContribution(133).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/cost-contribution/pay'});
+    expect(req.request.body).toEqual({amount: undefined});
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
+    expect(result?.firstname).toEqual(mockCustomer.firstname);
+  });
+
 });

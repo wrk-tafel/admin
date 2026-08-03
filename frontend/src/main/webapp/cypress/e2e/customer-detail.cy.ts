@@ -244,6 +244,12 @@ describe('Customer Detail', () => {
     cy.byTestId('editCustomerToggleButton').click();
   }
 
+  /** Parses a de-DE `currency` pipe rendering (e.g. "4,00 €") into a plain number. */
+  function parseCurrencyText(text: string): number {
+    const match = text.replace(/\./g, '').match(/-?\d+,\d+/);
+    return match ? parseFloat(match[0].replace(',', '.')) : NaN;
+  }
+
   describe('documents', () => {
     it('upload, download and delete a document', () => {
       cy.createDummyCustomer().then((response) => {
@@ -402,6 +408,53 @@ describe('Customer Detail', () => {
           cy.byTestId('document-0-downloadButton').click();
           cy.readFile(downloadedFilePath, 'utf8', {timeout: 15000})
             .should('include', 'OLDER-CONTENT');
+        });
+      });
+    });
+  });
+
+  describe('cost contribution debt', () => {
+    it('pay off the full pending debt at once', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.accrueCostContributionDebt(customerId);
+
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.be.greaterThan(0);
+        });
+
+        cy.byTestId('payCostContributionAllButton').scrollIntoView().should('be.visible').click();
+
+        // the payment is applied async (API round-trip), so the assertion needs to retry/re-read
+        // the element rather than reading its text once right after the click
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.equal(0);
+        });
+        cy.byTestId('payCostContributionAllButton').should('not.exist');
+        cy.byTestId('payCostContributionAmountButton').should('not.exist');
+      });
+    });
+
+    it('pay off a specific amount of the pending debt', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.accrueCostContributionDebt(customerId);
+
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('pendingCostContributionText').invoke('text').then(parseCurrencyText).then((initialAmount) => {
+          cy.byTestId('payCostContributionAmountButton').scrollIntoView().click();
+          cy.byTestId('pay-cost-contribution-dialog').should('be.visible').within(() => {
+            cy.byTestId('amount-input').type('1');
+            cy.byTestId('okButton').click();
+          });
+
+          cy.byTestId('pendingCostContributionText').should(($el) => {
+            expect(parseCurrencyText($el.text())).to.be.closeTo(initialAmount - 1, 0.01);
+          });
+          cy.byTestId('payCostContributionAllButton').should('be.visible');
         });
       });
     });

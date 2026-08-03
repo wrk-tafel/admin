@@ -190,4 +190,17 @@ class HouseholdController(
         @PathVariable householdId: Long,
         @Valid @RequestBody request: HouseholdMergeRequest,
     ): HouseholdMergeResponse = householdMergeService.merge(householdId, request)
+
+    @PostMapping("/{householdId}/cost-contribution/pay")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun payCostContribution(
+        @PathVariable householdId: Long,
+        @Valid @RequestBody request: HouseholdCostContributionPaymentRequest,
+    ): HouseholdResponse {
+        if (!householdService.existsByHouseholdId(householdId)) {
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+        }
+
+        return householdService.payCostContribution(householdId, request.amount)
+    }
 }
