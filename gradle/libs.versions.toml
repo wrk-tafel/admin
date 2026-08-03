@@ -6,7 +6,7 @@ spring-modulith = "2.1.0"
 jackson = "3.2.1"
 # Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
 # used directly by this project. Pinned separately to patch known CVEs in that transitive line.
-jackson-legacy = "2.21.5"
+jackson-legacy = "2.22.1"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85"
