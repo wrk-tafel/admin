@@ -47,7 +47,7 @@ class DocumentStorageCleanupService(
         val knownPaths = documentRepository.findAllStoragePaths().toSet()
         val cutoff = Instant.now().minus(MIN_AGE_MINUTES, ChronoUnit.MINUTES)
 
-        val orphanedFiles = Files.walk(documentsRoot).use { stream ->
+        val orphanedFiles: List<Path> = Files.walk(documentsRoot).use { stream ->
             stream
                 .filter { Files.isRegularFile(it) }
                 .filter { it.toAbsolutePath().toString() !in knownPaths }
