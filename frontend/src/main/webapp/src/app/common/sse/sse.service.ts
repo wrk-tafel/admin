@@ -22,6 +22,7 @@ export class SseService {
     return new Observable<T>((observer) => {
       const baseUrl = this.urlHelperService.getBaseUrl();
       let eventSource: EventSource | null = null;
+      let reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
       const connect = () => {
         eventSource = new EventSource(`${baseUrl}/api${url}`);
@@ -59,7 +60,8 @@ export class SseService {
           eventSource.close();
         }
         // Wait a little before reconnecting
-        setTimeout(() => {
+        reconnectTimeoutId = setTimeout(() => {
+          reconnectTimeoutId = null;
           connect();
         }, 1000);
       };
@@ -67,6 +69,9 @@ export class SseService {
       connect();
 
       return () => {
+        if (reconnectTimeoutId !== null) {
+          clearTimeout(reconnectTimeoutId);
+        }
         eventSource?.close();
       };
     });
