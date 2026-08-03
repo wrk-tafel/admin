@@ -233,7 +233,7 @@ export const genderLabel: { [key in Gender]: string } = {
   [Gender.MALE]: 'Männlich'
 };
 
-type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';
+type PdfType = 'MASTERDATA' | 'IDCARD';
 
 export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 

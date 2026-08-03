@@ -234,11 +234,6 @@ class HouseholdService(
                     filenamePrefix = "ausweis"
                     bytes = householdPdfService.generateIdCardPdf(household)
                 }
-
-                HouseholdPdfType.COMBINED -> {
-                    filenamePrefix = "stammdaten-ausweis"
-                    bytes = householdPdfService.generateCombinedPdf(household)
-                }
             }
 
             val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }

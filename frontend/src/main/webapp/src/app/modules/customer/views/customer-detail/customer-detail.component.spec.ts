@@ -377,29 +377,6 @@ describe('CustomerDetailComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
-  it('printCombined', () => {
-    const response = new HttpResponse({
-      status: 200,
-      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=test-name-1.pdf'}),
-      body: new Blob()
-    });
-    customerApiService.generatePdf.mockImplementation((id, type) =>
-      id === mockCustomer.id && type === 'COMBINED' ? of(response) : of(response)
-    );
-
-    const fixture = TestBed.createComponent(CustomerDetailComponent);
-    fixture.componentRef.setInput('customerData', mockCustomer);
-    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
-    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
-    const component = fixture.componentInstance;
-
-    fixture.detectChanges();
-
-    component.printCombined();
-
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
-  });
-
   it('editCustomer', async () => {
     const location = TestBed.inject(Location);
 
