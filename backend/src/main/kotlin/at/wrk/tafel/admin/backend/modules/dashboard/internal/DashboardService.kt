@@ -80,7 +80,10 @@ class DashboardService(
         )
     }
 
-    private fun FoodCollectionEntity.isFullyRecorded(): Boolean =
-        car != null && driver != null && coDriver != null &&
-            kmStart != null && kmEnd != null && !items.isNullOrEmpty()
+    private fun FoodCollectionEntity.isFullyRecorded(): Boolean = car != null &&
+        driver != null &&
+        coDriver != null &&
+        kmStart != null &&
+        kmEnd != null &&
+        !items.isNullOrEmpty()
 }
