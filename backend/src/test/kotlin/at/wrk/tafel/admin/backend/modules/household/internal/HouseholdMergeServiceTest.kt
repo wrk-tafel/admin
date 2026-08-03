@@ -161,6 +161,30 @@ class HouseholdMergeServiceTest {
     }
 
     @Test
+    fun `preview returns the plan without persisting anything`() {
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns testHousehold(2L, 20L, firstname = "differing-firstname")
+        mockDefaultResponse()
+
+        val response = service.preview(1L, listOf(2L))
+
+        assertThat(response.fieldConflicts).extracting<HouseholdMergeField> { it.field }
+            .contains(HouseholdMergeField.MAIN_PERSON_FIRSTNAME)
+        assertThat(response.sources).hasSize(1)
+        verify(exactly = 0) { householdRepository.saveAndFlush(any<HouseholdEntity>()) }
+        verify(exactly = 0) { householdService.deleteHouseholdByHouseholdId(any()) }
+    }
+
+    @Test
+    fun `preview with an unknown target throws NotFoundException`() {
+        every { householdRepository.findByHouseholdId(1L) } returns null
+
+        assertThrows<NotFoundException> {
+            service.preview(1L, listOf(2L))
+        }
+    }
+
+    @Test
     fun `merge applies an explicit field selection onto the target before saving it`() {
         val target = testHousehold(1L, 10L)
         val source = testHousehold(2L, 20L).apply { telephoneNumber = "999" }

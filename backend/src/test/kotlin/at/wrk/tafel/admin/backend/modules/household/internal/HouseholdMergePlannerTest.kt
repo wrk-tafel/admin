@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -193,6 +194,59 @@ class HouseholdMergePlannerTest {
         HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_COUNTRY, target, source)
 
         assertThat(target.mainPerson!!.country).isEqualTo(otherCountry)
+    }
+
+    @Test
+    fun `applyField copies each plain household scalar from the winner`() {
+        val target = household(1)
+        val source = household(2).apply {
+            email = "source@example.com"
+            validUntil = LocalDate.of(2030, 1, 1)
+            pendingCostContribution = BigDecimal("42.50")
+            singleParent = true
+        }
+
+        HouseholdMergePlanner.applyField(HouseholdMergeField.EMAIL, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.VALID_UNTIL, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.PENDING_COST_CONTRIBUTION, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.SINGLE_PARENT, target, source)
+
+        assertThat(target.email).isEqualTo("source@example.com")
+        assertThat(target.validUntil).isEqualTo(LocalDate.of(2030, 1, 1))
+        assertThat(target.pendingCostContribution).isEqualByComparingTo(BigDecimal("42.50"))
+        assertThat(target.singleParent).isTrue()
+    }
+
+    @Test
+    fun `applyField copies each plain main-person scalar from the winner`() {
+        val target = household(1)
+        val source = household(2).apply {
+            mainPerson!!.apply {
+                firstname = "Sourcefirst"
+                lastname = "Sourcelast"
+                birthDate = LocalDate.of(1980, 6, 15)
+                gender = Gender.FEMALE
+                employer = "Source employer"
+                income = BigDecimal("999")
+                incomeDue = LocalDate.of(2031, 1, 1)
+            }
+        }
+
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_FIRSTNAME, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_LASTNAME, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_BIRTHDATE, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_GENDER, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_EMPLOYER, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_INCOME, target, source)
+        HouseholdMergePlanner.applyField(HouseholdMergeField.MAIN_PERSON_INCOME_DUE, target, source)
+
+        assertThat(target.mainPerson!!.firstname).isEqualTo("Sourcefirst")
+        assertThat(target.mainPerson!!.lastname).isEqualTo("Sourcelast")
+        assertThat(target.mainPerson!!.birthDate).isEqualTo(LocalDate.of(1980, 6, 15))
+        assertThat(target.mainPerson!!.gender).isEqualTo(Gender.FEMALE)
+        assertThat(target.mainPerson!!.employer).isEqualTo("Source employer")
+        assertThat(target.mainPerson!!.income).isEqualByComparingTo(BigDecimal("999"))
+        assertThat(target.mainPerson!!.incomeDue).isEqualTo(LocalDate.of(2031, 1, 1))
     }
 
     // ---------------------------------------------------------------------------
