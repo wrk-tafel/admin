@@ -66,5 +66,6 @@ export interface DashboardStatisticsData {
 export interface DashboardLogisticsData {
   foodCollectionsRecordedCount?: number;
   foodCollectionsTotalCount?: number;
+  recordedRouteNames?: string[];
   foodAmountTotal?: number;
 }
