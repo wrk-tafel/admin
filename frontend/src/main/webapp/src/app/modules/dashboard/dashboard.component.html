@@ -14,7 +14,7 @@
   </tafel-food-amount>
 </div>
 <mat-divider class="!m-4"></mat-divider>
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-y-2">
   <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
                                        [employeeCountInput]="data()?.statistics?.employeeCount"
                                        [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">
