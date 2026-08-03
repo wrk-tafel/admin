@@ -41,6 +41,9 @@ spring:
     driverClassName: org.postgresql.Driver
     hikari:
       maximum-pool-size: 50
+      # logs a warning with a stack trace for any connection held longer than this, so a leak
+      # (e.g. a missed transaction boundary) surfaces well before the pool is exhausted
+      leak-detection-threshold: 60000
   flyway:
     locations: classpath:/db-migration
     group: true
