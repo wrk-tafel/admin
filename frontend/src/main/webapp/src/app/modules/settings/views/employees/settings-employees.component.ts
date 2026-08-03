@@ -2,7 +2,7 @@ import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular
 import {MatDialog} from '@angular/material/dialog';
 import {EmployeeCreateDialogComponent} from './dialogs/employee-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
   MatCellDef,
@@ -30,6 +30,7 @@ import {MatInputModule} from '@angular/material/input';
   templateUrl: 'settings-employees.component.html',
   imports: [
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
@@ -67,11 +68,15 @@ export class SettingsEmployeesComponent {
   protected firstnameControl = new FormControl<string>('', {nonNullable: true});
   protected lastnameControl = new FormControl<string>('', {nonNullable: true});
   private personnelNumberInput = viewChild<ElementRef<HTMLInputElement>>('personnelNumberInput');
+  private personnelNumberInputMobile = viewChild<ElementRef<HTMLInputElement>>('personnelNumberInputMobile');
 
   constructor() {
     this.loadEmployees();
 
-    effect(() => this.personnelNumberInput()?.nativeElement.focus());
+    effect(() => {
+      this.personnelNumberInput()?.nativeElement.focus();
+      this.personnelNumberInputMobile()?.nativeElement.focus();
+    });
   }
 
   protected search() {

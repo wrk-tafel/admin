@@ -3,7 +3,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {ShelterEditDialogComponent} from './dialogs/shelter-edit-dialog.component';
 import {ShelterDetailsDialogComponent} from './dialogs/shelter-details-dialog.component';
 import {FormatShelterAddressPipe} from '../../../../common/pipes/format-shelter-address.pipe';
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
   MatCellDef,
@@ -29,6 +29,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   imports: [
     FormatShelterAddressPipe,
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardTitle,

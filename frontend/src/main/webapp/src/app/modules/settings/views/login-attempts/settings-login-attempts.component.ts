@@ -1,6 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
   MatCellDef,
@@ -28,6 +28,7 @@ import {DeleteLoginAttemptDialogComponent} from './dialogs/delete-login-attempt-
   templateUrl: 'settings-login-attempts.component.html',
   imports: [
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardTitle,

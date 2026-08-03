@@ -77,6 +77,15 @@ describe('Statistics General', () => {
   it('switches to a custom date range and updates the shown range on phone', () => {
     cy.viewport(PHONE_VIEWPORT);
 
+    // The Zeitraum toggle group (Jahr/Aktuelles Monat/Ausgabe/Benutzerdefiniert) is wider than a
+    // phone viewport - it scrolls horizontally within its own wrapper (overflow-x-auto) instead of
+    // pushing the whole page into horizontal scroll. Assert that explicitly, since a plain .click()
+    // below would still succeed even if this regressed (Cypress auto-scrolls whichever ancestor is
+    // scrollable to reach the target, so it wouldn't otherwise catch the page-level overflow).
+    cy.document().then((doc) => {
+      expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth);
+    });
+
     // below the sm: breakpoint the date range card and the "von"/"bis" label+input pairs stack in a single column
     cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').click();
 

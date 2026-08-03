@@ -10,6 +10,7 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <div class="hidden md:block">
     <table mat-table [dataSource]="cars()?.cars ?? []" testid="cars-table"
            cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
@@ -91,5 +92,70 @@
           [class.opacity-50]="!row.enabled"
           [attr.testid]="'cars-row-' + i"></tr>
     </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="cars-cards" cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">
+        @for (car of cars()?.cars ?? []; track car.id; let i = $index) {
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [class.opacity-50]="!car.enabled" [attr.testid]="'cars-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="flex items-center gap-2 text-base font-semibold">
+                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragCarHandle-' + i"></fa-icon>
+                @if (editingId() === car.id) {
+                  <mat-form-field subscriptSizing="dynamic" class="w-full">
+                    <mat-label>Name</mat-label>
+                    <input matInput [formControl]="nameControl" [attr.testid]="'carNameInputMobile-' + i"
+                           (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+                  </mat-form-field>
+                } @else {
+                  <span>{{ car.name }}</span>
+                }
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2 items-center">
+                <div class="font-bold">Kennzeichen:</div>
+                <div>
+                  @if (editingId() === car.id) {
+                    <mat-form-field subscriptSizing="dynamic">
+                      <input #licensePlateInputMobile matInput [formControl]="licensePlateControl" [attr.testid]="'carLicensePlateInputMobile-' + i"
+                             (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+                    </mat-form-field>
+                  } @else {
+                    {{ car.licensePlate }}
+                  }
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              @if (car.enabled) {
+                <button matButton="filled" class="button-success" testid="enableCarButton"
+                        (click)="toggleCarVisibility(car, false)">
+                  <fa-icon [icon]="faEye"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" testid="disableCarButton"
+                        (click)="toggleCarVisibility(car, true)">
+                  <fa-icon [icon]="faEyeSlash"></fa-icon>
+                </button>
+              }
+              @if (editingId() === car.id) {
+                <button matButton="filled" [attr.testid]="'saveCarButtonMobile-' + i" (click)="saveEdit(car)">
+                  <fa-icon [icon]="faCheck"></fa-icon>
+                </button>
+                <button matButton="outlined" [attr.testid]="'cancelCarButtonMobile-' + i" (click)="cancelEdit()">
+                  <fa-icon [icon]="faXmark"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" [attr.testid]="'editCarButtonMobile-' + i"
+                        [disabled]="!car.enabled" (click)="startEdit(car)">
+                  <fa-icon [icon]="faPencil"></fa-icon>
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
   </mat-card-content>
 </mat-card>

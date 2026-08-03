@@ -27,6 +27,7 @@
                      (page)="loadEmployees($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
     }
 
+    <div class="hidden md:block">
     <table mat-table [dataSource]="employees()?.items ?? []" testid="employees-table">
       <ng-container matColumnDef="personnelNumber">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personalnummer</th>
@@ -93,6 +94,68 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" [attr.testid]="'employees-row-' + i"></tr>
     </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="employees-cards">
+        @for (employee of employees()?.items ?? []; track employee.id; let i = $index) {
+          <mat-card class="shadow-sm" [attr.testid]="'employees-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="text-base font-semibold">
+                @if (editingId() === employee.id) {
+                  <mat-form-field subscriptSizing="dynamic" class="w-full">
+                    <mat-label>Personalnummer</mat-label>
+                    <input #personnelNumberInputMobile matInput [formControl]="personnelNumberControl"
+                           [attr.testid]="'employeePersonnelNumberInputMobile-' + i"
+                           (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+                  </mat-form-field>
+                } @else {
+                  <span>{{ employee.personnelNumber }}</span>
+                }
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @if (editingId() === employee.id) {
+                <div class="flex flex-col gap-2">
+                  <mat-form-field subscriptSizing="dynamic">
+                    <mat-label>Vorname</mat-label>
+                    <input matInput [formControl]="firstnameControl" [attr.testid]="'employeeFirstnameInputMobile-' + i"
+                           (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+                  </mat-form-field>
+                  <mat-form-field subscriptSizing="dynamic">
+                    <mat-label>Nachname</mat-label>
+                    <input matInput [formControl]="lastnameControl" [attr.testid]="'employeeLastnameInputMobile-' + i"
+                           (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+                  </mat-form-field>
+                </div>
+              } @else {
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="font-bold">Vorname:</div>
+                  <div>{{ employee.firstname }}</div>
+                  <div class="font-bold">Nachname:</div>
+                  <div>{{ employee.lastname }}</div>
+                </div>
+              }
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              @if (editingId() === employee.id) {
+                <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" (click)="saveEdit(employee)">
+                  <fa-icon [icon]="faCheck"></fa-icon>
+                </button>
+                <button matButton="outlined" [attr.testid]="'cancelEmployeeButtonMobile-' + i" (click)="cancelEdit()">
+                  <fa-icon [icon]="faXmark"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButtonMobile-' + i"
+                        (click)="startEdit(employee)">
+                  <fa-icon [icon]="faPencil"></fa-icon>
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
 
     @if (employees()) {
       <mat-paginator class="tafel-paginator-responsive mt-4" testid="employees-paginator"

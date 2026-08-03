@@ -104,14 +104,47 @@ describe('Settings - Employees', () => {
     });
   });
 
-  it('remains usable on mobile viewports', () => {
-    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
-      cy.viewport(viewport);
-      cy.reload();
+  it('renders as a card list on phone and stays usable', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.reload();
 
-      cy.byTestId('employees-table').should('exist');
-      cy.byTestId('addEmployeeButton').should('be.visible');
+    cy.byTestId('employees-table').should('not.be.visible');
+    cy.byTestId('employees-cards').should('be.visible');
+    cy.byTestId('addEmployeeButton').should('be.visible');
+
+    // Uses a dedicated, freshly-created employee rather than editing row 0 directly - see the
+    // 'edits an employee inline' test above for why (row 0 may be the shared e2e login fixture).
+    cy.getAnyRandomNumber().then((randomId) => {
+      const personnelNumber = 'PHONE-' + randomId;
+
+      cy.byTestId('addEmployeeButton').click();
+      cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type(personnelNumber);
+      cy.byTestId('employeeCreateFirstnameInput').type('Phone');
+      cy.byTestId('employeeCreateLastnameInput').type('Original');
+      cy.byTestId('employeeCreateSaveButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+
+      cy.byTestId('employeeSearchInput').type(personnelNumber);
+      cy.byTestId('searchEmployeeButton').click();
+      cy.byTestId('employees-cards').should('contain.text', personnelNumber);
+
+      const newLastname = 'Updated On Phone ' + randomId;
+
+      cy.byTestId('editEmployeeButtonMobile-0').click();
+      cy.byTestId('employeeLastnameInputMobile-0').should('be.visible').clear().type(newLastname + '{enter}');
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+      cy.byTestId('employees-cards').should('contain.text', newLastname);
     });
+  });
+
+  it('renders as a table at tablet breakpoint', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.reload();
+
+    cy.byTestId('employees-table').should('be.visible');
+    cy.byTestId('employees-cards').should('not.be.visible');
+    cy.byTestId('addEmployeeButton').should('be.visible');
   });
 
 });
