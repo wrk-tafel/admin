@@ -403,7 +403,7 @@ class HouseholdControllerTest {
     fun `generate pdf - no result`() {
         every { householdService.generatePdf(any(), any()) } returns null
 
-        val exception = assertThrows<NotFoundException> { controller.generatePdf(123, HouseholdPdfType.COMBINED) }
+        val exception = assertThrows<NotFoundException> { controller.generatePdf(123, HouseholdPdfType.MASTERDATA) }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.body.detail).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
@@ -417,7 +417,7 @@ class HouseholdControllerTest {
             bytes = testFilename.toByteArray(),
         )
 
-        val response = controller.generatePdf(123, HouseholdPdfType.COMBINED)
+        val response = controller.generatePdf(123, HouseholdPdfType.MASTERDATA)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)

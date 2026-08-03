@@ -29,7 +29,6 @@ class HouseholdPdfServiceTest {
 
     private lateinit var service: HouseholdPdfService
     private lateinit var testHousehold: HouseholdEntity
-    private lateinit var testHouseholdMinimal: HouseholdEntity
 
     companion object {
         private val comparisonResultDirectory = File(
@@ -116,30 +115,6 @@ class HouseholdPdfServiceTest {
         testHousehold.persons = mutableListOf(mainPerson, addPers1, addPers2, addPers3)
         testHousehold.mainPerson = mainPerson
 
-        testHouseholdMinimal = HouseholdEntity()
-        testHouseholdMinimal.createdAt = LocalDateTime.of(
-            LocalDate.of(2022, 10, 3),
-            LocalTime.of(10, 10),
-        )
-        testHouseholdMinimal.householdId = 456
-        testHouseholdMinimal.addressStreet = "Karl-Schäfer-Straße"
-        testHouseholdMinimal.addressCity = "Wien"
-        testHouseholdMinimal.validUntil = LocalDate.of(2030, 3, 1)
-
-        val minimalMainPerson = PersonEntity()
-        minimalMainPerson.household = testHouseholdMinimal
-        minimalMainPerson.isMainPerson = true
-        minimalMainPerson.lastname = "Mustermann"
-        minimalMainPerson.firstname = "Max"
-        minimalMainPerson.birthDate = LocalDate.of(1980, 6, 10)
-        minimalMainPerson.employer = "WRK Team Österreich Tafel"
-        minimalMainPerson.income = BigDecimal("977.94587")
-        minimalMainPerson.incomeDue = LocalDate.of(2030, 1, 1)
-        minimalMainPerson.country = testCountry1
-
-        testHouseholdMinimal.persons = mutableListOf(minimalMainPerson)
-        testHouseholdMinimal.mainPerson = minimalMainPerson
-
         service = HouseholdPdfService(PDFService())
     }
 
@@ -196,49 +171,6 @@ class HouseholdPdfServiceTest {
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
-        document.close()
-    }
-
-    @Test
-    fun `generate combined pdf`() {
-        val pdfBytes = service.generateCombinedPdf(testHousehold)
-        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
-
-        val document: PDDocument = Loader.loadPDF(pdfBytes)
-        val pdfRenderer = PDFRenderer(document)
-
-        assertThat(document.numberOfPages).isEqualTo(2)
-
-        val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/combined-page0-actual.png"))
-        ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-expected.png"))
-        val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
-        ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-actual.png"))
-
-        val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/combined-page1-actual.png"))
-        ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-expected.png"))
-        val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
-        ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-actual.png"))
-
-        val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
-        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0-diff.png"))
-        val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
-        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page1-diff.png"))
-
-        assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
-        assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
-
-        document.close()
-    }
-
-    @Test
-    fun `generate combined pdf with minimal data`() {
-        val pdfBytes = service.generateCombinedPdf(testHouseholdMinimal)
-        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
-
-        val document: PDDocument = Loader.loadPDF(pdfBytes)
-        assertThat(document.numberOfPages).isEqualTo(2)
         document.close()
     }
 }

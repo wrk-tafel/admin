@@ -97,7 +97,7 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
-- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD`, or `COMBINED`).
+- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA` or `IDCARD`).
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
@@ -171,10 +171,10 @@ differently depending on the caller's role:
 - Supervisor with `force=true`: saved as-is (validity untouched), no error.
 
 ### `HouseholdPdfService` (`internal/masterdata`)
-Generates the household's PDFs (master data sheet, ID card, or a combined document) using
+Generates the household's PDFs (master data sheet or ID card) using
 `PDFService` (in `common/pdf`), which renders Apache FOP XSL-FO templates from
 `backend/src/main/resources/pdf-templates/customer-pdf/` (`masterdata-document.xsl`,
-`idcard-document.xsl`, `masterdata-idcard-document.xsl` - note: still under a `customer-pdf`
+`idcard-document.xsl` - note: still under a `customer-pdf`
 directory, matching the "customer" legacy naming). `Model.kt` in the same package defines the
 XML-serializable `PdfData`/`PdfCustomerData`/`PdfAddressData`/`PdfAdditionalPersonData`/
 `PdfIdCardData` tree that gets marshalled to XML and fed to the XSL-FO transform. The ID card also
