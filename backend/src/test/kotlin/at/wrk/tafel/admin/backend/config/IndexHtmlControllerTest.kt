@@ -32,6 +32,21 @@ class IndexHtmlControllerTest {
     }
 
     @Test
+    fun `trailing slash added when the configured relative base url is missing one`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
+            "<html><head><base href=\"/\"></head><body></body></html>",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(server = TafelAdminServerProperties(relativeBaseUrl = "/verwaltung-dev")),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.index()
+
+        assertThat(response.body).isEqualTo("<html><head><base href=\"/verwaltung-dev/\"></head><body></body></html>")
+    }
+
+    @Test
     fun `base href left as root when no relative base url is configured`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
             "<html><head><base href=\"/\"></head><body></body></html>",
@@ -62,5 +77,4 @@ class IndexHtmlControllerTest {
     }
 
     private fun indexHtmlResource(content: String): Resource = ByteArrayResource(content.toByteArray())
-
 }
