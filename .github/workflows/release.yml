@@ -97,10 +97,12 @@ jobs:
           # Without --document-title, md-to-pdf falls back to the URL of the local http server it
           # serves combined.md from (e.g. "localhost:PORT/combined.md"), which then shows up as the
           # PDF's title in viewers/tabs.
-          # The --css rule keeps each screenshot glued to the paragraph introducing it: without it,
-          # a page break can land between the two, leaving an image alone at the top of a page with
-          # its explanation stranded on the previous one.
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          # The first --css rule keeps each screenshot glued to the paragraph introducing it:
+          # without it, a page break can land between the two, leaving an image alone at the top of
+          # a page with its explanation stranded on the previous one. The second rule does the same
+          # for headings, which would otherwise sometimes end up alone at the bottom of a page with
+          # their section's actual content pushed to the next one.
+          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
