@@ -52,8 +52,6 @@ class SseOutboxListenerServiceTest {
         every { mockConnection.createStatement() } returns mockStatement
         every { mockStatement.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;") } returns true
         every { mockStatement.close() } returns Unit
-        every { mockConnection.isClosed } returns false
-        every { mockConnection.close() } returns Unit
 
         val mockPGConnection: PGConnection = mockk()
         every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } returns arrayOf(
@@ -84,48 +82,18 @@ class SseOutboxListenerServiceTest {
 
         verify { mockStatement.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;") }
         assertThat(retrievedPayload).isEqualTo(testNotificationEvent.payload)
-        assertThat(service.connection).isNotNull()
     }
 
     @Test
-    fun `cleanup after setup listener does not throw`(): Unit = runBlocking {
-        service.setupListener()
-        service.notificationListenerJob.join()
-
-        service.cleanup()
-    }
-
-    @Test
-    fun `cleanup with open connection`() {
-        val connection = mockk<Connection>()
-        every { connection.isClosed } returns false
-        every { connection.close() } returns Unit
+    fun `cleanup cancels the notification listener job`() {
         val notificationListenerJob = mockk<Job>()
         every { notificationListenerJob.cancel(null) } returns Unit
 
-        service.connection = connection
         service.notificationListenerJob = notificationListenerJob
 
         service.cleanup()
 
         verify { notificationListenerJob.cancel() }
-        verify { connection.close() }
-    }
-
-    @Test
-    fun `cleanup with closed connection`() {
-        val connection = mockk<Connection>()
-        every { connection.isClosed } returns true
-        every { connection.close() } returns Unit
-        val notificationListenerJob = mockk<Job>()
-        every { notificationListenerJob.cancel(null) } returns Unit
-
-        service.connection = connection
-        service.notificationListenerJob = notificationListenerJob
-
-        service.cleanup()
-
-        verify(exactly = 0) { connection.close() }
     }
 
     @Test

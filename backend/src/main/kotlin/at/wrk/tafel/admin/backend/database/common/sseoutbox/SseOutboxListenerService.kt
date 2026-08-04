@@ -36,17 +36,15 @@ class SseOutboxListenerService(
         const val PG_NOTIFICATION_CHANNEL_NAME = "sse_outbox"
     }
 
-    lateinit var connection: Connection
     lateinit var notificationListenerJob: Job
     val callbacks = ConcurrentHashMap<String, CopyOnWriteArrayList<(String?) -> Unit>>()
 
     @PostConstruct
     fun setupListener() {
         notificationListenerJob = CoroutineScope(Dispatchers.IO).launch {
-            jdbcTemplate.dataSource!!.connection.use { conn ->
-                connection = conn
-                listenOnConnection(conn)
-                val pgConn = conn.unwrap(PGConnection::class.java)
+            jdbcTemplate.dataSource!!.connection.use { connection ->
+                listenOnConnection(connection)
+                val pgConn = connection.unwrap(PGConnection::class.java)
 
                 while (true) {
                     val notifications = pgConn.getNotifications(NOTIFICATIONS_POLL_TIMEOUT)
@@ -74,9 +72,6 @@ class SseOutboxListenerService(
     @PreDestroy
     fun cleanup() {
         notificationListenerJob.cancel()
-        if (!connection.isClosed) {
-            connection.close()
-        }
     }
 
     fun registerCallback(
