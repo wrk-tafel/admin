@@ -173,12 +173,14 @@ export class CheckinComponent {
   }
 
   readonly currentDistribution = this.globalStateService.getCurrentDistribution();
-  readonly connectionState = this.globalStateService.getConnectionState();
+  readonly hasReceivedDistribution = this.globalStateService.getHasReceivedDistribution();
 
   constructor() {
-    // Redirect to overview if no distribution is active (only after SSE connection is established)
+    // Redirect to overview once it's confirmed no distribution is active (only after the first
+    // SSE message has actually been processed - see getHasReceivedDistribution's doc comment on
+    // why the raw connection state isn't enough here).
     effect(() => {
-      if (this.connectionState() && this.currentDistribution() === null) {
+      if (this.hasReceivedDistribution() && this.currentDistribution() === null) {
         this.router.navigate(['uebersicht']);
       }
     });
