@@ -372,7 +372,12 @@ Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<nu
   return cy.wrap(Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil);
 });
 
-Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => cy.getRandomNumber(50000, 100000));
+Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> =>
+  // Timestamp (mod 1e8, i.e. ~27.7h) + a random suffix keeps the result unique across every spec
+  // in an e2e run (which takes minutes, not hours) while staying short enough for narrow columns
+  // like license_plate (varchar(20)) that get it appended to a fixed prefix.
+  cy.getRandomNumber(0, 999).then(randomSuffix => (Date.now() % 100_000_000) * 1000 + randomSuffix)
+);
 
 
 export interface AddCustomerToDistributionRequest {
