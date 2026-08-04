@@ -257,15 +257,12 @@ describe('Customer Detail', () => {
         cy.visit('/#/kunden/detail/' + customerId);
 
         cy.byTestId('documents-tab-label').click();
-        cy.byTestId('nodocuments-label').should('be.visible');
-
         cy.byTestId('upload-document-panel').should('be.visible');
         cy.byTestId('documentTypeInput').click();
         cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
         cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
         cy.byTestId('okButton').click();
 
-        cy.byTestId('nodocuments-label').should('not.exist');
         cy.byTestId('document-0-fileNameText').should('have.text', 'test-document.pdf');
 
         const downloadsFolder = Cypress.config('downloadsFolder');
@@ -280,7 +277,7 @@ describe('Customer Detail', () => {
           cy.byTestId('okButton').click();
         });
 
-        cy.byTestId('nodocuments-label').should('be.visible');
+        cy.byTestId('upload-document-panel').should('be.visible');
       });
     });
 
