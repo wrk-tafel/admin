@@ -229,6 +229,15 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
   backend, which only e2e/integration tests exercise). Before calling frontend work done, check
   whether `cypress/e2e/*.cy.ts` needs a new `it(...)` for what changed.
 
+## Handling Issues Found Outside the Current Task's Scope
+
+If you notice a bug or problem while working on a task that is **not caused by your current
+work** (pre-existing, unrelated to the change you're making):
+- **Small and related to the task** (e.g. a nearby off-by-one, a stale comment, a minor layout
+  glitch touched by your change): fix it inline as part of the same task.
+- **Bigger or unrelated**: don't fix it inline — file a GitHub issue (`gh issue create`) so it can
+  be tackled separately, and mention it to the user rather than silently expanding the task's scope.
+
 ## Code Conventions
 
 **Template flow-control (project convention):**
