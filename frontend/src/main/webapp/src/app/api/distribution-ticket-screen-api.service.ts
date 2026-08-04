@@ -15,20 +15,20 @@ export class DistributionTicketScreenApiService {
     return this.http.post<void>('/distributions/ticket-screen/show-text', request);
   }
 
-  showCurrentTicket(): Observable<void> {
-    return this.http.post<void>('/distributions/ticket-screen/show-current', undefined);
+  showCurrentTicket(): Observable<TicketScreenTicketResponse> {
+    return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/show-current', undefined);
   }
 
-  showPreviousTicket(): Observable<void> {
-    return this.http.post<void>('/distributions/ticket-screen/show-previous', undefined);
+  showPreviousTicket(): Observable<TicketScreenTicketResponse> {
+    return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/show-previous', undefined);
   }
 
-  showNextTicket(costContributionPaid: boolean): Observable<void> {
+  showNextTicket(costContributionPaid: boolean): Observable<TicketScreenTicketResponse> {
     const request: TicketScreenShowNextTicketRequest = {
       costContributionPaid: costContributionPaid,
     };
 
-    return this.http.post<void>('/distributions/ticket-screen/show-next', request);
+    return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/show-next', request);
   }
 
 }
@@ -40,4 +40,10 @@ export interface TicketScreenShowTextRequest {
 
 export interface TicketScreenShowNextTicketRequest {
   costContributionPaid: boolean;
+}
+
+export interface TicketScreenTicketResponse {
+  ticketNumber: number | null;
+  householdId: number | null;
+  pendingCostContribution: number | null;
 }

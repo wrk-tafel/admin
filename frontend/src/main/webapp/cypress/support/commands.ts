@@ -182,6 +182,38 @@ Cypress.Commands.add('closeDistribution', () => {
   });
 });
 
+Cypress.Commands.add('accrueCostContributionDebt', (customerId: number) => {
+  cy.createDistribution();
+  cy.addCustomerToDistribution({customerId, ticketNumber: 1});
+
+  // Marks the household's only ticket as "not paid" - the backend identifies it as the first
+  // unprocessed ticket of the active distribution, no ticket number needed here.
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/ticket-screen/show-next',
+    body: {costContributionPaid: false}
+  });
+
+  cy.closeDistribution();
+
+  // MissingCostContributionService only adds the debt once DistributionEndedEvent has been
+  // processed asynchronously after the close request returns, so poll until it shows up.
+  waitForPendingCostContributionAccrued(customerId);
+});
+
+function waitForPendingCostContributionAccrued(customerId: number, attemptsLeft = 20): void {
+  cy.request('GET', `/api/households/${customerId}`).then((response) => {
+    if ((response.body.pendingCostContribution ?? 0) > 0) {
+      return;
+    }
+    if (attemptsLeft <= 1) {
+      throw new Error(`Timed out waiting for household ${customerId} to accrue cost contribution debt`);
+    }
+    cy.wait(500);
+    waitForPendingCostContributionAccrued(customerId, attemptsLeft - 1);
+  });
+}
+
 Cypress.Commands.add(
   'createCustomer',
   // The backend speaks households/persons - translate in both directions here so the specs keep

@@ -18,6 +18,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
+import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenTicketResponse
 import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -699,6 +700,44 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `get current ticket-screen ticket maps householdId and pending cost contribution`() {
+        val testDistributionHouseholdEntity = DistributionHouseholdEntity().apply {
+            id = 1
+            createdAt = LocalDateTime.now()
+            distribution = testDistributionEntity
+            household = HouseholdEntity().apply {
+                id = 1
+                householdId = 500
+                pendingCostContribution = BigDecimal("42.00")
+            }
+            ticketNumber = 5
+            processed = false
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            endedAt = null
+            households = listOf(testDistributionHouseholdEntity)
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val ticket = service.getCurrentTicketScreenTicket()
+
+        assertThat(ticket.ticketNumber).isEqualTo(5)
+        assertThat(ticket.householdId).isEqualTo(500)
+        assertThat(ticket.pendingCostContribution).isEqualTo(BigDecimal("42.00"))
+    }
+
+    @Test
+    fun `get current ticket-screen ticket without active distribution`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val ticket = service.getCurrentTicketScreenTicket()
+
+        assertThat(ticket).isEqualTo(TicketScreenTicketResponse(ticketNumber = null, householdId = null, pendingCostContribution = null))
+    }
+
+    @Test
     fun `get current ticketNumber value with open tickets left`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
@@ -766,7 +805,7 @@ internal class DistributionServiceTest {
 
         val ticket = service.reopenAndGetPreviousTicket()
 
-        assertThat(ticket).isNull()
+        assertThat(ticket.ticketNumber).isNull()
     }
 
     @Test
@@ -804,7 +843,7 @@ internal class DistributionServiceTest {
 
         val ticket = service.reopenAndGetPreviousTicket()
 
-        assertThat(ticket).isEqualTo(1)
+        assertThat(ticket?.ticketNumber).isEqualTo(1)
         verify {
             distributionHouseholdRepository.save(
                 withArg {
@@ -849,7 +888,7 @@ internal class DistributionServiceTest {
 
         val ticket = service.reopenAndGetPreviousTicket()
 
-        assertThat(ticket).isEqualTo(1)
+        assertThat(ticket?.ticketNumber).isEqualTo(1)
         verify(exactly = 0) {
             distributionHouseholdRepository.save(any())
         }
@@ -864,7 +903,7 @@ internal class DistributionServiceTest {
             costContributionPaid = false,
         )
 
-        assertThat(ticket).isNull()
+        assertThat(ticket.ticketNumber).isNull()
     }
 
     @Test
@@ -905,7 +944,7 @@ internal class DistributionServiceTest {
             costContributionPaid = true,
         )
 
-        assertThat(ticket).isEqualTo(2)
+        assertThat(ticket?.ticketNumber).isEqualTo(2)
         verify {
             distributionHouseholdRepository.save(
                 withArg {
@@ -938,7 +977,7 @@ internal class DistributionServiceTest {
 
         val ticket = service.closeCurrentTicketAndGetNext(false)
 
-        assertThat(ticket).isNull()
+        assertThat(ticket.ticketNumber).isNull()
     }
 
     @Test

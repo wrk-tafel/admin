@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 
 @RestController
 @RequestMapping("/api/distributions/ticket-screen")
@@ -31,36 +32,34 @@ class DistributionTicketScreenController(
 
     @PostMapping("/show-current")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
-    fun showCurrentTicket() {
-        val response = if (service.hasCurrentDistribution()) {
-            val ticketNumber = service.getCurrentTicketNumberValue()
-            logger.info("Ticket-Log - Fetched current ticket-number: $ticketNumber")
-            ticketNumber
-        } else {
-            null
-        }
+    fun showCurrentTicket(): TicketScreenTicketResponse {
+        val response = service.getCurrentTicketScreenTicket()
+        logger.info("Ticket-Log - Fetched current ticket-number: ${response.ticketNumber}")
 
-        saveToOutbox(text = TICKET_SCREEN_TITLE, response?.toString())
+        saveToOutbox(text = TICKET_SCREEN_TITLE, response.ticketNumber?.toString())
+        return response
     }
 
     @PostMapping("/show-previous")
     @TafelActiveDistributionRequired
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
-    fun showPreviousTicket() {
-        val previousTicketNumber = service.reopenAndGetPreviousTicket()
-        logger.info("Ticket-Log - fetched previous ticket-number: $previousTicketNumber")
+    fun showPreviousTicket(): TicketScreenTicketResponse {
+        val response = service.reopenAndGetPreviousTicket()
+        logger.info("Ticket-Log - fetched previous ticket-number: ${response.ticketNumber}")
 
-        saveToOutbox(text = TICKET_SCREEN_TITLE, value = previousTicketNumber?.toString())
+        saveToOutbox(text = TICKET_SCREEN_TITLE, value = response.ticketNumber?.toString())
+        return response
     }
 
     @PostMapping("/show-next")
     @TafelActiveDistributionRequired
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
-    fun showNextTicket(@Valid @RequestBody request: TicketScreenShowNextTicketRequest) {
-        val nextTicketNumber = service.closeCurrentTicketAndGetNext(request.costContributionPaid)
-        logger.info("Ticket-Log - fetched next ticket-number: $nextTicketNumber")
+    fun showNextTicket(@Valid @RequestBody request: TicketScreenShowNextTicketRequest): TicketScreenTicketResponse {
+        val response = service.closeCurrentTicketAndGetNext(request.costContributionPaid)
+        logger.info("Ticket-Log - fetched next ticket-number: ${response.ticketNumber}")
 
-        saveToOutbox(text = TICKET_SCREEN_TITLE, value = nextTicketNumber?.toString())
+        saveToOutbox(text = TICKET_SCREEN_TITLE, value = response.ticketNumber?.toString())
+        return response
     }
 
     private fun saveToOutbox(text: String, value: String?) {
@@ -84,4 +83,11 @@ data class TicketScreenShowTextRequest(
 @ExcludeFromTestCoverage
 data class TicketScreenShowNextTicketRequest(
     val costContributionPaid: Boolean,
+)
+
+@ExcludeFromTestCoverage
+data class TicketScreenTicketResponse(
+    val ticketNumber: Int?,
+    val householdId: Long?,
+    val pendingCostContribution: BigDecimal?,
 )

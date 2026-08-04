@@ -3,19 +3,42 @@ import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenControlComponent} from './ticket-screen-control.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
-import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
+import {
+  DistributionTicketScreenApiService,
+  TicketScreenTicketResponse
+} from '../../../../api/distribution-ticket-screen-api.service';
 import {of, throwError} from 'rxjs';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatDialog} from '@angular/material/dialog';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
+import {
+  PayCostContributionDialogComponent
+} from '../../../../common/components/pay-cost-contribution-dialog/pay-cost-contribution-dialog.component';
+import {
+  EditCostContributionDialogComponent
+} from '../../../../common/components/edit-cost-contribution-dialog/edit-cost-contribution-dialog.component';
+
+const emptyTicket: TicketScreenTicketResponse = {ticketNumber: null, householdId: null, pendingCostContribution: null};
 
 describe('TicketScreenControlComponent', () => {
   let distributionTicketScreenApiService: MockedObject<DistributionTicketScreenApiService>;
+  let customerApiService: MockedObject<CustomerApiService>;
   let urlHelperSpy: MockedObject<UrlHelperService>;
   let toastr: MockedObject<TafelToastrService>;
+
+  const mockCustomer: CustomerData = {
+    id: 100,
+    lastname: 'Mustermann',
+    firstname: 'Max',
+    gender: Gender.MALE,
+    address: {},
+    pendingCostContribution: 0
+  };
 
   beforeEach((() => {
     TestBed.configureTestingModule({
@@ -25,9 +48,19 @@ describe('TicketScreenControlComponent', () => {
           provide: DistributionTicketScreenApiService,
           useValue: {
             showText: vi.fn().mockName('DistributionTicketScreenApiService.showText'),
-            showCurrentTicket: vi.fn().mockName('DistributionTicketScreenApiService.showCurrentTicket'),
+            // the component fetches the current ticket on construction (see the component's
+            // constructor), so this needs a default return value or every test that doesn't
+            // care about it would otherwise crash on TestBed.createComponent
+            showCurrentTicket: vi.fn().mockReturnValue(of(emptyTicket)).mockName('DistributionTicketScreenApiService.showCurrentTicket'),
             showPreviousTicket: vi.fn().mockName('DistributionTicketScreenApiService.showPreviousTicket'),
             showNextTicket: vi.fn().mockName('DistributionTicketScreenApiService.showNextTicket')
+          }
+        },
+        {
+          provide: CustomerApiService,
+          useValue: {
+            payCostContribution: vi.fn().mockName('CustomerApiService.payCostContribution'),
+            editCostContribution: vi.fn().mockName('CustomerApiService.editCostContribution')
           }
         },
         {
@@ -44,12 +77,19 @@ describe('TicketScreenControlComponent', () => {
             success: vi.fn().mockName('TafelToastrService.success'),
             warning: vi.fn().mockName('TafelToastrService.warning')
           }
+        },
+        {
+          provide: MatDialog,
+          useValue: {
+            open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})
+          }
         }
       ]
     }).compileComponents();
 
     distributionTicketScreenApiService =
       TestBed.inject(DistributionTicketScreenApiService) as MockedObject<DistributionTicketScreenApiService>;
+    customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     urlHelperSpy = TestBed.inject(UrlHelperService) as MockedObject<UrlHelperService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   }));
@@ -58,6 +98,17 @@ describe('TicketScreenControlComponent', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
+  });
+
+  it('fetches the current ticket on init, without waiting for "Aktuelles Ticket" to be clicked', () => {
+    const response: TicketScreenTicketResponse = {ticketNumber: 5, householdId: 100, pendingCostContribution: 20};
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(TicketScreenControlComponent);
+    const component = fixture.componentInstance;
+
+    expect(distributionTicketScreenApiService.showCurrentTicket).toHaveBeenCalled();
+    expect(component.currentTicket()).toEqual(response);
   });
 
   it('openScreenInNewTab', () => {
@@ -91,17 +142,28 @@ describe('TicketScreenControlComponent', () => {
   it('showCurrentTicket', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(undefined));
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(emptyTicket));
 
     component.showCurrentTicket();
 
     expect(distributionTicketScreenApiService.showCurrentTicket).toHaveBeenCalled();
   });
 
+  it('showCurrentTicket stores the response for the cost-contribution panel', () => {
+    const fixture = TestBed.createComponent(TicketScreenControlComponent);
+    const component = fixture.componentInstance;
+    const response: TicketScreenTicketResponse = {ticketNumber: 5, householdId: 100, pendingCostContribution: 20};
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(response));
+
+    component.showCurrentTicket();
+
+    expect(component.currentTicket()).toEqual(response);
+  });
+
   it('showPreviousTicket', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(undefined));
+    distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(emptyTicket));
 
     component.showPreviousTicket();
 
@@ -111,7 +173,7 @@ describe('TicketScreenControlComponent', () => {
   it('showNextTicket with costContributionPaid true', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(undefined));
+    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
 
     component.showNextTicket(true);
 
@@ -121,7 +183,7 @@ describe('TicketScreenControlComponent', () => {
   it('showNextTicket with costContributionPaid false', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(undefined));
+    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
 
     component.showNextTicket(false);
 
@@ -181,7 +243,7 @@ describe('TicketScreenControlComponent', () => {
   it('showCurrentTicket manages loading state correctly', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(undefined));
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(emptyTicket));
 
     expect(component.isShowingCurrentTicket()).toBe(false);
     component.showCurrentTicket();
@@ -191,11 +253,76 @@ describe('TicketScreenControlComponent', () => {
   it('showNextTicket manages loading state correctly', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(undefined));
+    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
 
     expect(component.isShowingNextTicket()).toBe(false);
     component.showNextTicket(false);
     expect(component.isShowingNextTicket()).toBe(false); // finalize resets it
+  });
+
+  describe('cost contribution debt of the current ticket holder', () => {
+    it('pay cost contribution - all', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentTicket.set({ticketNumber: 5, householdId: 100, pendingCostContribution: 20});
+
+      const expectedCustomer = {...mockCustomer, pendingCostContribution: 0};
+      customerApiService.payCostContribution.mockReturnValue(of(expectedCustomer));
+
+      component.payCostContributionAll();
+
+      expect(customerApiService.payCostContribution).toHaveBeenCalledWith(100, undefined);
+      expect(component.currentTicket()?.pendingCostContribution).toEqual(0);
+      expect(toastr.success).toHaveBeenCalledWith('Unkostenbeitrag wurde aktualisiert!');
+    });
+
+    it('pay cost contribution - specific amount via dialog', () => {
+      const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+      matDialog.open.mockReturnValue({afterClosed: () => of(4)} as any);
+
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentTicket.set({ticketNumber: 5, householdId: 100, pendingCostContribution: 20});
+
+      const expectedCustomer = {...mockCustomer, pendingCostContribution: 16};
+      customerApiService.payCostContribution.mockReturnValue(of(expectedCustomer));
+
+      component.openPayCostContributionDialog();
+
+      expect(matDialog.open).toHaveBeenCalledWith(PayCostContributionDialogComponent, {data: {pendingAmount: 20}});
+      expect(customerApiService.payCostContribution).toHaveBeenCalledWith(100, 4);
+      expect(component.currentTicket()?.pendingCostContribution).toEqual(16);
+    });
+
+    it('edit cost contribution to an arbitrary amount via dialog', () => {
+      const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+      matDialog.open.mockReturnValue({afterClosed: () => of(75)} as any);
+
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentTicket.set({ticketNumber: 5, householdId: 100, pendingCostContribution: 0});
+
+      const expectedCustomer = {...mockCustomer, pendingCostContribution: 75};
+      customerApiService.editCostContribution.mockReturnValue(of(expectedCustomer));
+
+      component.openEditCostContributionDialog();
+
+      expect(matDialog.open).toHaveBeenCalledWith(EditCostContributionDialogComponent, {data: {pendingAmount: 0}});
+      expect(customerApiService.editCostContribution).toHaveBeenCalledWith(100, 75);
+      expect(component.currentTicket()?.pendingCostContribution).toEqual(75);
+    });
+
+    it('pay cost contribution error shows toast', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentTicket.set({ticketNumber: 5, householdId: 100, pendingCostContribution: 20});
+
+      customerApiService.payCostContribution.mockReturnValue(throwError(() => ({status: 500, error: {detail: 'boom'}})));
+
+      component.payCostContributionAll();
+
+      expect(toastr.error).toHaveBeenCalledWith('boom', 'Aktualisierung fehlgeschlagen!');
+    });
   });
 
 });

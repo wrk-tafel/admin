@@ -10,8 +10,8 @@
   </div>
 }
 <div class="flex flex-col-reverse lg:flex-col">
-  <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-    <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 gap-4">
+  <div class="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-4">
+    <div class="flex flex-col lg:flex-row lg:flex-wrap mt-4 lg:mt-0 gap-4">
       <button testid="printMenuButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="printMenu" [disabled]="customerData()?.locked">
         Daten ausdrucken ▾
       </button>
@@ -42,6 +42,24 @@
         </button>
         <button mat-menu-item testid="prolongTwelveMonthsButton"
                 (click)="prolongCustomer(12)">12 Monate
+        </button>
+      </mat-menu>
+
+      <button testid="costContributionButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="costContributionMenu" [disabled]="customerData()?.locked">
+        Unkostenbeitrag ▾
+      </button>
+      <mat-menu #costContributionMenu="matMenu">
+        @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
+          <button mat-menu-item testid="payCostContributionAllButton" (click)="payCostContributionAll()">
+            Alles bezahlt
+          </button>
+          <button mat-menu-item testid="payCostContributionAmountButton" (click)="openPayCostContributionDialog()">
+            Betrag eintragen
+          </button>
+          <mat-divider></mat-divider>
+        }
+        <button mat-menu-item testid="editCostContributionButton" (click)="openEditCostContributionDialog()">
+          Betrag bearbeiten
         </button>
       </mat-menu>
 

@@ -31,6 +31,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Service
@@ -284,6 +285,37 @@ class HouseholdService(
         }
 
         return additionalValidatorPersons + listOfNotNull(mainValidatorPerson)
+    }
+
+    /**
+     * Records a payment against the household's pending Unkostenbeitrag. A `null` amount pays off
+     * the full pending amount; overpayment (amount greater than what's pending) simply clamps the
+     * result at zero instead of being rejected.
+     */
+    @Transactional
+    fun payCostContribution(householdId: Long, amount: BigDecimal?): HouseholdResponse {
+        val entity = householdRepository.getReferenceByHouseholdId(householdId)
+        entity.pendingCostContribution = if (amount != null) {
+            (entity.pendingCostContribution - amount).coerceAtLeast(BigDecimal.ZERO)
+        } else {
+            BigDecimal.ZERO
+        }
+
+        val savedEntity = householdRepository.saveAndFlush(entity)
+        return householdConverter.mapEntityToHousehold(savedEntity)
+    }
+
+    /**
+     * Directly sets the household's pending Unkostenbeitrag to an arbitrary value, independent of
+     * any payment - e.g. to correct a wrongly recorded amount.
+     */
+    @Transactional
+    fun editCostContribution(householdId: Long, amount: BigDecimal): HouseholdResponse {
+        val entity = householdRepository.getReferenceByHouseholdId(householdId)
+        entity.pendingCostContribution = amount.coerceAtLeast(BigDecimal.ZERO)
+
+        val savedEntity = householdRepository.saveAndFlush(entity)
+        return householdConverter.mapEntityToHousehold(savedEntity)
     }
 }
 

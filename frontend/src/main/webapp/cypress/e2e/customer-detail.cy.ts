@@ -244,6 +244,12 @@ describe('Customer Detail', () => {
     cy.byTestId('editCustomerToggleButton').click();
   }
 
+  /** Parses a de-DE `currency` pipe rendering (e.g. "4,00 €") into a plain number. */
+  function parseCurrencyText(text: string): number {
+    const match = text.replace(/\./g, '').match(/-?\d+,\d+/);
+    return match ? parseFloat(match[0].replace(',', '.')) : NaN;
+  }
+
   describe('documents', () => {
     it('upload, download and delete a document', () => {
       cy.createDummyCustomer().then((response) => {
@@ -403,6 +409,98 @@ describe('Customer Detail', () => {
           cy.readFile(downloadedFilePath, 'utf8', {timeout: 15000})
             .should('include', 'OLDER-CONTENT');
         });
+      });
+    });
+  });
+
+  describe('cost contribution debt', () => {
+    it('pay off the full pending debt at once', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id!;
+        cy.accrueCostContributionDebt(customerId);
+
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.be.greaterThan(0);
+        });
+
+        cy.byTestId('costContributionButton').scrollIntoView().should('be.visible').click();
+        cy.byTestId('payCostContributionAllButton').should('be.visible').click();
+
+        // the payment is applied async (API round-trip), so the assertion needs to retry/re-read
+        // the element rather than reading its text once right after the click
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.equal(0);
+        });
+
+        cy.byTestId('costContributionButton').click();
+        cy.byTestId('payCostContributionAllButton').should('not.exist');
+        cy.byTestId('payCostContributionAmountButton').should('not.exist');
+        cy.byTestId('editCostContributionButton').should('be.visible');
+
+        // belt-and-suspenders: make sure this dummy customer ends the test with zero debt (see
+        // the "pay off a specific amount" test below for why this matters for other specs)
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+      });
+    });
+
+    it('pay off a specific amount of the pending debt', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id!;
+        cy.accrueCostContributionDebt(customerId);
+
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('pendingCostContributionText').invoke('text').then(parseCurrencyText).then((initialAmount) => {
+          cy.byTestId('costContributionButton').scrollIntoView().click();
+          cy.byTestId('payCostContributionAmountButton').click();
+          cy.byTestId('pay-cost-contribution-dialog').should('be.visible').within(() => {
+            cy.byTestId('amount-input').type('1');
+            cy.byTestId('okButton').click();
+          });
+
+          cy.byTestId('pendingCostContributionText').should(($el) => {
+            expect(parseCurrencyText($el.text())).to.be.closeTo(initialAmount - 1, 0.01);
+          });
+
+          cy.byTestId('costContributionButton').click();
+          cy.byTestId('payCostContributionAllButton').should('be.visible');
+
+          // clear the remainder via the API (rather than another UI round-trip) - other specs
+          // (e.g. customer-search.cy.ts's "search by cost contribution") assert on the total
+          // count of customers with pending debt, so a dummy customer left with a nonzero
+          // balance here would leak into and break that assertion
+          cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+        });
+      });
+    });
+
+    it('edit the pending debt to an arbitrary amount', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.equal(0);
+        });
+
+        cy.byTestId('costContributionButton').scrollIntoView().click();
+        cy.byTestId('editCostContributionButton').click();
+        cy.byTestId('edit-cost-contribution-dialog').should('be.visible').within(() => {
+          cy.byTestId('amount-input').clear().type('75');
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.equal(75);
+        });
+
+        // reset back to zero via the API - other specs (e.g. customer-search.cy.ts's "search by
+        // cost contribution") assert on the total count of customers with pending debt, so a
+        // dummy customer left with a nonzero balance here would leak into and break that assertion
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
       });
     });
   });
