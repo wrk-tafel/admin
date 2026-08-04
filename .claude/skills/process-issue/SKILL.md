@@ -150,8 +150,23 @@ Map the failure to a root-cause fix:
   it's asserting the wrong thing.
 - **`lint-backend`** (ktlintCheck) / **`lint-frontend`** (eslint + typecheck) / **`lint-docker`**
   (hadolint): fix the flagged code or Dockerfile.
-- **`sonar`**: a real coverage/quality-gate regression — add the missing test or address the flagged
-  issue, don't lower the gate.
+- **`sonar / sonar`** (the analysis job itself failed, e.g. gradle task error): read its log like any
+  other job — `gh run view <run-id> --repo <owner>/<repo> --log-failed`.
+- **`SonarCloud Code Analysis`** (the quality gate check): its log link only shows that the gate
+  failed, not which conditions or issues caused it — query the SonarCloud API directly instead of
+  guessing from the dashboard (the `wrk-tafel-admin` project is public, so no token is needed):
+
+  ```bash
+  # which quality-gate conditions failed (coverage, duplications, new bugs/vulnerabilities/smells, ...)
+  curl -s "https://sonarcloud.io/api/qualitygates/project_status?projectKey=wrk-tafel-admin&pullRequest=<pr-number>" | jq '.projectStatus.conditions[] | select(.status != "OK")'
+
+  # the specific new issues raised on this PR, with file/line detail
+  curl -s "https://sonarcloud.io/api/issues/search?componentKeys=wrk-tafel-admin&pullRequest=<pr-number>&resolved=false&ps=100" | jq '.issues[] | {rule, severity, component, line, message}'
+  ```
+
+  Fix each flagged issue at its file/line, or add the missing test for a coverage condition —
+  never lower the gate or suppress/`@SuppressWarnings` an issue away without addressing the root
+  cause.
 - **`e2e-test`**: use the `fix-e2e` skill's diagnosis approach — root-cause fix in the app source,
   never the spec, unless the spec is genuinely wrong.
 - **`deploy-dev`**: usually infrastructure (SSH secrets, environment state), not something a code
