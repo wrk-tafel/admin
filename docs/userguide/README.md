@@ -19,15 +19,19 @@ Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt ma
 
 ![Login](images/login.jpg)
 
-Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert oder man kann sich abmelden.
+Über das Benutzer-Icon oben rechts kann das eigene Passwort jederzeit geändert oder man kann sich abmelden.
 
 ![Benutzermenü](images/benutzermenue.jpg)
 
-Beim ersten Login bzw. nach einem erzwungenen Passwortwechsel führt das System automatisch zur Seite "Passwort ändern":
+Über **Passwort ändern** gelangt man zu folgender Seite innerhalb der Anwendung:
 
 ![Passwort ändern](images/passwort-aendern.jpg)
 
-Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten.
+Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login oder nach einem von der Verwaltung erzwungenen Passwortwechsel), zeigt das System stattdessen direkt nach der Anmeldung automatisch eine eigene, davon unabhängige Seite – noch bevor die eigentliche Anwendung geöffnet wird:
+
+![Passwort ändern nach erzwungenem Login](images/login-passwort-aendern.jpg)
+
+In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten.
 
 ## Navigation
 
