@@ -1,8 +1,8 @@
 FROM amazoncorretto:26-alpine AS builder
 WORKDIR /builder
 COPY ./artifact/admin-backend.jar app.jar
-RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted
-RUN find extracted -exec touch -d @0 {} \+
+RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted \
+    && find extracted -exec touch -d @0 {} \+
 
 # Trains an AppCDS archive by running the app through a real startup (migrations, EntityManagerFactory
 # build, security config, ...) against a throwaway local Postgres, then dumping the JVM's loaded-class
@@ -48,13 +48,8 @@ VOLUME /app/logs
 VOLUME /app/documents
 VOLUME /app/scanner
 
-RUN mkdir /app
-RUN mkdir /app/config
-RUN mkdir /app/logs
-RUN mkdir /app/documents
-RUN mkdir /app/scanner
-
 WORKDIR /app
+RUN mkdir config logs documents scanner
 COPY --from=builder /builder/extracted/dependencies/ ./
 COPY --from=builder /builder/extracted/spring-boot-loader/ ./
 COPY --from=builder /builder/extracted/snapshot-dependencies/ ./
@@ -68,3 +63,17 @@ COPY ./frontend-dist/ ./static/
 # container's restart policy is what recovers it (see issue #2879/#2935) rather than a wedged app
 # silently serving errors until someone notices.
 ENTRYPOINT ["java","-Duser.timezone=Europe/Vienna","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
+
+# Management port (see application.yml) is separate from the app's server port and stays reachable
+# even if the main servlet container is wedged. wget is busybox's, not GNU's - it ships in the base
+# alpine image already, so no extra package is needed. Its own exit code (0 on HTTP 2xx, 1 otherwise)
+# is the health signal, so no wrapping shell/`|| exit` is needed.
+#
+# Timings are based on measured cold-start time of this image (CDS archive included): three local
+# runs of `docker run` to a 200 from /actuator/health landed at ~17.8s/18.5s/18.8s, matching the
+# "Started AdminBackendApplicationKt in ~16.6s" boot log line plus container/network overhead.
+# start-period gives ~2.5x headroom over that for a slower/loaded host; start-interval polls quickly
+# within it so the container flips to "healthy" soon after it actually is, instead of waiting for a
+# full steady-state interval tick.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=45s --start-interval=3s --retries=3 \
+    CMD ["wget", "--spider", "-q", "-T", "3", "http://localhost:8081/actuator/health"]
