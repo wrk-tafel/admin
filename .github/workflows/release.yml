@@ -47,17 +47,67 @@ jobs:
       scanImage: true
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
+  userguide-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: 'frontend/src/main/webapp/.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'docs/userguide/package-lock.json'
+      # Installs from docs/userguide/package-lock.json (pinned version + integrity hashes) rather
+      # than `npx <pkg>@version`, which resolves and installs on demand at run time - flagged by
+      # SonarCloud (githubactions:S6505) as an on-demand-install / supply-chain risk.
+      # --ignore-scripts additionally blocks lifecycle scripts from any (transitive) dependency -
+      # otherwise flagged separately by SonarCloud/CodeQL. This also skips puppeteer's own
+      # postinstall Chromium download, so the render step below points it at the runner's
+      # preinstalled Google Chrome instead.
+      - run: npm ci --ignore-scripts
+        working-directory: docs/userguide
+      - name: Combine userguide chapters into one markdown file
+        # Page-break before each chapter (except the first) so md-to-pdf starts every chapter
+        # on a new PDF page - README.md doubles as the title/index page.
+        run: |
+          cd docs/userguide
+          cp README.md combined.md
+          for chapter in anmeldung kunden logistik benutzer einstellungen statistiken; do
+            printf '\n<div style="page-break-before: always;"></div>\n\n' >> combined.md
+            cat "$chapter.md" >> combined.md
+          done
+      - name: Render userguide PDF
+        run: |
+          CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
+          if [ -z "$CHROME_PATH" ]; then
+            echo "::error::No Chrome/Chromium executable found on this runner" >&2
+            exit 1
+          fi
+          node_modules/.bin/md-to-pdf combined.md --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+        working-directory: docs/userguide
+      - name: Rename PDF to release asset name
+        run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: userguide-pdf
+          path: tafel-admin-benutzerhandbuch.pdf
+          if-no-files-found: error
+          retention-days: 1
   github-release:
     runs-on: ubuntu-latest
-    needs: [version, build-push-image]
+    needs: [version, build-push-image, userguide-pdf]
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: userguide-pdf
+          path: .
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ needs.version.outputs.version }}
           generate_release_notes: true
+          files: tafel-admin-benutzerhandbuch.pdf
           body: |
             ## Docker image
 
