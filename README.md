@@ -288,6 +288,12 @@ Access control is based on these permissions:
 - `USER_MANAGEMENT` - User administration
 - `SETTINGS` - System settings
 
+## Documentation
+
+A German-language user guide (Benutzerhandbuch) covering every feature is available as Markdown under [`docs/userguide/`](docs/userguide/README.md), with a PDF version attached to every GitHub release. This link always resolves to the PDF from the latest release:
+
+[📄 Benutzerhandbuch (PDF, latest release)](https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf)
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
