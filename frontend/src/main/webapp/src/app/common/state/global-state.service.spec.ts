@@ -25,6 +25,7 @@ describe('GlobalStateService', () => {
     it('init calls services correctly', () => {
         const { service, sseServiceSpy } = setup();
         expect(service.getCurrentDistribution()()).toBeNull();
+        expect(service.getHasReceivedDistribution()()).toBe(false);
 
         const testDistributionUpdate: DistributionItemUpdate = {
             distribution: {
@@ -37,6 +38,7 @@ describe('GlobalStateService', () => {
         service.init();
 
         expect(service.getCurrentDistribution()()).toEqual(testDistributionUpdate.distribution);
+        expect(service.getHasReceivedDistribution()()).toBe(true);
 
         const args = vi.mocked(sseServiceSpy.listen).mock.lastCall!;
         expect(args[0]).toBe('/sse/distributions');

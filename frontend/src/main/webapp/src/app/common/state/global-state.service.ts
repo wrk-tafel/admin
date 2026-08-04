@@ -15,14 +15,18 @@ export class GlobalStateService {
 
   private readonly _currentDistribution: WritableSignal<DistributionItem | null> = signal(null);
   private readonly _connectionState: WritableSignal<boolean> = signal(false);
+  private readonly _hasReceivedDistribution: WritableSignal<boolean> = signal(false);
 
 
   /**
    * Starts the `/sse/distributions` subscription. Called once from `default-layout-resolver`
    * (which runs for every authenticated route) before any consumer reads {@link getCurrentDistribution}/
-   * {@link getConnectionState} - until the first SSE message arrives, `getCurrentDistribution()`
-   * stays `null`, which looks identical to "no distribution is open". Consumers that need to tell
-   * "not loaded yet" apart from "confirmed closed" should gate on {@link getConnectionState}.
+   * {@link getConnectionState}/{@link getHasReceivedDistribution} - until the first SSE message
+   * arrives, `getCurrentDistribution()` stays `null`, which looks identical to "no distribution is
+   * open". {@link getConnectionState} reflects the underlying socket (`onopen`), which can flip to
+   * `true` a tick before the first message is actually processed - it is NOT a reliable proxy for
+   * "the initial snapshot has arrived". Consumers that need to tell "not loaded yet" apart from
+   * "confirmed closed" must gate on {@link getHasReceivedDistribution} instead.
    */
   init() {
     const connectionStateCallback = (connected: boolean) => {
@@ -34,6 +38,7 @@ export class GlobalStateService {
       next: (distributionUpdate: DistributionItemUpdate) => {
         const distributionItem = distributionUpdate.distribution;
         this._currentDistribution.set(distributionItem);
+        this._hasReceivedDistribution.set(true);
       }
     });
   }
@@ -44,6 +49,15 @@ export class GlobalStateService {
 
   getConnectionState(): Signal<boolean> {
     return this._connectionState.asReadonly();
+  }
+
+  /**
+   * `true` once the first `/sse/distributions` message has actually been processed - unlike
+   * {@link getConnectionState}, this can't flip to `true` before {@link getCurrentDistribution}
+   * reflects real server state, so it's safe to gate "confirmed closed" redirects on.
+   */
+  getHasReceivedDistribution(): Signal<boolean> {
+    return this._hasReceivedDistribution.asReadonly();
   }
 
 }

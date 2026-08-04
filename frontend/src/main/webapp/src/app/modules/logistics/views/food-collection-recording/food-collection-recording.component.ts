@@ -59,11 +59,12 @@ export class FoodCollectionRecordingComponent {
 
   constructor() {
     // Redirect to overview once it's confirmed no distribution is active. `getCurrentDistribution()`
-    // is also `null` before the first SSE message arrives, so this must wait for a live connection
+    // is also `null` before the first SSE message arrives, so this must wait for that first message
+    // to actually be processed (getHasReceivedDistribution) - not just for the socket to be open -
     // to avoid redirecting away before the real state is known (e.g. right after a page load with
     // no/poor connectivity).
     effect(() => {
-      if (this.globalStateService.getConnectionState()() && this.globalStateService.getCurrentDistribution()() === null) {
+      if (this.globalStateService.getHasReceivedDistribution()() && this.globalStateService.getCurrentDistribution()() === null) {
         this.router.navigate(['uebersicht']);
       }
     });
