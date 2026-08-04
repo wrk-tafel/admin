@@ -311,12 +311,11 @@
           <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
         </ng-template>
         <div>
-          <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
-            <div>
-              @if (customerDocuments()?.length === 0) {
-                <h6 testid="nodocuments-label">Keine Dokumente vorhanden</h6>
-              }
-              @if ((customerDocuments()?.length ?? 0) > 0) {
+          <div [class]="(customerDocuments()?.length ?? 0) === 0
+            ? 'flex justify-center'
+            : 'grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4'">
+            @if ((customerDocuments()?.length ?? 0) > 0) {
+              <div>
                 <div class="grid grid-cols-1 gap-2">
                   @for (doc of customerDocuments(); track doc.id; let i = $index) {
                     <mat-card>
@@ -343,9 +342,9 @@
                     </mat-card>
                   }
                 </div>
-              }
-            </div>
-            <div>
+              </div>
+            }
+            <div [class]="(customerDocuments()?.length ?? 0) === 0 ? 'w-full lg:max-w-md' : ''">
               <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
             </div>
           </div>
