@@ -1,5 +1,3 @@
-<a id="kapitel-anmeldung"></a>
-
 # Anmeldung (Check-in)
 
 Der Bereich "Anmeldung" wird während eines laufenden Ausgabetags verwendet, um Kunden zu erfassen (per Ticket-Nummer oder Scanner) und den Ablauf mit dem Ticket-Monitor zu steuern.

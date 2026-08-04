@@ -42,8 +42,6 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 
-<a id="übersicht-dashboard"></a>
-
 ## Übersicht (Dashboard)
 
 Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages.

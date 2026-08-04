@@ -1,5 +1,3 @@
-<a id="kapitel-einstellungen"></a>
-
 # Einstellungen
 
 Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar.
@@ -18,8 +16,6 @@ Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwalt
 
 ![Notschlafstellen](images/einstellungen-notschlafstellen.jpg)
 
-<a id="statische-werte-grenzwerte"></a>
-
 ## Statische Werte (Grenzwerte)
 
 Unter **Einstellungen → Statische Werte** werden die Einkommensgrenzen gepflegt, die bestimmen, ab welchem Einkommen ein Haushalt (abhängig von Anzahl Erwachsener und Kinder) nicht mehr bezugsberechtigt ist. Zusätzlich werden hier Zuschläge für zusätzliche Erwachsene/Kinder, eine Toleranz-Grenze sowie die altersabhängigen Sätze der Familienbeihilfe gepflegt.
@@ -27,8 +23,6 @@ Unter **Einstellungen → Statische Werte** werden die Einkommensgrenzen gepfleg
 ![Statische Werte](images/einstellungen-statische-werte.jpg)
 
 Diese Werte sind die Grundlage für die Berechnung in [Kunden über Limit](kunden.md#kunden-über-limit).
-
-<a id="lebensmittelkategorien"></a>
 
 ## Lebensmittelkategorien
 

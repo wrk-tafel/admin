@@ -1,5 +1,3 @@
-<a id="kapitel-logistik"></a>
-
 # Logistik
 
 Der Bereich "Logistik" dient der Erfassung der von den Routen-Teams eingesammelten Warenmengen. Der Menüpunkt ist nur aktiv, solange ein Ausgabetag gestartet ist.

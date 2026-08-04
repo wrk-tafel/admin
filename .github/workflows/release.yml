@@ -75,18 +75,6 @@ jobs:
             printf '\n<div style="page-break-before: always;"></div>\n\n' >> combined.md
             cat "$chapter.md" >> combined.md
           done
-          # The chapters link to each other as separate files (e.g. "[Kunden](kunden.md)"), which
-          # is correct for GitHub/IDE viewing but not once merged into one PDF: md-to-pdf serves
-          # combined.md from a local http server, so an untouched "kunden.md" link would resolve
-          # to that server's URL and 404 once the PDF is standalone. Every chapter file carries a
-          # matching <a id="..."> anchor (at its top, and at any sub-section other chapters link
-          # to directly) - the chapter-top ones are named "kapitel-<name>" rather than just
-          # "<name>" because a bare id can collide with an unrelated heading's auto-generated slug
-          # elsewhere in the merged document (e.g. README.md's own "## Anmeldung" section) and
-          # silently jump to the wrong place. Rewrite the cross-file links into same-document
-          # anchor links accordingly.
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
       - name: Render userguide PDF
         run: |
           CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
