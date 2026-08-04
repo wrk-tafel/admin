@@ -5,18 +5,30 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import java.io.File
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 
-// Exercises the real Spring wiring behind IndexHtmlController - property binding and static file
-// resolution from disk - which IndexHtmlControllerTest's mocked ResourceLoader doesn't cover.
-// See #2972/#2978: relativeBaseUrl without a trailing slash (as configured on the deployed dev
-// environment) broke every asset URL in production despite the unit test suite passing, because
-// that test only ever exercised a value that already had one.
+// Exercises the real Spring wiring behind IndexHtmlController over real HTTP - property binding,
+// static file resolution from disk, and (critically) actual DispatcherServlet routing precedence -
+// which IndexHtmlControllerTest's mocked ResourceLoader/direct method calls don't cover.
+//
+// Both bugs this guards against shipped to the deployed dev environment despite a green unit test
+// suite:
+//   - relativeBaseUrl without a trailing slash (see the trailing-slash commit) - the unit test only
+//     ever exercised a value that already had one.
+//   - the SPA fallback route not existing at all (see #2972) - a direct navigation to a non-root
+//     path 404'd for real, which a direct method call to spaFallback() can't detect since it
+//     doesn't ask Spring whether GET /login actually gets routed there in the first place.
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
 
     companion object {
@@ -28,8 +40,10 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         }
     }
 
-    @Autowired
-    private lateinit var indexHtmlController: IndexHtmlController
+    @LocalServerPort
+    private var port: Int = 0
+
+    private val httpClient = HttpClient.newHttpClient()
 
     private val staticDir = File(System.getProperty("user.dir"), "static")
     private val indexHtmlFile = File(staticDir, "index.html")
@@ -50,22 +64,64 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `index html served with base href rewritten to the real configured relative base url`() {
-        val response = indexHtmlController.index()
+    fun `root path served with base href rewritten to the real configured relative base url`() {
+        val response = get("/")
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.contentType).isEqualTo(MediaType.TEXT_HTML)
-        assertThat(response.body).isEqualTo(
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(response.headers().firstValue("Content-Type").orElse(null)).startsWith(MediaType.TEXT_HTML_VALUE)
+        assertThat(response.body()).isEqualTo(
             "<html><head><base href=\"/tafel-admin/\"></head><body>test</body></html>",
         )
     }
 
     @Test
-    fun `missing index html on disk results in a 404`() {
+    fun `a top-level client-side route is routed to the spa fallback`() {
+        val response = get("/login")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(response.body()).contains("<base href=\"/tafel-admin/\">")
+    }
+
+    @Test
+    fun `a nested client-side route is routed to the spa fallback`() {
+        val response = get("/kunden/suchen")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(response.body()).contains("<base href=\"/tafel-admin/\">")
+    }
+
+    @Test
+    fun `an unauthenticated api request is not swallowed into the spa fallback`() {
+        // WebSecurityConfig requires authentication on all of "/api/**", so an anonymous request
+        // never reaches this controller at all - it's rejected by the security filter chain before
+        // Spring MVC's handler mapping even runs. That's still the guarantee this test cares about:
+        // an api path must never resolve to the app shell, authenticated or not.
+        // IndexHtmlControllerTest separately unit-tests spaFallback()'s own "/api/" guard, which is
+        // what protects an *authenticated* request to a nonexistent api endpoint from the same fate.
+        val response = get("/api/some-nonexistent-endpoint")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value())
+        assertThat(response.body()).doesNotContain("<base href")
+    }
+
+    @Test
+    fun `a request for a nonexistent static file is not swallowed into the spa fallback`() {
+        val response = get("/nonexistent-file.js")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
+        assertThat(response.body()).doesNotContain("<base href")
+    }
+
+    @Test
+    fun `missing index html on disk results in a 404 for both the root path and the spa fallback`() {
         indexHtmlFile.delete()
 
-        val response = indexHtmlController.index()
+        assertThat(get("/").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
+        assertThat(get("/login").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
+    }
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+    private fun get(path: String): HttpResponse<String> {
+        val request = HttpRequest.newBuilder(URI.create("http://localhost:$port$path")).GET().build()
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString())
     }
 }

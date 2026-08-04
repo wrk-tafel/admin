@@ -1,11 +1,13 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.core.io.ResourceLoader
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import java.nio.charset.StandardCharsets
 
 /**
@@ -15,6 +17,13 @@ import java.nio.charset.StandardCharsets
  * ships with `<base href="/">` for local `ng serve` use; this controller rewrites that to the
  * configured prefix so relative asset/API URLs still resolve correctly once nginx has stripped it
  * (see #2972 for what breaks otherwise).
+ *
+ * It also acts as the SPA's fallback route: a direct navigation/bookmark/refresh to a client-side
+ * route (e.g. "/login", "/kunden/suchen") isn't a real server path, but the router needs it to
+ * still resolve to the app shell rather than 404 - Angular's HashLocationStrategy then reads the
+ * intended route from the hash once the app has loaded. Static resource requests (real files, all
+ * of which have an extension in this build) and api requests are excluded so real 404s stay real
+ * 404s.
  */
 @Controller
 class IndexHtmlController(
@@ -23,7 +32,20 @@ class IndexHtmlController(
 ) {
 
     @GetMapping("/", produces = [MediaType.TEXT_HTML_VALUE])
-    fun index(): ResponseEntity<String> {
+    fun index(): ResponseEntity<String> = buildIndexResponse()
+
+    @GetMapping(
+        value = ["/{path:[^\\.]*}", "/**/{path:[^\\.]*}"],
+        produces = [MediaType.TEXT_HTML_VALUE],
+    )
+    fun spaFallback(@PathVariable path: String, request: HttpServletRequest): ResponseEntity<String> {
+        if (request.requestURI.startsWith("/api/")) {
+            return ResponseEntity.notFound().build()
+        }
+        return buildIndexResponse()
+    }
+
+    private fun buildIndexResponse(): ResponseEntity<String> {
         val resource = resourceLoader.getResource(staticResourceLocation() + "index.html")
         if (!resource.exists()) {
             return ResponseEntity.notFound().build()

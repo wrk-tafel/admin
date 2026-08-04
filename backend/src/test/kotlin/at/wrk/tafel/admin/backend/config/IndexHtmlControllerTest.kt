@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import io.mockk.every
 import io.mockk.mockk
+import jakarta.servlet.http.HttpServletRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ByteArrayResource
@@ -72,6 +73,40 @@ class IndexHtmlControllerTest {
         )
 
         val response = controller.index()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+    }
+
+    @Test
+    fun `spa fallback serves the app shell for a client-side route`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
+            "<html><head><base href=\"/\"></head><body></body></html>",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(),
+            resourceLoader = resourceLoader,
+        )
+        val request = mockk<HttpServletRequest> {
+            every { requestURI } returns "/login"
+        }
+
+        val response = controller.spaFallback(path = "login", request = request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo("<html><head><base href=\"/\"></head><body></body></html>")
+    }
+
+    @Test
+    fun `spa fallback does not swallow unmatched api requests into a 200`() {
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(),
+            resourceLoader = resourceLoader,
+        )
+        val request = mockk<HttpServletRequest> {
+            every { requestURI } returns "/api/some-nonexistent-endpoint"
+        }
+
+        val response = controller.spaFallback(path = "some-nonexistent-endpoint", request = request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }
