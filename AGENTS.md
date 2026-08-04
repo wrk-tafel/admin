@@ -240,10 +240,6 @@ since it lives outside the code you're editing. On every update or regeneration,
 - **No mouse cursor in screenshots.** The cursor position persists across page navigations within
   the same browser tab/session — it's not enough to just avoid clicking right before a screenshot.
   Park the cursor over a blank area (e.g. a `hover` action) immediately before capturing.
-- **Screenshot content should look real and German-appropriate.** If a screen shows cosmetic
-  test-fixture data (e.g. the email settings page's recipient addresses), fix the actual seed data
-  in `backend/src/main/resources/db-migration-testdata/testdata.sql` — don't type over it in the
-  browser just for the screenshot, that only fakes what regenerating from scratch would show.
 - **Cover error/edge states too**, not just the main feature screens (e.g. the 404/500 pages).
 - **Watch for near-identical-looking screens that are actually different flows** before assuming
   one screenshot covers both — e.g. the in-app "Passwort ändern" page (user menu, any time) and the
