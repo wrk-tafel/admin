@@ -162,6 +162,24 @@ describe('TicketScreen', () => {
       cy.closeDistribution();
     });
 
+    it('shows the current ticket-holder\'s debt on page load, without clicking "Aktuelles Ticket"', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id!;
+        cy.accrueCostContributionDebt(customerId);
+
+        cy.createDistribution();
+        cy.addCustomerToDistribution({customerId, ticketNumber: 1});
+        cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+
+        // deliberately no click on "Aktuelles Ticket" here
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.be.greaterThan(0);
+        });
+
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+      });
+    });
+
     it('pay off the full pending debt at once', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id!;

@@ -66,6 +66,12 @@ export class TicketScreenControlComponent {
 
   currentTicket = signal<TicketScreenTicketResponse | null>(null);
 
+  constructor() {
+    // Populate the cost-contribution panel for whichever ticket is already current (e.g. after a
+    // page reload) instead of leaving it empty until the operator clicks "Aktuelles Ticket".
+    this.showCurrentTicket();
+  }
+
   openScreenInNewTab() {
     const baseUrl = this.urlHelperService.getBaseUrl();
     window.open(`${baseUrl}/#/anmeldung/ticketmonitor`, '_blank');

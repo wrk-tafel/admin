@@ -48,7 +48,10 @@ describe('TicketScreenControlComponent', () => {
           provide: DistributionTicketScreenApiService,
           useValue: {
             showText: vi.fn().mockName('DistributionTicketScreenApiService.showText'),
-            showCurrentTicket: vi.fn().mockName('DistributionTicketScreenApiService.showCurrentTicket'),
+            // the component fetches the current ticket on construction (see the component's
+            // constructor), so this needs a default return value or every test that doesn't
+            // care about it would otherwise crash on TestBed.createComponent
+            showCurrentTicket: vi.fn().mockReturnValue(of(emptyTicket)).mockName('DistributionTicketScreenApiService.showCurrentTicket'),
             showPreviousTicket: vi.fn().mockName('DistributionTicketScreenApiService.showPreviousTicket'),
             showNextTicket: vi.fn().mockName('DistributionTicketScreenApiService.showNextTicket')
           }
@@ -95,6 +98,17 @@ describe('TicketScreenControlComponent', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
+  });
+
+  it('fetches the current ticket on init, without waiting for "Aktuelles Ticket" to be clicked', () => {
+    const response: TicketScreenTicketResponse = {ticketNumber: 5, householdId: 100, pendingCostContribution: 20};
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(TicketScreenControlComponent);
+    const component = fixture.componentInstance;
+
+    expect(distributionTicketScreenApiService.showCurrentTicket).toHaveBeenCalled();
+    expect(component.currentTicket()).toEqual(response);
   });
 
   it('openScreenInNewTab', () => {
