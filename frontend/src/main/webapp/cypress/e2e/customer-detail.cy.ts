@@ -416,7 +416,7 @@ describe('Customer Detail', () => {
   describe('cost contribution debt', () => {
     it('pay off the full pending debt at once', () => {
       cy.createDummyCustomer().then((response) => {
-        const customerId = response.body.data.id;
+        const customerId = response.body.data.id!;
         cy.accrueCostContributionDebt(customerId);
 
         cy.visit('/#/kunden/detail/' + customerId);
@@ -438,12 +438,16 @@ describe('Customer Detail', () => {
         cy.byTestId('payCostContributionAllButton').should('not.exist');
         cy.byTestId('payCostContributionAmountButton').should('not.exist');
         cy.byTestId('editCostContributionButton').should('be.visible');
+
+        // belt-and-suspenders: make sure this dummy customer ends the test with zero debt (see
+        // the "pay off a specific amount" test below for why this matters for other specs)
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
       });
     });
 
     it('pay off a specific amount of the pending debt', () => {
       cy.createDummyCustomer().then((response) => {
-        const customerId = response.body.data.id;
+        const customerId = response.body.data.id!;
         cy.accrueCostContributionDebt(customerId);
 
         cy.visit('/#/kunden/detail/' + customerId);
@@ -462,6 +466,12 @@ describe('Customer Detail', () => {
 
           cy.byTestId('costContributionButton').click();
           cy.byTestId('payCostContributionAllButton').should('be.visible');
+
+          // clear the remainder via the API (rather than another UI round-trip) - other specs
+          // (e.g. customer-search.cy.ts's "search by cost contribution") assert on the total
+          // count of customers with pending debt, so a dummy customer left with a nonzero
+          // balance here would leak into and break that assertion
+          cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
         });
       });
     });
@@ -487,18 +497,10 @@ describe('Customer Detail', () => {
           expect(parseCurrencyText($el.text())).to.equal(75);
         });
 
-        // reset back to zero - other specs (e.g. customer-search.cy.ts's "search by cost
-        // contribution") assert on the total count of customers with pending debt, so a dummy
-        // customer left with a nonzero balance here would leak into and break that assertion
-        cy.byTestId('costContributionButton').click();
-        cy.byTestId('editCostContributionButton').click();
-        cy.byTestId('edit-cost-contribution-dialog').should('be.visible').within(() => {
-          cy.byTestId('amount-input').clear().type('0');
-          cy.byTestId('okButton').click();
-        });
-        cy.byTestId('pendingCostContributionText').should(($el) => {
-          expect(parseCurrencyText($el.text())).to.equal(0);
-        });
+        // reset back to zero via the API - other specs (e.g. customer-search.cy.ts's "search by
+        // cost contribution") assert on the total count of customers with pending debt, so a
+        // dummy customer left with a nonzero balance here would leak into and break that assertion
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
       });
     });
   });
