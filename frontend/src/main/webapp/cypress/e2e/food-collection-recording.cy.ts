@@ -49,7 +49,7 @@ describe('Food Collection Recording', () => {
       // count it as fully recorded and list it by name - other routes (untouched) must not count.
       cy.visit('/#/');
       cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 3');
-      cy.byTestId('recorded-food-collections-route-names').should('have.text', 'Route 2');
+      cy.byTestId('recorded-route-names').should('have.text', 'Route 2');
     });
   });
 
