@@ -66,15 +66,24 @@ jobs:
       - run: npm ci --ignore-scripts
         working-directory: docs/userguide
       - name: Combine userguide chapters into one markdown file
-        # Page-break before each chapter (except the first) so md-to-pdf starts every chapter
-        # on a new PDF page - README.md doubles as the title/index page.
         run: |
           cd docs/userguide
           cp README.md combined.md
           for chapter in anmeldung kunden logistik benutzer einstellungen statistiken; do
-            printf '\n<div style="page-break-before: always;"></div>\n\n' >> combined.md
             cat "$chapter.md" >> combined.md
           done
+          # The chapters link to each other as separate files (e.g. "[Kunden](kunden.md)"), which
+          # is correct for GitHub/IDE viewing but not once merged into one PDF: md-to-pdf serves
+          # combined.md from a local http server, so an untouched "kunden.md" link would resolve
+          # to that server's URL and 404 once the PDF is standalone. Every chapter file carries a
+          # matching <a id="..."> anchor (at its top, and at any sub-section other chapters link
+          # to directly) - the chapter-top ones are named "kapitel-<name>" rather than just
+          # "<name>" because a bare id can collide with an unrelated heading's auto-generated slug
+          # elsewhere in the merged document (e.g. README.md's own "## Anmeldung" section) and
+          # silently jump to the wrong place. Rewrite the cross-file links into same-document
+          # anchor links accordingly.
+          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
+          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
       - name: Render userguide PDF
         run: |
           CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
@@ -82,7 +91,19 @@ jobs:
             echo "::error::No Chrome/Chromium executable found on this runner" >&2
             exit 1
           fi
-          node_modules/.bin/md-to-pdf combined.md --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          # Without --document-title, md-to-pdf falls back to the URL of the local http server it
+          # serves combined.md from (e.g. "localhost:PORT/combined.md"), which then shows up as the
+          # PDF's title in viewers/tabs.
+          # The first --css rule keeps each screenshot glued to the paragraph introducing it:
+          # without it, a page break can land between the two, leaving an image alone at the top of
+          # a page with its explanation stranded on the previous one. The second rule does the same
+          # for headings, which would otherwise sometimes end up alone at the bottom of a page with
+          # their section's actual content pushed to the next one. The third rule starts every
+          # chapter (README.md's own title plus each of the module files) on a fresh page - this
+          # also replaces what used to be a manually inserted page-break div between chapters in the
+          # concatenation step above, so a new chapter file added there gets the same treatment for
+          # free.
+          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf

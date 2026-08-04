@@ -858,15 +858,15 @@ values (2, NOW(), NOW(), 100, 'Shelter 2 with a very long name', 'Erdberg', 1, n
 
 -- mail recipients
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
-VALUES (1, 'DAILY_REPORT', 'TO', 'dailyreport-to1@domain.com');
+VALUES (1, 'DAILY_REPORT', 'TO', 'tagesreport-empfaenger1@beispiel.at');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
-VALUES (2, 'DAILY_REPORT', 'TO', 'dailyreport-to2@domain.com');
+VALUES (2, 'DAILY_REPORT', 'TO', 'tagesreport-empfaenger2@beispiel.at');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
-VALUES (4, 'DAILY_REPORT', 'BCC', 'dailyreport-bcc@domain.com');
+VALUES (4, 'DAILY_REPORT', 'BCC', 'tagesreport-bcc@beispiel.at');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
-VALUES (5, 'STATISTICS', 'TO', 'statistics-to@domain.com');
+VALUES (5, 'STATISTICS', 'TO', 'statistik-empfaenger@beispiel.at');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
-VALUES (6, 'RETURN_BOXES', 'TO', 'returnboxes-to@domain.com');
+VALUES (6, 'RETURN_BOXES', 'TO', 'retourkisten-empfaenger@beispiel.at');
 
 -- login attempts
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)

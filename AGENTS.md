@@ -235,7 +235,26 @@ There is a German-language user guide for end users at `docs/userguide/` (`READM
 per module, with screenshots in `docs/userguide/images/`). **Any new feature or user-facing feature
 change must be reflected in this user guide** — update the relevant module file (and add/replace
 screenshots if the UI changed) as part of the same task, not as a follow-up. This is easy to forget
-since it lives outside the code you're editing.
+since it lives outside the code you're editing. On every update or regeneration, also observe:
+
+- **No mouse cursor in screenshots.** The cursor position persists across page navigations within
+  the same browser tab/session — it's not enough to just avoid clicking right before a screenshot.
+  Park the cursor over a blank area (e.g. a `hover` action) immediately before capturing.
+- **Cover error/edge states too**, not just the main feature screens (e.g. the 404/500 pages).
+- **Watch for near-identical-looking screens that are actually different flows** before assuming
+  one screenshot covers both — e.g. the in-app "Passwort ändern" page (user menu, any time) and the
+  separate standalone forced-password-change page shown right after a login with
+  `passwordChangeRequired` are two distinct components/routes, not one.
+- **Cross-chapter markdown links** (e.g. `[Kunden](kunden.md)`) must stay as plain file links in the
+  source `.md` files — that's what makes them work on GitHub/in an IDE. Every chapter file's top
+  carries an explicit `<a id="kapitel-<name>"></a>` anchor, and any sub-heading another chapter
+  links to directly also gets one matching that link's anchor fragment. The chapter-top anchors are
+  named `kapitel-<name>` (not bare `<name>`) because a bare id can collide with an unrelated
+  heading's auto-generated slug elsewhere in the merged PDF and silently jump to the wrong place
+  (this happened with `anmeldung`, colliding with README.md's own "## Anmeldung" section). Adding a
+  new cross-file link or a new chapter requires adding/matching an anchor and extending the
+  filename list in the `sed` rewrite rules in the `userguide-pdf` job of
+  `.github/workflows/release.yml`.
 
 ## Handling Issues Found Outside the Current Task's Scope
 
