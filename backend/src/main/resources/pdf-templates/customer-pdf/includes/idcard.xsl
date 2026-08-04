@@ -218,7 +218,7 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell number-columns-spanned="2">
-                        <fo:block-container margin-top="0.75cm">
+                        <fo:block-container margin-top="0.4cm">
                             <fo:table table-layout="fixed" width="100%">
                                 <fo:table-column column-width="35%"/>
                                 <fo:table-column column-width="65%"/>

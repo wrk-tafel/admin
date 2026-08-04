@@ -1107,7 +1107,9 @@ internal class DistributionServiceTest {
         // The "Seite X von Y" footer (bottom-right, driven by fo:page-number-citation-last) renders
         // at a small font size and its anti-aliasing differs slightly by OS font rasterizer, even with
         // an embedded font - unlike the rest of the page, which renders pixel-identical across OSes.
-        val footerExclusionArea = Rectangle(0, actualImage.height - 120, actualImage.width, actualImage.height)
+        // It actually sits ~170-200px above the bottom edge (not right at the edge), so the excluded
+        // band needs to reach further up than its own height would suggest.
+        val footerExclusionArea = Rectangle(0, actualImage.height - 250, actualImage.width, actualImage.height)
         val comparisonResult = ImageComparison(expectedImage, actualImage)
             .setExcludedAreas(listOf(footerExclusionArea))
             .compareImages()

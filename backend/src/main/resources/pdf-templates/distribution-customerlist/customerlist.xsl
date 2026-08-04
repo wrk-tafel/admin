@@ -7,7 +7,7 @@
                 <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm"
                                        margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
                     <fo:region-body/>
-                    <fo:region-after/>
+                    <fo:region-after extent="1cm"/>
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
