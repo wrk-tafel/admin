@@ -6,20 +6,26 @@ Die Menüpunkte in diesem Bereich sind nur aktiv, solange ein Ausgabetag gestart
 
 ## Kunden-Annahme
 
-Unter **Anmeldung → Annahme** wird die Kundennummer eines Kunden eingegeben (oder per angeschlossenem Scanner gescannt), um dessen Kundendaten während der Ausgabe direkt anzuzeigen.
+Unter **Anmeldung → Annahme** wird die Kundennummer eines Kunden eingegeben (oder per Scanner-Handy gescannt), um dessen Kundendaten während der Ausgabe direkt anzuzeigen.
 
 ![Kunden-Annahme](images/anmeldung-annahme.jpg)
 
-- **Scanner**: Auswahl eines aktiven Scanner-Geräts, falls mehrere Scanner im Einsatz sind. Der Status (Aktiv/Inaktiv) zeigt, ob eine Verbindung zum Scanner besteht.
+- **Scanner**: Auswahl eines aktiven Scanners, falls mehrere Scanner-Handys im Einsatz sind (siehe [Scanner](#scanner) weiter unten). Der Status (Aktiv/Inaktiv) zeigt, ob eine Verbindung zum ausgewählten Scanner besteht.
 - **Kundennummer**: Manuelle Eingabe der Kundennummer, falls kein Scanner verwendet wird. Mit **Anzeigen** wird der Kunde geöffnet.
+
+Wurde ein Kunde angezeigt, erscheint darunter ein Panel mit Status (z. B. bezugsberechtigt, gesperrt), Adresse, Haushaltsgröße, Anzahl Kinder unter 3 Jahren, der letzten Notiz sowie – bei aktivem Ausgabetag – der Eingabe einer Ticket-Nummer, um den Kunden mit **Annehmen** der laufenden Ausgabe zuzuweisen.
+
+![Kunden-Annahme mit Kunde](images/anmeldung-annahme-kunde.jpg)
 
 ## Scanner
 
-Unter **Anmeldung → Scanner** wird die Kamera des Geräts (Tablet/PC) als Barcode-/QR-Code-Scanner für Kundenausweise verwendet.
+**"Scanner" ist in der Regel kein eigenes Gerät, sondern ein normales Smartphone**: Unter **Anmeldung → Scanner** wird auf einem Mobiltelefon (oder Tablet/PC) im Browser dessen Kamera als Barcode-/QR-Code-Scanner für Kundenausweise verwendet. Jedes Gerät, auf dem diese Seite geöffnet wird, meldet sich als eigener Scanner an und kann anschließend unter **Kunden-Annahme** ausgewählt werden.
 
 ![Scanner](images/anmeldung-scanner.jpg)
 
-Über das Dropdown **Kamera** kann bei mehreren angeschlossenen Kameras die gewünschte ausgewählt werden. Der Status rechts zeigt an, ob der Scanner bereit ist.
+Über das Dropdown **Kamera** kann bei mehreren Kameras am Gerät (z. B. Front-/Rückkamera eines Handys) die gewünschte ausgewählt werden. Der Status rechts oben zeigt "Bereit", sobald die Kamera aktiv ist und ein Ausweis-Code erkannt werden kann.
+
+![Scanner aktiv](images/anmeldung-scanner-aktiv.jpg)
 
 ## Ticket-Monitor – Steuerung
 

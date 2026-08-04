@@ -52,8 +52,12 @@ Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
 - **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt).
 - **Erfasste Routen (Anzahl/Details)** und **Erfasste Warenmenge**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)).
-- **Statistik**: Eingabe der Mitarbeiteranzahl und der Personen in den ausgewählten Notschlafstellen für den Tagesreport.
+- **Statistik**: Eingabe der Mitarbeiteranzahl und der Personen in den ausgewählten Notschlafstellen für den Tagesreport. Die Anzahl der Personen in Notschlafstellen wird über den Rechner-Button neben dem Feld ermittelt, indem die genutzten Notschlafstellen ausgewählt werden.
 - **Anmerkungen**: Freitext-Notizen zum aktuellen Ausgabetag, die z. B. im Tagesreport per E-Mail versendet werden.
+
+Vor dem Beenden des Ausgabetags sollten Statistik und Anmerkungen vollständig ausgefüllt sein, da diese Angaben in den Tagesreport einfließen:
+
+![Übersicht vor Tagesabschluss](images/dashboard-tagabschluss.jpg)
 
 ## Support-Anfrage
 
@@ -61,6 +65,12 @@ Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags
 
 ![Support-Anfrage](images/support-anfrage.jpg)
 
-## Pflege dieses Handbuchs
+## Fehlerseiten
 
-Dieses Benutzerhandbuch muss bei jeder neuen Funktion bzw. jeder funktionalen Änderung mit aktualisiert werden (siehe `AGENTS.md`).
+Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite:
+
+![404 – Seite nicht gefunden](images/fehlerseite-404.jpg)
+
+Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. In diesem Fall über **Support-Anfrage** (siehe oben) melden.
+
+![500 – Interner Server Fehler](images/fehlerseite-500.jpg)

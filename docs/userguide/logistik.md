@@ -4,11 +4,7 @@ Der Bereich "Logistik" dient der Erfassung der von den Routen-Teams eingesammelt
 
 ## Warenerfassung
 
-Unter **Logistik → Waren-Eingabe** wird zunächst die betreffende **Route** ausgewählt.
-
-![Route auswählen](images/logistik-warenerfassung-routewahl.jpg)
-
-Nach der Auswahl stehen zwei Reiter zur Verfügung:
+Unter **Logistik → Waren-Eingabe** wird zunächst über das Dropdown **Route** die betreffende Route ausgewählt. Danach stehen zwei Reiter zur Verfügung:
 
 ### Reiter "Route"
 
