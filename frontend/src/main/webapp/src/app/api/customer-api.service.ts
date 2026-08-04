@@ -205,6 +205,11 @@ export class CustomerApiService {
       .pipe(map(mapHouseholdToCustomer));
   }
 
+  editCostContribution(householdId: number, amount: number): Observable<CustomerData> {
+    return this.http.put<HouseholdData>(`/households/${householdId}/cost-contribution`, {amount})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
 }
 
 export interface ValidateCustomerResponse {

@@ -425,15 +425,19 @@ describe('Customer Detail', () => {
           expect(parseCurrencyText($el.text())).to.be.greaterThan(0);
         });
 
-        cy.byTestId('payCostContributionAllButton').scrollIntoView().should('be.visible').click();
+        cy.byTestId('costContributionButton').scrollIntoView().should('be.visible').click();
+        cy.byTestId('payCostContributionAllButton').should('be.visible').click();
 
         // the payment is applied async (API round-trip), so the assertion needs to retry/re-read
         // the element rather than reading its text once right after the click
         cy.byTestId('pendingCostContributionText').should(($el) => {
           expect(parseCurrencyText($el.text())).to.equal(0);
         });
+
+        cy.byTestId('costContributionButton').click();
         cy.byTestId('payCostContributionAllButton').should('not.exist');
         cy.byTestId('payCostContributionAmountButton').should('not.exist');
+        cy.byTestId('editCostContributionButton').should('be.visible');
       });
     });
 
@@ -445,7 +449,8 @@ describe('Customer Detail', () => {
         cy.visit('/#/kunden/detail/' + customerId);
 
         cy.byTestId('pendingCostContributionText').invoke('text').then(parseCurrencyText).then((initialAmount) => {
-          cy.byTestId('payCostContributionAmountButton').scrollIntoView().click();
+          cy.byTestId('costContributionButton').scrollIntoView().click();
+          cy.byTestId('payCostContributionAmountButton').click();
           cy.byTestId('pay-cost-contribution-dialog').should('be.visible').within(() => {
             cy.byTestId('amount-input').type('1');
             cy.byTestId('okButton').click();
@@ -454,7 +459,32 @@ describe('Customer Detail', () => {
           cy.byTestId('pendingCostContributionText').should(($el) => {
             expect(parseCurrencyText($el.text())).to.be.closeTo(initialAmount - 1, 0.01);
           });
+
+          cy.byTestId('costContributionButton').click();
           cy.byTestId('payCostContributionAllButton').should('be.visible');
+        });
+      });
+    });
+
+    it('edit the pending debt to an arbitrary amount', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.equal(0);
+        });
+
+        cy.byTestId('costContributionButton').scrollIntoView().click();
+        cy.byTestId('editCostContributionButton').click();
+        cy.byTestId('edit-cost-contribution-dialog').should('be.visible').within(() => {
+          cy.byTestId('amount-input').clear().type('75');
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('pendingCostContributionText').should(($el) => {
+          expect(parseCurrencyText($el.text())).to.equal(75);
         });
       });
     });

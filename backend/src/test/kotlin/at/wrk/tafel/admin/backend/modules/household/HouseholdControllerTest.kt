@@ -574,4 +574,30 @@ class HouseholdControllerTest {
         assertThat(response).isEqualTo(testHouseholdResponse)
         verify { householdService.payCostContribution(testHouseholdRequest.id!!, request.amount) }
     }
+
+    @Test
+    fun `edit cost contribution - doesnt exist`() {
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
+        val request = HouseholdCostContributionEditRequest(amount = BigDecimal("4.00"))
+
+        val exception =
+            assertThrows<NotFoundException> { controller.editCostContribution(testHouseholdRequest.id!!, request) }
+
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+    }
+
+    @Test
+    fun `edit cost contribution - exists`() {
+        val request = HouseholdCostContributionEditRequest(amount = BigDecimal("4.00"))
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
+        every {
+            householdService.editCostContribution(testHouseholdRequest.id!!, request.amount!!)
+        } returns testHouseholdResponse
+
+        val response = controller.editCostContribution(testHouseholdRequest.id!!, request)
+
+        assertThat(response).isEqualTo(testHouseholdResponse)
+        verify { householdService.editCostContribution(testHouseholdRequest.id!!, request.amount!!) }
+    }
 }

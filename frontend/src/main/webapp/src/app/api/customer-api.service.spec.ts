@@ -520,4 +520,19 @@ describe('CustomerApiService', () => {
     expect(result?.firstname).toEqual(mockCustomer.firstname);
   });
 
+  it('edit cost contribution sends the new amount and maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.editCostContribution(133, 42).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133/cost-contribution'});
+    expect(req.request.body).toEqual({amount: 42});
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
+    expect(result?.firstname).toEqual(mockCustomer.firstname);
+  });
+
 });

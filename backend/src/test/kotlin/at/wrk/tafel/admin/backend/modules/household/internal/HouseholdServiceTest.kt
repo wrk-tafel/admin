@@ -728,6 +728,37 @@ class HouseholdServiceTest {
         assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal.ZERO)
     }
 
+    @Test
+    fun `edit cost contribution - amount is set directly`() {
+        val householdId = 123L
+        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+
+        val result = service.editCostContribution(householdId, BigDecimal("500.00"))
+
+        assertThat(result).isEqualTo(testHouseholdResponse)
+        assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal("500.00"))
+        verify(exactly = 1) { householdRepository.saveAndFlush(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `edit cost contribution - negative amount is clamped at zero`() {
+        val householdId = 123L
+        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+
+        val result = service.editCostContribution(householdId, BigDecimal("-5.00"))
+
+        assertThat(result).isEqualTo(testHouseholdResponse)
+        assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal.ZERO)
+    }
+
     private fun testHouseholdEntityWithMainPerson(): HouseholdEntity {
         val household = HouseholdEntity().apply { householdId = 100 }
         val mainPerson = PersonEntity().apply {

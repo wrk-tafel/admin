@@ -304,6 +304,19 @@ class HouseholdService(
         val savedEntity = householdRepository.saveAndFlush(entity)
         return householdConverter.mapEntityToHousehold(savedEntity)
     }
+
+    /**
+     * Directly sets the household's pending Unkostenbeitrag to an arbitrary value, independent of
+     * any payment - e.g. to correct a wrongly recorded amount.
+     */
+    @Transactional
+    fun editCostContribution(householdId: Long, amount: BigDecimal): HouseholdResponse {
+        val entity = householdRepository.getReferenceByHouseholdId(householdId)
+        entity.pendingCostContribution = amount.coerceAtLeast(BigDecimal.ZERO)
+
+        val savedEntity = householdRepository.saveAndFlush(entity)
+        return householdConverter.mapEntityToHousehold(savedEntity)
+    }
 }
 
 @ExcludeFromTestCoverage

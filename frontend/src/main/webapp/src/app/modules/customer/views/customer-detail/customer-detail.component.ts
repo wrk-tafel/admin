@@ -27,6 +27,9 @@ import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.compon
 import {
   PayCostContributionDialogComponent
 } from '../../../../common/components/pay-cost-contribution-dialog/pay-cost-contribution-dialog.component';
+import {
+  EditCostContributionDialogComponent
+} from '../../../../common/components/edit-cost-contribution-dialog/edit-cost-contribution-dialog.component';
 import {UploadDocumentPanelComponent, UploadDocumentPanelResult} from './upload-document-panel.component';
 import {DeleteDocumentDialogComponent} from './dialogs/delete-document-dialog.component';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
@@ -300,6 +303,28 @@ export class CustomerDetailComponent {
 
   private payCostContribution(amount: number | undefined) {
     this.customerApiService.payCostContribution(this.customerData().id!, amount).subscribe({
+      next: (customer) => {
+        this.customerData.set(customer);
+        this.toastr.success('Unkostenbeitrag wurde aktualisiert!');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Aktualisierung fehlgeschlagen!');
+      }
+    });
+  }
+
+  openEditCostContributionDialog() {
+    this.dialog.open(EditCostContributionDialogComponent, {
+      data: {pendingAmount: this.customerData()?.pendingCostContribution ?? 0}
+    }).afterClosed().subscribe(amount => {
+      if (amount !== undefined && amount !== null) {
+        this.editCostContribution(amount);
+      }
+    });
+  }
+
+  private editCostContribution(amount: number) {
+    this.customerApiService.editCostContribution(this.customerData().id!, amount).subscribe({
       next: (customer) => {
         this.customerData.set(customer);
         this.toastr.success('Unkostenbeitrag wurde aktualisiert!');

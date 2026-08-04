@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.PositiveOrZero
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -154,6 +155,13 @@ data class HouseholdDuplicationItem(
 @ExcludeFromTestCoverage
 data class HouseholdCostContributionPaymentRequest(
     @field:Positive
+    val amount: BigDecimal? = null,
+)
+
+@ExcludeFromTestCoverage
+data class HouseholdCostContributionEditRequest(
+    @field:NotNull
+    @field:PositiveOrZero
     val amount: BigDecimal? = null,
 )
 
