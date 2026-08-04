@@ -66,13 +66,10 @@ jobs:
       - run: npm ci --ignore-scripts
         working-directory: docs/userguide
       - name: Combine userguide chapters into one markdown file
-        # Page-break before each chapter (except the first) so md-to-pdf starts every chapter
-        # on a new PDF page - README.md doubles as the title/index page.
         run: |
           cd docs/userguide
           cp README.md combined.md
           for chapter in anmeldung kunden logistik benutzer einstellungen statistiken; do
-            printf '\n<div style="page-break-before: always;"></div>\n\n' >> combined.md
             cat "$chapter.md" >> combined.md
           done
           # The chapters link to each other as separate files (e.g. "[Kunden](kunden.md)"), which
@@ -101,8 +98,12 @@ jobs:
           # without it, a page break can land between the two, leaving an image alone at the top of
           # a page with its explanation stranded on the previous one. The second rule does the same
           # for headings, which would otherwise sometimes end up alone at the bottom of a page with
-          # their section's actual content pushed to the next one.
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          # their section's actual content pushed to the next one. The third rule starts every
+          # chapter (README.md's own title plus each of the module files) on a fresh page - this
+          # also replaces what used to be a manually inserted page-break div between chapters in the
+          # concatenation step above, so a new chapter file added there gets the same treatment for
+          # free.
+          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf

@@ -92,7 +92,6 @@ jobs:
           cd docs/userguide
           cp README.md combined.md
           for chapter in anmeldung kunden logistik benutzer einstellungen statistiken; do
-            printf '\n<div style="page-break-before: always;"></div>\n\n' >> combined.md
             cat "$chapter.md" >> combined.md
           done
           sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
@@ -104,7 +103,7 @@ jobs:
             echo "::error::No Chrome/Chromium executable found on this runner" >&2
             exit 1
           fi
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
