@@ -29,6 +29,17 @@ describe('Login', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
+  it('login successful after a direct navigation to a non-root path (e.g. a bookmark)', () => {
+    // Regression test for #2972: loading the app from a path other than "/" or "/#/..." (as
+    // happens with a bookmarked/typed URL) must not break the app's own API calls, which rely on
+    // an absolute base URL derived from the page - not the requested path.
+    cy.visit('/login');
+
+    enterLoginData('e2etest', 'e2etest');
+
+    cy.url().should('contain', '/uebersicht');
+  });
+
   it('login failed', () => {
     enterLoginData('dummy', 'dummy');
 
