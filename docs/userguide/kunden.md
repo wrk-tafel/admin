@@ -1,3 +1,5 @@
+<a id="kapitel-kunden"></a>
+
 # Kunden
 
 Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Familienmitglieder, Notizen, Dokumente sowie Sonderfälle wie Duplikate oder Kunden über dem Einkommenslimit.
@@ -75,6 +77,8 @@ Für jedes gefundene Duplikat-Paar stehen folgende Aktionen zur Verfügung:
 Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen werden nach der Zusammenführung gelöscht. Für Felder, die sich zwischen den Kunden unterscheiden (z. B. Adresse, Vorname), kann ausgewählt werden, welcher Wert übernommen wird. Personen, die nur beim zusammenzuführenden Kunden vorhanden sind, werden automatisch übernommen.
 
 ![Kunden zusammenführen](images/kunden-zusammenfuehren.jpg)
+
+<a id="kunden-über-limit"></a>
 
 ## Kunden über Limit
 

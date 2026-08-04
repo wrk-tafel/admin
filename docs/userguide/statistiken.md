@@ -1,3 +1,5 @@
+<a id="kapitel-statistiken"></a>
+
 # Statistiken
 
 Der Bereich "Statistiken" liefert Auswertungen über die Kunden und Haushalte. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Statistiken" sichtbar.

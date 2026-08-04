@@ -1,3 +1,5 @@
+<a id="kapitel-benutzer"></a>
+
 # Benutzer
 
 Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinnen und Mitarbeiter verwaltet. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Benutzerverwaltung" sichtbar.
