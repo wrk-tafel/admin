@@ -130,6 +130,22 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');
   });
 
+  it('an invalidated session redirects to login even via a route with no data-fetch of its own', () => {
+    enterLoginData('e2etest', 'e2etest');
+    cy.url().should('contain', '/uebersicht');
+
+    cy.clearCookie('tafel-admin-jwt');
+
+    // "Passwort ändern" has no resolver and its component fires no HTTP request on mount - before
+    // this fix, AuthGuardService only ever checked a stale in-memory flag, so a click like this
+    // one was silently ignored instead of redirecting (see #2976).
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-changepassword').click();
+
+    cy.url().should('contain', '/login/abgelaufen');
+    cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');
+  });
+
   it('accessing a module without the required permission shows access denied', () => {
     createTestUser([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
       cy.visit('/#/login');
