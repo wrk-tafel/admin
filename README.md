@@ -279,12 +279,12 @@ Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 
 ### Reverse Proxy Deployment (Subpath / Subdomain)
 
-The frontend is built once and the same artifact is deployed unchanged behind a reverse proxy, whether it's mounted at a **subpath** on a shared domain (e.g. multiple environments under `tafel.wrk.at`) or given its own **subdomain** (the app owns the whole host). Which one is in play is controlled by a single backend property:
+The frontend is built once and the same artifact is deployed unchanged behind a reverse proxy, whether it's mounted at a **subpath** on a shared domain (e.g. multiple environments under one domain) or given its own **subdomain** (the app owns the whole host). Which one is in play is controlled by a single backend property:
 
 ```yaml
 tafeladmin:
   server:
-    relativeBaseUrl: /verwaltung-test/   # "/" for a subdomain / root deployment
+    relativeBaseUrl: /tafel-admin/   # "/" for a subdomain / root deployment
 ```
 
 This must match whatever prefix the reverse proxy exposes to the browser. It drives both the JWT cookie path and the frontend's `<base href>` (rewritten server-side by `IndexHtmlController` - see #2972/#2978), so relative asset and API URLs keep resolving correctly once the proxy has stripped its prefix.
@@ -301,24 +301,24 @@ map $request_uri $sse_cache_control {
 
 #### Subpath example
 
-nginx strips the `/verwaltung-test/` prefix before forwarding to the backend, and passes it along separately via `X-Forwarded-Prefix` (not currently consumed by the app, but kept for parity/future use and general reverse-proxy convention):
+nginx strips the `/tafel-admin/` prefix before forwarding to the backend, and passes it along separately via `X-Forwarded-Prefix` (not currently consumed by the app, but kept for parity/future use and general reverse-proxy convention):
 
 ```nginx
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name tafel.wrk.at;
+    server_name tafel-admin.example.com;
 
     # Common Headers
     resolver 127.0.0.11 valid=30s;  # Docker's embedded DNS, for re-resolving the upstream on restart
 
-    location /verwaltung-test/ {
+    location /tafel-admin/ {
         proxy_set_header Host               $host;
         proxy_set_header X-Real-IP          $remote_addr;
         proxy_set_header X-Forwarded-Proto  $scheme;
         proxy_set_header X-Forwarded-Port   443;
         proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Prefix /verwaltung-test;
+        proxy_set_header X-Forwarded-Prefix /tafel-admin;
         proxy_set_header Forwarded          '';
 
         proxy_buffering off;
@@ -329,8 +329,8 @@ server {
         chunked_transfer_encoding off;
 
         # Logic for re-resolution and path stripping
-        set $upstream http://admin-test:8080;
-        rewrite ^/verwaltung-test/(.*) /$1 break;
+        set $upstream http://tafel-admin-backend:8080;
+        rewrite ^/tafel-admin/(.*) /$1 break;
 
         # SSE-Specific Optimization
         add_header Cache-Control $sse_cache_control;
@@ -340,7 +340,7 @@ server {
 }
 ```
 
-Matching backend config: `tafeladmin.server.relativeBaseUrl: /verwaltung-test/`.
+Matching backend config: `tafeladmin.server.relativeBaseUrl: /tafel-admin/`.
 
 #### Subdomain example
 
@@ -350,7 +350,7 @@ A subdomain owns the whole host, so there's no prefix to strip and `relativeBase
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name verwaltung-demo.wrk.at;
+    server_name tafeladmin.example.com;
 
     resolver 127.0.0.11 valid=30s;
 
@@ -369,7 +369,7 @@ server {
         proxy_set_header Connection '';
         chunked_transfer_encoding off;
 
-        set $upstream http://admin-demo:8080;
+        set $upstream http://tafel-admin-backend:8080;
 
         add_header Cache-Control $sse_cache_control;
 
