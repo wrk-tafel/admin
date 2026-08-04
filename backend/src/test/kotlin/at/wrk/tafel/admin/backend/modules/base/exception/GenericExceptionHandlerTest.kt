@@ -149,10 +149,12 @@ internal class GenericExceptionHandlerTest {
     }
 
     @Test
-    fun `handles AsyncRequestNotUsableException without throwing`() {
+    fun `handles AsyncRequestNotUsableException without throwing and returns no body`() {
         val exception = AsyncRequestNotUsableException("response no longer usable")
 
-        exceptionHandler.handleAsyncRequestNotUsableException(exception)
+        val response = exceptionHandler.handleAsyncRequestNotUsableException(exception, request)
+
+        assertThat(response).isNull()
     }
 
     @Test

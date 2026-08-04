@@ -68,15 +68,25 @@ class GenericExceptionHandler(
      * mid-stream) - it's an IOException, so Spring's own SSE completion handling
      * (`DefaultSseEmitterHandler.complete()`) catches it internally and resurfaces it as a deferred
      * result error rather than throwing it back to the calling code, which is why callers like
-     * `SseOutboxService.sendEvent()` can never catch it themselves. Without this handler it falls
+     * `SseOutboxService.sendEvent()` can never catch it themselves. Without overriding this it falls
      * through to [handleGenericException] and gets logged as a full ERROR stack trace for what's a
-     * routine disconnect. A `Unit` return here tells Spring the exception is fully handled with
-     * nothing to write, since attempting to render a body onto an already-unusable response would
-     * just fail again.
+     * routine disconnect.
+     *
+     * This overrides the protected hook [ResponseEntityExceptionHandler.handleAsyncRequestNotUsableException]
+     * rather than adding a new `@ExceptionHandler(AsyncRequestNotUsableException::class)` method: the
+     * superclass's own `handleException` already declares that exact exception type in its
+     * `@ExceptionHandler` list (since Spring Framework 6.2) and dispatches to this hook internally -
+     * a second method independently claiming the same type is an "Ambiguous @ExceptionHandler method"
+     * error at context startup, not a silent override. Returning `null` (the default) tells Spring the
+     * exception is fully handled with nothing to write, since attempting to render a body onto an
+     * already-unusable response would just fail again.
      */
-    @ExceptionHandler(AsyncRequestNotUsableException::class)
-    fun handleAsyncRequestNotUsableException(exception: AsyncRequestNotUsableException) {
-        log.debug("Async request/response no longer usable, client likely disconnected", exception)
+    public override fun handleAsyncRequestNotUsableException(
+        ex: AsyncRequestNotUsableException,
+        request: WebRequest,
+    ): ResponseEntity<Any>? {
+        log.debug("Async request/response no longer usable, client likely disconnected", ex)
+        return null
     }
 
     @ExceptionHandler(Exception::class)
