@@ -60,7 +60,8 @@ describe('CheckinComponent', () => {
         const globalStateServiceSpy = {
             getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
               .mockReturnValue(signal<DistributionItem>(defaultDistribution).asReadonly()),
-            getHasReceivedDistribution: vi.fn().mockName('GlobalStateService.getHasReceivedDistribution').mockReturnValue(signal(true).asReadonly())
+            getHasReceivedDistribution: vi.fn().mockName('GlobalStateService.getHasReceivedDistribution')
+              .mockReturnValue(signal(true).asReadonly())
         };
         const distributionApiServiceSpy = {
             assignCustomer: vi.fn().mockName('DistributionApiService.assignCustomer')
