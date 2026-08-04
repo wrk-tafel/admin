@@ -23,7 +23,6 @@ import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatSelectModule} from '@angular/material/select';
-import {MatDialog} from '@angular/material/dialog';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
@@ -43,8 +42,7 @@ describe('CheckinComponent', () => {
 
     beforeEach(() => {
         const customerApiServiceSpy = {
-            getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
-            payCostContribution: vi.fn().mockName('CustomerApiService.payCostContribution')
+            getCustomer: vi.fn().mockName('CustomerApiService.getCustomer')
         };
         const customerNoteApiServiceSpy = {
             getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
@@ -134,12 +132,6 @@ describe('CheckinComponent', () => {
                 {
                     provide: TafelToastrService,
                     useValue: toastrSpy
-                },
-                {
-                    provide: MatDialog,
-                    useValue: {
-                        open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})
-                    }
                 }
             ]
         }).compileComponents();
@@ -809,86 +801,6 @@ describe('CheckinComponent', () => {
         expect(component.ticketNumber()).toBeUndefined();
         expect(component.ticketNumberEdit()).toBeUndefined();
         expect(toastr.success).toHaveBeenCalledWith('Ticket-Nummer gelöscht!');
-    });
-
-    it('pay cost contribution - all', () => {
-        const fixture = TestBed.createComponent(CheckinComponent);
-        const component = fixture.componentInstance;
-        component.customerNotes.set([]);
-
-        const mockCustomer = {
-            id: 133,
-            lastname: 'Mustermann',
-            firstname: 'Max',
-            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
-            gender: Gender.MALE,
-
-            address: {
-                street: 'Teststraße',
-                houseNumber: '123A',
-                door: '21',
-                postalCode: 1020,
-                city: 'Wien',
-            },
-
-            employer: 'test employer',
-            income: 1000,
-            pendingCostContribution: 20,
-
-            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
-            additionalPersons: []
-        };
-        component.processCustomer(mockCustomer);
-
-        const expectedCustomer = {...mockCustomer, pendingCostContribution: 0};
-        customerApiService.payCostContribution.mockReturnValue(of(expectedCustomer));
-
-        component.payCostContributionAll();
-
-        expect(customerApiService.payCostContribution).toHaveBeenCalledWith(mockCustomer.id, undefined);
-        expect(component.customer()).toEqual(expectedCustomer);
-        expect(toastr.success).toHaveBeenCalledWith('Unkostenbeitrag wurde aktualisiert!');
-    });
-
-    it('pay cost contribution - specific amount via dialog', () => {
-        const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-        matDialog.open.mockReturnValue({afterClosed: () => of(4)} as any);
-
-        const fixture = TestBed.createComponent(CheckinComponent);
-        const component = fixture.componentInstance;
-        component.customerNotes.set([]);
-
-        const mockCustomer = {
-            id: 133,
-            lastname: 'Mustermann',
-            firstname: 'Max',
-            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
-            gender: Gender.MALE,
-
-            address: {
-                street: 'Teststraße',
-                houseNumber: '123A',
-                door: '21',
-                postalCode: 1020,
-                city: 'Wien',
-            },
-
-            employer: 'test employer',
-            income: 1000,
-            pendingCostContribution: 20,
-
-            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
-            additionalPersons: []
-        };
-        component.processCustomer(mockCustomer);
-
-        const expectedCustomer = {...mockCustomer, pendingCostContribution: 16};
-        customerApiService.payCostContribution.mockReturnValue(of(expectedCustomer));
-
-        component.openPayCostContributionDialog();
-
-        expect(customerApiService.payCostContribution).toHaveBeenCalledWith(mockCustomer.id, 4);
-        expect(component.customer()).toEqual(expectedCustomer);
     });
 
 });

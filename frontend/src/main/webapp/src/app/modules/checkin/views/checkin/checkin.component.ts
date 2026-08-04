@@ -27,10 +27,6 @@ import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
-import {MatDialog} from '@angular/material/dialog';
-import {
-  PayCostContributionDialogComponent
-} from '../../../../common/components/pay-cost-contribution-dialog/pay-cost-contribution-dialog.component';
 
 @Component({
     selector: 'tafel-checkin',
@@ -66,7 +62,6 @@ export class CheckinComponent {
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly dialog = inject(MatDialog);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
   customerIdInputRef = viewChild<ElementRef>('customerIdInput');
@@ -298,32 +293,6 @@ export class CheckinComponent {
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);
-  }
-
-  openPayCostContributionDialog() {
-    this.dialog.open(PayCostContributionDialogComponent, {
-      data: {pendingAmount: this.customer()?.pendingCostContribution ?? 0}
-    }).afterClosed().subscribe(amount => {
-      if (amount) {
-        this.payCostContribution(amount);
-      }
-    });
-  }
-
-  payCostContributionAll() {
-    this.payCostContribution(undefined);
-  }
-
-  private payCostContribution(amount: number | undefined) {
-    this.customerApiService.payCostContribution(this.customer()!.id!, amount).subscribe({
-      next: (customer) => {
-        this.customer.set(customer);
-        this.toastr.success('Unkostenbeitrag wurde aktualisiert!');
-      },
-      error: (error: HttpErrorResponse) => {
-        this.toastr.error(extractErrorMessage(error), 'Aktualisierung fehlgeschlagen!');
-      }
-    });
   }
 
   protected readonly faTrashCan = faTrashCan;

@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdL
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
+import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenTicketResponse
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -167,8 +168,22 @@ class DistributionService(
     @Transactional(readOnly = true)
     fun getCurrentTicketNumberValue(householdId: Long? = null): Int? = getCurrentTicketNumber(householdId)?.ticketNumber
 
+    /**
+     * Same "current ticket" lookup as [getCurrentTicketNumber], but mapped to a DTO so that
+     * [DistributionTicketScreenController] (which also needs the household id and its pending
+     * debt, not just the ticket number) never has to touch [DistributionHouseholdEntity] itself -
+     * controllers are architecturally forbidden from depending on `database.model` entities
+     * directly, see `ProjectSpecificRulesTest`.
+     */
+    @Transactional(readOnly = true)
+    fun getCurrentTicketScreenTicket(): TicketScreenTicketResponse = if (hasCurrentDistribution()) {
+        mapToTicketScreenTicket(getCurrentTicketNumber())
+    } else {
+        mapToTicketScreenTicket(null)
+    }
+
     @Transactional
-    fun reopenAndGetPreviousTicket(): Int? {
+    fun reopenAndGetPreviousTicket(): TicketScreenTicketResponse {
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getLastProcessedDistributionHouseholdEntity(distribution)
@@ -179,12 +194,11 @@ class DistributionService(
             logger.info("Ticket-Log - Reopened ticket-number: ${distributionHouseholdEntity.ticketNumber}")
         }
 
-        val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
-        return currentTicketNumber
+        return mapToTicketScreenTicket(getCurrentTicketNumber())
     }
 
     @Transactional
-    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): Int? {
+    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): TicketScreenTicketResponse {
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
@@ -194,12 +208,18 @@ class DistributionService(
             distributionHouseholdEntity.processed = true
             distributionHouseholdRepository.save(distributionHouseholdEntity)
 
-            val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
-            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: $currentTicketNumber")
-            return currentTicketNumber
+            val nextTicket = getCurrentTicketNumber()
+            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: ${nextTicket?.ticketNumber}")
+            return mapToTicketScreenTicket(nextTicket)
         }
-        return null
+        return mapToTicketScreenTicket(null)
     }
+
+    private fun mapToTicketScreenTicket(distributionHouseholdEntity: DistributionHouseholdEntity?) = TicketScreenTicketResponse(
+        ticketNumber = distributionHouseholdEntity?.ticketNumber,
+        householdId = distributionHouseholdEntity?.household?.householdId,
+        pendingCostContribution = distributionHouseholdEntity?.household?.pendingCostContribution,
+    )
 
     @Transactional
     fun deleteCurrentTicket(householdId: Long): Boolean {

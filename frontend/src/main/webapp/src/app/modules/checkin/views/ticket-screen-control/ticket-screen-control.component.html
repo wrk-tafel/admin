@@ -37,6 +37,22 @@
             <button testid="costcontribution-paid-no-button" matButton="filled" class="button-danger" (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (nicht bezahlt)</button>
           </div>
         </div>
+
+        @if (currentTicket()?.householdId) {
+          <mat-divider class="!my-6"></mat-divider>
+
+          <div class="text-center">
+            <h4 class="text-lg">Unkostenbeitrag (bestehend)</h4>
+            <div class="mt-2" testid="pendingCostContributionText">{{ currentTicket()?.pendingCostContribution | currency }}</div>
+            <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+              @if ((currentTicket()?.pendingCostContribution ?? 0) > 0) {
+                <button testid="payCostContributionAllButton" matButton="filled" class="button-success" (click)="payCostContributionAll()">Alles bezahlt</button>
+                <button testid="payCostContributionAmountButton" matButton="filled" (click)="openPayCostContributionDialog()">Betrag eintragen</button>
+              }
+              <button testid="editCostContributionButton" matButton="outlined" (click)="openEditCostContributionDialog()">Betrag bearbeiten</button>
+            </div>
+          </div>
+        }
       </div>
 
       <div>

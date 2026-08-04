@@ -110,69 +110,6 @@ describe('CheckIn', () => {
 
 });
 
-// Accruing debt requires closing a distribution (see cy.accrueCostContributionDebt), which would
-// redirect away from the checkin page if it were the same distribution the outer describe above
-// already visits it under - so this runs its own distribution lifecycle: accrue the debt first in
-// a throwaway distribution, then start a fresh one before visiting the checkin page.
-describe('CheckIn - cost contribution debt', () => {
-
-  beforeEach(() => {
-    cy.loginDefault();
-  });
-
-  afterEach(() => {
-    cy.closeDistribution();
-  });
-
-  it('pay off the full pending debt at once', () => {
-    cy.createDummyCustomer().then((response) => {
-      const customerId = response.body.data.id!;
-      cy.accrueCostContributionDebt(customerId);
-
-      cy.createDistribution();
-      cy.visit('/#/anmeldung/annahme');
-      searchCustomer(customerId);
-
-      cy.byTestId('payCostContributionAllButton').should('be.visible').click();
-
-      cy.byTestId('payCostContributionAllButton').should('not.exist');
-      cy.byTestId('payCostContributionAmountButton').should('not.exist');
-
-      // belt-and-suspenders: make sure this dummy customer ends the test with zero debt (see the
-      // "pay off a specific amount" test below for why this matters for other specs)
-      cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
-    });
-  });
-
-  it('pay off a specific amount of the pending debt', () => {
-    cy.createDummyCustomer().then((response) => {
-      const customerId = response.body.data.id!;
-      cy.accrueCostContributionDebt(customerId);
-
-      cy.createDistribution();
-      cy.visit('/#/anmeldung/annahme');
-      searchCustomer(customerId);
-
-      cy.byTestId('payCostContributionAmountButton').click();
-      cy.byTestId('pay-cost-contribution-dialog').should('be.visible').within(() => {
-        cy.byTestId('amount-input').type('1');
-        cy.byTestId('okButton').click();
-      });
-
-      // still owes the remainder, so both actions stay available
-      cy.byTestId('payCostContributionAllButton').should('be.visible');
-      cy.byTestId('payCostContributionAmountButton').should('be.visible');
-
-      // clear the remainder via the API (rather than another UI round-trip) - other specs (e.g.
-      // customer-search.cy.ts's "search by cost contribution") assert on the total count of
-      // customers with pending debt, so a dummy customer left with a nonzero balance here would
-      // leak into and break that assertion
-      cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
-    });
-  });
-
-});
-
 function searchCustomer(customerId: number) {
   cy.byTestId('customerIdInput').clear();
   // guard against a race where the form's async reset (after the previous search) overwrites

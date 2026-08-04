@@ -55,16 +55,6 @@
             </div>
           }
         </h2>
-        @if ((customer()?.pendingCostContribution ?? 0) > 0) {
-          <div class="flex gap-2 mt-2">
-            <button type="button" testid="payCostContributionAmountButton" matButton="filled"
-                    (click)="openPayCostContributionDialog()">Betrag eintragen
-            </button>
-            <button type="button" testid="payCostContributionAllButton" matButton="filled" class="button-success"
-                    (click)="payCostContributionAll()">Alles bezahlt
-            </button>
-          </div>
-        }
       </mat-card-header>
       <mat-card-content>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
