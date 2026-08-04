@@ -8,6 +8,11 @@ This is a food bank (Tafel) administration system built with a Spring Boot/Kotli
 
 ## Build and Development Commands
 
+**The Gradle wrapper (`gradlew`/`gradlew.bat`) lives at the repo root, not in `backend/`.** Always
+invoke it as `./gradlew :backend:...` from the repo root (or with an explicit path to the root
+wrapper) — there is no wrapper inside `backend/`, so running it from that directory fails with
+"not recognized"/"No such file or directory".
+
 ### Full Application Build
 Backend and frontend build independently - there's no Gradle cross-dependency between them.
 ```bash
