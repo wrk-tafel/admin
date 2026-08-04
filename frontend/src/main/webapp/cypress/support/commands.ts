@@ -74,28 +74,29 @@ Cypress.Commands.overwrite('request', (originalFn, ...args: any[]): Cypress.Chai
     return originalFn({...options, headers, failOnStatusCode: false} as Cypress.RequestOptions);
   };
 
-  let initialTokenValue: string | undefined;
+  // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing) between
+  // reading it and this request reaching the server, so the header we sent no longer matches the
+  // cookie Cypress auto-attached, causing a 403. It can keep rotating out from under us, so bound
+  // the retries rather than assuming a single retry always lands on a stable value. Only retry
+  // when the cookie actually changed though - if it's the same as what we just sent, this 403
+  // isn't a rotation race and retrying won't help.
+  const MAX_ATTEMPTS = 4;
 
-  return cy.getCookie('XSRF-TOKEN')
-    .then(cookie => {
-      initialTokenValue = cookie?.value;
-      return send(initialTokenValue);
-    })
-    .then((response): Cypress.Chainable<Cypress.Response<any>> => {
-      if (response.status !== 403) {
+  const attemptWithToken = (tokenValue: string | undefined, attemptsLeft: number): Cypress.Chainable<Cypress.Response<any>> =>
+    send(tokenValue).then((response): Cypress.Chainable<Cypress.Response<any>> => {
+      if (response.status !== 403 || attemptsLeft <= 1) {
         return cy.wrap(response, {log: false});
       }
-      // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing)
-      // between reading it above and this request reaching the server, so the header we sent
-      // no longer matches the cookie Cypress auto-attached. Retry once with whatever the
-      // cookie is now before treating this as a genuine failure.
       return cy.getCookie('XSRF-TOKEN').then((freshCookie): Cypress.Chainable<Cypress.Response<any>> => {
-        if (!freshCookie || freshCookie.value === initialTokenValue) {
+        if (!freshCookie || freshCookie.value === tokenValue) {
           return cy.wrap(response, {log: false});
         }
-        return send(freshCookie.value);
+        return attemptWithToken(freshCookie.value, attemptsLeft - 1);
       });
-    })
+    });
+
+  return cy.getCookie('XSRF-TOKEN')
+    .then(cookie => attemptWithToken(cookie?.value, MAX_ATTEMPTS))
     .then((response): Cypress.Chainable<Cypress.Response<any>> => {
       if (failOnStatusCode && (response.status < 200 || response.status >= 400)) {
         throw new Error(
