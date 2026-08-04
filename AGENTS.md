@@ -229,6 +229,14 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
   backend, which only e2e/integration tests exercise). Before calling frontend work done, check
   whether `cypress/e2e/*.cy.ts` needs a new `it(...)` for what changed.
 
+## User Guide
+
+There is a German-language user guide for end users at `docs/userguide/` (`README.md` plus one file
+per module, with screenshots in `docs/userguide/images/`). **Any new feature or user-facing feature
+change must be reflected in this user guide** — update the relevant module file (and add/replace
+screenshots if the UI changed) as part of the same task, not as a follow-up. This is easy to forget
+since it lives outside the code you're editing.
+
 ## Handling Issues Found Outside the Current Task's Scope
 
 If you notice a bug or problem while working on a task that is **not caused by your current
