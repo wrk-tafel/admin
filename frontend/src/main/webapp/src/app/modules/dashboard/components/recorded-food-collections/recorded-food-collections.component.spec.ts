@@ -88,31 +88,4 @@ describe('RecordedFoodCollectionsComponent', () => {
     expect(color).toBe('success');
   });
 
-  it('recorded route names rendered when present', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal({id: 123, startedAt: new Date()}).asReadonly());
-
-    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
-    const componentRef = fixture.componentRef;
-    componentRef.setInput('countRecorded', 2);
-    componentRef.setInput('countTotal', 5);
-    componentRef.setInput('recordedRouteNames', ['Route 1', 'Route 3']);
-
-    fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-route-names"]')).nativeElement.textContent.trim())
-      .toBe('Route 1, Route 3');
-  });
-
-  it('recorded route names not rendered when empty', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal({id: 123, startedAt: new Date()}).asReadonly());
-
-    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
-    const componentRef = fixture.componentRef;
-    componentRef.setInput('countRecorded', 0);
-    componentRef.setInput('countTotal', 5);
-    componentRef.setInput('recordedRouteNames', []);
-
-    fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-route-names"]'))).toBeNull();
-  });
-
 });

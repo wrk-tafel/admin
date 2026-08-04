@@ -16,7 +16,6 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 export class RecordedFoodCollectionsComponent {
   countRecorded = input<number | null>(null);
   countTotal = input<number | null>(null);
-  recordedRouteNames = input<string[] | null>(null);
 
   private readonly globalStateService = inject(GlobalStateService);
 

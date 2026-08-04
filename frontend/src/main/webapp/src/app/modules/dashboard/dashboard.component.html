@@ -6,12 +6,14 @@
   </tafel-tickets-processed>
 </div>
 <mat-divider class="!m-4"></mat-divider>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-2">
   <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
-                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null"
-                                   [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
+                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
   </tafel-recorded-food-collections>
-  <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal ?? null">
+  <tafel-recorded-route-names class="lg:col-span-2"
+                              [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
+  </tafel-recorded-route-names>
+  <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
   </tafel-food-amount>
 </div>
 <mat-divider class="!m-4"></mat-divider>
