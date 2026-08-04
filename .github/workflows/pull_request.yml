@@ -73,46 +73,6 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
-  # TEMPORARY - added to let the userguide PDF be tested from a PR run before release.yml's
-  # equivalent job (which this is copied from) actually ships it. Remove this whole job once
-  # testing is done.
-  userguide-pdf-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: 'frontend/src/main/webapp/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'docs/userguide/package-lock.json'
-      - run: npm ci --ignore-scripts
-        working-directory: docs/userguide
-      - name: Combine userguide chapters into one markdown file
-        run: |
-          cd docs/userguide
-          cp README.md combined.md
-          for chapter in anmeldung kunden logistik benutzer einstellungen statistiken; do
-            cat "$chapter.md" >> combined.md
-          done
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
-      - name: Render userguide PDF
-        run: |
-          CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
-          if [ -z "$CHROME_PATH" ]; then
-            echo "::error::No Chrome/Chromium executable found on this runner" >&2
-            exit 1
-          fi
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
-        working-directory: docs/userguide
-      - name: Rename PDF to release asset name
-        run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: userguide-pdf
-          path: tafel-admin-benutzerhandbuch.pdf
-          if-no-files-found: error
-          retention-days: 7
   deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [build-push-image, version]
