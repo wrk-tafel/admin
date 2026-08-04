@@ -43,9 +43,10 @@ class SseOutboxListenerService(
     @PostConstruct
     fun setupListener() {
         notificationListenerJob = CoroutineScope(Dispatchers.IO).launch {
-            jdbcTemplate.dataSource!!.connection.use { connection ->
-                listenOnConnection(connection)
-                val pgConn = connection.unwrap(PGConnection::class.java)
+            jdbcTemplate.dataSource!!.connection.use { conn ->
+                connection = conn
+                listenOnConnection(conn)
+                val pgConn = conn.unwrap(PGConnection::class.java)
 
                 while (true) {
                     val notifications = pgConn.getNotifications(NOTIFICATIONS_POLL_TIMEOUT)

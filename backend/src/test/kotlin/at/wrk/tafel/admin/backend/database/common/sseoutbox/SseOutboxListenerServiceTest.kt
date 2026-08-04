@@ -52,6 +52,8 @@ class SseOutboxListenerServiceTest {
         every { mockConnection.createStatement() } returns mockStatement
         every { mockStatement.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;") } returns true
         every { mockStatement.close() } returns Unit
+        every { mockConnection.isClosed } returns false
+        every { mockConnection.close() } returns Unit
 
         val mockPGConnection: PGConnection = mockk()
         every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } returns arrayOf(
@@ -82,6 +84,15 @@ class SseOutboxListenerServiceTest {
 
         verify { mockStatement.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;") }
         assertThat(retrievedPayload).isEqualTo(testNotificationEvent.payload)
+        assertThat(service.connection).isNotNull()
+    }
+
+    @Test
+    fun `cleanup after setup listener does not throw`(): Unit = runBlocking {
+        service.setupListener()
+        service.notificationListenerJob.join()
+
+        service.cleanup()
     }
 
     @Test
