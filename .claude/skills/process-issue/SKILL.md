@@ -1,11 +1,11 @@
 name: process-issue
-description: Implements a GitHub issue end-to-end: reads the ticket, creates a branch dedicated to it, implements and tests the change, opens a PR linked to the issue, then watches the PR's CI pipeline and fixes any red checks until everything is green. Takes a GitHub issue link (or `owner/repo#123` / bare number) as its argument. Use when the user wants an issue/ticket implemented and turned into a passing PR, e.g. "work on https://github.com/wrk-tafel/admin/issues/2989" or "implement issue #123".
+description: Implements a GitHub issue end-to-end: reads the ticket, creates a branch dedicated to it, implements and tests the change, opens a PR linked to the issue, then hands off to `process-pr` for a self-review pass plus CI/SonarCloud babysitting until everything is green. Takes a GitHub issue link (or `owner/repo#123` / bare number) as its argument. Use when the user wants an issue/ticket implemented and turned into a passing PR, e.g. "work on https://github.com/wrk-tafel/admin/issues/2989" or "implement issue #123".
 ---
 
 This workflow is fully automated end-to-end (implementation, testing, branch, PR, CI babysitting) —
 never ask the user to run a command, restart something, or confirm intermediate state yourself.
 **Never merge the resulting PR** — the workflow ends at "PR open, all checks green," same as this
-repo's other skills (`process-dependabot`, `cleanup-branches`). Never fix a red check by weakening
+repo's other skills (`process-dependabot`, `cleanup-git`, `process-pr`). Never fix a red check by weakening
 it (skipping a test, loosening a lint rule, lowering a Sonar gate, `--no-verify`) — fix the root
 cause, same philosophy as `fix-e2e`.
 
@@ -118,52 +118,11 @@ The PR title itself must pass `pr-title-lint` (same Conventional Commits rule as
 repo squash-merges with the PR title becoming the final commit — see AGENTS.md). The `Closes
 #<issue-number>` line is what auto-closes the issue once the squash commit lands on `main`.
 
-## 8. Wait for the pipeline
+## 8. Hand off to process-pr
 
-```bash
-gh pr checks <pr-number> --repo <owner>/<repo> --watch --fail-fast=false
-```
-
-This blocks until every job on the PR — `commitlint`, `pr-title-lint`, `build` (backend+frontend),
-`test` (backend+frontend), `sonar`, `lint` (backend/docker/frontend), `build-push-image`,
-`e2e-test`, `deploy-dev` — has finished, then reports pass/fail per job. `deploy-dev` shares one
-`dev-environment` concurrency group across every PR in the repo, so it can sit queued behind another
-PR's deploy rather than fail — that's expected, not a problem to fix.
-
-## 9. Investigate and fix any red check
-
-Pull the actual failing log rather than guessing from the job name alone:
-
-```bash
-gh run view <run-id> --repo <owner>/<repo> --log-failed
-```
-
-(`<run-id>` is in the `gh pr checks` output, or `gh run list --repo <owner>/<repo> --branch
-<branch>`.)
-
-Map the failure to a root-cause fix:
-
-- **`commitlint` / `pr-title-lint`**: reword the offending commit subject or PR title to match
-  Conventional Commits — see AGENTS.md's Commit Conventions.
-- **`build-backend` / `build-frontend`**: a real compile error — fix the source.
-- **`test-backend` / `test-frontend`**: fix the code the test caught; only touch the test itself if
-  it's asserting the wrong thing.
-- **`lint-backend`** (ktlintCheck) / **`lint-frontend`** (eslint + typecheck) / **`lint-docker`**
-  (hadolint): fix the flagged code or Dockerfile.
-- **`sonar`**: a real coverage/quality-gate regression — add the missing test or address the flagged
-  issue, don't lower the gate.
-- **`e2e-test`**: use the `fix-e2e` skill's diagnosis approach — root-cause fix in the app source,
-  never the spec, unless the spec is genuinely wrong.
-- **`deploy-dev`**: usually infrastructure (SSH secrets, environment state), not something a code
-  change can fix. If the log points at infra rather than the app, stop and report it to the user
-  instead of guessing at a code change.
-
-## 10. Push the fix and re-wait
-
-Commit the fix, push to the same branch (this re-triggers the PR's checks), then repeat step 8.
-Loop steps 8–10 until `gh pr checks` reports every job green.
-
-## 11. Report
-
-Reply with the PR URL, a one-line summary of what was implemented, and confirmation that every
-check is green. Stop there — the user reviews and merges manually.
+Invoke the `process-pr` skill for the PR just opened (Skill tool, skill: `process-pr`, args:
+`<owner>/<repo> <pr-number>`) — it re-reads the diff as a self-review pass, fixes anything it finds,
+then watches `gh pr checks` and diagnoses/fixes any red job (including querying the SonarCloud API
+for quality-gate detail rather than guessing from the dashboard) until everything is green, and
+reports the PR URL back. Don't re-derive that logic here — this skill's own workflow ends at the
+hand-off.
