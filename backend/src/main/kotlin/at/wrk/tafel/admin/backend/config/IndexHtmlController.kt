@@ -24,10 +24,7 @@ class IndexHtmlController(
 
     @GetMapping("/", produces = [MediaType.TEXT_HTML_VALUE])
     fun index(): ResponseEntity<String> {
-        // Mirrors spring.web.resources.static-locations (file:${user.dir}/static/) in application.yml
-        // - kept as a plain system property read rather than @Value, since this codebase's
-        // "no field injection" ArchUnit rule (GeneralCodingRulesTest) forbids @Value fields.
-        val resource = resourceLoader.getResource("file:${System.getProperty("user.dir")}/static/index.html")
+        val resource = resourceLoader.getResource(staticResourceLocation() + "index.html")
         if (!resource.exists()) {
             return ResponseEntity.notFound().build()
         }
