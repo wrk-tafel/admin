@@ -1,0 +1,8 @@
+{
+  "name": "tafel-admin-userguide",
+  "private": true,
+  "description": "Tooling to render the userguide markdown chapters into a single PDF for GitHub releases",
+  "devDependencies": {
+    "md-to-pdf": "5.2.5"
+  }
+}

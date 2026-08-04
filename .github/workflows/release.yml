@@ -54,6 +54,13 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: 'frontend/src/main/webapp/.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'docs/userguide/package-lock.json'
+      # Installs from docs/userguide/package-lock.json (pinned version + integrity hashes) rather
+      # than `npx <pkg>@version`, which resolves and installs on demand at run time - flagged by
+      # SonarCloud (githubactions:S6505) as an on-demand-install / supply-chain risk.
+      - run: npm ci
+        working-directory: docs/userguide
       - name: Combine userguide chapters into one markdown file
         # Page-break before each chapter (except the first) so md-to-pdf starts every chapter
         # on a new PDF page - README.md doubles as the title/index page.
@@ -65,7 +72,8 @@ jobs:
             cat "$chapter.md" >> combined.md
           done
       - name: Render userguide PDF
-        run: npx --yes md-to-pdf@5 docs/userguide/combined.md
+        run: node_modules/.bin/md-to-pdf combined.md
+        working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
