@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.databind.json.JsonMapper
 
@@ -60,6 +61,22 @@ class GenericExceptionHandler(
             ex.bindingResult.fieldErrors.map { FieldErrorItem(field = it.field, message = it.defaultMessage) },
         )
         return handleExceptionInternal(ex, problemDetail, headers, status, request)
+    }
+
+    /**
+     * [AsyncRequestNotUsableException] means the response is already unusable (client disconnected
+     * mid-stream) - it's an IOException, so Spring's own SSE completion handling
+     * (`DefaultSseEmitterHandler.complete()`) catches it internally and resurfaces it as a deferred
+     * result error rather than throwing it back to the calling code, which is why callers like
+     * `SseOutboxService.sendEvent()` can never catch it themselves. Without this handler it falls
+     * through to [handleGenericException] and gets logged as a full ERROR stack trace for what's a
+     * routine disconnect. A `Unit` return here tells Spring the exception is fully handled with
+     * nothing to write, since attempting to render a body onto an already-unusable response would
+     * just fail again.
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException::class)
+    fun handleAsyncRequestNotUsableException(exception: AsyncRequestNotUsableException) {
+        log.debug("Async request/response no longer usable, client likely disconnected", exception)
     }
 
     @ExceptionHandler(Exception::class)
