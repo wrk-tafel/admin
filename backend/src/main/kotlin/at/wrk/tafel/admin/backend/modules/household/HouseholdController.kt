@@ -1,9 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.household
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
+import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -19,10 +23,11 @@ import java.io.ByteArrayInputStream
 class HouseholdController(
     private val householdService: HouseholdService,
     private val householdDuplicationService: HouseholdDuplicationService,
+    private val householdMergeService: HouseholdMergeService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun validate(@RequestBody household: Household): ValidateHouseholdResponse {
+    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse {
         val result = householdService.validate(household)
         return ValidateHouseholdResponse(
             valid = result.valid,
@@ -37,35 +42,33 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun createHousehold(
         @RequestParam force: Boolean = false,
-        @RequestBody household: Household,
-    ): HouseholdCreationResponse {
+        @Valid @RequestBody household: HouseholdRequest,
+    ): ResponseEntity<HouseholdCreationResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
         household.id?.let {
             if (householdService.existsByHouseholdId(it)) {
-                throw TafelValidationException("Kunde Nr. $it bereits vorhanden!")
+                throw ConflictException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
-        return householdService.createHousehold(household, force, isSupervisor)
+        val response = householdService.createHousehold(household, force, isSupervisor)
+        return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
-    @PostMapping("/{householdId}")
+    @PutMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateHousehold(
         @PathVariable householdId: Long,
         @RequestParam force: Boolean = false,
-        @RequestBody household: Household,
+        @Valid @RequestBody household: HouseholdRequest,
     ): HouseholdUpdateResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
         if (!householdService.existsByHouseholdId(householdId)) {
-            throw TafelValidationException(
-                message = "Kunde Nr. $householdId nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
         }
 
         return householdService.updateHousehold(householdId, household, force, isSupervisor)
@@ -73,11 +76,8 @@ class HouseholdController(
 
     @GetMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getHousehold(@PathVariable householdId: Long): Household = householdService.findByHouseholdId(householdId)
-        ?: throw TafelValidationException(
-            message = "Kunde Nr. $householdId nicht gefunden!",
-            status = HttpStatus.NOT_FOUND,
-        )
+    fun getHousehold(@PathVariable householdId: Long): HouseholdResponse = householdService.findByHouseholdId(householdId)
+        ?: throw NotFoundException("Kunde Nr. $householdId nicht gefunden!")
 
     @GetMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -88,7 +88,8 @@ class HouseholdController(
         @RequestParam postProcessing: Boolean? = null,
         @RequestParam costContribution: Boolean? = null,
         @RequestParam valid: Boolean? = null,
-    ): HouseholdListResponse {
+        @RequestParam pageSize: Int? = null,
+    ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
@@ -96,8 +97,9 @@ class HouseholdController(
             postProcessing = postProcessing,
             costContribution = costContribution,
             valid = valid,
+            pageSize = pageSize,
         )
-        return HouseholdListResponse(
+        return PagedResponse(
             items = householdSearchResult.items,
             totalCount = householdSearchResult.totalCount,
             currentPage = householdSearchResult.currentPage,
@@ -108,15 +110,13 @@ class HouseholdController(
 
     @DeleteMapping("/{householdId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun deleteHousehold(@PathVariable householdId: Long) {
+    fun deleteHousehold(@PathVariable householdId: Long): ResponseEntity<Unit> {
         if (!householdService.existsByHouseholdId(householdId)) {
-            throw TafelValidationException(
-                message = "Kunde Nr. $householdId nicht vorhanden!",
-                status = HttpStatus.NOT_FOUND,
-            )
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
         }
 
         householdService.deleteHouseholdByHouseholdId(householdId)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/{householdId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
@@ -138,19 +138,17 @@ class HouseholdController(
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
-        } ?: throw TafelValidationException(
-            message = "Kunde Nr. $householdId nicht vorhanden!",
-            status = HttpStatus.NOT_FOUND,
-        )
+        } ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
     }
 
     @GetMapping("/above-limit")
     @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
-    ): HouseholdAboveLimitResponse {
-        val result = householdService.getHouseholdsAboveLimit(page)
-        return HouseholdAboveLimitResponse(
+        @RequestParam pageSize: Int? = null,
+    ): PagedResponse<HouseholdAboveLimitItem> {
+        val result = householdService.getHouseholdsAboveLimit(page, pageSize)
+        return PagedResponse(
             items = result.items,
             totalCount = result.totalCount,
             currentPage = result.currentPage,
@@ -163,9 +161,9 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(
         @RequestParam page: Int? = null,
-    ): HouseholdDuplicatesResponse {
+    ): PagedResponse<HouseholdDuplicationItem> {
         val duplicateSearchResult = householdDuplicationService.findDuplicates(page)
-        return HouseholdDuplicatesResponse(
+        return PagedResponse(
             items = duplicateSearchResult.items.map {
                 HouseholdDuplicationItem(
                     household = it.household,
@@ -179,13 +177,43 @@ class HouseholdController(
         )
     }
 
+    @GetMapping("/{householdId}/merge-preview")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    fun getMergePreview(
+        @PathVariable householdId: Long,
+        @RequestParam sourceHouseholdIds: List<Long>,
+    ): HouseholdMergePreviewResponse = householdMergeService.preview(householdId, sourceHouseholdIds)
+
     @PostMapping("/{householdId}/merge")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoHousehold(
         @PathVariable householdId: Long,
-        @RequestBody request: HouseholdMergeRequest,
-    ): ResponseEntity<Any> {
-        householdService.mergeHouseholds(householdId, request.sourceHouseholdIds)
-        return ResponseEntity.ok().build()
+        @Valid @RequestBody request: HouseholdMergeRequest,
+    ): HouseholdMergeResponse = householdMergeService.merge(householdId, request)
+
+    @PostMapping("/{householdId}/cost-contribution/pay")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun payCostContribution(
+        @PathVariable householdId: Long,
+        @Valid @RequestBody request: HouseholdCostContributionPaymentRequest,
+    ): HouseholdResponse {
+        if (!householdService.existsByHouseholdId(householdId)) {
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+        }
+
+        return householdService.payCostContribution(householdId, request.amount)
+    }
+
+    @PutMapping("/{householdId}/cost-contribution")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun editCostContribution(
+        @PathVariable householdId: Long,
+        @Valid @RequestBody request: HouseholdCostContributionEditRequest,
+    ): HouseholdResponse {
+        if (!householdService.existsByHouseholdId(householdId)) {
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+        }
+
+        return householdService.editCostContribution(householdId, request.amount!!)
     }
 }

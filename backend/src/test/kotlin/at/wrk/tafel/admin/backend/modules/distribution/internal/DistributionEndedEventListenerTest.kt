@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService
@@ -91,8 +90,8 @@ internal class DistributionEndedEventListenerTest {
         every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
         every { missingCostContributionService.addMissingCostContributions(distribution) } throws
-            TafelValidationException("transient failure") andThenThrows
-            TafelValidationException("transient failure") andThen Unit
+            IllegalStateException("transient failure") andThenThrows
+            IllegalStateException("transient failure") andThen Unit
 
         listener.onDistributionEnded(DistributionEndedEvent(distributionId))
 
@@ -104,7 +103,7 @@ internal class DistributionEndedEventListenerTest {
     @Test
     fun `rolls back, retries, and never publishes event when adding missing cost contributions keeps failing`() {
         every { missingCostContributionService.addMissingCostContributions(any()) } throws
-            TafelValidationException("Test exception")
+            IllegalStateException("Test exception")
 
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
@@ -114,7 +113,7 @@ internal class DistributionEndedEventListenerTest {
         every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
-        assertThrows<TafelValidationException> {
+        assertThrows<IllegalStateException> {
             listener.onDistributionEnded(DistributionEndedEvent(distributionId))
         }
 
@@ -124,7 +123,7 @@ internal class DistributionEndedEventListenerTest {
 
     @Test
     fun `forwards the error when event publishing fails, without retrying it`() {
-        every { eventPublisher.publishEvent(any<DistributionClosedEvent>()) } throws TafelValidationException("Test exception")
+        every { eventPublisher.publishEvent(any<DistributionClosedEvent>()) } throws IllegalStateException("Test exception")
 
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
@@ -134,7 +133,7 @@ internal class DistributionEndedEventListenerTest {
         every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<IllegalStateException> {
             listener.onDistributionEnded(DistributionEndedEvent(distributionId))
         }
 

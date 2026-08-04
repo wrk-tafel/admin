@@ -1,0 +1,15 @@
+<tafel-dialog testId="pay-cost-contribution-dialog" type="info" title="Unkostenbeitrag - Betrag eintragen">
+  <div tafel-dialog-content>
+    <div class="mb-2" testid="pendingAmountText">Ausstehend: {{ data.pendingAmount | currency }}</div>
+    <mat-form-field class="w-full">
+      <mat-label>Bezahlter Betrag</mat-label>
+      <input testid="amount-input" matInput type="number" min="0"
+             [ngModel]="amountInput()" (ngModelChange)="amountInput.set($event)">
+    </mat-form-field>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(amountInput())"
+            [disabled]="!amountInput() || amountInput()! <= 0">Speichern</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

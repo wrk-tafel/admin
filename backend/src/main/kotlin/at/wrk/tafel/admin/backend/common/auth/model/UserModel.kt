@@ -1,10 +1,13 @@
 package at.wrk.tafel.admin.backend.common.auth.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.NotBlank
 
 @ExcludeFromTestCoverage
 data class ChangePasswordRequest(
+    @field:NotBlank
     val passwordCurrent: String,
+    @field:NotBlank
     val passwordNew: String,
 )
 
@@ -15,7 +18,25 @@ data class ChangePasswordResponse(
 )
 
 @ExcludeFromTestCoverage
-data class User(
+data class UserRequest(
+    val id: Long?,
+    @field:NotBlank
+    val personnelNumber: String,
+    @field:NotBlank
+    val username: String,
+    @field:NotBlank
+    val firstname: String,
+    @field:NotBlank
+    val lastname: String,
+    val enabled: Boolean,
+    val password: String? = null,
+    val passwordRepeat: String? = null,
+    val passwordChangeRequired: Boolean,
+    val permissions: List<UserPermissionItem>,
+)
+
+@ExcludeFromTestCoverage
+data class UserResponse(
     val id: Long?,
     val personnelNumber: String,
     val username: String,
@@ -25,23 +46,14 @@ data class User(
     val password: String? = null,
     val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean,
-    val permissions: List<UserPermission>,
+    val permissions: List<UserPermissionItem>,
 )
 
 @ExcludeFromTestCoverage
-data class UserPermission(
+data class UserPermissionItem(
     val key: String,
     val title: String,
     val category: String = "",
-)
-
-@ExcludeFromTestCoverage
-data class UserListResponse(
-    val items: List<User>,
-    val totalCount: Long,
-    val currentPage: Int,
-    val totalPages: Int,
-    val pageSize: Int,
 )
 
 @ExcludeFromTestCoverage
@@ -50,12 +62,12 @@ data class GeneratedPasswordResponse(
 )
 
 @ExcludeFromTestCoverage
-data class UserInfo(
+data class UserInfoResponse(
     val username: String,
     val permissions: List<String>,
 )
 
 @ExcludeFromTestCoverage
 data class PermissionsListResponse(
-    val permissions: List<UserPermission>,
+    val permissions: List<UserPermissionItem>,
 )

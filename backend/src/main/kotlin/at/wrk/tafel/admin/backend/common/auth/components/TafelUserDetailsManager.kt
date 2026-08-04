@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
@@ -57,8 +58,9 @@ class TafelUserDetailsManager(
         lastname: String?,
         enabled: Boolean?,
         page: Int?,
+        pageSize: Int? = null,
     ): UserSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
 
         val spec = orderByUpdatedAtDesc(
             where(

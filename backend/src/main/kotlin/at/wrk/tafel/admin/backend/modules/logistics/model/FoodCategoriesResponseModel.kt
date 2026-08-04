@@ -1,15 +1,30 @@
 package at.wrk.tafel.admin.backend.modules.logistics.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.PositiveOrZero
 import java.math.BigDecimal
 
 @ExcludeFromTestCoverage
 data class FoodCategoriesListResponse(
-    val categories: List<FoodCategory>,
+    val categories: List<FoodCategoryResponse>,
 )
 
 @ExcludeFromTestCoverage
-data class FoodCategory(
+data class FoodCategoryRequest(
+    val id: Long?,
+    @field:NotBlank
+    val name: String,
+    @field:PositiveOrZero
+    val weightPerUnit: BigDecimal?,
+    val returnItem: Boolean,
+    val sortOrder: Int,
+    val enabled: Boolean,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCategoryResponse(
     val id: Long?,
     val name: String,
     val weightPerUnit: BigDecimal?,
@@ -20,5 +35,6 @@ data class FoodCategory(
 
 @ExcludeFromTestCoverage
 data class FoodCategoryReorderRequest(
+    @field:NotEmpty
     val categoryIds: List<Long>,
 )

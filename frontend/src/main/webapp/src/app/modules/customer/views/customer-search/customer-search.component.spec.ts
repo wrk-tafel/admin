@@ -113,7 +113,8 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', undefined, undefined, undefined, undefined);
+        expect(apiService.searchCustomer)
+            .toHaveBeenCalledWith('lastname', 'firstname', undefined, undefined, undefined, undefined, undefined);
 
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -132,7 +133,8 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, 'firstname', undefined, undefined, undefined, undefined);
+        expect(apiService.searchCustomer)
+            .toHaveBeenCalledWith(undefined, 'firstname', undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with firstname no results', () => {
@@ -144,7 +146,8 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, 'firstname', undefined, undefined, undefined, undefined);
+        expect(apiService.searchCustomer)
+            .toHaveBeenCalledWith(undefined, 'firstname', undefined, undefined, undefined, undefined, undefined);
         expect(toastr.info).toHaveBeenCalledWith('Keine Kunden gefunden!');
     });
 
@@ -156,7 +159,8 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', undefined, undefined, undefined, undefined, undefined);
+        expect(apiService.searchCustomer)
+            .toHaveBeenCalledWith('lastname', undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with postProcessing enabled', () => {
@@ -167,7 +171,7 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, true, undefined, undefined, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, true, undefined, undefined, undefined, undefined);
     });
 
   it('search with costContribution enabled', () => {
@@ -178,7 +182,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, true, undefined, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, true, undefined, undefined, undefined);
   });
 
   it('search with valid enabled', () => {
@@ -189,7 +193,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, true, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, true, undefined, undefined);
   });
 
     it('navigate to customer', () => {

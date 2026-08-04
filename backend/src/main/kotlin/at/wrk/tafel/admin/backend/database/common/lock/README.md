@@ -56,13 +56,13 @@ fun createNewDistribution(): DistributionEntity {
     val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
         val currentDistribution = distributionRepository.getCurrentDistribution()
         if (currentDistribution != null) {
-            throw TafelValidationException("Ausgabe bereits gestartet!")
+            throw ConflictException("Ausgabe bereits gestartet!")
         }
         result = /* ... create and save the distribution ... */
     }
 
     if (!acquired) {
-        throw TafelValidationException("Ausgabe wird bereits erstellt!")
+        throw ConflictException("Ausgabe wird bereits erstellt!")
     }
     return result!!
 }

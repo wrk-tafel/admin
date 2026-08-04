@@ -41,6 +41,9 @@ spring:
     driverClassName: org.postgresql.Driver
     hikari:
       maximum-pool-size: 50
+      # logs a warning with a stack trace for any connection held longer than this, so a leak
+      # (e.g. a missed transaction boundary) surfaces well before the pool is exhausted
+      leak-detection-threshold: 60000
   flyway:
     locations: classpath:/db-migration
     group: true
@@ -59,6 +62,13 @@ spring:
   mvc:
     async:
       request-timeout: 3600000 # 1 hour
+  servlet:
+    multipart:
+      # Safety net only - the real 25MB per-file business limit is enforced explicitly in
+      # HouseholdDocumentService, so a too-large upload comes back as a clean 400 instead of
+      # Spring's MaxUploadSizeExceededException.
+      max-file-size: 30MB
+      max-request-size: 30MB
 
 security:
   jwtToken:
@@ -83,3 +93,6 @@ tafeladmin:
   buildTime: unknown
   server:
     relativeBaseUrl: /
+  support:
+    githubRepository: wrk-tafel/admin
+    titlePrefix: ""

@@ -1,0 +1,38 @@
+### Get documents
+GET {{baseApiPath}}/households/103/documents
+Content-Type: application/json
+
+### Upload document
+# Place a local PDF named household-documents-fixture.pdf next to this file before running this request.
+POST {{baseApiPath}}/households/101/documents
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="documentType"
+
+PROOF_OF_INCOME
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="proof.pdf"
+Content-Type: application/pdf
+
+< ./household-documents-fixture.pdf
+--WebAppBoundary--
+
+### Import a document from the scanner folder
+POST {{baseApiPath}}/households/101/documents/from-scanner-file
+Content-Type: application/json
+
+{
+  "fileName": "scan1.pdf",
+  "documentType": "OTHER"
+}
+
+### Download document
+GET {{baseApiPath}}/households/101/documents/1
+
+### Delete document
+DELETE {{baseApiPath}}/households/101/documents/1
+
+### Get scanner folder files
+GET {{baseApiPath}}/document-scanner-files
+Content-Type: application/json

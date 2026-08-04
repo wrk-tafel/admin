@@ -9,6 +9,7 @@ import {
   RecordedFoodCollectionsComponent
 } from './components/recorded-food-collections/recorded-food-collections.component';
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
+import {RecordedRouteNamesComponent} from './components/recorded-route-names/recorded-route-names.component';
 import {ShelterListResponse} from '../../api/shelter-api.service';
 import {
   DistributionNotesInputComponent
@@ -27,6 +28,7 @@ import {MatDivider} from '@angular/material/list';
     TafelIfPermissionDirective,
     DistributionStatisticsInputComponent,
     RecordedFoodCollectionsComponent,
+    RecordedRouteNamesComponent,
     FoodAmountComponent,
     DistributionNotesInputComponent,
     TicketsProcessedComponent,
@@ -66,5 +68,6 @@ export interface DashboardStatisticsData {
 export interface DashboardLogisticsData {
   foodCollectionsRecordedCount?: number;
   foodCollectionsTotalCount?: number;
+  recordedRouteNames?: string[];
   foodAmountTotal?: number;
 }

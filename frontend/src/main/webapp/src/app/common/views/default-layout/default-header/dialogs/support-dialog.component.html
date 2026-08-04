@@ -1,0 +1,19 @@
+<tafel-dialog type="info" title="Support-Anfrage" testid="support-dialog">
+  <div tafel-dialog-content>
+    <mat-form-field class="w-full">
+      <mat-label>Titel</mat-label>
+      <input matInput testid="supportTitle"
+             [ngModel]="supportTitle()" (ngModelChange)="supportTitle.set($event)"/>
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Anliegen</mat-label>
+      <textarea matInput rows="9" testid="supportText"
+                [ngModel]="supportText()" (ngModelChange)="supportText.set($event)"></textarea>
+    </mat-form-field>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="save()"
+            [disabled]="!supportTitle()?.trim() || !supportText()?.trim()">Speichern</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

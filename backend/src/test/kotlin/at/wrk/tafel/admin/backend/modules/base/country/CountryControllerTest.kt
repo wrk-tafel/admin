@@ -20,8 +20,8 @@ class CountryControllerTest {
 
     @Test
     fun `list countries`() {
-        val country1 = Country(id = 1, code = "AA", name = "Name A")
-        val country2 = Country(id = 2, code = "BB", name = "Name B")
+        val country1 = CountryItem(id = 1, code = "AA", name = "Name A")
+        val country2 = CountryItem(id = 2, code = "BB", name = "Name B")
 
         every { countryService.listCountries() } returns listOf(country1, country2)
 

@@ -12,6 +12,7 @@ import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/ma
 import {MatDivider} from '@angular/material/list';
 import {MatIcon} from '@angular/material/icon';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-passwordchange-form',
@@ -102,7 +103,7 @@ export class PasswordChangeFormComponent {
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
 
-    return this.userApiService.changePassword(passwordChangeRequest).pipe(
+    return this.userApiService.changePassword(passwordChangeRequest, SUPPRESS_ERROR_TOAST_CONTEXT).pipe(
       map(
         /* eslint-disable @typescript-eslint/no-unused-vars */
         (response: ChangePasswordResponse) => {

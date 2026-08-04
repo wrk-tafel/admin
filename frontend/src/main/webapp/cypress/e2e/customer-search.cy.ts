@@ -47,8 +47,22 @@ describe('Customer Search', () => {
   });
 
   it('search by cost contribution', () => {
-    cy.byTestId('costContributionInput').click();
-    clickSearchAndOpenFirstResult(100);
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const customerId = customer.id!;
+      cy.accrueCostContributionDebt(customerId);
+
+      // Filter by lastname too - asserting on the cost-contribution filter alone would depend on
+      // this being the only customer with pending debt suite-wide, which broke repeatedly when
+      // other specs left dummy customers with leftover debt behind (see #2966). The randomized
+      // dummy lastname combined with the cost-contribution filter narrows to just this customer
+      // regardless of what other specs have accrued.
+      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('costContributionInput').click();
+      clickSearchAndOpenFirstResult(customerId);
+
+      cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+    });
   });
 
   it('search result renders as a card list on phone and search still works', () => {

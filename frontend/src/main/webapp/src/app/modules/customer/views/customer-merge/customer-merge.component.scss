@@ -1,0 +1,7 @@
+// `mat-radio-button` is a block-level host that stretches to the full row width, but its
+// internal `.mdc-form-field` label (the actual click target - see MDC's own radio template)
+// only shrink-wraps its content. Without this, only the circle/text is clickable and the rest
+// of the visually full-width row silently does nothing on click.
+.merge-radio-group ::ng-deep .mdc-form-field {
+  width: 100%;
+}

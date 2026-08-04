@@ -4,6 +4,8 @@ import {from, Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AuthenticationService} from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../api/problem-detail';
+import {SUPPRESS_ERROR_TOAST} from './suppress-error-toast.token';
 
 /**
  * Central HTTP error handling, applied to every request. Three independent stages are chained
@@ -17,9 +19,9 @@ import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.servic
  *    'blob'` requests (PDF downloads), Angular still delivers a JSON error body as a `Blob`
  *    instead of parsing it, so this reads the blob as text and re-parses it into the same shape a
  *    non-blob request would have gotten.
- * 3. {@link handleErrorMessage} - shows a toast with the backend's error message, unless the
- *    status is in `ERROR_CODES_WHITELIST` (callers handling those themselves, e.g. inline form
- *    validation on `400`/`409`, or the login screen on `401`/`404`).
+ * 3. {@link handleErrorMessage} - shows a toast with the backend's error message by default,
+ *    unless the request opted out via the {@link SUPPRESS_ERROR_TOAST} context (callers that
+ *    fully own presenting the error themselves).
  */
 export const errorHandlerInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -27,7 +29,6 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const authenticationService = inject(AuthenticationService);
   const toastr = inject(TafelToastrService);
-  const ERROR_CODES_WHITELIST = [400, 401, 404, 409];
 
   const handleAuthError = (error: HttpErrorResponse): Observable<any> => {
     if (authenticationService.isAuthenticated() && error.status === 401) {
@@ -53,21 +54,8 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
   };
 
   const handleErrorMessage = (error: HttpErrorResponse): Observable<any> => {
-    if (ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
-      if (error.error?.constructor === Object) {
-        const errorBody: TafelErrorResponse = error.error;
-        toastr.error(errorBody.message, `HTTP ${error.status} - ${error.statusText}`);
-      } else {
-        let message = error.message;
-        if (error.status === 504) {
-          message = 'Server nicht verfügbar!';
-        } else if (error.status === 403) {
-          message = 'Zugriff nicht erlaubt!';
-        } else if (error.status === 423) {
-          message = 'Konto vorübergehend gesperrt!';
-        }
-        toastr.error(message, `HTTP ${error.status} - ${error.statusText}`);
-      }
+    if (!request.context.get(SUPPRESS_ERROR_TOAST)) {
+      toastr.error(extractErrorMessage(error), `HTTP ${error.status} - ${error.statusText}`);
     }
     return throwError(() => error);
   };
@@ -78,7 +66,3 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
     .pipe(catchError((error: HttpErrorResponse) => remapErrorBodyOnByteArrayResponseType(request, error)))
     .pipe(catchError((error) => handleErrorMessage(error)));
 };
-
-export interface TafelErrorResponse {
-  message: string;
-}

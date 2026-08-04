@@ -10,14 +10,17 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
+import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenTicketResponse
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -62,7 +65,7 @@ class DistributionService(
         val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
             val currentDistribution = distributionRepository.getCurrentDistribution()
             if (currentDistribution != null) {
-                throw TafelValidationException("Ausgabe bereits gestartet!")
+                throw ConflictException("Ausgabe bereits gestartet!")
             }
 
             val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
@@ -80,7 +83,7 @@ class DistributionService(
         }
 
         if (!acquired) {
-            throw TafelValidationException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
+            throw ConflictException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
         return result!!
@@ -103,14 +106,14 @@ class DistributionService(
         val distribution = getCurrentDistribution()!!
 
         val household = householdRepository.findByHouseholdId(householdId)
-            ?: throw TafelValidationException("Kunde Nr. $householdId nicht vorhanden!")
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
         val existingHousehold = distribution.households.firstOrNull { it.household?.householdId == householdId }
 
         val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 
         // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
         if (existingTicket != null && existingHousehold?.household?.id != householdId) {
-            throw TafelValidationException("Ticketnummer $ticketNumber bereits vergeben!")
+            throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
         }
 
         val entry = existingHousehold ?: DistributionHouseholdEntity()
@@ -165,8 +168,22 @@ class DistributionService(
     @Transactional(readOnly = true)
     fun getCurrentTicketNumberValue(householdId: Long? = null): Int? = getCurrentTicketNumber(householdId)?.ticketNumber
 
+    /**
+     * Same "current ticket" lookup as [getCurrentTicketNumber], but mapped to a DTO so that
+     * [DistributionTicketScreenController] (which also needs the household id and its pending
+     * debt, not just the ticket number) never has to touch [DistributionHouseholdEntity] itself -
+     * controllers are architecturally forbidden from depending on `database.model` entities
+     * directly, see `ProjectSpecificRulesTest`.
+     */
+    @Transactional(readOnly = true)
+    fun getCurrentTicketScreenTicket(): TicketScreenTicketResponse = if (hasCurrentDistribution()) {
+        mapToTicketScreenTicket(getCurrentTicketNumber())
+    } else {
+        mapToTicketScreenTicket(null)
+    }
+
     @Transactional
-    fun reopenAndGetPreviousTicket(): Int? {
+    fun reopenAndGetPreviousTicket(): TicketScreenTicketResponse {
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getLastProcessedDistributionHouseholdEntity(distribution)
@@ -177,12 +194,11 @@ class DistributionService(
             logger.info("Ticket-Log - Reopened ticket-number: ${distributionHouseholdEntity.ticketNumber}")
         }
 
-        val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
-        return currentTicketNumber
+        return mapToTicketScreenTicket(getCurrentTicketNumber())
     }
 
     @Transactional
-    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): Int? {
+    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): TicketScreenTicketResponse {
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
@@ -192,12 +208,18 @@ class DistributionService(
             distributionHouseholdEntity.processed = true
             distributionHouseholdRepository.save(distributionHouseholdEntity)
 
-            val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
-            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: $currentTicketNumber")
-            return currentTicketNumber
+            val nextTicket = getCurrentTicketNumber()
+            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: ${nextTicket?.ticketNumber}")
+            return mapToTicketScreenTicket(nextTicket)
         }
-        return null
+        return mapToTicketScreenTicket(null)
     }
+
+    private fun mapToTicketScreenTicket(distributionHouseholdEntity: DistributionHouseholdEntity?) = TicketScreenTicketResponse(
+        ticketNumber = distributionHouseholdEntity?.ticketNumber,
+        householdId = distributionHouseholdEntity?.household?.householdId,
+        pendingCostContribution = distributionHouseholdEntity?.household?.pendingCostContribution,
+    )
 
     @Transactional
     fun deleteCurrentTicket(householdId: Long): Boolean {
@@ -213,7 +235,7 @@ class DistributionService(
     }
 
     @Transactional(readOnly = true)
-    fun validateClose(): DistributionCloseValidationResult {
+    fun validateClose(): DistributionCloseResponse {
         val errors = mutableListOf<String>()
         val warnings = mutableListOf<String>()
 
@@ -233,7 +255,7 @@ class DistributionService(
             }
 
             return if (errors.isNotEmpty()) {
-                DistributionCloseValidationResult(
+                DistributionCloseResponse(
                     errors = errors,
                     warnings = emptyList(),
                 )
@@ -246,14 +268,14 @@ class DistributionService(
                     warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
                 }
 
-                DistributionCloseValidationResult(
+                DistributionCloseResponse(
                     errors = emptyList(),
                     warnings = warnings,
                 )
             }
         }
 
-        return DistributionCloseValidationResult(
+        return DistributionCloseResponse(
             errors = errors,
             warnings = warnings,
         )
@@ -296,7 +318,7 @@ class DistributionService(
         }
 
         if (!acquired) {
-            throw TafelValidationException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
+            throw ConflictException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
         return result!!
@@ -353,7 +375,7 @@ class DistributionService(
 
         val currentStatistic = currentDistribution.statistic
         if (currentStatistic == null) {
-            throw TafelValidationException("Statistik-Daten nicht vorhanden!")
+            throw BusinessRuleException("Statistik-Daten nicht vorhanden!")
         } else {
             currentStatistic.employeeCount = employeeCount
 
@@ -391,7 +413,7 @@ class DistributionService(
     @Transactional(readOnly = true)
     fun sendMails(distributionId: Long) {
         distributionRepository.findByIdOrNull(distributionId)
-            ?: throw TafelValidationException("Ausgabe nicht gefunden!")
+            ?: throw NotFoundException("Ausgabe nicht gefunden!")
 
         try {
             eventPublisher.publishEvent(DistributionClosedEvent(distributionId))

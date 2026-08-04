@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import io.mockk.every
@@ -54,7 +54,7 @@ internal class DistributionTicketControllerTest {
         val householdId = 123L
         val response = controller.deleteCurrentTicketForHousehold(householdId)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify { service.deleteCurrentTicket(householdId) }
     }
 
@@ -64,8 +64,8 @@ internal class DistributionTicketControllerTest {
 
         val householdId = 123L
 
-        val exception = assertThrows<TafelValidationException> { controller.deleteCurrentTicketForHousehold(householdId) }
-        assertThat(exception.message).isEqualTo("Löschen des Tickets von Kunde Nr. 123 fehlgeschlagen!")
+        val exception = assertThrows<BusinessRuleException> { controller.deleteCurrentTicketForHousehold(householdId) }
+        assertThat(exception.body.detail).isEqualTo("Löschen des Tickets von Kunde Nr. 123 fehlgeschlagen!")
 
         verify { service.deleteCurrentTicket(householdId) }
     }

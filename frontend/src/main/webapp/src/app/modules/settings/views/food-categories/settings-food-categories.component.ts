@@ -2,7 +2,7 @@ import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular
 import {MatDialog} from '@angular/material/dialog';
 import {FoodCategoryCreateDialogComponent} from './dialogs/food-category-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
   MatCellDef,
@@ -29,6 +29,7 @@ import {MatInputModule} from '@angular/material/input';
   templateUrl: 'settings-food-categories.component.html',
   imports: [
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
@@ -65,11 +66,15 @@ export class SettingsFoodCategoriesComponent {
   protected nameControl = new FormControl<string>('', {nonNullable: true});
   protected weightPerUnitControl = new FormControl<number | null>(null);
   private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
+  private nameInputMobile = viewChild<ElementRef<HTMLInputElement>>('nameInputMobile');
 
   constructor() {
     this.loadFoodCategories();
 
-    effect(() => this.nameInput()?.nativeElement.focus());
+    effect(() => {
+      this.nameInput()?.nativeElement.focus();
+      this.nameInputMobile()?.nativeElement.focus();
+    });
   }
 
   private loadFoodCategories() {

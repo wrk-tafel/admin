@@ -15,7 +15,7 @@ export class ShelterApiService {
   }
 
   updateShelter(shelterId: number, shelter: ShelterItem): Observable<ShelterItem> {
-    return this.http.post<ShelterItem>(`/shelters/${shelterId}`, shelter);
+    return this.http.put<ShelterItem>(`/shelters/${shelterId}`, shelter);
   }
 
   createShelter(shelter: ShelterItem): Observable<ShelterItem> {

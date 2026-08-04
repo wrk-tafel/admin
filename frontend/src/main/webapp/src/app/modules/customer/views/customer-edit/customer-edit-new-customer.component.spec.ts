@@ -164,7 +164,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       lastname: testCustomerData.lastname,
       firstname: testCustomerData.firstname,
       birthDate: testCustomerData.birthDate
-    }), false);
+    }), false, expect.anything());
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
   });
 
@@ -277,7 +277,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     };
     apiService.createCustomer.mockReturnValueOnce(throwError(() => ({
       status: 409,
-      error: {message: mockMessage}
+      error: {detail: mockMessage}
     }))).mockReturnValueOnce(of(mockResponse));
 
     const fixture = TestBed.createComponent(CustomerEditComponent);
@@ -294,8 +294,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         message: mockMessage
       }
     });
-    expect(apiService.createCustomer).toHaveBeenNthCalledWith(1, expect.objectContaining(testCustomerData), false);
-    expect(apiService.createCustomer).toHaveBeenNthCalledWith(2, expect.objectContaining(testCustomerData), true);
+    expect(apiService.createCustomer).toHaveBeenNthCalledWith(1, expect.objectContaining(testCustomerData), false, expect.anything());
+    expect(apiService.createCustomer).toHaveBeenNthCalledWith(2, expect.objectContaining(testCustomerData), true, expect.anything());
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
   });
 
@@ -308,7 +308,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     apiService.createCustomer.mockReturnValue(throwError(() => ({
       status: 500,
-      error: {message: 'Internal server error'}
+      error: {detail: 'Internal server error'}
     })));
 
     const fixture = TestBed.createComponent(CustomerEditComponent);

@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.note
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -8,7 +7,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import java.time.LocalDateTime
@@ -78,20 +76,6 @@ internal class HouseholdNoteControllerTest {
     }
 
     @Test
-    fun `create new note - empty text`() {
-        val householdId = 123L
-
-        val exception = assertThrows<TafelValidationException> {
-            controller.createNewNote(
-                householdId = householdId,
-                request = CreateHouseholdNoteRequest(note = ""),
-            )
-        }
-
-        assertThat(exception.message).isEqualTo("Notiz darf nicht leer sein!")
-    }
-
-    @Test
     fun `create new note - successful`() {
         val householdId = 123L
         val note = "test note"
@@ -108,7 +92,7 @@ internal class HouseholdNoteControllerTest {
             request = CreateHouseholdNoteRequest(note = note),
         )
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
         assertThat(response.body).isEqualTo(noteItem)
         verify { service.createNewNote(householdId, note) }
     }

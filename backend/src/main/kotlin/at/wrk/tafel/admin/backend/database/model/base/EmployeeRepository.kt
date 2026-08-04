@@ -13,7 +13,8 @@ interface EmployeeRepository :
 
     fun findByPersonnelNumber(personnelNumber: String): EmployeeEntity?
     fun existsByPersonnelNumber(personnelNumber: String): Boolean
+    fun existsByPersonnelNumberAndIdNot(personnelNumber: String, id: Long): Boolean
 
-    @Query("select emp from Employee emp where lower(emp.personnelNumber) like lower(concat('%', :searchInput, '%')) or lower(emp.firstname) like lower(concat('%', :searchInput, '%')) or lower(emp.lastname) like lower(concat('%', :searchInput, '%'))")
+    @Query("select emp from Employee emp where lower(emp.personnelNumber) like lower(concat('%', :searchInput, '%')) or lower(emp.firstname) like lower(concat('%', :searchInput, '%')) or lower(emp.lastname) like lower(concat('%', :searchInput, '%')) order by emp.id")
     fun findBySearchInput(searchInput: String, pageRequest: PageRequest): Page<EmployeeEntity>
 }

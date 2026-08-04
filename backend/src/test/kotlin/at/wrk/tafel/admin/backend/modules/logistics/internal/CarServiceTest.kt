@@ -2,8 +2,9 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.logistics.model.Car
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.logistics.model.CarRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.CarResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testCar1
 import at.wrk.tafel.admin.backend.modules.logistics.testCar2
 import io.mockk.every
@@ -12,8 +13,8 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 
@@ -34,7 +35,7 @@ class CarServiceTest {
 
         assertThat(cars).hasSize(2)
         assertThat(cars.first()).isEqualTo(
-            Car(
+            CarResponse(
                 id = testCar1.id!!,
                 licensePlate = testCar1.licensePlate!!,
                 name = testCar1.name!!,
@@ -52,7 +53,7 @@ class CarServiceTest {
 
         assertThat(cars).hasSize(2)
         assertThat(cars.first()).isEqualTo(
-            Car(
+            CarResponse(
                 id = testCar1.id!!,
                 licensePlate = testCar1.licensePlate!!,
                 name = testCar1.name!!,
@@ -71,7 +72,7 @@ class CarServiceTest {
             enabled = true
             sortOrder = 1
         }
-        val updated = Car(
+        val updated = CarRequest(
             id = existingEntity.id!!,
             licensePlate = "Updated Plate",
             name = "Updated Car",
@@ -84,26 +85,33 @@ class CarServiceTest {
 
         val result = service.updateCar(existingEntity.id!!, updated)
 
-        assertThat(result).isEqualTo(updated)
+        assertThat(result).isEqualTo(
+            CarResponse(
+                id = updated.id,
+                licensePlate = updated.licensePlate,
+                name = updated.name,
+                enabled = updated.enabled,
+                sortOrder = updated.sortOrder,
+            ),
+        )
     }
 
     @Test
     fun `update car throws exception when not found`() {
         every { carRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy {
+        val exception = assertThrows<NotFoundException> {
             service.updateCar(
                 99L,
-                Car(id = 99L, licensePlate = "X", name = "X", enabled = true, sortOrder = 1),
+                CarRequest(id = 99L, licensePlate = "X", name = "X", enabled = true, sortOrder = 1),
             )
         }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Car with id 99 not found")
+        assertThat(exception.body.detail).isEqualTo("Car with id 99 not found")
     }
 
     @Test
     fun `create car assigns next sort order after the current max, ignoring the input value`() {
-        val createInput = Car(
+        val createInput = CarRequest(
             id = null,
             licensePlate = "New Plate",
             name = "New Car",
@@ -121,7 +129,7 @@ class CarServiceTest {
         val result = service.createCar(createInput)
 
         assertThat(result).isEqualTo(
-            Car(
+            CarResponse(
                 id = 42L,
                 licensePlate = createInput.licensePlate,
                 name = createInput.name,
@@ -133,7 +141,7 @@ class CarServiceTest {
 
     @Test
     fun `create car assigns sort order 1 when no cars exist yet`() {
-        val createInput = Car(
+        val createInput = CarRequest(
             id = null,
             licensePlate = "New Plate",
             name = "New Car",
@@ -185,8 +193,7 @@ class CarServiceTest {
     fun `reorder cars throws exception when a car is not found`() {
         every { carRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy { service.reorderCars(listOf(99L)) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("Car with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.reorderCars(listOf(99L)) }
+        assertThat(exception.body.detail).isEqualTo("Car with id 99 not found")
     }
 }

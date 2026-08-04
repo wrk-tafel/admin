@@ -1,0 +1,6 @@
+ignored:
+  # DL3018: pin apk package versions. The base image tag (`amazoncorretto:*-alpine`) already floats
+  # on Alpine's rolling mirror instead of a pinned snapshot, so hard-pinning just the postgres
+  # packages here wouldn't make the build reproducible - it would only add a way for otherwise
+  # unrelated PRs to fail once Alpine rotates that exact package version out of the mirror.
+  - DL3018

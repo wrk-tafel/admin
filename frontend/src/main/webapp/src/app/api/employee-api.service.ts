@@ -1,18 +1,22 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class EmployeeApiService {
   private readonly http = inject(HttpClient);
 
-  findEmployees(searchInput?: string, page?: number): Observable<EmployeeListResponse> {
+  findEmployees(searchInput?: string, page?: number, pageSize?: number): Observable<EmployeeListResponse> {
     let queryParams = new HttpParams();
     if (searchInput) {
       queryParams = queryParams.set('searchInput', searchInput);
     }
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<EmployeeListResponse>('/employees', {params: queryParams});
   }
@@ -21,15 +25,13 @@ export class EmployeeApiService {
     return this.http.post<EmployeeData>('/employees', createEmployeeRequest);
   }
 
+  updateEmployee(employeeId: number, employeeRequest: CreateEmployeeRequest): Observable<EmployeeData> {
+    return this.http.put<EmployeeData>(`/employees/${employeeId}`, employeeRequest);
+  }
+
 }
 
-export interface EmployeeListResponse {
-  items: EmployeeData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type EmployeeListResponse = PagedResponse<EmployeeData>;
 
 export interface CreateEmployeeRequest {
   personnelNumber: string;

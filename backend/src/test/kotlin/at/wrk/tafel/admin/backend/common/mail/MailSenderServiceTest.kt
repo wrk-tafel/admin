@@ -60,7 +60,7 @@ internal class MailSenderServiceTest {
         val fromAddress = "from-address"
         every { properties.mail!!.from } returns fromAddress
 
-        val subjectPrefix = "PREFIX - "
+        val subjectPrefix = "[PREFIX]"
         every { properties.mail!!.subjectPrefix } returns subjectPrefix
 
         val recipientAddresses = listOf(
@@ -88,9 +88,9 @@ internal class MailSenderServiceTest {
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
-        assertThat(mailMessage.subject).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.subject).isEqualTo("$subjectPrefix $subject")
 
-        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo("$subjectPrefix $subject")
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(fromAddress)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
@@ -109,6 +109,25 @@ internal class MailSenderServiceTest {
                 .filter { it.recipientType == RecipientType.BCC }
                 .map { it.address },
         )
+    }
+
+    @Test
+    fun `sendTextMail successfully - no subject prefix configured`() {
+        val fromAddress = "from-address"
+        every { properties.mail!!.from } returns fromAddress
+        every { properties.mail!!.subjectPrefix } returns null
+
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
+
+        val subject = "subj"
+        service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
+
+        val mailMessageSlot = slot<MimeMessage>()
+        verify { mailSender.send(capture(mailMessageSlot)) }
+
+        // Regression guard: an unset prefix must not leave a stray leading space in the subject.
+        assertThat(mailMessageSlot.captured.subject).isEqualTo(subject)
     }
 
     @Test
@@ -132,7 +151,7 @@ internal class MailSenderServiceTest {
         val fromAddress = "from-address"
         every { properties.mail!!.from } returns fromAddress
 
-        val subjectPrefix = "PREFIX - "
+        val subjectPrefix = "[PREFIX]"
         every { properties.mail!!.subjectPrefix } returns subjectPrefix
 
         val recipientAddresses = listOf(
@@ -168,9 +187,9 @@ internal class MailSenderServiceTest {
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
-        assertThat(mailMessage.subject).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.subject).isEqualTo("$subjectPrefix $subject")
 
-        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subjectPrefix + subject)
+        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo("$subjectPrefix $subject")
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(fromAddress)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)

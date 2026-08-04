@@ -1,5 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
+import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -13,12 +17,15 @@ import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO2
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -30,6 +37,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -42,6 +51,9 @@ class SettingsServiceTest {
 
     @RelaxedMockK
     private lateinit var staticValueRepository: StaticValueRepository
+
+    @RelaxedMockK
+    private lateinit var loginAttemptService: LoginAttemptService
 
     @InjectMockKs
     private lateinit var service: SettingsService
@@ -60,7 +72,7 @@ class SettingsServiceTest {
         val response = service.getMailRecipients()
 
         assertThat(response).isEqualTo(
-            MailRecipients(
+            MailRecipientsResponse(
                 mailRecipients = listOf(
                     MailRecipientsPerMailType(
                         mailType = MailType.DAILY_REPORT.name,
@@ -95,7 +107,7 @@ class SettingsServiceTest {
 
     @Test
     fun `update mail recipients`() {
-        val updatedSettings = MailRecipients(
+        val updatedSettings = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
                     mailType = MailType.DAILY_REPORT.name,
@@ -161,7 +173,7 @@ class SettingsServiceTest {
 
     @Test
     fun `update, filter and sanitize mail recipients`() {
-        val updatedSettings = MailRecipients(
+        val updatedSettings = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
                     mailType = MailType.DAILY_REPORT.name,
@@ -228,7 +240,7 @@ class SettingsServiceTest {
         val response = service.getStaticValues()
 
         assertThat(response.staticValues).containsExactly(
-            StaticValueItem(
+            StaticValueResponse(
                 id = 1,
                 type = "TOLERANCE",
                 validFrom = today.minusDays(10),
@@ -261,7 +273,7 @@ class SettingsServiceTest {
 
         // type/countAdults/countChildren/age differ from the existing row, but must be ignored - only
         // amount is editable, so the new historized row keeps the existing row's own values
-        val requestedChanges = StaticValueItem(
+        val requestedChanges = StaticValueRequest(
             id = 1,
             type = "TOLERANCE",
             validFrom = LocalDate.of(2030, 1, 1),
@@ -276,7 +288,7 @@ class SettingsServiceTest {
 
         assertThat(existing.validTo).isEqualTo(today.minusDays(1))
         assertThat(response).isEqualTo(
-            StaticValueItem(
+            StaticValueResponse(
                 id = 2,
                 type = "INCOME_LIMIT",
                 validFrom = today,
@@ -302,7 +314,7 @@ class SettingsServiceTest {
         every { staticValueRepository.findByIdOrNull(1L) } returns existing
         every { staticValueRepository.save(any()) } answers { firstArg() }
 
-        val requestedChanges = StaticValueItem(
+        val requestedChanges = StaticValueRequest(
             id = 1,
             type = "TOLERANCE",
             validFrom = today,
@@ -317,7 +329,7 @@ class SettingsServiceTest {
 
         verify(exactly = 1) { staticValueRepository.save(any()) }
         assertThat(response).isEqualTo(
-            StaticValueItem(
+            StaticValueResponse(
                 id = 1,
                 type = "TOLERANCE",
                 validFrom = today,
@@ -334,7 +346,7 @@ class SettingsServiceTest {
     fun `update static value fails when id is not found`() {
         every { staticValueRepository.findByIdOrNull(99L) } returns null
 
-        val updated = StaticValueItem(
+        val updated = StaticValueRequest(
             id = 99,
             type = "TOLERANCE",
             validFrom = LocalDate.of(2026, 1, 1),
@@ -346,6 +358,81 @@ class SettingsServiceTest {
         )
 
         assertThatThrownBy { service.updateStaticValue(99L, updated) }
-            .isInstanceOf(TafelValidationException::class.java)
+            .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `fetch login attempts as a page`() {
+        val older = LoginAttemptEntity().apply {
+            id = 1
+            username = "user1"
+            failureCount = 1
+            lastFailureAt = LocalDate.of(2026, 1, 1).atStartOfDay()
+            lockedUntil = null
+        }
+        val newer = LoginAttemptEntity().apply {
+            id = 2
+            username = "user2"
+            failureCount = 3
+            lastFailureAt = LocalDate.of(2026, 1, 2).atStartOfDay()
+            lockedUntil = LocalDate.of(2026, 1, 2).atStartOfDay().plusMinutes(15)
+        }
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        val pagedResult = PageImpl(listOf(newer, older), pageRequest, 123)
+        every { loginAttemptService.findAll(pageRequest) } returns pagedResult
+
+        val response = service.getLoginAttempts()
+
+        assertThat(response).isEqualTo(
+            PagedResponse(
+                items = listOf(
+                    LoginAttemptItem(
+                        id = 2,
+                        username = "user2",
+                        failureCount = 3,
+                        lastFailureAt = newer.lastFailureAt!!,
+                        lockedUntil = newer.lockedUntil,
+                    ),
+                    LoginAttemptItem(
+                        id = 1,
+                        username = "user1",
+                        failureCount = 1,
+                        lastFailureAt = older.lastFailureAt!!,
+                        lockedUntil = null,
+                    ),
+                ),
+                totalCount = 123,
+                currentPage = 1,
+                totalPages = pagedResult.totalPages,
+                pageSize = PaginationDefaults.DEFAULT_PAGE_SIZE,
+            ),
+        )
+    }
+
+    @Test
+    fun `fetch login attempts with explicit valid pageSize`() {
+        val pageRequest = PageRequest.of(0, 25)
+        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = service.getLoginAttempts(page = 1, pageSize = 25)
+
+        assertThat(response.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `fetch login attempts with invalid pageSize falls back to default`() {
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = service.getLoginAttempts(page = 1, pageSize = 7)
+
+        assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
+    }
+
+    @Test
+    fun `delete login attempt`() {
+        service.deleteLoginAttempt(1L)
+
+        verify(exactly = 1) { loginAttemptService.deleteById(1L) }
     }
 }

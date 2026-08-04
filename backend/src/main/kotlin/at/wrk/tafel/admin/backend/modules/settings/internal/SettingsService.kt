@@ -1,19 +1,27 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
+import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import org.springframework.cache.annotation.CacheEvict
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +31,7 @@ import java.time.LocalDate
 class SettingsService(
     private val mailRecipientRepository: MailRecipientRepository,
     private val staticValueRepository: StaticValueRepository,
+    private val loginAttemptService: LoginAttemptService,
 ) {
 
     companion object {
@@ -30,7 +39,7 @@ class SettingsService(
         private val FICTIVE_END_DATE = LocalDate.of(2999, 12, 31)
     }
 
-    fun getMailRecipients(): MailRecipients {
+    fun getMailRecipients(): MailRecipientsResponse {
         val recipientsPerMailType = mailRecipientRepository.findAll().groupBy { it.mailType }
         val mailRecipients = recipientsPerMailType.entries.map {
             val mailType = it.key
@@ -39,7 +48,7 @@ class SettingsService(
             mapToMailRecipientSetting(mailType!!, recipients)
         }
 
-        return MailRecipients(mailRecipients = mailRecipients)
+        return MailRecipientsResponse(mailRecipients = mailRecipients)
     }
 
     private fun mapToMailRecipientSetting(
@@ -60,7 +69,7 @@ class SettingsService(
     }
 
     @Transactional
-    fun updateMailRecipients(settings: MailRecipients) {
+    fun updateMailRecipients(settings: MailRecipientsRequest) {
         val recipients = settings.mailRecipients.flatMap { mailRecipient ->
             mailRecipient.recipients.flatMap { (updatedRecipientType, updatedRecipients) ->
                 updatedRecipients
@@ -104,9 +113,9 @@ class SettingsService(
         cacheNames = ["staticValueLatestForPersonCount", "staticValueSingle", "staticValueList"],
         allEntries = true,
     )
-    fun updateStaticValue(staticValueId: Long, item: StaticValueItem): StaticValueItem {
+    fun updateStaticValue(staticValueId: Long, item: StaticValueRequest): StaticValueResponse {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
-            ?: throw TafelValidationException("Statischer Wert mit ID $staticValueId nicht gefunden")
+            ?: throw NotFoundException("Statischer Wert mit ID $staticValueId nicht gefunden")
 
         val today = LocalDate.now()
 
@@ -131,13 +140,38 @@ class SettingsService(
         return mapStaticValue(staticValueRepository.save(historizedEntity))
     }
 
+    fun getLoginAttempts(page: Int? = null, pageSize: Int? = null): PagedResponse<LoginAttemptItem> {
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pagedResult = loginAttemptService.findAll(pageRequest)
+
+        return PagedResponse(
+            items = pagedResult.map { mapLoginAttempt(it) }.toList(),
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize,
+        )
+    }
+
+    fun deleteLoginAttempt(loginAttemptId: Long) {
+        loginAttemptService.deleteById(loginAttemptId)
+    }
+
+    private fun mapLoginAttempt(entity: LoginAttemptEntity) = LoginAttemptItem(
+        id = entity.id!!,
+        username = entity.username!!,
+        failureCount = entity.failureCount ?: 0,
+        lastFailureAt = entity.lastFailureAt!!,
+        lockedUntil = entity.lockedUntil,
+    )
+
     private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean {
         val validFrom = entity.validFrom
         val validTo = entity.validTo
         return validFrom != null && validTo != null && !today.isBefore(validFrom) && !today.isAfter(validTo)
     }
 
-    private fun mapStaticValue(entity: StaticValueEntity): StaticValueItem = StaticValueItem(
+    private fun mapStaticValue(entity: StaticValueEntity): StaticValueResponse = StaticValueResponse(
         id = entity.id,
         type = entity.type!!.name,
         validFrom = entity.validFrom!!,

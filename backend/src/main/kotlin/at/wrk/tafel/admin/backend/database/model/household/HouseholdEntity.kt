@@ -108,6 +108,9 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
     @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
     var persons: MutableList<PersonEntity> = mutableListOf()
 
+    @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var documents: MutableList<DocumentEntity> = mutableListOf()
+
     /**
      * All household members except the main person - the direct equivalent of the former
      * `CustomerEntity.additionalPersons`.
@@ -190,8 +193,9 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
 
             fun orderByUpdatedAtDesc(spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val updatedAt: Expression<LocalDate> = root["updatedAt"]
+                val id: Expression<Long> = root["id"]
 
-                cq!!.orderBy(cb.desc(updatedAt))
+                cq!!.orderBy(cb.desc(updatedAt), cb.desc(id))
                 spec.toPredicate(root, cq, cb)
             }
 

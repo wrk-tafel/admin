@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -354,7 +353,7 @@ class SseOutboxServiceTest {
         }
 
         // Trigger error
-        onErrorSlot.captured.accept(TafelException("test error"))
+        onErrorSlot.captured.accept(IllegalStateException("test error"))
 
         verify {
             sseOutboxListenerService.unregisterCallback(

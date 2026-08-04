@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -8,16 +8,30 @@ import {
   CustomerData,
   CustomerUpdateResponse
 } from '../../../../api/customer-api.service';
-import {HttpResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {
   CustomerNoteApiService,
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
+import {
+  CustomerDocumentApiService,
+  CustomerDocumentItem,
+  CustomerDocumentsResponse,
+  documentTypeLabel
+} from '../../../../api/customer-document-api.service';
 import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
 import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
 import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
+import {
+  PayCostContributionDialogComponent
+} from '../../../../common/components/pay-cost-contribution-dialog/pay-cost-contribution-dialog.component';
+import {
+  EditCostContributionDialogComponent
+} from '../../../../common/components/edit-cost-contribution-dialog/edit-cost-contribution-dialog.component';
+import {UploadDocumentPanelComponent, UploadDocumentPanelResult} from './upload-document-panel.component';
+import {DeleteDocumentDialogComponent} from './dialogs/delete-document-dialog.component';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -31,7 +45,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {CommonModule} from '@angular/common';
-import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
+import {faDownload, faPlus, faTrashCan, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
@@ -42,6 +56,8 @@ import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -61,7 +77,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     TafelIfDistributionActiveDirective,
     FormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    UploadDocumentPanelComponent
   ]
 })
 export class CustomerDetailComponent {
@@ -71,13 +88,17 @@ export class CustomerDetailComponent {
   customerDataInput = input.required<CustomerData>({alias: 'customerData'});
   // eslint-disable-next-line @angular-eslint/no-input-rename
   customerNotesResponseInput = input.required<CustomerNotesResponse>({alias: 'customerNotesResponse'});
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  customerDocumentsResponseInput = input.required<CustomerDocumentsResponse>({alias: 'customerDocumentsResponse'});
 
   // Writable signals linked to inputs - reset when input changes, locally writable for API updates
   readonly customerData = linkedSignal(() => this.customerDataInput());
   readonly customerNotesResponse = linkedSignal(() => this.customerNotesResponseInput());
+  readonly customerDocumentsResponse = linkedSignal(() => this.customerDocumentsResponseInput());
 
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
+  customerDocuments = signal<CustomerDocumentItem[]>([]);
 
   // Ticket signals
   ticketNumber = signal<number | null>(null);
@@ -85,6 +106,7 @@ export class CustomerDetailComponent {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
+  private readonly customerDocumentApiService = inject(CustomerDocumentApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
@@ -95,12 +117,22 @@ export class CustomerDetailComponent {
 
   readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
 
+  uploadDocumentPanel = viewChild(UploadDocumentPanelComponent);
+
   constructor() {
     // Process notes when the notes response changes (from input or local updates)
     effect(() => {
       const notesResponse = this.customerNotesResponse();
       if (notesResponse) {
         this.processCustomerNoteResponse(notesResponse);
+      }
+    });
+
+    // Process documents when the documents response changes (from input or local updates)
+    effect(() => {
+      const documentsResponse = this.customerDocumentsResponse();
+      if (documentsResponse) {
+        this.customerDocuments.set(documentsResponse.items);
       }
     });
 
@@ -126,11 +158,6 @@ export class CustomerDetailComponent {
 
   printIdCard() {
     this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD')
-      .subscribe((response) => this.processPdfResponse(response));
-  }
-
-  printCombined() {
-    this.customerApiService.generatePdf(this.customerData().id!, 'COMBINED')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
@@ -162,13 +189,13 @@ export class CustomerDetailComponent {
     this.dialog.open(DeleteCustomerDialogComponent)
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.customerApiService.deleteCustomer(this.customerData().id!).subscribe({
+        this.customerApiService.deleteCustomer(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: async () => {
             this.toastr.success('Kunde wurde gelöscht!');
             await this.router.navigate(['/kunden/suchen']);
           },
-          error: () => {
-            this.toastr.error('Löschen fehlgeschlagen!');
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
           },
         });
       }
@@ -182,12 +209,12 @@ export class CustomerDetailComponent {
       }
     }).afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.customerApiService.updateCustomer(customerData, true).subscribe({
+        this.customerApiService.updateCustomer(customerData, true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: () => {
             this.toastr.success('Kunde wurde verlängert!');
           },
-          error: () => {
-            this.toastr.error('Verlängerung fehlgeschlagen!');
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
           },
         });
       }
@@ -206,16 +233,16 @@ export class CustomerDetailComponent {
         const customer = response.data;
         this.customerData.set(customer);
       },
-      error: (error: any) => {
+      error: (error: HttpErrorResponse) => {
         if (error.status === 409) {
-          this.openConfirmUpdateCustomerDialog(updatedCustomerData, error.error.message);
+          this.openConfirmUpdateCustomerDialog(updatedCustomerData, extractErrorMessage(error));
         } else {
-          this.toastr.error('Verlängerung fehlgeschlagen!');
+          this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
         }
       },
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(observer);
+    this.customerApiService.updateCustomer(updatedCustomerData, false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
   }
 
   disableCustomer() {
@@ -260,6 +287,54 @@ export class CustomerDetailComponent {
     });
   }
 
+  openPayCostContributionDialog() {
+    this.dialog.open(PayCostContributionDialogComponent, {
+      data: {pendingAmount: this.customerData()?.pendingCostContribution ?? 0}
+    }).afterClosed().subscribe(amount => {
+      if (amount) {
+        this.payCostContribution(amount);
+      }
+    });
+  }
+
+  payCostContributionAll() {
+    this.payCostContribution(undefined);
+  }
+
+  private payCostContribution(amount: number | undefined) {
+    this.customerApiService.payCostContribution(this.customerData().id!, amount).subscribe({
+      next: (customer) => {
+        this.customerData.set(customer);
+        this.toastr.success('Unkostenbeitrag wurde aktualisiert!');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Aktualisierung fehlgeschlagen!');
+      }
+    });
+  }
+
+  openEditCostContributionDialog() {
+    this.dialog.open(EditCostContributionDialogComponent, {
+      data: {pendingAmount: this.customerData()?.pendingCostContribution ?? 0}
+    }).afterClosed().subscribe(amount => {
+      if (amount !== undefined && amount !== null) {
+        this.editCostContribution(amount);
+      }
+    });
+  }
+
+  private editCostContribution(amount: number) {
+    this.customerApiService.editCostContribution(this.customerData().id!, amount).subscribe({
+      next: (customer) => {
+        this.customerData.set(customer);
+        this.toastr.success('Unkostenbeitrag wurde aktualisiert!');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Aktualisierung fehlgeschlagen!');
+      }
+    });
+  }
+
   openAddNoteDialog() {
     this.dialog.open(AddNoteDialogComponent).afterClosed().subscribe(noteText => {
       if (noteText) {
@@ -286,30 +361,83 @@ export class CustomerDetailComponent {
     });
   }
 
+  onDocumentUpload(result: UploadDocumentPanelResult) {
+    const customerId = this.customerData().id!;
+    const upload$ = result.mode === 'upload'
+      ? this.customerDocumentApiService.uploadDocument(customerId, result.documentType, result.file)
+      : this.customerDocumentApiService.importScannerDocument(customerId, result.fileName, result.documentType);
+
+    upload$.subscribe({
+      next: (newDocument) => {
+        this.customerDocuments.update(documents => [newDocument, ...documents]);
+        const currentResponse = this.customerDocumentsResponse();
+        this.customerDocumentsResponse.set({
+          ...currentResponse,
+          items: [newDocument, ...currentResponse.items]
+        });
+        this.uploadDocumentPanel()?.reset();
+        this.toastr.success('Dokument wurde hochgeladen!');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Hochladen fehlgeschlagen!');
+      }
+    });
+  }
+
+  downloadDocument(doc: CustomerDocumentItem) {
+    this.customerDocumentApiService.downloadDocument(this.customerData().id!, doc.id).subscribe({
+      next: (response) => this.fileHelperService.downloadFile(doc.fileName, response.body!),
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Download fehlgeschlagen!');
+      }
+    });
+  }
+
+  openDeleteDocumentDialog(doc: CustomerDocumentItem) {
+    this.dialog.open(DeleteDocumentDialogComponent).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.customerDocumentApiService.deleteDocument(this.customerData().id!, doc.id).subscribe({
+          next: () => {
+            this.customerDocuments.update(documents => documents.filter(d => d.id !== doc.id));
+            const currentResponse = this.customerDocumentsResponse();
+            this.customerDocumentsResponse.set({
+              ...currentResponse,
+              items: currentResponse.items.filter(d => d.id !== doc.id)
+            });
+            this.toastr.success('Dokument wurde gelöscht!');
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+          }
+        });
+      }
+    });
+  }
+
   assignTicket() {
     const ticketNumber = this.ticketNumberInput()!;
     const customerId = this.customerData().id!;
-    this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe({
+    this.distributionApiService.assignCustomer(customerId, ticketNumber, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
       next: () => {
         this.ticketNumber.set(ticketNumber);
         this.ticketNumberInput.set(null);
         this.toastr.success('Ticket wurde zugewiesen!');
       },
-      error: () => {
-        this.toastr.error('Ticket-Zuweisung fehlgeschlagen!');
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Ticket-Zuweisung fehlgeschlagen!');
       }
     });
   }
 
   deleteTicket() {
     const customerId = this.customerData().id!;
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId).subscribe({
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
       next: () => {
         this.ticketNumber.set(null);
         this.toastr.success('Ticket wurde gelöscht!');
       },
-      error: () => {
-        this.toastr.error('Ticket-Löschung fehlgeschlagen!');
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Ticket-Löschung fehlgeschlagen!');
       }
     });
   }
@@ -326,5 +454,8 @@ export class CustomerDetailComponent {
 
   protected readonly faUsers = faUsers;
   protected readonly faPlus = faPlus;
+  protected readonly faDownload = faDownload;
+  protected readonly faTrashCan = faTrashCan;
+  protected readonly documentTypeLabel = documentTypeLabel;
   protected readonly Number = Number;
 }

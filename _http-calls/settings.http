@@ -2,7 +2,7 @@
 GET {{baseApiPath}}/settings/mail-recipients
 
 ### Update mail-recipient settings
-POST {{baseApiPath}}/settings/mail-recipients
+PUT {{baseApiPath}}/settings/mail-recipients
 Content-Type: application/json
 
 {
@@ -49,3 +49,24 @@ Content-Type: application/json
     }
   ]
 }
+
+### Get static values
+GET {{baseApiPath}}/settings/static-values
+
+### Update static value 1
+PUT {{baseApiPath}}/settings/static-values/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "type": "INCOME_LIMIT",
+  "validFrom": "2026-01-01",
+  "validTo": "2999-12-31",
+  "amount": 150
+}
+
+### Get login attempts
+GET {{baseApiPath}}/settings/login-attempts
+
+### Delete login attempt 1
+DELETE {{baseApiPath}}/settings/login-attempts/1

@@ -40,6 +40,15 @@ dependencyLocking {
 }
 
 dependencies {
+    constraints {
+        // Transitive-only Jackson 2.x line (via jjwt-jackson / swagger-core-jakarta), separate from the
+        // Jackson 3.x used directly in this project. Locked resolution pulled in 2.21.4, vulnerable to
+        // GHSA-mhm7-754m-9p8w, CVE-2026-54515 and CVE-2026-59889; all three are fixed in 2.21.5.
+        implementation(libs.jackson.databind.legacy) {
+            because("Fixes GHSA-mhm7-754m-9p8w, CVE-2026-54515, CVE-2026-59889 (JsonView bypass / ignored-properties issues)")
+        }
+    }
+
     // implementation
     implementation(platform(libs.spring.boot.bom))
     implementation(platform(libs.spring.modulith.bom))
@@ -48,6 +57,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.jdbc)
     implementation(libs.spring.boot.starter.flyway)
     implementation(libs.spring.boot.starter.data.jpa)

@@ -14,8 +14,8 @@
     @if ((customerAboveLimitData()?.items?.length ?? 0) > 0) {
       <div class="mt-4">
         <mat-paginator class="tafel-paginator-responsive" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
-                       [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
-                       (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
+                       [pageIndex]="customerAboveLimitData()!.currentPage - 1" [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true"
+                       (page)="getAboveLimit($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
       </div>
 
       <div class="hidden md:block mt-4">
@@ -79,8 +79,8 @@
         </table>
 
         <mat-paginator class="tafel-paginator-responsive mt-4" [length]="customerAboveLimitData()!.totalCount" [pageSize]="customerAboveLimitData()!.pageSize"
-                       [pageIndex]="customerAboveLimitData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
-                       (page)="getAboveLimit($event.pageIndex + 1)"></mat-paginator>
+                       [pageIndex]="customerAboveLimitData()!.currentPage - 1" [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true"
+                       (page)="getAboveLimit($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
       </div>
 
       <div class="block md:hidden mt-4">

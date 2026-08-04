@@ -7,6 +7,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faHandPointer} from '@fortawesome/free-solid-svg-icons';
 import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../../api/employee-api.service';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 
 export interface SelectEmployeeDialogData {
   initialResponse: EmployeeListResponse;
@@ -30,9 +31,10 @@ export class SelectEmployeeDialogComponent {
   employeeSearchResponse = signal<EmployeeListResponse>(this.data.initialResponse);
 
   protected readonly faHandPointer = faHandPointer;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 
-  triggerSearch(page: number) {
-    this.employeeApiService.findEmployees(this.data.searchInput, page).subscribe((response) => {
+  triggerSearch(page: number, pageSize?: number) {
+    this.employeeApiService.findEmployees(this.data.searchInput, page, pageSize).subscribe((response) => {
       this.employeeSearchResponse.set(response);
     });
   }

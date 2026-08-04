@@ -8,11 +8,11 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.country.Country
+import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
-import at.wrk.tafel.admin.backend.modules.household.Household
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdIssuer
+import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.PersonGender
 import at.wrk.tafel.admin.backend.security.testUser
@@ -53,7 +53,7 @@ internal class HouseholdConverterTest {
     @InjectMockKs
     private lateinit var converter: HouseholdConverter
 
-    private val testCountry = Country(
+    private val testCountry = CountryItem(
         id = 1,
         code = "AT",
         name = "Österreich",
@@ -72,7 +72,7 @@ internal class HouseholdConverterTest {
         incomeDue = LocalDate.now(),
     )
 
-    private val testHousehold = Household(
+    private val testHousehold = HouseholdRequest(
         id = 100,
         issuer = HouseholdIssuer(
             personnelNumber = "test-personnelnumber",
@@ -278,7 +278,7 @@ internal class HouseholdConverterTest {
         assertThat(mainPerson.employer).isEqualTo("Employer 123")
         assertThat(mainPerson.income).isEqualTo(BigDecimal("1000"))
         assertThat(mainPerson.country).isEqualTo(
-            Country(
+            CountryItem(
                 id = testCountry1.id!!,
                 code = testCountry1.code!!,
                 name = testCountry1.name!!,

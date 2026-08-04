@@ -1,12 +1,15 @@
 package at.wrk.tafel.admin.backend.modules.settings
 
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import io.mockk.Runs
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -32,7 +35,7 @@ class SettingsControllerTest {
 
     @Test
     fun `update mail recipient settings`() {
-        val settings = MailRecipients(emptyList())
+        val settings = MailRecipientsRequest(emptyList())
         settingsController.updateMailRecipientSettings(settings)
 
         verify(exactly = 1) { settingsService.updateMailRecipients(settings) }
@@ -47,7 +50,7 @@ class SettingsControllerTest {
 
     @Test
     fun `update static value`() {
-        val staticValue = StaticValueItem(
+        val staticValueRequest = StaticValueRequest(
             id = 42L,
             type = "TOLERANCE",
             validFrom = LocalDate.of(2026, 1, 1),
@@ -57,11 +60,38 @@ class SettingsControllerTest {
             countChildren = null,
             age = null,
         )
-        every { settingsService.updateStaticValue(any(), any()) } returns staticValue
+        val staticValueResponse = StaticValueResponse(
+            id = staticValueRequest.id,
+            type = staticValueRequest.type,
+            validFrom = staticValueRequest.validFrom,
+            validTo = staticValueRequest.validTo,
+            amount = staticValueRequest.amount,
+            countAdults = staticValueRequest.countAdults,
+            countChildren = staticValueRequest.countChildren,
+            age = staticValueRequest.age,
+        )
+        every { settingsService.updateStaticValue(any(), any()) } returns staticValueResponse
 
-        val response = settingsController.updateStaticValue(42L, staticValue)
+        val response = settingsController.updateStaticValue(42L, staticValueRequest)
 
-        assertThat(response).isEqualTo(staticValue)
-        verify(exactly = 1) { settingsService.updateStaticValue(42L, staticValue) }
+        assertThat(response).isEqualTo(staticValueResponse)
+        verify(exactly = 1) { settingsService.updateStaticValue(42L, staticValueRequest) }
+    }
+
+    @Test
+    fun `get login attempts`() {
+        settingsController.getLoginAttempts()
+
+        verify(exactly = 1) { settingsService.getLoginAttempts() }
+    }
+
+    @Test
+    fun `delete login attempt`() {
+        every { settingsService.deleteLoginAttempt(any()) } just Runs
+
+        val response = settingsController.deleteLoginAttempt(42L)
+
+        assertThat(response.statusCode.value()).isEqualTo(204)
+        verify(exactly = 1) { settingsService.deleteLoginAttempt(42L) }
     }
 }

@@ -1,5 +1,16 @@
 import {defineConfig} from 'cypress';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
+
+// Mirrors `tafeladmin.storage.scannerPath` in application-e2e.yml (`${java.io.tmpdir}/tafeladmin-e2e-scanner-inbox`) -
+// os.tmpdir() and Java's java.io.tmpdir resolve to the same OS-level temp directory on the machine
+// running both the Cypress process and the backend under test (true both locally and in CI, where
+// they run on the same runner), unlike `user.dir`, which differs between a local `bootRun` and the
+// CI job's `java -jar` invocation. The backend under test always runs with the "e2e" profile
+// (application-e2e.yml) - that's the profile that exists specifically for this - so there's only
+// ever one location to write to.
+const scannerInboxDir = path.join(os.tmpdir(), 'tafeladmin-e2e-scanner-inbox');
 
 export default defineConfig({
   builder: '@cypress/schematic:cypress',
@@ -27,6 +38,18 @@ export default defineConfig({
         }
 
         return launchOptions;
+      });
+
+      on('task', {
+        writeScannerFile({fileName, content}: { fileName: string; content: string }) {
+          fs.mkdirSync(scannerInboxDir, {recursive: true});
+          fs.writeFileSync(path.join(scannerInboxDir, fileName), content);
+          return null;
+        },
+        clearScannerInbox() {
+          fs.rmSync(scannerInboxDir, {recursive: true, force: true});
+          return null;
+        }
       });
     },
     baseUrl: 'http://localhost:4200/',

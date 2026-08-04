@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.note
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -113,10 +114,10 @@ internal class HouseholdNoteServiceTest {
         val householdId = 123L
 
         val selectedPage = 3
-        val pageRequest = PageRequest.of(selectedPage - 1, 5)
+        val pageRequest = PageRequest.of(selectedPage - 1, PaginationDefaults.DEFAULT_PAGE_SIZE)
         val page = PageImpl(emptyList<HouseholdNoteEntity>(), pageRequest, 0)
         every {
-            householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(householdId, pageRequest)
+            householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest)
         } returns page
 
         val searchResult = service.getNotes(householdId, selectedPage)
@@ -127,7 +128,7 @@ internal class HouseholdNoteServiceTest {
         assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
         assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
 
-        verify { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(householdId, pageRequest) }
+        verify { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest) }
     }
 
     @Test
@@ -160,10 +161,10 @@ internal class HouseholdNoteServiceTest {
         )
 
         val selectedPage = 1
-        val pageRequest = PageRequest.of(selectedPage - 1, 5)
+        val pageRequest = PageRequest.of(selectedPage - 1, PaginationDefaults.DEFAULT_PAGE_SIZE)
         val pagedResult = PageImpl(noteEntities, pageRequest, 2)
         every {
-            householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(householdId, pageRequest)
+            householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest)
         } returns pagedResult
 
         val searchResult = service.getNotes(householdId, selectedPage)
@@ -174,7 +175,7 @@ internal class HouseholdNoteServiceTest {
         assertThat(searchResult.totalCount).isEqualTo(pagedResult.totalElements)
         assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
 
-        verify { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(householdId, pageRequest) }
+        verify { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest) }
     }
 
     @Test

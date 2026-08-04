@@ -2,6 +2,7 @@ import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import dayjs from 'dayjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class StatisticsApiService {
@@ -32,12 +33,17 @@ export class StatisticsApiService {
       });
   }
 
-  getSchoolStarterPackageData(ageMin: number, ageMax: number, page?: number): Observable<SchoolStarterPackageSearchResult> {
+  getSchoolStarterPackageData(
+    ageMin: number, ageMax: number, page?: number, pageSize?: number
+  ): Observable<SchoolStarterPackageSearchResult> {
     let queryParams = new HttpParams();
     queryParams = queryParams.set('ageMin', ageMin);
     queryParams = queryParams.set('ageMax', ageMax);
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
 
     return this.http.get<SchoolStarterPackageSearchResult>('/statistics/school-starter-package', {params: queryParams});
@@ -95,10 +101,4 @@ export interface SchoolStarterPackageEntry {
   age: number;
 }
 
-export interface SchoolStarterPackageSearchResult {
-  items: SchoolStarterPackageEntry[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type SchoolStarterPackageSearchResult = PagedResponse<SchoolStarterPackageEntry>;

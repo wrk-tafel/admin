@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
@@ -12,7 +11,6 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
-import io.mockk.verifySequence
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -44,7 +42,7 @@ internal class DistributionControllerTest {
 
         controller.createNewDistribution()
 
-        val distributionItemResponse = DistributionItemUpdate(distribution = distributionItem)
+        val distributionItemResponse = DistributionUpdateResponse(distribution = distributionItem)
 
         verify {
             sseOutboxService.saveOutboxEntry(
@@ -73,9 +71,9 @@ internal class DistributionControllerTest {
     @Test
     fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
-        every { service.createNewDistributionItem() } throws TafelException(message)
+        every { service.createNewDistributionItem() } throws IllegalStateException(message)
 
-        val exception = assertThrows(TafelException::class.java) {
+        val exception = assertThrows(IllegalStateException::class.java) {
             controller.createNewDistribution()
         }
 
@@ -83,57 +81,8 @@ internal class DistributionControllerTest {
     }
 
     @Test
-    fun `listen for distribution updates with active distribution`() {
-        val distributionItem = DistributionItem(
-            id = 123,
-            startedAt = LocalDateTime.now(),
-            endedAt = null,
-        )
-        every { service.getCurrentDistributionItem() } returns distributionItem
-
-        val sseEmitter = controller.listenForDistributionUpdates()
-        assertThat(sseEmitter).isNotNull
-
-        verifySequence {
-            sseOutboxService.sendEvent(
-                sseEmitter,
-                DistributionItemUpdate(distribution = distributionItem),
-            )
-
-            sseOutboxService.forwardNotificationEventsToSse(
-                sseEmitter = sseEmitter,
-                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                resultType = DistributionItemUpdate::class.java,
-            )
-        }
-    }
-
-    @Test
-    fun `listen for distribution updates without active distribution`() {
-        every { service.getCurrentDistributionItem() } returns null
-
-        val sseEmitter = controller.listenForDistributionUpdates()
-        assertThat(sseEmitter).isNotNull
-
-        verifySequence {
-            sseOutboxService.sendEvent(
-                sseEmitter,
-                DistributionItemUpdate(
-                    distribution = null,
-                ),
-            )
-
-            sseOutboxService.forwardNotificationEventsToSse(
-                sseEmitter = sseEmitter,
-                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-                resultType = DistributionItemUpdate::class.java,
-            )
-        }
-    }
-
-    @Test
     fun `save distribution statistic`() {
-        val statisticData = DistributionStatisticData(
+        val statisticData = DistributionStatisticRequest(
             employeeCount = 100,
             selectedShelterIds = listOf(1, 2, 3),
         )
@@ -151,7 +100,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `save distribution note`() {
-        val noteData = DistributionNoteData(
+        val noteData = DistributionNoteRequest(
             notes = "dummy notes",
         )
 
@@ -170,7 +119,7 @@ internal class DistributionControllerTest {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
-        every { service.validateClose() } returns DistributionCloseValidationResult(
+        every { service.validateClose() } returns DistributionCloseResponse(
             errors = emptyList(),
             warnings = emptyList(),
         )
@@ -182,7 +131,7 @@ internal class DistributionControllerTest {
 
         verify { service.closeDistribution() }
 
-        val distributionItemResponseSlot = slot<DistributionItemUpdate>()
+        val distributionItemResponseSlot = slot<DistributionUpdateResponse>()
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
@@ -191,7 +140,7 @@ internal class DistributionControllerTest {
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
-            DistributionItemUpdate(
+            DistributionUpdateResponse(
                 distribution = null,
             ),
         )
@@ -203,7 +152,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = listOf("Error 1", "Error 2"),
             warnings = emptyList(),
         )
@@ -229,7 +178,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = emptyList(),
             warnings = listOf("Warning 1", "Warning 2"),
         )
@@ -255,7 +204,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = emptyList(),
             warnings = listOf("Warning 1", "Warning 2"),
         )
@@ -268,7 +217,7 @@ internal class DistributionControllerTest {
 
         verify { service.closeDistribution() }
 
-        val distributionItemResponseSlot = slot<DistributionItemUpdate>()
+        val distributionItemResponseSlot = slot<DistributionUpdateResponse>()
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
@@ -277,7 +226,7 @@ internal class DistributionControllerTest {
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
-            DistributionItemUpdate(
+            DistributionUpdateResponse(
                 distribution = null,
             ),
         )
@@ -289,7 +238,7 @@ internal class DistributionControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val validationResult = DistributionCloseValidationResult(
+        val validationResult = DistributionCloseResponse(
             errors = listOf("Error 1", "Error 2"),
             warnings = listOf("Warning 1", "Warning 2"),
         )
@@ -316,11 +265,11 @@ internal class DistributionControllerTest {
                 any(),
                 any(),
             )
-        } throws TafelException("dummy error")
+        } throws IllegalStateException("dummy error")
 
         val requestBody = AssignHouseholdRequest(householdId = 1, ticketNumber = 100)
 
-        val exception = assertThrows<TafelException> {
+        val exception = assertThrows<IllegalStateException> {
             controller.assignHouseholdToDistribution(requestBody)
         }
 

@@ -3,24 +3,17 @@ package at.wrk.tafel.admin.backend.architecture
 import at.wrk.tafel.admin.backend.config.TafelApplicationModulesFactory
 import org.junit.jupiter.api.Test
 import org.springframework.modulith.core.ApplicationModules
-import org.springframework.modulith.docs.Documenter
-import org.springframework.modulith.docs.Documenter.CanvasOptions
-import org.springframework.modulith.docs.Documenter.DiagramOptions
 
 internal class ModularityTest {
 
     private val modules = ApplicationModules.of(TafelApplicationModulesFactory.MODULES_BASE_PACKAGE)
 
+    /**
+     * If IntelliJ's Spring Modulith inspection shows warnings on `package-info.java` files that this test
+     * doesn't catch, that's an IDE limitation, not a gap here - see [TafelApplicationModulesFactory].
+     */
     @Test
     fun verifiesModularStructure() {
         modules.verify()
-    }
-
-    @Test
-    fun createModuleDocumentation() {
-        val diagramOptions = DiagramOptions.defaults()
-            .withElementsWithoutRelationships(DiagramOptions.ElementsWithoutRelationships.VISIBLE)
-        val canvasOptions = CanvasOptions.defaults()
-        Documenter(modules).writeDocumentation(diagramOptions, canvasOptions)
     }
 }

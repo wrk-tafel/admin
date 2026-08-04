@@ -145,7 +145,7 @@ describe('CustomerApiService', () => {
       expect(response.errorMsg).toBeNull();
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=false'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=false'});
     req.flush({data: mockHousehold, errorMsg: null});
     httpMock.verify();
   });
@@ -155,7 +155,7 @@ describe('CustomerApiService', () => {
       expect(response.data.id).toEqual(133);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=true'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=true'});
     req.flush({data: mockHousehold, errorMsg: null});
     httpMock.verify();
   });
@@ -163,7 +163,7 @@ describe('CustomerApiService', () => {
   it('request maps the flat customer onto a household with a persons list', () => {
     apiService.updateCustomer(mockCustomer, false).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=false'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=false'});
     const body = req.request.body;
 
     // household-level fields
@@ -252,14 +252,6 @@ describe('CustomerApiService', () => {
     apiService.generatePdf(1, 'IDCARD').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=IDCARD'});
-    req.flush(null);
-    httpMock.verify();
-  });
-
-  it('generate combined pdf', () => {
-    apiService.generatePdf(1, 'COMBINED').subscribe();
-
-    const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=COMBINED'});
     req.flush(null);
     httpMock.verify();
   });
@@ -416,16 +408,131 @@ describe('CustomerApiService', () => {
     expect(result!.totalCount).toEqual(1);
   });
 
-  it('merge customers', () => {
+  it('merge customers without field selections', () => {
     const targetCustomerId = 123;
     const sourceCustomerIds = [456, 789];
-    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds).subscribe();
+    let result;
+    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds).subscribe(response => result = response);
 
     const req = httpMock.expectOne({method: 'POST', url: `/households/${targetCustomerId}/merge`});
-    expect(req.request.body).toEqual({sourceHouseholdIds: sourceCustomerIds});
+    expect(req.request.body).toEqual({sourceHouseholdIds: sourceCustomerIds, fieldSelections: []});
 
-    req.flush(null);
+    req.flush({
+      target: mockHousehold,
+      movedPersonCount: 1,
+      droppedDuplicatePersonCount: 0,
+      movedNoteCount: 2,
+      movedDocumentCount: 0,
+      movedDistributionCount: 0,
+      droppedDistributionCount: 0,
+      deletedHouseholdIds: sourceCustomerIds
+    });
     httpMock.verify();
+
+    expect(result!.target.lastname).toEqual('Mustermann');
+    expect(result!.movedPersonCount).toEqual(1);
+    expect(result!.movedNoteCount).toEqual(2);
+    expect(result!.deletedCustomerIds).toEqual(sourceCustomerIds);
+  });
+
+  it('merge customers with field selections maps sourceCustomerId to sourceHouseholdId', () => {
+    const targetCustomerId = 123;
+    const sourceCustomerIds = [456];
+    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds, [
+      {field: 'TELEPHONE_NUMBER', sourceCustomerId: 456},
+      {field: 'EMAIL'}
+    ]).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/households/${targetCustomerId}/merge`});
+    expect(req.request.body).toEqual({
+      sourceHouseholdIds: sourceCustomerIds,
+      fieldSelections: [
+        {field: 'TELEPHONE_NUMBER', sourceHouseholdId: 456},
+        {field: 'EMAIL', sourceHouseholdId: null}
+      ]
+    });
+
+    req.flush({
+      target: mockHousehold,
+      movedPersonCount: 0,
+      droppedDuplicatePersonCount: 0,
+      movedNoteCount: 0,
+      movedDocumentCount: 0,
+      movedDistributionCount: 0,
+      droppedDistributionCount: 0,
+      deletedHouseholdIds: sourceCustomerIds
+    });
+    httpMock.verify();
+  });
+
+  it('get merge preview maps household target/sources/persons to customer shape', () => {
+    const targetCustomerId = 123;
+    const sourceCustomerIds = [456];
+    let result;
+    apiService.getMergePreview(targetCustomerId, sourceCustomerIds).subscribe(response => result = response);
+
+    const req = httpMock.expectOne(
+      req => req.method === 'GET' && req.url === `/households/${targetCustomerId}/merge-preview`
+    );
+    expect(req.request.params.getAll('sourceHouseholdIds')).toEqual(['456']);
+
+    req.flush({
+      target: mockHousehold,
+      sources: [mockHousehold],
+      fieldConflicts: [{field: 'TELEPHONE_NUMBER', conflictingSourceHouseholdIds: [456]}],
+      persons: [{sourceHouseholdId: 456, person: mockHousehold.persons[0], duplicate: false}],
+      distributionCollisions: [],
+      noteCount: 1,
+      documentCount: 0
+    });
+    httpMock.verify();
+
+    expect(result!.target.lastname).toEqual('Mustermann');
+    expect(result!.sources).toHaveLength(1);
+    expect(result!.fieldConflicts).toEqual([{field: 'TELEPHONE_NUMBER', conflictingSourceCustomerIds: [456]}]);
+    expect(result!.persons[0].sourceCustomerId).toEqual(456);
+    expect(result!.persons[0].person.lastname).toEqual('Mustermann');
+    expect(result!.noteCount).toEqual(1);
+  });
+
+  it('pay cost contribution with an amount', () => {
+    apiService.payCostContribution(133, 4).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/cost-contribution/pay'});
+    expect(req.request.body).toEqual({amount: 4});
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+  });
+
+  it('pay cost contribution without an amount maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.payCostContribution(133).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/cost-contribution/pay'});
+    expect(req.request.body).toEqual({amount: undefined});
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
+    expect(result?.firstname).toEqual(mockCustomer.firstname);
+  });
+
+  it('edit cost contribution sends the new amount and maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.editCostContribution(133, 42).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133/cost-contribution'});
+    expect(req.request.body).toEqual({amount: 42});
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
+    expect(result?.firstname).toEqual(mockCustomer.firstname);
   });
 
 });

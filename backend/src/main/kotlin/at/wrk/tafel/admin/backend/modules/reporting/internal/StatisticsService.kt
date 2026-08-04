@@ -1,16 +1,17 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageSearchResult
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
+import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageItem
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetail
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticsSettings
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsResponse
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsSettingsResponse
 import jakarta.persistence.EntityManager
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
@@ -35,11 +36,11 @@ class StatisticsService(
         private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
     }
 
-    fun getSettings(): StatisticsSettings {
+    fun getSettings(): StatisticsSettingsResponse {
         val closedDistributions = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
             .filter { it.endedAt != null && it.startedAt != null }
 
-        return StatisticsSettings(
+        return StatisticsSettingsResponse(
             availableYears = closedDistributions
                 .mapNotNull { it.startedAt?.year }
                 .distinct()
@@ -55,9 +56,9 @@ class StatisticsService(
     }
 
     @Transactional(readOnly = true)
-    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsData {
+    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse {
         val countBeneficiaryCustomers = countBeneficiaryCustomers(fromDate, toDate)
-        val countBeneficiaryCustomersData = StatisticsDetailData(
+        val countBeneficiaryCustomersData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countBeneficiaryCustomers.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Haushalte",
             labels = countBeneficiaryCustomers.map { it.label },
@@ -65,7 +66,7 @@ class StatisticsService(
         )
 
         val countBeneficiaryPersons = countBeneficiaryPersons(fromDate, toDate)
-        val countBeneficiaryPersonsData = StatisticsDetailData(
+        val countBeneficiaryPersonsData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countBeneficiaryPersons.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Personen",
             labels = countBeneficiaryPersons.map { it.label },
@@ -73,7 +74,7 @@ class StatisticsService(
         )
 
         val countBeneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildren(fromDate, toDate)
-        val countBeneficiaryCustomersWithChildrenData = StatisticsDetailData(
+        val countBeneficiaryCustomersWithChildrenData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
             labels = countBeneficiaryCustomersWithChildren.map { it.label },
@@ -81,7 +82,7 @@ class StatisticsService(
         )
 
         val countSingleParentHouseholds = countSingleParentHouseholds(fromDate, toDate)
-        val countSingleParentHouseholdsData = StatisticsDetailData(
+        val countSingleParentHouseholdsData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countSingleParentHouseholds.lastOrNull()?.value?.toLong() ?: 0L),
             subTitle = "Alleinerzieher (Haushalte)",
             labels = countSingleParentHouseholds.map { it.label },
@@ -89,7 +90,7 @@ class StatisticsService(
         )
 
         val countShelters = countShelters(fromDate, toDate)
-        val countSheltersData = StatisticsDetailData(
+        val countSheltersData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countShelters.sumOf { it.value.toLong() }),
             subTitle = "Notschlafstellen (Anzahl)",
             labels = countShelters.map { it.label },
@@ -100,7 +101,7 @@ class StatisticsService(
         val averageSheltersDivisor = max(averageShelters.count { it.value.toDouble() > 0 }, 1)
         val averageSheltersTotalAverage = (averageShelters.sumOf { it.value.toDouble() } / averageSheltersDivisor)
             .let { String.format("%.2f", it) }
-        val averageSheltersData = StatisticsDetailData(
+        val averageSheltersData = StatisticsDetail(
             title = averageSheltersTotalAverage,
             subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
             labels = averageShelters.map { it.label },
@@ -108,7 +109,7 @@ class StatisticsService(
         )
 
         val countSheltersPersons = countSheltersPersons(fromDate, toDate)
-        val countSheltersPersonsData = StatisticsDetailData(
+        val countSheltersPersonsData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countSheltersPersons.sumOf { it.value.toLong() }),
             subTitle = "Versorgte Personen (Anzahl)",
             labels = countSheltersPersons.map { it.label },
@@ -116,7 +117,7 @@ class StatisticsService(
         )
 
         val countShops = countShops(fromDate, toDate)
-        val countShopsData = StatisticsDetailData(
+        val countShopsData = StatisticsDetail(
             title = INTEGER_FORMATTER.format(countShops.sumOf { it.value.toLong() }),
             subTitle = "Spender (Anzahl)",
             labels = countShops.map { it.label },
@@ -124,7 +125,7 @@ class StatisticsService(
         )
 
         val totalShopItems = totalShopItems(fromDate, toDate)
-        val totalShopItemsData = StatisticsDetailData(
+        val totalShopItemsData = StatisticsDetail(
             title = "${INTEGER_FORMATTER.format(totalShopItems.sumOf { it.value.toLong() })} kg",
             subTitle = "Warenmenge (Gesamt)",
             labels = totalShopItems.map { it.label },
@@ -136,14 +137,14 @@ class StatisticsService(
         val averageShopItemsTotalAverage =
             (averageShopItems.sumOf { it.value.toDouble() } / averageShopItemsDivisor)
                 .let { String.format("%.2f", it) }
-        val averageShopItemsData = StatisticsDetailData(
+        val averageShopItemsData = StatisticsDetail(
             title = "$averageShopItemsTotalAverage kg",
             subTitle = "Warenmenge (Durchschnitt pro Spender)",
             labels = averageShopItems.map { it.label },
             dataPoints = averageShopItems.map { it.value },
         )
 
-        return StatisticsData(
+        return StatisticsResponse(
             beneficiaryCustomers = countBeneficiaryCustomersData,
             beneficiaryPersons = countBeneficiaryPersonsData,
             beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
@@ -432,12 +433,13 @@ class StatisticsService(
         ageMin: Int,
         ageMax: Int,
         page: Int? = null,
-    ): SchoolStarterPackageSearchResult {
+        pageSize: Int? = null,
+    ): PagedResponse<SchoolStarterPackageItem> {
         val today = LocalDate.now()
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today), pageRequest)
 
-        return SchoolStarterPackageSearchResult(
+        return PagedResponse(
             items = pagedResult.content.map { it.toSchoolStarterPackageEntry(today) },
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
@@ -464,10 +466,10 @@ class StatisticsService(
         return PersonEntity.Specs.orderByHouseholdId(spec)
     }
 
-    private fun PersonEntity.toSchoolStarterPackageEntry(today: LocalDate): SchoolStarterPackageEntry {
+    private fun PersonEntity.toSchoolStarterPackageEntry(today: LocalDate): SchoolStarterPackageItem {
         val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
 
-        return SchoolStarterPackageEntry(
+        return SchoolStarterPackageItem(
             householdId = household!!.householdId!!,
             firstname = firstname.orEmpty(),
             lastname = lastname.orEmpty(),

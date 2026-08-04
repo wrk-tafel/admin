@@ -31,7 +31,8 @@ describe('FoodCollectionRecordingComponent', () => {
                 {
                     provide: GlobalStateService,
                     useValue: {
-                        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+                        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
+                        getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState')
                     }
                 },
                 {
@@ -53,6 +54,7 @@ describe('FoodCollectionRecordingComponent', () => {
 
     it('ngOnInit without active distribution', () => {
         globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
+        globalStateService.getConnectionState.mockReturnValue(signal(true).asReadonly());
 
         const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
         const componentRef = fixture.componentRef;
@@ -65,6 +67,23 @@ describe('FoodCollectionRecordingComponent', () => {
         fixture.detectChanges();
 
         expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+    });
+
+    it('ngOnInit without active distribution but before SSE connection is established does not redirect', () => {
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
+        globalStateService.getConnectionState.mockReturnValue(signal(false).asReadonly());
+
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const componentRef = fixture.componentRef;
+
+        // Provide required model inputs before detectChanges
+        componentRef.setInput('routeList', { routes: [] });
+        componentRef.setInput('carList', { cars: [] });
+        componentRef.setInput('foodCategories', []);
+
+        fixture.detectChanges();
+
+        expect(router.navigate).not.toHaveBeenCalled();
     });
 
 });

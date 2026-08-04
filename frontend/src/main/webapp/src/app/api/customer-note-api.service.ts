@@ -1,15 +1,19 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class CustomerNoteApiService {
   private http = inject(HttpClient);
 
-  getNotesForCustomer(customerId: number, page?: number): Observable<CustomerNotesResponse> {
+  getNotesForCustomer(customerId: number, page?: number, pageSize?: number): Observable<CustomerNotesResponse> {
     let queryParams = new HttpParams();
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<CustomerNotesResponse>(`/households/${customerId}/notes`, {params: queryParams});
   }
@@ -21,13 +25,7 @@ export class CustomerNoteApiService {
 
 }
 
-export interface CustomerNotesResponse {
-  items: CustomerNoteItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerNotesResponse = PagedResponse<CustomerNoteItem>;
 
 export interface CustomerNoteItem {
   author?: string;

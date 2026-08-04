@@ -1,9 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.ShelterService
-import at.wrk.tafel.admin.backend.modules.logistics.model.Shelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterReorderRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -12,6 +13,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
 class SheltersControllerTest {
@@ -24,7 +26,7 @@ class SheltersControllerTest {
 
     @Test
     fun `get active shelters`() {
-        val shelter1 = Shelter(
+        val shelter1 = ShelterResponse(
             id = 1,
             name = "Shelter 1",
             addressStreet = "Street",
@@ -51,7 +53,7 @@ class SheltersControllerTest {
 
     @Test
     fun `get all shelters`() {
-        val shelter1 = Shelter(
+        val shelter1 = ShelterResponse(
             id = 1,
             name = "Shelter 1",
             addressStreet = "Street",
@@ -78,7 +80,7 @@ class SheltersControllerTest {
 
     @Test
     fun `update shelter`() {
-        val existingShelter = Shelter(
+        val existingShelter = ShelterRequest(
             id = 1,
             name = "Shelter 1",
             addressStreet = "Street",
@@ -93,7 +95,7 @@ class SheltersControllerTest {
             sortOrder = 1,
             contacts = emptyList(),
         )
-        val updatedShelter = Shelter(
+        val updatedShelter = ShelterRequest(
             id = 1,
             name = "Shelter 2",
             addressStreet = "Street X",
@@ -108,11 +110,26 @@ class SheltersControllerTest {
             sortOrder = 1,
             contacts = emptyList(),
         )
-        every { service.updateShelter(any(), any()) } returns updatedShelter
+        val updatedResponse = ShelterResponse(
+            id = updatedShelter.id,
+            name = updatedShelter.name,
+            addressStreet = updatedShelter.addressStreet,
+            addressHouseNumber = updatedShelter.addressHouseNumber,
+            addressStairway = updatedShelter.addressStairway,
+            addressPostalCode = updatedShelter.addressPostalCode,
+            addressDoor = updatedShelter.addressDoor,
+            addressCity = updatedShelter.addressCity,
+            note = updatedShelter.note,
+            personsCount = updatedShelter.personsCount,
+            enabled = updatedShelter.enabled,
+            sortOrder = updatedShelter.sortOrder,
+            contacts = updatedShelter.contacts,
+        )
+        every { service.updateShelter(any(), any()) } returns updatedResponse
 
         val response = controller.updateShelter(existingShelter.id!!, updatedShelter)
 
-        assertThat(response).isEqualTo(updatedShelter)
+        assertThat(response).isEqualTo(updatedResponse)
         verify {
             service.updateShelter(existingShelter.id, updatedShelter)
         }
@@ -120,7 +137,7 @@ class SheltersControllerTest {
 
     @Test
     fun `create shelter`() {
-        val newShelter = Shelter(
+        val newShelter = ShelterRequest(
             id = 0L,
             name = "New Shelter",
             addressStreet = "New Street",
@@ -136,13 +153,28 @@ class SheltersControllerTest {
             contacts = emptyList(),
         )
 
-        val createdShelter = newShelter.copy(id = 42L, sortOrder = 1)
+        val createdShelter = ShelterResponse(
+            id = 42L,
+            name = newShelter.name,
+            addressStreet = newShelter.addressStreet,
+            addressHouseNumber = newShelter.addressHouseNumber,
+            addressStairway = newShelter.addressStairway,
+            addressPostalCode = newShelter.addressPostalCode,
+            addressDoor = newShelter.addressDoor,
+            addressCity = newShelter.addressCity,
+            note = newShelter.note,
+            personsCount = newShelter.personsCount,
+            enabled = newShelter.enabled,
+            sortOrder = 1,
+            contacts = newShelter.contacts,
+        )
 
         every { service.createShelter(any()) } returns createdShelter
 
         val response = controller.createShelter(newShelter)
 
-        assertThat(response).isEqualTo(createdShelter)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
+        assertThat(response.body).isEqualTo(createdShelter)
         verify {
             service.createShelter(newShelter)
         }
@@ -150,7 +182,7 @@ class SheltersControllerTest {
 
     @Test
     fun `reorder shelters`() {
-        val shelter1 = Shelter(
+        val shelter1 = ShelterResponse(
             id = 1,
             name = "Shelter 1",
             addressStreet = "Street",

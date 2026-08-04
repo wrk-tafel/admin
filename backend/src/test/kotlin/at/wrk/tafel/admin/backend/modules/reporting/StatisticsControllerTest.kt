@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsCsvResult
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsService
 import io.mockk.every
@@ -28,7 +29,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSettings returns statistics settings from service`() {
-        val expectedSettings = StatisticsSettings(
+        val expectedSettings = StatisticsSettingsResponse(
             availableYears = listOf(2024, 2023, 2022),
             distributions = listOf(
                 StatisticsDistribution(
@@ -58,7 +59,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSettings returns empty lists when no distributions exist`() {
-        val expectedSettings = StatisticsSettings(
+        val expectedSettings = StatisticsSettingsResponse(
             availableYears = emptyList(),
             distributions = emptyList(),
         )
@@ -82,7 +83,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSettings returns settings with single year`() {
-        val expectedSettings = StatisticsSettings(
+        val expectedSettings = StatisticsSettingsResponse(
             availableYears = listOf(2024),
             distributions = listOf(
                 StatisticsDistribution(
@@ -109,7 +110,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSettings returns settings with multiple years`() {
-        val expectedSettings = StatisticsSettings(
+        val expectedSettings = StatisticsSettingsResponse(
             availableYears = listOf(2025, 2024, 2023, 2022, 2021),
             distributions = listOf(
                 StatisticsDistribution(
@@ -150,7 +151,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSettings preserves year ordering from service`() {
-        val expectedSettings = StatisticsSettings(
+        val expectedSettings = StatisticsSettingsResponse(
             availableYears = listOf(2024, 2023, 2022),
             distributions = listOf(
                 StatisticsDistribution(
@@ -193,7 +194,7 @@ class StatisticsControllerTest {
             ),
         )
 
-        val expectedSettings = StatisticsSettings(
+        val expectedSettings = StatisticsSettingsResponse(
             availableYears = listOf(2024),
             distributions = expectedDistributions,
         )
@@ -210,7 +211,7 @@ class StatisticsControllerTest {
     fun `get data`() {
         val fromDate = LocalDate.now().minusDays(2)
         val toDate = LocalDate.now()
-        val expectedData = mockk<StatisticsData>()
+        val expectedData = mockk<StatisticsResponse>()
 
         every { service.getData(fromDate, toDate) } returns expectedData
 
@@ -246,8 +247,8 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSchoolStarterPackageData delegates to service with given age range and page`() {
-        val expectedData = SchoolStarterPackageSearchResult(
-            items = listOf(SchoolStarterPackageEntry(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8)),
+        val expectedData = PagedResponse(
+            items = listOf(SchoolStarterPackageItem(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8)),
             totalCount = 1L,
             currentPage = 2,
             totalPages = 1,

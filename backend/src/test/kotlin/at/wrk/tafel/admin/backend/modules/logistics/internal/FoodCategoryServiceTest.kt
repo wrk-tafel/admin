@@ -2,8 +2,9 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
@@ -13,8 +14,8 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
@@ -39,7 +40,7 @@ class FoodCategoryServiceTest {
 
         assertThat(categories).isEqualTo(
             listOf(
-                FoodCategory(
+                FoodCategoryResponse(
                     id = category3.id,
                     name = category3.name!!,
                     weightPerUnit = category3.weightPerUnit,
@@ -47,7 +48,7 @@ class FoodCategoryServiceTest {
                     sortOrder = category3.sortOrder!!,
                     enabled = category3.enabled!!,
                 ),
-                FoodCategory(
+                FoodCategoryResponse(
                     id = category1.id,
                     name = category1.name!!,
                     weightPerUnit = category1.weightPerUnit,
@@ -55,7 +56,7 @@ class FoodCategoryServiceTest {
                     sortOrder = category1.sortOrder!!,
                     enabled = category1.enabled!!,
                 ),
-                FoodCategory(
+                FoodCategoryResponse(
                     id = category2.id,
                     name = category2.name!!,
                     weightPerUnit = category2.weightPerUnit,
@@ -90,7 +91,7 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `create category assigns next sort order after the current max, ignoring the input value`() {
-        val createInput = FoodCategory(
+        val createInput = FoodCategoryRequest(
             id = null,
             name = "New Category",
             weightPerUnit = BigDecimal("15"),
@@ -111,14 +112,23 @@ class FoodCategoryServiceTest {
         // testFoodCategory2 is a return-item ("Kisten") fixture and must be ignored when
         // computing the next order - only testFoodCategory1 (sortOrder 200) and
         // testFoodCategory3 (sortOrder 100) count, so the next value is 201.
-        assertThat(result).isEqualTo(createInput.copy(id = 42L, sortOrder = 201))
+        assertThat(result).isEqualTo(
+            FoodCategoryResponse(
+                id = 42L,
+                name = createInput.name,
+                weightPerUnit = createInput.weightPerUnit,
+                returnItem = createInput.returnItem,
+                sortOrder = 201,
+                enabled = createInput.enabled,
+            ),
+        )
 
         verify { foodCategoryRepository.save(any()) }
     }
 
     @Test
     fun `create category assigns sort order 1 when no categories exist yet`() {
-        val createInput = FoodCategory(
+        val createInput = FoodCategoryRequest(
             id = null,
             name = "New Category",
             weightPerUnit = BigDecimal("15"),
@@ -149,7 +159,7 @@ class FoodCategoryServiceTest {
             sortOrder = 100
             enabled = true
         }
-        val updated = FoodCategory(
+        val updated = FoodCategoryRequest(
             id = existingEntity.id,
             name = "Updated Category",
             weightPerUnit = BigDecimal("99"),
@@ -163,14 +173,23 @@ class FoodCategoryServiceTest {
 
         val result = service.updateFoodCategory(existingEntity.id!!, updated)
 
-        assertThat(result).isEqualTo(updated)
+        assertThat(result).isEqualTo(
+            FoodCategoryResponse(
+                id = updated.id,
+                name = updated.name,
+                weightPerUnit = updated.weightPerUnit,
+                returnItem = updated.returnItem,
+                sortOrder = updated.sortOrder,
+                enabled = updated.enabled,
+            ),
+        )
     }
 
     @Test
     fun `update category throws exception when not found`() {
         every { foodCategoryRepository.findByIdOrNull(99L) } returns null
 
-        val updated = FoodCategory(
+        val updated = FoodCategoryRequest(
             id = 99L,
             name = "Updated Category",
             weightPerUnit = BigDecimal("99"),
@@ -179,9 +198,8 @@ class FoodCategoryServiceTest {
             enabled = false,
         )
 
-        assertThatThrownBy { service.updateFoodCategory(99L, updated) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("FoodCategory with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.updateFoodCategory(99L, updated) }
+        assertThat(exception.body.detail).isEqualTo("FoodCategory with id 99 not found")
     }
 
     @Test
@@ -216,8 +234,7 @@ class FoodCategoryServiceTest {
     fun `reorder categories throws exception when a category is not found`() {
         every { foodCategoryRepository.findByIdOrNull(99L) } returns null
 
-        assertThatThrownBy { service.reorderFoodCategories(listOf(99L)) }
-            .isInstanceOf(TafelValidationException::class.java)
-            .hasMessage("FoodCategory with id 99 not found")
+        val exception = assertThrows<NotFoundException> { service.reorderFoodCategories(listOf(99L)) }
+        assertThat(exception.body.detail).isEqualTo("FoodCategory with id 99 not found")
     }
 }

@@ -1,14 +1,15 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageEntry
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
+import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageItem
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetail
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -403,62 +404,62 @@ internal class StatisticsServiceTest {
         val expectedDataPoints: List<Number> = listOf(10L, 20L, 30L)
 
         assertThat(result).isEqualTo(
-            StatisticsData(
-                beneficiaryCustomers = StatisticsDetailData(
+            StatisticsResponse(
+                beneficiaryCustomers = StatisticsDetail(
                     title = "30",
                     subTitle = "Bezugsberechtigte Haushalte",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                beneficiaryPersons = StatisticsDetailData(
+                beneficiaryPersons = StatisticsDetail(
                     title = "30",
                     subTitle = "Bezugsberechtigte Personen",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                beneficiaryCustomersWithChildren = StatisticsDetailData(
+                beneficiaryCustomersWithChildren = StatisticsDetail(
                     title = "30",
                     subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                singleParentHouseholds = StatisticsDetailData(
+                singleParentHouseholds = StatisticsDetail(
                     title = "30",
                     subTitle = "Alleinerzieher (Haushalte)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                sheltersCount = StatisticsDetailData(
+                sheltersCount = StatisticsDetail(
                     title = "60",
                     subTitle = "Notschlafstellen (Anzahl)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                sheltersAverage = StatisticsDetailData(
+                sheltersAverage = StatisticsDetail(
                     title = "20,00",
                     subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                sheltersPersonsCount = StatisticsDetailData(
+                sheltersPersonsCount = StatisticsDetail(
                     title = "60",
                     subTitle = "Versorgte Personen (Anzahl)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                shopsCount = StatisticsDetailData(
+                shopsCount = StatisticsDetail(
                     title = "60",
                     subTitle = "Spender (Anzahl)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                shopItemsTotal = StatisticsDetailData(
+                shopItemsTotal = StatisticsDetail(
                     title = "60 kg",
                     subTitle = "Warenmenge (Gesamt)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
-                shopItemsAverage = StatisticsDetailData(
+                shopItemsAverage = StatisticsDetail(
                     title = "20,00 kg",
                     subTitle = "Warenmenge (Durchschnitt pro Spender)",
                     labels = expectedLabels,
@@ -507,7 +508,7 @@ internal class StatisticsServiceTest {
      * The age-range/main-person/valid-household *filtering* itself now happens inside the
      * Specification passed to `personRepository.findAll(...)` (see `StatisticsServiceIT` for that
      * behavior against a real DB) - these unit tests only cover what the service does with
-     * whatever `PersonRepository` hands back: mapping to `SchoolStarterPackageEntry` and
+     * whatever `PersonRepository` hands back: mapping to `SchoolStarterPackageItem` and
      * translating `page` into a zero-based `PageRequest`.
      */
     private fun personEntity(householdId: Long, firstname: String, lastname: String, age: Int): PersonEntity {
@@ -557,11 +558,11 @@ internal class StatisticsServiceTest {
         val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
 
         assertThat(result.items).containsExactly(
-            SchoolStarterPackageEntry(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
+            SchoolStarterPackageItem(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
         )
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
-        assertThat(result.pageSize).isEqualTo(25)
+        assertThat(result.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
@@ -591,7 +592,7 @@ internal class StatisticsServiceTest {
         service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
 
         assertThat(pageableSlot.captured.pageNumber).isEqualTo(1)
-        assertThat(pageableSlot.captured.pageSize).isEqualTo(25)
+        assertThat(pageableSlot.captured.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
@@ -605,5 +606,17 @@ internal class StatisticsServiceTest {
 
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(pageableSlot.captured.pageNumber).isEqualTo(0)
+    }
+
+    @Test
+    fun `getSchoolStarterPackageData with invalid pageSize falls back to default`() {
+        val pageableSlot = slot<Pageable>()
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
+        } returns PageImpl(emptyList(), PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE), 0)
+
+        service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1, pageSize = 999)
+
+        assertThat(pageableSlot.captured.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 }

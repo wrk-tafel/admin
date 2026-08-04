@@ -20,6 +20,7 @@ SELECT setval('shelters_seq', 10000, false);
 SELECT setval('shelters_contacts_seq', 10000, false);
 SELECT setval('distributions_statistics_shelters_seq', 10000, false);
 SELECT setval('mail_recipients_seq', 10000, false);
+SELECT setval('login_attempts_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -185,35 +186,35 @@ values (101, NOW(), NOW(), 101, true, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE
         '2999-12-31', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      income, income_due, country_id, receives_family_allowance)
-values (1011, NOW(), NOW(), 101, false, 'Child 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
+values (1011, NOW(), NOW(), 101, false, 'Kind 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance)
-values (1012, NOW(), NOW(), 101, false, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE',
+values (1012, NOW(), NOW(), 101, false, 'Kind 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE',
         'Stadt Wien', null, null, 1,
         true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1013, NOW(), NOW(), 101, false, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null,
+values (1013, NOW(), NOW(), 101, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null,
         null, 1, true,
         true);
 UPDATE households SET main_person_id = 101 WHERE id = 101;
 
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1003, NOW(), NOW(), 101, 100,
-        'Testnote 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
-VALUES (1002, NOW(), NOW(), 101, 100, 'Testnote 2');
+VALUES (1002, NOW(), NOW(), 101, 100, 'Testnotiz 2');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
-VALUES (1001, NOW(), NOW(), 101, null, 'Testnote 1');
+VALUES (1001, NOW(), NOW(), 101, null, 'Testnotiz 1');
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (102, NOW(), NOW(), 102, 100, null, 'Erdberg', 1, null, null, '1030', 'Wien',
-        '00436645678953', 'john.doe@wrk.at', '2999-12-31', 0);
+        '00436645678953', 'herbert.wagner@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (102, NOW(), NOW(), 102, true, 'John', 'Doe', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00, '2999-12-31',
+values (102, NOW(), NOW(), 102, true, 'Herbert', 'Wagner', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00, '2999-12-31',
         false, false);
 UPDATE households SET main_person_id = 102 WHERE id = 102;
 
@@ -224,70 +225,70 @@ values (103, NOW(), NOW(), 103, 100, null, 'Erdberg', 1, null, null,
         '1030', 'Wien', null, null, NOW() + interval '1 month', 0, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (103, NOW(), NOW(), 103, true, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Stadt Wien', 123.00,
+values (103, NOW(), NOW(), 103, true, 'Erika', 'LÄUFT BALD AB', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
         NOW() + interval '1 month', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      income, income_due, country_id, receives_family_allowance)
-values (1031, NOW(), NOW(), 103, false, 'Child 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1, false);
+values (1031, NOW(), NOW(), 103, false, 'Kind 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance)
-values (1032, NOW(), NOW(), 103, false, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null, null, 1, true);
+values (1032, NOW(), NOW(), 103, false, 'Kind 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null, null, 1, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1033, NOW(), NOW(), 103, false, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null, 1, true, true);
+values (1033, NOW(), NOW(), 103, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1034, NOW(), NOW(), 103, false, 'Child 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null, 1, true, true);
+values (1034, NOW(), NOW(), 103, false, 'Kind 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1035, NOW(), NOW(), 103, false, 'Child 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null, 1, true, true);
+values (1035, NOW(), NOW(), 103, false, 'Kind 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1036, NOW(), NOW(), 103, false, 'Child 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null, 1, true, true);
+values (1036, NOW(), NOW(), 103, false, 'Kind 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1037, NOW(), NOW(), 103, false, 'Child 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null, 1, true, true);
+values (1037, NOW(), NOW(), 103, false, 'Kind 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1038, NOW(), NOW(), 103, false, 'Child 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null, 1, true, true);
+values (1038, NOW(), NOW(), 103, false, 'Kind 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1039, NOW(), NOW(), 103, false, 'Child 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null, 1, true, true);
+values (1039, NOW(), NOW(), 103, false, 'Kind 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1040, NOW(), NOW(), 103, false, 'Child 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null, 1, true, true);
+values (1040, NOW(), NOW(), 103, false, 'Kind 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null, 1, true, true);
 UPDATE households SET main_person_id = 103 WHERE id = 103;
 
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1041, NOW(), NOW(), 103, 100,
-        'Testnote 1.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 1.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1042, NOW(), NOW(), 103, 100,
-        'Testnote 2.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 2.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1043, NOW(), NOW(), 103, 100,
-        'Testnote 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1044, NOW(), NOW(), 103, 100,
-        'Testnote 4.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 4.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1045, NOW(), NOW(), 103, 100,
-        'Testnote 5.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 5.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1046, NOW(), NOW(), 103, 100,
-        'Testnote 6.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 6.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1047, NOW(), NOW(), 103, 100,
-        'Testnote 7.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 7.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1048, NOW(), NOW(), 103, 100,
-        'Testnote 8.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 8.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1049, NOW(), NOW(), 103, 100,
-        'Testnote 9.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 9.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1050, NOW(), NOW(), 103, 100,
-        'Testnote 10.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        'Testnotiz 10.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
@@ -296,7 +297,7 @@ values (104, NOW(), NOW(), 104, 100, null, 'Erdberg', 1, null, null, '1030',
         'Wien', null, null, '2000-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (104, NOW(), NOW(), 104, true, 'Jane Doe', 'EXPIRED', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
+values (104, NOW(), NOW(), 104, true, 'Herta', 'ABGELAUFEN', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
         '2000-12-31', false, false);
 UPDATE households SET main_person_id = 104 WHERE id = 104;
 
@@ -305,10 +306,10 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
                         address_city, telephone_number, email, valid_until, locked,
                         locked_at, locked_by, lock_reason, pending_cost_contribution)
 values (105, NOW(), NOW(), 105, 100, null, 'Erdberg', 1, null, null, '1030',
-        'Wien', null, null, '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet', 0);
+        'Wien', null, null, '2999-12-31', true, NOW(), 100, 'Sperrgrund: Lorem ipsum dolor sit amet', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (105, NOW(), NOW(), 105, true, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
+values (105, NOW(), NOW(), 105, true, 'Grete', 'GESPERRT', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 105 WHERE id = 105;
 
@@ -325,23 +326,23 @@ values (106, NOW(), NOW(), 106, true, null, null, null, null, 1, null, null, nul
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
                      income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1060, NOW(), NOW(), 106, false, 'Firstname 1', 'Lastname 1', null, null, null, null, null, 1, true, true);
+values (1060, NOW(), NOW(), 106, false, 'Vorname 1', 'Nachname 1', null, null, null, null, null, 1, true, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
                      income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1061, NOW(), NOW(), 106, false, 'Firstname 2', 'Lastname 2', null, null, null, null, null, 1, false, false);
+values (1061, NOW(), NOW(), 106, false, 'Vorname 2', 'Nachname 2', null, null, null, null, null, 1, false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
                      income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1062, NOW(), NOW(), 106, false, 'Firstname 3', 'Lastname 3', null, null, null, null, null, 1, true, false);
+values (1062, NOW(), NOW(), 106, false, 'Vorname 3', 'Nachname 3', null, null, null, null, null, 1, true, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
                      income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1063, NOW(), NOW(), 106, false, 'Firstname 4', 'Lastname 4', null, null, null, null, null, 1, false, true);
+values (1063, NOW(), NOW(), 106, false, 'Vorname 4', 'Nachname 4', null, null, null, null, null, 1, false, true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer,
                      income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1064, NOW(), NOW(), 106, false, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
+values (1064, NOW(), NOW(), 106, false, 'Vorname 5', 'Nachname 5', null, null, null, null, null, 1, false, false);
 UPDATE households SET main_person_id = 106 WHERE id = 106;
 
 -- household above the income limit (couple, 2 children) - complete master data, shows up in
@@ -518,7 +519,7 @@ VALUES (22, 'COST_CONTRIBUTION', '1900-01-01', '2999-12-31', 4.00);
 
 -- distribution-related
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
-VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300, 'Everything went well!');
+VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300, 'Alles ist gut gelaufen!');
 INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
                                       count_persons, count_infants, average_persons_per_customer,
                                       count_customers_new, count_persons_new,
@@ -619,7 +620,7 @@ VALUES (31, NOW(), NOW(), 3100, 'Denns BioMarkt', '01 23 45 67 89', null,
 
 -- routes
 INSERT INTO routes (id, created_at, updated_at, number, name, note)
-VALUES (1, NOW(), NOW(), 1, 'Route 1', 'Note 1');
+VALUES (1, NOW(), NOW(), 1, 'Route 1', 'Notiz 1');
 
 INSERT INTO routes (id, created_at, updated_at, number, name, note)
 VALUES (2, NOW(), NOW(), 2, 'Route 2', null);
@@ -826,7 +827,7 @@ FROM ShopCategories sc;
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count, enabled)
-values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 'Right around the corner', 100, true);
+values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 'Gleich um die Ecke', 100, true);
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count, enabled)
 values (2, NOW(), NOW(), 'Shelter 2 with a very long name', 'Erdberg', 2, '1', '10', '1030', 'Wien', null, 50, true);
@@ -866,3 +867,9 @@ INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (5, 'STATISTICS', 'TO', 'statistics-to@domain.com');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (6, 'RETURN_BOXES', 'TO', 'returnboxes-to@domain.com');
+
+-- login attempts
+INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
+VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW(), NOW() + interval '15 minutes');
+INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
+VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW(), NULL);

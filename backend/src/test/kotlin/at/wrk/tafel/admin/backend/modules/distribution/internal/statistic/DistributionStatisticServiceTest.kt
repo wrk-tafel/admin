@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
@@ -209,7 +209,7 @@ internal class DistributionStatisticServiceTest {
             endedAt = LocalDateTime.now()
         }
 
-        val message = assertThrows<TafelValidationException> { service.saveStatistic(testDistributionEntity) }
-        assertThat(message.message).isEqualTo("Statistik-Daten nicht vorhanden!")
+        val message = assertThrows<BusinessRuleException> { service.saveStatistic(testDistributionEntity) }
+        assertThat(message.body.detail).isEqualTo("Statistik-Daten nicht vorhanden!")
     }
 }

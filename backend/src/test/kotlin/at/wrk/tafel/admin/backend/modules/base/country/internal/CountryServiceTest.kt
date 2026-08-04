@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.base.country.internal
 
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.country.Country
+import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry2
 import io.mockk.every
@@ -29,8 +29,8 @@ class CountryServiceTest {
 
         assertThat(countries).isEqualTo(
             listOf(
-                Country(id = testCountry1.id!!, code = testCountry1.code!!, name = testCountry1.name!!),
-                Country(id = testCountry2.id!!, code = testCountry2.code!!, name = testCountry2.name!!),
+                CountryItem(id = testCountry1.id!!, code = testCountry1.code!!, name = testCountry1.name!!),
+                CountryItem(id = testCountry2.id!!, code = testCountry2.code!!, name = testCountry2.name!!),
             ),
         )
     }

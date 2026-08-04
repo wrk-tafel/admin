@@ -3,78 +3,74 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/food-collections")
+@PreAuthorize("hasAuthority('LOGISTICS')")
 class FoodCollectionsController(
     private val foodCollectionService: FoodCollectionService,
 ) {
 
-    @GetMapping("/route/{routeId}")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @GetMapping("/routes/{routeId}")
     @TafelActiveDistributionRequired
     fun getFoodCollection(
         @PathVariable routeId: Long,
-    ): ResponseEntity<FoodCollectionData> {
+    ): ResponseEntity<FoodCollectionResponse> {
         val data = foodCollectionService.getFoodCollection(routeId)
             ?: return ResponseEntity.noContent().build()
         return ResponseEntity.ok(data)
     }
 
-    @PostMapping("/route/{routeId}")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PostMapping("/routes/{routeId}")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionRouteData(
         @PathVariable routeId: Long,
-        @RequestBody request: FoodCollectionSaveRouteData,
+        @Valid @RequestBody request: FoodCollectionSaveRouteRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveRouteData(routeId, request)
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/route/{routeId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PostMapping("/routes/{routeId}/items")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItems(
         @PathVariable routeId: Long,
-        @RequestBody request: FoodCollectionItems,
+        @Valid @RequestBody request: FoodCollectionItemsRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItems(routeId, request)
         return ResponseEntity.ok().build()
     }
 
-    @GetMapping("/route/{routeId}/shop/{shopId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @GetMapping("/routes/{routeId}/shops/{shopId}/items")
     @TafelActiveDistributionRequired
     fun getFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
         @PathVariable shopId: Long,
-    ): ResponseEntity<FoodCollectionItems> {
+    ): ResponseEntity<FoodCollectionItemsResponse> {
         val data = foodCollectionService.getItemsPerShop(routeId, shopId) ?: return ResponseEntity.noContent().build()
         return ResponseEntity.ok(data)
     }
 
-    @PostMapping("/route/{routeId}/shop/{shopId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PostMapping("/routes/{routeId}/shops/{shopId}/items")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItemsPerShop(
         @PathVariable routeId: Long,
         @PathVariable shopId: Long,
-        @RequestBody request: FoodCollectionSaveItemsPerShopData,
+        @Valid @RequestBody request: FoodCollectionSaveItemsPerShopRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItemsPerShop(routeId, shopId, request)
         return ResponseEntity.ok().build()
     }
 
-    @PatchMapping("/route/{routeId}/items")
-    @PreAuthorize("hasAuthority('LOGISTICS')")
+    @PatchMapping("/routes/{routeId}/items")
     @TafelActiveDistributionRequired
     fun patchFoodCollectionItem(
         @PathVariable routeId: Long,
-        @RequestBody request: FoodCollectionItem,
+        @Valid @RequestBody request: FoodCollectionItemRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.patchItem(routeId, request)
         return ResponseEntity.ok().build()

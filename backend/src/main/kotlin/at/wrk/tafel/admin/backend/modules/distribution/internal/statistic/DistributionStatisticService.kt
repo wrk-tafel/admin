@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -38,7 +38,7 @@ class DistributionStatisticService(
     }
 
     private fun saveStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
-        val statistic = distribution.statistic ?: throw TafelValidationException("Statistik-Daten nicht vorhanden!")
+        val statistic = distribution.statistic ?: throw BusinessRuleException("Statistik-Daten nicht vorhanden!")
         val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
         val statisticEndTime = distribution.endedAt!!
         statistic.distribution = distribution

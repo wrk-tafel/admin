@@ -1,21 +1,22 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {PagedResponse} from '../common/api/paged-response';
 
 @Service()
 export class UserApiService {
   private readonly http = inject(HttpClient);
 
-  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
-    return this.http.post<ChangePasswordResponse>('/users/change-password', request);
+  changePassword(request: ChangePasswordRequest, context?: HttpContext): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>('/users/change-password', request, {context});
   }
 
   getUserForId(userId: number): Observable<UserData> {
     return this.http.get<UserData>('/users/' + userId);
   }
 
-  getUserForPersonnelNumber(personnelNumber: string): Observable<UserData> {
-    return this.http.get<UserData>('/users/personnel-number/' + personnelNumber);
+  getUserForPersonnelNumber(personnelNumber: string, context?: HttpContext): Observable<UserData> {
+    return this.http.get<UserData>('/users/personnel-number/' + personnelNumber, {context});
   }
 
   searchUser(
@@ -23,7 +24,8 @@ export class UserApiService {
     enabled?: boolean | null,
     lastname?: string | null,
     firstname?: string | null,
-    page?: number
+    page?: number,
+    pageSize?: number
   ): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
     if (username) {
@@ -41,19 +43,22 @@ export class UserApiService {
     if (page) {
       queryParams = queryParams.set('page', page);
     }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
+    }
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
   }
 
-  updateUser(data: UserData): Observable<UserData> {
-    return this.http.post<UserData>(`/users/${data.id}`, data);
+  updateUser(data: UserData, context?: HttpContext): Observable<UserData> {
+    return this.http.put<UserData>(`/users/${data.id}`, data, {context});
   }
 
   deleteUser(userId: number): Observable<void> {
     return this.http.delete<void>(`/users/${userId}`);
   }
 
-  createUser(data: UserData): Observable<UserData> {
-    return this.http.post<UserData>('/users', data);
+  createUser(data: UserData, context?: HttpContext): Observable<UserData> {
+    return this.http.post<UserData>('/users', data, {context});
   }
 
   generatePassword(): Observable<GeneratedPasswordResponse> {
@@ -76,13 +81,7 @@ export interface ChangePasswordResponse {
   details: string[];
 }
 
-export interface UserSearchResult {
-  items: UserData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type UserSearchResult = PagedResponse<UserData>;
 
 export interface UserData {
   id?: number;

@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -42,7 +42,7 @@ class MissingCostContributionService(
             LocalDate.now(),
         )
         if (costContributionValue == null) {
-            throw TafelValidationException("No cost contribution value found. Skipping missing cost contribution post processing.")
+            throw BusinessRuleException("No cost contribution value found. Skipping missing cost contribution post processing.")
         }
 
         val householdsMissingCostContribution = distribution.households

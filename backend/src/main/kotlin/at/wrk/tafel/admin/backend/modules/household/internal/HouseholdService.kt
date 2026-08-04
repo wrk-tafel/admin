@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lastnameContains
@@ -9,24 +10,28 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.household.Household
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
+import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
+import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
+import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Service
@@ -35,26 +40,24 @@ class HouseholdService(
     private val householdRepository: HouseholdRepository,
     private val householdPdfService: HouseholdPdfService,
     private val householdConverter: HouseholdConverter,
+    private val documentStorageService: DocumentStorageService,
 ) {
 
-    fun validate(household: Household): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household))
+    fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 
     @Transactional(readOnly = true)
-    fun findByHouseholdId(householdId: Long): Household? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
+    fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
 
     @Transactional
-    fun createHousehold(household: Household, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
+    fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
         val entity = householdConverter.mapHouseholdToEntity(household)
 
-        val valid = incomeValidatorService.validate(mapToValidationPersons(household)).valid
+        val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw TafelValidationException(
-                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
-                    status = HttpStatus.CONFLICT,
-                )
+                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
             } else {
                 val savedEntity = saveWithMainPerson(entity)
                 return HouseholdCreationResponse(
@@ -82,20 +85,17 @@ class HouseholdService(
     @Transactional
     fun updateHousehold(
         householdId: Long,
-        household: Household,
+        household: HouseholdRequest,
         force: Boolean,
         isSupervisor: Boolean,
     ): HouseholdUpdateResponse {
         val existingEntity = householdRepository.getReferenceByHouseholdId(householdId)
         val mappedEntity = householdConverter.mapHouseholdToEntity(household, existingEntity)
 
-        val valid = incomeValidatorService.validate(mapToValidationPersons(household)).valid
+        val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw TafelValidationException(
-                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
-                    status = HttpStatus.CONFLICT,
-                )
+                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
             } else {
                 val savedEntity = saveWithMainPerson(mappedEntity)
                 return HouseholdUpdateResponse(
@@ -152,8 +152,9 @@ class HouseholdService(
         postProcessing: Boolean?,
         costContribution: Boolean?,
         valid: Boolean?,
+        pageSize: Int? = null,
     ): HouseholdSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
 
         val where = where(
             Specification.allOf(
@@ -180,15 +181,15 @@ class HouseholdService(
     }
 
     @Transactional(readOnly = true)
-    fun getHouseholdsAboveLimit(page: Int? = null): HouseholdAboveLimitSearchResult {
+    fun getHouseholdsAboveLimit(page: Int? = null, pageSize: Int? = null): HouseholdAboveLimitSearchResult {
         // households needing post-processing (missing birthDate/gender/country/address/... - see
         // HouseholdEntity.Specs.postProcessingNecessary()) can't be income-validated
         val spec = where(Specification.allOf(listOf(validHousehold(), Specification.not(postProcessingNecessary()))))
-        val households = householdRepository.findAll(spec)
+        val households = householdRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "id"))
             .map { householdConverter.mapEntityToHousehold(it) }
 
         val itemsAboveLimit = households.mapNotNull { household ->
-            val result = incomeValidatorService.validate(mapToValidationPersons(household))
+            val result = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
             if (!result.valid) {
                 HouseholdAboveLimitItem(
                     household = household,
@@ -203,7 +204,7 @@ class HouseholdService(
 
         // the "above limit" filter can't be expressed in SQL (it depends on IncomeValidatorService,
         // not stored columns), so pagination is applied in-memory on the already-computed result
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
         val fromIndex = pageRequest.offset.toInt().coerceAtMost(itemsAboveLimit.size)
         val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(itemsAboveLimit.size)
         val pagedResult = PageImpl(itemsAboveLimit.subList(fromIndex, toIndex), pageRequest, itemsAboveLimit.size.toLong())
@@ -234,11 +235,6 @@ class HouseholdService(
                     filenamePrefix = "ausweis"
                     bytes = householdPdfService.generateIdCardPdf(household)
                 }
-
-                HouseholdPdfType.COMBINED -> {
-                    filenamePrefix = "stammdaten-ausweis"
-                    bytes = householdPdfService.generateCombinedPdf(household)
-                }
             }
 
             val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }
@@ -263,11 +259,14 @@ class HouseholdService(
         household.mainPerson = null
         householdRepository.saveAndFlush(household)
 
+        // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
+        // those have to be cleaned up explicitly.
+        household.documents.forEach { documentStorageService.delete(it.storagePath!!) }
+
         householdRepository.delete(household)
     }
 
-    private fun mapToValidationPersons(household: Household): List<IncomeValidatorPerson> {
-        val mainPerson = household.mainPerson()
+    private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {
         val mainValidatorPerson = mainPerson?.let {
             IncomeValidatorPerson(
                 birthDate = it.birthDate!!,
@@ -276,7 +275,7 @@ class HouseholdService(
             )
         }
 
-        val additionalValidatorPersons = household.additionalPersons().map {
+        val additionalValidatorPersons = additionalPersons.map {
             IncomeValidatorPerson(
                 birthDate = it.birthDate,
                 monthlyIncome = it.income,
@@ -288,17 +287,41 @@ class HouseholdService(
         return additionalValidatorPersons + listOfNotNull(mainValidatorPerson)
     }
 
+    /**
+     * Records a payment against the household's pending Unkostenbeitrag. A `null` amount pays off
+     * the full pending amount; overpayment (amount greater than what's pending) simply clamps the
+     * result at zero instead of being rejected.
+     */
     @Transactional
-    fun mergeHouseholds(targetHousehold: Long, sourceHouseholds: List<Long>) {
-        sourceHouseholds.forEach { householdId ->
-            deleteHouseholdByHouseholdId(householdId)
+    fun payCostContribution(householdId: Long, amount: BigDecimal?): HouseholdResponse {
+        val entity = householdRepository.getReferenceByHouseholdId(householdId)
+        entity.pendingCostContribution = if (amount != null) {
+            (entity.pendingCostContribution - amount).coerceAtLeast(BigDecimal.ZERO)
+        } else {
+            BigDecimal.ZERO
         }
+
+        val savedEntity = householdRepository.saveAndFlush(entity)
+        return householdConverter.mapEntityToHousehold(savedEntity)
+    }
+
+    /**
+     * Directly sets the household's pending Unkostenbeitrag to an arbitrary value, independent of
+     * any payment - e.g. to correct a wrongly recorded amount.
+     */
+    @Transactional
+    fun editCostContribution(householdId: Long, amount: BigDecimal): HouseholdResponse {
+        val entity = householdRepository.getReferenceByHouseholdId(householdId)
+        entity.pendingCostContribution = amount.coerceAtLeast(BigDecimal.ZERO)
+
+        val savedEntity = householdRepository.saveAndFlush(entity)
+        return householdConverter.mapEntityToHousehold(savedEntity)
     }
 }
 
 @ExcludeFromTestCoverage
 data class HouseholdSearchResult(
-    val items: List<Household>,
+    val items: List<HouseholdResponse>,
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,

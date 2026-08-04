@@ -222,6 +222,21 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
 - Open Cypress UI: `npm run cy:open-local` (for local development)
+- **Any new or changed frontend user-facing behavior (a new dialog, form field, button, tab, flow)
+  must come with an added/updated Cypress e2e case** covering it end-to-end, not just a Vitest unit
+  spec — this is easy to forget since unit tests alone can pass while the real flow is broken (e.g.
+  a required DB sequence missing only shows up when a real request round-trips through a real
+  backend, which only e2e/integration tests exercise). Before calling frontend work done, check
+  whether `cypress/e2e/*.cy.ts` needs a new `it(...)` for what changed.
+
+## Handling Issues Found Outside the Current Task's Scope
+
+If you notice a bug or problem while working on a task that is **not caused by your current
+work** (pre-existing, unrelated to the change you're making):
+- **Small and related to the task** (e.g. a nearby off-by-one, a stale comment, a minor layout
+  glitch touched by your change): fix it inline as part of the same task.
+- **Bigger or unrelated**: don't fix it inline — file a GitHub issue (`gh issue create`) so it can
+  be tackled separately, and mention it to the user rather than silently expanding the task's scope.
 
 ## Code Conventions
 
@@ -237,7 +252,9 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Services: Suffix with `Service`, mark internal services in `internal/` package
 - Entities: Suffix with `Entity`, located in `database/model/`
 - Repositories: Suffix with `Repository`, use Spring Data JPA
-- Models: Suffix with `Model` or `ResponseModel` for DTOs
+- Models: DTOs bound to a REST endpoint follow the naming convention in [API
+  Structure](#rest-dto-naming-convention) below; `Model`/`ResponseModel` filenames (not type names)
+  remain fine for the file a DTO group lives in (e.g. `HouseholdResponseModel.kt`)
 - Use constructor injection for dependencies
 - Use `@Transactional` on service methods that modify data
 - Converters in `internal/converter/` package convert entities to models
@@ -292,25 +309,78 @@ PR_TITLE` in the repo settings, so the title is what `release.yml` actually sees
 individual commits).
 
 When committing on this repo's behalf, write commit messages and PR titles in this format
-without being asked.
+without being asked. This has been missed in practice more than once (e.g. a PR left titled
+"Remove combined customer PDF (idcard + masterdata)" with no type prefix, failing
+`pr-title-lint`), so treat it as a hard checklist item: before opening or editing a PR, and
+whenever a CI failure turns out to be `pr-title-lint`/`commitlint`, check the PR title and commit
+subjects against these rules yourself rather than waiting for CI to flag it.
 
 ## API Structure
 
 **HTTP Requests Collection (`_http-calls/`):** Before inspecting controller source code, check the `_http-calls/` folder for sample HTTP calls (`.http` files) organized by feature area (customers, distributions, routes, users, etc.). These provide quick insight into request/response shapes, query parameters, and authentication patterns. Use them as a first reference, but always verify against the actual controller endpoints when needed — the `.http` files may not cover every endpoint or edge case.
 
-The backend exposes REST APIs under `/api/` prefix:
+The backend exposes REST APIs under `/api/` prefix. Update-by-id endpoints use `PUT`, create
+endpoints return `201`, delete endpoints return `204` — this is a project-wide convention, not
+just a pattern that happens to repeat. SSE endpoints for a given resource live under a sibling
+`.../sse/...` controller (e.g. `DistributionController` + `DistributionSseController`) so their
+URLs stay stable even as the REST resource's own base path changes.
+
+### REST DTO naming convention
+
+Every type that appears directly in a controller method's signature (a `@RequestBody` parameter,
+or the return type once `ResponseEntity<T>`/`PagedResponse<T>`/`XxxListResponse` is unwrapped to
+`T`) gets one of exactly three suffixes, decided by how that type is actually used across the API
+— not by guessing what "feels" like a request or response:
+
+1. **`Request`** — the type is bound to `@RequestBody` somewhere. If the identical type is *also*
+   directly returned (the old "reuse the domain model for both directions" pattern), split it into
+   a same-named `XxxRequest`/`XxxResponse` pair rather than reusing one bare type for both (e.g.
+   `Car` → `CarRequest`/`CarResponse`, `Household` → `HouseholdRequest`/`HouseholdResponse`). This
+   is deliberate churn: it decouples the write and read wire contracts so either can evolve without
+   dragging the other along, even though the two classes are field-for-field identical on day one.
+2. **`Response`** — the type is returned directly from an endpoint (never a request body) and is
+   not merely a list element (see `Item` below). Covers both full resources with no request-body
+   counterpart (`Employee` → `EmployeeResponse`) and bare action-result types that previously had no
+   suffix or a stray one like `Data`/`Result` (`StatisticsData` → `StatisticsResponse`,
+   `DistributionCloseValidationResult` → `DistributionCloseResponse`).
+3. **`Item`** — the type is *only* ever the element type of a `PagedResponse<T>` or an
+   `XxxListResponse`'s `List<T>` — it never appears as a request body and is never itself returned
+   as a standalone single-resource response (`Route` → `RouteItem`, `SchoolStarterPackageEntry` →
+   `SchoolStarterPackageItem`). A type that already has a dedicated create/update response role
+   (e.g. `HouseholdNoteItem`, created via `POST` and also listed via `PagedResponse`) keeps the
+   `Item` suffix rather than splitting into `Request`/`Response` — the "is it ever a request body"
+   test is what actually matters, not "does some endpoint return one instance of it directly."
+
+Two established generic wrappers are exempt from all of the above and keep their existing names:
+`PagedResponse<T>` (`common/api/PagedResponse.kt`) for paginated lists, and a per-resource
+`XxxListResponse` for non-paginated full-list responses.
+
+**Nested value objects** that are embedded fields inside a `Request`/`Response`/`Item` type but are
+never *themselves* bound to a controller signature (not a request body, not a controller's direct
+return type, not the direct element type of a list endpoint) keep their plain domain name — no
+suffix. Examples: `Person`, `HouseholdAddress`, `HouseholdIssuer`, `ShelterContact` → renamed to
+`ShelterContactItem` for consistency with sibling repeatable-record types (`HouseholdNoteItem`,
+`StaticValueItem`'s successor), while `Person`/`HouseholdAddress`/`HouseholdIssuer` stay bare since
+they're single embedded values, not repeatable records. Enums never take a suffix.
+
+When a service method needs to operate on data that's structurally identical across a
+`Request`/`Response` split (e.g. validating a household's persons list, which exists on both
+`HouseholdRequest` and `HouseholdResponse`), prefer taking the narrower shared shape (a
+`List<Person>`, not a `Household`) over adding overloads or a shared supertype — see
+`HouseholdService.validate`/`mapToValidationPersons`.
+
 - `/api/users`: User management
 - `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`
 - `/api/households/{householdId}/notes`: Household notes
-- `/api/distributions`: Distribution management
-- `/api/distributions/{id}/tickets`: Ticket management
-- `/api/distributions/ticket-screen`: Ticket screen SSE endpoint
+- `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
+- `/api/distributions`: Distribution management (SSE updates on `/api/sse/distributions`)
+- `/api/distributions/ticket-screen`: Ticket screen control (SSE on `/api/sse/distributions/ticket-screen/current`)
 - `/api/countries`: Country list
 - `/api/employees`: Employee management
-- `/api/scanners`: Scanner registration
+- `/api/scanners`: Scanner registration (SSE on `/api/sse/scanners/{scannerId}/results`)
 - `/api/routes`: Route management
 - `/api/food-categories`: Food category management
-- `/api/food-collections`: Food collection recording
+- `/api/food-collections`: Food collection recording (nested under `/routes/{routeId}` and `/routes/{routeId}/shops/{shopId}`)
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
 - `/api/settings`: Application settings
@@ -320,7 +390,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 ## Special Considerations
 
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
-- **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers.
+- **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.
@@ -386,6 +456,13 @@ You can invoke these skills using `/fix-e2e` in conversations.
 2. Use next available number for XXXXX (check current highest number in the directory)
 3. Include IF NOT EXISTS clauses for repeatability
 4. Test migration with clean database
+5. **A brand-new entity table needs its own `<table>_seq` sequence in the same migration** (e.g.
+   `create sequence if not exists <table>_seq start with 1 increment by 50 owned by <table>.id;`).
+   Hibernate's `id.db_structure_naming_strategy` is `standard` here (see
+   `R__00070_migrate_id_sequences.sql`), so every `@GeneratedValue` entity requires a matching
+   `<table>_seq` — without it, inserts fail at runtime with `relation "<table>_seq" does not exist`.
+   A MockK-based unit test with a mocked repository will not catch this; only a real Postgres run
+   (an `*IT.kt` test via `TafelBaseIntegrationTest`, or manual testing) will.
 
 ### Adding a New Permission
 1. Add permission to `UserPermissions` enum in backend

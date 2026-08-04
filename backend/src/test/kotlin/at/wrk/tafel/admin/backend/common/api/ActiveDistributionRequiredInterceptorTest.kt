@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.api
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
 import io.mockk.mockk
@@ -36,10 +36,10 @@ class ActiveDistributionRequiredInterceptorTest {
         every { handlerMethod.beanType } returns this::class.java
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<BusinessRuleException> {
             interceptor.preHandle(request, response, handlerMethod)
         }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
+        assertThat(exception.body.detail).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -75,10 +75,10 @@ class ActiveDistributionRequiredInterceptorTest {
         every { handlerMethod.beanType } returns AnnotatedClass::class.java
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
-        val exception = assertThrows<TafelValidationException> {
+        val exception = assertThrows<BusinessRuleException> {
             interceptor.preHandle(request, response, handlerMethod)
         }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
+        assertThat(exception.body.detail).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @TafelActiveDistributionRequired

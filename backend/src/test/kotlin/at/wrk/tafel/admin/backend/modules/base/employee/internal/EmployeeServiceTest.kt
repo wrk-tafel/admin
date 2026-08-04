@@ -1,10 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import at.wrk.tafel.admin.backend.modules.base.employee.Employee
-import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeCreateRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeRequest
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -13,10 +16,13 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import org.springframework.data.repository.findByIdOrNull
 
 @ExtendWith(MockKExtension::class)
 class EmployeeServiceTest {
@@ -29,7 +35,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `find employees with searchInput and page`() {
-        val pageRequest = PageRequest.of(0, 5)
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
         val searchInput = "test-input"
 
         val employee1 = EmployeeEntity()
@@ -52,8 +58,8 @@ class EmployeeServiceTest {
         assertThat(response).isEqualTo(
             EmployeeListResponse(
                 items = listOf(
-                    Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
-                    Employee(id = 2, personnelNumber = "00002", firstname = "first 2", lastname = "last 2"),
+                    EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+                    EmployeeResponse(id = 2, personnelNumber = "00002", firstname = "first 2", lastname = "last 2"),
                 ),
                 totalCount = 123,
                 currentPage = 1,
@@ -71,7 +77,7 @@ class EmployeeServiceTest {
         employee1.firstname = "first 1"
         employee1.lastname = "last 1"
 
-        val pageRequest = PageRequest.of(0, 5)
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
         val pagedResult = PageImpl(listOf(employee1), pageRequest, 123)
         every { employeeRepository.findAll(pageRequest) } returns pagedResult
 
@@ -79,9 +85,29 @@ class EmployeeServiceTest {
 
         assertThat(response.items).isEqualTo(
             listOf(
-                Employee(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+                EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
             ),
         )
+    }
+
+    @Test
+    fun `find employees with explicit valid pageSize`() {
+        val pageRequest = PageRequest.of(0, 25, Sort.by("id"))
+        every { employeeRepository.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = employeeService.findEmployees(page = 1, pageSize = 25)
+
+        assertThat(response.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `find employees with invalid pageSize falls back to default`() {
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
+        every { employeeRepository.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = employeeService.findEmployees(page = 1, pageSize = 7)
+
+        assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
@@ -95,7 +121,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `save employee`() {
-        val employeeCreateRequest = EmployeeCreateRequest(
+        val employeeCreateRequest = EmployeeRequest(
             personnelNumber = "   00001",
             firstname = "first 1  ",
             lastname = "last 1    ",
@@ -118,5 +144,77 @@ class EmployeeServiceTest {
         assertThat(savedEntity.personnelNumber).isEqualTo(employeeCreateRequest.personnelNumber.trim())
         assertThat(savedEntity.firstname).isEqualTo(employeeCreateRequest.firstname.trim())
         assertThat(savedEntity.lastname).isEqualTo(employeeCreateRequest.lastname.trim())
+    }
+
+    @Test
+    fun `update employee`() {
+        val employeeId = 1L
+        val existingEntity = EmployeeEntity().apply {
+            id = employeeId
+            personnelNumber = "00001"
+            firstname = "Old firstname"
+            lastname = "Old lastname"
+        }
+        val employeeUpdateRequest = EmployeeRequest(
+            personnelNumber = "  00002",
+            firstname = "New firstname  ",
+            lastname = "New lastname   ",
+        )
+        every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
+        every { employeeRepository.existsByPersonnelNumberAndIdNot(any(), any()) } returns false
+        every { employeeRepository.save(any()) } returns existingEntity
+
+        val result = employeeService.updateEmployee(employeeId, employeeUpdateRequest)
+
+        assertThat(result).isEqualTo(
+            EmployeeResponse(
+                id = employeeId,
+                personnelNumber = "00002",
+                firstname = "New firstname",
+                lastname = "New lastname",
+            ),
+        )
+
+        val entitySlot = slot<EmployeeEntity>()
+        verify { employeeRepository.save(capture(entitySlot)) }
+
+        val savedEntity = entitySlot.captured
+        assertThat(savedEntity.personnelNumber).isEqualTo("00002")
+        assertThat(savedEntity.firstname).isEqualTo("New firstname")
+        assertThat(savedEntity.lastname).isEqualTo("New lastname")
+    }
+
+    @Test
+    fun `update employee throws exception when not found`() {
+        every { employeeRepository.findByIdOrNull(99L) } returns null
+
+        val exception = assertThrows<NotFoundException> {
+            employeeService.updateEmployee(
+                99L,
+                EmployeeRequest(personnelNumber = "00001", firstname = "first", lastname = "last"),
+            )
+        }
+        assertThat(exception.body.detail).isEqualTo("Employee with id 99 not found")
+    }
+
+    @Test
+    fun `update employee throws exception when personnelNumber already used by another employee`() {
+        val employeeId = 1L
+        val existingEntity = EmployeeEntity().apply {
+            id = employeeId
+            personnelNumber = "00001"
+            firstname = "first"
+            lastname = "last"
+        }
+        every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
+        every { employeeRepository.existsByPersonnelNumberAndIdNot("00002", employeeId) } returns true
+
+        val exception = assertThrows<ConflictException> {
+            employeeService.updateEmployee(
+                employeeId,
+                EmployeeRequest(personnelNumber = "00002", firstname = "first", lastname = "last"),
+            )
+        }
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter 00002 ist bereits vorhanden!")
     }
 }

@@ -1,7 +1,7 @@
 import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {CurrencyPipe} from '@angular/common';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
   MatCellDef,
@@ -33,6 +33,7 @@ import {staticValueTypeLabels} from './static-value-type-labels';
   templateUrl: 'settings-static-values.component.html',
   imports: [
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
@@ -65,6 +66,7 @@ export class SettingsStaticValuesComponent {
   protected editingId = signal<number | null>(null);
   protected amountControl = new FormControl<number | null>(null);
   private amountInput = viewChild<ElementRef<HTMLInputElement>>('amountInput');
+  private amountInputMobile = viewChild<ElementRef<HTMLInputElement>>('amountInputMobile');
 
   protected typeLabel(type: StaticValueTypeEnum): string {
     return staticValueTypeLabels[type];
@@ -73,7 +75,10 @@ export class SettingsStaticValuesComponent {
   constructor() {
     this.loadStaticValues();
 
-    effect(() => this.amountInput()?.nativeElement.focus());
+    effect(() => {
+      this.amountInput()?.nativeElement.focus();
+      this.amountInputMobile()?.nativeElement.focus();
+    });
   }
 
   private loadStaticValues() {

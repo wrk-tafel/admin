@@ -29,8 +29,8 @@ readonly data: Signal<DashboardData | undefined> = toSignal(
 (current employee count / selected shelter names) plus free-text `notes`. The template
 (`dashboard.component.html`) reads `data()` and passes slices of it down as `@Input`-style
 signal inputs to the presentational child components (`tafel-registered-customers`,
-`tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-food-amount`,
-`tafel-distribution-statistics-input`, `tafel-distribution-notes-input`). None of those children
+`tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-recorded-route-names`,
+`tafel-food-amount`, `tafel-distribution-statistics-input`, `tafel-distribution-notes-input`). None of those children
 know about SSE at all — they are pure `input()`-driven display/edit components. This keeps the
 "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
 render it" concern in the leaf components.
@@ -89,6 +89,7 @@ dashboard/
     registered-customers/               # customer count card + PDF customer-list download
     tickets-processed/                  # processed/total ticket count card
     recorded-food-collections/          # recorded/total food-collection count card
+    recorded-route-names/               # names of routes fully recorded so far
     food-amount/                        # total recorded food weight (kg) card
     distribution-statistics-input/      # end-of-day form: employee count + shelter occupancy
     distribution-notes-input/           # free-text notes form for the distribution

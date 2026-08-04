@@ -50,7 +50,7 @@ describe('FoodCollectionsApiService', () => {
       expect(data).toEqual(mockFoodCollectionData);
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: `/food-collections/route/${routeId}`});
+    const req = httpMock.expectOne({method: 'GET', url: `/food-collections/routes/${routeId}`});
     req.flush(mockFoodCollectionData);
     httpMock.verify();
   });
@@ -67,7 +67,7 @@ describe('FoodCollectionsApiService', () => {
 
     apiService.saveRouteData(routeId, mockRouteData).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}`});
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/routes/${routeId}`});
     req.flush({});
     httpMock.verify();
 
@@ -87,7 +87,7 @@ describe('FoodCollectionsApiService', () => {
 
     apiService.saveItems(routeId, mockFoodCollection).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}/items`});
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/routes/${routeId}/items`});
     req.flush({});
     httpMock.verify();
 
@@ -106,7 +106,7 @@ describe('FoodCollectionsApiService', () => {
 
     apiService.saveItemsPerShop(routeId, shopId, mockFoodCollection).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}/shop/${shopId}/items`});
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/routes/${routeId}/shops/${shopId}/items`});
     req.flush({});
     httpMock.verify();
 
@@ -119,7 +119,7 @@ describe('FoodCollectionsApiService', () => {
 
     apiService.getItemsPerShop(routeId, shopId).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/food-collections/route/${routeId}/shop/${shopId}/items`});
+    const req = httpMock.expectOne({method: 'GET', url: `/food-collections/routes/${routeId}/shops/${shopId}/items`});
     req.flush({});
     httpMock.verify();
   });
@@ -130,7 +130,7 @@ describe('FoodCollectionsApiService', () => {
 
     apiService.patchItems(routeId, data).subscribe();
 
-    const req = httpMock.expectOne({method: 'PATCH', url: `/food-collections/route/${routeId}/items`});
+    const req = httpMock.expectOne({method: 'PATCH', url: `/food-collections/routes/${routeId}/items`});
     req.flush({});
     httpMock.verify();
 

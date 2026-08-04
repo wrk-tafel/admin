@@ -58,8 +58,9 @@
           <div class="mb-6">
             <h5 class="mb-6">Suchergebnis ({{searchResult()!.totalCount}} Kunden)</h5>
             <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
-                           [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
-                           (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
+                           [pageSizeOptions]="pageSizeOptions"
+                           [pageIndex]="searchResult()!.currentPage - 1" [showFirstLastButtons]="true"
+                           (page)="searchForDetails($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
           </div>
 
           <div class="hidden md:block">

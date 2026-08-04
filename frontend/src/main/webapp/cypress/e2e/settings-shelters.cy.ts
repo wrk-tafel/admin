@@ -73,14 +73,34 @@ describe('Settings - Shelters', () => {
     cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
   });
 
-  it('remains usable on mobile viewports', () => {
-    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
-      cy.viewport(viewport);
-      cy.reload();
+  it('renders as a card list on phone and stays usable', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.reload();
 
-      cy.byTestId('shelters-table').should('exist');
-      cy.byTestId('addShelterButton').should('be.visible');
+    cy.byTestId('shelters-table').should('not.be.visible');
+    cy.byTestId('shelters-cards').should('be.visible').and('contain.text', 'Shelter');
+    cy.byTestId('addShelterButton').should('be.visible');
+
+    cy.getAnyRandomNumber().then((randomId) => {
+      // Pick the first enabled shelter's edit button - the 'toggles shelter visibility' test above
+      // may have left another shelter disabled (its edit button is disabled while so).
+      cy.get('[testid^="searchresult-edituser-button-"]:not(:disabled)').filterDisplayed().first().click();
+
+      const newName = 'A Shelter Updated On Phone ' + randomId;
+      cy.get('input[formControlName="name"]').should('be.visible').clear().type(newName);
+      cy.contains('Speichern').click();
+
+      cy.byTestId('shelters-cards').should('contain.text', newName);
     });
+  });
+
+  it('renders as a table at tablet breakpoint', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.reload();
+
+    cy.byTestId('shelters-table').should('be.visible');
+    cy.byTestId('shelters-cards').should('not.be.visible');
+    cy.byTestId('addShelterButton').should('be.visible');
   });
 
 });

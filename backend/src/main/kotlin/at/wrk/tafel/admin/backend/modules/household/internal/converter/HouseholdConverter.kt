@@ -9,10 +9,11 @@ import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.country.Country
-import at.wrk.tafel.admin.backend.modules.household.Household
+import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdIssuer
+import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
+import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.PersonGender
 import org.springframework.data.repository.findByIdOrNull
@@ -29,7 +30,13 @@ class HouseholdConverter(
     private val userRepository: UserRepository,
 ) {
 
-    fun mapHouseholdToEntity(householdUpdate: Household, storedEntity: HouseholdEntity? = null): HouseholdEntity {
+    /**
+     * Never use this for household-merge re-parenting: `persons.clear(); persons.addAll(...)` below
+     * relies on `orphanRemoval = true` to delete anyone not present in `householdUpdate.persons`, so
+     * feeding it anything less than the complete target person list would silently delete people.
+     * `HouseholdMergeService` re-parents persons via dedicated bulk repository updates instead.
+     */
+    fun mapHouseholdToEntity(householdUpdate: HouseholdRequest, storedEntity: HouseholdEntity? = null): HouseholdEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val userEntity = userRepository.findByUsername(user.username!!)
         val householdEntity = storedEntity ?: HouseholdEntity()
@@ -107,14 +114,14 @@ class HouseholdConverter(
         return householdEntity
     }
 
-    fun mapEntityToHousehold(householdEntity: HouseholdEntity): Household {
+    fun mapEntityToHousehold(householdEntity: HouseholdEntity): HouseholdResponse {
         val mainPersonEntity = householdEntity.mainPerson ?: householdEntity.persons.firstOrNull { it.isMainPerson }
         val additionalPersons = householdEntity.persons
             .filterNot { it.isMainPerson }
             .map { mapPerson(it) }
             .sortedBy { "${it.lastname} ${it.firstname}" }
 
-        return Household(
+        return HouseholdResponse(
             id = householdEntity.householdId,
             issuer = householdEntity.issuer?.let {
                 HouseholdIssuer(
@@ -145,7 +152,11 @@ class HouseholdConverter(
         )
     }
 
-    private fun mapPerson(personEntity: PersonEntity) = Person(
+    /**
+     * `internal` (not `private`) so `HouseholdMergeService`/`HouseholdMergePlanner` can build
+     * [Person] preview payloads for source-household persons without duplicating this mapping.
+     */
+    internal fun mapPerson(personEntity: PersonEntity) = Person(
         id = personEntity.id,
         isMainPerson = personEntity.isMainPerson,
         firstname = personEntity.firstname,
@@ -166,7 +177,7 @@ class HouseholdConverter(
     // JPA no-arg constructor, so the assertions below are genuinely required (removing either is a compile
     // error). Sonar (kotlin:S6619) flags the `code` assertion as dead regardless of which null-check syntax
     // is used - confirmed false positive, suppressed rather than reworded.
-    private fun mapCountryToResponse(country: CountryEntity): Country = Country(
+    private fun mapCountryToResponse(country: CountryEntity): CountryItem = CountryItem(
         id = country.id!!,
         code = country.code!!, // NOSONAR kotlin:S6619
         name = country.name!!,

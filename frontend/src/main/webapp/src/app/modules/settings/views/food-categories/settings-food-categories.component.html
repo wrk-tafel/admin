@@ -10,6 +10,7 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <div class="hidden md:block">
     <table mat-table [dataSource]="foodCategories()" testid="food-categories-table"
            cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
@@ -92,5 +93,74 @@
           [class.opacity-50]="!row.enabled"
           [attr.testid]="'food-categories-row-' + i"></tr>
     </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="food-categories-cards"
+           cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
+        @for (category of foodCategories(); track category.id; let i = $index) {
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="category" [class.opacity-50]="!category.enabled"
+                    [attr.testid]="'food-categories-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="flex items-center gap-2 text-base font-semibold">
+                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragFoodCategoryHandle-' + i"></fa-icon>
+                @if (editingId() === category.id) {
+                  <mat-form-field subscriptSizing="dynamic" class="w-full">
+                    <mat-label>Name</mat-label>
+                    <input #nameInputMobile matInput [formControl]="nameControl" [attr.testid]="'foodCategoryNameInputMobile-' + i"
+                           (keydown.enter)="saveEdit(category)" (keydown.escape)="cancelEdit()"/>
+                  </mat-form-field>
+                } @else {
+                  <span>{{ category.name }}</span>
+                }
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2 items-center">
+                <div class="font-bold">Gewicht pro Einheit (kg):</div>
+                <div>
+                  @if (editingId() === category.id) {
+                    <mat-form-field subscriptSizing="dynamic">
+                      <input matInput type="number" [formControl]="weightPerUnitControl"
+                             [attr.testid]="'foodCategoryWeightPerUnitInputMobile-' + i"
+                             (keydown.enter)="saveEdit(category)" (keydown.escape)="cancelEdit()"/>
+                      <span matTextSuffix>&nbsp;kg</span>
+                    </mat-form-field>
+                  } @else {
+                    {{ category.weightPerUnit }}
+                  }
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              @if (category.enabled) {
+                <button matButton="filled" class="button-success" testid="enableFoodCategoryButton"
+                        (click)="toggleFoodCategoryVisibility(category, false)">
+                  <fa-icon [icon]="faEye"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" testid="disableFoodCategoryButton"
+                        (click)="toggleFoodCategoryVisibility(category, true)">
+                  <fa-icon [icon]="faEyeSlash"></fa-icon>
+                </button>
+              }
+              @if (editingId() === category.id) {
+                <button matButton="filled" [attr.testid]="'saveFoodCategoryButtonMobile-' + i" (click)="saveEdit(category)">
+                  <fa-icon [icon]="faCheck"></fa-icon>
+                </button>
+                <button matButton="outlined" [attr.testid]="'cancelFoodCategoryButtonMobile-' + i" (click)="cancelEdit()">
+                  <fa-icon [icon]="faXmark"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButtonMobile-' + i"
+                        [disabled]="!category.enabled" (click)="startEdit(category)">
+                  <fa-icon [icon]="faPencil"></fa-icon>
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
   </mat-card-content>
 </mat-card>

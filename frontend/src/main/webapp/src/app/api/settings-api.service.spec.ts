@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {UserApiService} from './user-api.service';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {
+  LoginAttemptItem,
   MailRecipients,
   MailTypeEnum,
   RecipientTypeEnum,
@@ -10,6 +11,7 @@ import {
   StaticValueItem,
   StaticValueTypeEnum
 } from './settings-api.service';
+import {PagedResponse} from '../common/api/paged-response';
 
 describe('SettingsApiService', () => {
   let httpMock: HttpTestingController;
@@ -62,7 +64,7 @@ describe('SettingsApiService', () => {
 
     apiService.saveMailRecipients(testData).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/settings/mail-recipients'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/settings/mail-recipients'});
     req.flush(null);
     httpMock.verify();
 
@@ -91,11 +93,51 @@ describe('SettingsApiService', () => {
 
     apiService.updateStaticValue(1, testData).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/settings/static-values/1'});
+    const req = httpMock.expectOne({method: 'PUT', url: '/settings/static-values/1'});
     req.flush(null);
     httpMock.verify();
 
     expect(req.request.body).toEqual(testData);
+  });
+
+  it('get login attempts', () => {
+    const testResponse: PagedResponse<LoginAttemptItem> = {
+      items: [
+        {id: 1, username: 'user1', failureCount: 3, lastFailureAt: '2026-01-01T10:00:00', lockedUntil: '2026-01-01T10:15:00'},
+        {id: 2, username: 'user2', failureCount: 1, lastFailureAt: '2026-01-01T09:00:00', lockedUntil: null}
+      ],
+      totalCount: 2,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 10
+    };
+
+    apiService.getLoginAttempts().subscribe((data: PagedResponse<LoginAttemptItem>) => {
+      expect(data).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/settings/login-attempts'});
+    req.flush(testResponse);
+    httpMock.verify();
+  });
+
+  it('get login attempts with page and pageSize', () => {
+    const page = 2;
+    const pageSize = 25;
+
+    apiService.getLoginAttempts(page, pageSize).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: `/settings/login-attempts?page=${page}&pageSize=${pageSize}`});
+    req.flush({items: []});
+    httpMock.verify();
+  });
+
+  it('delete login attempt', () => {
+    apiService.deleteLoginAttempt(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/settings/login-attempts/1'});
+    req.flush(null);
+    httpMock.verify();
   });
 
 });

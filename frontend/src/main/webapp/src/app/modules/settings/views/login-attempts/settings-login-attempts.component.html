@@ -1,0 +1,108 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <h5 class="mb-0 mt-1">Anmelde-Versuche</h5>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (loginAttempts()) {
+      <mat-paginator class="tafel-paginator-responsive mb-4" [length]="loginAttempts()!.totalCount" [pageSize]="loginAttempts()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="loginAttempts()!.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="loadLoginAttempts($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+    }
+
+    <div class="hidden md:block">
+    <table mat-table [dataSource]="loginAttempts()?.items ?? []" testid="login-attempts-table">
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Benutzername</th>
+        <td mat-cell *matCellDef="let loginAttempt">{{ loginAttempt.username }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="failureCount">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Fehlversuche</th>
+        <td mat-cell *matCellDef="let loginAttempt">{{ loginAttempt.failureCount }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastFailureAt">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Letzter Fehlversuch</th>
+        <td mat-cell *matCellDef="let loginAttempt">{{ loginAttempt.lastFailureAt | date : 'dd.MM.yyyy HH:mm' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lockedUntil">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Status</th>
+        <td mat-cell *matCellDef="let loginAttempt; let i = index">
+          @if (isLocked(loginAttempt)) {
+            <span class="text-red-600 font-bold" [attr.testid]="'loginAttemptLocked-' + i">
+              Gesperrt bis {{ loginAttempt.lockedUntil | date : 'dd.MM.yyyy HH:mm' }}
+            </span>
+          } @else {
+            <span [attr.testid]="'loginAttemptNotLocked-' + i">-</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+        <td mat-cell *matCellDef="let loginAttempt; let i = index">
+          <button matButton="filled" class="button-danger" [attr.testid]="'deleteLoginAttemptButton-' + i"
+                  (click)="deleteLoginAttempt(loginAttempt)">
+            <fa-icon [icon]="faTrashCan"></fa-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" [attr.testid]="'login-attempts-row-' + i"></tr>
+    </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="login-attempts-cards">
+        @for (loginAttempt of loginAttempts()?.items ?? []; track loginAttempt.id; let i = $index) {
+          <mat-card class="shadow-sm" [attr.testid]="'login-attempts-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="text-base font-semibold">{{ loginAttempt.username }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="font-bold">Fehlversuche:</div>
+                <div>{{ loginAttempt.failureCount }}</div>
+                <div class="font-bold">Letzter Fehlversuch:</div>
+                <div>{{ loginAttempt.lastFailureAt | date : 'dd.MM.yyyy HH:mm' }}</div>
+                <div class="font-bold">Status:</div>
+                <div>
+                  @if (isLocked(loginAttempt)) {
+                    <span class="text-red-600 font-bold" [attr.testid]="'loginAttemptLockedMobile-' + i">
+                      Gesperrt bis {{ loginAttempt.lockedUntil | date : 'dd.MM.yyyy HH:mm' }}
+                    </span>
+                  } @else {
+                    <span [attr.testid]="'loginAttemptNotLockedMobile-' + i">-</span>
+                  }
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              <button matButton="filled" class="button-danger" [attr.testid]="'deleteLoginAttemptButtonMobile-' + i"
+                      (click)="deleteLoginAttempt(loginAttempt)">
+                <fa-icon [icon]="faTrashCan"></fa-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
+
+    @if (loginAttempts()?.items?.length === 0) {
+      <div class="mt-4 text-center" testid="login-attempts-empty">Keine Anmelde-Versuche vorhanden.</div>
+    }
+
+    @if (loginAttempts()) {
+      <mat-paginator class="tafel-paginator-responsive mt-4" testid="login-attempts-paginator"
+                     [length]="loginAttempts()!.totalCount" [pageSize]="loginAttempts()!.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="loginAttempts()!.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="loadLoginAttempts($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+    }
+  </mat-card-content>
+</mat-card>

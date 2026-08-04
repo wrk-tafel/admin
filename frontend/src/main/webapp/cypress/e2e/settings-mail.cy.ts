@@ -23,7 +23,7 @@ describe('Dashboard', () => {
     cy.byTestId('email-input-STATISTICS-TO-0').type('test-to@email.com');
 
     // Save - verify POST success via intercept
-    cy.intercept('POST', '/api/settings/mail-recipients').as('saveRecipients');
+    cy.intercept('PUT', '/api/settings/mail-recipients').as('saveRecipients');
     // Also intercept subsequent GET so we can wait for reload to finish
     cy.intercept('GET', '/api/settings/mail-recipients').as('loadRecipients');
     cy.byTestId('save-button').click();
@@ -49,7 +49,7 @@ describe('Dashboard', () => {
     // (scoped to the active tab body - other tabs stay mounted off-screen for animation purposes)
     cy.get('.mat-mdc-tab-body-active hr').should('be.visible');
 
-    cy.intercept('POST', '/api/settings/mail-recipients').as('saveRecipients');
+    cy.intercept('PUT', '/api/settings/mail-recipients').as('saveRecipients');
     cy.intercept('GET', '/api/settings/mail-recipients').as('loadRecipients');
 
     addRecipientSaveAndAssertPersisted('DAILY_REPORT', 'CC', 'phone-cc@email.com');

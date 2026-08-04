@@ -1,9 +1,10 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.common.auth.model.User
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissionItem
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.auth.model.UserRequest
+import at.wrk.tafel.admin.backend.common.auth.model.UserResponse
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
@@ -44,7 +45,7 @@ val testUser = TafelUser(
     passwordChangeRequired = false,
 )
 
-val testUserApiResponse = User(
+val testUserResponse = UserResponse(
     id = testUserEntity.id!!,
     username = testUserEntity.username!!,
     personnelNumber = testUserEntity.employee?.personnelNumber!!,
@@ -53,6 +54,19 @@ val testUserApiResponse = User(
     enabled = testUserEntity.enabled!!,
     passwordChangeRequired = testUserEntity.passwordChangeRequired!!,
     permissions = testUserPermissions.map {
-        UserPermission(key = it.key, title = it.title, category = it.category.title)
+        UserPermissionItem(key = it.key, title = it.title, category = it.category.title)
+    },
+)
+
+val testUserRequest = UserRequest(
+    id = testUserEntity.id!!,
+    username = testUserEntity.username!!,
+    personnelNumber = testUserEntity.employee?.personnelNumber!!,
+    firstname = testUserEntity.employee?.firstname!!,
+    lastname = testUserEntity.employee?.lastname!!,
+    enabled = testUserEntity.enabled!!,
+    passwordChangeRequired = testUserEntity.passwordChangeRequired!!,
+    permissions = testUserPermissions.map {
+        UserPermissionItem(key = it.key, title = it.title, category = it.category.title)
     },
 )

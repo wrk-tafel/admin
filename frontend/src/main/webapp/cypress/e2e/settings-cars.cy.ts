@@ -95,14 +95,41 @@ describe('Settings - Cars', () => {
       .should('be.visible');
   });
 
-  it('remains usable on mobile viewports', () => {
-    [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
-      cy.viewport(viewport);
-      cy.reload();
+  it('renders as a card list on phone and stays usable', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.reload();
 
-      cy.byTestId('cars-table').should('exist');
-      cy.byTestId('addCarButton').should('be.visible');
+    cy.byTestId('cars-table').should('not.be.visible');
+    cy.byTestId('cars-cards').should('be.visible');
+    cy.byTestId('addCarButton').should('be.visible');
+
+    // The 'toggles car visibility' test above may have left row 0 disabled (its edit button is
+    // disabled for disabled cars) - re-enable it first if needed so editing below can proceed.
+    cy.byTestId('editCarButtonMobile-0').then(($btn) => {
+      if ($btn.is(':disabled')) {
+        cy.byTestId('disableCarButton').filterDisplayed().first().click();
+        cy.get('.toast-message').should('be.visible');
+      }
     });
+
+    cy.getAnyRandomNumber().then((randomId) => {
+      const newName = 'Car Updated On Phone ' + randomId;
+
+      cy.byTestId('editCarButtonMobile-0').click();
+      cy.byTestId('carNameInputMobile-0').should('be.visible').clear().type(newName + '{enter}');
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+      cy.byTestId('cars-cards').should('contain.text', newName);
+    });
+  });
+
+  it('renders as a table at tablet breakpoint', () => {
+    cy.viewport(TABLET_VIEWPORT);
+    cy.reload();
+
+    cy.byTestId('cars-table').should('be.visible');
+    cy.byTestId('cars-cards').should('not.be.visible');
+    cy.byTestId('addCarButton').should('be.visible');
   });
 
 });

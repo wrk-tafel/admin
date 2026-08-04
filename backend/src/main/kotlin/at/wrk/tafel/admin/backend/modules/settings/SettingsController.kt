@@ -1,15 +1,23 @@
 package at.wrk.tafel.admin.backend.modules.settings
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
-import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipients
-import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueItem
+import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -20,19 +28,31 @@ class SettingsController(
 ) {
 
     @GetMapping("/mail-recipients")
-    fun getMailRecipientSettings(): MailRecipients = settingsService.getMailRecipients()
+    fun getMailRecipientSettings(): MailRecipientsResponse = settingsService.getMailRecipients()
 
-    @PostMapping("/mail-recipients")
-    fun updateMailRecipientSettings(@RequestBody settings: MailRecipients) {
+    @PutMapping("/mail-recipients")
+    fun updateMailRecipientSettings(@Valid @RequestBody settings: MailRecipientsRequest) {
         settingsService.updateMailRecipients(settings)
     }
 
     @GetMapping("/static-values")
     fun getStaticValues(): StaticValueListResponse = settingsService.getStaticValues()
 
-    @PostMapping("/static-values/{staticValueId}")
+    @PutMapping("/static-values/{staticValueId}")
     fun updateStaticValue(
         @PathVariable staticValueId: Long,
-        @RequestBody staticValue: StaticValueItem,
-    ): StaticValueItem = settingsService.updateStaticValue(staticValueId, staticValue)
+        @Valid @RequestBody staticValue: StaticValueRequest,
+    ): StaticValueResponse = settingsService.updateStaticValue(staticValueId, staticValue)
+
+    @GetMapping("/login-attempts")
+    fun getLoginAttempts(
+        @RequestParam page: Int? = null,
+        @RequestParam pageSize: Int? = null,
+    ): PagedResponse<LoginAttemptItem> = settingsService.getLoginAttempts(page, pageSize)
+
+    @DeleteMapping("/login-attempts/{loginAttemptId}")
+    fun deleteLoginAttempt(@PathVariable loginAttemptId: Long): ResponseEntity<Unit> {
+        settingsService.deleteLoginAttempt(loginAttemptId)
+        return ResponseEntity.noContent().build()
+    }
 }

@@ -10,6 +10,7 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <div class="hidden md:block">
     <table mat-table [dataSource]="shelters()?.shelters ?? []" testid="shelters-table"
            cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
@@ -74,5 +75,52 @@
           cdkDrag [cdkDragData]="row"
           [attr.testid]="'shelters-row-' + i"></tr>
     </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="shelters-cards"
+           cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
+        @for (shelter of shelters()?.shelters ?? []; track shelter.id; let i = $index) {
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="shelter" [class.opacity-50]="!shelter.enabled"
+                    [attr.testid]="'shelters-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="flex items-center gap-2 text-base font-semibold">
+                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragShelterHandle-' + i"></fa-icon>
+                <span>{{ shelter.name }}</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="font-bold">Addresse:</div>
+                <div>{{ shelter | formatShelterAddress }}</div>
+                <div class="font-bold">Anz. Personen:</div>
+                <div>{{ shelter.personsCount }}</div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              @if (shelter.enabled) {
+                <button matButton="filled" class="button-success" testid="enableShelterButton"
+                        (click)="toggleShelterVisibility(shelter, false)">
+                  <fa-icon [icon]="faEye"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" testid="disableShelterButton"
+                        (click)="toggleShelterVisibility(shelter, true)">
+                  <fa-icon [icon]="faEyeSlash"></fa-icon>
+                </button>
+              }
+              <button matButton="filled" class="button-secondary" testid="viewShelterButton"
+                      (click)="viewShelterDetails(shelter)">
+                <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+              </button>
+              <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
+                      [disabled]="!shelter.enabled" (click)="editShelter(shelter)">
+                <fa-icon [icon]="faPencil"></fa-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
   </mat-card-content>
 </mat-card>

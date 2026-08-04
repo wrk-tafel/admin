@@ -2,12 +2,17 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoryService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoriesListResponse
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryReorderRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryResponse
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -35,20 +40,20 @@ class FoodCategoriesController(
     @PostMapping
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun createFoodCategory(
-        @RequestBody category: FoodCategory,
-    ): FoodCategory = foodCategoriesService.createFoodCategory(category)
+        @Valid @RequestBody category: FoodCategoryRequest,
+    ): ResponseEntity<FoodCategoryResponse> = ResponseEntity.status(HttpStatus.CREATED).body(foodCategoriesService.createFoodCategory(category))
 
-    @PostMapping("/{categoryId}")
+    @PutMapping("/{foodCategoryId}")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun updateFoodCategory(
-        @PathVariable categoryId: Long,
-        @RequestBody category: FoodCategory,
-    ): FoodCategory = foodCategoriesService.updateFoodCategory(categoryId, category)
+        @PathVariable foodCategoryId: Long,
+        @Valid @RequestBody category: FoodCategoryRequest,
+    ): FoodCategoryResponse = foodCategoriesService.updateFoodCategory(foodCategoryId, category)
 
     @PostMapping("/reorder")
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun reorderFoodCategories(
-        @RequestBody request: FoodCategoryReorderRequest,
+        @Valid @RequestBody request: FoodCategoryReorderRequest,
     ): FoodCategoriesListResponse {
         foodCategoriesService.reorderFoodCategories(request.categoryIds)
         return FoodCategoriesListResponse(categories = foodCategoriesService.getAllFoodCategories())

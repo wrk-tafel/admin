@@ -1,5 +1,5 @@
 ### Get current ticket
-GET {{baseApiPath}}/distributions/tickets/households/100
+GET {{baseApiPath}}/households/100/ticket
 
 ### Delete current ticket of customer
-DELETE {{baseApiPath}}/distributions/tickets/households/100
+DELETE {{baseApiPath}}/households/100/ticket

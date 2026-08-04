@@ -15,7 +15,7 @@ export class CarApiService {
   }
 
   updateCar(carId: number, car: CarData): Observable<CarData> {
-    return this.http.post<CarData>(`/cars/${carId}`, car);
+    return this.http.put<CarData>(`/cars/${carId}`, car);
   }
 
   createCar(car: CarData): Observable<CarData> {

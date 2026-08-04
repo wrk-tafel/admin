@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
-import at.wrk.tafel.admin.backend.modules.logistics.model.Route
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteItem
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute2
 import io.mockk.every
@@ -31,11 +31,11 @@ class RouteServiceTest {
 
         assertThat(routes).isEqualTo(
             listOf(
-                Route(
+                RouteItem(
                     id = route1.id!!,
                     name = route1.name!!,
                 ),
-                Route(
+                RouteItem(
                     id = route2.id!!,
                     name = route2.name!!,
                 ),

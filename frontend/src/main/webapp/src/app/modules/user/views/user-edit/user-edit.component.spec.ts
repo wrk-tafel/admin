@@ -78,7 +78,7 @@ describe('UserEditComponent', () => {
 
             expect(component.isSaveEnabled()).toBe(true);
             expect(userFormComponentMock.markAllAsTouched).toHaveBeenCalled();
-            expect(apiService.createUser).toHaveBeenCalledWith(expect.objectContaining(mockUser));
+            expect(apiService.createUser).toHaveBeenCalledWith(expect.objectContaining(mockUser), expect.anything());
             expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
         });
     });
@@ -141,7 +141,7 @@ describe('UserEditComponent', () => {
             component.save();
 
             expect(component.userData()).toEqual(mockUser);
-            expect(apiService.updateUser).toHaveBeenCalledWith(expect.objectContaining(mockUser));
+            expect(apiService.updateUser).toHaveBeenCalledWith(expect.objectContaining(mockUser), expect.anything());
             expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
         });
     });

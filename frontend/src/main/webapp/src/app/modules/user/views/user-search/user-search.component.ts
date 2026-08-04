@@ -18,6 +18,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {form, FormField} from '@angular/forms/signals';
 import {MatDividerModule} from '@angular/material/divider';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 
 @Component({
   selector: 'tafel-user-search',
@@ -73,20 +75,21 @@ export class UserSearchComponent {
         }
       }
     };
-    this.userApiService.getUserForPersonnelNumber(this.searchForm.personnelNumber().value()).subscribe(observer);
+    const personnelNumber = this.searchForm.personnelNumber().value();
+    this.userApiService.getUserForPersonnelNumber(personnelNumber, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
   }
 
   navigateToUserDetail(userId: number | undefined) {
     return this.router.navigate(['/benutzer/detail', userId]);
   }
 
-  searchForDetails(page?: number) {
+  searchForDetails(page?: number, pageSize?: number) {
     const username = this.searchForm.username().value();
     const enabled = this.searchForm.enabled().value();
     const lastname = this.searchForm.lastname().value();
     const firstname = this.searchForm.firstname().value();
 
-    this.userApiService.searchUser(username, enabled, lastname, firstname, page)
+    this.userApiService.searchUser(username, enabled, lastname, firstname, page, pageSize)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
           this.toastr.info('Keine Benutzer gefunden!');
@@ -104,4 +107,5 @@ export class UserSearchComponent {
   protected readonly faSearch = faSearch;
   protected readonly faPencil = faPencil;
   protected readonly faUser = faUser;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

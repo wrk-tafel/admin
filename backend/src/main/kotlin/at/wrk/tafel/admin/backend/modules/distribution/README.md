@@ -45,7 +45,7 @@ and `sendMails()` (manual re-send, see below).
 ### Controllers
 - **DistributionController** — `/api/distributions*`: list, create, close, notes, statistics,
   household-list PDF, manual mail re-send, and the `/api/sse/distributions` SSE stream that pushes
-  `DistributionItemUpdate` whenever the current distribution starts/ends.
+  `DistributionUpdateResponse` whenever the current distribution starts/ends.
 - **DistributionTicketController** (`internal/ticket/`) — `/api/distributions/tickets/households/{id}`:
   get/delete the ticket assigned to a household.
 - **DistributionTicketScreenController** (`internal/ticket/`) — `/api/distributions/ticket-screen/*`
@@ -143,7 +143,7 @@ override fun preHandle(request: ..., response: ..., handler: Any): Boolean {
         val methodAnnotation = handler.method.getAnnotation(TafelActiveDistributionRequired::class.java)
         val classAnnotation = handler.beanType.getAnnotation(TafelActiveDistributionRequired::class.java)
         if ((methodAnnotation != null || classAnnotation != null) && distributionRepository.getCurrentDistribution() == null) {
-            throw TafelValidationException("Ausgabe nicht gestartet!")
+            throw BusinessRuleException("Ausgabe nicht gestartet!")
         }
     }
     return true
@@ -161,7 +161,7 @@ methods (`getCurrentTicketNumber`, `reopenAndGetPreviousTicket`, `closeCurrentTi
 distribution is active. That assumption is only safe because every controller entry point into these
 methods is annotated with `@TafelActiveDistributionRequired`. If you add a new caller that bypasses the
 controller layer (another service, a `@Scheduled` job, a test calling the service directly without an
-active distribution), you'll get an `NPE`, not the friendly `TafelValidationException`.
+active distribution), you'll get an `NPE`, not the friendly `BusinessRuleException`.
 
 ## Advisory locks: `CREATE_DISTRIBUTION` / `CLOSE_DISTRIBUTION`
 
@@ -204,7 +204,7 @@ Contributors sometimes assume the backend computes/generates the next ticket num
 val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 // Can't assign to another household if already assigned but ok if it's the same household
 if (existingTicket != null && existingHousehold?.household?.id != householdId) {
-    throw TafelValidationException("Ticketnummer $ticketNumber bereits vergeben!")
+    throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
 }
 ```
 There is no server-side range check for the 1–999 range mentioned in top-level docs — that range is a

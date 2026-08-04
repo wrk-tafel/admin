@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import org.slf4j.LoggerFactory
@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/distributions/tickets")
+@RequestMapping("/api/households/{householdId}/ticket")
 @PreAuthorize("hasAnyAuthority('CHECKIN', 'CUSTOMER')")
 class DistributionTicketController(
     private val service: DistributionService,
@@ -20,7 +20,7 @@ class DistributionTicketController(
         private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
     }
 
-    @GetMapping("/households/{householdId}")
+    @GetMapping
     @TafelActiveDistributionRequired
     fun getCurrentTicketForHouseholdId(
         @PathVariable householdId: Long,
@@ -32,15 +32,15 @@ class DistributionTicketController(
         )
     }
 
-    @DeleteMapping("/households/{householdId}")
+    @DeleteMapping
     @TafelActiveDistributionRequired
     fun deleteCurrentTicketForHousehold(
         @PathVariable householdId: Long,
     ): ResponseEntity<Unit> {
         val deleted = service.deleteCurrentTicket(householdId)
         if (!deleted) {
-            throw TafelValidationException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
+            throw BusinessRuleException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
         }
-        return ResponseEntity.ok().build()
+        return ResponseEntity.noContent().build()
     }
 }

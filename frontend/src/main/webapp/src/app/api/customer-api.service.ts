@@ -1,9 +1,10 @@
-import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {map, Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 import {tap} from 'rxjs/operators';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
+import {PagedResponse} from '../common/api/paged-response';
 
 /**
  * The backend stores a customer as a *household* plus a list of *persons*, one of which is flagged
@@ -21,8 +22,8 @@ export class CustomerApiService {
     return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data));
   }
 
-  createCustomer(data: CustomerData, force: boolean): Observable<CustomerCreationResponse> {
-    return this.http.post<HouseholdCreationResponse>('/households', mapCustomerToHousehold(data), {params: {force}})
+  createCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerCreationResponse> {
+    return this.http.post<HouseholdCreationResponse>('/households', mapCustomerToHousehold(data), {params: {force}, context})
       .pipe(
         map(response => ({data: mapHouseholdToCustomer(response?.data), errorMsg: response?.errorMsg ?? null})),
         tap(response => {
@@ -34,8 +35,8 @@ export class CustomerApiService {
       );
   }
 
-  updateCustomer(data: CustomerData, force: boolean): Observable<CustomerUpdateResponse> {
-    return this.http.post<HouseholdUpdateResponse>(`/households/${data.id}`, mapCustomerToHousehold(data), {params: {force}})
+  updateCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerUpdateResponse> {
+    return this.http.put<HouseholdUpdateResponse>(`/households/${data.id}`, mapCustomerToHousehold(data), {params: {force}, context})
       .pipe(
         map(response => ({data: mapHouseholdToCustomer(response?.data), errorMsg: response?.errorMsg ?? null})),
         tap(response => {
@@ -47,12 +48,12 @@ export class CustomerApiService {
       );
   }
 
-  deleteCustomer(customerId: number): Observable<void> {
-    return this.http.delete<void>(`/households/${customerId}`);
+  deleteCustomer(customerId: number, context?: HttpContext): Observable<void> {
+    return this.http.delete<void>(`/households/${customerId}`, {context});
   }
 
-  getCustomer(id: number): Observable<CustomerData> {
-    return this.http.get<HouseholdData>('/households/' + id).pipe(map(mapHouseholdToCustomer));
+  getCustomer(id: number, context?: HttpContext): Observable<CustomerData> {
+    return this.http.get<HouseholdData>('/households/' + id, {context}).pipe(map(mapHouseholdToCustomer));
   }
 
   generatePdf(id: number, type: PdfType): Observable<HttpResponse<Blob>> {
@@ -73,7 +74,8 @@ export class CustomerApiService {
     postProcessing?: boolean | null,
     costContribution?: boolean | null,
     valid?: boolean | null,
-    page?: number
+    page?: number,
+    pageSize?: number
   ): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
@@ -93,6 +95,9 @@ export class CustomerApiService {
     }
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<HouseholdSearchResult>('/households', {params: queryParams}).pipe(
       map(response => ({...response, items: (response?.items ?? []).map(mapHouseholdToCustomer)}))
@@ -115,10 +120,13 @@ export class CustomerApiService {
     );
   }
 
-  getCustomersAboveLimit(page?: number): Observable<CustomerAboveLimitResponse> {
+  getCustomersAboveLimit(page?: number, pageSize?: number): Observable<CustomerAboveLimitResponse> {
     let queryParams = new HttpParams();
     if (page) {
       queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
     }
     return this.http.get<HouseholdAboveLimitResponse>('/households/above-limit', {params: queryParams}).pipe(
       map(response => ({
@@ -133,10 +141,73 @@ export class CustomerApiService {
     );
   }
 
-  mergeCustomers(targetCustomerId: number, sourceCustomerIds: number[]): Observable<void> {
-    const request: CustomerMergeRequest = {sourceCustomerIds: sourceCustomerIds};
-    const body: HouseholdMergeRequest = {sourceHouseholdIds: request.sourceCustomerIds};
-    return this.http.post<void>(`/households/${targetCustomerId}/merge`, body);
+  getMergePreview(targetCustomerId: number, sourceCustomerIds: number[]): Observable<CustomerMergePreview> {
+    let queryParams = new HttpParams();
+    sourceCustomerIds.forEach(sourceCustomerId => {
+      queryParams = queryParams.append('sourceHouseholdIds', sourceCustomerId);
+    });
+
+    return this.http.get<HouseholdMergePreviewResponse>(`/households/${targetCustomerId}/merge-preview`, {params: queryParams}).pipe(
+      map(response => ({
+        target: mapHouseholdToCustomer(response.target),
+        sources: (response.sources ?? []).map(mapHouseholdToCustomer),
+        fieldConflicts: (response.fieldConflicts ?? []).map(item => ({
+          field: item.field,
+          conflictingSourceCustomerIds: item.conflictingSourceHouseholdIds
+        })),
+        persons: (response.persons ?? []).map(item => ({
+          sourceCustomerId: item.sourceHouseholdId,
+          person: mapPersonToAddPersonData(item.person),
+          duplicate: item.duplicate,
+          matchedPersonId: item.matchedPersonId
+        })),
+        distributionCollisions: (response.distributionCollisions ?? []).map(item => ({
+          distributionId: item.distributionId,
+          distributionStartedAt: item.distributionStartedAt,
+          sourceCustomerId: item.sourceHouseholdId,
+          targetTicketNumber: item.targetTicketNumber,
+          sourceTicketNumber: item.sourceTicketNumber
+        })),
+        noteCount: response.noteCount,
+        documentCount: response.documentCount
+      }))
+    );
+  }
+
+  mergeCustomers(
+    targetCustomerId: number,
+    sourceCustomerIds: number[],
+    fieldSelections: CustomerMergeFieldSelection[] = []
+  ): Observable<CustomerMergeResult> {
+    const body: HouseholdMergeRequest = {
+      sourceHouseholdIds: sourceCustomerIds,
+      fieldSelections: fieldSelections.map(selection => ({
+        field: selection.field,
+        sourceHouseholdId: selection.sourceCustomerId ?? null
+      }))
+    };
+    return this.http.post<HouseholdMergeResponse>(`/households/${targetCustomerId}/merge`, body).pipe(
+      map(response => ({
+        target: mapHouseholdToCustomer(response.target),
+        movedPersonCount: response.movedPersonCount,
+        droppedDuplicatePersonCount: response.droppedDuplicatePersonCount,
+        movedNoteCount: response.movedNoteCount,
+        movedDocumentCount: response.movedDocumentCount,
+        movedDistributionCount: response.movedDistributionCount,
+        droppedDistributionCount: response.droppedDistributionCount,
+        deletedCustomerIds: response.deletedHouseholdIds
+      }))
+    );
+  }
+
+  payCostContribution(householdId: number, amount?: number): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${householdId}/cost-contribution/pay`, {amount})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
+  editCostContribution(householdId: number, amount: number): Observable<CustomerData> {
+    return this.http.put<HouseholdData>(`/households/${householdId}/cost-contribution`, {amount})
+      .pipe(map(mapHouseholdToCustomer));
   }
 
 }
@@ -149,13 +220,7 @@ export interface ValidateCustomerResponse {
   amountExceededLimit: number;
 }
 
-export interface CustomerSearchResult {
-  items: CustomerData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerSearchResult = PagedResponse<CustomerData>;
 
 export interface CustomerCreationResponse {
   data: CustomerData;
@@ -231,28 +296,16 @@ export const genderLabel: { [key in Gender]: string } = {
   [Gender.MALE]: 'Männlich'
 };
 
-type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';
+type PdfType = 'MASTERDATA' | 'IDCARD';
 
-export interface CustomerDuplicatesResponse {
-  items: CustomerDuplicatesItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 
 export interface CustomerDuplicatesItem {
   customer: CustomerData;
   similarCustomers: CustomerData[];
 }
 
-export interface CustomerAboveLimitResponse {
-  items: CustomerAboveLimitItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+export type CustomerAboveLimitResponse = PagedResponse<CustomerAboveLimitItem>;
 
 export interface CustomerAboveLimitItem {
   customer: CustomerData;
@@ -261,8 +314,68 @@ export interface CustomerAboveLimitItem {
   amountExceededLimit: number;
 }
 
-export interface CustomerMergeRequest {
-  sourceCustomerIds: number[];
+export type CustomerMergeField =
+  | 'ADDRESS'
+  | 'TELEPHONE_NUMBER'
+  | 'EMAIL'
+  | 'VALID_UNTIL'
+  | 'LOCK_STATE'
+  | 'PENDING_COST_CONTRIBUTION'
+  | 'SINGLE_PARENT'
+  | 'MAIN_PERSON_FIRSTNAME'
+  | 'MAIN_PERSON_LASTNAME'
+  | 'MAIN_PERSON_BIRTHDATE'
+  | 'MAIN_PERSON_GENDER'
+  | 'MAIN_PERSON_COUNTRY'
+  | 'MAIN_PERSON_EMPLOYER'
+  | 'MAIN_PERSON_INCOME'
+  | 'MAIN_PERSON_INCOME_DUE';
+
+/** `sourceCustomerId` undefined/null means "keep the target's value". */
+export interface CustomerMergeFieldSelection {
+  field: CustomerMergeField;
+  sourceCustomerId?: number | null;
+}
+
+export interface CustomerMergeFieldConflict {
+  field: CustomerMergeField;
+  conflictingSourceCustomerIds: number[];
+}
+
+export interface CustomerMergePersonEntry {
+  sourceCustomerId: number;
+  person: CustomerAddPersonData;
+  duplicate: boolean;
+  matchedPersonId?: number;
+}
+
+export interface CustomerMergeDistributionCollision {
+  distributionId: number;
+  distributionStartedAt?: Date;
+  sourceCustomerId: number;
+  targetTicketNumber?: number;
+  sourceTicketNumber?: number;
+}
+
+export interface CustomerMergePreview {
+  target: CustomerData;
+  sources: CustomerData[];
+  fieldConflicts: CustomerMergeFieldConflict[];
+  persons: CustomerMergePersonEntry[];
+  distributionCollisions: CustomerMergeDistributionCollision[];
+  noteCount: number;
+  documentCount: number;
+}
+
+export interface CustomerMergeResult {
+  target: CustomerData;
+  movedPersonCount: number;
+  droppedDuplicatePersonCount: number;
+  movedNoteCount: number;
+  movedDocumentCount: number;
+  movedDistributionCount: number;
+  droppedDistributionCount: number;
+  deletedCustomerIds: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -304,13 +417,7 @@ interface PersonData {
   receivesFamilyAllowance: boolean;
 }
 
-interface HouseholdSearchResult {
-  items: HouseholdData[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+type HouseholdSearchResult = PagedResponse<HouseholdData>;
 
 interface HouseholdCreationResponse {
   data: HouseholdData;
@@ -322,36 +429,90 @@ interface HouseholdUpdateResponse {
   errorMsg: string | null;
 }
 
-interface HouseholdDuplicatesResponse {
-  items: HouseholdDuplicatesItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+type HouseholdDuplicatesResponse = PagedResponse<HouseholdDuplicatesItem>;
 
 interface HouseholdDuplicatesItem {
   household: HouseholdData;
   similarHouseholds: HouseholdData[];
 }
 
-interface HouseholdMergeRequest {
-  sourceHouseholdIds: number[];
+interface HouseholdMergeFieldSelectionItem {
+  field: CustomerMergeField;
+  sourceHouseholdId?: number | null;
 }
 
-interface HouseholdAboveLimitResponse {
-  items: HouseholdAboveLimitItem[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
+interface HouseholdMergeRequest {
+  sourceHouseholdIds: number[];
+  fieldSelections?: HouseholdMergeFieldSelectionItem[];
 }
+
+interface HouseholdMergeFieldConflictItem {
+  field: CustomerMergeField;
+  conflictingSourceHouseholdIds: number[];
+}
+
+interface HouseholdMergePersonItem {
+  sourceHouseholdId: number;
+  person: PersonData;
+  duplicate: boolean;
+  matchedPersonId?: number;
+}
+
+interface HouseholdMergeDistributionCollisionItem {
+  distributionId: number;
+  distributionStartedAt?: Date;
+  sourceHouseholdId: number;
+  targetTicketNumber?: number;
+  sourceTicketNumber?: number;
+}
+
+interface HouseholdMergePreviewResponse {
+  target: HouseholdData;
+  sources: HouseholdData[];
+  fieldConflicts: HouseholdMergeFieldConflictItem[];
+  persons: HouseholdMergePersonItem[];
+  distributionCollisions: HouseholdMergeDistributionCollisionItem[];
+  noteCount: number;
+  documentCount: number;
+}
+
+interface HouseholdMergeResponse {
+  target: HouseholdData;
+  movedPersonCount: number;
+  droppedDuplicatePersonCount: number;
+  movedNoteCount: number;
+  movedDocumentCount: number;
+  movedDistributionCount: number;
+  droppedDistributionCount: number;
+  deletedHouseholdIds: number[];
+}
+
+type HouseholdAboveLimitResponse = PagedResponse<HouseholdAboveLimitItem>;
 
 interface HouseholdAboveLimitItem {
   household: HouseholdData;
   totalSum: number;
   limit: number;
   amountExceededLimit: number;
+}
+
+/**
+ * `key` is a form-only field and was never part of the server response either.
+ */
+function mapPersonToAddPersonData(person: PersonData): CustomerAddPersonData {
+  return {
+    id: person.id,
+    firstname: person.firstname,
+    lastname: person.lastname,
+    birthDate: person.birthDate,
+    gender: person.gender,
+    country: person.country,
+    employer: person.employer,
+    income: person.income,
+    incomeDue: person.incomeDue,
+    excludeFromHousehold: person.excludeFromHousehold,
+    receivesFamilyAllowance: person.receivesFamilyAllowance
+  } as CustomerAddPersonData;
 }
 
 /**
@@ -364,20 +525,7 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
 
   const additionalPersons = persons
     .filter(person => !person.isMainPerson)
-    .map(person => ({
-      // `key` is a form-only field and was never part of the server response before either
-      id: person.id,
-      firstname: person.firstname,
-      lastname: person.lastname,
-      birthDate: person.birthDate,
-      gender: person.gender,
-      country: person.country,
-      employer: person.employer,
-      income: person.income,
-      incomeDue: person.incomeDue,
-      excludeFromHousehold: person.excludeFromHousehold,
-      receivesFamilyAllowance: person.receivesFamilyAllowance
-    }) as CustomerAddPersonData);
+    .map(mapPersonToAddPersonData);
 
   return {
     id: household?.id,

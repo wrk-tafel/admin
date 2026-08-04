@@ -99,8 +99,9 @@ class PersonEntity : BaseChangeTrackingEntity() {
             fun orderByHouseholdId(spec: Specification<PersonEntity>): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val household: Join<PersonEntity, HouseholdEntity> = root.join("household")
                 val householdId: Expression<Long> = household["householdId"]
+                val id: Expression<Long> = root["id"]
 
-                cq!!.orderBy(cb.asc(householdId))
+                cq!!.orderBy(cb.asc(householdId), cb.desc(id))
                 spec.toPredicate(root, cq, cb)
             }
         }

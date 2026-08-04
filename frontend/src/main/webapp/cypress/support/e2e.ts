@@ -28,3 +28,11 @@ Cypress.on('uncaught:exception', (err) => {
   // Let other errors fail the test
   return true;
 });
+
+// cy.viewport() persists across tests and even across spec files (Cypress does not auto-reset it) -
+// specs that switch to PHONE_VIEWPORT/TABLET_VIEWPORT (see cypress/support/viewports.ts) would
+// otherwise leak that size into the next spec's first tests, causing unrelated failures that only
+// reproduce depending on run order.
+afterEach(() => {
+  cy.viewport(Cypress.config('viewportWidth'), Cypress.config('viewportHeight'));
+});

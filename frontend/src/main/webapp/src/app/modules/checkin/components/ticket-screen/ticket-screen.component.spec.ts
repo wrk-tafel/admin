@@ -39,9 +39,25 @@ describe('TicketScreenComponent', () => {
         const fixture = TestBed.createComponent(TicketScreenComponent);
         const component = fixture.componentInstance;
 
-        expect(sseService.listen).toHaveBeenCalledWith('/sse/distributions/ticket-screen/current');
+        expect(sseService.listen).toHaveBeenCalledWith('/sse/distributions/ticket-screen/current', expect.any(Function));
         expect(component.text()).toBe(testData.text);
         expect(component.value()).toBe(testData.value);
+    });
+
+    it('connected reflects the connection-state callback passed to SseService', () => {
+        sseService.listen.mockReturnValue(of({} as TicketScreenText));
+
+        const fixture = TestBed.createComponent(TicketScreenComponent);
+        const component = fixture.componentInstance;
+
+        expect(component.connected()).toBe(true);
+
+        const connectionStateCallback = sseService.listen.mock.calls[0][1] as (connected: boolean) => void;
+        connectionStateCallback(false);
+        expect(component.connected()).toBe(false);
+
+        connectionStateCallback(true);
+        expect(component.connected()).toBe(true);
     });
 
 });

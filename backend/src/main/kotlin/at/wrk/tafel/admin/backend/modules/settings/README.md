@@ -13,7 +13,7 @@ limits). Both are exposed under `/api/settings` behind `@PreAuthorize("hasAuthor
 ```
 
 Confirmed — the only declared cross-module dependency is `base::exception`
-(`TafelValidationException`, thrown by `updateStaticValue()` when the id doesn't exist).
+(`NotFoundException`, thrown by `updateStaticValue()` when the id doesn't exist).
 
 **Why nothing else needs to be declared:** the entities this module manages —
 `MailRecipientEntity`/`MailRecipientRepository`/`MailType`/`RecipientType` (in
@@ -30,11 +30,12 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
   - `GET /api/settings/static-values`, `POST /api/settings/static-values/{staticValueId}`
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).
-- **`model/SettingsResponseModel.kt`** — `MailRecipients` / `MailRecipientsPerMailType` /
-  `MailRecipientAdresses` (note the model's own `MailRecipientType` enum duplicates
-  `database.model.base.RecipientType` value-for-value: `TO`/`CC`/`BCC` — the service converts
-  between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse).
-- **`model/StaticValueSettingsModel.kt`** — `StaticValueListResponse` / `StaticValueItem`.
+- **`model/SettingsResponseModel.kt`** — `MailRecipientsRequest` / `MailRecipientsResponse` /
+  `MailRecipientsPerMailType` / `MailRecipientAdresses` (note the model's own `MailRecipientType`
+  enum duplicates `database.model.base.RecipientType` value-for-value: `TO`/`CC`/`BCC` — the
+  service converts between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse).
+- **`model/StaticValueSettingsModel.kt`** — `StaticValueListResponse` / `StaticValueRequest` /
+  `StaticValueResponse`.
 
 ## Mail recipients
 

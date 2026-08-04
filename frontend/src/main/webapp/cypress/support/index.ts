@@ -81,6 +81,12 @@ declare global {
       createDummyCustomer(income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>>;
 
       /**
+       * Custom command to add a note to an existing customer.
+       * @example cy.createCustomerNote(customerId, 'some note');
+       */
+      createCustomerNote(customerId: number, note: string): Cypress.Chainable<Cypress.Response<any>>;
+
+      /**
        * Custom command to create a new user.
        * @example cy.createUser(userData);
        */
@@ -103,6 +109,14 @@ declare global {
        * @example cy.closeDistribution();
        */
       closeDistribution(): void;
+
+      /**
+       * Marks a household's only distribution ticket as "not paid", closes the distribution and
+       * waits until the resulting Unkostenbeitrag debt has actually been accrued on the household
+       * (runs asynchronously right after the distribution closes).
+       * @example cy.accrueCostContributionDebt(customerId);
+       */
+      accrueCostContributionDebt(customerId: number): void;
 
       /**
        * Custom command to generate a random number in a given range.

@@ -28,5 +28,6 @@ data class DashboardStatisticsData(
 data class DashboardLogisticsData(
     val foodCollectionsRecordedCount: Int?,
     val foodCollectionsTotalCount: Int?,
+    val recordedRouteNames: List<String>,
     val foodAmountTotal: BigDecimal?,
 )

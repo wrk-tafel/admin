@@ -16,6 +16,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -68,21 +70,22 @@ export class CustomerSearchComponent {
         }
       }
     };
-    this.customerApiService.getCustomer(customerId).subscribe(observer);
+    this.customerApiService.getCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
   }
 
   private navigateToCustomerDetail(customerId: number) {
     return this.router.navigate(['/kunden/detail', customerId]);
   }
 
-  searchForDetails(page?: number) {
+  searchForDetails(page?: number, pageSize?: number) {
     this.customerApiService.searchCustomer(
       this.lastname.value ?? undefined,
       this.firstname.value ?? undefined,
       this.postProcessing.value ?? undefined,
       this.costContribution.value ?? undefined,
       this.valid.value ?? undefined,
-      page)
+      page,
+      pageSize)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastr.info('Keine Kunden gefunden!');
@@ -135,4 +138,5 @@ export class CustomerSearchComponent {
   protected readonly faPencil = faPencil;
   protected readonly faUser = faUser;
   protected readonly faSearch = faSearch;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

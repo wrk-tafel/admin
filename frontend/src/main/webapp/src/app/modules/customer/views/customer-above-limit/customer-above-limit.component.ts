@@ -9,6 +9,7 @@ import {CommonModule} from '@angular/common';
 import {faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 
 @Component({
   selector: 'tafel-customer-above-limit',
@@ -35,8 +36,8 @@ export class CustomerAboveLimitComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
 
-  getAboveLimit(page?: number) {
-    this.customerApiService.getCustomersAboveLimit(page)
+  getAboveLimit(page?: number, pageSize?: number) {
+    this.customerApiService.getCustomersAboveLimit(page, pageSize)
       .subscribe((response: CustomerAboveLimitResponse) => {
         this.customerAboveLimitData.set(response.items.length === 0 ? undefined : response);
       });
@@ -55,4 +56,5 @@ export class CustomerAboveLimitComponent {
 
   protected readonly faUser = faUser;
   protected readonly faSearch = faSearch;
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }
