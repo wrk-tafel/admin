@@ -59,7 +59,11 @@ jobs:
       # Installs from docs/userguide/package-lock.json (pinned version + integrity hashes) rather
       # than `npx <pkg>@version`, which resolves and installs on demand at run time - flagged by
       # SonarCloud (githubactions:S6505) as an on-demand-install / supply-chain risk.
-      - run: npm ci
+      # --ignore-scripts additionally blocks lifecycle scripts from any (transitive) dependency -
+      # otherwise flagged separately by SonarCloud/CodeQL. This also skips puppeteer's own
+      # postinstall Chromium download, so the render step below points it at the runner's
+      # preinstalled Google Chrome instead.
+      - run: npm ci --ignore-scripts
         working-directory: docs/userguide
       - name: Combine userguide chapters into one markdown file
         # Page-break before each chapter (except the first) so md-to-pdf starts every chapter
@@ -72,7 +76,13 @@ jobs:
             cat "$chapter.md" >> combined.md
           done
       - name: Render userguide PDF
-        run: node_modules/.bin/md-to-pdf combined.md
+        run: |
+          CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
+          if [ -z "$CHROME_PATH" ]; then
+            echo "::error::No Chrome/Chromium executable found on this runner" >&2
+            exit 1
+          fi
+          node_modules/.bin/md-to-pdf combined.md --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
