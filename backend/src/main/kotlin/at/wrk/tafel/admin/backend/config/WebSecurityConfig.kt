@@ -25,7 +25,6 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
@@ -167,16 +166,13 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun userDetailsManager(): UserDetailsManager = tafelUserDetailsManager()
-
-    @Bean
     fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
 
     @Bean
-    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(userDetailsManager(), passwordEncoder(), loginAttemptService)
+    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService)
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)
