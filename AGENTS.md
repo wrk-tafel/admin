@@ -240,9 +240,10 @@ since it lives outside the code you're editing. On every update or regeneration,
 - **No mouse cursor in screenshots.** The cursor position persists across page navigations within
   the same browser tab/session — it's not enough to just avoid clicking right before a screenshot.
   Park the cursor over a blank area (e.g. a `hover` action) immediately before capturing.
-- **Screenshot content should look real and German-appropriate.** E.g. use German-style email
-  addresses/domains rather than English test-fixture defaults, when the underlying test data is
-  cosmetic and easy to adjust before capturing.
+- **Screenshot content should look real and German-appropriate.** If a screen shows cosmetic
+  test-fixture data (e.g. the email settings page's recipient addresses), fix the actual seed data
+  in `backend/src/main/resources/db-migration-testdata/testdata.sql` — don't type over it in the
+  browser just for the screenshot, that only fakes what regenerating from scratch would show.
 - **Cover error/edge states too**, not just the main feature screens (e.g. the 404/500 pages).
 - **Watch for near-identical-looking screens that are actually different flows** before assuming
   one screenshot covers both — e.g. the in-app "Passwort ändern" page (user menu, any time) and the
@@ -256,24 +257,8 @@ since it lives outside the code you're editing. On every update or regeneration,
   heading's auto-generated slug elsewhere in the merged PDF and silently jump to the wrong place
   (this happened with `anmeldung`, colliding with README.md's own "## Anmeldung" section). Adding a
   new cross-file link or a new chapter requires adding/matching an anchor and extending the
-  filename list in the `sed` rewrite rules described below.
-- **The PDF build** (`docs/userguide/package.json`/`package-lock.json`, and the `userguide-pdf` job
-  in `.github/workflows/release.yml`) has several non-obvious requirements, each added after a real
-  problem surfaced:
-  - Install `md-to-pdf` via `npm ci --ignore-scripts` from the committed lockfile — never
-    `npx <pkg>@version` (on-demand install/lifecycle-script execution, flagged by SonarCloud/CodeQL
-    as a supply-chain risk) and never a plain `npm ci` without `--ignore-scripts` either (same
-    class of flag, since lifecycle scripts of *any* dependency still run arbitrary code).
-  - `--ignore-scripts` also skips puppeteer's own Chromium download, so the render step points
-    `--launch-options` at the GitHub runner's preinstalled Chrome/Chromium instead (auto-detected
-    via `command -v google-chrome-stable || ...`, with `--no-sandbox`).
-  - Pass `--document-title "..."` explicitly — otherwise the PDF's title metadata falls back to the
-    internal `localhost:PORT/combined.md` URL md-to-pdf serves the file from.
-  - Pass `--css "p:has(img) { break-before: avoid; break-inside: avoid; }"` — otherwise a page break
-    can land between a paragraph and the screenshot it introduces, stranding the image alone at the
-    top of the next page.
-  - The chapters get concatenated into one `combined.md` before rendering (see the workflow step),
-    with the cross-chapter link rewriting from the anchors bullet above applied at that point.
+  filename list in the `sed` rewrite rules in the `userguide-pdf` job of
+  `.github/workflows/release.yml`.
 
 ## Handling Issues Found Outside the Current Task's Scope
 
