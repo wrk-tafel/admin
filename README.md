@@ -277,6 +277,112 @@ Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 | `testdata` | Loads test data via Flyway callback |
 | `e2e` | E2E testing with test user credentials |
 
+### Reverse Proxy Deployment (Subpath / Subdomain)
+
+The frontend is built once and the same artifact is deployed unchanged behind a reverse proxy, whether it's mounted at a **subpath** on a shared domain (e.g. multiple environments under `tafel.wrk.at`) or given its own **subdomain** (the app owns the whole host). Which one is in play is controlled by a single backend property:
+
+```yaml
+tafeladmin:
+  server:
+    relativeBaseUrl: /verwaltung-test/   # "/" for a subdomain / root deployment
+```
+
+This must match whatever prefix the reverse proxy exposes to the browser. It drives both the JWT cookie path and the frontend's `<base href>` (rewritten server-side by `IndexHtmlController` - see #2972/#2978), so relative asset and API URLs keep resolving correctly once the proxy has stripped its prefix.
+
+Both examples below reference `$sse_cache_control` for the SSE-specific `Cache-Control` header. Declare this `map` once at the `http {}` level of your nginx config (outside any `server {}` block) - it's not repeated per example, but both need it:
+
+```nginx
+# See the note below on why this is a map rather than a plain `if`.
+map $request_uri $sse_cache_control {
+    default      "";
+    "~*api/sse"  "no-cache, no-transform";
+}
+```
+
+#### Subpath example
+
+nginx strips the `/verwaltung-test/` prefix before forwarding to the backend, and passes it along separately via `X-Forwarded-Prefix` (not currently consumed by the app, but kept for parity/future use and general reverse-proxy convention):
+
+```nginx
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name tafel.wrk.at;
+
+    # Common Headers
+    resolver 127.0.0.11 valid=30s;  # Docker's embedded DNS, for re-resolving the upstream on restart
+
+    location /verwaltung-test/ {
+        proxy_set_header Host               $host;
+        proxy_set_header X-Real-IP          $remote_addr;
+        proxy_set_header X-Forwarded-Proto  $scheme;
+        proxy_set_header X-Forwarded-Port   443;
+        proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Prefix /verwaltung-test;
+        proxy_set_header Forwarded          '';
+
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        chunked_transfer_encoding off;
+
+        # Logic for re-resolution and path stripping
+        set $upstream http://admin-test:8080;
+        rewrite ^/verwaltung-test/(.*) /$1 break;
+
+        # SSE-Specific Optimization
+        add_header Cache-Control $sse_cache_control;
+
+        proxy_pass $upstream;
+    }
+}
+```
+
+Matching backend config: `tafeladmin.server.relativeBaseUrl: /verwaltung-test/`.
+
+#### Subdomain example
+
+A subdomain owns the whole host, so there's no prefix to strip and `relativeBaseUrl` stays at its default (`/`):
+
+```nginx
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name verwaltung-demo.wrk.at;
+
+    resolver 127.0.0.11 valid=30s;
+
+    location / {
+        proxy_set_header Host               $host;
+        proxy_set_header X-Real-IP          $remote_addr;
+        proxy_set_header X-Forwarded-Proto  $scheme;
+        proxy_set_header X-Forwarded-Port   443;
+        proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+        proxy_set_header Forwarded          '';
+
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        chunked_transfer_encoding off;
+
+        set $upstream http://admin-demo:8080;
+
+        add_header Cache-Control $sse_cache_control;
+
+        proxy_pass $upstream;
+    }
+}
+```
+
+Both examples were verified end-to-end (path stripping, forwarded headers, and the SSE header) against nginx proxying to a real backend container.
+
+> [!NOTE]
+> The SSE header is set via a `map` rather than the more obvious `if ($request_uri ~* "api/sse") { add_header ...; }`. With `proxy_buffering off` (required here for SSE to stream at all), an `add_header` set inside an `if` block is silently dropped - it never reaches the client, with no error logged. An unconditional `add_header`, or one driven by a `map` variable like above, isn't affected and works reliably. This was confirmed by reproducing both the failure and the fix directly against nginx.
+
 ### Permissions
 
 Access control is based on these permissions:
