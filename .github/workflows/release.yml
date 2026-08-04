@@ -94,7 +94,10 @@ jobs:
             echo "::error::No Chrome/Chromium executable found on this runner" >&2
             exit 1
           fi
-          node_modules/.bin/md-to-pdf combined.md --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          # Without --document-title, md-to-pdf falls back to the URL of the local http server it
+          # serves combined.md from (e.g. "localhost:PORT/combined.md"), which then shows up as the
+          # PDF's title in viewers/tabs.
+          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
