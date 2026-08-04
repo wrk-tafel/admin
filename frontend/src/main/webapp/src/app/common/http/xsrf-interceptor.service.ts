@@ -1,6 +1,7 @@
-import {HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
+import {HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
 import {inject} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, throwError} from 'rxjs';
+import {catchError} from 'rxjs/operators';
 import {CookieService} from 'ngx-cookie-service';
 
 /**
@@ -18,10 +19,28 @@ export const xsrfInterceptor: HttpInterceptorFn = (
     return next(request);
   }
 
-  const token = cookieService.get('XSRF-TOKEN');
-  if (!token) {
-    return next(request);
-  }
+  const send = (token: string | undefined): Observable<HttpEvent<unknown>> =>
+    next(token ? request.clone({headers: request.headers.set('X-XSRF-TOKEN', token)}) : request);
 
-  return next(request.clone({headers: request.headers.set('X-XSRF-TOKEN', token)}));
+  const initialToken = cookieService.get('XSRF-TOKEN');
+
+  return send(initialToken).pipe(
+    catchError((error: unknown) => {
+      if (!(error instanceof HttpErrorResponse) || error.status !== 403) {
+        return throwError(() => error);
+      }
+
+      // The XSRF-TOKEN cookie is only set once some backend response has come back (it can't be
+      // primed by the initial page load, since that's served by the frontend dev server / static
+      // hosting, not the backend). A mutating request fired concurrently with the app's other
+      // bootstrap calls - e.g. the scanner page's registration call right after login - can race
+      // ahead of the response that would have set the cookie and go out with no token at all.
+      // Retry once with whatever the cookie is now before treating this as a genuine failure.
+      const freshToken = cookieService.get('XSRF-TOKEN');
+      if (!freshToken || freshToken === initialToken) {
+        return throwError(() => error);
+      }
+      return send(freshToken);
+    })
+  );
 };
