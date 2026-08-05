@@ -18,7 +18,7 @@ modules/checkin/
 
 ### QRCodeReaderService
 
-This module uses `@zxing/browser`'s `BrowserQRCodeReader` for QR decoding, not `html5-qrcode` — check `package.json` (`@zxing/browser`, `@zxing/library`) and `qrcode-reader.service.ts` if in doubt.
+This module uses `@zxing/browser`'s `BrowserQRCodeReader` for QR decoding — check `package.json` (`@zxing/browser`, `@zxing/library`) and `qrcode-reader.service.ts` if in doubt.
 
 The service is a thin wrapper: `getCameras()` lists video devices, `init(elementId, successCallback)` remembers which `<video>` element and callback to use, and `start(cameraId)` / `restart(cameraId)` / `stop()` manage the actual `decodeFromVideoDevice` call. The last-used camera id is persisted to `localStorage` under `TAFEL_LAST_CAMERA_ID` so a kiosk reopening the page reuses the same camera.
 
