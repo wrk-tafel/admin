@@ -49,6 +49,7 @@ jobs:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   userguide-pdf:
     runs-on: ubuntu-latest
+    needs: version
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -85,6 +86,8 @@ jobs:
           sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
           sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
       - name: Render userguide PDF
+        env:
+          USERGUIDE_VERSION: ${{ needs.version.outputs.version }}
         run: |
           CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
           if [ -z "$CHROME_PATH" ]; then
@@ -103,7 +106,11 @@ jobs:
           # also replaces what used to be a manually inserted page-break div between chapters in the
           # concatenation step above, so a new chapter file added there gets the same treatment for
           # free.
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          # --config-file supplies the footer (version + date + page numbers, see
+          # md-to-pdf.config.js). It has to be a config file rather than CLI --pdf-options, because
+          # --pdf-options replaces the whole pdf_options object (dropping the default page format
+          # and margins used above), while a config file merges on top of md-to-pdf's own defaults.
+          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --config-file md-to-pdf.config.js --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
