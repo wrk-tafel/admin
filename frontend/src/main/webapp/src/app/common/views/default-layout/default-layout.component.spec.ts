@@ -206,6 +206,52 @@ return true;
         expect(filteredItems).toEqual([testMenuItem2]);
     });
 
+    it('navItems are filtered by permissions - group keeps only the children the user has permission for', () => {
+        authService.hasPermission.mockImplementation((perm: string) => perm === 'PERM2');
+
+        const child1 = {name: 'Child1', url: '/child1', permissions: ['PERM1']};
+        const child2 = {name: 'Child2', url: '/child2', permissions: ['PERM2']};
+        const testMenuItems = [
+            {
+                name: 'Group',
+                children: [child1, child2]
+            }
+        ];
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+
+        const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
+
+        expect(filteredItems).toEqual([
+            {
+                name: 'Group',
+                children: [child2]
+            }
+        ]);
+    });
+
+    it('navItems are filtered by permissions - group is removed entirely when no child survives', () => {
+        authService.hasPermission.mockReturnValue(false);
+
+        const testMenuItems = [
+            {
+                name: 'Group',
+                children: [
+                    {name: 'Child1', url: '/child1', permissions: ['PERM1']},
+                    {name: 'Child2', url: '/child2', permissions: ['PERM2']}
+                ]
+            }
+        ];
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+
+        const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
+
+        expect(filteredItems).toEqual([]);
+    });
+
     it('navItems - empty titles removed', () => {
         const testMenuItem1 = {
             name: 'Test1'

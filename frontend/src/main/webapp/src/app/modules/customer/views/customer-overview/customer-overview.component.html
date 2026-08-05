@@ -30,7 +30,7 @@
   <mat-card-header class="text-xl font-bold">Neu</mat-card-header>
   <mat-card-content>
     @if ((customerOverviewData()?.newCustomers?.length ?? 0) === 0) {
-      <h4 class="font-bold mt-4">Keine neuen Kunden gefunden!</h4>
+      <div class="text-base font-bold mt-4">Keine neuen Kunden gefunden!</div>
     }
 
     @if ((customerOverviewData()?.newCustomers?.length ?? 0) > 0) {
@@ -108,7 +108,7 @@
   <mat-card-header class="text-xl font-bold">Verlängert</mat-card-header>
   <mat-card-content>
     @if ((customerOverviewData()?.renewedCustomers?.length ?? 0) === 0) {
-      <h4 class="font-bold mt-4">Keine verlängerten Kunden gefunden!</h4>
+      <div class="text-base font-bold mt-4">Keine verlängerten Kunden gefunden!</div>
     }
 
     @if ((customerOverviewData()?.renewedCustomers?.length ?? 0) > 0) {

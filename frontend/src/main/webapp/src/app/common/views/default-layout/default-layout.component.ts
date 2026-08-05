@@ -86,9 +86,27 @@ export class DefaultLayoutComponent {
         }
       });
 
-      if (navItem.title || !missingPermission) {
+      if (navItem.title) {
         resultNavItems.push(navItem);
+        return;
       }
+
+      if (missingPermission) {
+        return;
+      }
+
+      if (navItem.children) {
+        // children may carry their own (narrower) permissions, e.g. a collapsible group bundling
+        // pages that each require a different permission - only the ones the user actually has
+        // access to should render, and the group itself only if at least one of them survives
+        const visibleChildren = this.filterNavItemsByPermissions(navItem.children);
+        if (visibleChildren.length > 0) {
+          resultNavItems.push({...navItem, children: visibleChildren});
+        }
+        return;
+      }
+
+      resultNavItems.push(navItem);
     });
 
     return resultNavItems;

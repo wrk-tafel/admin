@@ -65,6 +65,9 @@ describe('Navigation Progress Bar', () => {
     }).as('aboveLimit');
 
     cy.byTestId('nav-progress-bar').should('not.exist');
+    // "Kunden über Limit" lives under the collapsible "Sonstige" nav group - expand it first
+    // (the `a` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
+    cy.contains('a', 'Sonstige').click();
     cy.contains('Kunden über Limit').click();
 
     cy.byTestId('nav-progress-bar').should('be.visible');
