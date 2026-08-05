@@ -4,7 +4,7 @@ describe('Settings - Shelters', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/notschlafstellen');
+    cy.visit('/einstellungen/notschlafstellen');
   });
 
   it('lists shelters', () => {

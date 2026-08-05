@@ -121,7 +121,7 @@ describe('TicketScreenControlComponent', () => {
 
     component.openScreenInNewTab();
 
-    expect(window.open).toHaveBeenCalledWith(`${testBaseUrl}/#/anmeldung/ticketmonitor`, '_blank');
+    expect(window.open).toHaveBeenCalledWith(`${testBaseUrl}/anmeldung/ticketmonitor`, '_blank');
   });
 
   it('showStartTime', () => {

@@ -14,7 +14,7 @@ describe('Statistics School Starter Packages', () => {
       const customer = response.body.data;
       const child = customer.additionalPersons![0];
 
-      cy.visit('/#/statistiken/schulstartpakete');
+      cy.visit('/statistiken/schulstartpakete');
 
       cy.byTestId('schoolStarterPackageAgeMinInput').should('have.value', '6');
       cy.byTestId('schoolStarterPackageAgeMaxInput').should('have.value', '10');
@@ -34,7 +34,7 @@ describe('Statistics School Starter Packages', () => {
     createCustomerWithChildAge(20).then((response) => {
       const child = response.body.data.additionalPersons![0];
 
-      cy.visit('/#/statistiken/schulstartpakete');
+      cy.visit('/statistiken/schulstartpakete');
 
       cy.contains(child.lastname).should('not.exist');
     });
@@ -44,7 +44,7 @@ describe('Statistics School Starter Packages', () => {
     createCustomerWithChildAge(15).then((response) => {
       const child = response.body.data.additionalPersons![0];
 
-      cy.visit('/#/statistiken/schulstartpakete');
+      cy.visit('/statistiken/schulstartpakete');
       cy.contains(child.lastname).should('not.exist');
 
       cy.byTestId('schoolStarterPackageAgeMinInput').clear().type('11');
@@ -55,7 +55,7 @@ describe('Statistics School Starter Packages', () => {
   });
 
   it('exports the school starter package report as csv', () => {
-    cy.visit('/#/statistiken/schulstartpakete');
+    cy.visit('/statistiken/schulstartpakete');
 
     cy.contains('CSV-Export').click();
 
@@ -73,7 +73,7 @@ describe('Statistics School Starter Packages', () => {
     createCustomerWithChildAge(8).then((response) => {
       const child = response.body.data.additionalPersons![0];
 
-      cy.visit('/#/statistiken/schulstartpakete');
+      cy.visit('/statistiken/schulstartpakete');
 
       cy.byTestId('schoolStarterPackageAgeMinInput').should('be.visible');
       cy.byTestId('school-starter-package-table').should('not.be.visible');
@@ -87,7 +87,7 @@ describe('Statistics School Starter Packages', () => {
     cy.viewport(TABLET_VIEWPORT);
 
     createCustomerWithChildAge(8).then(() => {
-      cy.visit('/#/statistiken/schulstartpakete');
+      cy.visit('/statistiken/schulstartpakete');
 
       cy.byTestId('schoolStarterPackageAgeMinInput').should('be.visible');
       cy.byTestId('school-starter-package-table').should('be.visible');

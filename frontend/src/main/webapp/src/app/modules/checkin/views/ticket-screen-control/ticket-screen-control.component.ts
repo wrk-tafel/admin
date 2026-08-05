@@ -74,7 +74,7 @@ export class TicketScreenControlComponent {
 
   openScreenInNewTab() {
     const baseUrl = this.urlHelperService.getBaseUrl();
-    window.open(`${baseUrl}/#/anmeldung/ticketmonitor`, '_blank');
+    window.open(`${baseUrl}/anmeldung/ticketmonitor`, '_blank');
   }
 
   showStartTime() {

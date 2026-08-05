@@ -10,7 +10,7 @@ describe('Customer Above Limit', () => {
     cy.createDummyCustomer(50000, true).then((response) => {
       const customer = response.body.data;
 
-      cy.visit('/#/kunden/ueber-limit');
+      cy.visit('/kunden/ueber-limit');
 
       cy.contains('[testid^="abovelimit-id-"]', customer.id!.toString())
         .closest('tr')
@@ -40,7 +40,7 @@ describe('Customer Above Limit', () => {
     cy.createDummyCustomer(50000, true).then((response) => {
       const customer = response.body.data;
 
-      cy.visit('/#/kunden/ueber-limit');
+      cy.visit('/kunden/ueber-limit');
 
       // below md: the table is hidden and the card list is shown instead
       cy.get('[testid^="abovelimit-id-"]').should('exist').and('not.be.visible');
@@ -64,7 +64,7 @@ describe('Customer Above Limit', () => {
     cy.createDummyCustomer(50000, true).then((response) => {
       const customer = response.body.data;
 
-      cy.visit('/#/kunden/ueber-limit');
+      cy.visit('/kunden/ueber-limit');
 
       cy.contains('[testid^="abovelimit-id-"]', customer.id!.toString())
         .closest('tr')

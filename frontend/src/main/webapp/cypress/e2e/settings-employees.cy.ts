@@ -4,7 +4,7 @@ describe('Settings - Employees', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/mitarbeiter');
+    cy.visit('/einstellungen/mitarbeiter');
   });
 
   it('lists employees', () => {

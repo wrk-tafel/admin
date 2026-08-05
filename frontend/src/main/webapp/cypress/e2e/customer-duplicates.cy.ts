@@ -13,7 +13,7 @@ describe('Customer Duplicates', () => {
       const customer1 = first.body.data;
       const customer2 = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
 
       cy.byTestId('duplicate-customer-' + customer1.id).within(() => {
         cy.byTestId('duplicate-customer-name-' + customer1.id)
@@ -35,7 +35,7 @@ describe('Customer Duplicates', () => {
     createDuplicatePair().then(({first}) => {
       const customer1 = first.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-detail-button-' + customer1.id).click();
 
       cy.url().should('include', '/kunden/detail/' + customer1.id);
@@ -46,7 +46,7 @@ describe('Customer Duplicates', () => {
     createDuplicatePair().then(({second}) => {
       const customer2 = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-delete-button-' + customer2.id).click();
 
       cy.byTestId('deletecustomer-dialog').should('be.visible');
@@ -72,7 +72,7 @@ describe('Customer Duplicates', () => {
       const customer1 = first.body.data;
       const customer2 = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + customer1.id).click();
 
       cy.url().should('include', `/kunden/zusammenfuehren/${customer1.id}`);
@@ -87,7 +87,7 @@ describe('Customer Duplicates', () => {
       const customer1 = first.body.data;
       const customer2 = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
 
       cy.byTestId('duplicate-customer-' + customer1.id).scrollIntoView().should('be.visible');
       cy.byTestId('duplicate-customer-' + customer2.id).scrollIntoView().should('be.visible');
@@ -119,7 +119,7 @@ describe('Customer Duplicates', () => {
       const customer1 = first.body.data;
       const customer2 = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
 
       // at md: (768px) the pair grid becomes 2 columns, so both cards start at the same row position
       cy.byTestId('duplicate-customer-' + customer1.id).then(($first) => {
@@ -148,7 +148,7 @@ describe('Customer Merge', () => {
       const target = first.body.data;
       const source = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
 
       cy.url().should('include', `/kunden/zusammenfuehren/${target.id}`);
@@ -177,7 +177,7 @@ describe('Customer Merge', () => {
     }).then(({first}) => {
       const target = first.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
       cy.byTestId('merge-confirm-button').click();
 
@@ -207,7 +207,7 @@ describe('Customer Merge', () => {
     ).then(({first}) => {
       const target = first.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
       cy.byTestId('merge-confirm-button').click();
 
@@ -226,7 +226,7 @@ describe('Customer Merge', () => {
 
       cy.createCustomerNote(source.id!, 'note from the merged-away source');
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
       cy.byTestId('merge-confirm-button').click();
 
@@ -246,7 +246,7 @@ describe('Customer Merge', () => {
       cy.addCustomerToDistribution({customerId: target.id!, ticketNumber: 11});
       cy.addCustomerToDistribution({customerId: source.id!, ticketNumber: 22});
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
 
       cy.contains('22').should('be.visible');
@@ -264,7 +264,7 @@ describe('Customer Merge', () => {
       const target = first.body.data;
       const source = second.body.data;
 
-      cy.visit('/#/kunden/duplikate');
+      cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
       cy.byTestId('merge-cancel-button').click();
 
