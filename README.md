@@ -123,10 +123,10 @@ The Docker image runs on Amazon Corretto 26 Alpine with timezone set to `Europe/
 ./gradlew :backend:test
 
 # Specific test class
-./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.customer.internal.CustomerServiceTest"
+./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.household.internal.HouseholdServiceTest"
 
-# Specific test method
-./gradlew :backend:test --tests "*CustomerServiceTest.createCustomerSuccessful"
+# Specific test class (wildcard, useful since test method names use backtick display names)
+./gradlew :backend:test --tests "*HouseholdServiceTest"
 ```
 
 Integration tests use Testcontainers to start PostgreSQL automatically.
@@ -182,12 +182,13 @@ admin/
 │       ├── kotlin/.../modules/     # Feature modules (Spring Modulith)
 │       │   ├── base/               #   Shared utilities, countries, employees
 │       │   ├── checkin/            #   Scanner registration, QR check-in
-│       │   ├── customer/           #   Customer CRUD, income validation, PDFs
 │       │   ├── dashboard/          #   Real-time overview, SSE
 │       │   ├── distribution/       #   Distribution events, tickets, statistics
+│       │   ├── household/          #   Household/person CRUD, income validation, PDFs
 │       │   ├── logistics/          #   Routes, food collections, shelters
 │       │   ├── reporting/          #   CSV/PDF reports, statistics exports
-│       │   └── settings/           #   App configuration, mail recipients
+│       │   ├── settings/           #   App configuration, mail recipients
+│       │   └── support/            #   In-app support form, files a GitHub issue
 │       └── resources/
 │           ├── db-migration/       #   Flyway SQL migrations
 │           ├── pdf-templates/      #   XSL-FO templates for PDF generation
@@ -231,9 +232,9 @@ The backend follows a **modular monolith** architecture using Spring Modulith. E
 
 **Key patterns:**
 - Outbox pattern for reliable SSE event publishing
-- Post-processor chain for distribution event side effects (emails, reports)
+- Event listener pattern for distribution close: stats/cost-contribution work runs synchronously in-module, then a `DistributionClosedEvent` is published for `reporting` to pick up async
 - Converter pattern for entity-to-DTO mapping
-- Custom validators for income limits and customer data
+- Custom validators for income limits and household/person data
 
 ### Frontend
 
