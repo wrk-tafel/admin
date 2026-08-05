@@ -36,7 +36,6 @@ class SseOutboxListenerService(
         const val PG_NOTIFICATION_CHANNEL_NAME = "sse_outbox"
     }
 
-    lateinit var connection: Connection
     lateinit var notificationListenerJob: Job
     val callbacks = ConcurrentHashMap<String, CopyOnWriteArrayList<(String?) -> Unit>>()
 
@@ -73,9 +72,6 @@ class SseOutboxListenerService(
     @PreDestroy
     fun cleanup() {
         notificationListenerJob.cancel()
-        if (!connection.isClosed) {
-            connection.close()
-        }
     }
 
     fun registerCallback(
