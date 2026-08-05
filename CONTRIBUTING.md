@@ -2,8 +2,7 @@
 
 This project is a solo/hobby-maintained food bank admin system, but the same conventions apply
 whether you're a future-you or an external contributor. This guide distills the setup, workflow,
-and conventions already documented in [README.md](README.md) and [AGENTS.md](AGENTS.md) into a
-single checklist.
+and conventions already documented in [README.md](README.md) into a single checklist.
 
 ## Setup
 
@@ -58,8 +57,8 @@ the build, not just a review comment:
 
 ## Code conventions
 
-See [AGENTS.md](AGENTS.md#code-conventions) for the full list (naming suffixes, package layout,
-Angular signal-based patterns, template flow-control syntax). The short version:
+The short version (naming suffixes, package layout, Angular signal-based patterns, template
+flow-control syntax):
 
 - Backend: constructor injection, `@Transactional` on mutating service methods, converters in
   `internal/converter/` for entity-to-DTO mapping.
@@ -90,7 +89,7 @@ Angular signal-based patterns, template flow-control syntax). The short version:
 - Keep PRs focused on one change; incidental fixes found along the way are welcome as separate
   small commits but call them out in the PR description.
 - Database schema changes go in a new Flyway migration under
-  `backend/src/main/resources/db-migration/` (see [AGENTS.md](AGENTS.md#creating-a-new-database-migration)).
+  `backend/src/main/resources/db-migration/`.
 
 ## Dependency updates
 

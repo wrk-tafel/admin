@@ -45,7 +45,7 @@ git pull --ff-only origin main
 Many issues in this repo already carry a Conventional-Commits-style title (e.g.
 `fix(backend): AsyncRequestNotUsableException from SseOutboxService.sendEvent() escapes its own
 catch block`) — reuse that `<type>(<scope>)` when present rather than re-deriving it; otherwise
-infer `<type>` from AGENTS.md's Commit Conventions list (`feat`, `fix`, `docs`, `refactor`, `chore`,
+infer `<type>` from the Conventional Commits type list (`feat`, `fix`, `docs`, `refactor`, `chore`,
 ...).
 
 Branch name: `<type>/<short-kebab-slug>-<issue-number>` — the issue number is what makes it
@@ -57,16 +57,15 @@ git checkout -b fix/async-request-not-usable-log-noise-2986
 
 ## 4. Implement
 
-Follow this repo's conventions from `AGENTS.md` (module boundaries, DTO `Request`/`Response`/`Item`
+Follow this repo's conventions (module boundaries, DTO `Request`/`Response`/`Item`
 suffix rules, Angular signal-based patterns, `@if`/`@for` flow-control syntax, etc.) — read the
 relevant module's existing code before writing new code, don't guess at patterns.
 
 - Any new/changed **frontend user-facing behavior** needs an added/updated Cypress e2e case under
-  `cypress/e2e/`, not just a Vitest unit spec — easy to forget, and explicitly called out in
-  AGENTS.md's Testing section.
+  `cypress/e2e/`, not just a Vitest unit spec — a frequent gap.
 - Any new/changed **user-facing feature** needs the German user guide (`docs/userguide/`) updated
-  in the same task, including screenshots if the UI changed (see AGENTS.md's User Guide section for
-  the cursor/anchor/cross-link rules).
+  in the same task, including screenshots if the UI changed (watch for cursor position, anchors,
+  and cross-link rules when editing it).
 - If you notice a bug that's **not** caused by this issue: fix it inline only if it's small and
   directly related to the code you're touching; otherwise `gh issue create` a separate ticket and
   mention it to the user — don't silently expand this PR's scope.
@@ -88,7 +87,7 @@ than re-deriving that setup here.
 
 ## 6. Commit
 
-Conventional Commits subject, matching AGENTS.md's Commit Conventions exactly (lowercase
+Conventional Commits subject, matching the format exactly (lowercase
 description, no trailing period, ≤100 char header, valid `type`) — this is enforced by a commit-msg
 hook, `commitlint`, and `pr-title-lint` in CI, and has been the recurring miss in this repo.
 
@@ -115,7 +114,7 @@ EOF
 ```
 
 The PR title itself must pass `pr-title-lint` (same Conventional Commits rule as commits, since this
-repo squash-merges with the PR title becoming the final commit — see AGENTS.md). The `Closes
+repo squash-merges with the PR title becoming the final commit). The `Closes
 #<issue-number>` line is what auto-closes the issue once the squash commit lands on `main`.
 
 ## 8. Hand off to process-pr

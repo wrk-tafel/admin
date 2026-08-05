@@ -16,8 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 
 /**
  * Fuzzy-matches households against each other to surface likely duplicate registrations for
- * manual review (see [AGENTS.md special considerations][at.wrk.tafel.admin.backend] - never
- * auto-merges, only lists candidates).
+ * manual review (never auto-merges, only lists candidates).
  *
  * A pair is flagged as a possible duplicate when, on the main person's name and the household
  * address, both:

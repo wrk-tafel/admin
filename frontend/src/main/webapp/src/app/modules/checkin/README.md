@@ -18,7 +18,7 @@ modules/checkin/
 
 ### QRCodeReaderService
 
-Despite what the top-level `AGENTS.md` says (`html5-qrcode`), this module does **not** use `html5-qrcode` anywhere. It uses `@zxing/browser`'s `BrowserQRCodeReader` — check `package.json` (`@zxing/browser`, `@zxing/library`) and `qrcode-reader.service.ts` if in doubt. Treat the `AGENTS.md` line as stale.
+This module does **not** use `html5-qrcode` anywhere, despite a stale claim to that effect elsewhere in the repo's docs. It uses `@zxing/browser`'s `BrowserQRCodeReader` — check `package.json` (`@zxing/browser`, `@zxing/library`) and `qrcode-reader.service.ts` if in doubt.
 
 The service is a thin wrapper: `getCameras()` lists video devices, `init(elementId, successCallback)` remembers which `<video>` element and callback to use, and `start(cameraId)` / `restart(cameraId)` / `stop()` manage the actual `decodeFromVideoDevice` call. The last-used camera id is persisted to `localStorage` under `TAFEL_LAST_CAMERA_ID` so a kiosk reopening the page reuses the same camera.
 
@@ -90,7 +90,7 @@ It's reused in two places: embedded as a small live preview inside `TicketScreen
 
 ## Gotchas
 
-- The `AGENTS.md` claim of `html5-qrcode` is wrong for this codebase today; it's `@zxing/browser`.
+- Any lingering claim elsewhere that this module uses `html5-qrcode` is stale; it's `@zxing/browser`.
 - Two unrelated notions of "scanner id" exist side by side: the physical device's registered id (`ScannerComponent`, persisted in `localStorage['scanner-id']`) and the id a staff member picks to *listen to* (`CheckinComponent.currentScannerId`, no persistence). Don't conflate them when debugging.
 - `sendScanResultEffect` exists specifically to avoid a race between scanner registration and camera startup — don't "simplify" it back into the QR decode callback.
 - The ticket monitor's full-screen route deliberately sits outside the `SCANNER`/`CHECKIN` permission gate; if you move it under `checkin.routes.ts` you'll break the "unattended second monitor" use case.
