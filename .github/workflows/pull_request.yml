@@ -107,7 +107,8 @@ jobs:
             echo "::error::No Chrome/Chromium executable found on this runner" >&2
             exit 1
           fi
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --config-file md-to-pdf.config.js --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          export CHROME_PATH
+          node_modules/.bin/md-to-pdf combined.md --config-file md-to-pdf.config.js
         working-directory: docs/userguide
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

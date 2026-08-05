@@ -85,6 +85,12 @@ jobs:
           # anchor links accordingly.
           sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
           sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
+      # Everything about the render itself - document title, page geometry (A4 portrait, 2cm
+      # margins), the page-break styles, and the footer with version/date/page numbers - lives in
+      # docs/userguide/md-to-pdf.config.js rather than in CLI flags here. The two env vars below
+      # are the only inputs it can't determine on its own: the release version, and the path to
+      # the runner's preinstalled Chrome (see the --ignore-scripts note above for why puppeteer's
+      # own Chromium isn't available).
       - name: Render userguide PDF
         env:
           USERGUIDE_VERSION: ${{ needs.version.outputs.version }}
@@ -94,23 +100,8 @@ jobs:
             echo "::error::No Chrome/Chromium executable found on this runner" >&2
             exit 1
           fi
-          # Without --document-title, md-to-pdf falls back to the URL of the local http server it
-          # serves combined.md from (e.g. "localhost:PORT/combined.md"), which then shows up as the
-          # PDF's title in viewers/tabs.
-          # The first --css rule keeps each screenshot glued to the paragraph introducing it:
-          # without it, a page break can land between the two, leaving an image alone at the top of
-          # a page with its explanation stranded on the previous one. The second rule does the same
-          # for headings, which would otherwise sometimes end up alone at the bottom of a page with
-          # their section's actual content pushed to the next one. The third rule starts every
-          # chapter (README.md's own title plus each of the module files) on a fresh page - this
-          # also replaces what used to be a manually inserted page-break div between chapters in the
-          # concatenation step above, so a new chapter file added there gets the same treatment for
-          # free.
-          # --config-file supplies the footer (version + date + page numbers, see
-          # md-to-pdf.config.js). It has to be a config file rather than CLI --pdf-options, because
-          # --pdf-options replaces the whole pdf_options object (dropping the default page format
-          # and margins used above), while a config file merges on top of md-to-pdf's own defaults.
-          node_modules/.bin/md-to-pdf combined.md --document-title "Tafel Admin – Benutzerhandbuch" --css "p:has(img) { break-before: avoid; break-inside: avoid; } h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; } h1 { break-before: page; }" --config-file md-to-pdf.config.js --launch-options "{\"executablePath\":\"$CHROME_PATH\",\"args\":[\"--no-sandbox\"]}"
+          export CHROME_PATH
+          node_modules/.bin/md-to-pdf combined.md --config-file md-to-pdf.config.js
         working-directory: docs/userguide
       - name: Rename PDF to release asset name
         run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
