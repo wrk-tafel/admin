@@ -14,11 +14,15 @@ import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.authorization.AuthorizationDeniedException
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.context.request.ServletWebRequest
+import org.springframework.web.context.request.WebRequest
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import tools.jackson.databind.json.JsonMapper
 import java.util.*
@@ -156,6 +160,40 @@ internal class GenericExceptionHandlerTest {
         assertThat(errorBody.status).isEqualTo(HttpStatus.FORBIDDEN.value())
         assertThat(errorBody.title).isEqualTo("localized-title")
         assertThat(errorBody.detail).isEqualTo("Zugriff nicht erlaubt!")
+    }
+
+    @Test
+    fun `handles AccessDeniedException for an authenticated user with resolved authorities`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.FORBIDDEN.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        every { request.request.method } returns "POST"
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(
+            "some-user",
+            null,
+            listOf(SimpleGrantedAuthority("LOGISTICS")),
+        )
+
+        try {
+            val response = exceptionHandler.handleAccessDeniedException(AuthorizationDeniedException("Access Denied"), request)
+
+            assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        } finally {
+            SecurityContextHolder.clearContext()
+        }
+    }
+
+    @Test
+    fun `handles AccessDeniedException for a non-servlet WebRequest`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.FORBIDDEN.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        val plainWebRequest = mockk<WebRequest>(relaxed = true)
+        every { plainWebRequest.locale } returns Locale.GERMAN
+
+        val response = exceptionHandler.handleAccessDeniedException(AuthorizationDeniedException("Access Denied"), plainWebRequest)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
     }
 
     @Test

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -54,22 +55,22 @@ class TafelAccessDeniedHandler : AccessDeniedHandler {
             logger.debug(
                 "Access denied on {} dispatch for '{}' {} {} - resolved authorities: [{}] - {}",
                 request.dispatcherType,
-                principal,
-                request.method,
-                request.requestURI,
-                authorities,
-                cause,
+                sanitizeForLog(principal),
+                sanitizeForLog(request.method),
+                sanitizeForLog(request.requestURI),
+                sanitizeForLog(authorities),
+                sanitizeForLog(cause),
             )
             return
         }
 
         logger.warn(
             "Access denied for user '{}' on {} {} - resolved authorities: [{}] - {}",
-            principal,
-            request.method,
-            request.requestURI,
-            authorities,
-            cause,
+            sanitizeForLog(principal),
+            sanitizeForLog(request.method),
+            sanitizeForLog(request.requestURI),
+            sanitizeForLog(authorities),
+            sanitizeForLog(cause),
         )
         delegate.handle(request, response, accessDeniedException)
     }

@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpHeaders
@@ -89,11 +90,11 @@ class GenericExceptionHandler(
         // when the same path allows GET but denies POST
         log.warn(
             "Access denied for user '{}' on {} {} - resolved authorities: [{}] - {}",
-            authentication?.name ?: "anonymous",
-            (request as? ServletWebRequest)?.request?.method ?: "?",
-            request.getDescription(false),
-            authentication?.authorities?.joinToString(", ") { it.authority ?: "?" } ?: "none",
-            exception.message,
+            sanitizeForLog(authentication?.name ?: "anonymous"),
+            sanitizeForLog((request as? ServletWebRequest)?.request?.method ?: "?"),
+            sanitizeForLog(request.getDescription(false)),
+            sanitizeForLog(authentication?.authorities?.joinToString(", ") { it.authority ?: "?" } ?: "none"),
+            sanitizeForLog(exception.message),
         )
 
         val status = HttpStatus.FORBIDDEN

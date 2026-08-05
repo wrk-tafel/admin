@@ -89,6 +89,26 @@ class TafelAccessDeniedHandlerTest {
     }
 
     @Test
+    fun `reports a blank CSRF header as missing`() {
+        every { request.getHeader("X-XSRF-TOKEN") } returns "   "
+        every { request.cookies } returns arrayOf(Cookie("XSRF-TOKEN", "cookie-value"))
+
+        handler.handle(request, response, MissingCsrfTokenException("actual"))
+
+        assertThat(loggedMessage()).contains("X-XSRF-TOKEN header missing")
+    }
+
+    @Test
+    fun `reports the CSRF cookie as missing when only an unrelated cookie or a blank value is present`() {
+        every { request.getHeader("X-XSRF-TOKEN") } returns "some-token"
+        every { request.cookies } returns arrayOf(Cookie("unrelated-cookie", "value"), Cookie("XSRF-TOKEN", ""))
+
+        handler.handle(request, response, MissingCsrfTokenException("actual"))
+
+        assertThat(loggedMessage()).contains("XSRF-TOKEN cookie missing")
+    }
+
+    @Test
     fun `logs principal and authorities for a non-CSRF denial`() {
         SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(
             "some-user",
