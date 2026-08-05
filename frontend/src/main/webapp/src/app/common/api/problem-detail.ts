@@ -22,6 +22,12 @@ const GENERIC_FALLBACK_MESSAGE = 'Es ist ein unerwarteter Fehler aufgetreten.';
  * like 403/423) and statuses that never reach the backend at all - `0` (no connection: offline,
  * DNS failure, CORS rejection) and `502`/`503`/`504` (reverse proxy / gateway responses emitted
  * when the backend process itself is unreachable, not something any controller ever sends).
+ *
+ * 403 stays listed even though a `@PreAuthorize` denial *does* now come back as a proper
+ * `ProblemDetail` (with the same "Zugriff nicht erlaubt!" wording): a CSRF-token failure is
+ * rejected by `CsrfFilter` before any controller runs and still arrives as a bare
+ * `{timestamp, status, error, message, path}` error body, which `isProblemDetail` accepts but
+ * whose `detail` is undefined - so the override below is what that case falls back to.
  */
 const STATUS_MESSAGE_OVERRIDES: Partial<Record<number, string>> = {
   0: 'Keine Verbindung zum Server!',
