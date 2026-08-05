@@ -15,6 +15,7 @@ import org.springframework.web.ErrorResponse
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
@@ -83,9 +84,13 @@ class GenericExceptionHandler(
         request: WebRequest,
     ): ResponseEntity<Any> {
         val authentication = SecurityContextHolder.getContext().authentication
+        // logged in the same "<METHOD> <uri>" shape as TafelAccessDeniedHandler, so the two denial
+        // paths can be grepped together - getDescription() alone omits the method, which matters
+        // when the same path allows GET but denies POST
         log.warn(
-            "Access denied for user '{}' on {} - resolved authorities: [{}] - {}",
+            "Access denied for user '{}' on {} {} - resolved authorities: [{}] - {}",
             authentication?.name ?: "anonymous",
+            (request as? ServletWebRequest)?.request?.method ?: "?",
             request.getDescription(false),
             authentication?.authorities?.joinToString(", ") { it.authority ?: "?" } ?: "none",
             exception.message,
