@@ -52,6 +52,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 100, 'SUPERVISOR');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1011, NOW(), NOW(), 100, 'CUSTOMERS_ABOVE_LIMIT');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1012, NOW(), NOW(), 100, 'CUSTOMERS_OVERVIEW');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9

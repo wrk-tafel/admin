@@ -34,8 +34,10 @@ interface HouseholdRepository :
 
     fun findByHouseholdId(householdId: Long): HouseholdEntity?
 
+    @EntityGraph(attributePaths = ["persons"])
     fun findAllByCreatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<HouseholdEntity>
 
+    @EntityGraph(attributePaths = ["persons"])
     fun findAllByProlongedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<HouseholdEntity>
 
     fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int

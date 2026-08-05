@@ -81,6 +81,12 @@ declare global {
       createDummyCustomer(income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>>;
 
       /**
+       * Custom command to update an existing customer.
+       * @example cy.updateCustomer(customerData);
+       */
+      updateCustomer(data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>>;
+
+      /**
        * Custom command to add a note to an existing customer.
        * @example cy.createCustomerNote(customerId, 'some note');
        */

@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
@@ -11,6 +13,7 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
@@ -45,6 +48,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -70,6 +74,9 @@ class HouseholdServiceTest {
 
     @RelaxedMockK
     private lateinit var documentStorageService: DocumentStorageService
+
+    @RelaxedMockK
+    private lateinit var distributionRepository: DistributionRepository
 
     @InjectMockKs
     private lateinit var service: HouseholdService
@@ -564,6 +571,92 @@ class HouseholdServiceTest {
         assertThat(secondPage.items.first().household).isEqualTo(invalidHouseholds[25])
         assertThat(secondPage.currentPage).isEqualTo(2)
         assertThat(secondPage.totalPages).isEqualTo(2)
+    }
+
+    @Test
+    fun `get households overview - explicit distributionId returns new and renewed households of that distribution`() {
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 100
+            every { startedAt } returns LocalDateTime.of(2026, 1, 1, 8, 0)
+            every { endedAt } returns LocalDateTime.of(2026, 1, 1, 18, 0)
+        }
+        every { distributionRepository.findById(100) } returns Optional.of(distribution)
+
+        val newHouseholdEntity = mockk<HouseholdEntity>(relaxed = true) {
+            every { createdAt } returns LocalDateTime.of(2026, 1, 1, 9, 0)
+        }
+        val renewedHouseholdEntity = mockk<HouseholdEntity>(relaxed = true) {
+            every { prolongedAt } returns LocalDateTime.of(2026, 1, 1, 10, 0)
+        }
+        val newHousehold = mockk<HouseholdResponse>(relaxed = true)
+        val renewedHousehold = mockk<HouseholdResponse>(relaxed = true)
+
+        every {
+            householdRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        } returns listOf(newHouseholdEntity)
+        every {
+            householdRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        } returns listOf(renewedHouseholdEntity)
+        every { householdConverter.mapEntityToHousehold(newHouseholdEntity) } returns newHousehold
+        every { householdConverter.mapEntityToHousehold(renewedHouseholdEntity) } returns renewedHousehold
+
+        val result = service.getHouseholdsOverview(100)
+
+        assertThat(result.distributionId).isEqualTo(100)
+        assertThat(result.distributionStartedAt).isEqualTo(distribution.startedAt)
+        assertThat(result.distributionEndedAt).isEqualTo(distribution.endedAt)
+        assertThat(result.newHouseholds).hasSize(1)
+        assertThat(result.newHouseholds.first().household).isEqualTo(newHousehold)
+        assertThat(result.newHouseholds.first().date).isEqualTo(newHouseholdEntity.createdAt)
+        assertThat(result.renewedHouseholds).hasSize(1)
+        assertThat(result.renewedHouseholds.first().household).isEqualTo(renewedHousehold)
+        assertThat(result.renewedHouseholds.first().date).isEqualTo(renewedHouseholdEntity.prolongedAt)
+    }
+
+    @Test
+    fun `get households overview - unknown distributionId throws NotFoundException`() {
+        every { distributionRepository.findById(999) } returns Optional.empty()
+
+        assertThrows<NotFoundException> { service.getHouseholdsOverview(999) }
+    }
+
+    @Test
+    fun `get households overview - no distributionId falls back to latest distribution and open distribution uses now as end`() {
+        val distributionStartedAt = LocalDateTime.now().minusHours(2)
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 200
+            every { startedAt } returns distributionStartedAt
+            every { endedAt } returns null
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+
+        val result = service.getHouseholdsOverview(null)
+
+        assertThat(result.distributionId).isEqualTo(200)
+        assertThat(result.distributionEndedAt).isNull()
+        assertThat(result.newHouseholds).isEmpty()
+        assertThat(result.renewedHouseholds).isEmpty()
+        verify {
+            householdRepository.findAllByCreatedAtBetween(distributionStartedAt, any())
+            householdRepository.findAllByProlongedAtBetween(distributionStartedAt, any())
+        }
+    }
+
+    @Test
+    fun `get households overview - no distributions at all returns empty response`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val result = service.getHouseholdsOverview(null)
+
+        assertThat(result.distributionId).isNull()
+        assertThat(result.distributionStartedAt).isNull()
+        assertThat(result.distributionEndedAt).isNull()
+        assertThat(result.newHouseholds).isEmpty()
+        assertThat(result.renewedHouseholds).isEmpty()
+        verify(exactly = 0) { householdRepository.findAllByCreatedAtBetween(any(), any()) }
+        verify(exactly = 0) { householdRepository.findAllByProlongedAtBetween(any(), any()) }
     }
 
     @Test

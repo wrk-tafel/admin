@@ -102,10 +102,20 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
 (paginated search with `HouseholdEntity.Specs` JPA specifications for name/postProcessing/
-cost-contribution/valid filters), `getHouseholdsAboveLimit`, `generatePdf`,
+cost-contribution/valid filters), `getHouseholdsAboveLimit`, `getHouseholdsOverview`, `generatePdf`,
 `deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
+
+`getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
+("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
+distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the most
+recently created distribution (`DistributionRepository.findFirstByOrderByIdDesc()`, deliberately
+*not* `getCurrentDistribution()`, since the overview should still work once that distribution has
+been closed). It injects `DistributionRepository` directly (from `database.model.distribution`) -
+that's fine despite the module's `allowedDependencies` below only listing `base::country`/
+`base::exception`: Spring Modulith's boundary only governs `modules.*` packages, not the shared
+`database.model.*` entity/repository layer (see `DashboardService` for the same pattern).
 
 `getHouseholdsAboveLimit` is worth knowing about if you touch it: the "above limit" filter can't be
 expressed in SQL because it depends on `IncomeValidatorService`, not stored columns, so it loads

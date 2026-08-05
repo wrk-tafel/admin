@@ -7,6 +7,7 @@ import {
   faDesktop,
   faGaugeHigh,
   faGear,
+  faListCheck,
   faMagnifyingGlass,
   faPlus,
   faTriangleExclamation,
@@ -82,6 +83,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     url: '/kunden/ueber-limit',
     icon: faTriangleExclamation,
     permissions: ['CUSTOMERS_ABOVE_LIMIT']
+  },
+  {
+    name: 'Kunden-Übersicht',
+    url: '/kunden/uebersicht',
+    icon: faListCheck,
+    permissions: ['CUSTOMERS_OVERVIEW']
   },
   {
     name: 'Logistik',

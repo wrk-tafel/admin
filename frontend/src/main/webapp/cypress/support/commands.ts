@@ -244,6 +244,19 @@ Cypress.Commands.add(
     })
 );
 
+Cypress.Commands.add(
+  'updateCustomer',
+  (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
+    cy.request({
+      method: 'PUT',
+      url: `/api/households/${data.id}?force=${force ?? false}`,
+      body: customerToHousehold(data)
+    }).then((response) => {
+      response.body = {...response.body, data: householdToCustomer(response.body?.data)};
+      return response as Cypress.Response<CustomerCreationResponse>;
+    })
+);
+
 function customerToHousehold(data: CustomerData) {
   const mainPerson = {
     isMainPerson: true,

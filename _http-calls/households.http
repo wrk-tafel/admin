@@ -181,6 +181,14 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/above-limit
 Content-Type: application/json
 
+### Get new/renewed households overview of the latest distribution
+GET {{baseApiPath}}/households/overview
+Content-Type: application/json
+
+### Get new/renewed households overview of a specific distribution
+GET {{baseApiPath}}/households/overview?distributionId=100
+Content-Type: application/json
+
 ### Preview merging households into another one
 GET {{baseApiPath}}/households/100/merge-preview?sourceHouseholdIds=102&sourceHouseholdIds=103
 Content-Type: application/json
