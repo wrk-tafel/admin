@@ -42,6 +42,14 @@ const css = `
     break-inside: avoid;
   }
 
+  /* Keep a single paragraph, list item, or table row from being split across a page break - most
+     of this guide's content is long bullet-list text, and a bare break-inside: avoid on <ul>/<ol>
+     themselves would force the whole (often multi-paragraph) list onto one page instead of just
+     each item, which is not what's wanted here. */
+  p, li, tr {
+    break-inside: avoid;
+  }
+
   /* Start every chapter (README.md's own title plus each of the module files) on a fresh page.
      This replaces what used to be a manually inserted page-break div between chapters in the
      workflow's concatenation step, so a new chapter file added there gets the same treatment for
