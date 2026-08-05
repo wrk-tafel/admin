@@ -63,6 +63,42 @@ class IndexHtmlControllerTest {
     }
 
     @Test
+    fun `title and apple-mobile-web-app-title are branded with the configured environment label`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
+            "<html><head><base href=\"/\"><title>Tafel Admin</title>" +
+                "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin\"></head><body></body></html>",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(environmentLabel = "DEV"),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.index()
+
+        assertThat(response.body).isEqualTo(
+            "<html><head><base href=\"/\"><title>Tafel Admin (DEV)</title>" +
+                "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin (DEV)\"></head><body></body></html>",
+        )
+    }
+
+    @Test
+    fun `title left unchanged when no environment label is configured`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
+            "<html><head><base href=\"/\"><title>Tafel Admin</title></head><body></body></html>",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.index()
+
+        assertThat(response.body).isEqualTo(
+            "<html><head><base href=\"/\"><title>Tafel Admin</title></head><body></body></html>",
+        )
+    }
+
+    @Test
     fun `missing index html results in a 404`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns mockk<Resource> {
             every { exists() } returns false
@@ -107,6 +143,54 @@ class IndexHtmlControllerTest {
         }
 
         val response = controller.spaFallback(path = "some-nonexistent-endpoint", request = request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+    }
+
+    @Test
+    fun `manifest name and short_name are branded with the configured environment label`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/manifest.webmanifest") }) } returns indexHtmlResource(
+            "{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\",\n  \"description\": \"Tafel Admin\"\n}",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(environmentLabel = "TEST"),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.manifest()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(
+            "{\n  \"name\": \"Tafel Admin (TEST)\",\n  \"short_name\": \"Tafel Admin (TEST)\",\n  \"description\": \"Tafel Admin\"\n}",
+        )
+    }
+
+    @Test
+    fun `manifest left unchanged when no environment label is configured`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/manifest.webmanifest") }) } returns indexHtmlResource(
+            "{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.manifest()
+
+        assertThat(response.body).isEqualTo("{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}")
+    }
+
+    @Test
+    fun `missing manifest results in a 404`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/manifest.webmanifest") }) } returns mockk<Resource> {
+            every { exists() } returns false
+        }
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.manifest()
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }

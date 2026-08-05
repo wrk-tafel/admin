@@ -37,6 +37,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         fun dynamicProperties(registry: DynamicPropertyRegistry) {
             // Deliberately no trailing slash - mirrors the deployed dev environment's actual config.
             registry.add("tafeladmin.server.relativeBaseUrl") { "/tafel-admin" }
+            registry.add("tafeladmin.environmentLabel") { "DEV" }
         }
     }
 
@@ -47,17 +48,20 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
 
     private val staticDir = File(System.getProperty("user.dir"), "static")
     private val indexHtmlFile = File(staticDir, "index.html")
+    private val manifestFile = File(staticDir, "manifest.webmanifest")
     private val staticDirPreexisted = staticDir.exists()
 
     @BeforeEach
     fun beforeEach() {
         staticDir.mkdirs()
         indexHtmlFile.writeText("<html><head><base href=\"/\"></head><body>test</body></html>")
+        manifestFile.writeText("{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}")
     }
 
     @AfterEach
     fun afterEach() {
         indexHtmlFile.delete()
+        manifestFile.delete()
         if (!staticDirPreexisted) {
             staticDir.delete()
         }
@@ -118,6 +122,24 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
 
         assertThat(get("/").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
         assertThat(get("/login").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
+    }
+
+    @Test
+    fun `manifest is served with name and short_name branded with the real configured environment label`() {
+        val response = get("/manifest.webmanifest")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(response.headers().firstValue("Content-Type").orElse(null)).startsWith("application/manifest+json")
+        assertThat(response.body()).isEqualTo(
+            "{\n  \"name\": \"Tafel Admin (DEV)\",\n  \"short_name\": \"Tafel Admin (DEV)\"\n}",
+        )
+    }
+
+    @Test
+    fun `missing manifest on disk results in a 404`() {
+        manifestFile.delete()
+
+        assertThat(get("/manifest.webmanifest").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
     }
 
     private fun get(path: String): HttpResponse<String> {
