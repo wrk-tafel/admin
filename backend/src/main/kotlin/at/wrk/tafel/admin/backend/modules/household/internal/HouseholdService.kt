@@ -227,9 +227,10 @@ class HouseholdService(
     /**
      * "New" and "renewed" households of a distribution, keyed off the same timestamps
      * `HouseholdConverter` already maintains: `createdAt` for new, `prolongedAt` for a
-     * validity-extending save (see `HouseholdConverter.mapHouseholdToEntity`). A household can never
-     * land in both lists - `prolongedAt` is only ever set on an *update* of an existing household,
-     * never on creation.
+     * validity-extending save (see `HouseholdConverter.mapHouseholdToEntity`). A household created
+     * *and* prolonged within the same distribution window shows up in both lists - `prolongedAt` is
+     * only ever set on an update, but a freshly created household can still be updated again before
+     * the distribution ends.
      */
     @Transactional(readOnly = true)
     fun getHouseholdsOverview(distributionId: Long?): HouseholdOverviewResponse {
