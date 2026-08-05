@@ -265,11 +265,15 @@ since it lives outside the code you're editing. On every update or regeneration,
   one screenshot covers both — e.g. the in-app "Passwort ändern" page (user menu, any time) and the
   separate standalone forced-password-change page shown right after a login with
   `passwordChangeRequired` are two distinct components/routes, not one.
-- **A change to a part shared across pages — header, footer, or sidebar/navigation — invalidates
-  every screenshot that shows it**, not just the screens the change was made for. Almost every
-  screenshot in this guide includes the sidebar, so check `docs/userguide/images/` broadly and
-  retake whichever ones now show a stale header/footer/sidebar, even in chapters your change didn't
-  otherwise touch.
+- **Screenshots are cropped to just the relevant panel/dialog/table** — sidebar and header removed
+  — so that a sidebar/header/theme change doesn't invalidate the whole set at once. The dashboard
+  screenshot in `README.md` (`images/dashboard.jpg`) is the one deliberate exception, kept full-page
+  to show the overall app layout with sidebar and header. A handful of other screenshots
+  (`benutzermenue.jpg`, `support-anfrage.jpg`, `kunden-anspruch-pruefen.jpg`,
+  `einstellungen-notschlafstellen-kontakte.jpg`) keep the header specifically because their subject
+  — a dropdown or dialog anchored to a header control — visually extends into that region; crop
+  those to the sidebar only, not the header. When taking a new screenshot, crop it the same way
+  before adding it.
 - **Cross-chapter markdown links** (e.g. `[Kunden](kunden.md)`) must stay as plain file links in the
   source `.md` files — that's what makes them work on GitHub/in an IDE. Every chapter file's top
   carries an explicit `<a id="kapitel-<name>"></a>` anchor, and any sub-heading another chapter
