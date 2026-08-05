@@ -160,8 +160,8 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
 - **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category admin CRUD screens actually live under the **settings** module below, not here. Routes and shops have no frontend admin UI at all despite backend `/api/routes`/shop support — they're only ever read (never managed) from within the food-collection-recording flow.
-- **user**: User search, create, edit with password change functionality
-- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), login attempts (`anmelde-versuche`), and static values/limits (`statische-werte`)
+- **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
+- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`) and static values/limits (`statische-werte`)
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
 
 **Architecture Patterns:**
@@ -290,6 +290,15 @@ work** (pre-existing, unrelated to the change you're making):
   be tackled separately, and mention it to the user rather than silently expanding the task's scope.
 
 ## Code Conventions
+
+**Documentation describes current state, not history:** CLAUDE.md, module `README.md` files, and
+code comments should describe the codebase as it is now, not narrate how it got there. Avoid
+phrasing like "moved here from X", "used to live in Y", "originally implemented as Z", or "was
+X, now Y" — write the current fact plainly instead (e.g. "the `user` module's login-attempts
+screen" rather than "the login-attempts screen, moved here from `settings`"). Git history/blame
+and commit messages are the place for that "why did this change" context, not the docs describing
+present behavior. This applies to edits made *during* a task too, not just the end state — don't
+describe a rename/move you just made as a transition in the docs you're updating for it.
 
 **Template flow-control (project convention):**
 - Prefer the repository flow-control-syntax for templates instead of Angular structural directives (*ngFor, *ngIf).

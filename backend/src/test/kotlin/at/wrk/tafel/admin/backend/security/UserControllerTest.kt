@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
+import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.common.auth.model.*
@@ -21,11 +23,14 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class UserControllerTest {
@@ -38,6 +43,9 @@ class UserControllerTest {
 
     @RelaxedMockK
     private lateinit var tafelAdminProperties: TafelAdminProperties
+
+    @RelaxedMockK
+    private lateinit var loginAttemptService: LoginAttemptService
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -379,5 +387,66 @@ class UserControllerTest {
                 category = userPermissionEntries.first().category.title,
             ),
         )
+    }
+
+    @Test
+    fun `fetch login attempts as a page`() {
+        val older = LoginAttemptItem(
+            id = 1,
+            username = "user1",
+            failureCount = 1,
+            lastFailureAt = LocalDate.of(2026, 1, 1).atStartOfDay(),
+            lockedUntil = null,
+        )
+        val newer = LoginAttemptItem(
+            id = 2,
+            username = "user2",
+            failureCount = 3,
+            lastFailureAt = LocalDate.of(2026, 1, 2).atStartOfDay(),
+            lockedUntil = LocalDate.of(2026, 1, 2).atStartOfDay().plusMinutes(15),
+        )
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        val pagedResult = PageImpl(listOf(newer, older), pageRequest, 123)
+        every { loginAttemptService.findAll(pageRequest) } returns pagedResult
+
+        val response = controller.getLoginAttempts()
+
+        assertThat(response).isEqualTo(
+            PagedResponse(
+                items = listOf(newer, older),
+                totalCount = 123,
+                currentPage = 1,
+                totalPages = pagedResult.totalPages,
+                pageSize = PaginationDefaults.DEFAULT_PAGE_SIZE,
+            ),
+        )
+    }
+
+    @Test
+    fun `fetch login attempts with explicit valid pageSize`() {
+        val pageRequest = PageRequest.of(0, 25)
+        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = controller.getLoginAttempts(page = 1, pageSize = 25)
+
+        assertThat(response.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `fetch login attempts with invalid pageSize falls back to default`() {
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = controller.getLoginAttempts(page = 1, pageSize = 7)
+
+        assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
+    }
+
+    @Test
+    fun `delete login attempt`() {
+        val response = controller.deleteLoginAttempt(42L)
+
+        assertThat(response.statusCode.value()).isEqualTo(204)
+        verify(exactly = 1) { loginAttemptService.deleteById(42L) }
     }
 }

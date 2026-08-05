@@ -29,10 +29,18 @@ const pageMargin = '20mm';
 const css = `
   /* Keep each screenshot glued to the paragraph introducing it: without this, a page break can
      land between the two, leaving an image alone at the top of a page with its explanation
-     stranded on the previous one. */
+     stranded on the previous one. break-before: avoid on its own is only a soft hint though - if
+     the intro paragraph plus image don't both fit in the space left on the current page, the
+     renderer honours break-inside: avoid on the image by pushing just the image to the next page,
+     which still leaves a page starting with a bare image. The sibling rule below closes that gap
+     by also forbidding a break right after the intro paragraph, so the two are forced to move
+     together as one unit whenever they don't fit. */
   p:has(img) {
     break-before: avoid;
     break-inside: avoid;
+  }
+  p:has(+ p:has(img)) {
+    break-after: avoid;
   }
 
   /* Same for headings, which would otherwise sometimes end up alone at the bottom of a page with
@@ -42,11 +50,15 @@ const css = `
     break-inside: avoid;
   }
 
-  /* Keep a single paragraph, list item, or table row from being split across a page break - most
-     of this guide's content is long bullet-list text, and a bare break-inside: avoid on <ul>/<ol>
-     themselves would force the whole (often multi-paragraph) list onto one page instead of just
-     each item, which is not what's wanted here. */
+  /* Keep a single paragraph, list item, or table row from being split across a page break. */
   p, li, tr {
+    break-inside: avoid;
+  }
+
+  /* Keep an entire bullet/numbered list on one page rather than starting it mid-list on a fresh
+     page - every list in this guide is short enough to fit on a single page, so there's no
+     multi-page list this would force to (unsuccessfully) fight for space. */
+  ul, ol {
     break-inside: avoid;
   }
 
@@ -56,6 +68,14 @@ const css = `
      free. */
   h1 {
     break-before: page;
+  }
+
+  /* Frame every screenshot with a thin border - most of the app's own UI has no visible edge
+     against the white page background (e.g. the login page's dark card blends into surrounding
+     whitespace without one), so an unbordered screenshot can look like it's bleeding into the
+     page rather than being a discrete figure. */
+  img {
+    border: 1px solid #000;
   }
 `;
 

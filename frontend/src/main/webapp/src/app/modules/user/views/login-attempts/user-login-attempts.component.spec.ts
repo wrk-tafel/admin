@@ -1,14 +1,14 @@
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {SettingsLoginAttemptsComponent} from './settings-login-attempts.component';
-import {LoginAttemptItem, SettingsApiService} from '../../../../api/settings-api.service';
+import {UserLoginAttemptsComponent} from './user-login-attempts.component';
+import {LoginAttemptItem, UserApiService} from '../../../../api/user-api.service';
 import {PagedResponse} from '../../../../common/api/paged-response';
 import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
-describe('SettingsLoginAttemptsComponent', () => {
+describe('UserLoginAttemptsComponent', () => {
   const lockedLoginAttempt: LoginAttemptItem = {
     id: 1,
     username: 'gesperrt1',
@@ -31,12 +31,12 @@ describe('SettingsLoginAttemptsComponent', () => {
     pageSize: 10
   };
 
-  let settingsApiMock: Partial<SettingsApiService>;
+  let userApiMock: Partial<UserApiService>;
   let toastrMock: Partial<TafelToastrService>;
   let matDialogMock: Partial<MatDialog>;
 
   beforeEach(() => {
-    settingsApiMock = {
+    userApiMock = {
       getLoginAttempts: vi.fn(() => of<PagedResponse<LoginAttemptItem>>(pagedResponse)),
       deleteLoginAttempt: vi.fn(() => of(undefined))
     };
@@ -54,7 +54,7 @@ describe('SettingsLoginAttemptsComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        {provide: SettingsApiService, useValue: settingsApiMock},
+        {provide: UserApiService, useValue: userApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
         {provide: MatDialog, useValue: matDialogMock}
       ]
@@ -62,41 +62,41 @@ describe('SettingsLoginAttemptsComponent', () => {
   });
 
   it('component can be created', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
   it('loads login attempts on init', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
     expect(component['loginAttempts']()?.items.length).toBe(2);
-    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledWith(undefined, undefined);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(undefined, undefined);
   });
 
   it('loadLoginAttempts() requests the given page and page size', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
     component['loadLoginAttempts'](2, 25);
 
-    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledWith(2, 25);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(2, 25);
   });
 
   it('shows an error toast when loading fails', () => {
-    settingsApiMock.getLoginAttempts = vi.fn(() => throwError(() => new Error('failed')));
+    userApiMock.getLoginAttempts = vi.fn(() => throwError(() => new Error('failed')));
 
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
 
     expect(toastrMock.error).toHaveBeenCalled();
   });
 
   it('isLocked() is true for an entry with a lockedUntil in the future', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
@@ -104,7 +104,7 @@ describe('SettingsLoginAttemptsComponent', () => {
   });
 
   it('isLocked() is false for an entry without a lockedUntil', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
@@ -112,7 +112,7 @@ describe('SettingsLoginAttemptsComponent', () => {
   });
 
   it('isLocked() is false once lockedUntil is in the past', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
@@ -120,33 +120,33 @@ describe('SettingsLoginAttemptsComponent', () => {
   });
 
   it('deleteLoginAttempt() deletes after confirmation, shows a success toast and reloads the current page', () => {
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
     component['deleteLoginAttempt'](lockedLoginAttempt);
 
-    expect(settingsApiMock.deleteLoginAttempt).toHaveBeenCalledWith(lockedLoginAttempt.id);
+    expect(userApiMock.deleteLoginAttempt).toHaveBeenCalledWith(lockedLoginAttempt.id);
     expect(toastrMock.success).toHaveBeenCalled();
-    expect(settingsApiMock.getLoginAttempts).toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize);
   });
 
   it('deleteLoginAttempt() does nothing when the dialog is cancelled', () => {
     matDialogMock.open = vi.fn(() => ({afterClosed: () => of(undefined)})) as any;
 
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
     component['deleteLoginAttempt'](lockedLoginAttempt);
 
-    expect(settingsApiMock.deleteLoginAttempt).not.toHaveBeenCalled();
+    expect(userApiMock.deleteLoginAttempt).not.toHaveBeenCalled();
   });
 
   it('deleteLoginAttempt() shows an error toast when deletion fails', () => {
-    settingsApiMock.deleteLoginAttempt = vi.fn(() => throwError(() => new Error('failed')));
+    userApiMock.deleteLoginAttempt = vi.fn(() => throwError(() => new Error('failed')));
 
-    const fixture = TestBed.createComponent(SettingsLoginAttemptsComponent);
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 

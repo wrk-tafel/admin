@@ -15,7 +15,7 @@ import {
 } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {DatePipe} from '@angular/common';
-import {LoginAttemptItem, SettingsApiService} from '../../../../api/settings-api.service';
+import {LoginAttemptItem, UserApiService} from '../../../../api/user-api.service';
 import {PagedResponse, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
@@ -24,8 +24,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {DeleteLoginAttemptDialogComponent} from './dialogs/delete-login-attempt-dialog.component';
 
 @Component({
-  selector: 'tafel-settings-login-attempts',
-  templateUrl: 'settings-login-attempts.component.html',
+  selector: 'tafel-user-login-attempts',
+  templateUrl: 'user-login-attempts.component.html',
   imports: [
     MatCard,
     MatCardActions,
@@ -48,8 +48,8 @@ import {DeleteLoginAttemptDialogComponent} from './dialogs/delete-login-attempt-
     MatButton,
   ]
 })
-export class SettingsLoginAttemptsComponent {
-  private readonly settingsApiService = inject(SettingsApiService);
+export class UserLoginAttemptsComponent {
+  private readonly userApiService = inject(UserApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
@@ -66,7 +66,7 @@ export class SettingsLoginAttemptsComponent {
   }
 
   protected loadLoginAttempts(page?: number, pageSize?: number) {
-    this.settingsApiService.getLoginAttempts(page, pageSize).subscribe({
+    this.userApiService.getLoginAttempts(page, pageSize).subscribe({
       next: data => this._loginAttempts.set(data),
       error: () => this.toastr.error('Fehler beim Laden der Anmelde-Versuche', 'Fehler')
     });
@@ -76,7 +76,7 @@ export class SettingsLoginAttemptsComponent {
     this.dialog.open(DeleteLoginAttemptDialogComponent)
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.settingsApiService.deleteLoginAttempt(loginAttempt.id).subscribe({
+        this.userApiService.deleteLoginAttempt(loginAttempt.id).subscribe({
           next: () => {
             this.toastr.success('Anmelde-Versuch gelöscht', 'Erfolgreich');
             this.loadLoginAttempts(this.loginAttempts()?.currentPage, this.loginAttempts()?.pageSize);

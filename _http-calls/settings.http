@@ -64,9 +64,3 @@ Content-Type: application/json
   "validTo": "2999-12-31",
   "amount": 150
 }
-
-### Get login attempts
-GET {{baseApiPath}}/settings/login-attempts
-
-### Delete login attempt 1
-DELETE {{baseApiPath}}/settings/login-attempts/1

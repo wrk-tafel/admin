@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
@@ -61,8 +62,11 @@ class LoginAttemptService(
         loginAttemptRepository.deleteByUsername(normalize(username))
     }
 
+    // Returns already-mapped DTOs rather than the entity itself: LoginAttemptService is called
+    // directly from UserController (a @RestController), and an ArchUnit rule
+    // (ProjectSpecificRulesTest) forbids controllers from depending on database entities.
     @Transactional(readOnly = true)
-    fun findAll(pageRequest: PageRequest): Page<LoginAttemptEntity> = loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(pageRequest)
+    fun findAll(pageRequest: PageRequest): Page<LoginAttemptItem> = loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(pageRequest).map { mapToItem(it) }
 
     @Transactional
     fun deleteById(id: Long) {
@@ -79,6 +83,14 @@ class LoginAttemptService(
     fun cleanupStaleEntries() {
         loginAttemptRepository.deleteAllByLastFailureAtBefore(now().minusSeconds(lockoutDurationInSeconds()))
     }
+
+    private fun mapToItem(entity: LoginAttemptEntity) = LoginAttemptItem(
+        id = entity.id!!,
+        username = entity.username!!,
+        failureCount = entity.failureCount ?: 0,
+        lastFailureAt = entity.lastFailureAt!!,
+        lockedUntil = entity.lockedUntil,
+    )
 
     private fun isStale(entry: LoginAttemptEntity): Boolean {
         val lastFailureAt = entry.lastFailureAt ?: return false

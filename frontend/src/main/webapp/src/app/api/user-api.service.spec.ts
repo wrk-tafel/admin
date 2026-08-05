@@ -1,7 +1,8 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
+import {ChangePasswordRequest, ChangePasswordResponse, LoginAttemptItem, UserApiService, UserData} from './user-api.service';
 import {provideHttpClient, withXhr} from '@angular/common/http';
+import {PagedResponse} from '../common/api/paged-response';
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;
@@ -136,6 +137,46 @@ describe('UserApiService', () => {
     apiService.getPermissions().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/users/permissions'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get login attempts', () => {
+    const testResponse: PagedResponse<LoginAttemptItem> = {
+      items: [
+        {id: 1, username: 'user1', failureCount: 3, lastFailureAt: '2026-01-01T10:00:00', lockedUntil: '2026-01-01T10:15:00'},
+        {id: 2, username: 'user2', failureCount: 1, lastFailureAt: '2026-01-01T09:00:00', lockedUntil: null}
+      ],
+      totalCount: 2,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 10
+    };
+
+    apiService.getLoginAttempts().subscribe((data: PagedResponse<LoginAttemptItem>) => {
+      expect(data).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts'});
+    req.flush(testResponse);
+    httpMock.verify();
+  });
+
+  it('get login attempts with page and pageSize', () => {
+    const page = 2;
+    const pageSize = 25;
+
+    apiService.getLoginAttempts(page, pageSize).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: `/users/login-attempts?page=${page}&pageSize=${pageSize}`});
+    req.flush({items: []});
+    httpMock.verify();
+  });
+
+  it('delete login attempt', () => {
+    apiService.deleteLoginAttempt(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/users/login-attempts/1'});
     req.flush(null);
     httpMock.verify();
   });

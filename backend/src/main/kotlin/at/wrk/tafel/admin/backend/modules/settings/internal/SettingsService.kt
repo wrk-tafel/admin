@@ -1,9 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
-import at.wrk.tafel.admin.backend.common.api.PagedResponse
-import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
-import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -11,7 +7,6 @@ import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -21,7 +16,6 @@ import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import org.springframework.cache.annotation.CacheEvict
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,7 +25,6 @@ import java.time.LocalDate
 class SettingsService(
     private val mailRecipientRepository: MailRecipientRepository,
     private val staticValueRepository: StaticValueRepository,
-    private val loginAttemptService: LoginAttemptService,
 ) {
 
     companion object {
@@ -139,31 +132,6 @@ class SettingsService(
 
         return mapStaticValue(staticValueRepository.save(historizedEntity))
     }
-
-    fun getLoginAttempts(page: Int? = null, pageSize: Int? = null): PagedResponse<LoginAttemptItem> {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = loginAttemptService.findAll(pageRequest)
-
-        return PagedResponse(
-            items = pagedResult.map { mapLoginAttempt(it) }.toList(),
-            totalCount = pagedResult.totalElements,
-            currentPage = page ?: 1,
-            totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize,
-        )
-    }
-
-    fun deleteLoginAttempt(loginAttemptId: Long) {
-        loginAttemptService.deleteById(loginAttemptId)
-    }
-
-    private fun mapLoginAttempt(entity: LoginAttemptEntity) = LoginAttemptItem(
-        id = entity.id!!,
-        username = entity.username!!,
-        failureCount = entity.failureCount ?: 0,
-        lastFailureAt = entity.lastFailureAt!!,
-        lockedUntil = entity.lockedUntil,
-    )
 
     private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean {
         val validFrom = entity.validFrom

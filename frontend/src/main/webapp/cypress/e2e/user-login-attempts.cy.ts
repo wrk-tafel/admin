@@ -1,10 +1,10 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
-describe('Settings - Anmelde-Versuche', () => {
+describe('Benutzer - Anmelde-Versuche', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/einstellungen/anmelde-versuche');
+    cy.visit('/benutzer/anmelde-versuche');
   });
 
   it('lists login attempts', () => {
