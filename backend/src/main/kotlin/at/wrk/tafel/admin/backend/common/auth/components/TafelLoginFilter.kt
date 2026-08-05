@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
@@ -21,7 +20,6 @@ import org.springframework.util.MimeTypeUtils
 import tools.jackson.databind.json.JsonMapper
 import java.nio.charset.Charset
 
-@ExcludeFromTestCoverage
 class TafelLoginFilter(
     authenticationManager: AuthenticationManager,
     private val jwtTokenService: JwtTokenService,

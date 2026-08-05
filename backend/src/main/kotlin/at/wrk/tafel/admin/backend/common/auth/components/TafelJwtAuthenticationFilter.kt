@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -12,14 +11,13 @@ import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
 
-@ExcludeFromTestCoverage
 class TafelJwtAuthenticationFilter(
     private val authenticationManager: AuthenticationManager,
     private val authenticationConverter: AuthenticationConverter,
     private val requestMatcher: RequestMatcher,
 ) : OncePerRequestFilter() {
 
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+    public override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         if (!requestMatcher.matches(request)) {
             filterChain.doFilter(request, response)
             return
