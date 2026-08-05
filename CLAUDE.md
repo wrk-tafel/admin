@@ -159,9 +159,9 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
 - **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
-- **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Route/shelter/shop/car/food-category admin CRUD screens actually live under the **settings** module below, not here.
+- **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category admin CRUD screens actually live under the **settings** module below, not here. Routes and shops have no frontend admin UI at all despite backend `/api/routes`/shop support — they're only ever read (never managed) from within the food-collection-recording flow.
 - **user**: User search, create, edit with password change functionality
-- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`) and food categories (`lebensmittelkategorien`), both with drag-and-drop sortOrder reordering (Angular CDK)
+- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), login attempts (`anmelde-versuche`), and static values/limits (`statische-werte`)
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
 
 **Architecture Patterns:**
@@ -438,6 +438,11 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 
 ## Special Considerations
 
+- **Saturday Deploy Freeze**: `deploy-prod` in `.github/workflows/release.yml` refuses to run for the
+  entire day every Saturday (Europe/Vienna time). The app is live-used during Saturday distributions
+  (~12:00-24:00) and Flyway migrations run on application boot, so a deploy mid-event would restart
+  the app under load — see issue #2931. If a release doesn't show up in prod, check whether it landed
+  on a Saturday before assuming something's broken.
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
