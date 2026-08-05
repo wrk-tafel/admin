@@ -12,9 +12,8 @@ review.
 
 The backend's `household` module renamed its domain model: a **household** is the case
 record (business number, address, contact info, validity/lock/cost-contribution state)
-containing one or more **persons**, exactly one of which is flagged `isMainPerson`. See
-`AGENTS.md` ("Backend Architecture" / `households`+`persons` tables) for the full
-picture.
+containing one or more **persons**, exactly one of which is flagged `isMainPerson`. See the
+backend `household` module's own docs (`households`+`persons` tables) for the full picture.
 
 This frontend module was **deliberately not renamed** to match. Routes
 (`/kunden/...`), the folder name (`modules/customer/`), every component/view/resolver
@@ -119,8 +118,8 @@ modules/customer/
   └── customer.routes.ts
 ```
 
-There is no `services/` subfolder here (unlike the generic module convention in
-`AGENTS.md`) — this module has no feature-specific service beyond the shared
+There is no `services/` subfolder here (unlike this repo's generic module convention)
+— this module has no feature-specific service beyond the shared
 `CustomerApiService`/`CustomerNoteApiService` in `app/api/`, which every module can
 use.
 
@@ -147,8 +146,8 @@ to this module) rather than a class with an `@Injectable()`-style suffix.
 
 There are two separate duplicate-related UI paths in this module; don't conflate them:
 
-1. **Save-time duplicate warning (the "review candidates before creating" flow from
-   `AGENTS.md`'s Special Considerations).** When `CustomerApiService.createCustomer`/
+1. **Save-time duplicate warning (this repo's "review candidates before creating"
+   duplicate-handling convention).** When `CustomerApiService.createCustomer`/
    `updateCustomer` gets a `409` from the backend (a likely-duplicate match on
    lastname/firstname/birthdate), `CustomerEditComponent.save()` opens
    `ConfirmCustomerSaveDialog` with the backend's message ("Trotzdem speichern?"). If
@@ -259,8 +258,8 @@ Two independent layers, both scoped to the flat `CustomerData`/form model:
 - Don't call `/api/households*` endpoints directly from a component — always go through
   `CustomerApiService`.
 - Don't rename this module's routes, folders, classes or DTOs to "household"/"person"
-  in a partial PR. The mismatch with the backend is intentional and repo-wide (see
-  `AGENTS.md`); a half-renamed module would be worse than a consistently old-named one.
+  in a partial PR. The mismatch with the backend is intentional and repo-wide; a
+  half-renamed module would be worse than a consistently old-named one.
 - The merge feature's `CustomerMergeField`/`CustomerMergeFieldSelection` types are fine to
   export (they're a protocol enum + selection payload, not a household/person shape), but
   `HouseholdMergePreviewResponse`/`HouseholdMergeResponse`/`HouseholdData`/`PersonData`

@@ -3,7 +3,7 @@
 Frontend feature module mounted at `/einstellungen`, gated by the `SETTINGS`
 permission (`app.routes.ts` → `anyPermissionOf: ['SETTINGS']`).
 
-Per `AGENTS.md` this module owns "system settings and mail recipient
+This module nominally owns "system settings and mail recipient
 configuration" — but it has grown into the catch-all admin area for several
 small reference-data screens, **including the food-category admin UI added in
 commit `8f2c11e2`, "Add admin UI to maintain food categories" (#2806)**, which

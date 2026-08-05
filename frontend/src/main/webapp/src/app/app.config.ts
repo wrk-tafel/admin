@@ -8,10 +8,12 @@ import {
 } from '@angular/core';
 import {provideServiceWorker} from '@angular/service-worker';
 import {
+  RedirectCommand,
+  Router,
   provideRouter,
   withComponentInputBinding,
-  withHashLocation,
   withInMemoryScrolling,
+  withNavigationErrorHandler,
   withRouterConfig,
   withViewTransitions
 } from '@angular/router';
@@ -19,7 +21,6 @@ import {
 import {routes} from './app.routes';
 import {provideHttpClient, withInterceptors, withXhr} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
-import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {xsrfInterceptor} from './common/http/xsrf-interceptor.service';
@@ -54,8 +55,12 @@ export const appConfig: ApplicationConfig = {
         anchorScrolling: 'enabled'
       }),
       withViewTransitions(),
-      withHashLocation(),
-      withComponentInputBinding()
+      withComponentInputBinding(),
+      // A resolver failing (e.g. a bookmarked/direct-linked detail page whose entity was since
+      // deleted) needs an explicit fallback here: with real paths, that request is a genuine
+      // full-page load rather than an in-app navigation, so there's no previous in-app route left
+      // to fall back to on failure - without this handler the user is left on a blank shell.
+      withNavigationErrorHandler(() => new RedirectCommand(inject(Router).parseUrl('/404')))
     ),
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAppInitializer(() => inject(SwUpdateService).init()),
@@ -79,10 +84,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: CookieService,
       useClass: CookieService
-    },
-    {
-      provide: LocationStrategy,
-      useClass: HashLocationStrategy
     },
     {
       provide: Window,

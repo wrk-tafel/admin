@@ -4,7 +4,7 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/email');
+    cy.visit('/einstellungen/email');
   });
 
   it('change email recipients', () => {

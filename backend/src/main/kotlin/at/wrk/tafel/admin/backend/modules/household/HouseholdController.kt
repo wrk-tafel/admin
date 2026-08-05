@@ -157,6 +157,10 @@ class HouseholdController(
         )
     }
 
+    @GetMapping("/overview")
+    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)
+
     @GetMapping("/duplicates")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(

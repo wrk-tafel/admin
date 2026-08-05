@@ -4,7 +4,7 @@ describe('Settings - Cars', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/fahrzeuge');
+    cy.visit('/einstellungen/fahrzeuge');
   });
 
   it('lists cars', () => {

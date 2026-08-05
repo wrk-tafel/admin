@@ -9,7 +9,7 @@ describe('Customer Edit', () => {
   it('customer updated', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
-      cy.visit('/#/kunden/bearbeiten/' + customerId);
+      cy.visit('/kunden/bearbeiten/' + customerId);
 
       cy.byTestId('save-button').should('be.enabled');
 
@@ -65,7 +65,7 @@ describe('Customer Edit', () => {
   it('customer invalid and saved but invalid', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
-      cy.visit('/#/kunden/bearbeiten/' + customerId);
+      cy.visit('/kunden/bearbeiten/' + customerId);
 
       cy.byTestId('save-button').should('be.enabled');
 
@@ -99,7 +99,7 @@ describe('Customer Edit', () => {
 
       [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
         cy.viewport(viewport);
-        cy.visit('/#/kunden/bearbeiten/' + customerId);
+        cy.visit('/kunden/bearbeiten/' + customerId);
 
         cy.byTestId('lastnameInput').should('be.visible');
         cy.byTestId('save-button').should('be.enabled');
@@ -116,7 +116,7 @@ describe('Customer Edit', () => {
     it('supervisor should be able to force update customer', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
-        cy.visit('/#/kunden/bearbeiten/' + customerId);
+        cy.visit('/kunden/bearbeiten/' + customerId);
 
         // Set income within limits
         const incomeInput = cy.byTestId('incomeInput');

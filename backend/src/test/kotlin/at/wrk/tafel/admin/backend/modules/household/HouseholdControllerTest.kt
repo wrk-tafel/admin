@@ -461,6 +461,24 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `get households overview`() {
+        val distributionId = 100L
+        val overviewResponse = HouseholdOverviewResponse(
+            distributionId = distributionId,
+            distributionStartedAt = null,
+            distributionEndedAt = null,
+            newHouseholds = listOf(HouseholdOverviewItem(household = mockk(relaxed = true), date = mockk(relaxed = true))),
+            renewedHouseholds = emptyList(),
+        )
+        every { householdService.getHouseholdsOverview(distributionId) } returns overviewResponse
+
+        val response = controller.getHouseholdsOverview(distributionId)
+
+        assertThat(response).isEqualTo(overviewResponse)
+        verify { householdService.getHouseholdsOverview(distributionId) }
+    }
+
+    @Test
     fun `get duplicates - result mapped`() {
         val page = 4
         val duplicationItem = HouseholdDuplicateSearchResultItem(

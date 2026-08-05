@@ -7,7 +7,7 @@ describe('TicketScreen', () => {
   });
 
   it('start time set and shown correctly', () => {
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('starttime-input').type('12:34');
     cy.byTestId('show-starttime-button').click();
@@ -17,19 +17,21 @@ describe('TicketScreen', () => {
   });
 
   it('monitor opened correctly', () => {
+    // Stubbed without a fake implementation that redirects the current window: the target URL is
+    // now a real path rather than a hash fragment, so setting location.href to it (as this test
+    // used to, to simulate "opening" the monitor without a real new tab) triggers a genuine page
+    // reload - which wipes the stub before Cypress can assert it was called. Asserting on the call
+    // itself is enough; that the target URL actually renders the ticket monitor is already covered
+    // by the tests below that visit it directly.
     cy.on('window:before:load', (win) => {
-      cy.stub(win, 'open').as('open').callsFake(url => {
-        win.location.href = url;
-      });
+      cy.stub(win, 'open').as('open');
     });
 
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('open-screen-button').click();
 
-    cy.get('@open').should('be.called');
-    cy.byTestId('title').should('have.text', 'Ticket');
-    cy.url().should('eq', Cypress.config().baseUrl + '#/anmeldung/ticketmonitor');
+    cy.get('@open').should('have.been.calledWith', Cypress.config().baseUrl + 'anmeldung/ticketmonitor', '_blank');
   });
 
   it('fullscreen kiosk display still loads at phone and tablet sizes', () => {
@@ -37,7 +39,7 @@ describe('TicketScreen', () => {
     // the smaller viewports rather than exercising its layout in detail.
     for (const viewport of [PHONE_VIEWPORT, TABLET_VIEWPORT]) {
       cy.viewport(viewport);
-      cy.visit('/#/anmeldung/ticketmonitor');
+      cy.visit('/anmeldung/ticketmonitor');
       cy.byTestId('title').should('exist');
       cy.byTestId('text').should('exist');
     }
@@ -47,7 +49,7 @@ describe('TicketScreen', () => {
     // This fullscreen kiosk display has no header/badge like the rest of the app (see
     // sse.service.spec.ts / ticket-screen.component.ts), so its own indicator must stay hidden
     // on a healthy connection - otherwise it would falsely look "disconnected" all the time.
-    cy.visit('/#/anmeldung/ticketmonitor');
+    cy.visit('/anmeldung/ticketmonitor');
     cy.byTestId('title').should('exist');
     cy.byTestId('connectionState').should('not.exist');
   });
@@ -56,7 +58,7 @@ describe('TicketScreen', () => {
 
     beforeEach(() => {
       createDistributionWithTickets();
-      cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+      cy.visit('/anmeldung/ticketmonitor-steuerung');
     });
 
     afterEach(() => {
@@ -123,7 +125,7 @@ describe('TicketScreen', () => {
 
     beforeEach(() => {
       createDistributionWithTickets();
-      cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+      cy.visit('/anmeldung/ticketmonitor-steuerung');
     });
 
     it('tickets switched successfully at tablet breakpoint (sm: button row)', () => {
@@ -169,7 +171,7 @@ describe('TicketScreen', () => {
 
         cy.createDistribution();
         cy.addCustomerToDistribution({customerId, ticketNumber: 1});
-        cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+        cy.visit('/anmeldung/ticketmonitor-steuerung');
 
         // deliberately no click on "Aktuelles Ticket" here
         cy.byTestId('pendingCostContributionText').should(($el) => {
@@ -187,7 +189,7 @@ describe('TicketScreen', () => {
 
         cy.createDistribution();
         cy.addCustomerToDistribution({customerId, ticketNumber: 1});
-        cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+        cy.visit('/anmeldung/ticketmonitor-steuerung');
 
         cy.byTestId('show-currentticket-button').click();
         cy.byTestId('pendingCostContributionText').should(($el) => {
@@ -212,7 +214,7 @@ describe('TicketScreen', () => {
 
         cy.createDistribution();
         cy.addCustomerToDistribution({customerId, ticketNumber: 1});
-        cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+        cy.visit('/anmeldung/ticketmonitor-steuerung');
 
         cy.byTestId('show-currentticket-button').click();
         cy.byTestId('pendingCostContributionText').invoke('text').then(parseCurrencyText).then((initialAmount) => {
@@ -242,7 +244,7 @@ describe('TicketScreen', () => {
 
         cy.createDistribution();
         cy.addCustomerToDistribution({customerId, ticketNumber: 1});
-        cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+        cy.visit('/anmeldung/ticketmonitor-steuerung');
 
         cy.byTestId('show-currentticket-button').click();
         cy.byTestId('pendingCostContributionText').should(($el) => {

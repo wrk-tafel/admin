@@ -10,10 +10,10 @@ describe('User Edit', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;
 
-      cy.visit('/#/benutzer/detail/' + user.id);
+      cy.visit('/benutzer/detail/' + user.id);
       cy.byTestId('permissionsText').should('not.contain.text', 'Anmeldung');
 
-      cy.visit('/#/benutzer/bearbeiten/' + user.id);
+      cy.visit('/benutzer/bearbeiten/' + user.id);
 
       // Wait for form to be fully loaded with user data
       cy.byTestId('firstnameInput').should('have.value', user.firstname);
@@ -38,7 +38,7 @@ describe('User Edit', () => {
 
       [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
         cy.viewport(viewport);
-        cy.visit('/#/benutzer/bearbeiten/' + user.id);
+        cy.visit('/benutzer/bearbeiten/' + user.id);
 
         cy.byTestId('firstnameInput').should('be.visible').and('have.value', user.firstname);
         cy.byTestId('save-button').should('exist');

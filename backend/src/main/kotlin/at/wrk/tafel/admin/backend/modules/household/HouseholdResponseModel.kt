@@ -172,3 +172,18 @@ data class HouseholdAboveLimitItem(
     val limit: BigDecimal,
     val amountExceededLimit: BigDecimal,
 )
+
+@ExcludeFromTestCoverage
+data class HouseholdOverviewResponse(
+    val distributionId: Long?,
+    val distributionStartedAt: LocalDateTime?,
+    val distributionEndedAt: LocalDateTime?,
+    val newHouseholds: List<HouseholdOverviewItem>,
+    val renewedHouseholds: List<HouseholdOverviewItem>,
+)
+
+@ExcludeFromTestCoverage
+data class HouseholdOverviewItem(
+    val household: HouseholdResponse,
+    val date: LocalDateTime,
+)

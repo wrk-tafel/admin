@@ -12,22 +12,22 @@ describe('Customer Detail', () => {
   });
 
   it('customerId correct', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
     cy.byTestId('customerIdText').should('have.text', '101');
   });
 
   it('generate pdf and opens for download', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
     generateAndDownloadPdf('stammdaten-101-musterfrau-eva.pdf');
   });
 
   it('generate pdf and opens for download with less data from customer', () => {
-    cy.visit('/#/kunden/detail/100');
+    cy.visit('/kunden/detail/100');
     generateAndDownloadPdf('stammdaten-100-mustermann-max-single.pdf');
   });
 
   it('edit customer', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
 
     cy.byTestId('editCustomerButton').click();
 
@@ -36,7 +36,7 @@ describe('Customer Detail', () => {
 
   it('delete customer', () => {
     cy.createDummyCustomer().then((response) => {
-      cy.visit('/#/kunden/detail/' + response.body.data.id);
+      cy.visit('/kunden/detail/' + response.body.data.id);
 
       openEditMenu();
       cy.byTestId('deleteCustomerButton').click();
@@ -60,7 +60,7 @@ describe('Customer Detail', () => {
   });
 
   it('prolong customer', () => {
-    cy.visit('/#/kunden/detail/100');
+    cy.visit('/kunden/detail/100');
 
     let validDateString;
     cy.byTestId('validUntilText').then(($value) => {
@@ -75,7 +75,7 @@ describe('Customer Detail', () => {
   });
 
   it('invalidate customer', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
 
     openEditMenu();
     cy.byTestId('invalidateCustomerButton').click();
@@ -84,7 +84,7 @@ describe('Customer Detail', () => {
   });
 
   it('lock and unlock customer', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
 
     cy.byTestId('lock-info-banner').should('not.exist');
 
@@ -104,14 +104,14 @@ describe('Customer Detail', () => {
   });
 
   it('customer note shown', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
 
     cy.byTestId('latest-customer-note').should('be.visible');
     cy.byTestId('latest-customer-note-none').should('not.exist');
   });
 
   it('customer note not shown', () => {
-    cy.visit('/#/kunden/detail/100');
+    cy.visit('/kunden/detail/100');
 
     cy.byTestId('latest-customer-note').should('not.exist');
     cy.byTestId('latest-customer-note-none').should('be.visible');
@@ -119,7 +119,7 @@ describe('Customer Detail', () => {
 
   it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
     cy.viewport(PHONE_VIEWPORT);
-    cy.visit('/#/kunden/detail/101');
+    cy.visit('/kunden/detail/101');
 
     cy.byTestId('customerIdText').should('be.visible');
     cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
@@ -153,7 +153,7 @@ describe('Customer Detail', () => {
 
   it('renders correctly at tablet breakpoint and still allows prolonging', () => {
     cy.viewport(TABLET_VIEWPORT);
-    cy.visit('/#/kunden/detail/100');
+    cy.visit('/kunden/detail/100');
 
     cy.byTestId('customerIdText').should('be.visible');
     cy.byTestId('latest-customer-note-none').should('be.visible');
@@ -171,7 +171,7 @@ describe('Customer Detail', () => {
   });
 
   it('ticket section not visible when no distribution is active', () => {
-    cy.visit('/#/kunden/detail/100');
+    cy.visit('/kunden/detail/100');
 
     cy.byTestId('ticket-number-input').should('not.exist');
     cy.byTestId('ticket-number-display').should('not.exist');
@@ -187,14 +187,14 @@ describe('Customer Detail', () => {
     });
 
     it('ticket section visible when distribution is active', () => {
-      cy.visit('/#/kunden/detail/100');
+      cy.visit('/kunden/detail/100');
 
       cy.byTestId('ticket-number-input').should('be.visible');
       cy.byTestId('assign-ticket-button').should('be.visible');
     });
 
     it('assign ticket to customer', () => {
-      cy.visit('/#/kunden/detail/100');
+      cy.visit('/kunden/detail/100');
 
       cy.byTestId('ticket-number-input').type('15');
       cy.byTestId('assign-ticket-button').should('not.be.disabled');
@@ -207,7 +207,7 @@ describe('Customer Detail', () => {
 
     it('delete assigned ticket from customer', () => {
       cy.addCustomerToDistribution({customerId: 100, ticketNumber: 25});
-      cy.visit('/#/kunden/detail/100');
+      cy.visit('/kunden/detail/100');
 
       cy.byTestId('ticket-number-display').should('contain.text', '25');
       cy.byTestId('delete-ticket-button').click();
@@ -217,7 +217,7 @@ describe('Customer Detail', () => {
     });
 
     it('assign ticket button disabled when input is empty', () => {
-      cy.visit('/#/kunden/detail/100');
+      cy.visit('/kunden/detail/100');
 
       cy.byTestId('assign-ticket-button').should('be.disabled');
     });
@@ -254,7 +254,7 @@ describe('Customer Detail', () => {
     it('upload, download and delete a document', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('upload-document-panel').should('be.visible');
@@ -284,7 +284,7 @@ describe('Customer Detail', () => {
     it('moves document actions below the filename on phone, keeps them alongside it on tablet/desktop', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('upload-document-panel').should('be.visible');
@@ -354,7 +354,7 @@ describe('Customer Detail', () => {
 
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('upload-document-panel').should('be.visible');
@@ -386,7 +386,7 @@ describe('Customer Detail', () => {
 
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('upload-document-panel').should('be.visible');
@@ -416,7 +416,7 @@ describe('Customer Detail', () => {
         const customerId = response.body.data.id!;
         cy.accrueCostContributionDebt(customerId);
 
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('pendingCostContributionText').should(($el) => {
           expect(parseCurrencyText($el.text())).to.be.greaterThan(0);
@@ -447,7 +447,7 @@ describe('Customer Detail', () => {
         const customerId = response.body.data.id!;
         cy.accrueCostContributionDebt(customerId);
 
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('pendingCostContributionText').invoke('text').then(parseCurrencyText).then((initialAmount) => {
           cy.byTestId('costContributionButton').scrollIntoView().click();
@@ -477,7 +477,7 @@ describe('Customer Detail', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
 
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('pendingCostContributionText').should(($el) => {
           expect(parseCurrencyText($el.text())).to.equal(0);
@@ -510,7 +510,7 @@ describe('Customer Detail', () => {
     it('prolong customer with invalid income triggers confirm dialog when supervisor', () => {
       cy.createDummyCustomer(10000, true).then((response) => {
         const customerId = response.body.data.id;
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('prolongButton').click();
         cy.byTestId('prolongThreeMonthsButton').click();
@@ -541,7 +541,7 @@ describe('Customer Detail', () => {
           }
         });
 
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
         cy.byTestId('editCustomerButton').click();
 
         cy.byTestId('save-button').click();
@@ -558,7 +558,7 @@ describe('Customer Detail', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
 
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
         cy.byTestId('editCustomerButton').click();
 
         const incomeInput = cy.byTestId('incomeInput');
@@ -591,7 +591,7 @@ describe('Customer Detail', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
 
-        cy.visit('/#/kunden/detail/' + customerId);
+        cy.visit('/kunden/detail/' + customerId);
         cy.byTestId('editCustomerButton').click();
 
         const incomeInput = cy.byTestId('incomeInput');

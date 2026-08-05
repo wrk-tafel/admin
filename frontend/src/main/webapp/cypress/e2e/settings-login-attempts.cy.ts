@@ -4,7 +4,7 @@ describe('Settings - Anmelde-Versuche', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/anmelde-versuche');
+    cy.visit('/einstellungen/anmelde-versuche');
   });
 
   it('lists login attempts', () => {

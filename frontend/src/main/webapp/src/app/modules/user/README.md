@@ -17,7 +17,7 @@ modules/user/
   └── components/user-passwordchange/user-passwordchange.component.ts # wraps the shared password-change form
 ```
 
-Despite the `-resolver.component.ts` filename suffix (an `AGENTS.md`-documented convention shared across the whole
+Despite the `-resolver.component.ts` filename suffix (a convention shared across the whole
 frontend), `UserDataResolver` and `PermissionsDataResolver` are plain injectable classes with a `resolve()` method —
 not components.
 
@@ -48,8 +48,8 @@ if (!this.userData()) {
 This is where the interesting form handling lives, and it's worth knowing it uses the newer
 `@angular/forms/signals` API (`form()`, `FormField`, `required`, `maxLength`, `validate`) rather than a classic
 `FormGroup`/`FormBuilder` — the same pattern used in `checkin`'s `ticket-screen-control` and in the shared
-`passwordchange-form`. `AGENTS.md` just says "reactive forms for all form handling," which is true but doesn't
-tell you which flavor to expect.
+`passwordchange-form`. The general guidance is just "reactive forms for all form handling," which is true but
+doesn't tell you which flavor to expect.
 
 Two things worth calling out:
 
@@ -125,7 +125,7 @@ Access control for this whole module is enforced **once, at the router boundary*
 `authGuardChild` → `AuthGuardService.canActivate()` (`common/security/authguard.service.ts`) reads that
 `anyPermissionOf` route data and checks it against `AuthenticationService.hasAnyPermissionOf(...)`, redirecting to
 login on failure. Note the guard class lives in `common/security/`, not `common/directive/` — worth knowing if
-`AGENTS.md`'s grouping of "custom directives" leads you to go looking for it there.
+you go looking for it under "custom directives" by habit.
 
 There is **no** use of the `tafelIfPermission` directive (`common/security/tafel-if-permission.directive.ts`)
 anywhere inside this module — that directive is for toggling individual pieces of UI within an already-permitted
@@ -133,10 +133,9 @@ page (e.g. dashboard widgets), whereas here the entire route subtree is already 
 second check.
 
 The list of assignable permissions (including `USER_MANAGEMENT` itself) is **not** hardcoded in the frontend — it
-comes from the backend at runtime via `PermissionsDataResolver` → `GET /users/permissions`. Per `AGENTS.md`'s
-"Adding a New Permission" workflow, once a new permission is added to the backend enum and given a description in
-`application.yml`, a corresponding checkbox appears in `UserFormComponent`'s permission grid automatically —
-no frontend change needed for that part.
+comes from the backend at runtime via `PermissionsDataResolver` → `GET /users/permissions`. Once a new
+permission is added to the backend enum and given a description in `application.yml`, a corresponding checkbox
+appears in `UserFormComponent`'s permission grid automatically — no frontend change needed for that part.
 
 ## API surface (`api/user-api.service.ts`, all under `/api/users`)
 

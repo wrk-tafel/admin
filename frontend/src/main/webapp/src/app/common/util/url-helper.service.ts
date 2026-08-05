@@ -7,10 +7,11 @@ export class UrlHelperService {
 
   /**
    * Derived from `document.baseURI` (the `<base href>` in index.html) rather than the current
-   * pathname - the app uses hash-based routing, so a direct navigation to a non-root path (e.g.
-   * a bookmark to `/login`) briefly puts that path segment into `location.pathname` before the
-   * router normalizes it into the hash. Reading the pathname here raced that normalization and
-   * misidentified the route segment as a deployment subpath (see #2972).
+   * pathname - `location.pathname` mixes the deployment prefix with whatever client-side route is
+   * currently active (e.g. `/tafel-admin/kunden/suchen`), so there's no reliable way to tell where
+   * the prefix ends and the route begins. `<base href>` is templated server-side to exactly the
+   * deployment prefix regardless of the current route, which is what broke here originally when a
+   * bookmark to a non-root path was read from the pathname instead (see #2972).
    */
   getBaseUrl(): string {
     let baseUri = this.document.baseURI;

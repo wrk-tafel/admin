@@ -4,7 +4,7 @@ import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 describe('Login', () => {
 
   beforeEach(() => {
-    cy.visit('/#/login');
+    cy.visit('/login');
   });
 
   it('login button disabled by default', () => {
@@ -29,17 +29,6 @@ describe('Login', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
-  it('login successful after a direct navigation to a non-root path (e.g. a bookmark)', () => {
-    // Regression test for #2972: loading the app from a path other than "/" or "/#/..." (as
-    // happens with a bookmarked/typed URL) must not break the app's own API calls, which rely on
-    // an absolute base URL derived from the page - not the requested path.
-    cy.visit('/login');
-
-    enterLoginData('e2etest', 'e2etest');
-
-    cy.url().should('contain', '/uebersicht');
-  });
-
   it('login failed', () => {
     enterLoginData('dummy', 'dummy');
 
@@ -49,12 +38,12 @@ describe('Login', () => {
 
   it('login with required password change cannot access the dashboard', () => {
     createTestUserRequiringPasswordChange().then(({user, testUser}) => {
-      cy.visit('/#/login');
+      cy.visit('/login');
 
       enterLoginData(user.username, testUser.password!);
       cy.url().should('contain', '/login/passwortaendern');
 
-      cy.visit('/#/uebersicht');
+      cy.visit('/uebersicht');
       cy.url().should('contain', '/login');
       cy.byTestId('errorMessage').should('exist');
     });
@@ -71,7 +60,7 @@ describe('Login', () => {
 
       // Cancelling must actually end the still-live session (not just navigate away from
       // it) - otherwise a stale session would let this "cancelled" login back into the app.
-      cy.visit('/#/uebersicht');
+      cy.visit('/uebersicht');
       cy.url().should('contain', '/login');
       cy.byTestId('errorMessage').should('not.exist');
     });
@@ -79,7 +68,7 @@ describe('Login', () => {
 
   it('login with required password change and password changed', () => {
     createTestUserRequiringPasswordChange([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
-      cy.visit('/#/login');
+      cy.visit('/login');
 
       enterLoginData(user.username, testUser.password!);
       cy.url().should('contain', '/login/passwortaendern');
@@ -102,7 +91,7 @@ describe('Login', () => {
         cy.createLoginRequest(user.username, 'wrong-' + testUser.password, false);
       }
 
-      cy.visit('/#/login');
+      cy.visit('/login');
       enterLoginData(user.username, testUser.password!);
 
       cy.url().should('contain', '/login');
@@ -124,6 +113,9 @@ describe('Login', () => {
 
     // Route resolvers (e.g. the above-limit list's data fetch) fire an authenticated request
     // before the target component even mounts - that's what's used here to trigger the 401.
+    // "Kunden über Limit" lives under the collapsible "Sonstige" nav group - expand it first
+    // (the `a` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
+    cy.contains('a', 'Sonstige').click();
     cy.contains('Kunden über Limit').click();
 
     cy.url().should('contain', '/login/abgelaufen');
@@ -148,14 +140,14 @@ describe('Login', () => {
 
   it('accessing a module without the required permission shows access denied', () => {
     createTestUser([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
-      cy.visit('/#/login');
+      cy.visit('/login');
       enterLoginData(user.username, testUser.password!);
 
       // CHECKIN is enough to pass uebersicht's generic anyPermission check...
       cy.url().should('contain', '/uebersicht');
 
       // ...but kunden specifically requires CUSTOMER, which this user was never given.
-      cy.visit('/#/kunden/suchen');
+      cy.visit('/kunden/suchen');
 
       cy.url().should('contain', '/login/fehlgeschlagen');
       cy.byTestId('errorMessage').should('exist').and('contain.text', 'Zugriff nicht erlaubt');
@@ -164,7 +156,7 @@ describe('Login', () => {
 
   it('remains usable on a phone viewport', () => {
     cy.viewport(PHONE_VIEWPORT);
-    cy.visit('/#/login');
+    cy.visit('/login');
 
     cy.byTestId('username').should('be.visible').type('e2etest');
     cy.byTestId('password').should('be.visible').type('e2etest');
@@ -175,7 +167,7 @@ describe('Login', () => {
 
   it('remains usable on a tablet viewport', () => {
     cy.viewport(TABLET_VIEWPORT);
-    cy.visit('/#/login');
+    cy.visit('/login');
 
     cy.byTestId('username').should('be.visible').type('e2etest');
     cy.byTestId('password').should('be.visible').type('e2etest');

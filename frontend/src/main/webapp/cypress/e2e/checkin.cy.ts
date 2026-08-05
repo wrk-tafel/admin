@@ -5,7 +5,7 @@ describe('CheckIn', () => {
   beforeEach(() => {
     cy.loginDefault();
     cy.createDistribution();
-    cy.visit('/#/anmeldung/annahme');
+    cy.visit('/anmeldung/annahme');
   });
 
   afterEach(() => {
@@ -21,7 +21,7 @@ describe('CheckIn', () => {
 
     assertDashboardCustomerCount(1);
 
-    cy.visit('/#/anmeldung/annahme');
+    cy.visit('/anmeldung/annahme');
     searchCustomer(100);
 
     cy.byTestId('ticketNumberInput').should('have.value', '10');
@@ -82,7 +82,7 @@ describe('CheckIn', () => {
 
     assertDashboardCustomerCount(1);
 
-    cy.visit('/#/anmeldung/annahme');
+    cy.visit('/anmeldung/annahme');
     searchCustomer(100);
 
     cy.byTestId('ticketNumberInput').should('have.value', '10');
@@ -132,6 +132,6 @@ function assertFormReset() {
 }
 
 function assertDashboardCustomerCount(count: number) {
-  cy.visit('/#/uebersicht');
+  cy.visit('/uebersicht');
   cy.byTestId('customers-count').should('have.text', count.toString());
 }

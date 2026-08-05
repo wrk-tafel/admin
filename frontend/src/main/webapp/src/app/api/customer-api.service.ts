@@ -141,6 +141,22 @@ export class CustomerApiService {
     );
   }
 
+  getCustomersOverview(distributionId?: number): Observable<CustomerOverviewResponse> {
+    let queryParams = new HttpParams();
+    if (distributionId) {
+      queryParams = queryParams.set('distributionId', distributionId);
+    }
+    return this.http.get<HouseholdOverviewResponse>('/households/overview', {params: queryParams}).pipe(
+      map(response => ({
+        distributionId: response?.distributionId ?? null,
+        distributionStartedAt: response?.distributionStartedAt,
+        distributionEndedAt: response?.distributionEndedAt,
+        newCustomers: (response?.newHouseholds ?? []).map(mapHouseholdOverviewItemToCustomer),
+        renewedCustomers: (response?.renewedHouseholds ?? []).map(mapHouseholdOverviewItemToCustomer)
+      }))
+    );
+  }
+
   getMergePreview(targetCustomerId: number, sourceCustomerIds: number[]): Observable<CustomerMergePreview> {
     let queryParams = new HttpParams();
     sourceCustomerIds.forEach(sourceCustomerId => {
@@ -312,6 +328,19 @@ export interface CustomerAboveLimitItem {
   totalSum: number;
   limit: number;
   amountExceededLimit: number;
+}
+
+export interface CustomerOverviewResponse {
+  distributionId: number | null;
+  distributionStartedAt?: Date;
+  distributionEndedAt?: Date;
+  newCustomers: CustomerOverviewItem[];
+  renewedCustomers: CustomerOverviewItem[];
+}
+
+export interface CustomerOverviewItem {
+  customer: CustomerData;
+  date: Date;
 }
 
 export type CustomerMergeField =
@@ -496,6 +525,19 @@ interface HouseholdAboveLimitItem {
   amountExceededLimit: number;
 }
 
+interface HouseholdOverviewResponse {
+  distributionId: number | null;
+  distributionStartedAt?: Date;
+  distributionEndedAt?: Date;
+  newHouseholds: HouseholdOverviewItem[];
+  renewedHouseholds: HouseholdOverviewItem[];
+}
+
+interface HouseholdOverviewItem {
+  household: HouseholdData;
+  date: Date;
+}
+
 /**
  * `key` is a form-only field and was never part of the server response either.
  */
@@ -550,6 +592,13 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
     pendingCostContribution: household?.pendingCostContribution,
     singleParent: household?.singleParent,
     additionalPersons: additionalPersons
+  };
+}
+
+function mapHouseholdOverviewItemToCustomer(item: HouseholdOverviewItem): CustomerOverviewItem {
+  return {
+    customer: mapHouseholdToCustomer(item.household),
+    date: item.date
   };
 }
 

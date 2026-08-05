@@ -6,7 +6,7 @@ describe('Customer Creation', () => {
 
   beforeEach(() => {
     cy.loginE2ETest2();
-    cy.visit('/#/kunden/anlegen');
+    cy.visit('/kunden/anlegen');
   });
 
   it('create new qualified customer', () => {
@@ -60,7 +60,7 @@ describe('Customer Creation', () => {
 
     beforeEach(() => {
       cy.loginDefault();
-      cy.visit('/#/kunden/anlegen');
+      cy.visit('/kunden/anlegen');
     });
 
     it('supervisor should be able to create qualified customer', () => {

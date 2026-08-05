@@ -25,7 +25,7 @@ describe('User Detail', () => {
       };
 
       cy.createUser(userData).then(response => {
-        cy.visit('/#/benutzer/detail/' + response.body.id);
+        cy.visit('/benutzer/detail/' + response.body.id);
 
         cy.byTestId('permission-group-Ausgabe & Betrieb').within(() => {
           cy.byTestId('permission-chip-CHECKIN').should('contain.text', 'Anmeldung');
@@ -39,19 +39,19 @@ describe('User Detail', () => {
 
   it('shows a placeholder when the user has no permissions', () => {
     cy.createDummyUser().then(response => {
-      cy.visit('/#/benutzer/detail/' + response.body.id);
+      cy.visit('/benutzer/detail/' + response.body.id);
 
       cy.byTestId('permissionsText').should('contain.text', '-');
     });
   });
 
   it('userId correct', () => {
-    cy.visit('/#/benutzer/detail/300');
+    cy.visit('/benutzer/detail/300');
     cy.byTestId('usernameText').should('have.text', 'admin');
   });
 
   it('disable and re-enable user', () => {
-    cy.visit('/#/benutzer/detail/300');
+    cy.visit('/benutzer/detail/300');
 
     cy.byTestId('enabledText').should('have.text', 'Ja');
 
@@ -67,7 +67,7 @@ describe('User Detail', () => {
   });
 
   it('edit user', () => {
-    cy.visit('/#/benutzer/detail/100');
+    cy.visit('/benutzer/detail/100');
 
     cy.byTestId('editUserButton').click();
 
@@ -78,22 +78,23 @@ describe('User Detail', () => {
     cy.createDummyUser().then(response => {
       const userId = response.body.id;
 
-      cy.visit('/#/benutzer/detail/' + userId);
+      cy.visit('/benutzer/detail/' + userId);
 
       cy.byTestId('changeUserStateButton').click();
       cy.byTestId('deleteUserButton').click();
 
       cy.url().should('include', '/benutzer/suchen');
 
-      // delete fails, UI stays on user-search and shows toast
-      cy.visit('/#/benutzer/detail/' + userId);
-      cy.url().should('include', '/benutzer/suchen');
+      // re-fetching the now-deleted user 404s, and the app's global navigation-error handler
+      // routes that to the 404 page rather than leaving a blank shell
+      cy.visit('/benutzer/detail/' + userId);
+      cy.url().should('include', '/404');
     });
   });
 
   it('disable and re-enable user on phone', () => {
     cy.viewport(PHONE_VIEWPORT);
-    cy.visit('/#/benutzer/detail/300');
+    cy.visit('/benutzer/detail/300');
 
     // action buttons and the details card stack (flex-col-reverse, buttons below the card) below the
     // lg: breakpoint - on the short phone viewport the now-richer permissions section pushes the
@@ -114,7 +115,7 @@ describe('User Detail', () => {
 
   it('shows the stacked action/details layout at tablet width', () => {
     cy.viewport(TABLET_VIEWPORT);
-    cy.visit('/#/benutzer/detail/300');
+    cy.visit('/benutzer/detail/300');
 
     cy.byTestId('usernameText').should('have.text', 'admin');
     cy.byTestId('editUserButton').should('be.visible');
