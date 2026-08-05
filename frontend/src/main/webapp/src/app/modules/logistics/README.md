@@ -5,9 +5,9 @@ Frontend feature module mounted at `/logistik`, gated by the `LOGISTICS` permiss
 
 ## What's actually here (and what isn't)
 
-Despite the module name, and despite `AGENTS.md` describing the backend `logistics`
-module as covering "routes, food collections, shelters, shops, cars, and food
-category management", **this frontend module contains a single screen**:
+Despite the module name, and despite the backend `logistics` module covering "routes,
+food collections, shelters, shops, cars, and food category management",
+**this frontend module contains a single screen**:
 **Warenerfassung** (food collection recording), reachable at `/logistik/warenerfassung`
 via `logistics.routes.ts`.
 
@@ -55,7 +55,7 @@ shared state service, just this one exported interface passed down as `input()`.
 
 The component redirects back to `uebersicht` via an `effect()` if no distribution
 is currently active (`GlobalStateService.getCurrentDistribution()`), consistent
-with the `tafelIfDistributionActive` pattern described in `AGENTS.md`.
+with the `tafelIfDistributionActive` pattern used elsewhere in the app.
 
 ### Tab 1 — Basedata (`food-collection-recording-basedata`)
 

@@ -41,14 +41,14 @@ tracking the remote ref.
 ## 3. Review the diff for errors
 
 Read the changed files in full (not just the diff hunks — surrounding context matters), and check
-against `AGENTS.md`'s conventions (module boundaries, DTO `Request`/`Response`/`Item` suffix rules,
+against this repo's conventions (module boundaries, DTO `Request`/`Response`/`Item` suffix rules,
 Angular signal-based patterns, `@if`/`@for` flow-control syntax, Commit Conventions, etc.):
 
 - **Correctness**: logic bugs, off-by-one errors, unhandled null/error cases, race conditions,
   broken edge cases — anything that would misbehave at runtime.
 - **Test coverage**: any new/changed **frontend user-facing behavior** needs an added/updated
-  Cypress e2e case under `cypress/e2e/`, not just a Vitest unit spec (see AGENTS.md's Testing
-  section) — a frequent gap. Any new/changed **user-facing feature** needs the German user guide
+  Cypress e2e case under `cypress/e2e/`, not just a Vitest unit spec — a frequent gap. Any
+  new/changed **user-facing feature** needs the German user guide
   (`docs/userguide/`) updated in the same PR, screenshots included if the UI changed.
 - **Security**: injection, auth/authorization gaps, secrets in code — same OWASP-top-10 bar as any
   other change in this repo.
@@ -75,7 +75,7 @@ using the `fix-e2e` skill's workflow rather than re-deriving that setup here.
 
 ## 5. Commit and push any fixes
 
-Conventional Commits subject per AGENTS.md's Commit Conventions (this is enforced by a commit-msg
+Conventional Commits subject (this is enforced by a commit-msg
 hook, `commitlint`, and `pr-title-lint` in CI). If step 3 found nothing to fix, skip straight to
 step 6 — don't invent a no-op commit.
 
@@ -109,7 +109,7 @@ gh run view <run-id> --repo <owner>/<repo> --log-failed
 Map the failure to a root-cause fix:
 
 - **`commitlint` / `pr-title-lint`**: reword the offending commit subject or PR title to match
-  Conventional Commits — see AGENTS.md's Commit Conventions.
+  Conventional Commits.
 - **`build-backend` / `build-frontend`**: a real compile error — fix the source.
 - **`test-backend` / `test-frontend`**: fix the code the test caught; only touch the test itself if
   it's asserting the wrong thing.
