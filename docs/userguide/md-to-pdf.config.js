@@ -66,7 +66,7 @@ const footerTemplate = `
     }
   </style>
   <div class="pdf-footer">
-    <span>Version ${version} &middot; Stand: ${releaseDate}</span>
+    <span>Stand: ${releaseDate}, Version: ${version}</span>
     <span>Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span>
   </div>
 `;
