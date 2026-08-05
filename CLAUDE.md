@@ -193,7 +193,9 @@ modules/<feature>/
 
 **Authentication:**
 - Basic HTTP authentication with session cookies
-- Permission-based access control (CUSTOMER, SCANNER, CHECKIN, LOGISTICS, USER_MANAGEMENT, SETTINGS)
+- Permission-based access control (see `UserPermissions.kt` for the current permission list,
+  grouped into OPERATIONS/TRANSPORT/LEADERSHIP/ADMINISTRATION categories — this list grows with
+  every new admin feature, so it's not duplicated here)
 - Functional route guards checking permissions
 - HTTP interceptors for API path handling and error management
 
@@ -269,9 +271,8 @@ since it lives outside the code you're editing. On every update or regeneration,
   carries an explicit `<a id="kapitel-<name>"></a>` anchor, and any sub-heading another chapter
   links to directly also gets one matching that link's anchor fragment. The chapter-top anchors are
   named `kapitel-<name>` (not bare `<name>`) because a bare id can collide with an unrelated
-  heading's auto-generated slug elsewhere in the merged PDF and silently jump to the wrong place
-  (this happened with `anmeldung`, colliding with README.md's own "## Anmeldung" section). Adding a
-  new cross-file link or a new chapter requires adding/matching an anchor and extending the
+  heading's auto-generated slug elsewhere in the merged PDF and silently jump to the wrong place.
+  Adding a new cross-file link or a new chapter requires adding/matching an anchor and extending the
   filename list in the `sed` rewrite rules in the `userguide-pdf` job of
   `.github/workflows/release.yml`.
 
@@ -355,11 +356,10 @@ PR_TITLE` in the repo settings, so the title is what `release.yml` actually sees
 individual commits).
 
 When committing on this repo's behalf, write commit messages and PR titles in this format
-without being asked. This has been missed in practice more than once (e.g. a PR left titled
-"Remove combined customer PDF (idcard + masterdata)" with no type prefix, failing
-`pr-title-lint`), so treat it as a hard checklist item: before opening or editing a PR, and
-whenever a CI failure turns out to be `pr-title-lint`/`commitlint`, check the PR title and commit
-subjects against these rules yourself rather than waiting for CI to flag it.
+without being asked. This is easy to miss in practice, so treat it as a hard checklist item:
+before opening or editing a PR, and whenever a CI failure turns out to be
+`pr-title-lint`/`commitlint`, check the PR title and commit subjects against these rules yourself
+rather than waiting for CI to flag it.
 
 ## API Structure
 
@@ -386,9 +386,8 @@ or the return type once `ResponseEntity<T>`/`PagedResponse<T>`/`XxxListResponse`
    dragging the other along, even though the two classes are field-for-field identical on day one.
 2. **`Response`** — the type is returned directly from an endpoint (never a request body) and is
    not merely a list element (see `Item` below). Covers both full resources with no request-body
-   counterpart (`Employee` → `EmployeeResponse`) and bare action-result types that previously had no
-   suffix or a stray one like `Data`/`Result` (`StatisticsData` → `StatisticsResponse`,
-   `DistributionCloseValidationResult` → `DistributionCloseResponse`).
+   counterpart (`Employee` → `EmployeeResponse`) and bare action-result types (e.g.
+   `StatisticsResponse`, `DistributionCloseResponse`).
 3. **`Item`** — the type is *only* ever the element type of a `PagedResponse<T>` or an
    `XxxListResponse`'s `List<T>` — it never appears as a request body and is never itself returned
    as a standalone single-resource response (`Route` → `RouteItem`, `SchoolStarterPackageEntry` →
@@ -404,10 +403,9 @@ Two established generic wrappers are exempt from all of the above and keep their
 **Nested value objects** that are embedded fields inside a `Request`/`Response`/`Item` type but are
 never *themselves* bound to a controller signature (not a request body, not a controller's direct
 return type, not the direct element type of a list endpoint) keep their plain domain name — no
-suffix. Examples: `Person`, `HouseholdAddress`, `HouseholdIssuer`, `ShelterContact` → renamed to
-`ShelterContactItem` for consistency with sibling repeatable-record types (`HouseholdNoteItem`,
-`StaticValueItem`'s successor), while `Person`/`HouseholdAddress`/`HouseholdIssuer` stay bare since
-they're single embedded values, not repeatable records. Enums never take a suffix.
+suffix. Examples of single embedded values that stay bare: `Person`, `HouseholdAddress`,
+`HouseholdIssuer`. Examples of repeatable-record types that take the `Item` suffix instead:
+`HouseholdNoteItem`, `ShelterContactItem`, `StaticValueItem`. Enums never take a suffix.
 
 When a service method needs to operate on data that's structurally identical across a
 `Request`/`Response` split (e.g. validating a household's persons list, which exists on both
