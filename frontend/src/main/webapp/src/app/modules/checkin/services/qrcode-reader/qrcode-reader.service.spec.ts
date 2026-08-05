@@ -146,4 +146,53 @@ describe('QRCodeReaderService', () => {
         expect(successCallback).not.toHaveBeenCalled();
     });
 
+    it('stop while a start is still in flight immediately stops the camera once it opens instead of leaving it running', async () => {
+        const { service, decodeSpy, controlsStopSpy } = setup();
+        service.init('videoElementId', vi.fn());
+
+        let resolveDecode!: (controls: IScannerControls) => void;
+        decodeSpy.mockReturnValueOnce(new Promise<IScannerControls>(resolve => {
+            resolveDecode = resolve;
+        }));
+
+        const startPromise = service.start('123');
+        await service.stop();
+
+        expect(controlsStopSpy).not.toHaveBeenCalled();
+
+        resolveDecode({ stop: controlsStopSpy });
+        await startPromise;
+
+        expect(controlsStopSpy).toHaveBeenCalledTimes(1);
+        expect(service.controls).toBeUndefined();
+    });
+
+    it('restart while a previous start is still in flight stops the stale camera once it opens and keeps the new one', async () => {
+        const { service, decodeSpy } = setup();
+        service.init('videoElementId', vi.fn());
+
+        const staleControlsStopSpy = vi.fn();
+        let resolveStaleDecode!: (controls: IScannerControls) => void;
+        decodeSpy.mockReturnValueOnce(new Promise<IScannerControls>(resolve => {
+            resolveStaleDecode = resolve;
+        }));
+
+        const startPromise = service.start('123');
+
+        const freshControlsStopSpy = vi.fn();
+        decodeSpy.mockResolvedValueOnce({ stop: freshControlsStopSpy });
+        const restartPromise = service.restart('456');
+        await restartPromise;
+
+        const freshControls = service.controls;
+        expect(freshControls?.stop).toBe(freshControlsStopSpy);
+
+        resolveStaleDecode({ stop: staleControlsStopSpy });
+        await startPromise;
+
+        expect(staleControlsStopSpy).toHaveBeenCalledTimes(1);
+        expect(freshControlsStopSpy).not.toHaveBeenCalled();
+        expect(service.controls).toBe(freshControls);
+    });
+
 });

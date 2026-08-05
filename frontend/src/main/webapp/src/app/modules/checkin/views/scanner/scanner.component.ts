@@ -55,15 +55,16 @@ export class ScannerComponent {
     });
   });
 
-  availableCamerasEffect = effect(async () => {
+  // Only sets currentCamera here - starting/restarting the actual scan is left entirely to
+  // currentCameraEffect below. Starting it concurrently from both effects raced two overlapping
+  // decodeFromVideoDevice() calls against each other, which could leave one of them orphaned
+  // and scanning forever with no reference left to stop it.
+  availableCamerasEffect = effect(() => {
     const availableCameras = this.availableCameras();
     if (availableCameras) {
       const currentCamera = this.qrCodeReaderService.getCurrentCamera(availableCameras);
-      this.currentCamera.set(currentCamera);
-
       this.qrCodeReaderService.init('qrCodeReaderVideo', this.qrCodeReaderSuccessCallback);
-      const promise = this.qrCodeReaderService.start(currentCamera.deviceId);
-      await this.processQrCodeReaderPromise(promise);
+      this.currentCamera.set(currentCamera);
     }
   });
 
