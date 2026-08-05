@@ -75,12 +75,34 @@ const css = `
     break-before: page;
   }
 
-  /* Frame every screenshot with a thin border - most of the app's own UI has no visible edge
-     against the white page background (e.g. the login page's dark card blends into surrounding
-     whitespace without one), so an unbordered screenshot can look like it's bleeding into the
-     page rather than being a discrete figure. */
+  /* Frame every screenshot so it reads as a discrete figure against the white page rather than
+     bleeding into it. Deliberately a double box-shadow ring rather than a plain border, for two
+     reasons found by rendering this and inspecting the actual PDF pixels:
+       1. A single black border is invisible against screenshots whose own edge pixels are already
+          near-black (the login/error pages use a dark navy/black background right to the image
+          edge) - there's no contrast between "border" and "image".
+       2. A 1px stroked border rasterizes inconsistently in Chromium's print/PDF path - some
+          edges of some images silently drop out (seemingly at random depending on the image's
+          fractional pixel position on the page), leaving only 2-3 sides visible.
+     The inner white ring guarantees contrast against dark screenshots (light line against a near-
+     black edge); the outer black ring guarantees contrast against the white page (for light
+     screenshots the white ring just blends into their own white background, same net look as a
+     plain border). box-shadow's spread rings are filled shapes rather than stroked lines, which
+     avoids the hairline rasterization dropout from (2).
+     A third case, found the same way: a screenshot taller than one page's remaining content
+     height can't be kept together no matter what (break-inside: avoid only avoids a break when
+     the box actually fits somewhere) and gets fragmented across the page boundary. Per the CSS
+     Fragmentation spec, the default box-decoration-break: slice paints the frame as if the box
+     were one continuous shape sliced by the page - the fragment before the break keeps its top
+     edge but loses its bottom, and the fragment after loses its top - so a tall image reads as
+     missing a top or bottom edge exactly like case (2), but for a structural reason instead of a
+     rendering bug. box-decoration-break: clone makes each fragment paint the full ring on all 4
+     sides independently, so a forced split still looks like two complete framed figures rather
+     than one frame with a bite taken out of it. */
   img {
-    border: 1px solid #000;
+    box-shadow: 0 0 0 1px #fff, 0 0 0 2px #000;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 `;
 
