@@ -65,12 +65,12 @@ Once a customer resolves, the component loads their notes (`CustomerNoteApiServi
 There's also a redirect guard worth knowing about:
 ```ts
 effect(() => {
-  if (this.connectionState() && this.currentDistribution() === null) {
+  if (this.hasReceivedDistribution() && this.currentDistribution() === null) {
     this.router.navigate(['uebersicht']);
   }
 });
 ```
-It only fires once `connectionState()` (from `GlobalStateService`, backed by SSE) is `true` — this avoids bouncing the user back to the dashboard during the brief window before the SSE connection is even established, when `currentDistribution()` is still `null` by default.
+It only fires once `hasReceivedDistribution()` (from `GlobalStateService`, set once the first `/sse/distributions` message has actually been processed) is `true` — this avoids bouncing the user back to the dashboard during the brief window before the first SSE message arrives, when `currentDistribution()` is still `null` by default. Gating on the raw SSE connection state instead (`getConnectionState()`) is *not* enough: that flips to `true` on the socket's `onopen`, which can fire a tick before the first message is actually processed, so it doesn't rule out the "not loaded yet" case — see `GlobalStateService.getHasReceivedDistribution`'s doc comment.
 
 ### Ticket monitor: TicketScreenComponent / TicketScreenControlComponent / TicketScreenFullscreenComponent
 

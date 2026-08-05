@@ -29,6 +29,17 @@ describe('Login', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
+  it('login successful after a direct navigation to a non-root path (e.g. a bookmark)', () => {
+    // Regression test for #2972: loading the app from a path other than "/" or "/#/..." (as
+    // happens with a bookmarked/typed URL) must not break the app's own API calls, which rely on
+    // an absolute base URL derived from the page - not the requested path.
+    cy.visit('/login');
+
+    enterLoginData('e2etest', 'e2etest');
+
+    cy.url().should('contain', '/uebersicht');
+  });
+
   it('login failed', () => {
     enterLoginData('dummy', 'dummy');
 
@@ -114,6 +125,22 @@ describe('Login', () => {
     // Route resolvers (e.g. the above-limit list's data fetch) fire an authenticated request
     // before the target component even mounts - that's what's used here to trigger the 401.
     cy.contains('Kunden über Limit').click();
+
+    cy.url().should('contain', '/login/abgelaufen');
+    cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');
+  });
+
+  it('an invalidated session redirects to login even via a route with no data-fetch of its own', () => {
+    enterLoginData('e2etest', 'e2etest');
+    cy.url().should('contain', '/uebersicht');
+
+    cy.clearCookie('tafel-admin-jwt');
+
+    // "Passwort ändern" has no resolver and its component fires no HTTP request on mount - before
+    // this fix, AuthGuardService only ever checked a stale in-memory flag, so a click like this
+    // one was silently ignored instead of redirecting (see #2976).
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-changepassword').click();
 
     cy.url().should('contain', '/login/abgelaufen');
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');

@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import jakarta.servlet.DispatcherType
 import org.passay.DefaultPasswordValidator
 import org.passay.data.EnglishCharacterData
 import org.passay.data.GermanCharacterData
@@ -24,7 +25,6 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
@@ -106,12 +106,24 @@ class WebSecurityConfig(
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
             .authorizeHttpRequests { auth ->
+                // SSE endpoints (SseEmitter) keep the request open via request.startAsync(); when
+                // the emitter completes/times out/errors, the container re-enters the filter chain
+                // on an ASYNC dispatch to finish the request. TafelJwtAuthenticationFilter (a
+                // OncePerRequestFilter) skips re-authenticating on that dispatch by default, so
+                // without this, AuthorizationFilter - which runs on every dispatch type, unlike
+                // OncePerRequestFilter - sees no authentication and denies it, even though the
+                // original REQUEST dispatch already authenticated/authorized before the stream
+                // opened.
+                auth.dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                 auth.requestMatchers(*publicEndpoints.toTypedArray()).permitAll()
                 auth.requestMatchers("/api/**").authenticated()
                 auth.anyRequest().permitAll()
             }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .exceptionHandling { exceptionHandling ->
+                exceptionHandling.accessDeniedHandler(TafelAccessDeniedHandler())
             }
             .csrf { csrf ->
                 val tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
@@ -154,16 +166,13 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun userDetailsManager(): UserDetailsManager = tafelUserDetailsManager()
-
-    @Bean
     fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
 
     @Bean
-    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(userDetailsManager(), passwordEncoder(), loginAttemptService)
+    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService)
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)

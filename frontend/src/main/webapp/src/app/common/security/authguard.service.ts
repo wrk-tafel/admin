@@ -17,13 +17,23 @@ export class AuthGuardService {
    * not the same as being logged in but lacking a permission - the former sends the user to a
    * plain login page, the latter shows the "access denied" message via the `fehlgeschlagen`
    * error key so it isn't misreported as a real authorization failure.
+   *
+   * A cached "authenticated" flag alone can't tell a live session from one that expired
+   * server-side without any HTTP request happening yet (e.g. a menu click to a route with no
+   * resolver/data call of its own) - so whenever we still believe we're authenticated, this
+   * revalidates against the server first. If that revalidation itself 401s, the
+   * errorHandlerInterceptor's auth-error handling already redirects with the `abgelaufen`
+   * message as a side effect of the failed request, so this only needs to stop the navigation.
    */
   async canActivate(childRoute: ActivatedRouteSnapshot): Promise<boolean> {
     const routeData: AuthGuardData = childRoute.data;
 
-    const authenticated = this.authenticationService.isAuthenticated();
-    if (!authenticated) {
-      this.authenticationService.redirectToLogin();
+    const wasAuthenticated = this.authenticationService.isAuthenticated();
+    const userInfo = wasAuthenticated ? await this.authenticationService.loadUserInfo() : null;
+    if (userInfo === null) {
+      if (!wasAuthenticated) {
+        this.authenticationService.redirectToLogin();
+      }
       return false;
     }
 

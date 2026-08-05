@@ -125,7 +125,9 @@ declare global {
       getRandomNumber(min: number, max: number): Chainable<number>;
 
       /**
-       * Custom command to generate any random number in a fixed range of 50_000 to 100_000.
+       * Custom command to generate an ~11-digit number that's effectively unique across the whole
+       * e2e run (derived from the current timestamp plus a random suffix), for test data (e.g.
+       * usernames) that must not collide with data created by other specs in the same run.
        * @example cy.getAnyRandomNumber();
        */
       getAnyRandomNumber(): Chainable<number>;

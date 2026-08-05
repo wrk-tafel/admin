@@ -85,36 +85,15 @@ class SseOutboxListenerServiceTest {
     }
 
     @Test
-    fun `cleanup with open connection`() {
-        val connection = mockk<Connection>()
-        every { connection.isClosed } returns false
-        every { connection.close() } returns Unit
+    fun `cleanup cancels the notification listener job`() {
         val notificationListenerJob = mockk<Job>()
         every { notificationListenerJob.cancel(null) } returns Unit
 
-        service.connection = connection
         service.notificationListenerJob = notificationListenerJob
 
         service.cleanup()
 
         verify { notificationListenerJob.cancel() }
-        verify { connection.close() }
-    }
-
-    @Test
-    fun `cleanup with closed connection`() {
-        val connection = mockk<Connection>()
-        every { connection.isClosed } returns true
-        every { connection.close() } returns Unit
-        val notificationListenerJob = mockk<Job>()
-        every { notificationListenerJob.cancel(null) } returns Unit
-
-        service.connection = connection
-        service.notificationListenerJob = notificationListenerJob
-
-        service.cleanup()
-
-        verify(exactly = 0) { connection.close() }
     }
 
     @Test

@@ -18,6 +18,7 @@ import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.context.request.ServletWebRequest
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import tools.jackson.databind.json.JsonMapper
 import java.util.*
 
@@ -145,6 +146,15 @@ internal class GenericExceptionHandlerTest {
         assertThat(errorBody.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
         assertThat(errorBody.title).isEqualTo("localized-title")
         assertThat(errorBody.detail).isEqualTo("test-msg")
+    }
+
+    @Test
+    fun `handles AsyncRequestNotUsableException without throwing and returns no body`() {
+        val exception = AsyncRequestNotUsableException("response no longer usable")
+
+        val response = exceptionHandler.handleAsyncRequestNotUsableException(exception, request)
+
+        assertThat(response).isNull()
     }
 
     @Test

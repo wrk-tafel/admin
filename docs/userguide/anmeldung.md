@@ -1,3 +1,5 @@
+<a id="kapitel-anmeldung"></a>
+
 # Anmeldung (Check-in)
 
 Der Bereich "Anmeldung" wird während eines laufenden Ausgabetags verwendet, um Kunden zu erfassen (per Ticket-Nummer oder Scanner) und den Ablauf mit dem Ticket-Monitor zu steuern.
@@ -13,7 +15,7 @@ Unter **Anmeldung → Annahme** wird die Kundennummer eines Kunden eingegeben (o
 - **Scanner**: Auswahl eines aktiven Scanners, falls mehrere Scanner-Handys im Einsatz sind (siehe [Scanner](#scanner) weiter unten). Der Status (Aktiv/Inaktiv) zeigt, ob eine Verbindung zum ausgewählten Scanner besteht.
 - **Kundennummer**: Manuelle Eingabe der Kundennummer, falls kein Scanner verwendet wird. Mit **Anzeigen** wird der Kunde geöffnet.
 
-Wurde ein Kunde angezeigt, erscheint darunter ein Panel mit Status (z. B. bezugsberechtigt, gesperrt), Adresse, Haushaltsgröße, Anzahl Kinder unter 3 Jahren, der letzten Notiz sowie – bei aktivem Ausgabetag – der Eingabe einer Ticket-Nummer, um den Kunden mit **Annehmen** der laufenden Ausgabe zuzuweisen.
+Wurde ein Kunde angezeigt, erscheint darunter ein Panel mit farblich gekennzeichnetem Status (GÜLTIG, GÜLTIG – läuft bald ab [innerhalb der nächsten 8 Wochen], UNGÜLTIG oder GESPERRT) sowie ggf. einer separaten Kennzeichnung "Unkostenbeitrag offen", Adresse, Haushaltsgröße, einem Tab mit den weiteren Haushaltspersonen, der letzten Notiz sowie – bei aktivem Ausgabetag – der Eingabe einer Ticket-Nummer, um den Kunden mit **Annehmen** der laufenden Ausgabe zuzuweisen. Ist bereits ein Ticket zugewiesen, kann die Eingabe über **Abbrechen** verworfen bzw. das Ticket über den Papierkorb-Button wieder gelöscht werden.
 
 ![Kunden-Annahme mit Kunde](images/anmeldung-annahme-kunde.jpg)
 
@@ -23,7 +25,7 @@ Wurde ein Kunde angezeigt, erscheint darunter ein Panel mit Status (z. B. bezugs
 
 ![Scanner](images/anmeldung-scanner.jpg)
 
-Über das Dropdown **Kamera** kann bei mehreren Kameras am Gerät (z. B. Front-/Rückkamera eines Handys) die gewünschte ausgewählt werden. Der Status rechts oben zeigt "Bereit", sobald die Kamera aktiv ist und ein Ausweis-Code erkannt werden kann.
+Über das Dropdown **Kamera** kann bei mehreren Kameras am Gerät (z. B. Front-/Rückkamera eines Handys) die gewünschte ausgewählt werden. Der Status rechts oben zeigt "Bereit" bzw. "Nicht bereit", je nachdem ob die Kamera aktiv ist und ein Ausweis-Code erkannt werden kann. Ist am Gerät keine Kamera verfügbar, erscheint stattdessen die Meldung "Keine Kamera gefunden".
 
 ![Scanner aktiv](images/anmeldung-scanner-aktiv.jpg)
 
@@ -36,7 +38,7 @@ Unter **Anmeldung → Ticket-Monitor** wird der Ablauf der Ticket-Ausgabe gesteu
 - **Startzeit**: Uhrzeit, ab der die Ticket-Nummern hochgezählt werden.
 - **Tickets**: Mit **Aktuelles Ticket** / **Vorheriges Ticket** kann zur laufenden Ticket-Nummer gesprungen bzw. zurückgeblättert werden.
 - **Aktuelles Ticket**: Zeigt die gerade aufgerufene Ticket-Nummer. Mit **Weiter (bezahlt)** bzw. **Weiter (nicht bezahlt)** wird zum nächsten Ticket weitergeschaltet und gleichzeitig vermerkt, ob der Unkostenbeitrag beglichen wurde.
-- **Unkostenbeitrag (bestehend)**: Zeigt einen noch offenen Unkostenbeitrag des aktuellen Kunden aus einer früheren Ausgabe. Mit **Alles bezahlt**, **Betrag eintragen** oder **Betrag bearbeiten** kann dieser direkt verbucht werden.
+- **Unkostenbeitrag (bestehend)**: Zeigt einen noch offenen Unkostenbeitrag des aktuellen Kunden aus einer früheren Ausgabe. Mit **Alles bezahlt** wird der offene Betrag zur Gänze als bezahlt vermerkt, über **Betrag eintragen** ein Teilbetrag erfasst und über **Betrag bearbeiten** ein bereits eingetragener Betrag korrigiert – jede Aktion öffnet einen eigenen Dialog.
 - **Live-Ansicht**: Vorschau dessen, was auf dem Kundenmonitor angezeigt wird. Über **Monitor öffnen** wird die Vollbildansicht (siehe unten) in einem neuen Fenster/Tab geöffnet, das z. B. auf einen zweiten Bildschirm gezogen werden kann.
 
 ## Ticket-Monitor – Vollbildansicht

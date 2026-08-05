@@ -1,34 +1,29 @@
 import { UrlHelperService } from './url-helper.service';
-import { PlatformLocation } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 
 describe('UrlHelperService', () => {
 
-    let overwriteProtocol: string | undefined;
-    let overwriteTestPathname: string | undefined;
+    let overwriteBaseUri: string | undefined;
 
     function setup() {
-        const platformLocationSpy = {
-            hostname: 'testhost',
-            port: '1234',
-            pathname: overwriteTestPathname ?? '/subpath',
-            protocol: overwriteProtocol ?? 'http:'
+        const documentSpy = {
+            baseURI: overwriteBaseUri ?? 'http://testhost:1234/subpath/'
         };
 
         TestBed.configureTestingModule({
             providers: [
                 UrlHelperService,
-                { provide: PlatformLocation, useValue: platformLocationSpy }
+                { provide: DOCUMENT, useValue: documentSpy }
             ]
         });
         const service = TestBed.inject(UrlHelperService);
 
-        return { service, platformLocationSpy };
+        return { service, documentSpy };
     }
 
     afterEach(() => {
-        overwriteProtocol = undefined;
-        overwriteTestPathname = undefined;
+        overwriteBaseUri = undefined;
     });
 
     it('client configured correctly with http', () => {
@@ -40,7 +35,7 @@ describe('UrlHelperService', () => {
     });
 
     it('client configured correctly with https', () => {
-        overwriteProtocol = 'https:';
+        overwriteBaseUri = 'https://testhost:1234/subpath/';
         const { service } = setup();
 
         const basePath = service.getBaseUrl();
@@ -48,8 +43,8 @@ describe('UrlHelperService', () => {
         expect(basePath).toBe('https://testhost:1234/subpath');
     });
 
-    it('client configured correctly with empty pathname', () => {
-        overwriteTestPathname = '/';
+    it('client configured correctly with root base href', () => {
+        overwriteBaseUri = 'http://testhost:1234/';
         const { service } = setup();
 
         const basePath = service.getBaseUrl();
@@ -57,8 +52,8 @@ describe('UrlHelperService', () => {
         expect(basePath).toBe('http://testhost:1234');
     });
 
-    it('client configured correctly with subPath including trailing slash', () => {
-        overwriteTestPathname = '/subpath/';
+    it('client configured correctly without trailing slash', () => {
+        overwriteBaseUri = 'http://testhost:1234/subpath';
         const { service } = setup();
 
         const basePath = service.getBaseUrl();

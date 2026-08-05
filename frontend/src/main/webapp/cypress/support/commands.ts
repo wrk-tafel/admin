@@ -74,28 +74,43 @@ Cypress.Commands.overwrite('request', (originalFn, ...args: any[]): Cypress.Chai
     return originalFn({...options, headers, failOnStatusCode: false} as Cypress.RequestOptions);
   };
 
-  let initialTokenValue: string | undefined;
+  // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing) between
+  // reading it and this request reaching the server, so the header we sent no longer matches the
+  // cookie Cypress auto-attached, causing a 403. It can keep rotating out from under us, so bound
+  // the retries rather than assuming a single retry always lands on a stable value. Only retry
+  // when the cookie actually changed though - if it's the same as what we just sent, this 403
+  // isn't a rotation race and retrying won't help.
+  //
+  // Each recursive call must return a *bare* command from the `cy.getCookie().then()` callback
+  // that invokes it, with the response handling living in a separate, sibling `.then()` rather
+  // than being folded into the recursion itself - returning a value that already has its own
+  // `.then()` chained onto it, from within an outer `.then()` callback here, makes Cypress lose
+  // track of the command queue and throw "returned a promise from a command while also invoking
+  // one or more cy commands in that promise" even on the plain non-retry path.
+  const MAX_ATTEMPTS = 4;
 
-  return cy.getCookie('XSRF-TOKEN')
-    .then(cookie => {
-      initialTokenValue = cookie?.value;
-      return send(initialTokenValue);
-    })
-    .then((response): Cypress.Chainable<Cypress.Response<any>> => {
-      if (response.status !== 403) {
-        return cy.wrap(response, {log: false});
-      }
-      // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing)
-      // between reading it above and this request reaching the server, so the header we sent
-      // no longer matches the cookie Cypress auto-attached. Retry once with whatever the
-      // cookie is now before treating this as a genuine failure.
-      return cy.getCookie('XSRF-TOKEN').then((freshCookie): Cypress.Chainable<Cypress.Response<any>> => {
-        if (!freshCookie || freshCookie.value === initialTokenValue) {
+  const requestWithRetry = (attemptsLeft: number): Cypress.Chainable<Cypress.Response<any>> => {
+    let tokenValue: string | undefined;
+
+    return cy.getCookie('XSRF-TOKEN')
+      .then(cookie => {
+        tokenValue = cookie?.value;
+        return send(tokenValue);
+      })
+      .then((response): Cypress.Chainable<Cypress.Response<any>> => {
+        if (response.status !== 403 || attemptsLeft <= 1) {
           return cy.wrap(response, {log: false});
         }
-        return send(freshCookie.value);
+        return cy.getCookie('XSRF-TOKEN').then((freshCookie): Cypress.Chainable<Cypress.Response<any>> => {
+          if (!freshCookie || freshCookie.value === tokenValue) {
+            return cy.wrap(response, {log: false});
+          }
+          return requestWithRetry(attemptsLeft - 1);
+        });
       });
-    })
+  };
+
+  return requestWithRetry(MAX_ATTEMPTS)
     .then((response): Cypress.Chainable<Cypress.Response<any>> => {
       if (failOnStatusCode && (response.status < 200 || response.status >= 400)) {
         throw new Error(
@@ -372,7 +387,12 @@ Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<nu
   return cy.wrap(Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil);
 });
 
-Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => cy.getRandomNumber(50000, 100000));
+Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> =>
+  // Timestamp (mod 1e8, i.e. ~27.7h) + a random suffix keeps the result unique across every spec
+  // in an e2e run (which takes minutes, not hours) while staying short enough for narrow columns
+  // like license_plate (varchar(20)) that get it appended to a fixed prefix.
+  cy.getRandomNumber(0, 999).then(randomSuffix => (Date.now() % 100_000_000) * 1000 + randomSuffix)
+);
 
 
 export interface AddCustomerToDistributionRequest {
