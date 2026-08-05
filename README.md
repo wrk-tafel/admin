@@ -299,6 +299,17 @@ map $request_uri $sse_cache_control {
 }
 ```
 
+Both examples proxy to `<backend-host>:8080` - replace that placeholder with wherever your backend is actually reachable (a Docker Compose service name, a container IP, a VM hostname, ...). If that address can change at runtime, resolve it via a `resolver` directive and a variable rather than a static `proxy_pass` target, since nginx otherwise resolves a static hostname once and caches it for the life of the worker process:
+
+```nginx
+resolver 127.0.0.11 valid=30s;  # your DNS server's IP - 127.0.0.11 shown here is Docker's embedded DNS
+set $upstream http://<backend-host>:8080;
+# ...
+proxy_pass $upstream;
+```
+
+If your backend address is stable (a fixed IP or a hostname that won't change), skip the `resolver`/`set` and use `proxy_pass http://<backend-host>:8080;` directly instead.
+
 #### Subpath example
 
 nginx strips the `/tafel-admin/` prefix before forwarding to the backend, and passes it along separately via `X-Forwarded-Prefix` (not currently consumed by the app, but kept for parity/future use and general reverse-proxy convention):
@@ -309,8 +320,7 @@ server {
     listen [::]:443 ssl;
     server_name tafel-admin.example.com;
 
-    # Common Headers
-    resolver 127.0.0.11 valid=30s;  # Docker's embedded DNS, for re-resolving the upstream on restart
+    resolver 127.0.0.11 valid=30s;
 
     location /tafel-admin/ {
         proxy_set_header Host               $host;
@@ -329,7 +339,7 @@ server {
         chunked_transfer_encoding off;
 
         # Logic for re-resolution and path stripping
-        set $upstream http://tafel-admin-backend:8080;
+        set $upstream http://<backend-host>:8080;
         rewrite ^/tafel-admin/(.*) /$1 break;
 
         # SSE-Specific Optimization
@@ -369,7 +379,7 @@ server {
         proxy_set_header Connection '';
         chunked_transfer_encoding off;
 
-        set $upstream http://tafel-admin-backend:8080;
+        set $upstream http://<backend-host>:8080;
 
         add_header Cache-Control $sse_cache_control;
 
@@ -378,21 +388,10 @@ server {
 }
 ```
 
-Both examples were verified end-to-end (path stripping, forwarded headers, and the SSE header) against nginx proxying to a real backend container.
+Both examples were verified end-to-end (path stripping, forwarded headers, and the SSE header) against nginx proxying to a real backend container; swap in your own backend address before using them.
 
 > [!NOTE]
 > The SSE header is set via a `map` rather than the more obvious `if ($request_uri ~* "api/sse") { add_header ...; }`. With `proxy_buffering off` (required here for SSE to stream at all), an `add_header` set inside an `if` block is silently dropped - it never reaches the client, with no error logged. An unconditional `add_header`, or one driven by a `map` variable like above, isn't affected and works reliably. This was confirmed by reproducing both the failure and the fix directly against nginx.
-
-### Permissions
-
-Access control is based on these permissions:
-
-- `CUSTOMER` - Customer management
-- `SCANNER` - Scanner device access
-- `CHECKIN` - Check-in operations
-- `LOGISTICS` - Logistics management
-- `USER_MANAGEMENT` - User administration
-- `SETTINGS` - System settings
 
 ## Documentation
 
