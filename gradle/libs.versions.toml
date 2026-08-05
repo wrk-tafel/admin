@@ -15,7 +15,7 @@ qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
 apache-commons-csv = "1.14.1"
 apache-commons-lang3 = "3.20.0"
-springdoc-openapi = "3.0.3"
+springdoc-openapi = "3.1.0"
 spring-retry = "2.0.13"
 
 # Test dependency versions
