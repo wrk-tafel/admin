@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 22 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German locale (de-DE) with Euro currency.
+This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German locale (de-DE) with Euro currency.
 
 ## Build and Development Commands
 
@@ -57,8 +57,8 @@ timeout 90 ./gradlew :backend:test --tests "*AdvisoryLockServiceIT"
 ### Frontend Development
 
 **Prerequisites:**
-- Node.js >= 20.16.0
-- npm >= 10.9.2
+- Node.js and npm (see `frontend/src/main/webapp/package.json`'s `engines` field for the exact
+  minimum versions — kept there, not here, since they change often)
 
 ```bash
 # Navigate to frontend webapp directory
@@ -130,8 +130,9 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 - Entities: Located in `database/model/` with Flyway migrations in `resources/db-migration/`
 
 **Key Technologies:**
-- Java 26 with Kotlin 2.3 (coroutines support)
-- Spring Boot 4.0.5 with Spring Modulith for modular monolith architecture
+- Java with Kotlin (coroutines support) — see `backend/build.gradle.kts`'s toolchain block and
+  `gradle/libs.versions.toml` for exact versions
+- Spring Boot with Spring Modulith for modular monolith architecture
 - PostgreSQL with Flyway for database migrations (60+ R__ repeatable scripts)
 - JWT authentication with Argon2 password hashing
 - Server-Sent Events (SSE) via outbox pattern for real-time notifications
@@ -148,7 +149,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 
 ### Frontend Architecture
 
-The frontend is an Angular 22 single-page application using Angular Material and Tailwind CSS as the UI framework.
+The frontend is an Angular single-page application using Angular Material and Tailwind CSS as the UI framework.
 
 **Feature Modules:**
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
@@ -178,10 +179,11 @@ modules/<feature>/
 ```
 
 **Key Technologies:**
-- Angular 22 with standalone components
-- Angular Material 22 (UI component library)
-- Angular CDK 22 (component dev kit)
-- Tailwind CSS 4 (utility-first CSS framework)
+- Angular with standalone components
+- Angular Material (UI component library)
+- Angular CDK (component dev kit)
+- Tailwind CSS (utility-first CSS framework) — see `frontend/src/main/webapp/package.json` for
+  exact Angular/Material/CDK/Tailwind versions
 - RxJS for reactive programming
 - @zxing/browser / @zxing/library for scanner QR decoding
 - ngx-cookie-service for session management
@@ -314,7 +316,7 @@ work** (pre-existing, unrelated to the change you're making):
 - Reactive forms for all form handling
 - Custom validators in `common/validator/`
 
-**Signal-Based Patterns (Angular 22):**
+**Signal-Based Patterns:**
 - Use `input()` / `input.required()` for component inputs (not `@Input`)
 - Use `output()` for component outputs (not `@Output`)
 - Use `signal()` for local component state
