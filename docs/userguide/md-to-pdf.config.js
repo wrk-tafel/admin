@@ -27,15 +27,12 @@ const pageMargin = '20mm';
 // top of md-to-pdf's default markdown.css. Overriding `stylesheet` instead would replace that
 // default outright and lose the base styling.
 const css = `
-  /* p:has(img)/h1-h4 break-before/after: avoid below are soft hints scoped to a *single* box.
-     Keeping an intro paragraph glued to the image or list it introduces needs a *pair* of sibling
-     boxes to move together, and pairing break-after: avoid on one box with break-before: avoid on
-     its neighbour turned out not to reliably keep them together in Chromium's print engine: if the
-     intro paragraph alone already fits the remaining space on the page, Chromium happily breaks
-     right after it and pushes only the next box (image/list) to the next page - it doesn't
-     backtrack and push the paragraph down too, even though both sides asked to avoid that break.
-     The 'keep-together' wrapper (built by the script below) sidesteps this entirely by making the
-     pair a *single* box, where break-inside: avoid is a strong, reliably-honoured constraint. */
+  /* Chromium's print engine only reliably honours break-inside: avoid on a single box - a
+     break-after: avoid on one element paired with break-before: avoid on its next sibling does not
+     reliably keep the two together (if the first element alone already fits the remaining page
+     space, Chromium can still break right after it and push only the sibling to the next page).
+     So the 'keep-together' wrapper (built by the script below) merges an intro paragraph and the
+     image/list it introduces into one box, where break-inside: avoid applies directly. */
   .keep-together {
     break-inside: avoid;
   }
@@ -67,50 +64,16 @@ const css = `
     break-inside: avoid;
   }
 
-  /* Start every chapter (README.md's own title plus each of the module files) on a fresh page.
-     This replaces what used to be a manually inserted page-break div between chapters in the
-     workflow's concatenation step, so a new chapter file added there gets the same treatment for
-     free. */
+  /* Start every chapter (README.md's own title plus each of the module files) on a fresh page. */
   h1 {
     break-before: page;
-  }
-
-  /* Frame every screenshot so it reads as a discrete figure against the white page rather than
-     bleeding into it. Deliberately a double box-shadow ring rather than a plain border, for two
-     reasons found by rendering this and inspecting the actual PDF pixels:
-       1. A single black border is invisible against screenshots whose own edge pixels are already
-          near-black (the login/error pages use a dark navy/black background right to the image
-          edge) - there's no contrast between "border" and "image".
-       2. A 1px stroked border rasterizes inconsistently in Chromium's print/PDF path - some
-          edges of some images silently drop out (seemingly at random depending on the image's
-          fractional pixel position on the page), leaving only 2-3 sides visible.
-     The inner white ring guarantees contrast against dark screenshots (light line against a near-
-     black edge); the outer black ring guarantees contrast against the white page (for light
-     screenshots the white ring just blends into their own white background, same net look as a
-     plain border). box-shadow's spread rings are filled shapes rather than stroked lines, which
-     avoids the hairline rasterization dropout from (2).
-     A third case, found the same way: a screenshot taller than one page's remaining content
-     height can't be kept together no matter what (break-inside: avoid only avoids a break when
-     the box actually fits somewhere) and gets fragmented across the page boundary. Per the CSS
-     Fragmentation spec, the default box-decoration-break: slice paints the frame as if the box
-     were one continuous shape sliced by the page - the fragment before the break keeps its top
-     edge but loses its bottom, and the fragment after loses its top - so a tall image reads as
-     missing a top or bottom edge exactly like case (2), but for a structural reason instead of a
-     rendering bug. box-decoration-break: clone makes each fragment paint the full ring on all 4
-     sides independently, so a forced split still looks like two complete framed figures rather
-     than one frame with a bite taken out of it. */
-  img {
-    box-shadow: 0 0 0 1px #fff, 0 0 0 2px #000;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
   }
 `;
 
 // Runs in the rendered page (via Puppeteer's page.addScriptTag(), see the `script` key below)
 // *before* PDF generation, so document.querySelectorAll sees the final markdown->HTML output.
 // Wraps each "intro paragraph + the image/list it introduces" pair in a `.keep-together` div - see
-// the comment on that class above for why a wrapper (one box) succeeds where paired break-before/
-// break-after avoid hints on two separate sibling boxes did not.
+// the comment on that class above for why this needs to be a single merged box.
 const keepTogetherScript = `
   (function () {
     function wrap(intro, target) {
