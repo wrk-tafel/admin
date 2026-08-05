@@ -14,6 +14,7 @@ import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -43,6 +44,14 @@ internal class GenericExceptionHandlerTest {
         every { request.locale } returns Locale.GERMAN
     }
 
+    /**
+     * Every one of these passes `body = null`, because that is what Spring actually does: the
+     * inherited `handleErrorResponseException` calls `handleExceptionInternal(ex, null, ...)` and
+     * expects the body to be taken from the exception's own [ErrorResponse.getBody]. Passing
+     * `exception.body` here instead (as these tests used to) exercises a call shape production
+     * never produces, and hid that every [TafelApiException] rendered its detail as the exception's
+     * `toString()` - `"404 NOT_FOUND, ProblemDetail[type='null', title='Not Found', ...]"`.
+     */
     @Test
     fun `handles NotFoundException properly`() {
         every {
@@ -50,7 +59,7 @@ internal class GenericExceptionHandlerTest {
         } returns "localized-title"
         val exception = NotFoundException("notfound-msg")
 
-        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
+        val response = exceptionHandler.handleExceptionInternal(exception, null, HttpHeaders.EMPTY, exception.statusCode, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         val errorBody = response.body as ProblemDetail
@@ -66,7 +75,7 @@ internal class GenericExceptionHandlerTest {
         } returns "localized-title"
         val exception = ConflictException("conflict-msg")
 
-        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
+        val response = exceptionHandler.handleExceptionInternal(exception, null, HttpHeaders.EMPTY, exception.statusCode, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.CONFLICT)
         val errorBody = response.body as ProblemDetail
@@ -82,7 +91,7 @@ internal class GenericExceptionHandlerTest {
         } returns "localized-title"
         val exception = BusinessRuleException("businessrule-msg")
 
-        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
+        val response = exceptionHandler.handleExceptionInternal(exception, null, HttpHeaders.EMPTY, exception.statusCode, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         val errorBody = response.body as ProblemDetail
@@ -98,13 +107,55 @@ internal class GenericExceptionHandlerTest {
         } returns "localized-title"
         val exception = BusinessRuleException("businessrule-msg", status = HttpStatus.UNPROCESSABLE_CONTENT)
 
-        val response = exceptionHandler.handleExceptionInternal(exception, exception.body, HttpHeaders.EMPTY, exception.statusCode, request)
+        val response = exceptionHandler.handleExceptionInternal(exception, null, HttpHeaders.EMPTY, exception.statusCode, request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
         val errorBody = response.body as ProblemDetail
         assertThat(errorBody.status).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value())
         assertThat(errorBody.title).isEqualTo("localized-title")
         assertThat(errorBody.detail).isEqualTo("businessrule-msg")
+    }
+
+    @Test
+    fun `an explicitly passed body still wins over the exception's own`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        val exception = BusinessRuleException("businessrule-msg")
+        val explicitBody = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "explicit-detail")
+
+        val response = exceptionHandler.handleExceptionInternal(exception, explicitBody, HttpHeaders.EMPTY, exception.statusCode, request)
+
+        val errorBody = response.body as ProblemDetail
+        assertThat(errorBody.detail).isEqualTo("explicit-detail")
+    }
+
+    @Test
+    fun `falls back to the exception message when it carries no problem detail`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+        val exception = IllegalStateException("plain-exception-msg")
+
+        val response = exceptionHandler.handleExceptionInternal(exception, null, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, request)
+
+        val errorBody = response.body as ProblemDetail
+        assertThat(errorBody.detail).isEqualTo("plain-exception-msg")
+    }
+
+    @Test
+    fun `handles AccessDeniedException with 403 instead of falling through to 500`() {
+        every {
+            messageSource.getMessage("http-error.${HttpStatus.FORBIDDEN.value()}.title", arrayOf<Any>(), Locale.GERMAN)
+        } returns "localized-title"
+
+        val response = exceptionHandler.handleAccessDeniedException(AuthorizationDeniedException("Access Denied"), request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        val errorBody = response.body as ProblemDetail
+        assertThat(errorBody.status).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(errorBody.title).isEqualTo("localized-title")
+        assertThat(errorBody.detail).isEqualTo("Zugriff nicht erlaubt!")
     }
 
     @Test
