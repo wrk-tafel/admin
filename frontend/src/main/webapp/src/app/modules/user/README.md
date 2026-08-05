@@ -13,6 +13,8 @@ modules/user/
   ├── views/user-search/user-search.component.ts        # search + paginated result list/table
   ├── views/user-edit/user-edit.component.ts             # thin shell used for BOTH create and edit
   ├── views/user-detail/user-detail.component.ts         # read-only detail + enable/disable/delete menu
+  ├── views/login-attempts/user-login-attempts.component.ts # route: benutzer/anmelde-versuche
+  │     └── dialogs/delete-login-attempt-dialog.component.ts
   ├── components/user-form/user-form.component.ts        # the actual reactive form (fields + permissions grid)
   └── components/user-passwordchange/user-passwordchange.component.ts # wraps the shared password-change form
 ```
@@ -110,6 +112,39 @@ admin-edits-someone-else's-password flow in `UserFormComponent` (which just sets
 the `UserData` object and goes through `createUser`/`updateUser`). Two distinct password-change code paths live
 under this module's directory tree — don't assume there's only one.
 
+### UserLoginAttemptsComponent — Anmelde-Versuche
+
+Read + delete view over the `login_attempts` table (`LoginAttemptEntity`,
+`common/auth/components/LoginAttemptService.kt`) that backs failed-login lockout
+tracking (`TafelLoginProvider`) — lets an admin see who's currently
+tracked/locked and clear an entry to lift a lockout immediately instead of
+waiting out `lockoutDurationInSeconds` (#2870). Mounted at
+`benutzer/anmelde-versuche`; the backend endpoints live on `UserController`
+(`GET`/`DELETE /api/users/login-attempts`), gated by `USER_MANAGEMENT` like the
+rest of this module.
+
+- Loads via `UserApiService.getLoginAttempts()`, paginated (`mat-paginator` bound
+  to a `PagedResponse<LoginAttemptItem>` signal, `PAGE_SIZE_OPTIONS`, 1-based
+  backend page vs 0-based `mat-paginator` index, rendered both above and below
+  the table); the backend sorts by most recent failure first, with `id` as a
+  stable tiebreaker (`LoginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc`).
+  Table columns: `['username', 'failureCount', 'lastFailureAt', 'lockedUntil',
+  'actions']`. The `testid` (`login-attempts-paginator`) lives only on the
+  bottom instance so e2e specs that click into it don't have to disambiguate
+  two matches.
+- **No create, no edit** — this view only ever displays what
+  `LoginAttemptService` already tracks from real login attempts.
+- **Status column**: `isLocked()` compares `lockedUntil` against `Date.now()`
+  client-side (the backend doesn't send a precomputed boolean) so a lock that
+  has since expired shows as inactive without needing a reload.
+- **Delete** goes through a confirm dialog
+  (`delete-login-attempt-dialog.component.ts`, twin of
+  `customer/views/customer-detail/dialogs/delete-customer-dialog.component.ts`)
+  since deleting is the only destructive action in this view — unlike a form
+  there's no "undo via cancel". Deleting clears the row entirely (same effect
+  as a successful login via `LoginAttemptService.recordSuccess()`), which is
+  what actually lifts a lock, not just a `lockedUntil = null` update.
+
 ## Permission model (USER_MANAGEMENT)
 
 Access control for this whole module is enforced **once, at the router boundary**, not per-component:
@@ -140,7 +175,8 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
 ## API surface (`api/user-api.service.ts`, all under `/api/users`)
 
 `changePassword`, `getUserForId`, `getUserForPersonnelNumber`, `searchUser` (paginated), `updateUser`,
-`deleteUser`, `createUser`, `generatePassword`, `getPermissions`.
+`deleteUser`, `createUser`, `generatePassword`, `getPermissions`, `getLoginAttempts` (paginated),
+`deleteLoginAttempt`.
 
 ## Gotchas
 

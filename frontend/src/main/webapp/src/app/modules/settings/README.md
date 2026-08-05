@@ -36,9 +36,6 @@ settings/
     employees/                     # route: einstellungen/mitarbeiter
       dialogs/
         employee-create-dialog.component.ts
-    login-attempts/                 # route: einstellungen/anmelde-versuche
-      dialogs/
-        delete-login-attempt-dialog.component.ts
   settings.routes.ts
 ```
 
@@ -181,8 +178,8 @@ that reflect the domain:
 - **No drag-and-drop reordering** — employees have no `sortOrder` field, so
   unlike shelters/food-categories/cars there's nothing to reorder here.
 - **Paginated + searchable**, unlike the reorderable CRUD views above (which
-  load their full unpaginated list in one call; `login-attempts` below is
-  paginated too). `EmployeeController`/`EmployeeService` (in
+  load their full unpaginated list in one call; the `user` module's
+  `login-attempts` view is paginated too). `EmployeeController`/`EmployeeService` (in
   `modules/base/employee`, pre-existing, shared with the `logistics` module's
   create-employee flow) implement `GET /api/employees?searchInput=&page=&pageSize=`
   server-side (`PaginationDefaults`: 10 by default, selectable via
@@ -209,45 +206,12 @@ that reflect the domain:
   dialog title, calls the API itself and closes with the saved entity) rather
   than a generic create dialog — reusing it here would have been misleading.
 
-## `login-attempts` (`SettingsLoginAttemptsComponent`)
-
-Read + delete view over the `login_attempts` table (`LoginAttemptEntity`,
-`common/auth/components/LoginAttemptService.kt`) that backs failed-login
-lockout tracking (`TafelLoginProvider`) — added so an admin can see who's
-currently tracked/locked and clear an entry to lift a lockout immediately
-instead of waiting out `lockoutDurationInSeconds` (#2870).
-
-- Loads via `SettingsApiService.getLoginAttempts()`, paginated like `employees`
-  above (`mat-paginator` bound to a `PagedResponse<LoginAttemptItem>` signal,
-  `PAGE_SIZE_OPTIONS`, 1-based backend page vs 0-based `mat-paginator` index,
-  rendered both above and below the table like `employees`); the backend
-  sorts by most recent failure first, with `id` as a stable tiebreaker
-  (`LoginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc`). Table
-  columns: `['username', 'failureCount', 'lastFailureAt', 'lockedUntil',
-  'actions']`. The `testid` (`login-attempts-paginator`) lives only on the
-  bottom instance — same reason `employees-paginator` does — so e2e specs
-  that click into it don't have to disambiguate two matches.
-- **No create, no edit** — this view only ever displays what
-  `LoginAttemptService` already tracks from real login attempts.
-- **Status column**: `isLocked()` compares `lockedUntil` against `Date.now()`
-  client-side (the backend doesn't send a precomputed boolean) so a lock that
-  has since expired shows as inactive without needing a reload.
-- **Delete** goes through a confirm dialog
-  (`delete-login-attempt-dialog.component.ts`, twin of
-  `customer/views/customer-detail/dialogs/delete-customer-dialog.component.ts`)
-  since deleting is the only destructive action in this view — unlike the
-  inline-edit views above there's no "undo via cancel". Deleting clears the
-  row entirely (same effect as a successful login via
-  `LoginAttemptService.recordSuccess()`), which is what actually lifts a lock,
-  not just a `lockedUntil = null` update.
-
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
 
 - `settings-api.service.ts` — mail recipients, static values, and their
-  `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions; also
-  `getLoginAttempts()`/`deleteLoginAttempt()` for the `login-attempts` view.
+  `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions.
 - `shelter-api.service.ts` — `ShelterApiService`, including `reorderShelters()`.
 - `car-api.service.ts` — `CarApiService`, including `reorderCars()`; also used
   by `logistics`' `CarDataResolver` for the read-only `getActiveCars()` side.

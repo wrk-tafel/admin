@@ -69,6 +69,21 @@ export class UserApiService {
     return this.http.get<PermissionsListResponse>('/users/permissions');
   }
 
+  getLoginAttempts(page?: number, pageSize?: number): Observable<PagedResponse<LoginAttemptItem>> {
+    let queryParams = new HttpParams();
+    if (page) {
+      queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
+    }
+    return this.http.get<PagedResponse<LoginAttemptItem>>('/users/login-attempts', {params: queryParams});
+  }
+
+  deleteLoginAttempt(loginAttemptId: number): Observable<void> {
+    return this.http.delete<void>(`/users/login-attempts/${loginAttemptId}`);
+  }
+
 }
 
 export interface ChangePasswordRequest {
@@ -108,4 +123,12 @@ export interface UserPermission {
 
 export interface GeneratedPasswordResponse {
   password: string;
+}
+
+export interface LoginAttemptItem {
+  id: number;
+  username: string;
+  failureCount: number;
+  lastFailureAt: string;
+  lockedUntil: string | null;
 }
