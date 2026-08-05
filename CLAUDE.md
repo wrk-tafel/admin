@@ -112,10 +112,10 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 8 core feature modules, each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 8 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
-- **distribution**: Food distribution events with ticket management, statistics, and post-processors for emails/reports
+- **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management
 - **checkin**: Scanner registration and customer check-in via QR codes
 - **dashboard**: Overview page with real-time updates, registered customers, and distribution state
@@ -146,7 +146,7 @@ The backend uses **Spring Modulith** architecture with 8 core feature modules, e
 
 **Notable Patterns:**
 - Outbox pattern for reliable SSE event publishing (`sse_outbox` table)
-- Post-processor chain for distribution events (DailyReportMailPostProcessor, StatisticMailPostProcessor, etc.)
+- Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
 - Base entities with change tracking (created/updated timestamps, employee references)
@@ -230,7 +230,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Unit tests: Named `*Test.kt` in `src/test/kotlin/`
 - Integration tests: Named `*IT.kt` (use Testcontainers for PostgreSQL)
 - Run all tests: `./gradlew :backend:test` (from root)
-- Run specific test: `./gradlew :backend:test --tests "*CustomerServiceTest.createCustomerSuccessful"`
+- Run specific test: `./gradlew :backend:test --tests "*HouseholdServiceTest"`
 - Base test class: `TafelBaseIntegrationTest` sets up test environment
 - Integration tests automatically start PostgreSQL via Testcontainers
 
