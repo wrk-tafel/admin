@@ -408,6 +408,43 @@ describe('CustomerApiService', () => {
     expect(result!.totalCount).toEqual(1);
   });
 
+  it('get customers overview without distributionId', () => {
+    apiService.getCustomersOverview().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/overview'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get customers overview with distributionId', () => {
+    apiService.getCustomersOverview(100).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/overview?distributionId=100'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get customers overview maps new and renewed households to customers', () => {
+    let result;
+    apiService.getCustomersOverview(100).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/overview?distributionId=100'});
+    req.flush({
+      distributionId: 100,
+      distributionStartedAt: '2026-01-01T08:00:00',
+      distributionEndedAt: '2026-01-01T18:00:00',
+      newHouseholds: [{household: mockHousehold, date: '2026-01-01T09:00:00'}],
+      renewedHouseholds: [],
+    });
+    httpMock.verify();
+
+    expect(result!.distributionId).toEqual(100);
+    expect(result!.newCustomers).toHaveLength(1);
+    expect(result!.newCustomers[0].customer.lastname).toEqual('Mustermann');
+    expect(result!.newCustomers[0].date).toEqual('2026-01-01T09:00:00');
+    expect(result!.renewedCustomers).toHaveLength(0);
+  });
+
   it('merge customers without field selections', () => {
     const targetCustomerId = 123;
     const sourceCustomerIds = [456, 789];

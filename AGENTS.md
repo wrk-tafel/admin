@@ -250,6 +250,11 @@ since it lives outside the code you're editing. On every update or regeneration,
   one screenshot covers both — e.g. the in-app "Passwort ändern" page (user menu, any time) and the
   separate standalone forced-password-change page shown right after a login with
   `passwordChangeRequired` are two distinct components/routes, not one.
+- **A change to a part shared across pages — header, footer, or sidebar/navigation — invalidates
+  every screenshot that shows it**, not just the screens the change was made for. Almost every
+  screenshot in this guide includes the sidebar, so check `docs/userguide/images/` broadly and
+  retake whichever ones now show a stale header/footer/sidebar, even in chapters your change didn't
+  otherwise touch.
 - **Cross-chapter markdown links** (e.g. `[Kunden](kunden.md)`) must stay as plain file links in the
   source `.md` files — that's what makes them work on GitHub/in an IDE. Every chapter file's top
   carries an explicit `<a id="kapitel-<name>"></a>` anchor, and any sub-heading another chapter

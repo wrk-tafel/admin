@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lastnameContains
@@ -11,8 +12,11 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
+import at.wrk.tafel.admin.backend.modules.household.HouseholdOverviewItem
+import at.wrk.tafel.admin.backend.modules.household.HouseholdOverviewResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
@@ -33,6 +37,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 class HouseholdService(
@@ -41,6 +46,7 @@ class HouseholdService(
     private val householdPdfService: HouseholdPdfService,
     private val householdConverter: HouseholdConverter,
     private val documentStorageService: DocumentStorageService,
+    private val distributionRepository: DistributionRepository,
 ) {
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -215,6 +221,49 @@ class HouseholdService(
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
             pageSize = pageRequest.pageSize,
+        )
+    }
+
+    /**
+     * "New" and "renewed" households of a distribution, keyed off the same timestamps
+     * `HouseholdConverter` already maintains: `createdAt` for new, `prolongedAt` for a
+     * validity-extending save (see `HouseholdConverter.mapHouseholdToEntity`). A household created
+     * *and* prolonged within the same distribution window shows up in both lists - `prolongedAt` is
+     * only ever set on an update, but a freshly created household can still be updated again before
+     * the distribution ends.
+     */
+    @Transactional(readOnly = true)
+    fun getHouseholdsOverview(distributionId: Long?): HouseholdOverviewResponse {
+        val distribution = if (distributionId != null) {
+            distributionRepository.findById(distributionId).orElse(null)
+                ?: throw NotFoundException("Ausgabe Nr. $distributionId nicht gefunden!")
+        } else {
+            distributionRepository.findFirstByOrderByIdDesc()
+        }
+
+        if (distribution == null) {
+            return HouseholdOverviewResponse(
+                distributionId = null,
+                distributionStartedAt = null,
+                distributionEndedAt = null,
+                newHouseholds = emptyList(),
+                renewedHouseholds = emptyList(),
+            )
+        }
+
+        val fromDate = distribution.startedAt!!
+        val toDate = distribution.endedAt ?: LocalDateTime.now()
+
+        return HouseholdOverviewResponse(
+            distributionId = distribution.id,
+            distributionStartedAt = distribution.startedAt,
+            distributionEndedAt = distribution.endedAt,
+            newHouseholds = householdRepository.findAllByCreatedAtBetween(fromDate, toDate).map {
+                HouseholdOverviewItem(household = householdConverter.mapEntityToHousehold(it), date = it.createdAt!!)
+            },
+            renewedHouseholds = householdRepository.findAllByProlongedAtBetween(fromDate, toDate).map {
+                HouseholdOverviewItem(household = householdConverter.mapEntityToHousehold(it), date = it.prolongedAt!!)
+            },
         )
     }
 

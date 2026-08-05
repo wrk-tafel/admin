@@ -12,6 +12,9 @@ import {CustomerAboveLimitComponent} from './views/customer-above-limit/customer
 import {CustomerAboveLimitDataResolver} from './resolver/customer-above-limit-data-resolver.component';
 import {CustomerMergeComponent} from './views/customer-merge/customer-merge.component';
 import {CustomerMergePreviewResolver} from './resolver/customer-merge-preview-resolver.component';
+import {CustomerOverviewComponent} from './views/customer-overview/customer-overview.component';
+import {CustomerOverviewDataResolver} from './resolver/customer-overview-data-resolver.component';
+import {CustomerOverviewDistributionsResolver} from './resolver/customer-overview-distributions-resolver.component';
 
 export const routes: Routes = [
   {
@@ -50,6 +53,14 @@ export const routes: Routes = [
     component: CustomerAboveLimitComponent,
     resolve: {
       customerAboveLimitData: CustomerAboveLimitDataResolver
+    }
+  },
+  {
+    path: 'uebersicht',
+    component: CustomerOverviewComponent,
+    resolve: {
+      customerOverviewData: CustomerOverviewDataResolver,
+      distributionsData: CustomerOverviewDistributionsResolver
     }
   },
   {

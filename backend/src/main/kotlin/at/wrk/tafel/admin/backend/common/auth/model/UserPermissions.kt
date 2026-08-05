@@ -18,6 +18,7 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
     CUSTOMER("CUSTOMER", "Kundenverwaltung", PermissionCategory.OPERATIONS),
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate", PermissionCategory.ADMINISTRATION),
     CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit", PermissionCategory.ADMINISTRATION),
+    CUSTOMERS_OVERVIEW("CUSTOMERS_OVERVIEW", "Kunden-Übersicht (Neu & Verlängert)", PermissionCategory.ADMINISTRATION),
     LOGISTICS("LOGISTICS", "Transport/Logistik", PermissionCategory.TRANSPORT),
     SCANNER("SCANNER", "Scanner", PermissionCategory.OPERATIONS),
     SETTINGS("SETTINGS", "Einstellungen", PermissionCategory.LEADERSHIP),

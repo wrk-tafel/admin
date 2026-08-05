@@ -52,6 +52,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 100, 'SUPERVISOR');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1011, NOW(), NOW(), 100, 'CUSTOMERS_ABOVE_LIMIT');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1012, NOW(), NOW(), 100, 'CUSTOMERS_OVERVIEW');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -73,6 +75,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2005, NOW(), NOW(), 200, 'CUSTOMER_DUPLICATES');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2006, NOW(), NOW(), 200, 'CUSTOMERS_ABOVE_LIMIT');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2007, NOW(), NOW(), 200, 'CUSTOMERS_OVERVIEW');
 
 -- user: admin
 -- pwd: 12345
@@ -104,6 +108,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3010, NOW(), NOW(), 300, 'SUPERVISOR');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3011, NOW(), NOW(), 300, 'CUSTOMERS_ABOVE_LIMIT');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3012, NOW(), NOW(), 300, 'CUSTOMERS_OVERVIEW');
 
 -- user: scanner1
 -- pwd: 12345
@@ -536,6 +542,34 @@ INSERT INTO distributions_households (id, created_at, updated_at, distribution_i
 VALUES (3, NOW(), NOW(), 100, 102, 3, true, true);
 INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
 VALUES (4, NOW(), NOW(), 100, 103, 4, true, true);
+
+-- a closed, recent distribution + one new and one renewed household so "Kunden-Übersicht" isn't
+-- empty by default - the window is bracketed tightly around "now" so none of this script's other
+-- households (which all share this transaction's NOW() as their own created_at) spill into it
+INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
+VALUES (105, NOW(), NOW(), NOW() - interval '3 hours', NOW() - interval '1 hour', 300, 300, 'Für Kunden-Übersicht Demo-Daten');
+
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (140, NOW() - interval '90 minutes', NOW() - interval '90 minutes', 140, 100, null, 'Neubaugasse', '20', null, null,
+        '1070', 'Wien', '00436601234567', 'neu.kunde@wrk.at', '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (140, NOW() - interval '90 minutes', NOW() - interval '90 minutes', 140, true, 'Julia', 'Neukunde', '1992-02-14', 'FEMALE', 1,
+        'Stadt Wien', 300.00, '2999-12-31', false, false);
+UPDATE households SET main_person_id = 140 WHERE id = 140;
+
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution, prolonged_at)
+values (141, NOW() - interval '400 days', NOW() - interval '400 days', 141, 100, null, 'Landstraßer Hauptstraße', '30', null, null,
+        '1030', 'Wien', '00436607654321', 'verlaengert.kunde@wrk.at', '2999-12-31', 0, NOW() - interval '80 minutes');
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (141, NOW() - interval '400 days', NOW() - interval '400 days', 141, true, 'Stefan', 'Verlaengert', '1978-08-08', 'MALE', 1,
+        'Rotes Kreuz Wien', 450.00, '2999-12-31', false, false);
+UPDATE households SET main_person_id = 141 WHERE id = 141;
 
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
