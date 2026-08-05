@@ -443,7 +443,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.
-- **Ticket System**: Customers receive ticket numbers (1-999) during distributions for organized food collection.
+- **Ticket System**: Customers receive ticket numbers during distributions for organized food collection.
 - **Scanner Integration**: Supports handheld scanners for customer check-in via QR codes.
 - **Real-time Updates**: Dashboard and ticket screen use SSE for live updates without polling.
 
