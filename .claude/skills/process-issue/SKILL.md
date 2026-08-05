@@ -55,34 +55,7 @@ unambiguous, so the slug itself just needs to be recognizable, not exhaustive:
 git checkout -b fix/async-request-not-usable-log-noise-2986
 ```
 
-## 4. Build a plan on Opus, then implement on Sonnet
-
-Do the investigation and planning itself on the Opus model — switch to it first if the session
-isn't already running on Opus. Read the relevant module(s), including any files the issue's
-comments point at, and work out a concrete implementation approach: which files change, what the
-fix/feature actually is, and any real usages/impact you found while investigating (e.g. an
-audit-style issue touching many files should identify which usages are genuinely fine vs. which
-need a change, not just restate the ticket) — this is exactly the kind of judgment call that
-benefits from the stronger model. Since this workflow is fully automated end-to-end (see the top of
-this file), present the plan as a short message rather than blocking on
-`EnterPlanMode`/`ExitPlanMode` (that flow requires live user approval and would stall a
-background/unattended run) — unless the session is already interactively in plan mode for other
-reasons.
-
-Once the plan is settled, do the implementation itself on the Sonnet model specifically — switch to
-it if not already there, regardless of which model did the planning above. The mechanical work of
-writing the change, tests, and fixing lint/type errors doesn't need Opus, and Sonnet is the
-cheaper/faster choice for that phase. If the current session is already running on Sonnet, just
-continue in place — there's no separate "switch" action available in this harness, so don't spawn a
-redundant subagent purely to relabel who's already doing the work. If the session is running on a
-different model, delegate the implementation (steps below through the hand-off) to a subagent via
-the `Agent` tool with `model: "sonnet"`, giving it the plan, the issue context, and everything from
-step 1-3 above so it doesn't have to re-derive it. The same logic applies in reverse for the
-planning phase above: if the session isn't already on Opus, delegate the investigation/planning to
-a subagent via the `Agent` tool with `model: "opus"` before handing its plan to the Sonnet
-implementation phase.
-
-## 5. Implement
+## 4. Implement
 
 Follow this repo's conventions (module boundaries, DTO `Request`/`Response`/`Item`
 suffix rules, Angular signal-based patterns, `@if`/`@for` flow-control syntax, etc.) — read the
@@ -97,7 +70,7 @@ relevant module's existing code before writing new code, don't guess at patterns
   directly related to the code you're touching; otherwise `gh issue create` a separate ticket and
   mention it to the user — don't silently expand this PR's scope.
 
-## 6. Test locally before pushing
+## 5. Test locally before pushing
 
 Run the same checks CI will run, so red checks are rare rather than routine:
 
@@ -112,13 +85,13 @@ and `npm run build-prod`. If the change touches any flow covered by Cypress, ver
 using the `fix-e2e` skill's workflow (it owns the backend-restart-with-`e2e`-profile ritual) rather
 than re-deriving that setup here.
 
-## 7. Commit
+## 6. Commit
 
 Conventional Commits subject, matching the format exactly (lowercase
 description, no trailing period, ≤100 char header, valid `type`) — this is enforced by a commit-msg
 hook, `commitlint`, and `pr-title-lint` in CI, and has been the recurring miss in this repo.
 
-## 8. Push and open the PR
+## 7. Push and open the PR
 
 ```bash
 git push -u origin <branch>
@@ -144,7 +117,7 @@ The PR title itself must pass `pr-title-lint` (same Conventional Commits rule as
 repo squash-merges with the PR title becoming the final commit). The `Closes
 #<issue-number>` line is what auto-closes the issue once the squash commit lands on `main`.
 
-## 9. Hand off to process-pr
+## 8. Hand off to process-pr
 
 Invoke the `process-pr` skill for the PR just opened (Skill tool, skill: `process-pr`, args:
 `<owner>/<repo> <pr-number>`) — it re-reads the diff as a self-review pass, fixes anything it finds,
