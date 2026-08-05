@@ -4,7 +4,7 @@ describe('User Search', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/benutzer/suchen');
+    cy.visit('/benutzer/suchen');
   });
 
   it('search by personnelNumber', () => {

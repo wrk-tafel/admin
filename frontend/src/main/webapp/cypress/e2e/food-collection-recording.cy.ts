@@ -5,7 +5,7 @@ describe('Food Collection Recording', () => {
   beforeEach(() => {
     cy.loginDefault();
     cy.createDistribution();
-    cy.visit('/#/logistik/warenerfassung');
+    cy.visit('/logistik/warenerfassung');
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe('Food Collection Recording', () => {
 
       // Route 2 now has both base data and food items entered, so the dashboard panel should
       // count it as fully recorded and list it by name - other routes (untouched) must not count.
-      cy.visit('/#/');
+      cy.visit('/');
       cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 3');
       cy.byTestId('recorded-route-names').should('have.text', 'Route 2');
     });

@@ -84,7 +84,7 @@ It's reused in two places: embedded as a small live preview inside `TicketScreen
 
 `TicketScreenControlComponent` is the staff control panel: buttons call `DistributionTicketScreenApiService` (`showText`, `showCurrentTicket`, `showPreviousTicket`, `showNextTicket(costContributionPaid)`), each a `POST` that causes the backend to broadcast a new SSE message picked up by every open `TicketScreenComponent`. It uses the newer `@angular/forms/signals` API (`form()`, `FormField`, `required`) for the start-time field rather than classic `FormGroup`.
 
-`openScreenInNewTab()` opens `/#/anmeldung/ticketmonitor` in a new tab via `UrlHelperService.getBaseUrl()` — this is meant to be projected onto a second monitor in the waiting area.
+`openScreenInNewTab()` opens `/anmeldung/ticketmonitor` in a new tab via `UrlHelperService.getBaseUrl()` — this is meant to be projected onto a second monitor in the waiting area.
 
 **Important routing detail:** `TicketScreenFullscreenComponent` is *not* a child of the `anmeldung` route group in `app.routes.ts`. It's registered as its own top-level route (`path: 'anmeldung/ticketmonitor'`, guarded only by the plain `authGuard`), so it requires being logged in but **not** the `SCANNER`/`CHECKIN` permission that gates the rest of this module. That's intentional — the monitor is a public-facing display, and whoever's logged into the kiosk running it may not hold either permission.
 

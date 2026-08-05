@@ -6,7 +6,7 @@ describe('Statistics General', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/statistiken/allgemein');
+    cy.visit('/statistiken/allgemein');
   });
 
   it('defaults to the current year and shows the aggregated data', () => {

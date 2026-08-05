@@ -6,7 +6,7 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/');
+    cy.visit('/');
   });
 
   it('create and stop distribution', () => {

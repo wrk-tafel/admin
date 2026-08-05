@@ -3,7 +3,7 @@ import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 describe('General', () => {
 
   beforeEach(() => {
-    cy.visit('/#/');
+    cy.visit('/');
   });
 
   it('window title correct', () => {
@@ -15,7 +15,7 @@ describe('General', () => {
   });
 
   it('status 404 page visible', () => {
-    cy.visit('/#/invalidpath');
+    cy.visit('/invalidpath');
 
     cy.byTestId('status').should('have.text', '404');
     cy.byTestId('title').should('have.text', 'Seite nicht gefunden');
@@ -25,7 +25,7 @@ describe('General', () => {
   });
 
   it('status 500 page visible', () => {
-    cy.visit('/#/500');
+    cy.visit('/500');
 
     cy.byTestId('status').should('have.text', '500');
     cy.byTestId('title').should('have.text', 'Houston, wir haben ein Problem!');
@@ -37,7 +37,7 @@ describe('General', () => {
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);
-      cy.visit('/#/invalidpath');
+      cy.visit('/invalidpath');
 
       cy.byTestId('status').should('be.visible').and('have.text', '404');
       cy.byTestId('title').should('be.visible').and('have.text', 'Seite nicht gefunden');
@@ -50,7 +50,7 @@ describe('Navigation Progress Bar', () => {
 
   it('shows a top-level loading bar while a resolver-gated page is loading, and hides it once loaded', () => {
     cy.loginDefault();
-    cy.visit('/#/uebersicht');
+    cy.visit('/uebersicht');
 
     // navigate once first so the app is fully settled before triggering the navigation under test
     cy.contains('Kunden suchen').click();

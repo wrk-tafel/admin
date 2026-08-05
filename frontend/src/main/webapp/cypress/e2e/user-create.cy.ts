@@ -7,7 +7,7 @@ describe('User Create', () => {
   });
 
   it('create new user', () => {
-    cy.visit('/#/benutzer/erstellen');
+    cy.visit('/benutzer/erstellen');
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       const username = 'test-username-' + userRandomId;
@@ -28,7 +28,7 @@ describe('User Create', () => {
   });
 
   it('create new user which exists already', () => {
-    cy.visit('/#/benutzer/erstellen');
+    cy.visit('/benutzer/erstellen');
 
     // 1. Intercept the POST request that returns the 409 error
     // Replace '/api/users' with the actual endpoint URL your app uses
@@ -58,7 +58,7 @@ describe('User Create', () => {
   });
 
   it('permissions are grouped by category with a working select-all toggle', () => {
-    cy.visit('/#/benutzer/erstellen');
+    cy.visit('/benutzer/erstellen');
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       const username = 'test-username-' + userRandomId;
@@ -97,7 +97,7 @@ describe('User Create', () => {
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);
-      cy.visit('/#/benutzer/erstellen');
+      cy.visit('/benutzer/erstellen');
 
       cy.byTestId('usernameInput').should('be.visible').type('mobile-test-user');
       cy.byTestId('save-button').should('exist');

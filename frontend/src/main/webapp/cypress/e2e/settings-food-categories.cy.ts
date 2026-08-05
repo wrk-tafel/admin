@@ -4,7 +4,7 @@ describe('Settings - Food Categories', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/lebensmittelkategorien');
+    cy.visit('/einstellungen/lebensmittelkategorien');
   });
 
   it('lists food categories', () => {

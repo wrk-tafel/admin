@@ -20,10 +20,10 @@ import java.nio.charset.StandardCharsets
  *
  * It also acts as the SPA's fallback route: a direct navigation/bookmark/refresh to a client-side
  * route (e.g. "/login", "/kunden/suchen") isn't a real server path, but the router needs it to
- * still resolve to the app shell rather than 404 - Angular's HashLocationStrategy then reads the
- * intended route from the hash once the app has loaded. Static resource requests (real files, all
- * of which have an extension in this build) and api requests are excluded so real 404s stay real
- * 404s.
+ * still resolve to the app shell rather than 404 - Angular's PathLocationStrategy then picks the
+ * intended route back up from the URL itself once the app has loaded. Static resource requests
+ * (real files, all of which have an extension in this build) and api requests are excluded so real
+ * 404s stay real 404s.
  */
 @Controller
 class IndexHtmlController(

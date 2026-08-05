@@ -6,7 +6,7 @@ describe('PasswordChange', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#');
+    cy.visit('/');
   });
 
   it('password mismatch validation', () => {
@@ -70,14 +70,17 @@ describe('PasswordChange', () => {
         password: 'dummy-' + randomNumber,
         passwordRepeat: 'dummy-' + randomNumber,
         passwordChangeRequired: false,
-        permissions: []
+        // Needs at least one permission to pass the dashboard's anyPermission guard - the cy.visit
+        // below is a real page reload (not just an in-app navigation), so the guard genuinely runs
+        // for this freshly-logged-in user rather than reusing an already-authenticated session.
+        permissions: [{key: 'CHECKIN', title: 'Anmeldung'}]
       };
 
       cy.createUser(testUser).then(response => {
         const user = response.body;
 
         cy.login(user.username, testUser.password!);
-        cy.visit('/#');
+        cy.visit('/');
 
         cy.byTestId('usermenu').click();
         cy.byTestId('usermenu-changepassword').click();
@@ -116,9 +119,9 @@ describe('PasswordChange', () => {
         cy.url().should('contain', '/login');
 
         cy.login(user.username, '4wtouCcWWqDJsP');
-        cy.visit('/#');
+        cy.visit('/');
 
-        cy.url().should('contain', '/#');
+        cy.url().should('contain', '/uebersicht');
 
         // expect error for invalid password
         cy.createLoginRequest(user.username, currentPassword, false).then((resp) => {

@@ -4,7 +4,7 @@ describe('Settings - Static Values', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen/statische-werte');
+    cy.visit('/einstellungen/statische-werte');
   });
 
   it('lists static values', () => {
