@@ -55,27 +55,32 @@ unambiguous, so the slug itself just needs to be recognizable, not exhaustive:
 git checkout -b fix/async-request-not-usable-log-noise-2986
 ```
 
-## 4. Build a plan, then implement on Sonnet
+## 4. Build a plan on Opus, then implement on Sonnet
 
-Before writing code, read the relevant module(s) — including any files the issue's comments point
-at — and work out a concrete implementation approach: which files change, what the fix/feature
-actually is, and any real usages/impact you found while investigating (e.g. an audit-style issue
-touching many files should identify which usages are genuinely fine vs. which need a change, not
-just restate the ticket). Since this workflow is fully automated end-to-end (see the top of this
-file), present the plan as a short message rather than blocking on `EnterPlanMode`/`ExitPlanMode`
-(that flow requires live user approval and would stall a background/unattended run) — unless the
-session is already interactively in plan mode for other reasons.
+Do the investigation and planning itself on the Opus model — switch to it first if the session
+isn't already running on Opus. Read the relevant module(s), including any files the issue's
+comments point at, and work out a concrete implementation approach: which files change, what the
+fix/feature actually is, and any real usages/impact you found while investigating (e.g. an
+audit-style issue touching many files should identify which usages are genuinely fine vs. which
+need a change, not just restate the ticket) — this is exactly the kind of judgment call that
+benefits from the stronger model. Since this workflow is fully automated end-to-end (see the top of
+this file), present the plan as a short message rather than blocking on
+`EnterPlanMode`/`ExitPlanMode` (that flow requires live user approval and would stall a
+background/unattended run) — unless the session is already interactively in plan mode for other
+reasons.
 
-Once the plan is settled, do the implementation itself on the Sonnet model specifically (not
-Opus/other), regardless of which model did the planning above — planning benefits from a stronger
-model's judgment on approach/tradeoffs, but the mechanical work of writing the change, tests, and
-fixing lint/type errors doesn't need it, and Sonnet is the cheaper/faster choice for that phase. If
-the current session is already running on Sonnet, just continue in place — there's no separate
-"switch" action available in this harness, so don't spawn a redundant subagent purely to relabel
-who's already doing the work. If the session is running on a different model, delegate the
-implementation (steps below through the hand-off) to a subagent via the `Agent` tool with
-`model: "sonnet"`, giving it the plan, the issue context, and everything from step 1-3 above so it
-doesn't have to re-derive it.
+Once the plan is settled, do the implementation itself on the Sonnet model specifically — switch to
+it if not already there, regardless of which model did the planning above. The mechanical work of
+writing the change, tests, and fixing lint/type errors doesn't need Opus, and Sonnet is the
+cheaper/faster choice for that phase. If the current session is already running on Sonnet, just
+continue in place — there's no separate "switch" action available in this harness, so don't spawn a
+redundant subagent purely to relabel who's already doing the work. If the session is running on a
+different model, delegate the implementation (steps below through the hand-off) to a subagent via
+the `Agent` tool with `model: "sonnet"`, giving it the plan, the issue context, and everything from
+step 1-3 above so it doesn't have to re-derive it. The same logic applies in reverse for the
+planning phase above: if the session isn't already on Opus, delegate the investigation/planning to
+a subagent via the `Agent` tool with `model: "opus"` before handing its plan to the Sonnet
+implementation phase.
 
 ## 5. Implement
 
