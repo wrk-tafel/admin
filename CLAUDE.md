@@ -112,7 +112,7 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 7 core feature modules, each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 8 core feature modules, each with explicit boundaries enforced via `package-info.java` annotations:
 
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management, statistics, and post-processors for emails/reports
@@ -121,7 +121,11 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 - **dashboard**: Overview page with real-time updates, registered customers, and distribution state
 - **reporting**: Statistics exports (CSV), daily reports (PDF), age/country/household distributions
 - **settings**: Application configuration and mail recipient management
-- **base**: Shared utilities (countries, employees, exception handling) - located in `database/model/` not `modules/`
+- **support**: In-app support contact form that files a GitHub issue on the user's behalf
+- **base**: Shared utilities (countries, employees, exception handling, release version). Its
+  entities live in `database/model/base/`, but each utility is also its own `@NamedInterface`
+  submodule under `modules/base/{country,employee,exception,version}/` for other modules to
+  depend on
 
 **Layering Pattern:**
 - Controllers: REST endpoints with `@PreAuthorize` method-level security
@@ -428,6 +432,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
 - `/api/settings`: Application settings
+- `/api/support`: Creates a GitHub issue from an in-app support request
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
 
