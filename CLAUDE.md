@@ -48,6 +48,10 @@ timeout 90 ./gradlew :backend:test --tests "*AdvisoryLockServiceIT"
 
 # Compile only (useful for quick validation)
 ./gradlew :backend:compileKotlin
+
+# Lint / format check (ktlint)
+./gradlew :backend:ktlintCheck
+./gradlew :backend:ktlintFormat
 ```
 
 ### Frontend Development
@@ -83,6 +87,9 @@ npm test -- --include="src/app/common/sse/sse.service.spec.ts"
 
 # Lint code
 npm run lint
+
+# Type-check without emitting (app + spec + cypress configs)
+npm run typecheck
 
 # Run E2E tests (requires backend running on port 8080)
 npm run cy:run-ci
@@ -466,8 +473,15 @@ Frontend proxy configuration: `frontend/src/main/webapp/proxy.conf.json` proxies
 
 This repository includes custom skills for Claude Code in the `.claude/skills/` directory:
 - **fix-e2e**: Skill for debugging and fixing E2E test failures (automated workflow)
+- **process-issue**: Implements a GitHub issue end-to-end (branch, implementation, tests, PR),
+  then hands off to process-pr
+- **process-pr**: Reviews and fixes an already-open PR, then babysits CI/SonarCloud until green
+- **process-dependabot**: Handles Dependabot PRs
+- **cleanup-git**: Repo/branch cleanup workflow
+- **release**: Release workflow
 
-You can invoke these skills using `/fix-e2e` in conversations.
+You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/process-dependabot`,
+`/cleanup-git`, `/release` in conversations.
 
 ## Common Tasks
 
