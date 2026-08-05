@@ -39,7 +39,7 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 | Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
-| Verwaltung | Kunden über dem Limit, Kunden-Duplikate, Statistiken |
+| Verwaltung | Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken |
 
 Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewählt und eine Passwort-Änderung beim ersten Login vorausgewählt.
 

@@ -21,7 +21,7 @@
     </div>
 
     <nav class="py-2 overflow-y-auto grow">
-      @for (item of navItems(); track item.name) {
+      @for (item of navItems(); track item.name + '-' + $index) {
         @if (item.title) {
           @if (!collapsed()) {
             <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold">{{ item.name }}</div>

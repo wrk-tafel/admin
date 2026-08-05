@@ -44,7 +44,7 @@ Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
-- **Kunden**: Kunden suchen, Kunden anlegen, Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
+- **Kunden**: Kunden suchen, Kunden anlegen, sowie unter der aufklappbaren Gruppe "Sonstige": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
 - **Logistik**: Waren-Eingabe
 - **Sonstige**: Benutzer, Statistiken, Einstellungen
 
