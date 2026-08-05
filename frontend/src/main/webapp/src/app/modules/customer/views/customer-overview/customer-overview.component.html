@@ -13,6 +13,7 @@
         <mat-form-field subscriptSizing="dynamic" class="w-full">
           <mat-select testid="overviewDistributionInput" [ngModel]="selectedDistributionId()"
                       (ngModelChange)="onDistributionSelected($event)">
+            <mat-option [value]="undefined" testid="overviewDistributionInput-option-latest">Aktuellste Ausgabe</mat-option>
             @for (distribution of distributionsDataInput()?.items; track trackByDistributionId($index, distribution)) {
               <mat-option [value]="distribution.id" [attr.testid]="'overviewDistributionInput-option-' + distribution.id">
                 {{ distribution.startedAt | date : 'dd.MM.yyyy' }}
