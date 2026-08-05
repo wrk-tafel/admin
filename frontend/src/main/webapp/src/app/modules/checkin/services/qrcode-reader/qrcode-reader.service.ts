@@ -5,14 +5,19 @@ import {Service} from '@angular/core';
 export class QRCodeReaderService {
 
   private readonly reader = new BrowserQRCodeReader(undefined, {
-    delayBetweenScanAttempts: 100,
-    delayBetweenScanSuccess: 100
+    delayBetweenScanAttempts: 250,
+    delayBetweenScanSuccess: 250
   });
   private readonly LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
 
   private videoElementId!: string;
   private successCallback!: (decodedText: string) => void;
   controls?: IScannerControls;
+  // Bumped by stop()/startScanning() so a startScanning() call whose decodeFromVideoDevice()
+  // is still in flight can tell, once it resolves, whether it was superseded (or stopped) in
+  // the meantime and must immediately stop the stream it just opened instead of adopting it -
+  // otherwise that camera stream keeps decoding forever with no reference left to stop it.
+  private operationToken = 0;
 
   async getCameras(): Promise<MediaDeviceInfo[]> {
     try {
@@ -57,6 +62,7 @@ export class QRCodeReaderService {
   }
 
   async stop(): Promise<void> {
+    this.operationToken++;
     if (this.controls) {
       this.controls.stop();
       this.controls = undefined;
@@ -64,11 +70,20 @@ export class QRCodeReaderService {
   }
 
   private async startScanning(cameraId: string): Promise<void> {
-    this.controls = await this.reader.decodeFromVideoDevice(cameraId, this.videoElementId, (result) => {
+    const token = ++this.operationToken;
+    const controls = await this.reader.decodeFromVideoDevice(cameraId, this.videoElementId, (result) => {
       if (result) {
         this.successCallback(result.getText());
       }
     });
+
+    if (token !== this.operationToken) {
+      // stop()/restart() was called again before this camera stream finished starting up -
+      // it's already superseded (or the reader should be stopped), so shut it down right away.
+      controls.stop();
+      return;
+    }
+    this.controls = controls;
   }
 
   private getLastUsedCameraId(): string | null {
