@@ -81,6 +81,33 @@ describe('API error responses', () => {
     });
   });
 
+  // The two below are answered by handlers inherited from Spring's ResponseEntityExceptionHandler,
+  // not by anything this app wrote. They used to come back with the unresolved
+  // "problemDetail.<exception class>" message *code* as detail (and as the problem type), which is
+  // what the SPA puts straight into its error toast - see issue #3008.
+  it('answers an unsupported request method with a german problem detail', () => {
+    cy.loginDefault();
+
+    cy.request({method: 'DELETE', url: '/api/cars', failOnStatusCode: false}).then((response) => {
+      expect(response.status).to.eq(405);
+      // 405 had no message key of its own at all, so the title used to be the raw
+      // "http-error.405.title" key
+      expect(response.body.title).to.eq('Aktion nicht erlaubt');
+      expect(response.body.detail).to.eq('Diese Aktion ist für diese Adresse nicht erlaubt.');
+    });
+  });
+
+  it('answers a path variable of the wrong type with a german problem detail', () => {
+    cy.loginDefault();
+
+    cy.request({method: 'GET', url: '/api/households/not-a-number', failOnStatusCode: false}).then((response) => {
+      expect(response.status).to.eq(400);
+      expect(response.body.title).to.eq('Ungültige Aktion');
+      expect(response.body.detail).to.eq('Die Anfrage war ungültig oder unvollständig.');
+      expect(response.body).to.not.have.property('type');
+    });
+  });
+
 });
 
 describe('Navigation Progress Bar', () => {
