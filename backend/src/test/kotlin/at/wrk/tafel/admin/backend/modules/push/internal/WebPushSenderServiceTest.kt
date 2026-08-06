@@ -56,6 +56,16 @@ internal class WebPushSenderServiceTest {
     }
 
     @Test
+    fun `send reports EXPIRED on a 403 response`() {
+        every { notificationFactory.create(any<Subscription>(), "{}") } returns fakeNotification
+        val pushService = mockk<PushService>()
+        every { pushService.send(fakeNotification) } returns mockResponse(403)
+        val service = WebPushSenderService(pushService, notificationFactory)
+
+        assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
+    }
+
+    @Test
     fun `send reports EXPIRED on a 404 response`() {
         every { notificationFactory.create(any<Subscription>(), "{}") } returns fakeNotification
         val pushService = mockk<PushService>()

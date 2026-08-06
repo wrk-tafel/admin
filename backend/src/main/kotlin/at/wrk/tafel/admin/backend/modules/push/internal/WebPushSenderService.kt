@@ -11,7 +11,15 @@ import org.springframework.stereotype.Service
 enum class PushSendResult {
     SENT,
 
-    /** The push service reported the subscription as gone (404/410) - the caller should delete it. */
+    /**
+     * The subscription is permanently unusable and the caller should delete it: either the push
+     * service reports it as gone (404/410), or it rejected our VAPID key as not matching the one
+     * the subscription was created with (403 - e.g. FCM's "sender ID mismatch", which happens if
+     * the server's VAPID keypair was rotated after the browser subscribed against the old public
+     * key). Retrying a 403 without the subscriber re-subscribing under the current key can never
+     * succeed, so it's treated the same as an expired subscription rather than left to fail
+     * silently forever.
+     */
     EXPIRED,
     FAILED,
 }
@@ -61,7 +69,7 @@ class WebPushSenderService(
             val response = service.send(notification)
             when (val statusCode = response.statusLine.statusCode) {
                 in 200..299 -> PushSendResult.SENT
-                404, 410 -> PushSendResult.EXPIRED
+                403, 404, 410 -> PushSendResult.EXPIRED
                 else -> {
                     logger.warn("Push send to subscription #${subscriptionEntity.id} failed with status $statusCode")
                     PushSendResult.FAILED
