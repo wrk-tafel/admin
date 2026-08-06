@@ -46,11 +46,10 @@ tafeladmin:
     # Drop a file here manually to test the "scanner folder" document picker locally.
     scannerPath: scanner-inbox
   push:
-    # Set a VAPID keypair here to test push notifications locally; generate one with
-    # `openssl ecparam -name prime256v1 -genkey -noout` and base64url-encode the raw private
-    # scalar (32 bytes) / uncompressed public point (65 bytes, 0x04 prefix) - see
-    # TafelAdminPushProperties for the exact encoding. Leave unset otherwise (the endpoint fails
-    # with a clear error).
+    # Set a VAPID keypair here to test push notifications locally - see
+    # TafelAdminPushProperties.vapidPublicKey/vapidPrivateKey for the exact openssl commands to
+    # generate and correctly extract one (the raw key bytes, NOT a base64'd PEM file). Leave
+    # unset otherwise (the endpoint fails with a clear error).
     vapidPublicKey: ~
     vapidPrivateKey: ~
     vapidSubject: ~

@@ -47,11 +47,16 @@ data class TafelAdminStorageProperties(
 
 @ExcludeFromTestCoverage
 data class TafelAdminPushProperties(
-    // A VAPID keypair identifies this server to browser push services; generate once with
-    // `openssl ecparam -name prime256v1 -genkey -noout` and base64url-encode the raw private
-    // scalar (32 bytes) / uncompressed public point (65 bytes, 0x04 prefix). Not set here on
-    // purpose - only mounted in prod via /app/config/config.yml (same reasoning as
-    // TafelAdminSupportProperties.githubToken).
+    // A VAPID keypair identifies this server to browser push services. Both values must be the
+    // RAW key material, base64url-encoded (NOT the PEM file's own base64, which wraps DER/ASN.1
+    // structure around the raw bytes and will fail to decode). Generate and extract with:
+    //
+    //   openssl ecparam -name prime256v1 -genkey -noout -out vapid.pem
+    //   openssl ec -in vapid.pem -outform DER | tail -c +8 | head -c 32 | base64 | tr '+/' '-_' | tr -d '='          # -> vapidPrivateKey (32 raw bytes)
+    //   openssl ec -in vapid.pem -pubout -outform DER | tail -c 65 | base64 | tr '+/' '-_' | tr -d '='               # -> vapidPublicKey (65 raw bytes, 0x04-prefixed uncompressed point)
+    //
+    // Not set here on purpose - only mounted in prod via /app/config/config.yml (same reasoning
+    // as TafelAdminSupportProperties.githubToken).
     val vapidPublicKey: String? = null,
     val vapidPrivateKey: String? = null,
     // Contact address browser push services may use to reach the sender, per RFC 8292 - a mailto:
