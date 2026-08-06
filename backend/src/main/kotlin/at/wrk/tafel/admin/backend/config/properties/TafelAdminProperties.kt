@@ -12,6 +12,7 @@ data class TafelAdminProperties(
     val server: TafelAdminServerProperties = TafelAdminServerProperties(),
     val support: TafelAdminSupportProperties? = null,
     val storage: TafelAdminStorageProperties = TafelAdminStorageProperties(),
+    val push: TafelAdminPushProperties? = null,
 )
 
 @ExcludeFromTestCoverage
@@ -42,4 +43,18 @@ data class TafelAdminStorageProperties(
     // Mount point for a NAS share a physical scanner writes to. Not every environment has one, so
     // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.githubToken).
     val scannerPath: String? = null,
+)
+
+@ExcludeFromTestCoverage
+data class TafelAdminPushProperties(
+    // A VAPID keypair identifies this server to browser push services; generate once with
+    // `openssl ecparam -name prime256v1 -genkey -noout` and base64url-encode the raw private
+    // scalar (32 bytes) / uncompressed public point (65 bytes, 0x04 prefix). Not set here on
+    // purpose - only mounted in prod via /app/config/config.yml (same reasoning as
+    // TafelAdminSupportProperties.githubToken).
+    val vapidPublicKey: String? = null,
+    val vapidPrivateKey: String? = null,
+    // Contact address browser push services may use to reach the sender, per RFC 8292 - a mailto:
+    // URI or an https: URL. Not defaulted since it must be a real, reachable contact.
+    val vapidSubject: String? = null,
 )

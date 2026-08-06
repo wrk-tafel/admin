@@ -19,13 +19,17 @@ Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt ma
 
 ![Login](images/login.jpg)
 
-Über das Benutzer-Icon oben rechts kann das eigene Passwort jederzeit geändert oder man kann sich abmelden.
+Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet oder man kann sich abmelden.
 
 ![Benutzermenü](images/benutzermenue.jpg)
 
 Über **Passwort ändern** gelangt man zu folgender Seite innerhalb der Anwendung:
 
 ![Passwort ändern](images/passwort-aendern.jpg)
+
+Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe beendet wurde (relevant für Benutzer mit einer Leitungs-Berechtigung). Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
+
+![Benachrichtigungen](images/benachrichtigungen.jpg)
 
 Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login oder nach einem von der Verwaltung erzwungenen Passwortwechsel), zeigt das System stattdessen direkt nach der Anmeldung automatisch eine eigene, davon unabhängige Seite – noch bevor die eigentliche Anwendung geöffnet wird:
 

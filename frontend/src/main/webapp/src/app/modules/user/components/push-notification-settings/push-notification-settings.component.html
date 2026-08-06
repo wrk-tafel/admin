@@ -1,0 +1,30 @@
+<mat-card class="shadow-sm">
+  <mat-card-header>
+    <mat-card-title>
+      Push-Benachrichtigungen
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="pt-6">
+    @if (!supported) {
+      <p testid="push-notifications-unsupported">
+        Push-Benachrichtigungen werden von diesem Browser oder Gerät nicht unterstützt.
+      </p>
+    } @else {
+      <div class="flex items-center gap-3">
+        <fa-icon [icon]="enabled() ? faBell : faBellSlash"></fa-icon>
+        <mat-slide-toggle
+          testid="push-notifications-toggle"
+          [checked]="enabled()"
+          [disabled]="loading()"
+          (change)="onToggle($event)"
+        >
+          Benachrichtigungen für diesen Browser aktivieren
+        </mat-slide-toggle>
+      </div>
+      <p class="text-sm text-gray-500 mt-2">
+        Du erhältst z. B. eine Benachrichtigung, wenn eine Ausgabe beendet wurde.
+      </p>
+    }
+  </mat-card-content>
+</mat-card>
