@@ -94,6 +94,7 @@ tafeladmin:
   # these defaults only apply to local/dev runs started outside that image.
   version: dev
   buildTime: unknown
+  environmentLabel: ""
   server:
     relativeBaseUrl: /
   support:

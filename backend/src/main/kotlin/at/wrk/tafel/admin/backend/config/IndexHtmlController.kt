@@ -24,6 +24,14 @@ import java.nio.charset.StandardCharsets
  * intended route back up from the URL itself once the app has loaded. Static resource requests
  * (real files, all of which have an extension in this build) and api requests are excluded so real
  * 404s stay real 404s.
+ *
+ * Since dev/test/prod share one origin at different path prefixes rather than separate domains,
+ * the static "Tafel Admin" title/manifest name would otherwise be indistinguishable between them -
+ * this also rewrites the page title/apple-mobile-web-app-title and (via [manifest]) the PWA
+ * manifest's name/short_name to include tafeladmin.environmentLabel, so each environment installs
+ * as a clearly separate home-screen app (see #3027). The same value is also written into a
+ * "tafel-environment-label" meta tag so the Angular app can read it client-side (e.g. the login
+ * page badge, see #3032) without needing an authenticated API call.
  */
 @Controller
 class IndexHtmlController(
@@ -45,6 +53,23 @@ class IndexHtmlController(
         return buildIndexResponse()
     }
 
+    @GetMapping("/manifest.webmanifest", produces = ["application/manifest+json"])
+    fun manifest(): ResponseEntity<String> {
+        val resource = resourceLoader.getResource(staticResourceLocation() + "manifest.webmanifest")
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build()
+        }
+
+        val json = resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
+        val templatedJson = json
+            .replace("\"name\": \"Tafel Admin\"", "\"name\": \"$brandedTitle\"")
+            .replace("\"short_name\": \"Tafel Admin\"", "\"short_name\": \"$brandedTitle\"")
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.valueOf("application/manifest+json"))
+            .body(templatedJson)
+    }
+
     private fun buildIndexResponse(): ResponseEntity<String> {
         val resource = resourceLoader.getResource(staticResourceLocation() + "index.html")
         if (!resource.exists()) {
@@ -61,9 +86,24 @@ class IndexHtmlController(
             if (it.endsWith("/")) it else "$it/"
         }
         val templatedHtml = html.replace("<base href=\"/\">", "<base href=\"$relativeBaseUrl\">")
+            .replace("<title>Tafel Admin</title>", "<title>$brandedTitle</title>")
+            .replace(
+                "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin\">",
+                "<meta name=\"apple-mobile-web-app-title\" content=\"$brandedTitle\">",
+            )
+            .replace(
+                "<meta name=\"tafel-environment-label\" content=\"\">",
+                "<meta name=\"tafel-environment-label\" content=\"${tafelAdminProperties.environmentLabel.trim()}\">",
+            )
 
         return ResponseEntity.ok()
             .contentType(MediaType.TEXT_HTML)
             .body(templatedHtml)
     }
+
+    private val brandedTitle: String
+        get() {
+            val label = tafelAdminProperties.environmentLabel.trim()
+            return if (label.isEmpty()) "Tafel Admin" else "Tafel Admin ($label)"
+        }
 }

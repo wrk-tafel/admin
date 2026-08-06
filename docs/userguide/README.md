@@ -19,6 +19,10 @@ Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt ma
 
 ![Login](images/login.jpg)
 
+Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlich eine Umgebungskennzeichnung (z. B. "DEV" oder "TEST") angezeigt, damit diese optisch klar von der Produktivumgebung unterscheidbar sind. Auf der Produktivumgebung bleibt diese Kennzeichnung wie oben abgebildet ausgeblendet.
+
+![Login mit Umgebungskennzeichnung](images/login-umgebungskennzeichnung.jpg)
+
 Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet oder man kann sich abmelden.
 
 ![Benutzermenü](images/benutzermenue.jpg)
