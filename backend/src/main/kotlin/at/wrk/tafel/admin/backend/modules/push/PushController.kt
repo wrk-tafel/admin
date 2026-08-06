@@ -18,9 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Any authenticated user may register/unregister their own device - actual delivery is scoped
- * to LEADERSHIP-permission users at send time (see `push.internal.DistributionClosedPushListener`),
- * so a broader audience opting in here is harmless.
+ * Any authenticated user may register/unregister their own device - subscribing here is itself
+ * the opt-in, every subscribed device receives every push (see `push.internal.PushBroadcastService`).
  */
 @RestController
 @RequestMapping("/api/push")

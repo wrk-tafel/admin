@@ -21,7 +21,7 @@ internal class DistributionStartedPushListenerTest {
     private lateinit var distributionRepository: DistributionRepository
 
     @RelaxedMockK
-    private lateinit var leadershipPushNotificationService: LeadershipPushNotificationService
+    private lateinit var pushBroadcastService: PushBroadcastService
 
     @InjectMockKs
     private lateinit var listener: DistributionStartedPushListener
@@ -37,16 +37,16 @@ internal class DistributionStartedPushListenerTest {
 
         listener.onDistributionStarted(DistributionStartedEvent(distributionId = 999L))
 
-        verify(exactly = 0) { leadershipPushNotificationService.notifyLeadership(any(), any()) }
+        verify(exactly = 0) { pushBroadcastService.broadcast(any(), any()) }
     }
 
     @Test
-    fun `notifies leadership with the distribution's start date`() {
+    fun `broadcasts a push with the distribution's start date`() {
         listener.onDistributionStarted(DistributionStartedEvent(distributionId = testDistributionEntity.id!!))
 
         val dateFormatted = testDistributionEntity.startedAt!!.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         verify {
-            leadershipPushNotificationService.notifyLeadership(
+            pushBroadcastService.broadcast(
                 title = "Ausgabe gestartet",
                 body = "Die Ausgabe vom $dateFormatted wurde gestartet.",
             )

@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter
 
 /**
- * Reacts to [DistributionStartedEvent] by pushing a "distribution started" notification to
- * LEADERSHIP-permission users via [LeadershipPushNotificationService].
+ * Reacts to [DistributionStartedEvent] by pushing a "distribution started" notification to every
+ * subscribed device via [PushBroadcastService].
  */
 @Component
 class DistributionStartedPushListener(
     private val distributionRepository: DistributionRepository,
-    private val leadershipPushNotificationService: LeadershipPushNotificationService,
+    private val pushBroadcastService: PushBroadcastService,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -25,7 +25,7 @@ class DistributionStartedPushListener(
         val distribution = distributionRepository.findByIdOrNull(event.distributionId) ?: return
         val dateFormatted = distribution.startedAt!!.format(DATE_FORMATTER)
 
-        leadershipPushNotificationService.notifyLeadership(
+        pushBroadcastService.broadcast(
             title = "Ausgabe gestartet",
             body = "Die Ausgabe vom $dateFormatted wurde gestartet.",
         )

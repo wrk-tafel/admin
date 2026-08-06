@@ -1,8 +1,8 @@
 /**
  * Web Push notifications (VAPID) - lets a user opt a browser/device in to receiving push
- * notifications, and sends one on events other modules care about. Currently the only event
- * wired up is a distribution closing ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent}),
- * sent to users holding any {@code LEADERSHIP}-category permission.
+ * notifications, and broadcasts one to every subscribed device on events other modules care
+ * about: a distribution starting ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent})
+ * or closing ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent}).
  */
 @org.springframework.modulith.ApplicationModule(
         allowedDependencies = {"distribution", "base::exception"}

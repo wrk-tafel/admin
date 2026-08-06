@@ -12,6 +12,4 @@ interface UserRepository :
     fun findByEmployeePersonnelNumber(personnelNumber: String): UserEntity?
 
     fun existsByUsername(username: String): Boolean
-
-    fun findAllByAuthoritiesNameInAndEnabledTrue(names: Collection<String>): List<UserEntity>
 }
