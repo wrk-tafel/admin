@@ -220,10 +220,10 @@ internal class PushSubscriptionServiceTest {
         every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
         every { pushSubscriptionRepository.saveAndFlush(any()) } answers { firstArg() }
 
-        val result = service.updateLabel(5L, PushSubscriptionLabelRequest(label = "  Kiosk 1  "))
+        val result = service.updateLabel(5L, PushSubscriptionLabelRequest(label = "  Tafel 1  "))
 
-        assertThat(result.label).isEqualTo("Kiosk 1")
-        assertThat(entity.label).isEqualTo("Kiosk 1")
+        assertThat(result.label).isEqualTo("Tafel 1")
+        assertThat(entity.label).isEqualTo("Tafel 1")
     }
 
     @Test

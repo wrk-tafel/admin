@@ -47,7 +47,8 @@
               <button
                 type="button"
                 testid="push-device-rename"
-                matButton="outlined"
+                matButton="filled"
+                class="button-danger"
                 (click)="renameDevice(device)"
                 [attr.aria-label]="'Gerät benennen'"
               >
@@ -56,7 +57,8 @@
               <button
                 type="button"
                 testid="push-device-remove"
-                matButton="outlined"
+                matButton="filled"
+                class="button-danger"
                 (click)="removeDevice(device)"
                 [attr.aria-label]="'Gerät entfernen'"
               >

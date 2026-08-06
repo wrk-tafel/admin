@@ -19,7 +19,7 @@ alter table if exists push_subscriptions
     add if not exists user_agent varchar(500) null;
 
 -- User-defined override for the auto-detected browser/OS label, so a device can be identified by
--- something more meaningful (e.g. "Kiosk Ausgabe 1") than "Chrome unter Windows".
+-- something more meaningful (e.g. "Tafel Ausgabe 1") than "Chrome unter Windows".
 alter table if exists push_subscriptions
     add if not exists label varchar(100) null;
 

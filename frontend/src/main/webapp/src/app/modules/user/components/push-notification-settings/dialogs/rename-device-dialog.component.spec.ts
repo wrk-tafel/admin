@@ -28,12 +28,12 @@ describe('RenameDeviceDialogComponent', () => {
   });
 
   it('pre-fills with the current label', () => {
-    configure('Kiosk 1');
+    configure('Tafel 1');
 
     const fixture = TestBed.createComponent(RenameDeviceDialogComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.labelInput()).toEqual('Kiosk 1');
+    expect(fixture.componentInstance.labelInput()).toEqual('Tafel 1');
   });
 
   it('pre-fills empty when there is no current label', () => {
@@ -49,11 +49,11 @@ describe('RenameDeviceDialogComponent', () => {
     configure(null);
 
     const fixture = TestBed.createComponent(RenameDeviceDialogComponent);
-    fixture.componentInstance.labelInput.set('  Kiosk 1  ');
+    fixture.componentInstance.labelInput.set('  Tafel 1  ');
 
     fixture.componentInstance.save();
 
-    expect(dialogRef.close).toHaveBeenCalledWith('Kiosk 1');
+    expect(dialogRef.close).toHaveBeenCalledWith('Tafel 1');
   });
 
   it('save closes the dialog with null when the label is blank', () => {

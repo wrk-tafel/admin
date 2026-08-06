@@ -75,12 +75,12 @@ internal class PushControllerTest {
 
     @Test
     fun `updateLabel delegates to the service`() {
-        val request = PushSubscriptionLabelRequest(label = "Kiosk 1")
+        val request = PushSubscriptionLabelRequest(label = "Tafel 1")
         val updated = PushSubscriptionItem(
             id = 1,
             endpoint = "https://push.example.com/x",
             userAgent = null,
-            label = "Kiosk 1",
+            label = "Tafel 1",
             createdAt = LocalDateTime.now(),
         )
         every { pushSubscriptionService.updateLabel(1L, request) } returns updated

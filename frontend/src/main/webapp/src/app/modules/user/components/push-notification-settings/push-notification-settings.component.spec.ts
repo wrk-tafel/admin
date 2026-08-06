@@ -150,8 +150,8 @@ describe('PushNotificationSettingsComponent', () => {
 
   describe('renameDevice', () => {
     it('renames the device and reloads the list when the dialog is confirmed', async () => {
-      matDialog.open.mockReturnValue({afterClosed: () => of('Kiosk 1')} as any);
-      pushNotificationService.getDevices.mockResolvedValue([{...testDevice, label: 'Kiosk 1'}]);
+      matDialog.open.mockReturnValue({afterClosed: () => of('Tafel 1')} as any);
+      pushNotificationService.getDevices.mockResolvedValue([{...testDevice, label: 'Tafel 1'}]);
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
@@ -160,7 +160,7 @@ describe('PushNotificationSettingsComponent', () => {
       fixture.componentInstance.renameDevice(testDevice);
       await fixture.whenStable();
 
-      expect(pushNotificationService.renameDevice).toHaveBeenCalledWith(testDevice.id, 'Kiosk 1');
+      expect(pushNotificationService.renameDevice).toHaveBeenCalledWith(testDevice.id, 'Tafel 1');
       expect(toastr.success).toHaveBeenCalled();
     });
 
@@ -178,7 +178,7 @@ describe('PushNotificationSettingsComponent', () => {
     });
 
     it('shows an error when renaming fails', async () => {
-      matDialog.open.mockReturnValue({afterClosed: () => of('Kiosk 1')} as any);
+      matDialog.open.mockReturnValue({afterClosed: () => of('Tafel 1')} as any);
       pushNotificationService.renameDevice.mockRejectedValue(new Error('fail'));
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
@@ -237,8 +237,8 @@ describe('PushNotificationSettingsComponent', () => {
   describe('deviceLabel', () => {
     it('prefers the custom label over the user-agent-derived one', () => {
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
-      const label = (fixture.componentInstance as any).deviceLabel({...testDevice, label: 'Kiosk 1'});
-      expect(label).toEqual('Kiosk 1');
+      const label = (fixture.componentInstance as any).deviceLabel({...testDevice, label: 'Tafel 1'});
+      expect(label).toEqual('Tafel 1');
     });
 
     it('falls back to the user-agent-derived label when no custom label is set', () => {

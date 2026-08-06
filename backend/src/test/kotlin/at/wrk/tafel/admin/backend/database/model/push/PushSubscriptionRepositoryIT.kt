@@ -74,13 +74,13 @@ class PushSubscriptionRepositoryIT : TafelBaseIntegrationTest() {
     @Test
     fun `label survives a persist and reload round-trip`() {
         val user = persistUser()
-        val subscription = persistSubscription(user, label = "Kiosk 1")
+        val subscription = persistSubscription(user, label = "Tafel 1")
         testEntityManager.flush()
         testEntityManager.clear()
 
         val result = pushSubscriptionRepository.findById(subscription.id!!)
 
-        assertThat(result.get().label).isEqualTo("Kiosk 1")
+        assertThat(result.get().label).isEqualTo("Tafel 1")
     }
 
     @Test

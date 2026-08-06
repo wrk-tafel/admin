@@ -168,9 +168,9 @@ describe('PushNotificationService', () => {
 
   describe('renameDevice', () => {
     it('sends the new label to the backend', async () => {
-      await service.renameDevice(7, 'Kiosk 1');
+      await service.renameDevice(7, 'Tafel 1');
 
-      expect(mockPushApiService.updateLabel).toHaveBeenCalledWith(7, {label: 'Kiosk 1'});
+      expect(mockPushApiService.updateLabel).toHaveBeenCalledWith(7, {label: 'Tafel 1'});
     });
 
     it('sends null to clear the label', async () => {
