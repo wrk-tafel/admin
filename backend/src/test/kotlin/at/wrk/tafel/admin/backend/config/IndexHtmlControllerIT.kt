@@ -54,7 +54,10 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
     @BeforeEach
     fun beforeEach() {
         staticDir.mkdirs()
-        indexHtmlFile.writeText("<html><head><base href=\"/\"></head><body>test</body></html>")
+        indexHtmlFile.writeText(
+            "<html><head><base href=\"/\">" +
+                "<meta name=\"tafel-environment-label\" content=\"\"></head><body>test</body></html>",
+        )
         manifestFile.writeText("{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}")
     }
 
@@ -74,7 +77,8 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
         assertThat(response.headers().firstValue("Content-Type").orElse(null)).startsWith(MediaType.TEXT_HTML_VALUE)
         assertThat(response.body()).isEqualTo(
-            "<html><head><base href=\"/tafel-admin/\"></head><body>test</body></html>",
+            "<html><head><base href=\"/tafel-admin/\">" +
+                "<meta name=\"tafel-environment-label\" content=\"DEV\"></head><body>test</body></html>",
         )
     }
 
@@ -92,6 +96,14 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
 
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
         assertThat(response.body()).contains("<base href=\"/tafel-admin/\">")
+    }
+
+    @Test
+    fun `the spa fallback also carries the real configured environment label meta tag`() {
+        val response = get("/login")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(response.body()).contains("<meta name=\"tafel-environment-label\" content=\"DEV\">")
     }
 
     @Test

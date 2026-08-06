@@ -15,6 +15,10 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('not.exist');
   });
 
+  it('environmentLabel hidden when no environment label is configured', () => {
+    cy.byTestId('environmentLabel').should('not.exist');
+  });
+
   it('visiting the app root while not logged in redirects to a plain login without an error message', () => {
     cy.visit('/');
 

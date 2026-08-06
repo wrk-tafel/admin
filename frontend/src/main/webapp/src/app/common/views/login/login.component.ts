@@ -69,6 +69,11 @@ export class LoginComponent {
   passwordVisible = signal(false);
   submitting = signal(false);
 
+  // Set server-side per deployment (empty on prod) - see IndexHtmlController, which templates the
+  // "tafel-environment-label" meta tag into index.html so this doesn't need an unauthenticated API.
+  readonly environmentLabel =
+    document.querySelector('meta[name="tafel-environment-label"]')?.getAttribute('content')?.trim() || '';
+
   public togglePasswordVisibility() {
     this.passwordVisible.update(value => !value);
   }
