@@ -55,8 +55,15 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
     fun beforeEach() {
         staticDir.mkdirs()
         indexHtmlFile.writeText(
-            "<html><head><base href=\"/\">" +
-                "<meta name=\"tafel-environment-label\" content=\"\"></head><body>test</body></html>",
+            """
+            <html>
+                <head>
+                    <base href="/">
+                    <meta name="tafel-environment-label" content="">
+                </head>
+                <body>test</body>
+            </html>
+            """.trimIndent(),
         )
         manifestFile.writeText("{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}")
     }
@@ -77,8 +84,15 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
         assertThat(response.headers().firstValue("Content-Type").orElse(null)).startsWith(MediaType.TEXT_HTML_VALUE)
         assertThat(response.body()).isEqualTo(
-            "<html><head><base href=\"/tafel-admin/\">" +
-                "<meta name=\"tafel-environment-label\" content=\"DEV\"></head><body>test</body></html>",
+            """
+            <html>
+                <head>
+                    <base href="/tafel-admin/">
+                    <meta name="tafel-environment-label" content="DEV">
+                </head>
+                <body>test</body>
+            </html>
+            """.trimIndent(),
         )
     }
 
@@ -103,7 +117,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         val response = get("/login")
 
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
-        assertThat(response.body()).contains("<meta name=\"tafel-environment-label\" content=\"DEV\">")
+        assertThat(response.body()).contains("""<meta name="tafel-environment-label" content="DEV">""")
     }
 
     @Test

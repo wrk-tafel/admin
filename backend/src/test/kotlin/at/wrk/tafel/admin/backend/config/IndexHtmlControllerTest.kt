@@ -101,8 +101,15 @@ class IndexHtmlControllerTest {
     @Test
     fun `tafel-environment-label meta tag is filled with the configured environment label`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
-            "<html><head><base href=\"/\">" +
-                "<meta name=\"tafel-environment-label\" content=\"\"></head><body></body></html>",
+            """
+            <html>
+                <head>
+                    <base href="/">
+                    <meta name="tafel-environment-label" content="">
+                </head>
+                <body></body>
+            </html>
+            """.trimIndent(),
         )
         val controller = IndexHtmlController(
             tafelAdminProperties = TafelAdminProperties(environmentLabel = "DEV"),
@@ -112,16 +119,30 @@ class IndexHtmlControllerTest {
         val response = controller.index()
 
         assertThat(response.body).isEqualTo(
-            "<html><head><base href=\"/\">" +
-                "<meta name=\"tafel-environment-label\" content=\"DEV\"></head><body></body></html>",
+            """
+            <html>
+                <head>
+                    <base href="/">
+                    <meta name="tafel-environment-label" content="DEV">
+                </head>
+                <body></body>
+            </html>
+            """.trimIndent(),
         )
     }
 
     @Test
     fun `tafel-environment-label meta tag left empty when no environment label is configured`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
-            "<html><head><base href=\"/\">" +
-                "<meta name=\"tafel-environment-label\" content=\"\"></head><body></body></html>",
+            """
+            <html>
+                <head>
+                    <base href="/">
+                    <meta name="tafel-environment-label" content="">
+                </head>
+                <body></body>
+            </html>
+            """.trimIndent(),
         )
         val controller = IndexHtmlController(
             tafelAdminProperties = TafelAdminProperties(),
@@ -131,8 +152,15 @@ class IndexHtmlControllerTest {
         val response = controller.index()
 
         assertThat(response.body).isEqualTo(
-            "<html><head><base href=\"/\">" +
-                "<meta name=\"tafel-environment-label\" content=\"\"></head><body></body></html>",
+            """
+            <html>
+                <head>
+                    <base href="/">
+                    <meta name="tafel-environment-label" content="">
+                </head>
+                <body></body>
+            </html>
+            """.trimIndent(),
         )
     }
 
