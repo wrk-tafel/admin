@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -15,7 +15,7 @@ import org.springframework.data.repository.findByIdOrNull
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
-internal class DistributionClosedPushListenerTest {
+internal class DistributionStartedPushListenerTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
@@ -24,7 +24,7 @@ internal class DistributionClosedPushListenerTest {
     private lateinit var leadershipPushNotificationService: LeadershipPushNotificationService
 
     @InjectMockKs
-    private lateinit var listener: DistributionClosedPushListener
+    private lateinit var listener: DistributionStartedPushListener
 
     @BeforeEach
     fun beforeEach() {
@@ -35,20 +35,20 @@ internal class DistributionClosedPushListenerTest {
     fun `unknown distribution id is a no-op`() {
         every { distributionRepository.findByIdOrNull(any()) } returns null
 
-        listener.onDistributionClosed(DistributionClosedEvent(distributionId = 999L))
+        listener.onDistributionStarted(DistributionStartedEvent(distributionId = 999L))
 
         verify(exactly = 0) { leadershipPushNotificationService.notifyLeadership(any(), any()) }
     }
 
     @Test
     fun `notifies leadership with the distribution's start date`() {
-        listener.onDistributionClosed(DistributionClosedEvent(distributionId = testDistributionEntity.id!!))
+        listener.onDistributionStarted(DistributionStartedEvent(distributionId = testDistributionEntity.id!!))
 
         val dateFormatted = testDistributionEntity.startedAt!!.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         verify {
             leadershipPushNotificationService.notifyLeadership(
-                title = "Ausgabe beendet",
-                body = "Die Ausgabe vom $dateFormatted wurde beendet, die Statistiken sind bereit.",
+                title = "Ausgabe gestartet",
+                body = "Die Ausgabe vom $dateFormatted wurde gestartet.",
             )
         }
     }

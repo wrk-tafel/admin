@@ -27,7 +27,7 @@ Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt ma
 
 ![Passwort ändern](images/passwort-aendern.jpg)
 
-Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe beendet wurde (relevant für Benutzer mit einer Leitungs-Berechtigung). Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
+Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde (relevant für Benutzer mit einer Leitungs-Berechtigung). Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
 
 ![Benachrichtigungen](images/benachrichtigungen.jpg)
 
