@@ -52,9 +52,12 @@ data class TafelAdminPushProperties(
     // structure around the raw bytes and will fail to decode). Generate and extract with:
     //
     //   openssl ecparam -name prime256v1 -genkey -noout -out vapid.pem
-    //   openssl ec -in vapid.pem -outform DER | tail -c +8 | head -c 32 | base64 | tr '+/' '-_' | tr -d '='          # -> vapidPrivateKey (32 raw bytes)
-    //   openssl ec -in vapid.pem -pubout -outform DER | tail -c 65 | base64 | tr '+/' '-_' | tr -d '='               # -> vapidPublicKey (65 raw bytes, 0x04-prefixed uncompressed point)
-    //   rm vapid.pem                                                                                                 # both values are now in the config - don't leave the key material on disk
+    //   openssl ec -in vapid.pem -pubout -outform DER | tail -c 65 | base64 -w 0 | tr '+/' '-_' | tr -d '='               # -> vapidPublicKey (65 raw bytes, 0x04-prefixed uncompressed point)
+    //   openssl ec -in vapid.pem -outform DER | tail -c +8 | head -c 32 | base64 -w 0 | tr '+/' '-_' | tr -d '='          # -> vapidPrivateKey (32 raw bytes)
+    //   rm vapid.pem                                                                                                     # both values are now in the config - don't leave the key material on disk
+    //
+    // (`base64 -w 0` disables line-wrapping so the output is a single line, easy to copy-paste as
+    // one value - GNU coreutils' base64 defaults to wrapping at 76 characters otherwise.)
     //
     // Not set here on purpose - only mounted in prod via /app/config/config.yml (same reasoning
     // as TafelAdminSupportProperties.githubToken).
