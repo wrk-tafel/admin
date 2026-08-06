@@ -57,10 +57,35 @@ describe('PushNotificationService', () => {
     await expect(service.isEnabled()).resolves.toBe(false);
   });
 
-  it('isEnabled reflects whether a subscription currently exists', async () => {
+  it('isEnabled is false when there is no active browser subscription', async () => {
+    mockSwPush.subscription = of(null);
+
+    await expect(service.isEnabled()).resolves.toBe(false);
+  });
+
+  it('isEnabled is true without re-registering when the backend already knows the subscription', async () => {
     mockSwPush.subscription = of({endpoint: 'https://push.example.com/x'});
+    mockPushApiService.getSubscriptions.mockReturnValue(of({
+      items: [{id: 42, endpoint: 'https://push.example.com/x'}]
+    }));
 
     await expect(service.isEnabled()).resolves.toBe(true);
+
+    expect(mockPushApiService.createSubscription).not.toHaveBeenCalled();
+  });
+
+  it('isEnabled re-registers a browser subscription the backend has lost track of', async () => {
+    const subscriptionJson = {endpoint: 'https://push.example.com/x', keys: {p256dh: 'p', auth: 'a'}};
+    mockSwPush.subscription = of({endpoint: 'https://push.example.com/x', toJSON: () => subscriptionJson});
+    mockPushApiService.getSubscriptions.mockReturnValue(of({items: []}));
+
+    await expect(service.isEnabled()).resolves.toBe(true);
+
+    expect(mockPushApiService.createSubscription).toHaveBeenCalledWith({
+      endpoint: subscriptionJson.endpoint,
+      p256dhKey: subscriptionJson.keys.p256dh,
+      authKey: subscriptionJson.keys.auth
+    });
   });
 
   it('enable requests a subscription and registers it with the backend', async () => {
