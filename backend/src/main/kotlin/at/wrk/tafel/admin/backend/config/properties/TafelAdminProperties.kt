@@ -54,6 +54,7 @@ data class TafelAdminPushProperties(
     //   openssl ecparam -name prime256v1 -genkey -noout -out vapid.pem
     //   openssl ec -in vapid.pem -outform DER | tail -c +8 | head -c 32 | base64 | tr '+/' '-_' | tr -d '='          # -> vapidPrivateKey (32 raw bytes)
     //   openssl ec -in vapid.pem -pubout -outform DER | tail -c 65 | base64 | tr '+/' '-_' | tr -d '='               # -> vapidPublicKey (65 raw bytes, 0x04-prefixed uncompressed point)
+    //   rm vapid.pem                                                                                                 # both values are now in the config - don't leave the key material on disk
     //
     // Not set here on purpose - only mounted in prod via /app/config/config.yml (same reasoning
     // as TafelAdminSupportProperties.githubToken).
