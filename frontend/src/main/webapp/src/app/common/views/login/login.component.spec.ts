@@ -141,4 +141,32 @@ describe('LoginComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/login/passwortaendern']);
     });
 
+    describe('environmentLabel', () => {
+        afterEach(() => {
+            document.head.querySelector('meta[name="tafel-environment-label"]')?.remove();
+        });
+
+        it('stays empty when the meta tag is missing', () => {
+            const fixture = TestBed.createComponent(LoginComponent);
+            const component = fixture.componentInstance;
+
+            expect(component.environmentLabel).toBe('');
+        });
+
+        it('is read from the tafel-environment-label meta tag and shown beneath the title', () => {
+            const meta = document.createElement('meta');
+            meta.name = 'tafel-environment-label';
+            meta.content = 'DEV';
+            document.head.appendChild(meta);
+
+            const fixture = TestBed.createComponent(LoginComponent);
+            const component = fixture.componentInstance;
+            fixture.detectChanges();
+
+            expect(component.environmentLabel).toBe('DEV');
+            const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="environmentLabel"]');
+            expect(badge.textContent?.trim()).toBe('DEV');
+        });
+    });
+
 });
