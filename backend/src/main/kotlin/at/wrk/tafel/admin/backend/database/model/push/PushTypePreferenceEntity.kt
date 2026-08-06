@@ -5,31 +5,25 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 
-@Entity(name = "PushSubscription")
-@Table(name = "push_subscriptions")
+@Entity(name = "PushTypePreference")
+@Table(name = "push_type_preferences")
 @ExcludeFromTestCoverage
-class PushSubscriptionEntity : BaseChangeTrackingEntity() {
+class PushTypePreferenceEntity : BaseChangeTrackingEntity() {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     var user: UserEntity? = null
 
-    @Column(name = "endpoint")
-    var endpoint: String? = null
+    @Column(name = "notification_type")
+    @Enumerated(EnumType.STRING)
+    var notificationType: PushNotificationType? = null
 
-    @Column(name = "p256dh_key")
-    var p256dhKey: String? = null
-
-    @Column(name = "auth_key")
-    var authKey: String? = null
-
-    @Column(name = "user_agent")
-    var userAgent: String? = null
-
-    @Column(name = "label")
-    var label: String? = null
+    @Column(name = "enabled")
+    var enabled: Boolean = true
 }

@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import io.mockk.every
@@ -19,6 +21,9 @@ internal class PushBroadcastServiceTest {
     private lateinit var pushSubscriptionRepository: PushSubscriptionRepository
 
     @RelaxedMockK
+    private lateinit var pushPreferencesService: PushPreferencesService
+
+    @RelaxedMockK
     private lateinit var webPushSenderService: WebPushSenderService
 
     @RelaxedMockK
@@ -30,16 +35,22 @@ internal class PushBroadcastServiceTest {
     @BeforeEach
     fun beforeEach() {
         every { jsonMapper.writeValueAsString(any()) } returns "payload-json"
+        every { pushPreferencesService.isEnabled(any(), any()) } returns true
+    }
+
+    private fun subscriptionOf(id: Long, userId: Long) = PushSubscriptionEntity().apply {
+        this.id = id
+        user = UserEntity().apply { this.id = userId }
     }
 
     @Test
-    fun `sends a push to every existing subscription`() {
-        val subscription1 = PushSubscriptionEntity().apply { id = 10 }
-        val subscription2 = PushSubscriptionEntity().apply { id = 11 }
+    fun `sends a push to every subscription whose owner allows this notification type`() {
+        val subscription1 = subscriptionOf(id = 10, userId = 100)
+        val subscription2 = subscriptionOf(id = 11, userId = 101)
         every { pushSubscriptionRepository.findAll() } returns listOf(subscription1, subscription2)
         every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
 
-        service.broadcast(title = "title", body = "body")
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
 
         verify { webPushSenderService.send(subscription1, "payload-json") }
         verify { webPushSenderService.send(subscription2, "payload-json") }
@@ -47,23 +58,50 @@ internal class PushBroadcastServiceTest {
     }
 
     @Test
+    fun `skips a subscription whose owner has disabled this notification type`() {
+        val allowed = subscriptionOf(id = 10, userId = 100)
+        val disallowed = subscriptionOf(id = 11, userId = 101)
+        every { pushSubscriptionRepository.findAll() } returns listOf(allowed, disallowed)
+        every { pushPreferencesService.isEnabled(100L, PushNotificationType.DISTRIBUTION_STARTED) } returns true
+        every { pushPreferencesService.isEnabled(101L, PushNotificationType.DISTRIBUTION_STARTED) } returns false
+        every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
+
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
+
+        verify { webPushSenderService.send(allowed, "payload-json") }
+        verify(exactly = 0) { webPushSenderService.send(disallowed, any()) }
+    }
+
+    @Test
+    fun `only checks a user's preference once per broadcast even with several devices`() {
+        val subscription1 = subscriptionOf(id = 10, userId = 100)
+        val subscription2 = subscriptionOf(id = 11, userId = 100)
+        every { pushSubscriptionRepository.findAll() } returns listOf(subscription1, subscription2)
+        every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
+
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
+
+        verify(exactly = 1) { pushPreferencesService.isEnabled(100L, PushNotificationType.DISTRIBUTION_STARTED) }
+    }
+
+    @Test
     fun `removes a subscription the push service reports as expired`() {
-        val expiredSubscription = PushSubscriptionEntity().apply { id = 10 }
+        val expiredSubscription = subscriptionOf(id = 10, userId = 100)
         every { pushSubscriptionRepository.findAll() } returns listOf(expiredSubscription)
         every { webPushSenderService.send(expiredSubscription, any()) } returns PushSendResult.EXPIRED
 
-        service.broadcast(title = "title", body = "body")
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
 
         verify { pushSubscriptionRepository.delete(expiredSubscription) }
     }
 
     @Test
     fun `keeps a subscription the push service reports as merely failed`() {
-        val failedSubscription = PushSubscriptionEntity().apply { id = 10 }
+        val failedSubscription = subscriptionOf(id = 10, userId = 100)
         every { pushSubscriptionRepository.findAll() } returns listOf(failedSubscription)
         every { webPushSenderService.send(failedSubscription, any()) } returns PushSendResult.FAILED
 
-        service.broadcast(title = "title", body = "body")
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
 
         verify(exactly = 0) { pushSubscriptionRepository.delete(any()) }
     }

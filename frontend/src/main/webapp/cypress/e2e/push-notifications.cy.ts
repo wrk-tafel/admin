@@ -24,4 +24,63 @@ describe('PushNotifications', () => {
     cy.byTestId('push-notifications-toggle').should('not.exist');
   });
 
+  // The devices list itself only depends on the backend's /api/push/subscriptions endpoints, not
+  // on a real browser subscription (see the note above on why that can't be driven under
+  // Cypress) - so it's exercised here by seeding a subscription row directly via the API for the
+  // logged-in e2e user, then driving the rename/delete UI against it for real.
+  it('shows a seeded device, allows renaming it, and removing it', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const endpoint = `https://push.example.com/e2e-${randomNumber}`;
+
+      cy.request({
+        method: 'POST',
+        url: '/api/push/subscriptions',
+        body: {
+          endpoint,
+          p256dhKey: `p256dh-${randomNumber}`,
+          authKey: `auth-${randomNumber}`,
+          userAgent: 'Mozilla/5.0 Chrome/128',
+        },
+      }).its('status').should('eq', 201);
+
+      cy.visit('/benachrichtigungen');
+
+      cy.byTestId('push-device').should('have.length', 1);
+      cy.byTestId('push-device-label').should('contain.text', 'Chrome');
+
+      cy.byTestId('push-device-rename').click();
+      cy.byTestId('rename-device-label-input').type('E2E Testgerät');
+      cy.byTestId('okButton').click();
+
+      cy.byTestId('push-device-label').should('contain.text', 'E2E Testgerät');
+
+      cy.byTestId('push-device-remove').click();
+      cy.byTestId('push-device').should('not.exist');
+    });
+  });
+
+  // Unlike the per-device toggle/device list above, preferences are plain backend state - not
+  // gated behind a real browser PushSubscription - so this flow (unlike the "not supported" test)
+  // is fully driveable through the actual UI, no seeding required.
+  it('allows toggling the master switch and an individual notification type', () => {
+    cy.visit('/benachrichtigungen');
+
+    cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
+    cy.byTestId('push-type-preference').should('have.length', 2);
+
+    cy.byTestId('push-master-toggle').click();
+    cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
+    cy.byTestId('push-type-preference').should('not.exist');
+
+    cy.byTestId('push-master-toggle').click();
+    cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
+
+    cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
+    cy.byTestId('push-type-preference-toggle').first().click();
+    cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
+
+    cy.reload();
+    cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
+  });
+
 });

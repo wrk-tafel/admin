@@ -3,11 +3,13 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminPushProperties
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
+import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionLabelRequest
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionRequest
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 internal class PushSubscriptionServiceTest {
@@ -78,9 +81,12 @@ internal class PushSubscriptionServiceTest {
 
     @Test
     fun `getSubscriptionsForCurrentUser returns the current user's subscriptions`() {
+        val createdAt = LocalDateTime.now().minusDays(1)
         val entity = PushSubscriptionEntity().apply {
             id = 1
             endpoint = "https://push.example.com/abc"
+            userAgent = "Mozilla/5.0 Chrome/128"
+            this.createdAt = createdAt
         }
         every { pushSubscriptionRepository.findAllByUserId(testUserEntity.id!!) } returns listOf(entity)
 
@@ -89,6 +95,8 @@ internal class PushSubscriptionServiceTest {
         assertThat(result).hasSize(1)
         assertThat(result.first().id).isEqualTo(1L)
         assertThat(result.first().endpoint).isEqualTo("https://push.example.com/abc")
+        assertThat(result.first().userAgent).isEqualTo("Mozilla/5.0 Chrome/128")
+        assertThat(result.first().createdAt).isEqualTo(createdAt)
     }
 
     @Test
@@ -110,22 +118,27 @@ internal class PushSubscriptionServiceTest {
     }
 
     @Test
-    fun `createSubscription persists a new subscription for the current user`() {
+    fun `createSubscription persists a new subscription owned by the current user`() {
         val request = PushSubscriptionRequest(
             endpoint = "https://push.example.com/new",
             p256dhKey = "p256dh",
             authKey = "auth",
+            userAgent = "Mozilla/5.0 Firefox/130",
         )
         every { pushSubscriptionRepository.findByEndpoint(request.endpoint) } returns null
         val savedSlot = slot<PushSubscriptionEntity>()
         every { pushSubscriptionRepository.saveAndFlush(capture(savedSlot)) } answers {
-            savedSlot.captured.apply { id = 42 }
+            savedSlot.captured.apply {
+                id = 42
+                createdAt = LocalDateTime.now()
+            }
         }
 
         val result = service.createSubscription(request)
 
         assertThat(result.id).isEqualTo(42L)
         assertThat(result.endpoint).isEqualTo(request.endpoint)
+        assertThat(result.userAgent).isEqualTo("Mozilla/5.0 Firefox/130")
         assertThat(savedSlot.captured.user).isEqualTo(testUserEntity)
         assertThat(savedSlot.captured.p256dhKey).isEqualTo("p256dh")
         assertThat(savedSlot.captured.authKey).isEqualTo("auth")
@@ -144,17 +157,21 @@ internal class PushSubscriptionServiceTest {
     }
 
     @Test
-    fun `createSubscription reclaims an existing row for the same endpoint`() {
+    fun `createSubscription refreshes keys and user agent for an existing row`() {
         val existing = PushSubscriptionEntity().apply {
             id = 7
             endpoint = "https://push.example.com/reused"
             p256dhKey = "old-p256dh"
             authKey = "old-auth"
+            userAgent = "old-agent"
+            user = testUserEntity
+            createdAt = LocalDateTime.now()
         }
         val request = PushSubscriptionRequest(
             endpoint = existing.endpoint!!,
             p256dhKey = "new-p256dh",
             authKey = "new-auth",
+            userAgent = "new-agent",
         )
         every { pushSubscriptionRepository.findByEndpoint(request.endpoint) } returns existing
         every { pushSubscriptionRepository.saveAndFlush(any()) } answers { firstArg() }
@@ -164,7 +181,85 @@ internal class PushSubscriptionServiceTest {
         assertThat(result.id).isEqualTo(7L)
         assertThat(existing.p256dhKey).isEqualTo("new-p256dh")
         assertThat(existing.authKey).isEqualTo("new-auth")
+        assertThat(existing.userAgent).isEqualTo("new-agent")
+    }
+
+    @Test
+    fun `createSubscription reassigns ownership of an existing row to whoever is currently logged in`() {
+        val originalOwner = UserEntity().apply { id = 999 }
+        val existing = PushSubscriptionEntity().apply {
+            id = 7
+            endpoint = "https://push.example.com/shared-kiosk"
+            p256dhKey = "old-p256dh"
+            authKey = "old-auth"
+            user = originalOwner
+            createdAt = LocalDateTime.now()
+        }
+        val request = PushSubscriptionRequest(
+            endpoint = existing.endpoint!!,
+            p256dhKey = "new-p256dh",
+            authKey = "new-auth",
+        )
+        every { pushSubscriptionRepository.findByEndpoint(request.endpoint) } returns existing
+        every { pushSubscriptionRepository.saveAndFlush(any()) } answers { firstArg() }
+
+        // Current logged-in user (testUserEntity) is a different person than originalOwner - e.g.
+        // a shared machine where someone else previously enabled push.
+        service.createSubscription(request)
+
         assertThat(existing.user).isEqualTo(testUserEntity)
+    }
+
+    @Test
+    fun `updateLabel sets a custom label on an owned subscription`() {
+        val entity = PushSubscriptionEntity().apply {
+            id = 5
+            endpoint = "https://push.example.com/x"
+            createdAt = LocalDateTime.now()
+        }
+        every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
+        every { pushSubscriptionRepository.saveAndFlush(any()) } answers { firstArg() }
+
+        val result = service.updateLabel(5L, PushSubscriptionLabelRequest(label = "  Kiosk 1  "))
+
+        assertThat(result.label).isEqualTo("Kiosk 1")
+        assertThat(entity.label).isEqualTo("Kiosk 1")
+    }
+
+    @Test
+    fun `updateLabel clears the label when given blank`() {
+        val entity = PushSubscriptionEntity().apply {
+            id = 5
+            endpoint = "https://push.example.com/x"
+            label = "Old label"
+            createdAt = LocalDateTime.now()
+        }
+        every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
+        every { pushSubscriptionRepository.saveAndFlush(any()) } answers { firstArg() }
+
+        val result = service.updateLabel(5L, PushSubscriptionLabelRequest(label = "   "))
+
+        assertThat(result.label).isNull()
+        assertThat(entity.label).isNull()
+    }
+
+    @Test
+    fun `updateLabel fails clearly for an unknown or foreign subscription`() {
+        every { pushSubscriptionRepository.findByIdAndUserId(any(), any()) } returns null
+
+        assertThatThrownBy { service.updateLabel(999L, PushSubscriptionLabelRequest(label = "x")) }
+            .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `updateLabel fails clearly when nobody is logged in`() {
+        every { userRepository.findByUsername(any()) } returns null
+
+        assertThatThrownBy { service.updateLabel(5L, PushSubscriptionLabelRequest(label = "x")) }
+            .isInstanceOf(TafelApiException::class.java)
+            .satisfies({ ex ->
+                assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+            })
     }
 
     @Test

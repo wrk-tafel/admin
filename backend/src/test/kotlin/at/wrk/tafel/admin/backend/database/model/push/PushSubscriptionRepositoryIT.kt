@@ -48,6 +48,53 @@ class PushSubscriptionRepositoryIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `userAgent survives a persist and reload round-trip`() {
+        val user = persistUser()
+        val subscription = persistSubscription(user, userAgent = "Mozilla/5.0 Chrome/128")
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = pushSubscriptionRepository.findById(subscription.id!!)
+
+        assertThat(result.get().userAgent).isEqualTo("Mozilla/5.0 Chrome/128")
+    }
+
+    @Test
+    fun `userAgent is nullable`() {
+        val user = persistUser()
+        val subscription = persistSubscription(user, userAgent = null)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = pushSubscriptionRepository.findById(subscription.id!!)
+
+        assertThat(result.get().userAgent).isNull()
+    }
+
+    @Test
+    fun `label survives a persist and reload round-trip`() {
+        val user = persistUser()
+        val subscription = persistSubscription(user, label = "Kiosk 1")
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = pushSubscriptionRepository.findById(subscription.id!!)
+
+        assertThat(result.get().label).isEqualTo("Kiosk 1")
+    }
+
+    @Test
+    fun `findByIdAndUserId only returns the subscription when it belongs to that user`() {
+        val owner = persistUser()
+        val stranger = persistUser()
+        val subscription = persistSubscription(owner)
+        testEntityManager.flush()
+
+        assertThat(pushSubscriptionRepository.findByIdAndUserId(subscription.id!!, stranger.id!!)).isNull()
+        assertThat(pushSubscriptionRepository.findByIdAndUserId(subscription.id!!, owner.id!!)?.id).isEqualTo(subscription.id)
+    }
+
+    @Test
     fun `deleteByIdAndUserId only deletes when the subscription belongs to that user`() {
         val owner = persistUser()
         val stranger = persistUser()
@@ -84,13 +131,15 @@ class PushSubscriptionRepositoryIT : TafelBaseIntegrationTest() {
         return user
     }
 
-    private fun persistSubscription(user: UserEntity): PushSubscriptionEntity {
+    private fun persistSubscription(user: UserEntity, userAgent: String? = null, label: String? = null): PushSubscriptionEntity {
         val randomNumber = generateRandomLong()
         val subscription = PushSubscriptionEntity().apply {
             this.user = user
             endpoint = "https://push.example.com/$randomNumber"
             p256dhKey = "p256dh-$randomNumber"
             authKey = "auth-$randomNumber"
+            this.userAgent = userAgent
+            this.label = label
         }
         testEntityManager.persist(subscription)
         return subscription

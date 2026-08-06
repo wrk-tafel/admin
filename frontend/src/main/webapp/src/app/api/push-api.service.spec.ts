@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
-import {PushApiService} from './push-api.service';
+import {PushApiService, PushNotificationType} from './push-api.service';
 
 describe('PushApiService', () => {
   let httpMock: HttpTestingController;
@@ -54,6 +54,34 @@ describe('PushApiService', () => {
     const req = httpMock.expectOne({method: 'DELETE', url: '/push/subscriptions/1'});
     req.flush(null);
     httpMock.verify();
+  });
+
+  it('getPreferences', () => {
+    apiService.getPreferences().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/push/preferences'});
+    req.flush({masterEnabled: true, types: []});
+    httpMock.verify();
+  });
+
+  it('updateMasterPreference', () => {
+    apiService.updateMasterPreference({enabled: false}).subscribe();
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/push/preferences/master'});
+    req.flush({masterEnabled: false, types: []});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual({enabled: false});
+  });
+
+  it('updateTypePreference', () => {
+    apiService.updateTypePreference(PushNotificationType.DISTRIBUTION_STARTED, {enabled: false}).subscribe();
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/push/preferences/types/DISTRIBUTION_STARTED'});
+    req.flush({masterEnabled: true, types: []});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual({enabled: false});
   });
 
 });

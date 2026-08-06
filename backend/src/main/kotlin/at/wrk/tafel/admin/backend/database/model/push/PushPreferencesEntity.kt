@@ -9,27 +9,15 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 
-@Entity(name = "PushSubscription")
-@Table(name = "push_subscriptions")
+@Entity(name = "PushPreferences")
+@Table(name = "push_preferences")
 @ExcludeFromTestCoverage
-class PushSubscriptionEntity : BaseChangeTrackingEntity() {
+class PushPreferencesEntity : BaseChangeTrackingEntity() {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     var user: UserEntity? = null
 
-    @Column(name = "endpoint")
-    var endpoint: String? = null
-
-    @Column(name = "p256dh_key")
-    var p256dhKey: String? = null
-
-    @Column(name = "auth_key")
-    var authKey: String? = null
-
-    @Column(name = "user_agent")
-    var userAgent: String? = null
-
-    @Column(name = "label")
-    var label: String? = null
+    @Column(name = "enabled")
+    var enabled: Boolean = true
 }

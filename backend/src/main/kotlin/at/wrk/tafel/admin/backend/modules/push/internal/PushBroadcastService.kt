@@ -1,25 +1,28 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * Sends a push notification to every existing subscription - shared by the various
- * distribution-lifecycle push listeners so the send/prune-expired-subscription logic lives in
- * exactly one place. Subscribing is itself the opt-in (any logged-in user can enable push
- * notifications for their device, see `PushController`/`PushSubscriptionService`), so there's no
- * further recipient filtering here. Deliberately no `@Transactional`: each subscription
- * send/prune below runs as its own auto-transactional repository call - fine at this volume, and
- * avoids the read-only-transaction-vs-delete conflict a single wrapping
- * `@Transactional(readOnly = true)` (as `reporting`'s listener uses) would create once expired
- * subscriptions need deleting.
+ * Sends a push notification of a given [PushNotificationType] to every existing subscription
+ * whose owner currently allows it - shared by the various distribution-lifecycle push listeners
+ * so the send/prune-expired-subscription logic lives in exactly one place. Subscribing is itself
+ * the opt-in (any logged-in user can enable push notifications for their device, see
+ * `PushController`/`PushSubscriptionService`); [PushPreferencesService] then further gates
+ * delivery per subscription owner (master switch plus per-type opt-out). Deliberately no
+ * `@Transactional`: each subscription send/prune below runs as its own auto-transactional
+ * repository call - fine at this volume, and avoids the read-only-transaction-vs-delete conflict a
+ * single wrapping `@Transactional(readOnly = true)` (as `reporting`'s listener uses) would create
+ * once expired subscriptions need deleting.
  */
 @Service
 class PushBroadcastService(
     private val pushSubscriptionRepository: PushSubscriptionRepository,
+    private val pushPreferencesService: PushPreferencesService,
     private val webPushSenderService: WebPushSenderService,
     private val jsonMapper: JsonMapper,
 ) {
@@ -27,14 +30,24 @@ class PushBroadcastService(
         private val logger = LoggerFactory.getLogger(PushBroadcastService::class.java)
     }
 
-    fun broadcast(title: String, body: String) {
+    fun broadcast(type: PushNotificationType, title: String, body: String) {
         val payload = jsonMapper.writeValueAsString(
             PushNotificationPayload(
                 notification = PushNotificationPayloadNotification(title = title, body = body),
             ),
         )
 
+        // Memoized per user within this one broadcast call - a user with several devices would
+        // otherwise trigger the same preference lookup once per device.
+        val preferenceCache = mutableMapOf<Long, Boolean>()
+
         pushSubscriptionRepository.findAll().forEach { subscription ->
+            val userId = subscription.user?.id ?: return@forEach
+            val allowed = preferenceCache.getOrPut(userId) { pushPreferencesService.isEnabled(userId, type) }
+            if (!allowed) {
+                return@forEach
+            }
+
             when (webPushSenderService.send(subscription, payload)) {
                 PushSendResult.SENT -> Unit
                 PushSendResult.EXPIRED -> {

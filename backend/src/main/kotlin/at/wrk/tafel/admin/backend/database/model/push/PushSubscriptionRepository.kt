@@ -8,5 +8,7 @@ interface PushSubscriptionRepository : JpaRepository<PushSubscriptionEntity, Lon
 
     fun findByEndpoint(endpoint: String): PushSubscriptionEntity?
 
+    fun findByIdAndUserId(id: Long, userId: Long): PushSubscriptionEntity?
+
     fun deleteByIdAndUserId(id: Long, userId: Long): Long
 }

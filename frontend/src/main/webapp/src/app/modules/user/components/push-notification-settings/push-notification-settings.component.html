@@ -26,5 +26,86 @@
         Du erhältst z. B. eine Benachrichtigung, wenn eine Ausgabe gestartet oder beendet wurde.
       </p>
     }
+
+    @if (devices().length > 0) {
+      <div class="mt-6">
+        <div class="font-bold mb-2">Deine Geräte</div>
+        @for (device of devices(); track device.id) {
+          <div testid="push-device" [attr.data-device-id]="device.id" class="flex items-center justify-between gap-2 py-2 border-t border-gray-200">
+            <div class="min-w-0">
+              <div testid="push-device-label" class="truncate">
+                {{ deviceLabel(device) }}
+                @if (device.isCurrentDevice) {
+                  <span testid="push-device-current-badge" class="text-xs text-gray-500">(dieses Gerät)</span>
+                }
+              </div>
+              <div class="text-sm text-gray-500">
+                Registriert am {{ device.createdAt | date:'dd.MM.yyyy HH:mm' }}
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                testid="push-device-rename"
+                matButton="outlined"
+                (click)="renameDevice(device)"
+                [attr.aria-label]="'Gerät benennen'"
+              >
+                <fa-icon [icon]="faPen"></fa-icon>
+              </button>
+              <button
+                type="button"
+                testid="push-device-remove"
+                matButton="outlined"
+                (click)="removeDevice(device)"
+                [attr.aria-label]="'Gerät entfernen'"
+              >
+                <fa-icon [icon]="faTrashCan"></fa-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="shadow-sm mt-4">
+  <mat-card-header>
+    <mat-card-title>
+      Benachrichtigungsarten
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="pt-6">
+    <mat-slide-toggle
+      testid="push-master-toggle"
+      [checked]="preferences().masterEnabled"
+      [disabled]="preferencesLoading()"
+      (change)="onMasterToggle($event)"
+    >
+      Alle Benachrichtigungen erhalten
+    </mat-slide-toggle>
+    <p class="text-sm text-gray-500 mt-2">
+      Betrifft alle deine Geräte gemeinsam. Deaktiviert, erhältst du auf keinem Gerät mehr Benachrichtigungen, unabhängig von den Einstellungen unten.
+    </p>
+
+    @if (preferences().masterEnabled) {
+      <div class="mt-6">
+        <div class="font-bold mb-2">Welche Benachrichtigungen möchtest du erhalten?</div>
+        @for (typePreference of preferences().types; track typePreference.type) {
+          <div testid="push-type-preference" class="py-2 border-t border-gray-200">
+            <mat-slide-toggle
+              testid="push-type-preference-toggle"
+              [checked]="typePreference.enabled"
+              [disabled]="preferencesLoading()"
+              (change)="onTypeToggle(typePreference.type, $event)"
+            >
+              {{ typeLabel(typePreference.type) }}
+            </mat-slide-toggle>
+          </div>
+        }
+      </div>
+    }
   </mat-card-content>
 </mat-card>

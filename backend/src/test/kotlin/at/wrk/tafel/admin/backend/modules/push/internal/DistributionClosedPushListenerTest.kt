@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
@@ -37,7 +38,7 @@ internal class DistributionClosedPushListenerTest {
 
         listener.onDistributionClosed(DistributionClosedEvent(distributionId = 999L))
 
-        verify(exactly = 0) { pushBroadcastService.broadcast(any(), any()) }
+        verify(exactly = 0) { pushBroadcastService.broadcast(any(), any(), any()) }
     }
 
     @Test
@@ -47,6 +48,7 @@ internal class DistributionClosedPushListenerTest {
         val dateFormatted = testDistributionEntity.startedAt!!.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         verify {
             pushBroadcastService.broadcast(
+                type = PushNotificationType.DISTRIBUTION_CLOSED,
                 title = "Ausgabe beendet",
                 body = "Die Ausgabe vom $dateFormatted wurde beendet, die Statistiken sind bereit.",
             )

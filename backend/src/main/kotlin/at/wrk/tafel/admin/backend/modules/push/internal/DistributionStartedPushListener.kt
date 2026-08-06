@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
@@ -26,6 +27,7 @@ class DistributionStartedPushListener(
         val dateFormatted = distribution.startedAt!!.format(DATE_FORMATTER)
 
         pushBroadcastService.broadcast(
+            type = PushNotificationType.DISTRIBUTION_STARTED,
             title = "Ausgabe gestartet",
             body = "Die Ausgabe vom $dateFormatted wurde gestartet.",
         )
