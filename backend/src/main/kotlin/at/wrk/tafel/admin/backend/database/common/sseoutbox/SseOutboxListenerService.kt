@@ -9,7 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.postgresql.PGConnection
 import org.postgresql.PGNotification
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties
 import org.springframework.stereotype.Service
 import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
@@ -29,13 +29,17 @@ import java.util.concurrent.CopyOnWriteArrayList
  * The connection is opened directly via [DriverManager] instead of through the app's pooled
  * Hikari `DataSource`: since it's held open for the app's entire lifetime rather than borrowed
  * and returned promptly, going through the pool would permanently occupy one of its connections
- * and trip HikariCP's leak-detection warning.
+ * and trip HikariCP's leak-detection warning. The credentials come from Spring Boot's own
+ * [DataSourceProperties] rather than from `@Value` copies of `spring.datasource.*`, so there is one
+ * definition of where this application's database is, not two that can drift apart.
+ *
+ * It reads them once, in [setupListener], and holds the resulting connection for the process's
+ * lifetime - so pointing a running application at a different database is a restart, no matter that
+ * the properties themselves are re-bound when the config file changes (see `ConfigFileReloadService`).
  */
 @Service
 class SseOutboxListenerService(
-    @param:Value("\${spring.datasource.url}") private val jdbcUrl: String,
-    @param:Value("\${spring.datasource.username}") private val jdbcUsername: String,
-    @param:Value("\${spring.datasource.password}") private val jdbcPassword: String,
+    private val dataSourceProperties: DataSourceProperties,
     private val jsonMapper: JsonMapper,
 ) {
 
@@ -50,7 +54,11 @@ class SseOutboxListenerService(
     @PostConstruct
     fun setupListener() {
         notificationListenerJob = CoroutineScope(Dispatchers.IO).launch {
-            DriverManager.getConnection(jdbcUrl, jdbcUsername, jdbcPassword).use { connection ->
+            DriverManager.getConnection(
+                dataSourceProperties.url,
+                dataSourceProperties.username,
+                dataSourceProperties.password,
+            ).use { connection ->
                 listenOnConnection(connection)
                 val pgConn = connection.unwrap(PGConnection::class.java)
 

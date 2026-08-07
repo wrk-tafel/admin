@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminStorageProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.assertj.core.api.Assertions.assertThat
@@ -16,9 +15,12 @@ internal class ScannerFileServiceTest {
     @TempDir
     private lateinit var tempDir: Path
 
-    private fun serviceWithScannerPath(path: String?, enabled: Boolean = true) = ScannerFileService(
-        TafelAdminProperties(storage = TafelAdminStorageProperties(scannerPath = path, scannerEnabled = enabled)),
-    )
+    private fun propertiesWithScannerPath(path: String?, enabled: Boolean = true) = TafelAdminProperties().apply {
+        storage.scannerPath = path
+        features.scannerFolderEnabled = enabled
+    }
+
+    private fun serviceWithScannerPath(path: String?, enabled: Boolean = true) = ScannerFileService(propertiesWithScannerPath(path, enabled))
 
     @Test
     fun `listFiles returns empty list when scannerPath is not configured`() {
@@ -42,6 +44,24 @@ internal class ScannerFileServiceTest {
     @Test
     fun `isEnabled stays true when the configured directory doesn't exist`() {
         assertThat(serviceWithScannerPath(tempDir.resolve("does-not-exist").toString()).isEnabled()).isTrue()
+    }
+
+    /**
+     * The kill switch is read per call rather than captured at construction, so re-binding the
+     * properties in place - which is what a config file edit does at runtime - takes effect on the
+     * next request rather than on the next restart (see `ConfigFileReloadService`).
+     */
+    @Test
+    fun `isEnabled follows a reloaded configuration`() {
+        val properties = propertiesWithScannerPath(tempDir.toString())
+        val service = ScannerFileService(properties)
+        Files.writeString(tempDir.resolve("scan1.pdf"), "content1")
+        assertThat(service.isEnabled()).isTrue()
+
+        properties.features.scannerFolderEnabled = false
+
+        assertThat(service.isEnabled()).isFalse()
+        assertThat(service.listFiles()).isEmpty()
     }
 
     @Test

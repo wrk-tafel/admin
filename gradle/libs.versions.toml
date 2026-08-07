@@ -3,6 +3,9 @@ kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 spring-boot = "4.1.0"
 spring-modulith = "2.1.0"
+# Release train "Oakwood" - the first line compatible with Spring Boot 4.1. Only spring-cloud-context
+# is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
+spring-cloud = "2025.1.2"
 jackson = "3.2.1"
 # Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
 # used directly by this project. Pinned separately to patch known CVEs in that transitive line.
@@ -57,6 +60,9 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 # Spring Modulith
 spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
 spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
+
+# Spring Cloud
+spring-cloud-context = { module = "org.springframework.cloud:spring-cloud-context" }
 
 # Spring Security
 spring-security-messaging = { module = "org.springframework.security:spring-security-messaging" }
@@ -125,6 +131,7 @@ awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" 
 # BOMs
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
+spring-cloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

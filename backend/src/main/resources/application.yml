@@ -95,6 +95,20 @@ tafeladmin:
   version: dev
   buildTime: unknown
   environmentLabel: ""
+  # Switches for optional features. Each one is a plain on/off an operator flips; how the feature is
+  # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
+  features:
+    scannerFolderEnabled: true
+  # Watches the config files this application was started with - in production the operator-managed
+  # /app/config/config.yml bind-mounted into the container - and re-binds tafeladmin.* whenever one
+  # of them changes, so a setting can be flipped without restarting the container. See
+  # ConfigFileReloadService for which values actually take effect live (the ones read per request)
+  # and which still need a restart (the ones baked into a bean at startup). Setting `enabled: false`
+  # reverts to binding the configuration once at startup and never again; it is read at startup
+  # only, so switching it needs a restart either way.
+  configReload:
+    enabled: true
+    interval: 5s
   server:
     relativeBaseUrl: /
   support:

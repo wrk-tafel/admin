@@ -1,6 +1,19 @@
 package at.wrk.tafel.admin.backend.modules.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+
+/**
+ * The one place the deployment's configuration is turned into what the frontend gets to see, used
+ * both by the endpoint that answers a fresh page load (`ConfigController`) and by the one that
+ * pushes a live config change into pages that are already open (`ConfigChangePublisher`) - so the
+ * two can't drift into reporting different things about the same deployment.
+ */
+fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
+    version = version,
+    buildTime = buildTime,
+    scannerFolderEnabled = scannerFolderAvailable,
+)
 
 @ExcludeFromTestCoverage
 data class ConfigResponse(
@@ -8,7 +21,7 @@ data class ConfigResponse(
     val buildTime: String,
     /**
      * Whether this environment offers the scanner-folder document source (see
-     * `TafelAdminStorageProperties.scannerFolderAvailable`). The frontend hides the "Scanner"
+     * `TafelAdminProperties.scannerFolderAvailable`). The frontend hides the "Scanner"
      * source entirely when false - without it the picker would offer a tab that can never list
      * anything, indistinguishable from "nobody has scanned yet".
      */

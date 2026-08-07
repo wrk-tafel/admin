@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.database.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.flywaydb.core.Flyway
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -12,7 +12,7 @@ import javax.sql.DataSource
 @Configuration
 @ExcludeFromTestCoverage
 class FlywayConfig(
-    @param:Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     @Bean
@@ -20,7 +20,7 @@ class FlywayConfig(
         dataSource: DataSource,
         applicationContext: ApplicationContext,
     ): FlywayMigrationStrategy = FlywayMigrationStrategy { flyway: Flyway ->
-        if (testdataEnabled) {
+        if (tafelAdminProperties.testdata.enabled) {
             flyway.clean()
         }
 

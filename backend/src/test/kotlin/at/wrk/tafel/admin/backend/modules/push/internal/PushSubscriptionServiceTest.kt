@@ -43,13 +43,13 @@ internal class PushSubscriptionServiceTest {
     @RelaxedMockK
     private lateinit var pushBroadcastService: PushBroadcastService
 
-    private val configuredProperties = TafelAdminProperties(
-        push = TafelAdminPushProperties(
-            vapidPublicKey = "public-key",
-            vapidPrivateKey = "private-key",
-            vapidSubject = "mailto:test@localhost",
-        ),
-    )
+    private val configuredProperties = TafelAdminProperties().apply {
+        push = TafelAdminPushProperties().apply {
+            vapidPublicKey = "public-key"
+            vapidPrivateKey = "private-key"
+            vapidSubject = "mailto:test@localhost"
+        }
+    }
 
     private lateinit var service: PushSubscriptionService
 
@@ -77,7 +77,7 @@ internal class PushSubscriptionServiceTest {
     @Test
     fun `getPublicKey fails clearly when push isn't configured`() {
         val unconfiguredService =
-            PushSubscriptionService(pushSubscriptionRepository, userRepository, TafelAdminProperties(push = null), pushBroadcastService)
+            PushSubscriptionService(pushSubscriptionRepository, userRepository, TafelAdminProperties(), pushBroadcastService)
 
         assertThatThrownBy { unconfiguredService.getPublicKey() }
             .isInstanceOf(TafelApiException::class.java)

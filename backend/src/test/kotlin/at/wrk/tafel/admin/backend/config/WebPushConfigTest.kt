@@ -11,44 +11,44 @@ internal class WebPushConfigTest {
 
     @Test
     fun `pushService is null when push isn't configured at all`() {
-        assertThat(config.pushService(TafelAdminProperties(push = null))).isNull()
+        assertThat(config.pushService(TafelAdminProperties())).isNull()
     }
 
     @Test
     fun `pushService is null when the private key is missing`() {
-        val properties = TafelAdminProperties(
-            push = TafelAdminPushProperties(
-                vapidPublicKey = "public-key",
-                vapidPrivateKey = null,
-                vapidSubject = "mailto:test@localhost",
-            ),
-        )
+        val properties = TafelAdminProperties().apply {
+            push = TafelAdminPushProperties().apply {
+                vapidPublicKey = "public-key"
+                vapidPrivateKey = null
+                vapidSubject = "mailto:test@localhost"
+            }
+        }
 
         assertThat(config.pushService(properties)).isNull()
     }
 
     @Test
     fun `pushService is null when the public key is missing`() {
-        val properties = TafelAdminProperties(
-            push = TafelAdminPushProperties(
-                vapidPublicKey = null,
-                vapidPrivateKey = "private-key",
-                vapidSubject = "mailto:test@localhost",
-            ),
-        )
+        val properties = TafelAdminProperties().apply {
+            push = TafelAdminPushProperties().apply {
+                vapidPublicKey = null
+                vapidPrivateKey = "private-key"
+                vapidSubject = "mailto:test@localhost"
+            }
+        }
 
         assertThat(config.pushService(properties)).isNull()
     }
 
     @Test
     fun `pushService is null when the subject is missing`() {
-        val properties = TafelAdminProperties(
-            push = TafelAdminPushProperties(
-                vapidPublicKey = "public-key",
-                vapidPrivateKey = "private-key",
-                vapidSubject = null,
-            ),
-        )
+        val properties = TafelAdminProperties().apply {
+            push = TafelAdminPushProperties().apply {
+                vapidPublicKey = "public-key"
+                vapidPrivateKey = "private-key"
+                vapidSubject = null
+            }
+        }
 
         assertThat(config.pushService(properties)).isNull()
     }
