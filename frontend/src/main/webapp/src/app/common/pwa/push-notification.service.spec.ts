@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {SwPush} from '@angular/service-worker';
 import {PushApiService, PushNotificationType, PushTestResult} from '../../api/push-api.service';
 import {PushDeviceItem, PushNotificationService} from './push-notification.service';
@@ -64,42 +64,61 @@ describe('PushNotificationService', () => {
     expect(service.isSupported()).toBe(true);
   });
 
-  it('isEnabled is false when unsupported', async () => {
+  it('syncSubscription is false when unsupported', async () => {
     mockSwPush.isEnabled = false;
 
-    await expect(service.isEnabled()).resolves.toBe(false);
+    await expect(service.syncSubscription()).resolves.toBe(false);
   });
 
-  it('isEnabled is false when there is no active browser subscription', async () => {
+  it('syncSubscription is false when there is no active browser subscription', async () => {
     mockSwPush.subscription = of(null);
 
-    await expect(service.isEnabled()).resolves.toBe(false);
+    await expect(service.syncSubscription()).resolves.toBe(false);
   });
 
-  it('isEnabled is true without re-registering when the backend already knows the subscription', async () => {
+  it('syncSubscription is true without re-registering when the backend already knows the subscription', async () => {
     mockSwPush.subscription = of({endpoint: 'https://push.example.com/x'});
     mockPushApiService.getSubscriptions.mockReturnValue(of({
       items: [{id: 42, endpoint: 'https://push.example.com/x'}]
     }));
 
-    await expect(service.isEnabled()).resolves.toBe(true);
+    await expect(service.syncSubscription()).resolves.toBe(true);
 
     expect(mockPushApiService.createSubscription).not.toHaveBeenCalled();
   });
 
-  it('isEnabled re-registers a browser subscription the backend has lost track of', async () => {
+  it('syncSubscription re-registers a browser subscription the backend has lost track of', async () => {
     const subscriptionJson = {endpoint: 'https://push.example.com/x', keys: {p256dh: 'p', auth: 'a'}};
     mockSwPush.subscription = of({endpoint: 'https://push.example.com/x', toJSON: () => subscriptionJson});
     mockPushApiService.getSubscriptions.mockReturnValue(of({items: []}));
 
-    await expect(service.isEnabled()).resolves.toBe(true);
+    await expect(service.syncSubscription()).resolves.toBe(true);
 
+    // `true` opts both requests out of the generic error toast - this runs unprompted in the
+    // background, where a failure isn't something the user asked about or can act on.
+    expect(mockPushApiService.getSubscriptions).toHaveBeenCalledWith(true);
     expect(mockPushApiService.createSubscription).toHaveBeenCalledWith({
       endpoint: subscriptionJson.endpoint,
       p256dhKey: subscriptionJson.keys.p256dh,
       authKey: subscriptionJson.keys.auth,
       userAgent: 'test-agent'
-    });
+    }, true);
+  });
+
+  it('syncSubscription reports false instead of rejecting when the backend call fails', async () => {
+    mockSwPush.subscription = of({endpoint: 'https://push.example.com/x'});
+    mockPushApiService.getSubscriptions.mockReturnValue(throwError(() => new Error('offline')));
+
+    await expect(service.syncSubscription()).resolves.toBe(false);
+  });
+
+  it('syncSubscription reports false when re-registering fails', async () => {
+    const subscriptionJson = {endpoint: 'https://push.example.com/x', keys: {p256dh: 'p', auth: 'a'}};
+    mockSwPush.subscription = of({endpoint: 'https://push.example.com/x', toJSON: () => subscriptionJson});
+    mockPushApiService.getSubscriptions.mockReturnValue(of({items: []}));
+    mockPushApiService.createSubscription.mockReturnValue(throwError(() => new Error('rejected')));
+
+    await expect(service.syncSubscription()).resolves.toBe(false);
   });
 
   it('enable requests a subscription and registers it with the backend, including the user agent', async () => {
