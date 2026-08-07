@@ -8,6 +8,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
 import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 import {signal} from '@angular/core';
+import {of} from 'rxjs';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
   let offlineQueueService: {
@@ -42,6 +43,10 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
   const mockFoodCategories = [
     {id: 1, name: 'Category 1'},
     {id: 2, name: 'Category 2'}
+  ];
+  const mockFoodCategoriesWithReturn = [
+    ...mockFoodCategories,
+    {id: 3, name: 'Graue Kisten', returnItem: true}
   ];
   const mockShops = [
     {id: 101, number: 1, name: 'Shop 1', address: 'Address 1'},
@@ -89,7 +94,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(selectShopSpy).toHaveBeenCalledWith(mockShops[1]);
   });
 
-  it('should call api service to save items when save is called', () => {
+  it('should call api service to save items when saveRequests is called', () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
@@ -107,16 +112,10 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.categoryValues.set({1: 3, 2: 5});
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const saveItemsSpy = vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue({
-      subscribe: (observer: any) => {
-        observer.next();
-      }
-    } as any);
+    const saveItemsSpy = vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue(of(undefined));
+    vi.spyOn(apiService, 'saveReturnItemsPerShop').mockReturnValue(of(undefined));
 
-    const toastr = TestBed.inject(TafelToastrService);
-    const toastSpy = vi.spyOn(toastr, 'success');
-
-    component.save();
+    expect(component.saveRequests()).toHaveLength(2);
 
     expect(saveItemsSpy).toHaveBeenCalledWith(
       mockRoute.id,
@@ -128,11 +127,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
         ]
       }
     );
-
-    expect(toastSpy).toHaveBeenCalledWith('Daten wurden gespeichert!');
   });
 
-  it('should show error toast when save fails', () => {
+  it('should send return category counters and free-text rows for the current shop', () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
@@ -143,24 +140,101 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
 
-    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[0]);
+    component.onReturnCategoryValueChange({key: 'Graue Kisten', value: 4});
+    component.addReturnItem('Bananenkartons', 2);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue({
-      subscribe: (observer: any) => {
-        observer.error('Error saving data');
+    vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue(of(undefined));
+    const saveReturnItemsSpy = vi.spyOn(apiService, 'saveReturnItemsPerShop').mockReturnValue(of(undefined));
+
+    component.saveRequests();
+
+    expect(saveReturnItemsSpy).toHaveBeenCalledWith(
+      mockRoute.id,
+      mockShops[0].id,
+      {
+        returnItems: [
+          {description: 'Graue Kisten', amount: 4},
+          {description: 'Bananenkartons', amount: 2}
+        ]
       }
-    } as any);
+    );
+  });
 
-    const toastr = TestBed.inject(TafelToastrService);
-    const toastSpy = vi.spyOn(toastr, 'error');
+  it('should reject a free-text row duplicating a return category', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
 
-    component.save();
+    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
-    expect(toastSpy).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
+    component.currentShop.set(mockShops[0]);
+    component.addReturnItem('graue kisten', 2);
+
+    expect(component.hasInvalidInput()).toBe(true);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue(of(undefined));
+    const saveReturnItemsSpy = vi.spyOn(apiService, 'saveReturnItemsPerShop');
+
+    expect(component.saveRequests()).toHaveLength(1);
+    expect(saveReturnItemsSpy).not.toHaveBeenCalled();
+  });
+
+  it('sends the return items of the shop being left before loading the next one', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    component.currentShop.set(mockShops[0]);
+    component.addReturnItem('Bananenkartons', 2);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const saveReturnItemsSpy = vi.spyOn(apiService, 'saveReturnItemsPerShop').mockReturnValue(of(undefined));
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of({items: [], returnItems: []}) as any);
+
+    component.selectShop(mockShops[1]);
+
+    expect(saveReturnItemsSpy).toHaveBeenCalledWith(
+      mockRoute.id,
+      mockShops[0].id,
+      {returnItems: [{description: 'Bananenkartons', amount: 2}]}
+    );
+    // the newly loaded shop starts from a clean slate
+    expect(component.returnItems.length).toBe(0);
+  });
+
+  it('splits loaded return items into known counters and free-text rows', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of({
+      items: [],
+      returnItems: [
+        {shopId: mockShops[1].id, description: 'Graue Kisten', amount: 5},
+        {shopId: mockShops[1].id, description: 'Bananenkartons', amount: 2}
+      ]
+    }) as any);
+
+    component.selectShop(mockShops[1]);
+
+    expect(component.returnCategoryValues()['Graue Kisten']).toBe(5);
+    expect(component.returnItems.length).toBe(1);
+    expect(component.returnItems.at(0).get('description')!.value).toBe('Bananenkartons');
+    expect(component.returnItems.at(0).get('amount')!.value).toBe(2);
   });
 
   it('should update categoryValues and enqueue the change via the offline queue when onValueChange is called', () => {

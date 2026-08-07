@@ -162,9 +162,14 @@ class DistributionClosedEventListenerTest {
                 name = "Route 1",
                 shops = listOf(
                     ReturnBoxesShop(
+                        name = "1 Billa",
+                        address = "Street 1, 1234, City",
+                        returnBoxes = "3x Graue Kisten",
+                    ),
+                    ReturnBoxesShop(
                         name = "2 Hofer",
                         address = "Street 1, 1234, City",
-                        returnBoxes = "4x Category 2",
+                        returnBoxes = "1x Bananenkartons",
                     ),
                 ),
             ),
@@ -178,7 +183,7 @@ class DistributionClosedEventListenerTest {
                     ReturnBoxesShop(
                         name = "3 Hofer 2",
                         address = "Street 1, 1234, City",
-                        returnBoxes = "5x Category 2",
+                        returnBoxes = "2x Klappkisten schwarz",
                     ),
                 ),
             ),

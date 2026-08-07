@@ -104,8 +104,12 @@ val testFoodCollectionRoute1Entity = FoodCollectionEntity(distribution = testDis
     items = listOf(
         FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 0),
         FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop2, amount = 2),
-        FoodCollectionItemEntity(category = testFoodCategory2, shop = testShop1, amount = 0),
-        FoodCollectionItemEntity(category = testFoodCategory2, shop = testShop2, amount = 4),
+        FoodCollectionItemEntity(category = testFoodCategory3, shop = testShop1, amount = 0),
+        FoodCollectionItemEntity(category = testFoodCategory3, shop = testShop2, amount = 4),
+    )
+    returnItems = listOf(
+        FoodCollectionReturnItemEntity(shop = testShop1, description = "Graue Kisten", amount = 3),
+        FoodCollectionReturnItemEntity(shop = testShop2, description = "Bananenkartons", amount = 1),
     )
 }
 
@@ -113,7 +117,10 @@ val testFoodCollectionRoute2Entity = FoodCollectionEntity(distribution = testDis
     kmStart = 100
     kmEnd = 200
     items = listOf(
-        FoodCollectionItemEntity(category = testFoodCategory2, shop = testShop3, amount = 5),
+        FoodCollectionItemEntity(category = testFoodCategory3, shop = testShop3, amount = 5),
+    )
+    returnItems = listOf(
+        FoodCollectionReturnItemEntity(shop = testShop3, description = "Klappkisten schwarz", amount = 2),
     )
 }
 

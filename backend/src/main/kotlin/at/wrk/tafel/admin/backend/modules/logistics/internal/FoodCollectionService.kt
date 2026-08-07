@@ -57,6 +57,7 @@ class FoodCollectionService(
                 kmStart = foodCollection.kmStart,
                 kmEnd = foodCollection.kmEnd,
                 items = mapItemsEntityToItems(foodCollection.items ?: emptyList()),
+                returnItems = mapReturnItemsEntityToReturnItems(foodCollection.returnItems ?: emptyList()),
             )
         }
     }
@@ -73,6 +74,24 @@ class FoodCollectionService(
             data.carId,
             data.driverId,
             data.coDriverId,
+        )
+    }
+
+    @Transactional
+    fun saveKm(routeId: Long, data: FoodCollectionSaveKmRequest) {
+        val distribution = distributionRepository.getCurrentDistribution()!!
+
+        val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
+        foodCollectionEntity.kmStart = data.kmStart
+        foodCollectionEntity.kmEnd = data.kmEnd
+
+        foodCollectionRepository.save(foodCollectionEntity)
+        log.info(
+            "Saved food collection km for route {} (distribution: {}, kmStart: {}, kmEnd: {})",
+            routeId,
+            distribution.id,
+            data.kmStart,
+            data.kmEnd,
         )
     }
 
@@ -106,6 +125,47 @@ class FoodCollectionService(
         foodCollectionRepository.save(foodCollectionEntity)
     }
 
+    @Transactional
+    fun saveReturnItems(routeId: Long, data: FoodCollectionSaveReturnItemsRequest) {
+        advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
+            val distributionEntity = distributionRepository.getCurrentDistribution()!!
+
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            foodCollectionEntity.returnItems = mapReturnItemsToEntity(data.returnItems)
+
+            foodCollectionRepository.save(foodCollectionEntity)
+        }
+    }
+
+    @Transactional
+    fun saveReturnItemsPerShop(
+        routeId: Long,
+        shopId: Long,
+        data: FoodCollectionSaveReturnItemsPerShopRequest,
+    ) {
+        // the whole element collection is rewritten below, so a concurrent save for another shop
+        // of the same route would drop the rows this one just wrote (and vice versa)
+        advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
+            val distributionEntity = distributionRepository.getCurrentDistribution()!!
+
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            val otherShopsReturnItems = foodCollectionEntity.returnItems
+                ?.filter { it.shop.id != shopId } ?: emptyList()
+            val shopReturnItems = mapReturnItemsToEntity(
+                data.returnItems.map {
+                    FoodCollectionReturnItem(
+                        shopId = shopId,
+                        description = it.description,
+                        amount = it.amount,
+                    )
+                },
+            )
+
+            foodCollectionEntity.returnItems = otherShopsReturnItems + shopReturnItems
+            foodCollectionRepository.save(foodCollectionEntity)
+        }
+    }
+
     @Transactional(readOnly = true)
     fun getItemsPerShop(routeId: Long, shopId: Long): FoodCollectionItemsResponse? {
         val distributionEntity = distributionRepository.getCurrentDistribution()!!
@@ -117,9 +177,13 @@ class FoodCollectionService(
             val items = it.items?.filter { item ->
                 item.shop.id == shopId
             } ?: emptyList()
+            val returnItems = it.returnItems?.filter { returnItem ->
+                returnItem.shop.id == shopId
+            } ?: emptyList()
 
             return FoodCollectionItemsResponse(
                 items = mapItemsEntityToItems(items),
+                returnItems = mapReturnItemsEntityToReturnItems(returnItems),
             )
         }
 
@@ -208,8 +272,6 @@ class FoodCollectionService(
                 ?: throw NotFoundException("Fahrer nicht gefunden!")
             coDriver = employeeRepository.findByIdOrNull(data.coDriverId)
                 ?: throw NotFoundException("Beifahrer nicht gefunden!")
-            kmStart = data.kmStart
-            kmEnd = data.kmEnd
         }
     }
 
@@ -244,6 +306,34 @@ class FoodCollectionService(
         FoodCollectionItem(
             categoryId = it.category.id!!,
             shopId = it.shop.id!!,
+            amount = it.amount,
+        )
+    }
+
+    /**
+     * Only return boxes that were actually counted are stored - a zero amount is the absence of a
+     * row, which is what keeps the free-text list from filling up with empty entries every time a
+     * shop is saved.
+     */
+    private fun mapReturnItemsToEntity(
+        returnItems: List<FoodCollectionReturnItem>,
+    ): List<FoodCollectionReturnItemEntity> = returnItems
+        .filter { it.amount > 0 && it.description.isNotBlank() }
+        .map {
+            FoodCollectionReturnItemEntity(
+                shop = shopRepository.findByIdOrNull(it.shopId)
+                    ?: throw NotFoundException("Filiale nicht gefunden!"),
+                description = it.description.trim(),
+                amount = it.amount,
+            )
+        }
+
+    private fun mapReturnItemsEntityToReturnItems(
+        returnItems: List<FoodCollectionReturnItemEntity>,
+    ): List<FoodCollectionReturnItem> = returnItems.map {
+        FoodCollectionReturnItem(
+            shopId = it.shop.id!!,
+            description = it.description,
             amount = it.amount,
         )
     }

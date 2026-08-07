@@ -90,11 +90,17 @@ DB level — it only governs `modules`-to-`modules` traffic.
 ### Food categories (`FoodCategoriesController`, `internal/FoodCategoryService`)
 - `FoodCategoryEntity` (`food_categories`) has `weightPerUnit` (`BigDecimal`), a `returnItem`
   flag, `sortOrder`, and `enabled`.
-- `returnItem` marks deposit/return-box categories ("Kisten"). `getAllFoodCategories()` explicitly
-  filters these **out** (`it.returnItem != true`) with the comment that they're "out of scope for
-  this admin listing — they will get their own dedicated form later" — and `nextSortOrder()` also
-  only considers non-return items when computing the next slot, so return-item categories and
-  regular categories effectively occupy separate sort-order sequences.
+- `returnItem` marks deposit/return-box categories ("Kisten"). These categories carry **no recorded
+  amounts** — they are only the labels of the pre-filled counters in the recording screen's return
+  section, and what actually gets stored is a `FoodCollectionReturnItemEntity` whose `description`
+  is the category's name (see food collections below). Consequently they also have no
+  `weightPerUnit` worth speaking of and are excluded from the donation-weight export
+  (`reporting.FoodCollectionsExporter`).
+- `getAllFoodCategories()` explicitly filters these **out** (`it.returnItem != true`) with the
+  comment that they're "out of scope for this admin listing — they will get their own dedicated
+  form later" — and `nextSortOrder()` also only considers non-return items when computing the next
+  slot, so return-item categories and regular categories effectively occupy separate sort-order
+  sequences.
 - `getActiveFoodCategories()` (used when actually recording a food collection) does **not**
   filter `returnItem` — only `enabled`. Don't assume the two listing methods return comparable
   sets.
@@ -117,6 +123,20 @@ This is the most involved sub-area — it records what a route's team actually p
   `@ElementCollection`, **not** its own JPA entity — it has no independent identity/repository,
   only exists as part of `FoodCollectionEntity.items`, and is always loaded/replaced together with
   its parent. The DB unique constraint is `(food_category_id, shop_id, food_collection_id)`.
+- **Return boxes are free text, not items.** `FoodCollectionReturnItemEntity` (table
+  `food_collections_return_items`, also an `@Embeddable` `@ElementCollection`) carries
+  `shop` + `description` + `amount` and no category at all, so a team can record a box that isn't
+  in the catalog. The `returnItem`-flagged food categories still exist as master data, but only as
+  the recording screen's pre-filled counters — saving one stores a return item whose `description`
+  is the category's name, exactly like a hand-typed row. Only amounts `> 0` are stored; a zero is
+  the absence of a row. Return boxes are never weighed, so unlike items they have no
+  `calculateWeight()` and contribute nothing to food-amount statistics — their one consumer is the
+  "Retourkisten" mail in `reporting.DistributionClosedEventListener`.
+- **Race condition guard, second instance:** both return-item save paths
+  (`saveReturnItems`/`saveReturnItemsPerShop`) wrap their read-modify-write in
+  `advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS)`. Hibernate
+  rewrites the whole element collection on any change, so a concurrent per-shop save for another
+  shop of the same route would otherwise drop the rows this one just wrote.
 - **Race condition guard:** `patchItem()` wraps its read-modify-write in
   `advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)` (lock id `4000L` in
   `AdvisoryLockKey`). The code comment explains why: concurrent auto-save requests for the same
@@ -125,7 +145,9 @@ This is the most involved sub-area — it records what a route's team actually p
   read-modify-write path against `items`, consider whether it needs the same lock.
   See `database/common/lock/README.md` for the advisory-lock mechanism itself.
 - `kmStart`/`kmEnd` are nullable at the DB level (migration `R__00061_food_collections_nullable`
-  dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded.
+  dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
+  they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data
+  because they're read off the car on return, long after car/driver/co-driver are known.
 - `FoodCollectionItemEntity.calculateWeight()` is where the shop's `foodUnit` and the category's
   `weightPerUnit` come together: if the shop's unit is `KG`, `amount` *is* the weight; otherwise
   weight = `amount * category.weightPerUnit`. Get the shop's unit wrong and every subsequent

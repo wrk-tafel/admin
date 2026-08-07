@@ -178,11 +178,15 @@ class DistributionClosedEventListener(
     }
 
     /**
-     * Builds the route -> shop -> return-category hierarchy for the mail by re-filtering
+     * Builds the route -> shop -> return-box hierarchy for the mail by re-filtering
      * `distribution.foodCollections` at each nesting level (by route, then by route+shop) rather
      * than grouping once, and drops any route/shop with no return items via `null` filtering. Not
      * the cheapest possible approach, but distribution-sized data volumes make this fine, and it
      * keeps each level's filter self-contained.
+     *
+     * Return boxes are free-text (`FoodCollectionEntity.returnItems`), so the shops considered here
+     * come from those rows alone - a shop whose only recorded data is return boxes still has to
+     * show up in the mail.
      */
     private fun createReturnBoxesData(distribution: DistributionEntity): ReturnBoxesDataModel {
         val uniqueRoutes = distribution.foodCollections.mapNotNull { it.route }
@@ -192,30 +196,30 @@ class DistributionClosedEventListener(
         val routes = uniqueRoutes.mapNotNull { route ->
             val uniqueShopsPerRoute = distribution.foodCollections.asSequence()
                 .filter { it.route.id == route.id }
-                .flatMap { it.items ?: emptyList() }
+                .flatMap { it.returnItems ?: emptyList() }
                 .mapNotNull { it.shop }
                 .distinctBy { it.id }
                 .sortedBy { it.name }
                 .toList()
 
             val shops = uniqueShopsPerRoute.mapNotNull { shop ->
-                val uniqueReturnCategories = distribution.foodCollections
+                val uniqueDescriptions = distribution.foodCollections
                     .asSequence()
                     .filter { it.route.id == route.id }
-                    .flatMap { it.items ?: emptyList() }
-                    .mapNotNull { it.category }
-                    .filter { it.returnItem == true }
-                    .distinctBy { it.id }
-                    .sortedBy { it.name }
+                    .flatMap { it.returnItems ?: emptyList() }
+                    .filter { it.shop.id == shop.id }
+                    .map { it.description }
+                    .distinct()
+                    .sorted()
                     .toList()
 
-                val returnBoxes = uniqueReturnCategories.mapNotNull { category ->
-                    val amount = distribution.foodCollections.flatMap { it.items ?: emptyList() }
+                val returnBoxes = uniqueDescriptions.mapNotNull { description ->
+                    val amount = distribution.foodCollections.flatMap { it.returnItems ?: emptyList() }
                         .filter { it.shop.id == shop.id }
-                        .filter { it.category.id == category.id }
+                        .filter { it.description == description }
                         .sumOf { it.amount }
 
-                    if (amount > 0) "${amount}x ${category.name}" else null
+                    if (amount > 0) "${amount}x $description" else null
                 }.joinToString(", ")
 
                 if (returnBoxes.trim().isNotEmpty()) {

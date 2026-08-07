@@ -114,11 +114,110 @@ class FoodCollectionServiceTest {
         )
         assertThat(data.items[2]).isEqualTo(
             FoodCollectionItem(
-                categoryId = 2,
+                categoryId = 3,
                 shopId = 1,
                 amount = 0,
             ),
         )
+        assertThat(data.returnItems).containsExactly(
+            FoodCollectionReturnItem(shopId = testShop1.id!!, description = "Graue Kisten", amount = 3),
+            FoodCollectionReturnItem(shopId = testShop2.id!!, description = "Bananenkartons", amount = 1),
+        )
+    }
+
+    @Test
+    fun `save return items replaces all return items of the route`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionSaveReturnItemsRequest(
+            returnItems = listOf(
+                FoodCollectionReturnItem(shopId = testShop1.id!!, description = "  Graue Kisten  ", amount = 3),
+                FoodCollectionReturnItem(shopId = testShop2.id!!, description = "Bananenkartons", amount = 0),
+                FoodCollectionReturnItem(shopId = testShop2.id!!, description = "Sonstige", amount = 2),
+            ),
+        )
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+        }
+        val existingCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+            id = 2
+            returnItems = listOf(
+                FoodCollectionReturnItemEntity(shop = testShop1, description = "Alte Kisten", amount = 9),
+            )
+        }
+        distributionEntity.foodCollections = mutableListOf(existingCollection)
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
+        every { shopRepository.findByIdOrNull(testShop2.id!!) } returns testShop2
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveReturnItems(routeId = routeId, data = data)
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+
+        // the zero amount is dropped and the description is trimmed
+        val returnItems = foodCollectionSlot.captured.returnItems!!
+        assertThat(returnItems).hasSize(2)
+        assertThat(returnItems[0].shop.id).isEqualTo(testShop1.id)
+        assertThat(returnItems[0].description).isEqualTo("Graue Kisten")
+        assertThat(returnItems[0].amount).isEqualTo(3)
+        assertThat(returnItems[1].description).isEqualTo("Sonstige")
+    }
+
+    @Test
+    fun `save return items with invalid shop`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionSaveReturnItemsRequest(
+            returnItems = listOf(FoodCollectionReturnItem(shopId = 999L, description = "Kiste", amount = 1)),
+        )
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { shopRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<NotFoundException> { service.saveReturnItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale nicht gefunden!")
+    }
+
+    @Test
+    fun `save return items per shop keeps the return items of the other shops`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionSaveReturnItemsPerShopRequest(
+            returnItems = listOf(
+                FoodCollectionReturnItemAmount(description = "Graue Kisten", amount = 5),
+                FoodCollectionReturnItemAmount(description = "Leere Kiste", amount = 0),
+            ),
+        )
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+        }
+        val existingCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+            id = 2
+            returnItems = listOf(
+                FoodCollectionReturnItemEntity(shop = testShop1, description = "Alte Kisten", amount = 9),
+                FoodCollectionReturnItemEntity(shop = testShop2, description = "Bananenkartons", amount = 1),
+            )
+        }
+        distributionEntity.foodCollections = mutableListOf(existingCollection)
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveReturnItemsPerShop(routeId = routeId, shopId = testShop1.id!!, data = data)
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+
+        val returnItems = foodCollectionSlot.captured.returnItems!!
+        assertThat(returnItems).hasSize(2)
+        assertThat(returnItems[0].shop.id).isEqualTo(testShop2.id)
+        assertThat(returnItems[0].description).isEqualTo("Bananenkartons")
+        assertThat(returnItems[1].shop.id).isEqualTo(testShop1.id)
+        assertThat(returnItems[1].description).isEqualTo("Graue Kisten")
+        assertThat(returnItems[1].amount).isEqualTo(5)
     }
 
     @Test
@@ -130,8 +229,6 @@ class FoodCollectionServiceTest {
             carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -150,8 +247,6 @@ class FoodCollectionServiceTest {
             carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -177,8 +272,66 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection.car!!.id).isEqualTo(data.carId)
         assertThat(foodCollection.driver!!.id).isEqualTo(data.driverId)
         assertThat(foodCollection.coDriver!!.id).isEqualTo(data.coDriverId)
-        assertThat(foodCollection.kmStart).isEqualTo(data.kmStart)
-        assertThat(foodCollection.kmEnd).isEqualTo(data.kmEnd)
+    }
+
+    @Test
+    fun `save km`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionSaveKmRequest(kmStart = 1000, kmEnd = 2000)
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+        }
+        val existingCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+            id = 2
+        }
+        distributionEntity.foodCollections = mutableListOf(existingCollection)
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveKm(routeId = routeId, data = data)
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+
+        val foodCollection = foodCollectionSlot.captured
+        assertThat(foodCollection.id).isEqualTo(existingCollection.id)
+        assertThat(foodCollection.kmStart).isEqualTo(1000)
+        assertThat(foodCollection.kmEnd).isEqualTo(2000)
+    }
+
+    @Test
+    fun `save km creates the food collection when the route has none yet`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveKmRequest(kmStart = 1000, kmEnd = 2000)
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveKm(routeId = routeId, data = data)
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+        assertThat(foodCollectionSlot.captured.route!!.id).isEqualTo(testRoute1.id)
+        assertThat(foodCollectionSlot.captured.kmStart).isEqualTo(1000)
+    }
+
+    @Test
+    fun `save km with invalid route`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveKmRequest(kmStart = 1000, kmEnd = 2000)
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns null
+
+        val exception = assertThrows<NotFoundException> { service.saveKm(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Route 123 nicht gefunden!")
     }
 
     @Test
@@ -188,8 +341,6 @@ class FoodCollectionServiceTest {
             carId = testCar1.id!!,
             driverId = testEmployee1.id!!,
             coDriverId = testEmployee2.id!!,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -507,6 +658,10 @@ class FoodCollectionServiceTest {
         val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
             items = existingItems
+            returnItems = listOf(
+                FoodCollectionReturnItemEntity(shop = testShop1, description = "Graue Kisten", amount = 3),
+                FoodCollectionReturnItemEntity(shop = testShop2, description = "Bananenkartons", amount = 1),
+            )
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
@@ -519,6 +674,9 @@ class FoodCollectionServiceTest {
         val result = service.getItemsPerShop(routeId = routeId, shopId = testShop1.id!!)!!
 
         assertThat(result.items).hasSize(2)
+        assertThat(result.returnItems).containsExactly(
+            FoodCollectionReturnItem(shopId = testShop1.id!!, description = "Graue Kisten", amount = 3),
+        )
 
         assertThat(result.items[0].categoryId).isEqualTo(existingItems[0].category!!.id)
         assertThat(result.items[0].shopId).isEqualTo(testShop1.id)
@@ -753,8 +911,6 @@ class FoodCollectionServiceTest {
             carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
@@ -787,8 +943,6 @@ class FoodCollectionServiceTest {
             carId = 999L,
             driverId = testEmployee1.id!!,
             coDriverId = testEmployee2.id!!,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val activeDistribution = testDistributionEntity.apply {
             endedAt = null
@@ -811,8 +965,6 @@ class FoodCollectionServiceTest {
             carId = testCar1.id!!,
             driverId = 999L,
             coDriverId = testEmployee2.id!!,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val activeDistribution = testDistributionEntity.apply {
             endedAt = null
@@ -836,8 +988,6 @@ class FoodCollectionServiceTest {
             carId = testCar1.id!!,
             driverId = testEmployee1.id!!,
             coDriverId = 999L,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
         val activeDistribution = testDistributionEntity.apply {
             endedAt = null

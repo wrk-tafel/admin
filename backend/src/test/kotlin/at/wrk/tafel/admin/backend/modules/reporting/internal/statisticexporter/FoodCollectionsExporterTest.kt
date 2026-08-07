@@ -81,12 +81,12 @@ class FoodCollectionsExporterTest {
         assertThat(rows).isEqualTo(
             listOf(
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)"),
-                listOf("Datum", "Route", "Spender", "Category 1", "Category 3", "Category 2"),
-                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "1", "0", "0", "0"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "20", "0", "80"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
-                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
+                listOf("Datum", "Route", "Spender", "Category 1", "Category 3"),
+                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "1", "0", "0"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "20", "120"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
+                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
             ),
         )
     }
@@ -116,7 +116,7 @@ class FoodCollectionsExporterTest {
                 listOf(
                     "TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)",
                 ),
-                listOf("Datum", "Route", "Spender", "Category 1", "Category 3", "Category 2"),
+                listOf("Datum", "Route", "Spender", "Category 1", "Category 3"),
             ),
         )
     }

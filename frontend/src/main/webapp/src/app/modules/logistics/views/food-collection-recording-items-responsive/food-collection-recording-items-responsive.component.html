@@ -43,21 +43,58 @@
         </div>
       }
     </div>
-    <hr>
-    <div>
+
+    <div class="mt-10 rounded-lg border border-amber-200 bg-amber-50 p-4" testid="return-items-section">
+      <h6 class="font-bold text-amber-900 text-center mb-4">Retourware</h6>
       @for (category of foodCategoriesReturn(); track category?.id) {
         <div class="flex flex-col">
           <div class="text-center">{{ category.name }}</div>
           <div class="mb-4">
-            <tafel-counter-input [testId]="'category-' + category.id"
-                                 [key]="category.id"
-                                 [value]="categoryValues()[category.id]"
-                                 (valueChanged)="onValueChange($event)"></tafel-counter-input>
+            <tafel-counter-input [testId]="'return-category-' + category.id"
+                                 [key]="category.name"
+                                 [value]="returnCategoryValues()[category.name]"
+                                 (valueChanged)="onReturnCategoryValueChange($event)"></tafel-counter-input>
           </div>
         </div>
       }
+
+      <div class="mt-6">
+        <div class="font-bold mb-2">Sonstige Retourware</div>
+        @for (returnItem of returnItems.controls; let returnItemIndex = $index; track returnItem) {
+          <div class="flex items-start gap-2 mb-2" [formGroup]="getReturnItemGroup(returnItemIndex)">
+            <mat-form-field subscriptSizing="dynamic" class="grow">
+              <mat-label>Beschreibung</mat-label>
+              <input matInput type="text" [maxlength]="maxDescriptionLength"
+                     [attr.testid]="'return-item-' + returnItemIndex + '-description-input'"
+                     formControlName="description">
+              @if (getReturnItemGroup(returnItemIndex).get('description')?.errors?.required && getReturnItemGroup(returnItemIndex).get('description')?.touched) {
+                <mat-error>Pflichtfeld</mat-error>
+              }
+              @if (getReturnItemGroup(returnItemIndex).get('description')?.errors?.duplicate) {
+                <mat-error>Beschreibung bereits erfasst</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field subscriptSizing="dynamic" style="min-width: 5em; max-width: 6em;">
+              <mat-label>Menge</mat-label>
+              <input matInput type="number" min="1"
+                     [attr.testid]="'return-item-' + returnItemIndex + '-amount-input'"
+                     formControlName="amount">
+              @if (getReturnItemGroup(returnItemIndex).get('amount')?.invalid && getReturnItemGroup(returnItemIndex).get('amount')?.touched) {
+                <mat-error>Mindestens 1</mat-error>
+              }
+            </mat-form-field>
+            <button type="button" matButton="filled" class="button-danger mt-2"
+                    [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
+                    (click)="removeReturnItem(returnItemIndex)">
+              <fa-icon [icon]="faRemove"></fa-icon>
+            </button>
+          </div>
+        }
+        <button type="button" matButton="filled" testid="add-return-item-button" (click)="addReturnItem()">
+          <fa-icon [icon]="faPlus"></fa-icon>
+          Retourware hinzufügen
+        </button>
+      </div>
     </div>
-    <hr>
-    <button testid="save-items-responsive-button" matButton="filled" (click)="save()">Speichern</button>
   </div>
 }

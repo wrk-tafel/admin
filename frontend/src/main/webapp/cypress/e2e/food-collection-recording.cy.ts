@@ -21,19 +21,13 @@ describe('Food Collection Recording', () => {
       createAndSelectCoDriver(randomNumber);
       selectExistingCoDriver();
 
-      cy.byTestId('save-routedata-button').click();
-
-      cy.byTestId('km-diff-dialog')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('ok-button').click();
-        });
-
-      assertSavedToast();
-
       cy.byTestId('select-items-tab').click();
+      enterKmData();
       fillCategories();
-      cy.byTestId('save-items-button').click();
+      fillReturnCategories();
+      addFreetextReturnItem(20, 'Bananenkartons grün', 3);
+
+      saveAndConfirmKmDiff();
       assertSavedToast();
 
       // check if existing data is filled again
@@ -41,7 +35,13 @@ describe('Food Collection Recording', () => {
       cy.get('mat-option').contains('Route 1').click();
       cy.byTestId('routeInput').click();
       cy.get('mat-option').contains('Route 2').click();
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('kmStartInput').should('have.value', '1000');
+      cy.byTestId('kmEndInput').should('have.value', '2000');
       cy.byTestId('category-1-shop-20-input').should('have.value', '12');
+      cy.byTestId('return-category-11-shop-20-input').should('have.value', '4');
+      cy.byTestId('return-item-0-description-input').should('have.value', 'Bananenkartons grün');
+      cy.byTestId('return-item-0-amount-input').should('have.value', '3');
 
       assertNoEmployeeModalsOpen();
 
@@ -50,6 +50,33 @@ describe('Food Collection Recording', () => {
       cy.visit('/');
       cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 3');
       cy.byTestId('recorded-route-names').should('have.text', 'Route 2');
+    });
+  });
+
+  it('rejects a free-text return item repeating a return category', () => {
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      enterRouteData();
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+
+      cy.byTestId('select-items-tab').click();
+      enterKmData();
+      cy.byTestId('category-1-shop-20-input').clear().type('1');
+      addFreetextReturnItem(20, 'Graue Kisten', 2);
+
+      cy.byTestId('return-item-0-description-input')
+        .parents('mat-form-field')
+        .should('contain.text', 'Beschreibung bereits erfasst');
+
+      // the invalid return items are skipped, everything else on the screen is still saved
+      saveAndConfirmKmDiff();
+      cy.get('.toast-message')
+        .should('be.visible')
+        .should('contain.text', 'Retourware');
+
+      cy.byTestId('return-item-0-remove-button').click();
+      cy.byTestId('return-item-0-description-input').should('not.exist');
     });
   });
 
@@ -65,17 +92,8 @@ describe('Food Collection Recording', () => {
       createAndSelectCoDriver(randomNumber);
       selectExistingCoDriver();
 
-      cy.byTestId('save-routedata-button').click();
-
-      cy.byTestId('km-diff-dialog')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('ok-button').click();
-        });
-
-      assertSavedToast();
-
       cy.byTestId('select-items-tab').click();
+      enterKmData();
 
       // The offline queue coalesces rapid same-field changes into fewer requests than one per
       // keystroke/click if a later change overwrites an earlier one before it's sent - so the
@@ -95,6 +113,13 @@ describe('Food Collection Recording', () => {
         {categoryId: 2, shopId: 20, amount: 2}
       ]);
 
+      // return boxes are not part of the auto-save queue - they go out with the save button
+      cy.byTestId('return-category-11-increment-button').click();
+      addFreetextReturnItem(undefined, 'Bananenkartons grün', 3);
+
+      saveAndConfirmKmDiff();
+      assertSavedToast();
+
       // validate auto-save on input change
       cy.reload();
       cy.byTestId('routeInput').click();
@@ -102,26 +127,22 @@ describe('Food Collection Recording', () => {
       cy.byTestId('select-items-tab').click();
       cy.byTestId('category-1-input').should('have.value', '12');
       cy.byTestId('category-2-input').should('have.value', '2');
-
-      cy.byTestId('save-items-responsive-button').click();
-      assertSavedToast();
-
-      // check if existing data is filled again
-      cy.byTestId('routeInput').click();
-      cy.get('mat-option').contains('Route 1').click();
-      cy.byTestId('routeInput').click();
-      cy.get('mat-option').contains('Route 2').click();
-      cy.byTestId('category-1-input').should('have.value', '12');
-      cy.byTestId('category-2-input').should('have.value', '2');
+      cy.byTestId('return-category-11-input').should('have.value', '1');
+      cy.byTestId('return-item-0-description-input').should('have.value', 'Bananenkartons grün');
+      cy.byTestId('return-item-0-amount-input').should('have.value', '3');
 
       assertNoEmployeeModalsOpen();
 
       // go to next shop
       cy.byTestId('next-shop-button').click();
       cy.byTestId('shop-title').should('have.text', '21 - Denns BioMarkt');
+      // the return boxes belong to the shop that was left, not to this one
+      cy.byTestId('return-category-11-input').should('have.value', '0');
+      cy.byTestId('return-item-0-description-input').should('not.exist');
 
       cy.byTestId('previous-shop-button').click();
       cy.byTestId('shop-title').should('have.text', '20 - Lidl');
+      cy.byTestId('return-category-11-input').should('have.value', '1');
     });
   });
 
@@ -135,17 +156,10 @@ describe('Food Collection Recording', () => {
       createAndSelectCoDriver(randomNumber);
       selectExistingCoDriver();
 
-      cy.byTestId('save-routedata-button').click();
-
-      cy.byTestId('km-diff-dialog')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('ok-button').click();
-        });
-
-      assertSavedToast();
-
       cy.byTestId('select-items-tab').click();
+      enterKmData();
+      saveAndConfirmKmDiff();
+      assertSavedToast();
 
       cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
 
@@ -185,17 +199,10 @@ describe('Food Collection Recording', () => {
       createAndSelectCoDriver(randomNumber);
       selectExistingCoDriver();
 
-      cy.byTestId('save-routedata-button').click();
-
-      cy.byTestId('km-diff-dialog')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('ok-button').click();
-        });
-
-      assertSavedToast();
-
       cy.byTestId('select-items-tab').click();
+      enterKmData();
+      saveAndConfirmKmDiff();
+      assertSavedToast();
 
       goOffline();
       cy.byTestId('category-2-input').type('9');
@@ -232,19 +239,10 @@ describe('Food Collection Recording', () => {
       createAndSelectCoDriver(randomNumber);
       selectExistingCoDriver();
 
-      cy.byTestId('save-routedata-button').click();
-
-      cy.byTestId('km-diff-dialog')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('ok-button').click();
-        });
-
-      assertSavedToast();
-
       cy.byTestId('select-items-tab').click();
+      enterKmData();
       cy.byTestId('category-1-shop-20-input').should('be.visible').clear().type('12');
-      cy.byTestId('save-items-button').click();
+      saveAndConfirmKmDiff();
       assertSavedToast();
     });
   });
@@ -254,8 +252,20 @@ describe('Food Collection Recording', () => {
     cy.get('mat-option').contains('Route 2').click();
     cy.byTestId('carInput').click();
     cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
-    cy.byTestId('kmStartInput').type('1000');
-    cy.byTestId('kmEndInput').type('2000');
+  }
+
+  function enterKmData() {
+    cy.byTestId('kmStartInput').clear().type('1000');
+    cy.byTestId('kmEndInput').clear().type('2000');
+  }
+
+  function saveAndConfirmKmDiff() {
+    cy.byTestId('save-button').click();
+    cy.byTestId('km-diff-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('ok-button').click();
+      });
   }
 
   function selectDriver() {
@@ -328,14 +338,37 @@ describe('Food Collection Recording', () => {
     cy.window().then((win) => win.dispatchEvent(new Event('online')));
   }
 
+  // testdata: food categories 1-10 are regular categories, 11-15 are return-box categories
   function fillCategories() {
     const shopIds = [20, 21];
-    for (let category = 1; category <= 15; category++) {
+    for (let category = 1; category <= 10; category++) {
       for (const shopId of shopIds) {
         const value = category === 1 && shopId === 20 ? '12' : '1';
         cy.byTestId(`category-${category}-shop-${shopId}-input`).clear().type(value);
       }
     }
+  }
+
+  function fillReturnCategories() {
+    const shopIds = [20, 21];
+    for (let category = 11; category <= 15; category++) {
+      for (const shopId of shopIds) {
+        const value = category === 11 && shopId === 20 ? '4' : '1';
+        cy.byTestId(`return-category-${category}-shop-${shopId}-input`).clear().type(value);
+      }
+    }
+  }
+
+  // `shopId` is only picked on the desktop layout - the responsive one always records for the
+  // shop currently shown
+  function addFreetextReturnItem(shopId: number | undefined, description: string, amount: number) {
+    cy.byTestId('add-return-item-button').click();
+    if (shopId !== undefined) {
+      cy.byTestId('return-item-0-shop-input').click();
+      cy.byTestId(`return-item-0-shop-option-${shopId}`).click();
+    }
+    cy.byTestId('return-item-0-description-input').clear().type(description);
+    cy.byTestId('return-item-0-amount-input').clear().type(String(amount));
   }
 
   function assertSavedToast() {

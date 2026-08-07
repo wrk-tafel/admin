@@ -14,4 +14,9 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // serializes scanner registration's gap-filling scanner-id lookup to avoid
     // two concurrent registrations computing and inserting the same id
     SCANNER_REGISTRATION(5000L),
+
+    // serializes the per-shop replace of a food collection's free-text return items: the whole
+    // element collection is rewritten on every save, so concurrent saves for different shops of
+    // the same route would otherwise drop each other's rows
+    SAVE_FOOD_COLLECTION_RETURN_ITEMS(6000L),
 }

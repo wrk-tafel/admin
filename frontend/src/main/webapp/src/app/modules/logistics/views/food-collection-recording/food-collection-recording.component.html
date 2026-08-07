@@ -38,16 +38,19 @@
           <ng-template mat-tab-label>
             <span testid="select-items-tab">Waren</span>
           </ng-template>
-            <div class="hidden md:block">
-              <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
-                                                             [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
-            </div>
-            <div class="block md:hidden">
-              <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
-                                                                [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
-            </div>
+          <tafel-food-collection-recording-km [selectedRouteData]="selectedRouteData()">
+          </tafel-food-collection-recording-km>
+          @if (isDesktopLayout()) {
+            <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
+                                                           [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
+          } @else {
+            <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
+                                                              [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
+          }
         </mat-tab>
       </mat-tab-group>
+      <hr>
+      <button testid="save-button" matButton="filled" [disabled]="saving()" (click)="save()">Speichern</button>
     }
   </mat-card-content>
 </mat-card>

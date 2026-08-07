@@ -232,7 +232,7 @@ internal class DashboardServiceTest {
         assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(2)
         assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
         assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
-        assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(100))
+        assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(140))
     }
 
     // Base data is otherwise complete (car/driver/co-driver/mileage) and one food item is present -
