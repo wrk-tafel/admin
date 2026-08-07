@@ -16,7 +16,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 describe('FoodCollectionRecordingBasedataComponent', () => {
   let foodCollectionsApiServiceSpy: MockedObject<FoodCollectionsApiService>;
   let employeeApiServiceSpy: MockedObject<EmployeeApiService>;
-  let matDialog: MockedObject<MatDialog>;
 
   beforeEach(() => {
     const employeeApiSpy = {
@@ -61,6 +60,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
           useValue: employeeApiSpy
         },
         {
+          // the employee search opens a real dialog on its results, which outlives the fixture
           provide: MatDialog,
           useValue: {open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})}
         },
@@ -70,7 +70,6 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as MockedObject<FoodCollectionsApiService>;
     employeeApiServiceSpy = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
-    matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
   });
 
   const mockEmployees: EmployeeData[] = [
@@ -111,7 +110,8 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       coDriver: mockEmployees[1],
       kmStart: 100,
       kmEnd: 200,
-      items: []
+      items: [],
+      returnItems: []
     }
   };
 
@@ -130,8 +130,6 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     // Spy on form controls
     vi.spyOn(component.car, 'reset');
-    vi.spyOn(component.kmStart, 'reset');
-    vi.spyOn(component.kmEnd, 'reset');
     vi.spyOn(component.driverSearchInput, 'reset');
     vi.spyOn(component.coDriverSearchInput, 'reset');
 
@@ -142,57 +140,13 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     // Verify reset was called
     expect(component.car.reset).toHaveBeenCalled();
-    expect(component.kmStart.reset).toHaveBeenCalled();
-    expect(component.kmEnd.reset).toHaveBeenCalled();
     expect(component.driverSearchInput.reset).toHaveBeenCalled();
     expect(component.coDriverSearchInput.reset).toHaveBeenCalled();
 
     // Verify form was filled with new values
-    expect(component.car.value.id).toEqual(1);
+    expect(component.car.value!.id).toEqual(1);
     expect(component.driverSearchInput.value).toEqual('D1');
     expect(component.coDriverSearchInput.value).toEqual('D2');
-    expect(component.kmStart.value).toEqual(100);
-    expect(component.kmEnd.value).toEqual(200);
-  });
-
-  it('should validate km values - end km must be greater than start km', () => {
-    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-
-    componentRef.setInput('carList', mockCarList);
-    componentRef.setInput('selectedRouteData', {
-      ...mockRouteData,
-      foodCollectionData: null
-    });
-
-    fixture.detectChanges();
-
-    // Set car
-    component.car.setValue(mockCarList.cars[0]);
-
-    // Test valid scenario - end km > start km
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(150);
-    fixture.detectChanges();
-
-    expect(component.kmEnd.errors).toBeFalsy();
-
-    // Test invalid scenario - start km > end km
-    component.kmStart.setValue(200);
-    component.kmEnd.setValue(150);
-    fixture.detectChanges();
-
-    expect(component.kmEnd.errors).toBeTruthy();
-    expect(component.kmEnd.errors!['kmValidation']).toBe(true);
-
-    // Test invalid scenario - start km = end km
-    component.kmStart.setValue(150);
-    component.kmEnd.setValue(150);
-    fixture.detectChanges();
-
-    expect(component.kmEnd.errors).toBeTruthy();
-    expect(component.kmEnd.errors!['kmValidation']).toBe(true);
   });
 
   it('should trigger search for driver and co-driver when input exists', () => {
@@ -233,7 +187,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(mockCoDriverSearch.triggerSearch).toHaveBeenCalled();
   });
 
-  it('should correctly determine if save is disabled based on form state', () => {
+  it('should report invalid input until car, driver and co-driver are set', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -246,33 +200,22 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     fixture.detectChanges();
 
     // Initially the form should be invalid (no data entered)
-    expect(component.isSaveDisabled()).toEqual(true);
+    expect(component.hasInvalidInput()).toEqual(true);
 
-    // Set valid car
     component.car.setValue(mockCarList.cars[0]);
-    // Set valid km values
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(150);
-    // Set valid driver input
     component.driverSearchInput.setValue('D1');
-    // Set valid co-driver input
     component.coDriverSearchInput.setValue('D2');
 
     // But still no actual driver and co-driver selected
-    expect(component.isSaveDisabled()).toEqual(true);
+    expect(component.hasInvalidInput()).toEqual(true);
 
-    // Set driver and co-driver
-    const mockDriver = mockEmployees[0];
-    const mockCoDriver = mockEmployees[1];
-    component.setSelectedDriver(mockDriver);
-    component.setSelectedCoDriver(mockCoDriver);
+    component.setSelectedDriver(mockEmployees[0]);
+    component.setSelectedCoDriver(mockEmployees[1]);
 
-    // Now everything should be valid
-    expect(component.isSaveDisabled()).toEqual(false);
+    expect(component.hasInvalidInput()).toEqual(false);
 
-    // If we make one field invalid, save should be disabled
-    component.kmEnd.setValue(null);
-    expect(component.isSaveDisabled()).toEqual(true);
+    component.car.setValue(null);
+    expect(component.hasInvalidInput()).toEqual(true);
   });
 
   it('should reset driver when resetDriver is called', () => {
@@ -327,7 +270,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.selectedCoDriver()).toBeNull();
   });
 
-  it('should save route data when km difference is <= 350', () => {
+  it('should provide a save request once the base data is complete', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -338,157 +281,35 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
 
-    // Set valid form data with km difference = 150 (< 350)
     component.car.setValue(mockCarList.cars[0]);
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(250);
     component.driverSearchInput.setValue('D1');
     component.setSelectedDriver(mockEmployees[0]);
     component.coDriverSearchInput.setValue('D2');
     component.setSelectedCoDriver(mockEmployees[1]);
 
-    // Save should proceed without showing modal
-    component.save();
-
-    expect(matDialog.open).not.toHaveBeenCalled();
+    expect(component.saveRequest()).not.toBeNull();
     expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
       carId: 1,
       driverId: 1,
-      coDriverId: 2,
-      kmStart: 100,
-      kmEnd: 250
+      coDriverId: 2
     });
   });
 
-  it('should show kmDiffDialog when km difference is > 350', () => {
-    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
-
+  it('should not provide a save request while the base data is incomplete', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
     componentRef.setInput('carList', mockCarList);
-    componentRef.setInput('selectedRouteData', mockRouteData);
-
-    fixture.detectChanges();
-
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
-
-    // Set valid form data with km difference = 400 (> 350)
-    component.car.setValue(mockCarList.cars[0]);
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(500);
-    component.driverSearchInput.setValue('D1');
-    component.setSelectedDriver(mockEmployees[0]);
-    component.coDriverSearchInput.setValue('D2');
-    component.setSelectedCoDriver(mockEmployees[1]);
-
-    // Save should show dialog instead of proceeding
-    component.save();
-
-    expect(matDialog.open).toHaveBeenCalled();
-    expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
-  });
-
-  it('should save route data when kmDiffDialog is confirmed even if km difference > 350', () => {
-    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
-
-    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-    componentRef.setInput('carList', mockCarList);
-    componentRef.setInput('selectedRouteData', mockRouteData);
-
-    fixture.detectChanges();
-
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
-
-    // Set valid form data with km difference = 400 (> 350)
-    component.car.setValue(mockCarList.cars[0]);
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(500);
-    component.driverSearchInput.setValue('D1');
-    component.setSelectedDriver(mockEmployees[0]);
-    component.coDriverSearchInput.setValue('D2');
-    component.setSelectedCoDriver(mockEmployees[1]);
-
-    // Save opens dialog, user confirms, so save proceeds
-    component.save();
-
-    expect(matDialog.open).toHaveBeenCalled();
-    expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
-      carId: 1,
-      driverId: 1,
-      coDriverId: 2,
-      kmStart: 100,
-      kmEnd: 500
+    componentRef.setInput('selectedRouteData', {
+      ...mockRouteData,
+      foodCollectionData: null
     });
-  });
-
-  it('should save directly when km difference <= 350 and open dialog when > 350', () => {
-    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
-
-    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-    componentRef.setInput('carList', mockCarList);
-    componentRef.setInput('selectedRouteData', mockRouteData);
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
-
     component.car.setValue(mockCarList.cars[0]);
-    component.driverSearchInput.setValue('D1');
-    component.setSelectedDriver(mockEmployees[0]);
-    component.coDriverSearchInput.setValue('D2');
-    component.setSelectedCoDriver(mockEmployees[1]);
 
-    // Test with km difference = 250 - should save directly
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(350);
-    component.save();
-
-    expect(matDialog.open).not.toHaveBeenCalled();
-    expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalled();
-
-    foodCollectionsApiServiceSpy.saveRouteData.mockClear();
-    matDialog.open.mockClear();
-    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
-
-    // Test with km difference = 400 - should open dialog
-    component.kmStart.setValue(50);
-    component.kmEnd.setValue(450);
-    component.save();
-
-    expect(matDialog.open).toHaveBeenCalled();
-  });
-
-  it('should not save when dialog is dismissed', () => {
-    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
-
-    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-    componentRef.setInput('carList', mockCarList);
-    componentRef.setInput('selectedRouteData', mockRouteData);
-
-    fixture.detectChanges();
-
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
-
-    // Set valid form data with km difference = 400 (> 350)
-    component.car.setValue(mockCarList.cars[0]);
-    component.kmStart.setValue(100);
-    component.kmEnd.setValue(500);
-    component.driverSearchInput.setValue('D1');
-    component.setSelectedDriver(mockEmployees[0]);
-    component.coDriverSearchInput.setValue('D2');
-    component.setSelectedCoDriver(mockEmployees[1]);
-
-    // Save opens dialog, user cancels
-    component.save();
-
-    expect(matDialog.open).toHaveBeenCalled();
+    expect(component.saveRequest()).toBeNull();
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
   });
 

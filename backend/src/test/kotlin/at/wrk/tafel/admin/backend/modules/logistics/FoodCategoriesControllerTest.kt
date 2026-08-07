@@ -99,7 +99,6 @@ class FoodCategoriesControllerTest {
         id = id,
         name = "Category $id",
         weightPerUnit = BigDecimal.TEN,
-        returnItem = false,
         sortOrder = 10,
         enabled = true,
     )
@@ -108,7 +107,6 @@ class FoodCategoriesControllerTest {
         id = id,
         name = "Category $id",
         weightPerUnit = BigDecimal.TEN,
-        returnItem = false,
         sortOrder = 10,
         enabled = true,
     )

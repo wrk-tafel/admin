@@ -15,8 +15,6 @@ class FoodCategoryEntity(
     var name: String,
     @Column(name = "sort_order")
     var sortOrder: Int,
-    @Column(name = "return_item")
-    var returnItem: Boolean = false,
     @Column(name = "enabled")
     var enabled: Boolean = true,
 ) : BaseChangeTrackingEntity() {

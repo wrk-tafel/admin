@@ -35,6 +35,16 @@ class FoodCollectionsController(
         return ResponseEntity.ok().build()
     }
 
+    @PostMapping("/routes/{routeId}/km")
+    @TafelActiveDistributionRequired
+    fun saveFoodCollectionKm(
+        @PathVariable routeId: Long,
+        @Valid @RequestBody request: FoodCollectionSaveKmRequest,
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveKm(routeId, request)
+        return ResponseEntity.ok().build()
+    }
+
     @PostMapping("/routes/{routeId}/items")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionItems(
@@ -63,6 +73,27 @@ class FoodCollectionsController(
         @Valid @RequestBody request: FoodCollectionSaveItemsPerShopRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveItemsPerShop(routeId, shopId, request)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/routes/{routeId}/return-items")
+    @TafelActiveDistributionRequired
+    fun saveFoodCollectionReturnItems(
+        @PathVariable routeId: Long,
+        @Valid @RequestBody request: FoodCollectionSaveReturnItemsRequest,
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveReturnItems(routeId, request)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/routes/{routeId}/shops/{shopId}/return-items")
+    @TafelActiveDistributionRequired
+    fun saveFoodCollectionReturnItemsPerShop(
+        @PathVariable routeId: Long,
+        @PathVariable shopId: Long,
+        @Valid @RequestBody request: FoodCollectionSaveReturnItemsPerShopRequest,
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveReturnItemsPerShop(routeId, shopId, request)
         return ResponseEntity.ok().build()
     }
 

@@ -39,7 +39,6 @@ export interface FoodCategory {
   id: number;
   name: string;
   weightPerUnit: number | null;
-  returnItem: boolean;
   sortOrder: number;
   enabled: boolean;
 }

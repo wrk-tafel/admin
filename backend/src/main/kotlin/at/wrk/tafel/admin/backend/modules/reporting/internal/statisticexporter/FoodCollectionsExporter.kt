@@ -28,11 +28,10 @@ class FoodCollectionsExporter(
         val descriptionHeaderRow =
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)")
 
-        val sortedFoodCategories = foodCategoryRepository.findAll()
-            .sortedWith(
-                compareBy<FoodCategoryEntity> { it.returnItem }
-                    .thenBy { it.name },
-            )
+        // `food_categories` holds only weighed donation categories now - return boxes are counted
+        // by free-text description on the food collection itself and live in their own table, so
+        // they never show up in this donation weight export
+        val sortedFoodCategories = foodCategoryRepository.findAll().sortedBy { it.name }
         val columnsHeaderRow = generateHeaderFromCategories(sortedFoodCategories)
 
         val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)

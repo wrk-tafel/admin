@@ -18,7 +18,6 @@ data class FoodCategoryRequest(
     val name: String,
     @field:PositiveOrZero
     val weightPerUnit: BigDecimal?,
-    val returnItem: Boolean,
     val sortOrder: Int,
     val enabled: Boolean,
 )
@@ -28,7 +27,6 @@ data class FoodCategoryResponse(
     val id: Long?,
     val name: String,
     val weightPerUnit: BigDecimal?,
-    val returnItem: Boolean,
     val sortOrder: Int,
     val enabled: Boolean,
 )

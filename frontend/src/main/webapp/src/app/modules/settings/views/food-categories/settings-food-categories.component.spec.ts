@@ -13,16 +13,14 @@ describe('SettingsFoodCategoriesComponent', () => {
     id: 1,
     name: 'Backwaren',
     weightPerUnit: 9,
-    returnItem: false,
-    sortOrder: 1,
+        sortOrder: 1,
     enabled: true
   };
   const testCategory2: FoodCategory = {
     id: 2,
     name: 'Getränke',
     weightPerUnit: 10,
-    returnItem: false,
-    sortOrder: 2,
+        sortOrder: 2,
     enabled: true
   };
 

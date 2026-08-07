@@ -49,4 +49,11 @@ class FoodCollectionEntity(
         joinColumns = [JoinColumn(name = "food_collection_id")],
     )
     var items: List<FoodCollectionItemEntity>? = null
+
+    @ElementCollection
+    @CollectionTable(
+        name = "food_collections_return_items",
+        joinColumns = [JoinColumn(name = "food_collection_id")],
+    )
+    var returnItems: List<FoodCollectionReturnItemEntity>? = null
 }

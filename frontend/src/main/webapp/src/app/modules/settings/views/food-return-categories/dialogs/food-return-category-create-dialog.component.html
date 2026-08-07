@@ -1,0 +1,15 @@
+<tafel-dialog title="Retour-Kategorie erstellen" testid="food-return-category-create-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" maxlength="100"/>
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" (click)="save()">Speichern</button>
+    <button matButton="outlined" (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>
