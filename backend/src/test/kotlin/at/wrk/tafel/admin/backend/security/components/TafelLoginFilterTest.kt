@@ -88,7 +88,7 @@ class TafelLoginFilterTest {
         every { authResult.principal } returns testUser
         every { jwtTokenService.generateToken(any(), any(), any()) } returns token
         every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationTime
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties(relativeBaseUrl = relativeBaseUrl)
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
@@ -124,7 +124,7 @@ class TafelLoginFilterTest {
         every { authResult.principal } returns testUser.copy(passwordChangeRequired = true)
         every { jwtTokenService.generateToken(any(), any(), any()) } returns token
         every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties(relativeBaseUrl = relativeBaseUrl)
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 

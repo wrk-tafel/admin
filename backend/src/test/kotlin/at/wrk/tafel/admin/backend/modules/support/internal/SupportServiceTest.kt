@@ -26,13 +26,13 @@ class SupportServiceTest {
 
     @Test
     fun `creates a github issue with the configured title prefix and full text as body`() {
-        val properties = TafelAdminProperties(
-            support = TafelAdminSupportProperties(
-                githubToken = "test-token",
-                githubRepository = "wrk-tafel/admin",
-                titlePrefix = "[PROD]",
-            ),
-        )
+        val properties = TafelAdminProperties().apply {
+            support = TafelAdminSupportProperties().apply {
+                githubToken = "test-token"
+                githubRepository = "wrk-tafel/admin"
+                titlePrefix = "[PROD]"
+            }
+        }
         val service = SupportService(properties, restClient)
 
         mockServer.expect(ExpectedCount.once(), requestTo("https://api.github.com/repos/wrk-tafel/admin/issues"))
@@ -55,13 +55,13 @@ class SupportServiceTest {
 
     @Test
     fun `fails clearly when no github token is configured`() {
-        val properties = TafelAdminProperties(
-            support = TafelAdminSupportProperties(
-                githubToken = null,
-                githubRepository = "wrk-tafel/admin",
-                titlePrefix = "[PROD]",
-            ),
-        )
+        val properties = TafelAdminProperties().apply {
+            support = TafelAdminSupportProperties().apply {
+                githubToken = null
+                githubRepository = "wrk-tafel/admin"
+                titlePrefix = "[PROD]"
+            }
+        }
         val service = SupportService(properties, restClient)
 
         assertThatThrownBy { service.createSupportIssue("Something is broken", "Something is broken") }
@@ -76,7 +76,7 @@ class SupportServiceTest {
 
     @Test
     fun `fails clearly when support is not configured at all`() {
-        val properties = TafelAdminProperties(support = null)
+        val properties = TafelAdminProperties()
         val service = SupportService(properties, restClient)
 
         assertThatThrownBy { service.createSupportIssue("Something is broken", "Something is broken") }

@@ -118,7 +118,7 @@ class UserControllerTest {
     @Test
     fun `logout`() {
         val relativeBaseUrl = "/test-base/"
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties(relativeBaseUrl = relativeBaseUrl)
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",

@@ -1,6 +1,19 @@
 package at.wrk.tafel.admin.backend.modules.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+
+/**
+ * The one place the deployment's configuration is turned into what the frontend gets to see, used
+ * both by the endpoint that answers a fresh page load (`ConfigController`) and by the one that
+ * pushes a live config change into pages that are already open (`ConfigChangePublisher`) - so the
+ * two can't drift into reporting different things about the same deployment.
+ */
+fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
+    version = version,
+    buildTime = buildTime,
+    scannerFolderEnabled = storage.scannerFolderAvailable,
+)
 
 @ExcludeFromTestCoverage
 data class ConfigResponse(

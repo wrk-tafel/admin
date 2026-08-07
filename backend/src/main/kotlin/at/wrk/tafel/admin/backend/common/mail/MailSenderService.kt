@@ -60,14 +60,19 @@ class MailSenderService(
         if (mailSender != null) {
             val messageHelper = MimeMessageHelper(mailSender.createMimeMessage(), true)
 
-            val configuredPrefix = tafelAdminProperties.mail?.subjectPrefix
+            // Read once so one mail is composed from one consistent set of settings - the
+            // properties are re-bound in place when the config file changes (see
+            // ConfigFileReloadService), and re-reading per line could straddle a reload.
+            val mailProperties = tafelAdminProperties.mail
+
+            val configuredPrefix = mailProperties?.subjectPrefix
             val subjectPrefix = if (configuredPrefix.isNullOrBlank()) "" else "$configuredPrefix "
             messageHelper.setSubject(subjectPrefix + subject)
             messageHelper.setText(content, isHtmlMail)
 
-            messageHelper.setFrom(tafelAdminProperties.mail!!.from)
+            messageHelper.setFrom(mailProperties!!.from)
             configureRecipientAddresses(mailType, messageHelper)
-            tafelAdminProperties.mail.defaultRecipientsBcc?.forEach { messageHelper.addBcc(it) }
+            mailProperties.defaultRecipientsBcc?.forEach { messageHelper.addBcc(it) }
 
             attachments.forEach {
                 messageHelper.addAttachment(it.filename, it.inputStreamSource, it.contentType)

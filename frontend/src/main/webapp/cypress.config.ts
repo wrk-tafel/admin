@@ -12,6 +12,12 @@ import * as os from 'os';
 // ever one location to write to.
 const scannerInboxDir = path.join(os.tmpdir(), 'tafeladmin-e2e-scanner-inbox');
 
+// Mirrors `spring.config.import` in application-e2e.yml - the optional file the backend re-reads its
+// configuration from while running (see ConfigFileReloadService), in the same shared temp directory
+// and for the same reason as the scanner inbox above. Writing it is how a spec exercises an operator
+// editing the deployment's config, which the backend picks up without a restart.
+const backendConfigFile = path.join(os.tmpdir(), 'tafeladmin-e2e-config.yml');
+
 export default defineConfig({
   builder: '@cypress/schematic:cypress',
   // 1024x768 is the smallest desktop resolution still used in production
@@ -48,6 +54,14 @@ export default defineConfig({
         },
         clearScannerInbox() {
           fs.rmSync(scannerInboxDir, {recursive: true, force: true});
+          return null;
+        },
+        writeBackendConfig(content: string) {
+          fs.writeFileSync(backendConfigFile, content);
+          return null;
+        },
+        clearBackendConfig() {
+          fs.rmSync(backendConfigFile, {force: true});
           return null;
         }
       });

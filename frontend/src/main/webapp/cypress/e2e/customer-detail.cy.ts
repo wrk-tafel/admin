@@ -272,6 +272,12 @@ describe('Customer Detail', () => {
   }
 
   describe('documents', () => {
+    // Specs below switch the scanner folder off through the backend's own config file; leaving it
+    // off would silently disable the source for everything that runs afterwards.
+    afterEach(() => {
+      cy.task('clearBackendConfig');
+    });
+
     it('upload, download and delete a document', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
@@ -421,6 +427,36 @@ describe('Customer Detail', () => {
         cy.byTestId('documentSourceScanner').should('not.exist');
         // uploading a file from the device is never optional, so the panel stays usable
         cy.byTestId('documentDropzone').should('be.visible');
+      });
+    });
+
+    /**
+     * The end-to-end proof that a deployment's configuration is editable at runtime: unlike the
+     * stubbed "off" case above, nothing here fakes a response - the operator's edit goes into the
+     * real config file, the backend re-reads it (once a second under the e2e profile) and pushes the
+     * new config over SSE to a page that stays open the whole time.
+     */
+    it('drops and restores the scanner source when the backend config is edited, without a reload', () => {
+      const scannerDisabledConfig = ['tafeladmin:', '  storage:', '    scannerEnabled: false'].join('\n');
+      cy.task('clearBackendConfig');
+
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('documentSourceScanner').should('be.visible').click();
+
+        cy.task('writeBackendConfig', scannerDisabledConfig);
+
+        cy.byTestId('documentSourceToggle', {timeout: 20000}).should('not.exist');
+        // the user was standing on the scanner source, so they get put back on the file upload
+        cy.byTestId('documentDropzone').should('be.visible');
+
+        cy.task('clearBackendConfig');
+
+        cy.byTestId('documentSourceScanner', {timeout: 20000}).should('be.visible');
       });
     });
 

@@ -127,9 +127,10 @@ The backend uses **Spring Modulith** architecture with 10 core feature modules (
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
   this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
-  Deployment-fixed configuration only — anything a user can change at runtime belongs in `settings`.
-  `GET /api/config/public` serves the environment label on its own to anonymous callers, for the
-  login page
+  Operator-managed configuration only — anything a *user* can change at runtime belongs in
+  `settings`. `GET /api/config/public` serves the environment label on its own to anonymous callers,
+  for the login page, and `GET /api/sse/config` pushes the config again whenever an operator's edit
+  changes it (see Config Hot-Reload below)
 - **base**: Shared utilities (countries, employees, exception handling). Its entities live in
   `database/model/base/`, but each utility is also its own `@NamedInterface` submodule under
   `modules/base/{country,employee,exception}/` for other modules to depend on. `base` is only for
@@ -466,7 +467,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/shelters`: Shelter management
 - `/api/settings`: Application settings
 - `/api/support`: Creates a GitHub issue from an in-app support request
-- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags. `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
+- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
 
@@ -489,7 +490,42 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   `tafeladmin.storage.scannerPath` plus the `tafeladmin.storage.scannerEnabled` kill switch;
   `TafelAdminStorageProperties.scannerFolderAvailable` is the single rule both sides go by, enforced
   server-side by `ScannerFileService` and reported to the frontend as `/api/config`'s
-  `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve.
+  `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve. Both
+  settings can be flipped on a running deployment — see Config Hot-Reload below.
+- **Config Hot-Reload**: the **whole** configuration is re-read while the application runs — not just
+  `tafeladmin.*`. Production's settings come from an operator-managed `config.yml` bind-mounted into
+  the container (`-Dspring.config.additional-location`, see `_build/Dockerfile`), and
+  `ConfigFileReloadService` polls the config files the app was started with; on a change it runs
+  Spring Cloud's `ContextRefresher` (`spring-cloud-context` — the *only* Spring Cloud artifact here:
+  no config server, no config client, no bus), which re-reads them through Spring Boot's own
+  config-data pipeline and re-binds every `@ConfigurationProperties` bean **in place**, Spring's own
+  included. What limits the effect is not the property's prefix but whether anything already
+  consumed it — see the first two points below. Things to keep in mind when touching this area:
+  - `TafelAdminProperties` and its nested classes are mutable JavaBeans with no-arg constructors on
+    purpose. A Kotlin primary constructor with parameters makes Spring Boot deduce value-object
+    binding, which silently turns rebinding into a no-op — don't "clean them up" into data classes.
+  - Consumers must read the properties **per use**, not copy a value into a field at construction.
+    A value that has already been baked into another bean keeps what it was built with and still
+    needs a restart — that's why `spring.datasource.url`, the Tomcat connector settings, the
+    security filter chain and `tafeladmin.push.vapid*` don't change on a reload, while
+    `tafeladmin.storage.scannerEnabled` does.
+  - `@Value` is **not** refreshed — it is resolved once when the bean is constructed. The two places
+    that use it (`SseOutboxListenerService`'s `spring.datasource.*`, `FlywayConfig`'s
+    `tafeladmin.testdata.enabled`) are startup-only concerns and correct as they are, but don't
+    reach for `@Value` for anything meant to be reloadable; use `@ConfigurationProperties`.
+  - `ApplicationProperties` (`security.*`) is intentionally *not* reloadable — it stays a
+    constructor-bound data class so a missing JWT secret still fails startup. `LoginAttemptService`
+    and `TafelLoginFilter` read it per call, which looks live but isn't; see its KDoc.
+  - Nothing is `@RefreshScope`d and `spring.cloud.refresh.extra-refreshable` is unset, so a refresh
+    destroys no beans: the Hikari pool and `SseOutboxListenerService`'s dedicated `LISTEN sse_outbox`
+    connection survive it untouched. `ConfigRefreshSideEffectsIT` locks that down — re-creating that
+    listener would close the connection under its blocked reader (issue #2985) and silently kill
+    every open SSE stream.
+  - `tafeladmin.configReload.enabled: false` switches the whole mechanism off; it is read at startup
+    only. `tafeladmin.configReload.interval` (default 5s) is the poll interval.
+  - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
+    `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
+    plus that SSE feed — components must subscribe to it rather than reading the config once.
 - **Real-time Updates**: Dashboard and ticket screen use SSE for live updates without polling.
 
 ## Profiles and Configuration

@@ -17,24 +17,30 @@ import java.time.ZoneId
  * file instead of using the browser's file picker. The folder is optional - not every environment
  * has the NAS share mounted, and `scannerEnabled` can switch the feature off even where it is - so
  * every method degrades gracefully when [isEnabled] is false.
+ *
+ * Both settings are read from the injected properties on every call rather than captured once, so
+ * switching the feature off in the backend's config file takes effect on the next request instead
+ * of on the next restart (see `ConfigFileReloadService`).
  */
 @Service
 class ScannerFileService(
     private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
+    private val storageProperties get() = tafelAdminProperties.storage
+
     /**
      * Whether the scanner folder is available at all - see
      * [at.wrk.tafel.admin.backend.config.properties.TafelAdminStorageProperties.scannerFolderAvailable],
      * which the frontend is told about separately through `ConfigController`.
      */
-    fun isEnabled(): Boolean = tafelAdminProperties.storage.scannerFolderAvailable
+    fun isEnabled(): Boolean = storageProperties.scannerFolderAvailable
 
     fun listFiles(): List<ScannerFileItem> {
         if (!isEnabled()) {
             return emptyList()
         }
-        val scannerPath = tafelAdminProperties.storage.scannerPath ?: return emptyList()
+        val scannerPath = storageProperties.scannerPath ?: return emptyList()
         val scannerDir = Paths.get(scannerPath)
         if (!Files.isDirectory(scannerDir)) {
             return emptyList()
@@ -66,7 +72,7 @@ class ScannerFileService(
      * the scanner folder is only ever listed/read/deleted as a flat directory.
      */
     private fun resolveSafely(fileName: String): Path {
-        val scannerPath = tafelAdminProperties.storage.scannerPath?.takeIf { isEnabled() }
+        val scannerPath = storageProperties.scannerPath?.takeIf { isEnabled() }
             ?: throw NotFoundException("Datei $fileName nicht vorhanden!")
         val scannerDir = Paths.get(scannerPath).toAbsolutePath().normalize()
         val resolved = scannerDir.resolve(fileName).normalize()
