@@ -11,6 +11,8 @@ jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85"
 web-push = "5.1.2"
+# A direct dependency of web-push, pinned ahead of the 0.7.9 it asks for to patch known CVEs.
+jose4j = "0.9.6"
 apache-httpclient = "4.5.13"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
@@ -90,6 +92,8 @@ web-push = { module = "nl.martijndwars:web-push", version.ref = "web-push" }
 # web-push only as a runtime-scoped transitive, so it needs to be explicit here to be visible on
 # the compile classpath too.
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "apache-httpclient" }
+# Pinned forward from the vulnerable 0.7.9 that web-push resolves to on its own.
+jose4j = { module = "org.bitbucket.b_c:jose4j", version.ref = "jose4j" }
 
 # PDF / QR
 apache-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "apache-fop" }
