@@ -101,7 +101,32 @@ Conventional Commits subject, matching the format exactly (lowercase
 description, no trailing period, ≤100 char header, valid `type`) — this is enforced by a commit-msg
 hook, `commitlint`, and `pr-title-lint` in CI, and has been the recurring miss in this repo.
 
-## 7. Push and open the PR
+## 7. Make sure the branch still merges into main
+
+main moves while a change is being written, and a branch that conflicts with it gets **no pipeline
+at all**: GitHub builds `pull_request` runs against a merge ref it can only create when the merge is
+clean, so a conflicting PR sits with zero checks queued rather than with red ones — easy to misread
+as "CI is slow". Check before pushing:
+
+```bash
+git fetch origin main
+git merge origin/main --no-edit
+```
+
+If it conflicts, resolve it here rather than handing it back to the user:
+
+- Read both sides in full before picking one. `git log --oneline HEAD..origin/main -- <file>` shows
+  what landed on main and why, which is usually what settles it.
+- Where main reworked the same code this branch touched, main's version is the base to re-apply this
+  branch's intent onto — not something to overwrite with the pre-merge version.
+- Check whether main's new code re-introduced whatever this branch set out to remove (an inline
+  style, a duplicated helper, a deprecated pattern). The branch's goal has to hold for the merged
+  result, not just for its own hunks.
+
+Then re-run the checks from step 5 that cover what the merge touched: the merged tree is code nobody
+has built yet, even though both sides were green on their own.
+
+## 8. Push and open the PR
 
 ```bash
 git push -u origin <branch>

@@ -100,6 +100,14 @@ This blocks until every job on the PR — `commitlint`, `pr-title-lint`, `build`
 `deploy-dev` shares one `dev-environment` concurrency group across every PR in the repo, so it can
 sit queued behind another PR's deploy rather than fail — that's expected, not a problem to fix.
 
+If it reports **no checks at all**, or only third-party ones (`GitGuardian`), and `gh run list
+--repo <owner>/<repo> --branch <headRefName>` shows nothing for the current head SHA, the PR most
+likely conflicts with main rather than being slow: `pull_request` runs are built against a merge ref
+GitHub cannot create for a conflicting PR, so no workflow is ever queued. Confirm with `gh pr view
+<number> --repo <owner>/<repo> --json mergeable`; if it's `CONFLICTING`, merge `origin/main` into the
+branch and resolve the conflicts (see `process-issue` step 7 for how to pick sides), push, and the
+pipeline starts on its own.
+
 A PR's head commit can have more than one workflow run against it (e.g. a double-triggered
 `pull_request` event) — `gh pr checks` only reflects the latest run per job name, so an older run
 against the same commit can have failed without showing here. Before reporting "all green," confirm
