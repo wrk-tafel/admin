@@ -24,8 +24,20 @@ while this module is the read-only HTTP view of it for the frontend.
 
 ## Components
 
-- [`ConfigController`](ConfigController.kt): `GET /api/config`, requires only `isAuthenticated()`.
-- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled)`.
+- [`ConfigController`](ConfigController.kt): `GET /api/config`, requires only `isAuthenticated()`,
+  plus `GET /api/config/public`, which anyone may call.
+- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled)`
+  and `PublicConfigResponse(environmentLabel)`.
+
+## The public endpoint
+
+The login page has to show which environment is being logged into before anyone has a session, so
+the environment label — and nothing else — is served from a second, unauthenticated endpoint listed
+in `WebSecurityConfig.publicEndpoints`. It is a separate endpoint rather than `/api/config`
+answering with less to an anonymous caller because `TafelJwtAuthConverter` rejects a cookie-less
+API request before any controller runs; serving both audiences from one path would mean reworking
+the authentication filter chain. Which release is running and which optional features exist stay
+behind authentication.
 
 ## Where the values come from
 

@@ -39,4 +39,18 @@ class ConfigControllerTest {
 
         assertThat(controller.getConfig().scannerFolderEnabled).isFalse()
     }
+
+    @Test
+    fun `get public config returns the configured environment label`() {
+        val controller = ConfigController(TafelAdminProperties(environmentLabel = " DEV "))
+
+        assertThat(controller.getPublicConfig()).isEqualTo(PublicConfigResponse(environmentLabel = "DEV"))
+    }
+
+    @Test
+    fun `get public config returns an empty environment label when none is configured`() {
+        val controller = ConfigController(TafelAdminProperties())
+
+        assertThat(controller.getPublicConfig()).isEqualTo(PublicConfigResponse(environmentLabel = ""))
+    }
 }

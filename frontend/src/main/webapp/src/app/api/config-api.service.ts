@@ -20,6 +20,14 @@ export class ConfigApiService {
       catchError(() => of(null))
     );
   }
+
+  // The only part of the config readable before logging in - everything else stays behind
+  // authentication, so the login page can ask for this and nothing more.
+  getPublicConfig(): Observable<PublicAppConfig | null> {
+    return this.http.get<PublicAppConfig>('/config/public').pipe(
+      catchError(() => of(null))
+    );
+  }
 }
 
 export interface AppConfig {
@@ -31,4 +39,12 @@ export interface AppConfig {
    * source must not be offered - it could never list anything.
    */
   scannerFolderEnabled: boolean;
+}
+
+export interface PublicAppConfig {
+  /**
+   * Which environment this deployment is ("DEV", "TEST"), empty on production. Shown on the login
+   * page so it's obvious which one is being logged into.
+   */
+  environmentLabel: string;
 }

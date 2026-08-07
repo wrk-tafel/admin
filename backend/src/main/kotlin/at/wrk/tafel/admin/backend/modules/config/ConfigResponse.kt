@@ -14,3 +14,13 @@ data class ConfigResponse(
      */
     val scannerFolderEnabled: Boolean,
 )
+
+/**
+ * What an anonymous caller may read (see `ConfigController.getPublicConfig`). [environmentLabel] is
+ * empty on production and set per deployment elsewhere ("DEV", "TEST"), which is what the login
+ * page shows beneath its title so it's obvious which environment is being logged into.
+ */
+@ExcludeFromTestCoverage
+data class PublicConfigResponse(
+    val environmentLabel: String,
+)

@@ -127,7 +127,9 @@ The backend uses **Spring Modulith** architecture with 10 core feature modules (
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
   this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
-  Deployment-fixed configuration only — anything a user can change at runtime belongs in `settings`
+  Deployment-fixed configuration only — anything a user can change at runtime belongs in `settings`.
+  `GET /api/config/public` serves the environment label on its own to anonymous callers, for the
+  login page
 - **base**: Shared utilities (countries, employees, exception handling). Its entities live in
   `database/model/base/`, but each utility is also its own `@NamedInterface` submodule under
   `modules/base/{country,employee,exception}/` for other modules to depend on. `base` is only for
@@ -464,7 +466,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/shelters`: Shelter management
 - `/api/settings`: Application settings
 - `/api/support`: Creates a GitHub issue from an in-app support request
-- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags
+- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags. `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
 
