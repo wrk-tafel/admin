@@ -81,9 +81,12 @@ cd frontend/src/main/webapp && npm run lint && npm run typecheck && npm run test
 ```
 
 For larger changes, also run full builds for CI-equivalent confidence: `./gradlew :backend:bootJar`
-and `npm run build-prod`. If the change touches any flow covered by Cypress, verify it end-to-end
-using the `fix-e2e` skill's workflow (it owns the backend-restart-with-`e2e`-profile ritual) rather
-than re-deriving that setup here.
+and `npm run build-prod`.
+
+**Never run the full Cypress suite locally — that is CI's job.** If the change touches a
+Cypress-covered flow, run only the affected spec(s) via `--spec`, using the `fix-e2e` skill's
+workflow for the backend-restart-with-`e2e`-profile ritual rather than re-deriving that setup here.
+A full local run costs many minutes and duplicates what the pipeline already does on every push.
 
 ## 6. Commit
 
