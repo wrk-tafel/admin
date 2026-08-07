@@ -128,36 +128,12 @@ class SettingsServiceTest {
         }
 
         assertThat(recipientsSlot.captured).containsExactly(
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.TO
-                address = "TO"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.TO
-                address = "TO"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.CC
-                address = "CC"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.CC
-                address = "CC"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.BCC
-                address = "BCC"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.BCC
-                address = "BCC"
-            },
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.TO, address = "TO"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.TO, address = "TO"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "CC"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "CC"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.BCC, address = "BCC"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.BCC, address = "BCC"),
         )
     }
 
@@ -190,11 +166,7 @@ class SettingsServiceTest {
         }
 
         assertThat(recipientsSlot.captured).containsExactly(
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.CC
-                address = "c c1"
-            },
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "c c1"),
         )
     }
 
@@ -202,26 +174,25 @@ class SettingsServiceTest {
     fun `fetch static values only returns rows currently valid today`() {
         val today = LocalDate.now()
 
-        val current = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = today.minusDays(10)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-        }
-        val expired = StaticValueEntity().apply {
-            id = 2
-            type = StaticValueType.TOLERANCE
-            validFrom = LocalDate.of(1900, 1, 1)
-            validTo = today.minusDays(11)
-            amount = BigDecimal("50.00")
-        }
-        val notYetValid = StaticValueEntity().apply {
+        val current = StaticValueEntity(
+            validFrom = today.minusDays(10),
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("100.00"),
+        ).apply { id = 1 }
+        val expired = StaticValueEntity(
+            validFrom = LocalDate.of(1900, 1, 1),
+            validTo = today.minusDays(11),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("50.00"),
+        ).apply { id = 2 }
+        val notYetValid = StaticValueEntity(
+            validFrom = today.plusDays(1),
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1328.00"),
+        ).apply {
             id = 3
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.plusDays(1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("1328.00")
             countAdults = 1
             countChildren = 0
         }
@@ -246,12 +217,13 @@ class SettingsServiceTest {
     @Test
     fun `update static value historizes - closes the current row yesterday and opens a new one today`() {
         val today = LocalDate.now()
-        val existing = StaticValueEntity().apply {
+        val existing = StaticValueEntity(
+            validFrom = LocalDate.of(2022, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1328.00"),
+        ).apply {
             id = 1
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = LocalDate.of(2022, 1, 1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("1328.00")
             countAdults = 1
             countChildren = 0
         }
@@ -294,13 +266,12 @@ class SettingsServiceTest {
     @Test
     fun `update static value updates in place when the currently valid row already started today`() {
         val today = LocalDate.now()
-        val existing = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = today
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-        }
+        val existing = StaticValueEntity(
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("100.00"),
+        ).apply { id = 1 }
         every { staticValueRepository.findByIdOrNull(1L) } returns existing
         every { staticValueRepository.save(any()) } answers { firstArg() }
 

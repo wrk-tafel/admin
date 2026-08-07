@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
@@ -10,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdMergeField
 import at.wrk.tafel.admin.backend.modules.household.Person
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -18,16 +18,8 @@ import java.time.LocalDateTime
 
 class HouseholdMergePlannerTest {
 
-    private val testCountry = CountryEntity().apply {
-        id = 1
-        code = "AT"
-        name = "Austria"
-    }
-    private val otherCountry = CountryEntity().apply {
-        id = 2
-        code = "DE"
-        name = "Germany"
-    }
+    private val testCountry = CountryEntity(code = "AT", name = "Austria").apply { id = 1 }
+    private val otherCountry = CountryEntity(code = "DE", name = "Germany").apply { id = 2 }
 
     private val fakePersonMapper: (PersonEntity) -> Person = { p ->
         Person(
@@ -50,22 +42,18 @@ class HouseholdMergePlannerTest {
     private fun nextId() = nextId++
 
     private fun household(householdId: Long, mainPersonName: Pair<String, String> = "Max" to "Mustermann", birthDate: LocalDate = LocalDate.of(1990, 1, 1)): HouseholdEntity {
-        val household = HouseholdEntity().apply {
+        val household = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply {
             id = nextId()
-            this.householdId = householdId
             addressStreet = "Street"
             addressHouseNumber = "1"
             addressPostalCode = 1010
             addressCity = "Vienna"
         }
-        val mainPerson = PersonEntity().apply {
+        val mainPerson = PersonEntity(household = household, country = testCountry, isMainPerson = true).apply {
             id = nextId()
-            this.household = household
-            isMainPerson = true
             firstname = mainPersonName.first
             lastname = mainPersonName.second
             this.birthDate = birthDate
-            country = testCountry
         }
         household.mainPerson = mainPerson
         household.persons.add(mainPerson)
@@ -73,14 +61,11 @@ class HouseholdMergePlannerTest {
     }
 
     private fun addAdditionalPerson(household: HouseholdEntity, firstname: String, lastname: String, birthDate: LocalDate?): PersonEntity {
-        val person = PersonEntity().apply {
+        val person = PersonEntity(household = household, country = testCountry).apply {
             id = nextId()
-            this.household = household
-            isMainPerson = false
             this.firstname = firstname
             this.lastname = lastname
             this.birthDate = birthDate
-            country = testCountry
         }
         household.persons.add(person)
         return person
@@ -169,7 +154,7 @@ class HouseholdMergePlannerTest {
     @Test
     fun `applyField for LOCK_STATE copies locked, lockedAt, lockedBy and lockReason together`() {
         val lockedAt = LocalDateTime.now()
-        val lockedBy = UserEntity().apply { id = 42 }
+        val lockedBy = testUserEntity
         val target = household(1)
         val source = household(2).apply {
             locked = true
@@ -311,18 +296,18 @@ class HouseholdMergePlannerTest {
     // ---------------------------------------------------------------------------
     // Distribution collisions
 
-    private fun distribution(id: Long) = DistributionEntity().apply {
+    private fun distribution(id: Long) = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
         this.id = id
-        startedAt = LocalDateTime.now()
     }
 
-    private fun distributionRow(household: HouseholdEntity, distribution: DistributionEntity, ticketNumber: Int, processed: Boolean? = false, costContributionPaid: Boolean? = true) = DistributionHouseholdEntity().apply {
+    private fun distributionRow(household: HouseholdEntity, distribution: DistributionEntity, ticketNumber: Int, processed: Boolean = false, costContributionPaid: Boolean = true) = DistributionHouseholdEntity(
+        distribution = distribution,
+        household = household,
+        ticketNumber = ticketNumber,
+        processed = processed,
+        costContributionPaid = costContributionPaid,
+    ).apply {
         id = nextId()
-        this.household = household
-        this.distribution = distribution
-        this.ticketNumber = ticketNumber
-        this.processed = processed
-        this.costContributionPaid = costContributionPaid
     }
 
     @Test

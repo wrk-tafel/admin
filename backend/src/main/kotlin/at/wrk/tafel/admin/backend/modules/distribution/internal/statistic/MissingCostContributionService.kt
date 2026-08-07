@@ -10,7 +10,6 @@ import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -62,7 +61,7 @@ class MissingCostContributionService(
         if (householdEntity != null) {
             val currentPendingCostContribution = householdEntity.pendingCostContribution
             householdEntity.pendingCostContribution =
-                currentPendingCostContribution.add(costContributionValue.amount ?: BigDecimal.ZERO)
+                currentPendingCostContribution.add(costContributionValue.amount)
             householdRepository.save(householdEntity)
         } else {
             logger.error("Household with id ${household.id} not found in database")

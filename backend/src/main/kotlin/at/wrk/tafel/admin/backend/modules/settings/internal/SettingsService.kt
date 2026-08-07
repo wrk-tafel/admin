@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
@@ -38,7 +39,7 @@ class SettingsService(
             val mailType = it.key
             val recipients = it.value
 
-            mapToMailRecipientSetting(mailType!!, recipients)
+            mapToMailRecipientSetting(mailType, recipients)
         }
 
         return MailRecipientsResponse(mailRecipients = mailRecipients)
@@ -54,8 +55,8 @@ class SettingsService(
             mailType = mailType.name,
             recipients = groupedByType.entries.map { recipientsPerType ->
                 MailRecipientAdresses(
-                    recipientType = MailRecipientType.valueOf(recipientsPerType.key!!.name.uppercase()),
-                    addresses = recipientsPerType.value.map { it.address!! },
+                    recipientType = MailRecipientType.valueOf(recipientsPerType.key.name.uppercase()),
+                    addresses = recipientsPerType.value.map { it.address },
                 )
             },
         )
@@ -68,11 +69,11 @@ class SettingsService(
                 updatedRecipients
                     .filter { it.trim().isNotBlank() }
                     .map { updatedRecipient ->
-                        MailRecipientEntity().apply {
-                            mailType = MailType.valueOf(mailRecipient.mailType)
-                            recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase())
-                            address = updatedRecipient
-                        }
+                        MailRecipientEntity(
+                            mailType = MailType.valueOf(mailRecipient.mailType),
+                            recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase()),
+                            address = updatedRecipient,
+                        )
                     }
             }
         }
@@ -109,22 +110,24 @@ class SettingsService(
     fun updateStaticValue(staticValueId: Long, item: StaticValueRequest): StaticValueResponse {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
             ?: throw NotFoundException("Statischer Wert mit ID $staticValueId nicht gefunden")
+        val amount = item.amount ?: throw BusinessRuleException("Betrag ist erforderlich!")
 
         val today = LocalDate.now()
 
         if (entity.validFrom == today) {
-            entity.amount = item.amount
+            entity.amount = amount
             return mapStaticValue(staticValueRepository.save(entity))
         }
 
         entity.validTo = today.minusDays(1)
         staticValueRepository.save(entity)
 
-        val historizedEntity = StaticValueEntity().apply {
-            type = entity.type
-            validFrom = today
-            validTo = FICTIVE_END_DATE
-            amount = item.amount
+        val historizedEntity = StaticValueEntity(
+            validFrom = today,
+            validTo = FICTIVE_END_DATE,
+            type = entity.type,
+            amount = amount,
+        ).apply {
             countAdults = entity.countAdults
             countChildren = entity.countChildren
             age = entity.age
@@ -133,17 +136,13 @@ class SettingsService(
         return mapStaticValue(staticValueRepository.save(historizedEntity))
     }
 
-    private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean {
-        val validFrom = entity.validFrom
-        val validTo = entity.validTo
-        return validFrom != null && validTo != null && !today.isBefore(validFrom) && !today.isAfter(validTo)
-    }
+    private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean = !today.isBefore(entity.validFrom) && !today.isAfter(entity.validTo)
 
     private fun mapStaticValue(entity: StaticValueEntity): StaticValueResponse = StaticValueResponse(
         id = entity.id,
-        type = entity.type!!.name,
-        validFrom = entity.validFrom!!,
-        validTo = entity.validTo!!,
+        type = entity.type.name,
+        validFrom = entity.validFrom,
+        validTo = entity.validTo,
         amount = entity.amount,
         countAdults = entity.countAdults,
         countChildren = entity.countChildren,

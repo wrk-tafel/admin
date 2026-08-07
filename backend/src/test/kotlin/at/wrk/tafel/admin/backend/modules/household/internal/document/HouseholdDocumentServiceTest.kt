@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.context.SecurityContextHolder
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -59,14 +61,11 @@ internal class HouseholdDocumentServiceTest {
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 
-        testHousehold = HouseholdEntity().apply {
+        testHousehold = HouseholdEntity(householdId = 100, validUntil = LocalDate.now()).apply {
             id = 1
-            householdId = 100
         }
-        testAdditionalPerson = PersonEntity().apply {
+        testAdditionalPerson = PersonEntity(household = testHousehold, country = testCountry1).apply {
             id = 5
-            household = testHousehold
-            isMainPerson = false
         }
         testHousehold.persons = mutableListOf(testAdditionalPerson)
 
@@ -162,10 +161,14 @@ internal class HouseholdDocumentServiceTest {
 
     @Test
     fun `get documents`() {
-        val entity = DocumentEntity().apply {
+        val entity = DocumentEntity(
+            household = testHousehold,
+            documentType = at.wrk.tafel.admin.backend.database.model.household.DocumentType.ID,
+            fileName = "ausweis.jpg",
+            contentType = "image/jpeg",
+            storagePath = "/documents/100/ausweis.jpg",
+        ).apply {
             id = 7
-            documentType = at.wrk.tafel.admin.backend.database.model.household.DocumentType.ID
-            fileName = "ausweis.jpg"
             createdAt = LocalDateTime.now()
         }
         every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(100L) } returns listOf(entity)
@@ -180,12 +183,13 @@ internal class HouseholdDocumentServiceTest {
 
     @Test
     fun `get document file - successful`() {
-        val entity = DocumentEntity().apply {
-            id = 7
-            fileName = "ausweis.jpg"
-            contentType = "image/jpeg"
-            storagePath = "/documents/100/ausweis.jpg"
-        }
+        val entity = DocumentEntity(
+            household = testHousehold,
+            documentType = at.wrk.tafel.admin.backend.database.model.household.DocumentType.ID,
+            fileName = "ausweis.jpg",
+            contentType = "image/jpeg",
+            storagePath = "/documents/100/ausweis.jpg",
+        ).apply { id = 7 }
         every { documentRepository.findByIdAndHouseholdHouseholdId(7L, 100L) } returns entity
         every { documentStorageService.read("/documents/100/ausweis.jpg") } returns "bytes".toByteArray()
 
@@ -207,10 +211,13 @@ internal class HouseholdDocumentServiceTest {
 
     @Test
     fun `delete document - successful`() {
-        val entity = DocumentEntity().apply {
-            id = 7
-            storagePath = "/documents/100/ausweis.jpg"
-        }
+        val entity = DocumentEntity(
+            household = testHousehold,
+            documentType = at.wrk.tafel.admin.backend.database.model.household.DocumentType.ID,
+            fileName = "ausweis.jpg",
+            contentType = "image/jpeg",
+            storagePath = "/documents/100/ausweis.jpg",
+        ).apply { id = 7 }
         every { documentRepository.findByIdAndHouseholdHouseholdId(7L, 100L) } returns entity
 
         service.deleteDocument(100L, 7L)

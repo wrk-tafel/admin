@@ -70,25 +70,21 @@ class IncomeValidatorServiceImplTest {
         every { staticValueRepository.findSingleValueOfType(type = StaticValueType.ADDITIONAL_ADULT, currentDate = any()) } returns createAdditionalAdultLimitEntity()
         every { staticValueRepository.findSingleValueOfType(type = StaticValueType.ADDITIONAL_CHILD, currentDate = any()) } returns createAdditionalChildLimitEntity()
         every { staticValueRepository.findValuesOfType(type = StaticValueType.FAMILY_ALLOWANCE, currentDate = any()) } returns mockFamilyAllowance.map {
-            StaticValueEntity().apply {
-                amount = it.value
+            newStaticValueEntity(it.value).apply {
                 age = it.age
             }
         }
 
-        incomeTolerance100Entity = StaticValueEntity()
-        incomeTolerance100Entity.amount = BigDecimal("100")
+        incomeTolerance100Entity = newStaticValueEntity(BigDecimal("100"))
         every { staticValueRepository.findSingleValueOfType(type = StaticValueType.TOLERANCE, currentDate = any()) } returns null
 
-        val childTaxAllowanceEntity = StaticValueEntity()
-        childTaxAllowanceEntity.amount = BigDecimal("15")
+        val childTaxAllowanceEntity = newStaticValueEntity(BigDecimal("15"))
         every { staticValueRepository.findSingleValueOfType(type = StaticValueType.CHILD_TAX_ALLOWANCE, currentDate = any()) } returns childTaxAllowanceEntity
 
         every {
             staticValueRepository.findValuesOfType(type = StaticValueType.SIBLING_ADDITION, currentDate = any())
         } returns mockSiblingAddition.map {
-            StaticValueEntity().apply {
-                amount = it.value
+            newStaticValueEntity(it.value).apply {
                 countChildren = it.countChild
             }
         }
@@ -473,23 +469,18 @@ class IncomeValidatorServiceImplTest {
         assertThat(result.valid).isTrue()
     }
 
-    private fun createStaticValueEntity(value: BigDecimal): StaticValueEntity {
-        val entity = StaticValueEntity()
-        entity.amount = value
-        return entity
-    }
+    private fun newStaticValueEntity(amount: BigDecimal): StaticValueEntity = StaticValueEntity(
+        validFrom = LocalDate.now(),
+        validTo = LocalDate.now(),
+        type = StaticValueType.TOLERANCE,
+        amount = amount,
+    )
 
-    private fun createAdditionalAdultLimitEntity(): StaticValueEntity {
-        val entity = StaticValueEntity()
-        entity.amount = BigDecimal("200")
-        return entity
-    }
+    private fun createStaticValueEntity(value: BigDecimal): StaticValueEntity = newStaticValueEntity(value)
 
-    private fun createAdditionalChildLimitEntity(): StaticValueEntity {
-        val entity = StaticValueEntity()
-        entity.amount = BigDecimal("100")
-        return entity
-    }
+    private fun createAdditionalAdultLimitEntity(): StaticValueEntity = newStaticValueEntity(BigDecimal("200"))
+
+    private fun createAdditionalChildLimitEntity(): StaticValueEntity = newStaticValueEntity(BigDecimal("100"))
 }
 
 data class StaticValueMockData(

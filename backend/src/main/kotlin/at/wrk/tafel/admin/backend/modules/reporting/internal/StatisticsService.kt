@@ -38,16 +38,16 @@ class StatisticsService(
 
     fun getSettings(): StatisticsSettingsResponse {
         val closedDistributions = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
-            .filter { it.endedAt != null && it.startedAt != null }
+            .filter { it.endedAt != null }
 
         return StatisticsSettingsResponse(
             availableYears = closedDistributions
-                .mapNotNull { it.startedAt?.year }
+                .map { it.startedAt.year }
                 .distinct()
                 .sortedByDescending { it },
             distributions = closedDistributions.map {
                 StatisticsDistribution(
-                    startDate = it.startedAt!!,
+                    startDate = it.startedAt,
                     endDate = it.endedAt!!,
                 )
             }
@@ -470,7 +470,7 @@ class StatisticsService(
         val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
 
         return SchoolStarterPackageItem(
-            householdId = household!!.householdId!!,
+            householdId = household.householdId,
             firstname = firstname.orEmpty(),
             lastname = lastname.orEmpty(),
             age = age,

@@ -12,16 +12,17 @@ import jakarta.persistence.Table
 @Entity(name = "Shop")
 @Table(name = "shops")
 @ExcludeFromTestCoverage
-class ShopEntity : BaseChangeTrackingEntity() {
-
+class ShopEntity(
     @Column(name = "number")
-    var number: Int? = null
-
+    var number: Int,
     @Column(name = "name")
-    var name: String? = null
-
+    var name: String,
     @Embedded
-    var address: ShopAddress? = null
+    var address: ShopAddress,
+    @Column(name = "food_unit")
+    @Enumerated(EnumType.STRING)
+    var foodUnit: FoodUnit = FoodUnit.BOX,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "phone")
     var phone: String? = null
@@ -31,8 +32,4 @@ class ShopEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "contact_person")
     var contactPerson: String? = null
-
-    @Column(name = "food_unit")
-    @Enumerated(EnumType.STRING)
-    var foodUnit: FoodUnit? = null
 }

@@ -57,8 +57,8 @@ class DashboardService(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
         // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
         selectedShelterNames = currentDistribution?.statistic?.shelters
-            ?.sortedWith(compareBy({ it.sortOrder ?: 0 }, { it.name }))
-            ?.mapNotNull { it.name } ?: emptyList(),
+            ?.sortedWith(compareBy({ it.sortOrder }, { it.name }))
+            ?.map { it.name } ?: emptyList(),
     )
 
     private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {
@@ -71,8 +71,8 @@ class DashboardService(
             foodCollectionsRecordedCount = doneFoodCollections.size,
             foodCollectionsTotalCount = routeRepository.findAll().size,
             recordedRouteNames = doneFoodCollections
-                .sortedWith(compareBy({ it.route?.number ?: 0.0 }, { it.route?.name ?: "" }))
-                .mapNotNull { it.route?.name },
+                .sortedWith(compareBy({ it.route.number }, { it.route.name }))
+                .map { it.route.name },
             foodAmountTotal = currentDistribution.foodCollections
                 .flatMap { it.items ?: emptyList() }
                 .map { it.calculateWeight() }

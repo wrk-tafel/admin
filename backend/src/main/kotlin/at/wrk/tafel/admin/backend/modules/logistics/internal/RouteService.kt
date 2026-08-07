@@ -19,6 +19,6 @@ class RouteService(
 
     private fun mapRoute(routeEntity: RouteEntity): RouteItem = RouteItem(
         id = routeEntity.id!!,
-        name = routeEntity.name!!,
+        name = routeEntity.name,
     )
 }

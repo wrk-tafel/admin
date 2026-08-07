@@ -13,20 +13,17 @@ import java.time.LocalDate
 @Entity(name = "StaticValue")
 @Table(name = "static_values")
 @ExcludeFromTestCoverage
-class StaticValueEntity : BaseEntity() {
+class StaticValueEntity(
     @Column(name = "valid_from")
-    var validFrom: LocalDate? = null
-
+    var validFrom: LocalDate,
     @Column(name = "valid_to")
-    var validTo: LocalDate? = null
-
+    var validTo: LocalDate,
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    var type: StaticValueType? = null
-
+    var type: StaticValueType,
     @Column(name = "amount")
-    var amount: BigDecimal? = null
-
+    var amount: BigDecimal,
+) : BaseEntity() {
     @Column(name = "count_adults")
     var countAdults: Int? = null
 

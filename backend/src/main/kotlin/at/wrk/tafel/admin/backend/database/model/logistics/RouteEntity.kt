@@ -10,13 +10,12 @@ import jakarta.persistence.Table
 @Entity(name = "Route")
 @Table(name = "routes")
 @ExcludeFromTestCoverage
-class RouteEntity : BaseChangeTrackingEntity() {
-
+class RouteEntity(
     @Column(name = "number")
-    var number: Double? = null
-
+    var number: Double,
     @Column(name = "name")
-    var name: String? = null
+    var name: String,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "note")
     var note: String? = null

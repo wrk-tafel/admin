@@ -30,7 +30,7 @@ class FoodCollectionsExporter(
 
         val sortedFoodCategories = foodCategoryRepository.findAll()
             .sortedWith(
-                compareBy<FoodCategoryEntity> { it.returnItem ?: false }
+                compareBy<FoodCategoryEntity> { it.returnItem }
                     .thenBy { it.name },
             )
         val columnsHeaderRow = generateHeaderFromCategories(sortedFoodCategories)
@@ -41,12 +41,12 @@ class FoodCollectionsExporter(
         val previousRows = distributions.flatMap { distribution ->
             calculateFoodCollections(sortedFoodCategories, distribution)
         }
-        val currentRows = calculateFoodCollections(sortedFoodCategories, currentStatistic.distribution!!)
+        val currentRows = calculateFoodCollections(sortedFoodCategories, currentStatistic.distribution)
 
         return listOf(descriptionHeaderRow, columnsHeaderRow) + previousRows + currentRows
     }
 
-    private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> = listOf("Datum", "Route", "Spender") + sortedFoodCategories.mapNotNull { it.name }
+    private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> = listOf("Datum", "Route", "Spender") + sortedFoodCategories.map { it.name }
 
     private fun calculateFoodCollections(
         sortedFoodCategories: List<FoodCategoryEntity>,
@@ -54,26 +54,23 @@ class FoodCollectionsExporter(
     ): List<List<String>> {
         val rows = mutableListOf<List<String>>()
 
-        val foodCollections = distribution.foodCollections.sortedBy { it.route!!.number }
+        val foodCollections = distribution.foodCollections.sortedBy { it.route.number }
         foodCollections.forEach { foodCollection ->
             val items = foodCollection.items
             if (!items.isNullOrEmpty()) {
-                val shops = items.mapNotNull { it.shop }
+                val shops = items.map { it.shop }
                     .sortedBy { it.number }
                     .distinctBy { it.id }
 
                 shops.forEach { currentShop ->
                     val columns = mutableListOf<String>()
-                    columns.add(distribution.startedAt!!.format(DATE_FORMATTER))
-                    columns.add(foodCollection.route!!.number!!.toString())
+                    columns.add(distribution.startedAt.format(DATE_FORMATTER))
+                    columns.add(foodCollection.route.number.toString())
                     columns.add(currentShop.number.toString())
 
                     sortedFoodCategories.forEach { foodCategory ->
-                        // Kotlin types category/shop as nullable, but Sonar's JPA-aware analysis assumes the
-                        // @JoinColumn(nullable = false) guarantee and flags null-handling here as redundant either
-                        // way (!! or ?.) - keep the safe call, it's still correct if that assumption is ever wrong.
                         val itemPerCategory =
-                            items.firstOrNull { it.category?.id == foodCategory.id && it.shop?.id == currentShop.id } // NOSONAR
+                            items.firstOrNull { it.category.id == foodCategory.id && it.shop.id == currentShop.id }
                         val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }

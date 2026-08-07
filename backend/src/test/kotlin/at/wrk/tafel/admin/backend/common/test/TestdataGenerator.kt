@@ -19,28 +19,23 @@ object TestdataGenerator {
     fun createUser(): UserEntity {
         val randomNumber = generateRandomLong()
 
-        val user = UserEntity()
-        user.username = "testuser-$randomNumber"
-        user.employee = EmployeeEntity().apply {
-            personnelNumber = randomNumber.toString()
-            firstname = "firstname-$randomNumber"
-            lastname = "lastname-$randomNumber"
-        }
-        user.enabled = true
-        user.password = "dummy"
-        user.passwordChangeRequired = false
-
-        return user
+        return UserEntity(
+            username = "testuser-$randomNumber",
+            password = "dummy",
+            employee = EmployeeEntity(
+                personnelNumber = randomNumber.toString(),
+                firstname = "firstname-$randomNumber",
+                lastname = "lastname-$randomNumber",
+            ),
+            enabled = true,
+            passwordChangeRequired = false,
+        )
     }
 
-    fun createDistribution(user: UserEntity): DistributionEntity {
-        val distribution = DistributionEntity()
-
-        distribution.startedAt = LocalDateTime.now()
-        distribution.startedByUser = user
-
-        return distribution
-    }
+    fun createDistribution(user: UserEntity): DistributionEntity = DistributionEntity(
+        startedAt = LocalDateTime.now(),
+        startedByUser = user,
+    )
 
     /**
      * Creates a household including its main person - the household's `mainPerson` pointer is
@@ -49,9 +44,13 @@ object TestdataGenerator {
     fun createHousehold(issuer: EmployeeEntity, country: CountryEntity): HouseholdEntity {
         val randomNumber = generateRandomLong()
 
-        val household = HouseholdEntity()
+        val household = HouseholdEntity(
+            householdId = generateRandomLong(),
+            validUntil = LocalDate.now().plusYears(1),
+            locked = false,
+            migrated = false,
+        )
 
-        household.householdId = generateRandomLong()
         household.issuer = issuer
         household.addressStreet = "street-$randomNumber"
         household.addressHouseNumber = "${Random.nextInt(1, 9999)}A"
@@ -62,23 +61,16 @@ object TestdataGenerator {
         household.telephoneNumber = "telephoneNumber-$randomNumber"
         household.email = "email-$randomNumber"
         household.prolongedAt = null
-        household.validUntil = LocalDate.now().plusYears(1)
 
-        household.locked = false
         household.lockedAt = null
         household.lockedBy = null
         household.lockReason = null
 
-        household.migrated = false
-
-        val mainPerson = PersonEntity()
-        mainPerson.household = household
-        mainPerson.isMainPerson = true
+        val mainPerson = PersonEntity(household = household, country = country, isMainPerson = true)
         mainPerson.lastname = "lastname-$randomNumber"
         mainPerson.firstname = "firstname-$randomNumber"
         mainPerson.birthDate = LocalDate.now().minusYears(30)
         mainPerson.gender = Gender.MALE
-        mainPerson.country = country
         mainPerson.employer = "employer-$randomNumber"
         mainPerson.income = BigDecimal("500")
         mainPerson.incomeDue = LocalDate.now().plusYears(1)
@@ -90,11 +82,6 @@ object TestdataGenerator {
     fun createCountry(): CountryEntity {
         val randomNumber = generateRandomLong()
 
-        val country = CountryEntity()
-
-        country.code = "00"
-        country.name = "Country-$randomNumber"
-
-        return country
+        return CountryEntity(code = "00", name = "Country-$randomNumber")
     }
 }

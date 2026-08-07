@@ -83,11 +83,11 @@ class MailSenderService(
         val mailAddresses = mailRecipientRepository.findAllByMailType(mailType)
 
         mailAddresses.filter { it.recipientType == RecipientType.TO }
-            .forEach { messageHelper.addTo(it.address!!) }
+            .forEach { messageHelper.addTo(it.address) }
         mailAddresses.filter { it.recipientType == RecipientType.CC }
-            .forEach { messageHelper.addCc(it.address!!) }
+            .forEach { messageHelper.addCc(it.address) }
         mailAddresses.filter { it.recipientType == RecipientType.BCC }
-            .forEach { messageHelper.addBcc(it.address!!) }
+            .forEach { messageHelper.addBcc(it.address) }
     }
 }
 

@@ -9,10 +9,9 @@ import jakarta.persistence.Table
 @Entity(name = "Country")
 @Table(name = "static_countries")
 @ExcludeFromTestCoverage
-class CountryEntity : BaseEntity() {
+class CountryEntity(
     @Column(name = "code")
-    var code: String? = null
-
+    var code: String,
     @Column(name = "name")
-    var name: String? = null
-}
+    var name: String,
+) : BaseEntity()
