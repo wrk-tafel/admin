@@ -35,5 +35,16 @@ class WebMvcConfig(
         registry.addResourceHandler("/media/**")
             .addResourceLocations("${staticResourceLocation()}media/")
             .setCacheControl(immutableCache)
+
+        // Push notification icons (see PushBroadcastService's payload) are fetched by the browser
+        // at display time, not by the page - a device woken by a push has to pull them over a cold,
+        // possibly still-reconnecting network, and Chrome drops the icon rather than delaying the
+        // notification if that fetch doesn't land. The no-store default these would otherwise
+        // inherit forces exactly that fetch on every single notification. These filenames aren't
+        // content-hashed, so this is a day rather than the immutable cache above - long enough to
+        // survive across notifications, short enough that a changed logo rolls out on its own.
+        registry.addResourceHandler("/icons/**")
+            .addResourceLocations("${staticResourceLocation()}icons/")
+            .setCacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
     }
 }

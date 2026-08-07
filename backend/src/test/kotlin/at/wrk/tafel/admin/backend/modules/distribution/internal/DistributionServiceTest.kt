@@ -15,6 +15,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
@@ -254,6 +255,26 @@ internal class DistributionServiceTest {
                 },
             )
         }
+        verify { eventPublisher.publishEvent(DistributionStartedEvent(distributionEntity.id!!)) }
+    }
+
+    @Test
+    fun `create new distribution forwards the error when publishing DistributionStartedEvent fails`() {
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        distributionEntity.id = 123
+        every { distributionRepository.save(any()) } returns distributionEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
+        every { eventPublisher.publishEvent(any<DistributionStartedEvent>()) } throws IllegalStateException("Test exception")
+
+        val exception = assertThrows<IllegalStateException> { service.createNewDistribution() }
+        assertThat(exception.message).isEqualTo("Test exception")
     }
 
     @Test

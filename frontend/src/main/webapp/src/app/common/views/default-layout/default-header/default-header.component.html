@@ -24,6 +24,9 @@
       <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
         <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
       </a>
+      <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
+        <fa-icon [icon]="faBell"></fa-icon> Benachrichtigungen
+      </a>
       <mat-divider></mat-divider>
       <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
         <fa-icon [icon]="faLock"></fa-icon> Abmelden

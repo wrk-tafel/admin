@@ -1,0 +1,110 @@
+import {HttpClient} from '@angular/common/http';
+import {inject, Service} from '@angular/core';
+import {Observable} from 'rxjs';
+
+export interface PushSubscriptionItem {
+  id: number;
+  endpoint: string;
+  userAgent: string | null;
+  label: string | null;
+  createdAt: string;
+}
+
+export interface PushSubscriptionListResponse {
+  items: PushSubscriptionItem[];
+}
+
+export interface PushPublicKeyResponse {
+  publicKey: string;
+}
+
+export interface PushSubscriptionRequest {
+  endpoint: string;
+  p256dhKey: string;
+  authKey: string;
+  userAgent?: string;
+}
+
+export interface PushSubscriptionLabelRequest {
+  label: string | null;
+}
+
+export enum PushNotificationType {
+  DISTRIBUTION_STARTED = 'DISTRIBUTION_STARTED',
+  DISTRIBUTION_CLOSED = 'DISTRIBUTION_CLOSED'
+}
+
+export const pushNotificationTypeLabel: { [key in PushNotificationType]: string } = {
+  [PushNotificationType.DISTRIBUTION_STARTED]: 'Ausgabe gestartet',
+  [PushNotificationType.DISTRIBUTION_CLOSED]: 'Ausgabe beendet'
+};
+
+export enum PushTestResult {
+  SENT = 'SENT',
+  EXPIRED = 'EXPIRED',
+  NOT_CONFIGURED = 'NOT_CONFIGURED',
+  FAILED = 'FAILED'
+}
+
+export interface PushTestResponse {
+  result: PushTestResult;
+}
+
+export interface PushNotificationTypePreferenceItem {
+  type: PushNotificationType;
+  enabled: boolean;
+}
+
+export interface PushPreferencesResponse {
+  masterEnabled: boolean;
+  types: PushNotificationTypePreferenceItem[];
+}
+
+export interface PushMasterPreferenceRequest {
+  enabled: boolean;
+}
+
+export interface PushTypePreferenceRequest {
+  enabled: boolean;
+}
+
+@Service()
+export class PushApiService {
+  private readonly http = inject(HttpClient);
+
+  getPublicKey(): Observable<PushPublicKeyResponse> {
+    return this.http.get<PushPublicKeyResponse>('/push/public-key');
+  }
+
+  getSubscriptions(): Observable<PushSubscriptionListResponse> {
+    return this.http.get<PushSubscriptionListResponse>('/push/subscriptions');
+  }
+
+  createSubscription(request: PushSubscriptionRequest): Observable<PushSubscriptionItem> {
+    return this.http.post<PushSubscriptionItem>('/push/subscriptions', request);
+  }
+
+  updateLabel(id: number, request: PushSubscriptionLabelRequest): Observable<PushSubscriptionItem> {
+    return this.http.put<PushSubscriptionItem>(`/push/subscriptions/${id}/label`, request);
+  }
+
+  sendTestNotification(id: number): Observable<PushTestResponse> {
+    return this.http.post<PushTestResponse>(`/push/subscriptions/${id}/test`, {});
+  }
+
+  deleteSubscription(id: number): Observable<void> {
+    return this.http.delete<void>(`/push/subscriptions/${id}`);
+  }
+
+  getPreferences(): Observable<PushPreferencesResponse> {
+    return this.http.get<PushPreferencesResponse>('/push/preferences');
+  }
+
+  updateMasterPreference(request: PushMasterPreferenceRequest): Observable<PushPreferencesResponse> {
+    return this.http.put<PushPreferencesResponse>('/push/preferences/master', request);
+  }
+
+  updateTypePreference(type: PushNotificationType, request: PushTypePreferenceRequest): Observable<PushPreferencesResponse> {
+    return this.http.put<PushPreferencesResponse>(`/push/preferences/types/${type}`, request);
+  }
+}

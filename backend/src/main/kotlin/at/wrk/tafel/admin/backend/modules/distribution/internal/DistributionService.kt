@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
@@ -57,7 +58,6 @@ class DistributionService(
 
     fun getDistributionItems(): List<DistributionItem> = getDistributions().map { mapDistribution(it) }
 
-    @Transactional
     fun createNewDistribution(): DistributionEntity {
         var result: DistributionEntity? = null
 
@@ -68,20 +68,39 @@ class DistributionService(
             }
 
             val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-            val startedByUser = checkNotNull(userRepository.findByUsername(authenticatedUser.username!!)) {
-                "Angemeldeter Benutzer '${authenticatedUser.username}' nicht vorhanden!"
+
+            // REQUIRES_NEW to ensure the new distribution is committed before DistributionStartedEvent
+            // listeners react to it - same reasoning as closeDistribution's use of REQUIRES_NEW below.
+            val requiresNewTemplate = TransactionTemplate(transactionTemplate.transactionManager!!).apply {
+                propagationBehavior = Propagation.REQUIRES_NEW.value()
             }
 
-            val newDistribution = DistributionEntity(
-                startedAt = LocalDateTime.now(),
-                startedByUser = startedByUser,
-            )
+            val newDistribution = requiresNewTemplate.execute {
+                val startedByUser = checkNotNull(userRepository.findByUsername(authenticatedUser.username!!)) {
+                    "Angemeldeter Benutzer '${authenticatedUser.username}' nicht vorhanden!"
+                }
 
-            val statisticEntity = DistributionStatisticEntity(distribution = newDistribution)
-            newDistribution.statistic = statisticEntity
+                val newDistribution = DistributionEntity(
+                    startedAt = LocalDateTime.now(),
+                    startedByUser = startedByUser,
+                )
 
-            result = distributionRepository.save(newDistribution)
-            logger.info("Started distribution: ID ${result?.id} (started by: ${startedByUser.username}, at: ${newDistribution.startedAt})")
+                val statisticEntity = DistributionStatisticEntity(distribution = newDistribution)
+                newDistribution.statistic = statisticEntity
+
+                distributionRepository.save(newDistribution).also {
+                    logger.info("Started distribution: ID ${it.id} (started by: ${startedByUser.username}, at: ${it.startedAt})")
+                }
+            }
+
+            try {
+                eventPublisher.publishEvent(DistributionStartedEvent(newDistribution.id!!))
+            } catch (e: Exception) {
+                logger.error("Publishing DistributionStartedEvent failed", e)
+                throw e
+            }
+
+            result = newDistribution
         }
 
         if (!acquired) {

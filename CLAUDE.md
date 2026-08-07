@@ -112,7 +112,7 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 8 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 10 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
@@ -122,16 +122,32 @@ The backend uses **Spring Modulith** architecture with 8 core feature modules (p
 - **reporting**: Statistics exports (CSV), daily reports (PDF), age/country/household distributions
 - **settings**: Application configuration and mail recipient management
 - **support**: In-app support contact form that files a GitHub issue on the user's behalf
-- **base**: Shared utilities (countries, employees, exception handling, release version). Its
-  entities live in `database/model/base/`, but each utility is also its own `@NamedInterface`
-  submodule under `modules/base/{country,employee,exception,version}/` for other modules to
-  depend on
+- **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
+  on distribution started/closed events
+- **version**: `GET /api/version` — the running release version and image build time, read only by
+  the frontend
+- **base**: Shared utilities (countries, employees, exception handling). Its entities live in
+  `database/model/base/`, but each utility is also its own `@NamedInterface` submodule under
+  `modules/base/{country,employee,exception}/` for other modules to depend on. `base` is only for
+  concerns another *backend* module consumes through a named interface — something with no backend
+  consumer belongs in its own top-level module (that's why `version` is one)
 
 **Layering Pattern:**
 - Controllers: REST endpoints with `@PreAuthorize` method-level security
 - Services: Business logic with `@Transactional` boundaries
 - Repositories: Spring Data JPA with custom specifications for complex queries
 - Entities: Located in `database/model/` with Flyway migrations in `resources/db-migration/`
+
+**Module boundaries vs. the entity layer:** Spring Modulith's `allowedDependencies` check governs
+`modules.*`-to-`modules.*` traffic only. `database/model/*` sits outside `modules/` and is
+deliberately an ambiently shared lower layer: **any** module may inject **any** entity/repository
+from it without declaring a dependency, and named interfaces gate only the service/DTO surface, not
+the JPA entity graph. So two modules legitimately reach the same entity by two different paths —
+e.g. `logistics` gets employees through `base::employee`'s `EmployeeService`/`EmployeeResponse`,
+while `household` stamps `HouseholdEntity.issuer` straight from `UserEntity.employee` — and that is
+an accepted pattern, not a bypass to be tidied up. The one hard rule is direction: `database/model/*`
+must never depend on `modules/*`, enforced by an ArchUnit rule in `architecture/ProjectSpecificRulesTest`.
+Don't read a module's `allowedDependencies` as the full list of what it touches at the DB level.
 
 **Key Technologies:**
 - Java with Kotlin (coroutines support) — see `backend/build.gradle.kts`'s toolchain block and
