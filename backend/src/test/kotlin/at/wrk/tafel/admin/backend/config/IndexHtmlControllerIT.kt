@@ -61,7 +61,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
                     <base href="/">
                     <meta name="tafel-environment-label" content="">
                 </head>
-                <body>test</body>
+                <body><div class="tafel-app-loading-environment-label"></div></body>
             </html>
             """.trimIndent(),
         )
@@ -90,7 +90,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
                     <base href="/tafel-admin/">
                     <meta name="tafel-environment-label" content="DEV">
                 </head>
-                <body>test</body>
+                <body><div class="tafel-app-loading-environment-label">DEV</div></body>
             </html>
             """.trimIndent(),
         )

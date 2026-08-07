@@ -165,6 +165,44 @@ class IndexHtmlControllerTest {
     }
 
     @Test
+    fun `loading screen environment label is filled with the configured environment label`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\"></div></body></html>",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(environmentLabel = "DEV"),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.index()
+
+        assertThat(response.body).isEqualTo(
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\">DEV</div></body></html>",
+        )
+    }
+
+    @Test
+    fun `loading screen environment label left empty when no environment label is configured`() {
+        every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\"></div></body></html>",
+        )
+        val controller = IndexHtmlController(
+            tafelAdminProperties = TafelAdminProperties(),
+            resourceLoader = resourceLoader,
+        )
+
+        val response = controller.index()
+
+        assertThat(response.body).isEqualTo(
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\"></div></body></html>",
+        )
+    }
+
+    @Test
     fun `missing index html results in a 404`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns mockk<Resource> {
             every { exists() } returns false

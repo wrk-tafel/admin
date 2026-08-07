@@ -31,7 +31,9 @@ import java.nio.charset.StandardCharsets
  * manifest's name/short_name to include tafeladmin.environmentLabel, so each environment installs
  * as a clearly separate home-screen app (see #3027). The same value is also written into a
  * "tafel-environment-label" meta tag so the Angular app can read it client-side (e.g. the login
- * page badge, see #3032) without needing an authenticated API call.
+ * page badge, see #3032) without needing an authenticated API call, and into the loading screen
+ * inside <app-root> - that one is plain html shown before any Angular code has run, so it can only
+ * carry the label if the label is already in the markup by the time it's served.
  *
  * Two brandings are produced, not one, because the places they land have very different room:
  * [brandedTitle] ("Tafel Admin (DEV)") goes where a full sentence fits - the browser tab and the
@@ -102,6 +104,10 @@ class IndexHtmlController(
             .replace(
                 "<meta name=\"tafel-environment-label\" content=\"\">",
                 "<meta name=\"tafel-environment-label\" content=\"${tafelAdminProperties.environmentLabel.trim()}\">",
+            )
+            .replace(
+                "<div class=\"tafel-app-loading-environment-label\"></div>",
+                "<div class=\"tafel-app-loading-environment-label\">${tafelAdminProperties.environmentLabel.trim()}</div>",
             )
 
         return ResponseEntity.ok()
