@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
+import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -31,12 +32,6 @@ class PushBroadcastService(
     }
 
     fun broadcast(type: PushNotificationType, title: String, body: String) {
-        val payload = jsonMapper.writeValueAsString(
-            PushNotificationPayload(
-                notification = PushNotificationPayloadNotification(title = title, body = body),
-            ),
-        )
-
         // Memoized per user within this one broadcast call - a user with several devices would
         // otherwise trigger the same preference lookup once per device.
         val preferenceCache = mutableMapOf<Long, Boolean>()
@@ -48,16 +43,37 @@ class PushBroadcastService(
                 return@forEach
             }
 
-            when (webPushSenderService.send(subscription, payload)) {
-                PushSendResult.SENT -> Unit
-                PushSendResult.EXPIRED -> {
-                    logger.info("Removing expired push subscription #${subscription.id}")
-                    pushSubscriptionRepository.delete(subscription)
-                }
-
-                PushSendResult.FAILED -> logger.warn("Push notification to subscription #${subscription.id} failed")
-            }
+            sendTo(subscription, title, body)
         }
+    }
+
+    /**
+     * Sends to one specific subscription, pruning it if the push service reports it as gone -
+     * the single-device counterpart of [broadcast], used by the per-device test notification
+     * (`PushSubscriptionService.sendTestNotification`). Deliberately *not* gated by
+     * [PushPreferencesService]: it's triggered by an explicit click on that device's own "test"
+     * button, so it has to reach the device even while a preference toggle is off - otherwise the
+     * one button meant to answer "does push work on this device at all?" would silently do nothing.
+     */
+    fun sendTo(subscription: PushSubscriptionEntity, title: String, body: String): PushSendResult {
+        val payload = jsonMapper.writeValueAsString(
+            PushNotificationPayload(
+                notification = PushNotificationPayloadNotification(title = title, body = body),
+            ),
+        )
+
+        val result = webPushSenderService.send(subscription, payload)
+        when (result) {
+            PushSendResult.SENT -> Unit
+            PushSendResult.EXPIRED -> {
+                logger.info("Removing expired push subscription #${subscription.id}")
+                pushSubscriptionRepository.delete(subscription)
+            }
+
+            PushSendResult.NOT_CONFIGURED -> logger.warn("Push notification to subscription #${subscription.id} skipped - VAPID isn't configured")
+            PushSendResult.FAILED -> logger.warn("Push notification to subscription #${subscription.id} failed")
+        }
+        return result
     }
 }
 

@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import nl.martijndwars.webpush.PushService
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -44,4 +46,12 @@ class WebPushConfig {
         }
         return PushService(publicKey, privateKey, subject)
     }
+
+    /**
+     * The client `push.internal.WebPushSenderService` sends its (self-assembled) push requests
+     * with - see that class for why the library's own `PushService.send` isn't used. Spring closes
+     * it on shutdown via the inferred `close()` destroy method.
+     */
+    @Bean
+    fun webPushHttpClient(): CloseableHttpClient = HttpClients.createSystem()
 }

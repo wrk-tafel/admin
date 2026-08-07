@@ -10,6 +10,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -108,6 +109,51 @@ internal class PushBroadcastServiceTest {
 
         service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
 
+        verify(exactly = 0) { pushSubscriptionRepository.delete(any()) }
+    }
+
+    @Test
+    fun `sendTo sends to exactly the given subscription and reports the result`() {
+        val subscription = subscriptionOf(id = 10, userId = 100)
+        every { webPushSenderService.send(subscription, any()) } returns PushSendResult.SENT
+
+        val result = service.sendTo(subscription, "title", "body")
+
+        assertThat(result).isEqualTo(PushSendResult.SENT)
+        verify { webPushSenderService.send(subscription, "payload-json") }
+        verify(exactly = 0) { pushSubscriptionRepository.findAll() }
+    }
+
+    @Test
+    fun `sendTo ignores the owner's notification preferences`() {
+        val subscription = subscriptionOf(id = 10, userId = 100)
+        every { pushPreferencesService.isEnabled(any(), any()) } returns false
+        every { webPushSenderService.send(subscription, any()) } returns PushSendResult.SENT
+
+        service.sendTo(subscription, "title", "body")
+
+        verify { webPushSenderService.send(subscription, "payload-json") }
+    }
+
+    @Test
+    fun `sendTo removes a subscription the push service reports as expired`() {
+        val subscription = subscriptionOf(id = 10, userId = 100)
+        every { webPushSenderService.send(subscription, any()) } returns PushSendResult.EXPIRED
+
+        val result = service.sendTo(subscription, "title", "body")
+
+        assertThat(result).isEqualTo(PushSendResult.EXPIRED)
+        verify { pushSubscriptionRepository.delete(subscription) }
+    }
+
+    @Test
+    fun `sendTo keeps a subscription when push isn't configured at all`() {
+        val subscription = subscriptionOf(id = 10, userId = 100)
+        every { webPushSenderService.send(subscription, any()) } returns PushSendResult.NOT_CONFIGURED
+
+        val result = service.sendTo(subscription, "title", "body")
+
+        assertThat(result).isEqualTo(PushSendResult.NOT_CONFIGURED)
         verify(exactly = 0) { pushSubscriptionRepository.delete(any()) }
     }
 }
