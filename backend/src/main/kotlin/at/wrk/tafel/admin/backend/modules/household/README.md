@@ -10,7 +10,10 @@ codebase depending on which layer you're in.
 `@ApplicationModule(allowedDependencies = {"base::country", "base::exception"})` (see
 [`package-info.java`](package-info.java)) - this module is only allowed to reach into the `country`
 and `exception` named interfaces of the `base` module. It does **not** depend on `base::employee`
-directly; instead it goes through `UserEntity.employee` (see below).
+directly; it reaches `EmployeeEntity` through `UserEntity.employee` instead (see below), which is an
+accepted pattern rather than a bypass - the shared `database.model.*` layer is available to every
+module, and named interfaces gate service/DTO access only (see
+[`base`'s README](../base/README.md#employees-are-reachable-two-ways)).
 
 ## Domain model
 
@@ -129,7 +132,8 @@ Bidirectional mapping between the API-facing `Household`/`Person` models and
 - Resolves the next `household_id` from the `household_id_sequence` (via
   `HouseholdRepository.getNextHouseholdSequenceValue()`) for new households.
 - Stamps `issuer` from the authenticated user's linked `EmployeeEntity` (`userEntity.employee`) -
-  this is how the module gets employee data without depending on `base::employee`.
+  this is how the module gets employee data without depending on `base::employee`. It needs the
+  managed entity to assign, which is exactly what that named interface's service doesn't hand out.
 - Tracks `prolongedAt`: set to "now" whenever an update pushes `validUntil` further into the future
   than it already was.
 - Force-clears `migrated = false` whenever a household is saved through the app (there's a
