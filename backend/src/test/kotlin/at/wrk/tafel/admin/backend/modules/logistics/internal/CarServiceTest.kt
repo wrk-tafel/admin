@@ -7,6 +7,10 @@ import at.wrk.tafel.admin.backend.modules.logistics.model.CarRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testCar1
 import at.wrk.tafel.admin.backend.modules.logistics.testCar2
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -16,6 +20,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 
 @ExtendWith(MockKExtension::class)
@@ -189,5 +194,72 @@ class CarServiceTest {
 
         val exception = assertThrows<NotFoundException> { service.reorderCars(listOf(99L)) }
         assertThat(exception.body.detail).isEqualTo("Car with id 99 not found")
+    }
+
+    @Test
+    fun `create car logs the creation`() {
+        val createInput = CarRequest(id = null, licensePlate = "New Plate", name = "New Car", enabled = true, sortOrder = 999)
+        every { carRepository.findAll() } returns emptyList()
+        every { carRepository.save(any()) } answers {
+            val arg = firstArg() as CarEntity
+            arg.id = 42
+            arg
+        }
+
+        withLogAppender(CarService::class.java) { logAppender ->
+            service.createCar(createInput)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Created car").contains("42").contains("New Plate")
+            }
+        }
+    }
+
+    @Test
+    fun `update car logs the update`() {
+        val existingEntity = CarEntity(licensePlate = "Old Plate", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Old Car"
+        }
+        val updated = CarRequest(id = existingEntity.id!!, licensePlate = "Updated Plate", name = "Updated Car", enabled = false, sortOrder = 5)
+        every { carRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { carRepository.save(any()) } answers { firstArg() as CarEntity }
+
+        withLogAppender(CarService::class.java) { logAppender ->
+            service.updateCar(existingEntity.id!!, updated)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated car").contains("99").contains("Updated Plate")
+            }
+        }
+    }
+
+    @Test
+    fun `reorder cars logs the new order`() {
+        val entity1 = CarEntity(licensePlate = "Plate 1", sortOrder = 200).apply { id = 1 }
+        every { carRepository.findByIdOrNull(1L) } returns entity1
+        every { carRepository.save(any()) } answers { firstArg() as CarEntity }
+
+        withLogAppender(CarService::class.java) { logAppender ->
+            service.reorderCars(listOf(1L))
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Reordered cars").contains("[1]")
+            }
+        }
+    }
+
+    private fun withLogAppender(loggerClass: Class<*>, block: (ListAppender<ILoggingEvent>) -> Unit) {
+        val logger = LoggerFactory.getLogger(loggerClass) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            block(logAppender)
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 }

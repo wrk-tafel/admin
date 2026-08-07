@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService.Companion.SCANNER_RESULT_NOTIFICATION_NAME
+import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,6 +20,10 @@ class ScannerController(
     private val scannerService: ScannerService,
     private val sseOutboxService: SseOutboxService,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(ScannerController::class.java)
+    }
 
     @GetMapping
     fun getScanners(): ScannersResponse = ScannersResponse(scannerIds = scannerService.getScannerIds())
@@ -38,6 +43,7 @@ class ScannerController(
                 value = scanResult,
             ),
         )
+        log.info("Relayed scan result from scanner {}: {}", scannerId, scanResult)
     }
 }
 
