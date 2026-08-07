@@ -1,20 +1,25 @@
 # Base Module
 
-`base` is a grab-bag of small, shared concerns: countries, employees, generic exception handling,
-and the running version. Unlike every other feature module, **there is no
-`modules/base/package-info.java`** — the `base` package itself is not a Spring Modulith
-`@ApplicationModule`. Instead, each subpackage (`country`, `employee`, `exception`, `version`) has
-its own `package-info.java` annotated with `@org.springframework.modulith.NamedInterface("...")`,
-making each one an independently addressable, explicitly exported slice that other modules can
-declare a dependency on individually (e.g. `allowedDependencies = {"base::exception",
-"base::employee"}` in `logistics`'s `package-info.java`). Do not add a blanket `base` module
-dependency anywhere — always depend on the specific named interface (`base::country`,
-`base::employee`, `base::exception`, or `base::version`) you actually need.
+`base` holds the small, shared concerns that *other backend modules* consume: countries, employees,
+and generic exception handling. That consumer test is what defines the module's scope — a small
+concern with no backend consumer is not a `base` slice but its own top-level module (see
+[`modules/version`](../version/README.md), whose only consumer is the frontend over HTTP).
+
+Unlike every other feature module, **there is no `modules/base/package-info.java`** — the `base`
+package itself is not a Spring Modulith `@ApplicationModule`. Instead, each subpackage (`country`,
+`employee`, `exception`) has its own `package-info.java` annotated with
+`@org.springframework.modulith.NamedInterface("...")`, making each one an independently addressable,
+explicitly exported slice that other modules can declare a dependency on individually (e.g.
+`allowedDependencies = {"base::exception", "base::employee"}` in `logistics`'s `package-info.java`).
+Do not add a blanket `base` module dependency anywhere — always depend on the specific named
+interface (`base::country`, `base::employee`, or `base::exception`) you actually need.
 
 Entities backing this module are **not** colocated with it: they live under `database/model/base`
 (`EmployeeEntity`, `EmployeeRepository`) and `database/model/staticdata` (`CountryEntity`,
 `CountryRepository`), consistent with the repo-wide convention that entities/repositories live in
-`database/model/`, not `modules/`.
+`database/model/`, not `modules/`. A named interface therefore gates this module's service/DTO
+surface only — never the entities behind it, which sit outside `modules/` and are ambiently
+available to everyone (see [Employees are reachable two ways](#employees-are-reachable-two-ways)).
 
 ## Components
 
@@ -51,11 +56,27 @@ Entities backing this module are **not** colocated with it: they live under `dat
   named-interface dependency between backend modules, not the same thing as "who calls the REST
   endpoint"; the frontend's `settings` module now also calls `/api/employees` directly over HTTP for
   its maintenance screen, which doesn't require any backend `allowedDependencies` change since it
-  doesn't import Kotlin types from this package. Note that `household` does **not** depend on
-  `base::employee` even though `HouseholdEntity.issuer` and `HouseholdNoteEntity.employee` are both
-  `EmployeeEntity` references — `household` reaches `EmployeeEntity` directly through
-  `UserEntity.employee` (a `database.model` type, not a `modules.base.employee` type), so it never
-  needs this named interface.
+  doesn't import Kotlin types from this package.
+
+#### Employees are reachable two ways
+
+`logistics` goes through this named interface (`EmployeeService`/`EmployeeResponse`). `household`
+does **not** depend on `base::employee` at all, even though `HouseholdEntity.issuer` and
+`HouseholdNoteEntity.employee` are both `EmployeeEntity` references: it reaches the entity directly
+through `UserEntity.employee`, a `database.model` type rather than a `modules.base.employee` one.
+
+That is an accepted pattern, not an oversight or a boundary to be tightened. `database/model/` sits
+outside `modules/` and is deliberately an ambiently shared lower layer that every module may inject
+from without declaring anything — so a named interface gates the service/DTO surface, and never the
+JPA entity graph underneath it. Routing `household` through `base::employee` would not actually
+close anything either: it needs a managed `EmployeeEntity` to *assign* as `issuer`, whereas this
+module's service exists precisely to hand out DTOs instead of entities.
+
+The one hard rule is direction — `database/model/` must never depend back on `modules/`, which is
+enforced by `database entities should not depend on feature modules` in
+`architecture/ProjectSpecificRulesTest`. Within that, expect a shared entity to be reached by both
+an enforced and an unenforced path, and read a module's `allowedDependencies` as "what Kotlin types
+it imports from other modules", not "everything it touches".
 
 ### `exception` — `@NamedInterface("exception")`
 - [`TafelExceptions.kt`](exception/TafelExceptions.kt): RFC 7807 (`ProblemDetail`) based exceptions,
@@ -101,20 +122,12 @@ Entities backing this module are **not** colocated with it: they live under `dat
   This is the module to reach for whenever a service needs to reject a request with a clear HTTP
   status and a user-facing message.
 
-### `version` — `@NamedInterface("version")`
-- [`VersionController`](version/VersionController.kt): `GET /api/version`, requires only
-  `isAuthenticated()` — returns the currently running release version and when the image was built.
-- [`VersionResponse.kt`](version/VersionResponse.kt): `VersionResponse(version, buildTime)`.
-- No entity/repository — both values come from `TafelAdminProperties`
-  (`config/properties/TafelAdminProperties.kt`), which default to `"dev"`/`"unknown"` and are
-  overridden by the `TAFELADMIN_VERSION`/`TAFELADMIN_BUILD_TIME` env vars baked into the Docker
-  image at build time — the former from the git tag computed in `.github/workflows/release.yml`,
-  the latter a UTC timestamp computed at the moment the image is built in
-  `.github/workflows/subflow_docker_image.yml` (see `_build/Dockerfile`).
-- **Only consumer:** the frontend, via `VersionApiService` — displayed at the bottom of the sidebar
-  (`DefaultLayoutComponent`). No other backend module depends on `base::version`.
-
 ## Adding to this module
+
+First check that it belongs here at all: `base` is for concerns another backend module imports
+Kotlin types from. If nothing but the frontend consumes it, give it its own top-level
+`modules/<name>/` with an `@ApplicationModule(allowedDependencies = {})` instead, the way
+[`version`](../version/README.md) is set up.
 
 Because there's no top-level `base` `@ApplicationModule`, adding a new shared subpackage means:
 1. Create the subpackage under `modules/base/<name>/`.

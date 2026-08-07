@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.base.version
+package at.wrk.tafel.admin.backend.modules.version
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.assertj.core.api.Assertions.assertThat
