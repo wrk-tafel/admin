@@ -3,21 +3,23 @@ package at.wrk.tafel.admin.backend.database.common.sseoutbox
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.NOTIFICATIONS_POLL_TIMEOUT
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.PG_NOTIFICATION_CHANNEL_NAME
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.postgresql.PGConnection
-import org.springframework.jdbc.core.JdbcTemplate
 import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
+import java.sql.DriverManager
 import java.sql.SQLException
 import java.sql.Statement
 
@@ -25,15 +27,15 @@ import java.sql.Statement
 class SseOutboxListenerServiceTest {
 
     @RelaxedMockK
-    private lateinit var jdbcTemplate: JdbcTemplate
-
-    @RelaxedMockK
     private lateinit var jsonMapper: JsonMapper
 
     @RelaxedMockK
     private lateinit var mockStatement: Statement
 
-    @InjectMockKs
+    private val jdbcUrl = "jdbc:postgresql://localhost:5432/test"
+    private val jdbcUsername = "test"
+    private val jdbcPassword = "test"
+
     private lateinit var service: SseOutboxListenerService
 
     private val testNotificationEventString =
@@ -46,8 +48,16 @@ class SseOutboxListenerServiceTest {
 
     @BeforeEach
     fun beforeEach() {
+        service = SseOutboxListenerService(
+            jdbcUrl = jdbcUrl,
+            jdbcUsername = jdbcUsername,
+            jdbcPassword = jdbcPassword,
+            jsonMapper = jsonMapper,
+        )
+
+        mockkStatic(DriverManager::class)
         val mockConnection: Connection = mockk()
-        every { jdbcTemplate.dataSource!!.connection } returns mockConnection
+        every { DriverManager.getConnection(jdbcUrl, jdbcUsername, jdbcPassword) } returns mockConnection
 
         every { mockConnection.createStatement() } returns mockStatement
         every { mockStatement.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;") } returns true
@@ -67,6 +77,11 @@ class SseOutboxListenerServiceTest {
                 SseOutboxNotificationEvent::class.java,
             )
         } returns testNotificationEvent
+    }
+
+    @AfterEach
+    fun afterEach() {
+        unmockkStatic(DriverManager::class)
     }
 
     @Test
