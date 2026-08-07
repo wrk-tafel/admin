@@ -151,9 +151,12 @@ freshly saved data with its own stale form state.
 
 ### Section panels
 
-Both item layouts render two titled, colour-coded panels — **Warenmenge** (green, matching the
-valid-row highlight inside its table) and **Retourware** (amber) — so the two kinds of counting
-can't be confused at a glance. The km fields above them get
+Both item layouts render two titled, colour-coded panels — **Warenmenge** (green) and
+**Retourware** (amber), each with a subtitle saying which direction the boxes travel — so the
+two kinds of counting can't be confused at a glance. The rows inside a panel's table carry no
+background of their own, so they always sit flush on the panel's tint and the whole block reads
+as one surface; the only row background is `bg-red-100` on an invalid row, which is meant to
+break out of it. The km fields above them get
 a plain heading and deliberately no panel: they belong to the route, not to a shop's counts.
 
 ### Retourware (both layouts)

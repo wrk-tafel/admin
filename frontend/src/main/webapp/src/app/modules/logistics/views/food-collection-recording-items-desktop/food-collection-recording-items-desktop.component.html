@@ -2,23 +2,30 @@
   <form [formGroup]="form" autocomplete="off">
     <div class="mt-6 rounded-lg border border-green-200 bg-green-50 p-4" testid="items-section">
       <h6 class="font-bold text-green-900 mb-2">Warenmenge</h6>
-      <table class="min-w-full divide-y divide-green-200" testid="items-table">
+      <p class="text-sm text-green-900 mb-2">
+        Kisten, die von der Filiale mitgenommen werden. Menge je Kategorie und Filiale erfassen.
+      </p>
+
+      <!-- table-fixed: the shop columns split the panel's width evenly instead of growing with
+           their content, so the inputs fill their whole column and the table never overflows the
+           viewport no matter how many shops a route has -->
+      <table class="w-full table-fixed divide-y divide-green-200" testid="items-table">
         <thead>
         <tr>
-          <th scope="col"></th>
+          <th scope="col" class="w-40 pr-4"></th>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
+            <th scope="col" class="px-1" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
           }
         </tr>
         </thead>
         <tbody formArrayName="categories">
           @for (category of categories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex"
-                [ngClass]="{'bg-red-100': isControlInvalid(category), 'bg-green-100': isControlValid(category)}">
-              <td class="font-bold">{{ foodCategories()?.[categoryIndex]?.name }}</td>
+                [ngClass]="{'bg-red-100': isControlInvalid(category)}">
+              <td class="font-bold pr-4">{{ foodCategories()?.[categoryIndex]?.name }}</td>
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
-                  <td [formGroupName]="shopIndex">
+                  <td [formGroupName]="shopIndex" class="px-1">
                     <mat-form-field subscriptSizing="dynamic" class="w-full">
                       <input matInput type="number" min="0"
                              [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
@@ -39,22 +46,22 @@
         Kisten, die an die Filiale zurückgehen. Nicht gelistete Kisten unten mit eigener Beschreibung erfassen.
       </p>
 
-      <table class="min-w-full divide-y divide-amber-200">
+      <table class="w-full table-fixed divide-y divide-amber-200">
         <thead>
         <tr>
-          <th scope="col"></th>
+          <th scope="col" class="w-40 pr-4"></th>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
+            <th scope="col" class="px-1" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
           }
         </tr>
         </thead>
         <tbody formArrayName="returnCategories">
           @for (category of returnCategories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex">
-              <td class="font-bold">{{ foodReturnCategories()?.[categoryIndex]?.name }}</td>
+              <td class="font-bold pr-4">{{ foodReturnCategories()?.[categoryIndex]?.name }}</td>
               <ng-container formArrayName="shops">
                 @for (shop of getReturnCategoryShops(categoryIndex).controls; let shopIndex = $index; track shop) {
-                  <td [formGroupName]="shopIndex">
+                  <td [formGroupName]="shopIndex" class="px-1">
                     <mat-form-field subscriptSizing="dynamic" class="w-full">
                       <input matInput type="number" min="0"
                              [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"

@@ -19,7 +19,7 @@ import {
   FoodCollectionSaveReturnItemsRequest
 } from '../../../../api/food-collections-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
-import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
+import {isControlInvalid} from '../../../../common/util/reactive-form-helper';
 import {
   duplicateDescriptionValidator,
   RETURN_ITEM_DESCRIPTION_MAX_LENGTH
@@ -273,7 +273,6 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   }
 
   protected readonly isControlInvalid = isControlInvalid;
-  protected readonly isControlValid = isControlValid;
   protected readonly faPlus = faPlus;
   protected readonly faRemove = faRemove;
   protected readonly maxDescriptionLength = RETURN_ITEM_DESCRIPTION_MAX_LENGTH;
