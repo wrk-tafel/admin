@@ -32,6 +32,14 @@ import java.nio.charset.StandardCharsets
  * as a clearly separate home-screen app (see #3027). The same value is also written into a
  * "tafel-environment-label" meta tag so the Angular app can read it client-side (e.g. the login
  * page badge, see #3032) without needing an authenticated API call.
+ *
+ * Two brandings are produced, not one, because the places they land have very different room:
+ * [brandedTitle] ("Tafel Admin (DEV)") goes where a full sentence fits - the browser tab and the
+ * manifest's `name`, which is what install prompts and app listings show. [brandedShortTitle]
+ * ("Tafel DEV") goes where the platform renders a home-screen label under an icon and hard-truncates
+ * at around twelve characters - the manifest's `short_name` and, its iOS equivalent,
+ * `apple-mobile-web-app-title`. Using the long form for those is what turns an installed
+ * environment into "Tafel Adm...", losing exactly the label that tells the environments apart.
  */
 @Controller
 class IndexHtmlController(
@@ -63,7 +71,7 @@ class IndexHtmlController(
         val json = resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
         val templatedJson = json
             .replace("\"name\": \"Tafel Admin\"", "\"name\": \"$brandedTitle\"")
-            .replace("\"short_name\": \"Tafel Admin\"", "\"short_name\": \"$brandedTitle\"")
+            .replace("\"short_name\": \"Tafel Admin\"", "\"short_name\": \"$brandedShortTitle\"")
 
         return ResponseEntity.ok()
             .contentType(MediaType.valueOf("application/manifest+json"))
@@ -89,7 +97,7 @@ class IndexHtmlController(
             .replace("<title>Tafel Admin</title>", "<title>$brandedTitle</title>")
             .replace(
                 "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin\">",
-                "<meta name=\"apple-mobile-web-app-title\" content=\"$brandedTitle\">",
+                "<meta name=\"apple-mobile-web-app-title\" content=\"$brandedShortTitle\">",
             )
             .replace(
                 "<meta name=\"tafel-environment-label\" content=\"\">",
@@ -105,5 +113,17 @@ class IndexHtmlController(
         get() {
             val label = tafelAdminProperties.environmentLabel.trim()
             return if (label.isEmpty()) "Tafel Admin" else "Tafel Admin ($label)"
+        }
+
+    /**
+     * "Tafel DEV" rather than "Tafel Admin (DEV)": the label replaces "Admin" instead of being
+     * appended to it, which is what keeps every environment inside a home-screen label's roughly
+     * twelve visible characters. Production, having no label, is plain "Tafel Admin" - the one case
+     * that already fit.
+     */
+    private val brandedShortTitle: String
+        get() {
+            val label = tafelAdminProperties.environmentLabel.trim()
+            return if (label.isEmpty()) "Tafel Admin" else "Tafel $label"
         }
 }
