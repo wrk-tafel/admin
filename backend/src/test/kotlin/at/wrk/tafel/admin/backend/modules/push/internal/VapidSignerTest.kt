@@ -24,18 +24,18 @@ internal class VapidSignerTest {
         vapidPrivateKey: String? = privateKey,
         vapidSubject: String? = "mailto:test@localhost",
     ) = VapidSigner(
-        TafelAdminProperties(
-            push = TafelAdminPushProperties(
-                vapidPublicKey = vapidPublicKey,
-                vapidPrivateKey = vapidPrivateKey,
-                vapidSubject = vapidSubject,
-            ),
-        ),
+        TafelAdminProperties().apply {
+            push = TafelAdminPushProperties().apply {
+                this.vapidPublicKey = vapidPublicKey
+                this.vapidPrivateKey = vapidPrivateKey
+                this.vapidSubject = vapidSubject
+            }
+        },
     )
 
     @Test
     fun `isn't configured when push isn't configured at all`() {
-        assertThat(VapidSigner(TafelAdminProperties(push = null)).isConfigured).isFalse()
+        assertThat(VapidSigner(TafelAdminProperties()).isConfigured).isFalse()
     }
 
     @Test
@@ -73,7 +73,7 @@ internal class VapidSignerTest {
 
     @Test
     fun `refuses to sign when it isn't configured`() {
-        assertThatThrownBy { VapidSigner(TafelAdminProperties(push = null)).authorizationHeader(URI.create("https://push.example.com/x")) }
+        assertThatThrownBy { VapidSigner(TafelAdminProperties()).authorizationHeader(URI.create("https://push.example.com/x")) }
             .isInstanceOf(IllegalStateException::class.java)
     }
 

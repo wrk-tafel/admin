@@ -25,7 +25,7 @@ describe('DefaultLayoutComponent', () => {
             getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
         };
         const configApiServiceSpy = {
-            getConfig: vi.fn().mockName('ConfigApiService.getConfig')
+            observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
                 .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true}))
         };
 

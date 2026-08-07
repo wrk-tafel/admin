@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.postgresql.PGConnection
+import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties
 import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
 import java.sql.DriverManager
@@ -48,10 +49,13 @@ class SseOutboxListenerServiceTest {
 
     @BeforeEach
     fun beforeEach() {
+        val dataSourceProperties = DataSourceProperties().apply {
+            url = jdbcUrl
+            username = jdbcUsername
+            password = jdbcPassword
+        }
         service = SseOutboxListenerService(
-            jdbcUrl = jdbcUrl,
-            jdbcUsername = jdbcUsername,
-            jdbcPassword = jdbcPassword,
+            dataSourceProperties = dataSourceProperties,
             jsonMapper = jsonMapper,
         )
 

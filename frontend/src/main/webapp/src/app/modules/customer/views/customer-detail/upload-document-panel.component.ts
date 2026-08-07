@@ -50,6 +50,8 @@ export class UploadDocumentPanelComponent {
    */
   scannerEnabled = signal(false);
 
+  private configSubscription: Subscription | undefined;
+
   private scannerSubscription: Subscription | undefined;
 
   protected readonly documentTypeLabel = documentTypeLabel;
@@ -57,11 +59,27 @@ export class UploadDocumentPanelComponent {
   protected readonly faEye = faEye;
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.scannerSubscription?.unsubscribe());
-    // Answers "does this deployment have a scanner folder?" before the source toggle is drawn. The
-    // file listing and its SSE stream stay lazy - both are only worth fetching once the user
+    this.destroyRef.onDestroy(() => {
+      this.scannerSubscription?.unsubscribe();
+      this.configSubscription?.unsubscribe();
+    });
+    // Answers "does this deployment have a scanner folder?" before the source toggle is drawn, and
+    // keeps answering it: the flag can be switched off (or on) in the backend's config file while
+    // this panel is open, so the toggle follows the stream rather than a single reply. The file
+    // listing and its own SSE stream stay lazy - both are only worth fetching once the user
     // actually switches to the scanner source.
-    this.configApiService.getConfig().subscribe((config) => this.scannerEnabled.set(config?.scannerFolderEnabled ?? false));
+    this.configSubscription = this.configApiService.observeConfig().subscribe((config) => {
+      const enabled = config?.scannerFolderEnabled ?? false;
+      this.scannerEnabled.set(enabled);
+
+      // The source the user is standing on can disappear underneath them, and the toggle that would
+      // let them leave it disappears with it - so put them back on the file upload, which every
+      // deployment has, and drop the now-unreachable scanner file they had picked.
+      if (!enabled && this.source() === 'scanner') {
+        this.source.set('upload');
+        this.selectedScannerFileName.set(null);
+      }
+    });
   }
 
   selectSource(source: DocumentSource) {

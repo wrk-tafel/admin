@@ -56,13 +56,13 @@ internal class WebPushVapidSigningTest {
     }
 
     private val vapidSigner = VapidSigner(
-        TafelAdminProperties(
-            push = TafelAdminPushProperties(
-                vapidPublicKey = WebPushEcKeys.encodeBase64Url(serverPublicKey),
-                vapidPrivateKey = WebPushEcKeys.encodeBase64Url((serverKeys.private as ECPrivateKey).s.toByteArray()),
-                vapidSubject = "mailto:test@localhost",
-            ),
-        ),
+        TafelAdminProperties().apply {
+            push = TafelAdminPushProperties().apply {
+                vapidPublicKey = WebPushEcKeys.encodeBase64Url(serverPublicKey)
+                vapidPrivateKey = WebPushEcKeys.encodeBase64Url((serverKeys.private as ECPrivateKey).s.toByteArray())
+                vapidSubject = "mailto:test@localhost"
+            }
+        },
     )
 
     private val restClientBuilder = RestClient.builder()

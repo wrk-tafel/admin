@@ -41,7 +41,7 @@ export class DefaultLayoutComponent {
   private readonly configApiService = inject(ConfigApiService);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
-  readonly appConfig = toSignal(this.configApiService.getConfig(), {initialValue: null});
+  readonly appConfig = toSignal(this.configApiService.observeConfig(), {initialValue: null});
 
   readonly collapsed = signal(false);
   readonly expandedItems = signal<Set<string>>(new Set());

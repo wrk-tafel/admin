@@ -9,8 +9,17 @@ tafeladmin:
     # and Node's os.tmpdir() resolve to the same OS temp directory on the runner both processes
     # share, unlike user.dir which differs between a local bootRun and CI's `java -jar`.
     scannerPath: ${java.io.tmpdir}/tafeladmin-e2e-scanner-inbox
+  configReload:
+    # Shortened from the 5s default so the e2e run doesn't have to sit out a production-sized poll
+    # interval to see a config edit take effect (see ConfigFileReloadService).
+    interval: 1s
 
 spring:
+  # The file the Cypress run edits to prove config hot-reload end to end - optional because it only
+  # exists while a spec is exercising it, and in the same shared temp directory as the scanner inbox
+  # above for the same reason.
+  config:
+    import: optional:file:${java.io.tmpdir}/tafeladmin-e2e-config.yml
   datasource:
     url: jdbc:postgresql://localhost:5432/tafeladmin
     username: tafeladmin

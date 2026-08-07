@@ -26,8 +26,27 @@ while this module is the read-only HTTP view of it for the frontend.
 
 - [`ConfigController`](ConfigController.kt): `GET /api/config`, requires only `isAuthenticated()`,
   plus `GET /api/config/public`, which anyone may call.
+- [`ConfigSseController`](ConfigSseController.kt): `GET /api/sse/config`, which pushes the config
+  again whenever it changes in the backend. It emits nothing on subscribe — `GET /api/config` is
+  what a page load reads, this carries only the deltas after it.
 - [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled)`
-  and `PublicConfigResponse(environmentLabel)`.
+  and `PublicConfigResponse(environmentLabel)`, plus the one `TafelAdminProperties.toConfigResponse()`
+  mapping both the endpoint and the push side use, so the two can't report different things about
+  the same deployment.
+- [`ConfigChangePublisher`](internal/ConfigChangePublisher.kt): listens for a reloaded configuration
+  and writes the new `ConfigResponse` to the SSE outbox — but only when it differs from the last one
+  sent, so a reload of settings the frontend never sees (mail, tokens, storage paths) doesn't wake
+  every open browser.
+
+## Configuration is live, not frozen at startup
+
+The values here can change while the application runs: an operator edits the config file mounted
+into the container and `config/properties/ConfigFileReloadService` re-binds `TafelAdminProperties`
+in place (Spring Cloud's `ContextRefresher`, polled by a file watcher — see that class for what does
+and doesn't take effect without a restart). That is why `ConfigController` reads the properties per
+request instead of caching anything, and why the SSE endpoint exists at all: without it the frontend
+would keep offering a feature the backend has already switched off until the next full page load,
+which during a distribution may be hours away.
 
 ## The public endpoint
 
@@ -47,8 +66,8 @@ the former from the git tag computed in `.github/workflows/release.yml`, the lat
 computed at the moment the image is built in `.github/workflows/subflow_docker_image.yml` (see
 `_build/Dockerfile`). They are displayed at the bottom of the sidebar in `DefaultLayoutComponent`.
 
-`scannerFolderEnabled` mirrors `TafelAdminStorageProperties.scannerFolderAvailable`
-(`tafeladmin.storage.scannerPath` plus the `tafeladmin.storage.scannerEnabled` kill switch) — the
+`scannerFolderEnabled` mirrors `TafelAdminProperties.scannerFolderAvailable`
+(`tafeladmin.storage.scannerPath` plus the `tafeladmin.features.scannerFolderEnabled` kill switch) — the
 same rule `household`'s `ScannerFileService` enforces server-side, so the UI can't offer a document
 source the backend would refuse to serve.
 
@@ -56,5 +75,5 @@ source the backend would refuse to serve.
 
 A flag belongs in `ConfigResponse` when the frontend has to know it *before* it can render
 correctly — hiding a control that would otherwise dead-end. Anything the user can change at runtime
-belongs in the `settings` module instead; this one only reports what the deployment was configured
-with.
+belongs in the `settings` module instead; this one reports what the deployment is configured with,
+which an operator changes by editing the config file, not a user through the UI.

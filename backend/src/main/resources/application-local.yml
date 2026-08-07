@@ -39,16 +39,18 @@ tafeladmin:
     # contact feature end-to-end; leave unset otherwise (the endpoint fails with a clear error).
     githubToken: ~
     titlePrefix: "[LOCAL]"
+  features:
+    # Set to false to switch the scanner folder off without unsetting scannerPath below - the
+    # "Scanner" document source then disappears from the UI and the folder is no longer polled.
+    scannerFolderEnabled: true
   storage:
     # Relative paths resolve against the backend process's working directory (the "backend" module
     # folder when started via `./gradlew :backend:bootRun`), so these stay inside the repo - both
     # are gitignored (see .gitignore).
     documentsPath: documents
-    # Drop a file here manually to test the "scanner folder" document picker locally.
+    # Drop a file here manually to test the "scanner folder" document picker locally. Whether the
+    # feature is offered at all is tafeladmin.features.scannerFolderEnabled above.
     scannerPath: scanner-inbox
-    # Set to false to switch the scanner folder off without unsetting scannerPath - the "Scanner"
-    # document source then disappears from the UI and the folder is no longer polled.
-    scannerEnabled: true
   push:
     # Set a VAPID keypair here to test push notifications locally - see
     # TafelAdminPushProperties.vapidPublicKey/vapidPrivateKey for the exact openssl commands to

@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminStorageProperties
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -32,7 +31,7 @@ internal class DocumentStorageCleanupServiceTest {
     fun beforeEach() {
         service = DocumentStorageCleanupService(
             documentRepository = documentRepository,
-            tafelAdminProperties = TafelAdminProperties(storage = TafelAdminStorageProperties(documentsPath = tempDir.toString())),
+            tafelAdminProperties = TafelAdminProperties().apply { storage.documentsPath = tempDir.toString() },
         )
     }
 
@@ -78,9 +77,9 @@ internal class DocumentStorageCleanupServiceTest {
     fun `is a no-op when the documents directory doesn't exist`() {
         service = DocumentStorageCleanupService(
             documentRepository = documentRepository,
-            tafelAdminProperties = TafelAdminProperties(
-                storage = TafelAdminStorageProperties(documentsPath = tempDir.resolve("does-not-exist").toString()),
-            ),
+            tafelAdminProperties = TafelAdminProperties().apply {
+                storage.documentsPath = tempDir.resolve("does-not-exist").toString()
+            },
         )
 
         service.cleanupOrphanedFiles()
