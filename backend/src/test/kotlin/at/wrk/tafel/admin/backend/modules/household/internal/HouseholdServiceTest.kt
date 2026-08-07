@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
+import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -233,8 +234,9 @@ class HouseholdServiceTest {
     fun `create household writes the household first and points it at its main person afterwards`() {
         val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
-        val mainPerson = PersonEntity().apply { isMainPerson = true }
-        val testHouseholdEntity = HouseholdEntity().apply { persons = mutableListOf(mainPerson) }
+        val testHouseholdEntity = HouseholdEntity(householdId = 1, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = testHouseholdEntity, country = testCountry1, isMainPerson = true)
+        testHouseholdEntity.persons = mutableListOf(mainPerson)
 
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
@@ -260,7 +262,7 @@ class HouseholdServiceTest {
     fun `create household - supervisor with invalid income and force=true should save`() {
         val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
-        val testHouseholdEntity = HouseholdEntity()
+        val testHouseholdEntity = HouseholdEntity(householdId = 1, validUntil = LocalDate.now())
 
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
@@ -285,7 +287,7 @@ class HouseholdServiceTest {
     fun `create household - supervisor with invalid income and force=false should throw exception`() {
         val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
-        val testHouseholdEntity = HouseholdEntity()
+        val testHouseholdEntity = HouseholdEntity(householdId = 1, validUntil = LocalDate.now())
 
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
@@ -311,7 +313,7 @@ class HouseholdServiceTest {
     fun `create household - non-supervisor with invalid income should set validUntil to yesterday`() {
         val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
-        val testHouseholdEntity = HouseholdEntity()
+        val testHouseholdEntity = HouseholdEntity(householdId = 1, validUntil = LocalDate.now())
 
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
         every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
@@ -345,11 +347,11 @@ class HouseholdServiceTest {
         every { testHouseholdUpdate.id } returns householdId
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
-        val existingMainPerson = PersonEntity().apply {
+        val testHouseholdEntity = HouseholdEntity(householdId = 1, validUntil = LocalDate.now())
+        val existingMainPerson = PersonEntity(household = testHouseholdEntity, country = testCountry1, isMainPerson = true).apply {
             id = 555
-            isMainPerson = true
         }
-        val testHouseholdEntity = HouseholdEntity().apply { persons = mutableListOf(existingMainPerson) }
+        testHouseholdEntity.persons = mutableListOf(existingMainPerson)
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
@@ -381,7 +383,7 @@ class HouseholdServiceTest {
         every { testHouseholdUpdate.id } returns householdId
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
-        val testHouseholdEntity = HouseholdEntity()
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now())
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
@@ -415,7 +417,7 @@ class HouseholdServiceTest {
         val testHouseholdUpdate = mockk<HouseholdRequest>(relaxed = true)
         every { testHouseholdUpdate.id } returns householdId
 
-        val testHouseholdEntity = HouseholdEntity()
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now())
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
 
@@ -447,7 +449,7 @@ class HouseholdServiceTest {
         every { testHouseholdUpdate.id } returns householdId
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
-        val testHouseholdEntity = HouseholdEntity()
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now())
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
@@ -717,8 +719,20 @@ class HouseholdServiceTest {
     fun `delete household by householdId deletes document files from disk`() {
         val householdId = 123L
         val testHouseholdEntity = testHouseholdEntityWithMainPerson()
-        val document1 = DocumentEntity().apply { storagePath = "/documents/123/doc1.pdf" }
-        val document2 = DocumentEntity().apply { storagePath = "/documents/123/doc2.png" }
+        val document1 = DocumentEntity(
+            household = testHouseholdEntity,
+            documentType = DocumentType.OTHER,
+            fileName = "doc1.pdf",
+            contentType = "application/pdf",
+            storagePath = "/documents/123/doc1.pdf",
+        )
+        val document2 = DocumentEntity(
+            household = testHouseholdEntity,
+            documentType = DocumentType.OTHER,
+            fileName = "doc2.png",
+            contentType = "image/png",
+            storagePath = "/documents/123/doc2.png",
+        )
         testHouseholdEntity.documents = mutableListOf(document1, document2)
         every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
@@ -746,9 +760,7 @@ class HouseholdServiceTest {
         every { testHouseholdUpdate.id } returns householdId
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
-        val testHouseholdEntity = HouseholdEntity().apply {
-            validUntil = LocalDate.now()
-        }
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now())
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
@@ -778,7 +790,7 @@ class HouseholdServiceTest {
     @Test
     fun `pay cost contribution - null amount pays off the full pending amount`() {
         val householdId = 123L
-        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply { pendingCostContribution = BigDecimal("20.00") }
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
@@ -794,7 +806,7 @@ class HouseholdServiceTest {
     @Test
     fun `pay cost contribution - amount is subtracted from the pending amount`() {
         val householdId = 123L
-        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply { pendingCostContribution = BigDecimal("20.00") }
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
@@ -809,7 +821,7 @@ class HouseholdServiceTest {
     @Test
     fun `pay cost contribution - amount larger than the pending amount clamps at zero`() {
         val householdId = 123L
-        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("4.00") }
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply { pendingCostContribution = BigDecimal("4.00") }
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
@@ -824,7 +836,7 @@ class HouseholdServiceTest {
     @Test
     fun `edit cost contribution - amount is set directly`() {
         val householdId = 123L
-        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply { pendingCostContribution = BigDecimal("20.00") }
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
@@ -840,7 +852,7 @@ class HouseholdServiceTest {
     @Test
     fun `edit cost contribution - negative amount is clamped at zero`() {
         val householdId = 123L
-        val testHouseholdEntity = HouseholdEntity().apply { pendingCostContribution = BigDecimal("20.00") }
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply { pendingCostContribution = BigDecimal("20.00") }
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
@@ -853,11 +865,9 @@ class HouseholdServiceTest {
     }
 
     private fun testHouseholdEntityWithMainPerson(): HouseholdEntity {
-        val household = HouseholdEntity().apply { householdId = 100 }
-        val mainPerson = PersonEntity().apply {
+        val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
             id = 1
-            this.household = household
-            isMainPerson = true
             firstname = "max"
             lastname = "mustermann"
         }

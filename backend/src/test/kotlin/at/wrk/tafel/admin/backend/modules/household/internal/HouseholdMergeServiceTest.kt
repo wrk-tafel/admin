@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteReposito
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
@@ -53,14 +54,11 @@ class HouseholdMergeServiceTest {
     private lateinit var service: HouseholdMergeService
 
     private fun testHousehold(householdId: Long, entityId: Long, firstname: String = "firstname-$householdId"): HouseholdEntity {
-        val household = HouseholdEntity().apply {
+        val household = HouseholdEntity(householdId = householdId, validUntil = java.time.LocalDate.now()).apply {
             id = entityId
-            this.householdId = householdId
         }
-        val mainPerson = PersonEntity().apply {
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
             id = entityId * 100
-            this.household = household
-            isMainPerson = true
             this.firstname = firstname
             lastname = "lastname-$householdId"
         }

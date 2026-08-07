@@ -11,36 +11,29 @@ import jakarta.persistence.Table
 @Entity(name = "DistributionStatisticShelter")
 @Table(name = "distributions_statistics_shelters")
 @ExcludeFromTestCoverage
-class DistributionStatisticShelterEntity : BaseChangeTrackingEntity() {
-
+class DistributionStatisticShelterEntity(
     @ManyToOne
-    @JoinColumn(name = "distribution_statistic_id")
-    var statistic: DistributionStatisticEntity? = null
-
+    @JoinColumn(name = "distribution_statistic_id", nullable = false)
+    var statistic: DistributionStatisticEntity,
     @Column(name = "name")
-    var name: String? = null
-
+    var name: String,
     @Column(name = "address_street")
-    var addressStreet: String? = null
-
+    var addressStreet: String,
     @Column(name = "address_housenumber")
-    var addressHouseNumber: String? = null
+    var addressHouseNumber: String,
+    @Column(name = "address_postalcode")
+    var addressPostalCode: Int,
+    @Column(name = "address_city")
+    var addressCity: String,
+    @Column(name = "persons_count")
+    var personsCount: Int,
+    @Column(name = "sort_order")
+    var sortOrder: Int = 0,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "address_stairway")
     var addressStairway: String? = null
 
-    @Column(name = "address_postalcode")
-    var addressPostalCode: Int? = null
-
-    @Column(name = "address_city")
-    var addressCity: String? = null
-
     @Column(name = "address_door")
     var addressDoor: String? = null
-
-    @Column(name = "persons_count")
-    var personsCount: Int? = null
-
-    @Column(name = "sort_order")
-    var sortOrder: Int? = null
 }

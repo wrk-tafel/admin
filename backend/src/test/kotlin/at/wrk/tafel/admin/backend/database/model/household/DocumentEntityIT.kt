@@ -42,16 +42,17 @@ class DocumentEntityIT : TafelBaseIntegrationTest() {
     @Test
     @Transactional
     fun `document entity is persisted with a generated id`() {
-        val household = createHousehold(testUser.employee!!, testCountry)
+        val household = createHousehold(testUser.employee, testCountry)
         testEntityManager.persist(household)
         testEntityManager.flush()
 
-        val document = DocumentEntity().apply {
-            this.household = household
-            this.documentType = DocumentType.OTHER
-            this.fileName = "test.pdf"
-            this.contentType = "application/pdf"
-            this.storagePath = "/tmp/test.pdf"
+        val document = DocumentEntity(
+            household = household,
+            documentType = DocumentType.OTHER,
+            fileName = "test.pdf",
+            contentType = "application/pdf",
+            storagePath = "/tmp/test.pdf",
+        ).apply {
             this.uploadedByUser = testUser
         }
         testEntityManager.persist(document)

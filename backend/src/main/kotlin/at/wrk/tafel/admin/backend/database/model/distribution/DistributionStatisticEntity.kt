@@ -15,11 +15,11 @@ import java.math.BigDecimal
 @Entity(name = "DistributionStatistic")
 @Table(name = "distributions_statistics")
 @ExcludeFromTestCoverage
-class DistributionStatisticEntity : BaseChangeTrackingEntity() {
-
+class DistributionStatisticEntity(
     @OneToOne
-    @JoinColumn(name = "distribution_id")
-    var distribution: DistributionEntity? = null
+    @JoinColumn(name = "distribution_id", nullable = false)
+    var distribution: DistributionEntity,
+) : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "statistic", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var shelters: MutableList<DistributionStatisticShelterEntity> = mutableListOf()

@@ -133,13 +133,10 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
     }
 
     private fun addAdditionalPerson(household: HouseholdEntity, age: Int, lastname: String): PersonEntity {
-        val person = PersonEntity()
-        person.household = household
-        person.isMainPerson = false
+        val person = PersonEntity(household = household, country = testCountry, isMainPerson = false)
         person.firstname = "Kind"
         person.lastname = lastname
         person.birthDate = LocalDate.now().minusYears(age.toLong())
-        person.country = testCountry
         testEntityManager.persist(person)
         return person
     }

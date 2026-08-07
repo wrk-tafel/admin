@@ -8,14 +8,11 @@ import jakarta.persistence.Table
 @Entity(name = "Employee")
 @Table(name = "employees")
 @ExcludeFromTestCoverage
-class EmployeeEntity : BaseChangeTrackingEntity() {
-
+class EmployeeEntity(
     @Column(name = "personnel_number")
-    var personnelNumber: String? = null
-
+    var personnelNumber: String,
     @Column(name = "firstname")
-    var firstname: String? = null
-
+    var firstname: String,
     @Column(name = "lastname")
-    var lastname: String? = null
-}
+    var lastname: String,
+) : BaseChangeTrackingEntity()

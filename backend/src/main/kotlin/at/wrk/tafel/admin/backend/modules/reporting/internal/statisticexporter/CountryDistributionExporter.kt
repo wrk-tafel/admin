@@ -26,7 +26,7 @@ class CountryDistributionExporter : StatisticExporter {
 
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
         val rows = mutableListOf<List<String>>()
-        val households = statistic.distribution?.households?.mapNotNull { it.household } ?: emptyList()
+        val households = statistic.distribution.households.map { it.household }
         val countries = households.map { household ->
             (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.country
         } + households.flatMap { it.additionalPersons() }.mapNotNull { it.country }
@@ -44,7 +44,7 @@ class CountryDistributionExporter : StatisticExporter {
             val percentage =
                 if (countCountriesTotal > 0) (countPerCountry.toDouble() / countCountriesTotal) * 100 else 0
 
-            rows.add(listOf(it.key!!.name.toString(), countPerCountry.toString(), String.format("%.2f", percentage)))
+            rows.add(listOf(it.key!!.name, countPerCountry.toString(), String.format("%.2f", percentage)))
         }
 
         return rows

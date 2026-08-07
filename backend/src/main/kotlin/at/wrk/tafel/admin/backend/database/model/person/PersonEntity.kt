@@ -29,14 +29,16 @@ import java.time.LocalDate
 @Entity(name = "Person")
 @Table(name = "persons")
 @ExcludeFromTestCoverage
-class PersonEntity : BaseChangeTrackingEntity() {
-
+class PersonEntity(
     @ManyToOne
     @JoinColumn(name = "household_id", nullable = false)
-    var household: HouseholdEntity? = null
-
+    var household: HouseholdEntity,
+    @ManyToOne
+    @JoinColumn(name = "country_id", nullable = false)
+    var country: CountryEntity,
     @Column(name = "is_main_person", nullable = false)
-    var isMainPerson: Boolean = false
+    var isMainPerson: Boolean = false,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "firstname")
     var firstname: String? = null
@@ -50,10 +52,6 @@ class PersonEntity : BaseChangeTrackingEntity() {
     @Column(name = "gender")
     @Enumerated(EnumType.STRING)
     var gender: Gender? = null
-
-    @ManyToOne
-    @JoinColumn(name = "country_id")
-    var country: CountryEntity? = null
 
     @Column(name = "employer")
     var employer: String? = null

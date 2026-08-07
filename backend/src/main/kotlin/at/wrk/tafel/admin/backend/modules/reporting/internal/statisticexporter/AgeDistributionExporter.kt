@@ -34,10 +34,7 @@ class AgeDistributionExporter : StatisticExporter {
      * on its own and once merged; that's intentional, not redundant.
      */
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
-        val households = statistic.distribution
-            ?.households
-            ?.mapNotNull { it.household }
-            ?: emptyList()
+        val households = statistic.distribution.households.map { it.household }
         val persons = households.flatMap { it.additionalPersons() }
         val householdsBirthDates = households.map { household ->
             (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.birthDate

@@ -65,12 +65,9 @@ class CarServiceTest {
 
     @Test
     fun `update car`() {
-        val existingEntity = CarEntity().apply {
+        val existingEntity = CarEntity(licensePlate = "Old Plate", sortOrder = 1, enabled = true).apply {
             id = 99
-            licensePlate = "Old Plate"
             name = "Old Car"
-            enabled = true
-            sortOrder = 1
         }
         val updated = CarRequest(
             id = existingEntity.id!!,
@@ -163,17 +160,14 @@ class CarServiceTest {
 
     @Test
     fun `reorder cars assigns sequential sort order matching the given order`() {
-        val entity1 = CarEntity().apply {
+        val entity1 = CarEntity(licensePlate = "Plate 1", sortOrder = 200).apply {
             id = 1
-            sortOrder = 200
         }
-        val entity2 = CarEntity().apply {
+        val entity2 = CarEntity(licensePlate = "Plate 2", sortOrder = 100).apply {
             id = 2
-            sortOrder = 100
         }
-        val entity3 = CarEntity().apply {
+        val entity3 = CarEntity(licensePlate = "Plate 3", sortOrder = 300).apply {
             id = 3
-            sortOrder = 300
         }
 
         every { carRepository.findByIdOrNull(3L) } returns entity3

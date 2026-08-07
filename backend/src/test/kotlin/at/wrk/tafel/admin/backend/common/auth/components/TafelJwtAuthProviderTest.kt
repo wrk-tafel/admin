@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.impl.DefaultClaims
@@ -62,7 +63,12 @@ internal class TafelJwtAuthProviderTest {
                 JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1),
             ),
         )
-        every { userRepository.findByUsername(username) } returns UserEntity().apply { enabled = true }
+        every { userRepository.findByUsername(username) } returns UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+        )
 
         val resultingAuthentication = provider.authenticate(authentication)
 
@@ -117,7 +123,12 @@ internal class TafelJwtAuthProviderTest {
                 Claims.EXPIRATION to expiration,
             ),
         )
-        every { userRepository.findByUsername(username) } returns UserEntity().apply { enabled = false }
+        every { userRepository.findByUsername(username) } returns UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = false,
+        )
 
         assertThrows<DisabledException> {
             provider.authenticate(authentication)
