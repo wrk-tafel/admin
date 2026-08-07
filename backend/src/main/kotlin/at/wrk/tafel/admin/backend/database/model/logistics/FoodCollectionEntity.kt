@@ -16,7 +16,14 @@ import jakarta.persistence.Table
 @Entity(name = "FoodCollection")
 @Table(name = "food_collections")
 @ExcludeFromTestCoverage
-class FoodCollectionEntity : BaseChangeTrackingEntity() {
+class FoodCollectionEntity(
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    var distribution: DistributionEntity,
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    var route: RouteEntity,
+) : BaseChangeTrackingEntity() {
 
     @OneToOne
     @JoinColumn(name = "car_id", referencedColumnName = "id")
@@ -35,12 +42,6 @@ class FoodCollectionEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "km_end")
     var kmEnd: Int? = null
-
-    @ManyToOne
-    var distribution: DistributionEntity? = null
-
-    @ManyToOne
-    var route: RouteEntity? = null
 
     @ElementCollection
     @CollectionTable(

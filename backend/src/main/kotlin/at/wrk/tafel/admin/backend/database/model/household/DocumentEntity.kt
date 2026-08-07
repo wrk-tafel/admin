@@ -15,28 +15,24 @@ import jakarta.persistence.Table
 @Entity(name = "Document")
 @Table(name = "household_documents")
 @ExcludeFromTestCoverage
-class DocumentEntity : BaseChangeTrackingEntity() {
-
+class DocumentEntity(
     @ManyToOne
     @JoinColumn(name = "household_id", nullable = false)
-    var household: HouseholdEntity? = null
+    var household: HouseholdEntity,
+    @Column(name = "document_type")
+    @Enumerated(EnumType.STRING)
+    var documentType: DocumentType,
+    @Column(name = "file_name")
+    var fileName: String,
+    @Column(name = "content_type")
+    var contentType: String,
+    @Column(name = "storage_path")
+    var storagePath: String,
+) : BaseChangeTrackingEntity() {
 
     @ManyToOne
     @JoinColumn(name = "person_id")
     var person: PersonEntity? = null
-
-    @Column(name = "document_type")
-    @Enumerated(EnumType.STRING)
-    var documentType: DocumentType? = null
-
-    @Column(name = "file_name")
-    var fileName: String? = null
-
-    @Column(name = "content_type")
-    var contentType: String? = null
-
-    @Column(name = "storage_path")
-    var storagePath: String? = null
 
     @ManyToOne
     @JoinColumn(name = "uploaded_by_user_id")

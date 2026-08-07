@@ -26,7 +26,7 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
     }
 
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
-        val households = statistic.distribution?.households?.mapNotNull { it.household } ?: emptyList()
+        val households = statistic.distribution.households.map { it.household }
         val householdsCount = households.size
 
         val rows = mutableListOf<List<String>>()

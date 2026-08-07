@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShe
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -35,12 +36,10 @@ class DailyReportsExporterTest {
 
     @Test
     fun `exported properly`() {
-        val currentDistribution = DistributionEntity().apply {
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
         }
-        val currentStatistic = DistributionStatisticEntity().apply {
-            distribution = currentDistribution
+        val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution).apply {
             countPersons = 12
             countInfants = 11
             countCustomers = 10
@@ -55,57 +54,55 @@ class DailyReportsExporterTest {
             employeeCount = 1
         }
 
-        val previousDistribution1 = DistributionEntity().apply {
+        val previousDistribution1 = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 111
-            startedAt = LocalDateTime.now()
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity,
                 testFoodCollectionRoute2Entity,
                 testFoodCollectionRoute3Entity,
             )
-            statistic = DistributionStatisticEntity().apply {
-                countPersons = 2
-                countInfants = 3
-                countCustomers = 4
-                countCustomersProlonged = 5
-                countPersonsProlonged = 6
-                countCustomersNew = 7
-                countPersonsNew = 8
-                shopsTotalCount = 9
-                shopsWithFoodCount = 10
-                foodTotalAmount = BigDecimal("11.1")
-                routesLengthKm = 12
-                employeeCount = 13
-                shelters = listOf(
-                    testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2,
-                ).toMutableList()
-            }
         }
-        val previousDistribution2 = DistributionEntity().apply {
+        previousDistribution1.statistic = DistributionStatisticEntity(distribution = previousDistribution1).apply {
+            countPersons = 2
+            countInfants = 3
+            countCustomers = 4
+            countCustomersProlonged = 5
+            countPersonsProlonged = 6
+            countCustomersNew = 7
+            countPersonsNew = 8
+            shopsTotalCount = 9
+            shopsWithFoodCount = 10
+            foodTotalAmount = BigDecimal("11.1")
+            routesLengthKm = 12
+            employeeCount = 13
+            shelters = listOf(
+                testDistributionStatisticShelterEntity1,
+                testDistributionStatisticShelterEntity2,
+            ).toMutableList()
+        }
+        val previousDistribution2 = DistributionEntity(startedAt = LocalDateTime.now().minusDays(7), startedByUser = testUserEntity).apply {
             id = 222
-            startedAt = LocalDateTime.now().minusDays(7)
             foodCollections = listOf(
                 testFoodCollectionRoute2Entity,
             )
-            statistic = DistributionStatisticEntity().apply {
-                countPersons = 12
-                countInfants = 11
-                countCustomers = 10
-                countCustomersProlonged = 9
-                countPersonsProlonged = 8
-                countCustomersNew = 7
-                countPersonsNew = 6
-                shopsTotalCount = 5
-                shopsWithFoodCount = 4
-                foodTotalAmount = BigDecimal("3.1")
-                routesLengthKm = 2
-                employeeCount = 1
-                shelters = listOf(
-                    testDistributionStatisticShelterEntity1,
-                    testDistributionStatisticShelterEntity2,
-                ).toMutableList()
-            }
+        }
+        previousDistribution2.statistic = DistributionStatisticEntity(distribution = previousDistribution2).apply {
+            countPersons = 12
+            countInfants = 11
+            countCustomers = 10
+            countCustomersProlonged = 9
+            countPersonsProlonged = 8
+            countCustomersNew = 7
+            countPersonsNew = 6
+            shopsTotalCount = 5
+            shopsWithFoodCount = 4
+            foodTotalAmount = BigDecimal("3.1")
+            routesLengthKm = 2
+            employeeCount = 1
+            shelters = listOf(
+                testDistributionStatisticShelterEntity1,
+                testDistributionStatisticShelterEntity2,
+            ).toMutableList()
         }
 
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
@@ -147,12 +144,10 @@ class DailyReportsExporterTest {
 
     @Test
     fun `exported properly without previous data`() {
-        val currentDistribution = DistributionEntity().apply {
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
         }
-        val currentStatistic = DistributionStatisticEntity().apply {
-            distribution = currentDistribution
+        val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution).apply {
             countPersons = 12
             countInfants = 11
             countCustomers = 10

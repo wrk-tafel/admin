@@ -1,13 +1,13 @@
 name: process-issue
-description: Implements a GitHub issue end-to-end: reads the ticket, creates a branch dedicated to it, implements and tests the change, opens a PR linked to the issue, then hands off to `process-pr` for a self-review pass plus CI/SonarCloud babysitting until everything is green. Takes a GitHub issue link (or `owner/repo#123` / bare number) as its argument. Use when the user wants an issue/ticket implemented and turned into a passing PR, e.g. "work on https://github.com/wrk-tafel/admin/issues/2989" or "implement issue #123".
+description: Implements a GitHub issue end-to-end: reads the ticket, creates a branch dedicated to it, implements and tests the change, and opens a PR linked to the issue. Takes a GitHub issue link (or `owner/repo#123` / bare number) as its argument. Use when the user wants an issue/ticket implemented and turned into an open PR, e.g. "work on https://github.com/wrk-tafel/admin/issues/2989" or "implement issue #123".
 ---
 
-This workflow is fully automated end-to-end (implementation, testing, branch, PR, CI babysitting) —
-never ask the user to run a command, restart something, or confirm intermediate state yourself.
-**Never merge the resulting PR** — the workflow ends at "PR open, all checks green," same as this
-repo's other skills (`process-dependabot`, `cleanup-git`, `process-pr`). Never fix a red check by weakening
-it (skipping a test, loosening a lint rule, lowering a Sonar gate, `--no-verify`) — fix the root
-cause, same philosophy as `fix-e2e`.
+This workflow is fully automated end-to-end (implementation, testing, branch, PR) — never ask the
+user to run a command, restart something, or confirm intermediate state yourself. **Never merge the
+resulting PR** — the workflow ends at "PR open," same as this repo's other skills
+(`process-dependabot`, `cleanup-git`, `process-pr`). Never fix a red check by weakening it (skipping
+a test, loosening a lint rule, lowering a Sonar gate, `--no-verify`) — fix the root cause, same
+philosophy as `fix-e2e`.
 
 ## 1. Resolve the issue
 
@@ -117,11 +117,5 @@ The PR title itself must pass `pr-title-lint` (same Conventional Commits rule as
 repo squash-merges with the PR title becoming the final commit). The `Closes
 #<issue-number>` line is what auto-closes the issue once the squash commit lands on `main`.
 
-## 8. Hand off to process-pr
-
-Invoke the `process-pr` skill for the PR just opened (Skill tool, skill: `process-pr`, args:
-`<owner>/<repo> <pr-number>`) — it re-reads the diff as a self-review pass, fixes anything it finds,
-then watches `gh pr checks` and diagnoses/fixes any red job (including querying the SonarCloud API
-for quality-gate detail rather than guessing from the dashboard) until everything is green, and
-reports the PR URL back. Don't re-derive that logic here — this skill's own workflow ends at the
-hand-off.
+Report the PR URL back to the user. Stop there — this skill's own workflow ends once the PR is
+open; it does not review the diff further or babysit CI.

@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminPushProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -186,7 +187,11 @@ internal class PushSubscriptionServiceTest {
 
     @Test
     fun `createSubscription reassigns ownership of an existing row to whoever is currently logged in`() {
-        val originalOwner = UserEntity().apply { id = 999 }
+        val originalOwner = UserEntity(
+            username = "original-owner",
+            password = "pw",
+            employee = EmployeeEntity(personnelNumber = "p-999", firstname = "first", lastname = "last"),
+        ).apply { id = 999 }
         val existing = PushSubscriptionEntity().apply {
             id = 7
             endpoint = "https://push.example.com/shared-kiosk"

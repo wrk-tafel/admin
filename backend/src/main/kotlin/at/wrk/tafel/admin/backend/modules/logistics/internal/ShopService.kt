@@ -21,9 +21,9 @@ class ShopService(
             .map { shop ->
                 ShopItem(
                     id = shop.id!!,
-                    number = shop.number!!,
-                    name = shop.name!!,
-                    address = shop.address!!.let {
+                    number = shop.number,
+                    name = shop.name,
+                    address = shop.address.let {
                         "${it.street}, ${it.postalCode} ${it.city}"
                     },
                 )

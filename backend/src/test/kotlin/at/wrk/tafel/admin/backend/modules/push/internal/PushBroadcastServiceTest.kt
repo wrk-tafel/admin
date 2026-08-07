@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
@@ -40,7 +41,11 @@ internal class PushBroadcastServiceTest {
 
     private fun subscriptionOf(id: Long, userId: Long) = PushSubscriptionEntity().apply {
         this.id = id
-        user = UserEntity().apply { this.id = userId }
+        user = UserEntity(
+            username = "user-$userId",
+            password = "pw",
+            employee = EmployeeEntity(personnelNumber = "p-$userId", firstname = "first", lastname = "last"),
+        ).apply { this.id = userId }
     }
 
     @Test

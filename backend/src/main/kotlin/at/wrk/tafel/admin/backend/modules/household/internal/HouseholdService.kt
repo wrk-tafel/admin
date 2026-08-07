@@ -251,7 +251,7 @@ class HouseholdService(
             )
         }
 
-        val fromDate = distribution.startedAt!!
+        val fromDate = distribution.startedAt
         val toDate = distribution.endedAt ?: LocalDateTime.now()
 
         return HouseholdOverviewResponse(
@@ -310,7 +310,7 @@ class HouseholdService(
 
         // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
         // those have to be cleaned up explicitly.
-        household.documents.forEach { documentStorageService.delete(it.storagePath!!) }
+        household.documents.forEach { documentStorageService.delete(it.storagePath) }
 
         householdRepository.delete(household)
     }

@@ -12,22 +12,17 @@ import jakarta.persistence.Table
 @Entity(name = "DistributionHousehold")
 @Table(name = "distributions_households")
 @ExcludeFromTestCoverage
-class DistributionHouseholdEntity : BaseChangeTrackingEntity() {
-
+class DistributionHouseholdEntity(
     @ManyToOne
-    @JoinColumn(name = "distribution_id")
-    var distribution: DistributionEntity? = null
-
+    @JoinColumn(name = "distribution_id", nullable = false)
+    var distribution: DistributionEntity,
     @ManyToOne
-    @JoinColumn(name = "household_id")
-    var household: HouseholdEntity? = null
-
+    @JoinColumn(name = "household_id", nullable = false)
+    var household: HouseholdEntity,
     @Column(name = "ticket_number")
-    var ticketNumber: Int? = null
-
+    var ticketNumber: Int,
     @Column(name = "processed")
-    var processed: Boolean? = null
-
+    var processed: Boolean = false,
     @Column(name = "cost_contribution_paid")
-    var costContributionPaid: Boolean? = true
-}
+    var costContributionPaid: Boolean = true,
+) : BaseChangeTrackingEntity()

@@ -77,13 +77,16 @@ class DistributionService(
             }
 
             val newDistribution = requiresNewTemplate.execute {
-                val newDistribution = DistributionEntity()
-                newDistribution.startedAt = LocalDateTime.now()
-                newDistribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!)
-
-                val statisticEntity = DistributionStatisticEntity().apply {
-                    distribution = newDistribution
+                val startedByUser = checkNotNull(userRepository.findByUsername(authenticatedUser.username!!)) {
+                    "Angemeldeter Benutzer '${authenticatedUser.username}' nicht vorhanden!"
                 }
+
+                val newDistribution = DistributionEntity(
+                    startedAt = LocalDateTime.now(),
+                    startedByUser = startedByUser,
+                )
+
+                val statisticEntity = DistributionStatisticEntity(distribution = newDistribution)
                 newDistribution.statistic = statisticEntity
 
                 distributionRepository.save(newDistribution)
@@ -124,7 +127,7 @@ class DistributionService(
 
         val household = householdRepository.findByHouseholdId(householdId)
             ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
-        val existingHousehold = distribution.households.firstOrNull { it.household?.householdId == householdId }
+        val existingHousehold = distribution.households.firstOrNull { it.household.householdId == householdId }
 
         val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 
@@ -133,7 +136,11 @@ class DistributionService(
             throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
         }
 
-        val entry = existingHousehold ?: DistributionHouseholdEntity()
+        val entry = existingHousehold ?: DistributionHouseholdEntity(
+            distribution = distribution,
+            household = household,
+            ticketNumber = ticketNumber,
+        )
         entry.distribution = distribution
         entry.household = household
         entry.ticketNumber = ticketNumber
@@ -152,11 +159,11 @@ class DistributionService(
         val countHouseholds = sortedHouseholds.size
 
         val halftimeIndex = BigDecimal(countHouseholds - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
-        val halftimeTicketNumber = if (countHouseholds > 1) sortedHouseholds[halftimeIndex].ticketNumber!! else null
+        val halftimeTicketNumber = if (countHouseholds > 1) sortedHouseholds[halftimeIndex].ticketNumber else null
         val countAddPersons = sortedHouseholds
             .map { it.household }
             .flatMap {
-                it?.additionalPersons()?.filterNot { addPerson -> addPerson.excludeFromHousehold } ?: emptyList()
+                it.additionalPersons().filterNot { addPerson -> addPerson.excludeFromHousehold }
             }
             .count()
 
@@ -268,7 +275,7 @@ class DistributionService(
                 it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items == null || it.items!!.isEmpty()
             }
             if (incompleteRoutes.isNotEmpty()) {
-                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route!!.number.toString() }} sind unvollständig!")
+                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.number.toString() }} sind unvollständig!")
             }
 
             return if (errors.isNotEmpty()) {
@@ -280,7 +287,7 @@ class DistributionService(
                 // Warnings
                 val routes: List<RouteEntity> = routeRepository.findAll()
                 val missingRoutes =
-                    routes.map { it.number } - currentDistribution.foodCollections.map { it.route!!.number }
+                    routes.map { it.number } - currentDistribution.foodCollections.map { it.route.number }
                 if (missingRoutes.isNotEmpty()) {
                     warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
                 }
@@ -319,7 +326,7 @@ class DistributionService(
                 distributionRepository.save(currentDistribution)
             }
 
-            val startDateFormatted = currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
+            val startDateFormatted = currentDistribution.startedAt.format(DateTimeFormatter.ISO_DATE_TIME)
             val endDateFormatted = currentDistribution.endedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
             logger.info(
                 "Closed distribution: ID ${currentDistribution.id} (started at: $startDateFormatted, ended at: $endDateFormatted)",
@@ -343,7 +350,7 @@ class DistributionService(
 
     private fun mapDistribution(distribution: DistributionEntity): DistributionItem = DistributionItem(
         id = distribution.id!!,
-        startedAt = distribution.startedAt!!,
+        startedAt = distribution.startedAt,
         endedAt = distribution.endedAt,
     )
 
@@ -352,7 +359,7 @@ class DistributionService(
         householdId: Long? = null,
     ): DistributionHouseholdEntity? = distribution.households
         .asSequence()
-        .filter { householdId == null || it.household?.householdId == householdId }
+        .filter { householdId == null || it.household.householdId == householdId }
         .filter { it.processed == true }
         .sortedBy { it.ticketNumber }
         .lastOrNull()
@@ -362,25 +369,25 @@ class DistributionService(
         householdId: Long? = null,
     ): DistributionHouseholdEntity? = distribution.households
         .asSequence()
-        .filter { householdId == null || it.household?.householdId == householdId }
+        .filter { householdId == null || it.household.householdId == householdId }
         .filter { it.processed == false }
         .sortedBy { it.ticketNumber }
         .firstOrNull()
 
     private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
         val household = distributionHouseholdEntity.household
-        val countPersons = household?.additionalPersons()
-            ?.filterNot { it.excludeFromHousehold }
-            ?.size?.plus(1) ?: 0
-        val countInfants = household?.additionalPersons()
-            ?.filterNot { it.excludeFromHousehold }
-            ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+        val countPersons = household.additionalPersons()
+            .filterNot { it.excludeFromHousehold }
+            .size + 1
+        val countInfants = household.additionalPersons()
+            .filterNot { it.excludeFromHousehold }
+            .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
 
         HouseholdListItem(
-            ticketNumber = distributionHouseholdEntity.ticketNumber!!,
-            householdId = household?.householdId!!,
+            ticketNumber = distributionHouseholdEntity.ticketNumber,
+            householdId = household.householdId,
             countPersons = countPersons,
-            countInfants = countInfants ?: 0,
+            countInfants = countInfants,
         )
     }
 
@@ -399,19 +406,20 @@ class DistributionService(
             val selectedShelters = shelterRepository.findAllById(selectedShelterIds).toList()
             currentStatistic.shelters.clear()
             currentStatistic.shelters = selectedShelters.map {
-                DistributionStatisticShelterEntity().apply {
+                DistributionStatisticShelterEntity(
+                    statistic = currentStatistic,
+                    name = it.name,
+                    addressStreet = it.addressStreet,
+                    addressHouseNumber = it.addressHouseNumber,
+                    addressPostalCode = it.addressPostalCode,
+                    addressCity = it.addressCity,
+                    personsCount = it.personsCount,
+                    sortOrder = it.sortOrder,
+                ).apply {
                     createdAt = LocalDateTime.now()
                     updatedAt = LocalDateTime.now()
-                    statistic = currentStatistic
-                    name = it.name
-                    addressStreet = it.addressStreet
-                    addressHouseNumber = it.addressHouseNumber
                     addressStairway = it.addressStairway
-                    addressPostalCode = it.addressPostalCode
-                    addressCity = it.addressCity
                     addressDoor = it.addressDoor
-                    personsCount = it.personsCount
-                    sortOrder = it.sortOrder
                 }
             }.toMutableList()
 

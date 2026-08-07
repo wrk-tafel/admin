@@ -24,12 +24,13 @@ class FoodCategoryService(
         .map { mapFoodCategory(it) }
 
     fun createFoodCategory(category: FoodCategoryRequest): FoodCategoryResponse {
-        val entity = FoodCategoryEntity().apply {
-            name = category.name
+        val entity = FoodCategoryEntity(
+            name = category.name,
+            sortOrder = nextSortOrder(),
+            returnItem = category.returnItem,
+            enabled = category.enabled,
+        ).apply {
             weightPerUnit = category.weightPerUnit
-            returnItem = category.returnItem
-            sortOrder = nextSortOrder()
-            enabled = category.enabled
         }
 
         val savedEntity = foodCategoriesRepository.save(entity)
@@ -64,7 +65,7 @@ class FoodCategoryService(
     private fun nextSortOrder(): Int = (
         foodCategoriesRepository.findAll()
             .filter { it.returnItem != true }
-            .maxOfOrNull { it.sortOrder ?: 0 } ?: 0
+            .maxOfOrNull { it.sortOrder } ?: 0
         ) + 1
 
     private fun sortCategories(categories: List<FoodCategoryEntity>): List<FoodCategoryEntity> = categories
@@ -78,10 +79,10 @@ class FoodCategoryService(
 
     private fun mapFoodCategory(foodCategoryEntity: FoodCategoryEntity): FoodCategoryResponse = FoodCategoryResponse(
         id = foodCategoryEntity.id,
-        name = foodCategoryEntity.name!!,
+        name = foodCategoryEntity.name,
         weightPerUnit = foodCategoryEntity.weightPerUnit,
-        returnItem = foodCategoryEntity.returnItem ?: false,
-        sortOrder = foodCategoryEntity.sortOrder ?: 0,
-        enabled = foodCategoryEntity.enabled ?: false,
+        returnItem = foodCategoryEntity.returnItem,
+        sortOrder = foodCategoryEntity.sortOrder,
+        enabled = foodCategoryEntity.enabled,
     )
 }

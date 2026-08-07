@@ -10,16 +10,14 @@ import java.time.LocalDateTime
 @Entity(name = "LoginAttempt")
 @Table(name = "login_attempts")
 @ExcludeFromTestCoverage
-class LoginAttemptEntity : BaseChangeTrackingEntity() {
-
+class LoginAttemptEntity(
     @Column(name = "username")
-    var username: String? = null
-
-    @Column(name = "failure_count")
-    var failureCount: Int? = null
-
+    var username: String,
     @Column(name = "last_failure_at")
-    var lastFailureAt: LocalDateTime? = null
+    var lastFailureAt: LocalDateTime,
+    @Column(name = "failure_count")
+    var failureCount: Int = 0,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "locked_until")
     var lockedUntil: LocalDateTime? = null

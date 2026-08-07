@@ -10,11 +10,9 @@ import java.time.LocalDateTime
 @Entity(name = "ScannerRegistration")
 @Table(name = "scanner_registrations")
 @ExcludeFromTestCoverage
-class ScannerRegistrationEntity : BaseEntity() {
-
+class ScannerRegistrationEntity(
     @Column(name = "registration_time")
-    var registrationTime: LocalDateTime? = null
-
+    var registrationTime: LocalDateTime,
     @Column(name = "scanner_id")
-    var scannerId: Int? = null
-}
+    var scannerId: Int,
+) : BaseEntity()

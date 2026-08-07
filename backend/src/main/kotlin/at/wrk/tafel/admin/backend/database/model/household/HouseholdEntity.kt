@@ -40,10 +40,16 @@ import java.time.LocalDateTime
 @Entity(name = "Household")
 @Table(name = "households")
 @ExcludeFromTestCoverage
-class HouseholdEntity : BaseChangeTrackingEntity() {
-
+class HouseholdEntity(
     @Column(name = "household_id")
-    var householdId: Long? = null
+    var householdId: Long,
+    @Column(name = "valid_until")
+    var validUntil: LocalDate,
+    @Column(name = "locked")
+    var locked: Boolean = false,
+    @Column(name = "migrated")
+    var migrated: Boolean = false,
+) : BaseChangeTrackingEntity() {
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
@@ -77,12 +83,6 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
     @Column(name = "email")
     var email: String? = null
 
-    @Column(name = "valid_until")
-    var validUntil: LocalDate? = null
-
-    @Column(name = "locked")
-    var locked: Boolean? = null
-
     @Column(name = "locked_at")
     var lockedAt: LocalDateTime? = null
 
@@ -95,9 +95,6 @@ class HouseholdEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "lock_reason")
     var lockReason: String? = null
-
-    @Column(name = "migrated")
-    var migrated: Boolean? = null
 
     @Column(name = "pending_cost_contribution")
     var pendingCostContribution: BigDecimal = BigDecimal.ZERO

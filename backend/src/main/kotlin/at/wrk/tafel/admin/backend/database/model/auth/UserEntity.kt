@@ -22,26 +22,23 @@ import java.time.LocalDateTime
 @Entity(name = "User")
 @Table(name = "users")
 @ExcludeFromTestCoverage
-class UserEntity : BaseChangeTrackingEntity() {
+class UserEntity(
     @Column(name = "username")
-    var username: String? = null
-
+    var username: String,
     @Column(name = "password")
-    var password: String? = null
-
-    @Column(name = "enabled")
-    var enabled: Boolean? = false
-
+    var password: String,
     // Employee rows are shared/independent (see EmployeeController) and can be referenced
     // elsewhere (household issuer, household notes, food collection driver/co-driver) via plain,
     // non-cascading FKs. PERSIST+MERGE keeps saving a user auto-saving its linked employee, but
     // without REMOVE, deleting a user no longer cascades into deleting that shared employee record.
     @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    @JoinColumn(name = "employee_id", referencedColumnName = "id")
-    var employee: EmployeeEntity? = null
-
+    @JoinColumn(name = "employee_id", referencedColumnName = "id", nullable = false)
+    var employee: EmployeeEntity,
+    @Column(name = "enabled")
+    var enabled: Boolean = false,
     @Column(name = "passwordchange_required")
-    var passwordChangeRequired: Boolean? = null
+    var passwordChangeRequired: Boolean = false,
+) : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var authorities: MutableList<UserAuthorityEntity> = mutableListOf()

@@ -11,12 +11,10 @@ import jakarta.persistence.Table
 @Entity(name = "UserAuthority")
 @Table(name = "users_authorities")
 @ExcludeFromTestCoverage
-class UserAuthorityEntity : BaseChangeTrackingEntity() {
-
+class UserAuthorityEntity(
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    var user: UserEntity? = null
-
+    var user: UserEntity,
     @Column(name = "name")
-    var name: String? = null
-}
+    var name: String,
+) : BaseChangeTrackingEntity()

@@ -21,7 +21,7 @@ springdoc-openapi = "3.1.0"
 spring-retry = "2.0.13"
 
 # Test dependency versions
-archunit = "1.4.2"
+archunit = "1.5.0"
 mockk = "1.14.11"
 testcontainers = "2.0.5"
 apache-pdfbox = "3.0.8"

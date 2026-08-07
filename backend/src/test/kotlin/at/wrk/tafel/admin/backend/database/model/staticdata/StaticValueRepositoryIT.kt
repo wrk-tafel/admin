@@ -22,23 +22,25 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
     fun `findLatestForPersonCount finds the matching value using default type and person counts`() {
         val today = LocalDate.now()
 
-        val matching = StaticValueEntity().apply {
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.minusDays(1)
-            validTo = today.plusDays(1)
+        val matching = StaticValueEntity(
+            validFrom = today.minusDays(1),
+            validTo = today.plusDays(1),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("999"),
+        ).apply {
             countAdults = 0
             countChildren = 0
-            amount = BigDecimal("999")
         }
         testEntityManager.persist(matching)
 
-        val otherPersonCount = StaticValueEntity().apply {
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.minusDays(1)
-            validTo = today.plusDays(1)
+        val otherPersonCount = StaticValueEntity(
+            validFrom = today.minusDays(1),
+            validTo = today.plusDays(1),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("111"),
+        ).apply {
             countAdults = 5
             countChildren = 5
-            amount = BigDecimal("111")
         }
         testEntityManager.persist(otherPersonCount)
         testEntityManager.flush()
@@ -54,13 +56,14 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
     fun `findLatestForPersonCount finds the matching value for explicit person counts`() {
         val today = LocalDate.now()
 
-        val matching = StaticValueEntity().apply {
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.minusDays(1)
-            validTo = today.plusDays(1)
+        val matching = StaticValueEntity(
+            validFrom = today.minusDays(1),
+            validTo = today.plusDays(1),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1234"),
+        ).apply {
             countAdults = 3
             countChildren = 3
-            amount = BigDecimal("1234")
         }
         testEntityManager.persist(matching)
         testEntityManager.flush()
@@ -79,13 +82,14 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
     fun `findLatestForPersonCount finds the matching value when all parameters are given explicitly`() {
         val today = LocalDate.now()
 
-        val matching = StaticValueEntity().apply {
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.minusDays(1)
-            validTo = today.plusDays(1)
+        val matching = StaticValueEntity(
+            validFrom = today.minusDays(1),
+            validTo = today.plusDays(1),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("4321"),
+        ).apply {
             countAdults = 4
             countChildren = 4
-            amount = BigDecimal("4321")
         }
         testEntityManager.persist(matching)
         testEntityManager.flush()
@@ -105,13 +109,14 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
     fun `findLatestForPersonCount returns null when no value is valid for the given date`() {
         val today = LocalDate.now()
 
-        val expired = StaticValueEntity().apply {
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.minusDays(10)
-            validTo = today.minusDays(5)
+        val expired = StaticValueEntity(
+            validFrom = today.minusDays(10),
+            validTo = today.minusDays(5),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1"),
+        ).apply {
             countAdults = 7
             countChildren = 7
-            amount = BigDecimal("1")
         }
         testEntityManager.persist(expired)
         testEntityManager.flush()
