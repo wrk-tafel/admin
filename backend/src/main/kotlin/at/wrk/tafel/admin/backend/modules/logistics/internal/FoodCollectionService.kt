@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,6 +27,10 @@ class FoodCollectionService(
     private val carRepository: CarRepository,
     private val advisoryLockService: AdvisoryLockService,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(FoodCollectionService::class.java)
+    }
 
     @Transactional(readOnly = true)
     fun getFoodCollection(routeId: Long): FoodCollectionResponse? {
@@ -61,6 +66,14 @@ class FoodCollectionService(
         val distribution = distributionRepository.getCurrentDistribution()!!
 
         foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
+        log.info(
+            "Saved food collection route data for route {} (distribution: {}, car: {}, driver: {}, coDriver: {})",
+            routeId,
+            distribution.id,
+            data.carId,
+            data.driverId,
+            data.coDriverId,
+        )
     }
 
     @Transactional

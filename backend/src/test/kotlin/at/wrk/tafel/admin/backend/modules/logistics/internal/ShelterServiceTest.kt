@@ -9,6 +9,10 @@ import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter3
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -19,6 +23,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 
 @ExtendWith(MockKExtension::class)
@@ -351,6 +356,105 @@ class ShelterServiceTest {
 
         val exception = assertThrows<NotFoundException> { service.reorderShelters(listOf(99L)) }
         assertThat(exception.body.detail).isEqualTo("Shelter with id 99 not found")
+    }
+
+    @Test
+    fun `create shelter logs the creation`() {
+        val createInput = ShelterRequest(
+            id = 0L,
+            name = "New Shelter",
+            addressStreet = "New Street",
+            addressHouseNumber = "10",
+            addressStairway = null,
+            addressPostalCode = 11111,
+            addressDoor = null,
+            addressCity = "New City",
+            note = "New note",
+            personsCount = 5,
+            enabled = true,
+            sortOrder = 999,
+            contacts = emptyList(),
+        )
+        every { shelterRepository.findAll() } returns emptyList()
+        every { shelterRepository.save(any()) } answers {
+            val arg = firstArg() as ShelterEntity
+            arg.id = 42
+            arg
+        }
+
+        withLogAppender(ShelterService::class.java) { logAppender ->
+            service.createShelter(createInput)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Created shelter").contains("42").contains("New Shelter")
+            }
+        }
+    }
+
+    @Test
+    fun `update shelter logs the update`() {
+        val updated = ShelterRequest(
+            id = testShelter3.id!!,
+            name = "Updated Shelter",
+            addressStreet = testShelter3.addressStreet!!,
+            addressHouseNumber = testShelter3.addressHouseNumber!!,
+            addressStairway = testShelter3.addressStairway,
+            addressPostalCode = testShelter3.addressPostalCode!!,
+            addressCity = testShelter3.addressCity!!,
+            addressDoor = testShelter3.addressDoor,
+            note = "Updated note",
+            personsCount = 5,
+            enabled = false,
+            sortOrder = 5,
+            contacts = emptyList(),
+        )
+        every { shelterRepository.findByIdOrNull(testShelter3.id!!) } returns testShelter3
+        every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
+
+        withLogAppender(ShelterService::class.java) { logAppender ->
+            service.updateShelter(testShelter3.id!!, updated)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated shelter").contains(testShelter3.id.toString()).contains("Updated Shelter")
+            }
+        }
+    }
+
+    @Test
+    fun `reorder shelters logs the new order`() {
+        val entity1 = ShelterEntity(
+            name = "Shelter 1",
+            addressStreet = "Street 1",
+            addressHouseNumber = "1",
+            addressPostalCode = 11111,
+            addressCity = "City 1",
+            personsCount = 1,
+            sortOrder = 200,
+        ).apply { id = 1 }
+        every { shelterRepository.findByIdOrNull(1L) } returns entity1
+        every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
+
+        withLogAppender(ShelterService::class.java) { logAppender ->
+            service.reorderShelters(listOf(1L))
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Reordered shelters").contains("[1]")
+            }
+        }
+    }
+
+    private fun withLogAppender(loggerClass: Class<*>, block: (ListAppender<ILoggingEvent>) -> Unit) {
+        val logger = LoggerFactory.getLogger(loggerClass) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            block(logAppender)
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 
     private fun testShelter3ShelterRequest() = ShelterRequest(

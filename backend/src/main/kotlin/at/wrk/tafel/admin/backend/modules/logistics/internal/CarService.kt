@@ -1,10 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarResponse
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional
 class CarService(
     private val carRepository: CarRepository,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(CarService::class.java)
+    }
 
     @Transactional(readOnly = true)
     fun getActiveCars(): List<CarResponse> = carRepository.findByEnabledIsTrue()
@@ -34,6 +40,7 @@ class CarService(
         }
 
         val savedEntity = carRepository.save(carEntity)
+        log.info("Created car {} ({})", savedEntity.id, sanitizeForLog(savedEntity.licensePlate))
         return mapCar(savedEntity)
     }
 
@@ -47,6 +54,7 @@ class CarService(
         carEntity.sortOrder = updatedCar.sortOrder
 
         val savedEntity = carRepository.save(carEntity)
+        log.info("Updated car {} ({})", savedEntity.id, sanitizeForLog(savedEntity.licensePlate))
         return mapCar(savedEntity)
     }
 
@@ -59,6 +67,7 @@ class CarService(
             entity.sortOrder = index + 1
             carRepository.save(entity)
         }
+        log.info("Reordered cars: {}", carIds)
     }
 
     private fun nextSortOrder(): Int = (carRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
