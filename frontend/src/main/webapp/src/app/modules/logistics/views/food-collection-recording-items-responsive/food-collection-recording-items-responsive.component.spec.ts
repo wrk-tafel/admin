@@ -44,9 +44,8 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     {id: 1, name: 'Category 1'},
     {id: 2, name: 'Category 2'}
   ];
-  const mockFoodCategoriesWithReturn = [
-    ...mockFoodCategories,
-    {id: 3, name: 'Graue Kisten', returnItem: true}
+  const mockFoodReturnCategories = [
+    {id: 3, name: 'Graue Kisten', sortOrder: 1, enabled: true}
   ];
   const mockShops = [
     {id: 101, number: 1, name: 'Shop 1', address: 'Address 1'},
@@ -85,6 +84,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     const selectShopSpy = vi.spyOn(component, 'selectShop');
@@ -106,6 +106,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[0]);
@@ -140,7 +141,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
 
-    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[0]);
@@ -170,7 +173,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
 
-    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     component.currentShop.set(mockShops[0]);
@@ -191,7 +196,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
 
-    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     component.currentShop.set(mockShops[0]);
@@ -217,7 +224,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
 
-    componentRef.setInput('foodCategories', mockFoodCategoriesWithReturn);
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
@@ -249,6 +258,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[0]);
@@ -281,6 +291,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     const mockItemsData = {
@@ -324,6 +335,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
@@ -359,6 +371,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     onlineSignal.set(false);
@@ -393,6 +406,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     // Edit shop 1 while online (goes through the normal enqueue path)...
@@ -422,6 +436,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     onlineSignal.set(false);
@@ -442,6 +457,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[1]); // start at middle shop
@@ -457,6 +473,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
     const componentRef = fixture.componentRef;
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     fixture.detectChanges();
@@ -471,6 +488,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
     const componentRef = fixture.componentRef;
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     fixture.detectChanges();
@@ -486,6 +504,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
     const componentRef = fixture.componentRef;
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     fixture.detectChanges();
@@ -500,6 +519,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
     const componentRef = fixture.componentRef;
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     fixture.detectChanges();
@@ -520,6 +540,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     component.currentShop.set(mockShops[1]); // start at middle shop

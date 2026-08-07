@@ -1,6 +1,7 @@
-import {Component, computed, effect, inject, input, model, signal, untracked} from '@angular/core';
+import {Component, effect, inject, input, model, signal, untracked} from '@angular/core';
 
 import {FoodCategory} from '../../../../api/food-categories-api.service';
+import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -47,14 +48,9 @@ import {Observable} from 'rxjs';
 })
 export class FoodCollectionRecordingItemsResponsiveComponent {
   foodCategories = model.required<FoodCategory[]>();
+  foodReturnCategories = model.required<FoodReturnCategory[]>();
   selectedRouteData = input<SelectedRouteData>();
 
-  readonly foodCategoriesItems = computed(() =>
-    this.foodCategories().filter(category => !category.returnItem)
-  );
-  readonly foodCategoriesReturn = computed(() =>
-    this.foodCategories().filter(category => category.returnItem)
-  );
   currentShop = signal<Shop | null>(null);
   categoryValues = signal<Record<number, number>>({});
   returnCategoryValues = signal<Record<string, number>>({});
@@ -77,7 +73,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   // required model input and therefore not available while the form array is being built
   private attachReturnItemsValidator() {
     this.returnItems.setValidators([
-      duplicateDescriptionValidator(() => this.foodCategoriesReturn().map(category => category.name))
+      duplicateDescriptionValidator(() => this.foodReturnCategories().map(category => category.name))
     ]);
   }
 
@@ -110,7 +106,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
         return shop;
       }
 
-      for (const category of this.foodCategoriesItems()) {
+      for (const category of this.foodCategories()) {
         const currentValue = this.getCurrentValue(itemsPerShop, category, shop);
         if (currentValue === 0) {
           return shop;
@@ -209,7 +205,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
   private applyShopValues(shop: Shop, items: FoodCollectionItem[], returnItems: FoodCollectionReturnItem[]) {
     const newValues: Record<number, number> = {};
-    for (const category of this.foodCategoriesItems()) {
+    for (const category of this.foodCategories()) {
       newValues[category.id] = this.getCurrentValue(items, category, shop);
     }
     this.mergePendingValues(shop, newValues);
@@ -226,7 +222,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
     const newValues: Record<number, number> = {...cached};
     if (!cached) {
-      for (const category of this.foodCategoriesItems()) {
+      for (const category of this.foodCategories()) {
         newValues[category.id] = this.getCurrentValue(initialItems, category, shop);
       }
     }
@@ -241,7 +237,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   }
 
   private applyReturnItems(returnItems: FoodCollectionReturnItem[]) {
-    const returnCategoryNames = this.foodCategoriesReturn().map(category => category.name);
+    const returnCategoryNames = this.foodReturnCategories().map(category => category.name);
 
     const newReturnValues: Record<string, number> = {};
     for (const name of returnCategoryNames) {
@@ -300,7 +296,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     const values = this.categoryValues();
 
     const saveItemsRequest: FoodCollectionSaveItemsPerShopRequest = {
-      items: this.foodCategoriesItems().map(category => {
+      items: this.foodCategories().map(category => {
         const item: FoodCollectionCategoryWithAmount = {
           categoryId: category.id,
           amount: values[category.id] || 0
@@ -325,7 +321,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     }
 
     const returnCategoryValues = this.returnCategoryValues();
-    const fromCategories: FoodCollectionReturnItemAmount[] = this.foodCategoriesReturn().map(category => ({
+    const fromCategories: FoodCollectionReturnItemAmount[] = this.foodReturnCategories().map(category => ({
       description: category.name,
       amount: returnCategoryValues[category.name] || 0
     }));

@@ -27,9 +27,10 @@ logistics/
       create-employee-dialog.component.ts        # shown when search finds 0 matches
       select-employee-dialog.component.ts         # shown when search finds >1 matches
   resolver/
-    route-data-resolver.component.ts              # GET /routes
-    car-data-resolver.component.ts                # GET /cars
-    food-categories-data-resolver.component.ts    # GET /food-categories/active
+    route-data-resolver.component.ts                     # GET /routes
+    car-data-resolver.component.ts                       # GET /cars
+    food-categories-data-resolver.component.ts           # GET /food-categories/active
+    food-return-categories-data-resolver.component.ts    # GET /food-return-categories/active
   services/
     food-collection-offline-queue.service.ts      # localStorage-backed item auto-save queue
     food-collection-return-items.ts               # free-text return-item validation helpers
@@ -146,14 +147,22 @@ freshly saved data with its own stale form state.
   both reads and writes `categoryValues`/`returnCategoryValues`, so without it the
   effect re-triggers itself on every shop load and spins.
 
+### Section panels
+
+Both item layouts render two titled, colour-coded panels — **Warenmenge** (sky) and **Retourware**
+(amber) — so the two kinds of counting can't be confused at a glance. The km fields above them get
+a plain heading and deliberately no panel: they belong to the route, not to a shop's counts.
+
 ### Retourware (both layouts)
 
 Return boxes are stored by free-text `description`, not by category
 (`FoodCollectionsApiService.saveReturnItems` / `saveReturnItemsPerShop`), and are
 rendered in their own visually separated block. The block has two parts:
 
-- pre-filled counters for the `returnItem` food categories — these are labels
-  only; saving one sends a return item whose `description` is the category's name
+- pre-filled counters for the return categories, which arrive as their own
+  `foodReturnCategories` input (resolved from `/food-return-categories/active`,
+  separate master data from `foodCategories`) — these are labels only; saving one
+  sends a return item whose `description` is the category's name
 - **Sonstige Retourware**: a `FormArray` of free-text rows (`description` +
   `amount`, plus a shop picker on desktop where one screen covers all shops)
 
@@ -192,6 +201,8 @@ this module:
   The full CRUD + reorder methods (`getAllFoodCategories`, `createFoodCategory`,
   `updateFoodCategory`, `reorderFoodCategories`) exist on the same service but are
   only consumed from `settings/views/food-categories`.
+- `food-return-categories-api.service.ts` — same split for the return-box
+  categories, maintained in `settings/views/food-return-categories`.
 - `food-collections-api.service.ts` — `FoodCollectionsApiService`, the
   read/save/patch endpoints described above. Note that route base data, km, items
   and return items each have their own endpoint, matching the sections of the

@@ -6,11 +6,11 @@ import {CommonModule} from '@angular/common';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
-import {FoodCategory} from '../../../../../api/food-categories-api.service';
+import {FoodReturnCategory} from '../../../../../api/food-return-categories-api.service';
 
 @Component({
-  selector: 'tafel-food-category-create-dialog',
-  templateUrl: 'food-category-create-dialog.component.html',
+  selector: 'tafel-food-return-category-create-dialog',
+  templateUrl: 'food-return-category-create-dialog.component.html',
   imports: [
     CommonModule,
     TafelDialogComponent,
@@ -20,13 +20,12 @@ import {FoodCategory} from '../../../../../api/food-categories-api.service';
     MatButton
   ]
 })
-export class FoodCategoryCreateDialogComponent {
-  readonly dialogRef = inject(MatDialogRef<FoodCategoryCreateDialogComponent>);
+export class FoodReturnCategoryCreateDialogComponent {
+  readonly dialogRef = inject(MatDialogRef<FoodReturnCategoryCreateDialogComponent>);
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({
-    name: ['', [Validators.required]],
-    weightPerUnit: [null as number | null, [Validators.required]],
+    name: ['', [Validators.required, Validators.maxLength(100)]],
     // Not user-editable here - the backend auto-assigns the actual sort order on create,
     // placing new categories last; reordering afterwards happens via drag-and-drop.
     sortOrder: [0],
@@ -37,7 +36,7 @@ export class FoodCategoryCreateDialogComponent {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
     } else {
-      this.dialogRef.close(this.form.value as FoodCategory);
+      this.dialogRef.close(this.form.value as FoodReturnCategory);
     }
   }
 

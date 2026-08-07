@@ -42,9 +42,11 @@
           </tafel-food-collection-recording-km>
           @if (isDesktopLayout()) {
             <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
+                                                           [foodReturnCategories]="foodReturnCategories()"
                                                            [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
           } @else {
             <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
+                                                              [foodReturnCategories]="foodReturnCategories()"
                                                               [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
           }
         </mat-tab>

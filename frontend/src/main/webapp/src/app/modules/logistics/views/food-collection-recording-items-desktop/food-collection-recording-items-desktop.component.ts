@@ -9,6 +9,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faPlus, faRemove} from '@fortawesome/free-solid-svg-icons';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
+import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   FoodCollectionItem,
@@ -41,14 +42,8 @@ import {Observable} from 'rxjs';
 })
 export class FoodCollectionRecordingItemsDesktopComponent {
   foodCategories = model.required<FoodCategory[]>();
+  foodReturnCategories = model.required<FoodReturnCategory[]>();
   selectedRouteData = input<SelectedRouteData>();
-
-  readonly foodCategoriesItems = computed(() =>
-    this.foodCategories().filter(category => !category.returnItem)
-  );
-  readonly foodCategoriesReturn = computed(() =>
-    this.foodCategories().filter(category => category.returnItem)
-  );
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly fb = inject(FormBuilder);
@@ -65,7 +60,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   private attachReturnItemsValidator() {
     this.returnItems.setValidators([
       duplicateDescriptionValidator(
-        () => this.foodCategoriesReturn().map(category => category.name),
+        () => this.foodReturnCategories().map(category => category.name),
         row => row.get('shopId')!.value
       )
     ]);
@@ -105,7 +100,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   });
 
   createCategoryShopInputs(shops: Shop[], items: FoodCollectionItem[] = []) {
-    this.foodCategoriesItems().forEach((category) => {
+    this.foodCategories().forEach((category) => {
       this.categories.push(
         this.fb.group({
           categoryId: this.fb.control<number>(category.id, {nonNullable: true}),
@@ -127,7 +122,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
    * is the category's name as a return item's description, the same shape a free-text row produces.
    */
   createReturnCategoryShopInputs(shops: Shop[], returnItems: FoodCollectionReturnItem[] = []) {
-    this.foodCategoriesReturn().forEach((category) => {
+    this.foodReturnCategories().forEach((category) => {
       this.returnCategories.push(
         this.fb.group({
           description: this.fb.control<string>(category.name, {nonNullable: true}),
@@ -148,7 +143,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   }
 
   createFreetextReturnItemRows(returnItems: FoodCollectionReturnItem[] = []) {
-    const returnCategoryNames = this.foodCategoriesReturn().map(category => category.name);
+    const returnCategoryNames = this.foodReturnCategories().map(category => category.name);
     returnItems
       .filter(returnItem => !returnCategoryNames.includes(returnItem.description))
       .forEach(returnItem => this.addReturnItem(returnItem.shopId, returnItem.description, returnItem.amount));

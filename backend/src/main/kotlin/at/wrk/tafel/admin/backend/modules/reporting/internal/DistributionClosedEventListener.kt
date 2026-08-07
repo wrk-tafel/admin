@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
@@ -50,6 +51,7 @@ import java.time.format.DateTimeFormatter
 @Component
 class DistributionClosedEventListener(
     private val distributionRepository: DistributionRepository,
+    private val foodReturnCategoryRepository: FoodReturnCategoryRepository,
     private val dailyReportService: DailyReportService,
     private val statisticExportService: StatisticExportService,
     private val mailSenderService: MailSenderService,
@@ -187,8 +189,15 @@ class DistributionClosedEventListener(
      * Return boxes are free-text (`FoodCollectionEntity.returnItems`), so the shops considered here
      * come from those rows alone - a shop whose only recorded data is return boxes still has to
      * show up in the mail.
+     *
+     * Within a shop, boxes are listed in the order the return categories are maintained in
+     * (`food_return_categories.sort_order`) so the mail reads the same way the recording screen
+     * does; anything typed in free-text has no category and is appended alphabetically after them.
      */
     private fun createReturnBoxesData(distribution: DistributionEntity): ReturnBoxesDataModel {
+        val returnCategoryOrder = foodReturnCategoryRepository.findAll()
+            .associate { it.name to it.sortOrder }
+
         val uniqueRoutes = distribution.foodCollections.mapNotNull { it.route }
             .distinctBy { it.id }
             .sortedBy { it.name }
@@ -210,7 +219,12 @@ class DistributionClosedEventListener(
                     .filter { it.shop.id == shop.id }
                     .map { it.description }
                     .distinct()
-                    .sorted()
+                    .sortedWith(
+                        compareBy(
+                            { returnCategoryOrder[it] ?: Int.MAX_VALUE },
+                            { it },
+                        ),
+                    )
                     .toList()
 
                 val returnBoxes = uniqueDescriptions.mapNotNull { description ->

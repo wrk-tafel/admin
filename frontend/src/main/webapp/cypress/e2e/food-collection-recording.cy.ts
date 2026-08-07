@@ -63,11 +63,16 @@ describe('Food Collection Recording', () => {
       cy.byTestId('select-items-tab').click();
       enterKmData();
       cy.byTestId('category-1-shop-20-input').clear().type('1');
-      addFreetextReturnItem(20, 'Graue Kisten', 2);
 
-      cy.byTestId('return-item-0-description-input')
-        .parents('mat-form-field')
-        .should('contain.text', 'Beschreibung bereits erfasst');
+      // read the label off the screen rather than hardcoding it - the return categories are
+      // editable master data and the settings spec renames them
+      returnCategoryName(11).then((name) => {
+        addFreetextReturnItem(20, name, 2);
+
+        cy.byTestId('return-item-0-description-input')
+          .parents('mat-form-field')
+          .should('contain.text', 'Beschreibung bereits erfasst');
+      });
 
       // the invalid return items are skipped, everything else on the screen is still saved
       saveAndConfirmKmDiff();
@@ -357,6 +362,17 @@ describe('Food Collection Recording', () => {
         cy.byTestId(`return-category-${category}-shop-${shopId}-input`).clear().type(value);
       }
     }
+  }
+
+  // The Retourware counters are labelled from the (editable) return-category master data, so tests
+  // that need the label read it off the row instead of assuming a fixed name.
+  function returnCategoryName(categoryId: number) {
+    return cy.byTestId(`return-category-${categoryId}-shop-20-input`)
+      .closest('tr')
+      .find('td')
+      .first()
+      .invoke('text')
+      .then((text) => text.trim());
   }
 
   // `shopId` is only picked on the desktop layout - the responsive one always records for the

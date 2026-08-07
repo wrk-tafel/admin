@@ -24,8 +24,8 @@ describe('FoodCategoriesApiService', () => {
 
   it('get active categories', () => {
     const mockCategories: FoodCategory[] = [
-      {id: 0, name: 'Bakery', weightPerUnit: 1.5, returnItem: false, sortOrder: 0, enabled: true},
-      {id: 1, name: 'Frozen Food', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: true}
+      {id: 0, name: 'Bakery', weightPerUnit: 1.5, sortOrder: 0, enabled: true},
+      {id: 1, name: 'Frozen Food', weightPerUnit: 2, sortOrder: 1, enabled: true}
     ];
 
     apiService.getActiveFoodCategories().subscribe((data: FoodCategory[]) => {
@@ -39,8 +39,8 @@ describe('FoodCategoriesApiService', () => {
 
   it('get all categories', () => {
     const mockCategories: FoodCategory[] = [
-      {id: 0, name: 'Bakery', weightPerUnit: 1.5, returnItem: false, sortOrder: 0, enabled: true},
-      {id: 1, name: 'Frozen Food', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: false}
+      {id: 0, name: 'Bakery', weightPerUnit: 1.5, sortOrder: 0, enabled: true},
+      {id: 1, name: 'Frozen Food', weightPerUnit: 2, sortOrder: 1, enabled: false}
     ];
 
     apiService.getAllFoodCategories().subscribe((data: FoodCategory[]) => {
@@ -54,7 +54,7 @@ describe('FoodCategoriesApiService', () => {
 
   it('create category', () => {
     const newCategory: FoodCategory = {
-      id: 0, name: 'New Category', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: true
+      id: 0, name: 'New Category', weightPerUnit: 1, sortOrder: 0, enabled: true
     };
     const createdCategory: FoodCategory = {...newCategory, id: 42};
 
@@ -69,7 +69,7 @@ describe('FoodCategoriesApiService', () => {
 
   it('update category', () => {
     const updatedCategory: FoodCategory = {
-      id: 1, name: 'Updated Category', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: false
+      id: 1, name: 'Updated Category', weightPerUnit: 1, sortOrder: 0, enabled: false
     };
 
     apiService.updateFoodCategory(1, updatedCategory).subscribe((data: FoodCategory) => {
@@ -83,8 +83,8 @@ describe('FoodCategoriesApiService', () => {
 
   it('reorder categories', () => {
     const reorderedCategories: FoodCategory[] = [
-      {id: 1, name: 'Frozen Food', weightPerUnit: 2, returnItem: false, sortOrder: 1, enabled: true},
-      {id: 0, name: 'Bakery', weightPerUnit: 1.5, returnItem: false, sortOrder: 2, enabled: true}
+      {id: 1, name: 'Frozen Food', weightPerUnit: 2, sortOrder: 1, enabled: true},
+      {id: 0, name: 'Bakery', weightPerUnit: 1.5, sortOrder: 2, enabled: true}
     ];
 
     apiService.reorderFoodCategories([1, 0]).subscribe((data: FoodCategory[]) => {

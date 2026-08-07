@@ -7,6 +7,7 @@ import { GlobalStateService } from '../../../../common/state/global-state.servic
 import { DistributionItem } from '../../../../api/distribution-api.service';
 import { RouteData, Shop } from '../../../../api/route-api.service';
 import { FoodCategory } from '../../../../api/food-categories-api.service';
+import { FoodReturnCategory } from '../../../../api/food-return-categories-api.service';
 import { FoodCollectionData, FoodCollectionsApiService } from '../../../../api/food-collections-api.service';
 import { EmployeeData } from '../../../../api/employee-api.service';
 import { signal } from '@angular/core';
@@ -55,9 +56,11 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         name: 'Route 1'
     };
     const testFoodCategories: FoodCategory[] = [
-        { id: 0, name: 'Category 1', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: true },
-        { id: 1, name: 'Category 2', weightPerUnit: 2, returnItem: false, sortOrder: 1, enabled: true },
-        { id: 2, name: 'Graue Kisten', weightPerUnit: 0, returnItem: true, sortOrder: 2, enabled: true },
+        { id: 0, name: 'Category 1', weightPerUnit: 1, sortOrder: 0, enabled: true },
+        { id: 1, name: 'Category 2', weightPerUnit: 2, sortOrder: 1, enabled: true },
+    ];
+    const testFoodReturnCategories: FoodReturnCategory[] = [
+        { id: 2, name: 'Graue Kisten', sortOrder: 1, enabled: true },
     ];
     const testShops: Shop[] = [
         { id: 0, number: 1, name: 'Shop 1', address: 'Address 1' },
@@ -86,6 +89,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         };
         componentRef.setInput('selectedRouteData', selectedRouteData);
         componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
         fixture.detectChanges();
 
         expect(component.categories.controls.length).toEqual(2);
@@ -122,6 +126,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
             foodCollectionData: testFoodCollectionData
         });
         componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
         fixture.detectChanges();
 
         expect(component.getShops(0).at(0).get('amount')!.value).toEqual(7);
@@ -152,6 +157,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
             shops: testShops
         });
         componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
         fixture.detectChanges();
 
         component.getShops(0).at(0).get('amount')!.setValue(3);
@@ -183,6 +189,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
             shops: testShops
         });
         componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
         fixture.detectChanges();
 
         component.getReturnCategoryShops(0).at(1).get('amount')!.setValue(4);
@@ -210,6 +217,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
             shops: testShops
         });
         componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
         fixture.detectChanges();
 
         component.addReturnItem(testShops[0].id, 'graue kisten', 2);
@@ -230,6 +238,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
             shops: testShops
         });
         componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
         fixture.detectChanges();
 
         component.addReturnItem(testShops[0].id, 'Bananenkartons', 2);

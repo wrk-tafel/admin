@@ -11,6 +11,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
+import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CarList} from '../../../../api/car-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -60,6 +61,7 @@ export class FoodCollectionRecordingComponent {
   routeList = model.required<RouteList>();
   carList = model.required<CarList>();
   foodCategories = model.required<FoodCategory[]>();
+  foodReturnCategories = model.required<FoodReturnCategory[]>();
 
   selectedRoute?: RouteData;
   selectedRouteData = signal<SelectedRouteData | undefined>(undefined);

@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
@@ -40,6 +41,9 @@ class DistributionClosedEventListenerTest {
     private lateinit var distributionRepository: DistributionRepository
 
     @RelaxedMockK
+    private lateinit var foodReturnCategoryRepository: FoodReturnCategoryRepository
+
+    @RelaxedMockK
     private lateinit var dailyReportService: DailyReportService
 
     @RelaxedMockK
@@ -62,6 +66,7 @@ class DistributionClosedEventListenerTest {
 
         listener = DistributionClosedEventListener(
             distributionRepository,
+            foodReturnCategoryRepository,
             dailyReportService,
             statisticExportService,
             mailSenderService,

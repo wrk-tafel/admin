@@ -1,7 +1,8 @@
 @if (formReady()) {
   <form [formGroup]="form" autocomplete="off">
-    <div>
-      <table class="min-w-full divide-y divide-gray-200 mt-4" testid="items-table">
+    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4" testid="items-section">
+      <h6 class="font-bold text-sky-900 mb-2">Warenmenge</h6>
+      <table class="min-w-full divide-y divide-sky-200" testid="items-table">
         <thead>
         <tr>
           <th scope="col"></th>
@@ -14,13 +15,13 @@
           @for (category of categories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex"
                 [ngClass]="{'bg-red-100': isControlInvalid(category), 'bg-green-100': isControlValid(category)}">
-              <td class="font-bold">{{ foodCategoriesItems()?.[categoryIndex]?.name }}</td>
+              <td class="font-bold">{{ foodCategories()?.[categoryIndex]?.name }}</td>
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex">
                     <mat-form-field subscriptSizing="dynamic" style="min-width: 3.6em; max-width: 5em;">
                       <input matInput type="number" min="0"
-                             [attr.testid]="'category-' + foodCategoriesItems()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                             [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
                              formControlName="amount">
                     </mat-form-field>
                   </td>
@@ -32,7 +33,7 @@
       </table>
     </div>
 
-    <div class="mt-10 rounded-lg border border-amber-200 bg-amber-50 p-4" testid="return-items-section">
+    <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4" testid="return-items-section">
       <h6 class="font-bold text-amber-900 mb-2">Retourware</h6>
       <p class="text-sm text-amber-900 mb-2">
         Kisten, die an die Filiale zurückgehen. Nicht gelistete Kisten unten mit eigener Beschreibung erfassen.
@@ -50,13 +51,13 @@
         <tbody formArrayName="returnCategories">
           @for (category of returnCategories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex">
-              <td class="font-bold">{{ foodCategoriesReturn()?.[categoryIndex]?.name }}</td>
+              <td class="font-bold">{{ foodReturnCategories()?.[categoryIndex]?.name }}</td>
               <ng-container formArrayName="shops">
                 @for (shop of getReturnCategoryShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex">
                     <mat-form-field subscriptSizing="dynamic" style="min-width: 3.6em; max-width: 5em;">
                       <input matInput type="number" min="0"
-                             [attr.testid]="'return-category-' + foodCategoriesReturn()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                             [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
                              formControlName="amount">
                     </mat-form-field>
                   </td>
