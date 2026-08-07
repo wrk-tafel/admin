@@ -343,7 +343,7 @@ describe('Food Collection Recording', () => {
     cy.window().then((win) => win.dispatchEvent(new Event('online')));
   }
 
-  // testdata: food categories 1-10 are regular categories, 11-15 are return-box categories
+  // testdata: food categories 1-10 are regular categories, 11-14 are return-box categories
   function fillCategories() {
     const shopIds = [20, 21];
     for (let category = 1; category <= 10; category++) {
@@ -356,7 +356,7 @@ describe('Food Collection Recording', () => {
 
   function fillReturnCategories() {
     const shopIds = [20, 21];
-    for (let category = 11; category <= 15; category++) {
+    for (let category = 11; category <= 14; category++) {
       for (const shopId of shopIds) {
         const value = category === 11 && shopId === 20 ? '4' : '1';
         cy.byTestId(`return-category-${category}-shop-${shopId}-input`).clear().type(value);

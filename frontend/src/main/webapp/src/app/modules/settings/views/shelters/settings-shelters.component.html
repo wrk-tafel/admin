@@ -10,6 +10,11 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Notschlafstellen samt Ansprechpersonen und Personenanzahl, die bei der Statistik eines
+      Ausgabetags ausgewählt werden können.
+    </p>
+
     <div class="hidden md:block">
     <table mat-table [dataSource]="shelters()?.shelters ?? []" testid="shelters-table"
            cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">

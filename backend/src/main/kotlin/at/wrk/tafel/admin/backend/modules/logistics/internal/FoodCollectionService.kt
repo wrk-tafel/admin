@@ -30,6 +30,9 @@ class FoodCollectionService(
 
     companion object {
         private val log = LoggerFactory.getLogger(FoodCollectionService::class.java)
+
+        private const val SHOP_NOT_FOUND = "Filiale nicht gefunden!"
+        private const val CATEGORY_NOT_FOUND = "Kategorie nicht gefunden!"
     }
 
     @Transactional(readOnly = true)
@@ -227,9 +230,9 @@ class FoodCollectionService(
             items.add(
                 FoodCollectionItemEntity(
                     category = foodCategoryRepository.findByIdOrNull(categoryId)
-                        ?: throw NotFoundException("Kategorie nicht gefunden!"),
+                        ?: throw NotFoundException(CATEGORY_NOT_FOUND),
                     shop = shopRepository.findByIdOrNull(shopId)
-                        ?: throw NotFoundException("Filiale nicht gefunden!"),
+                        ?: throw NotFoundException(SHOP_NOT_FOUND),
                     amount = newAmount,
                 ),
             )
@@ -295,9 +298,9 @@ class FoodCollectionService(
     private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> = items.map {
         FoodCollectionItemEntity(
             category = foodCategoryRepository.findByIdOrNull(it.categoryId)
-                ?: throw NotFoundException("Kategorie nicht gefunden!"),
+                ?: throw NotFoundException(CATEGORY_NOT_FOUND),
             shop = shopRepository.findByIdOrNull(it.shopId)
-                ?: throw NotFoundException("Filiale nicht gefunden!"),
+                ?: throw NotFoundException(SHOP_NOT_FOUND),
             amount = it.amount,
         )
     }
@@ -322,7 +325,7 @@ class FoodCollectionService(
         .map {
             FoodCollectionReturnItemEntity(
                 shop = shopRepository.findByIdOrNull(it.shopId)
-                    ?: throw NotFoundException("Filiale nicht gefunden!"),
+                    ?: throw NotFoundException(SHOP_NOT_FOUND),
                 description = it.description.trim(),
                 amount = it.amount,
             )

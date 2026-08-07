@@ -35,6 +35,16 @@ $$
             where c.return_item = true
               and not exists (select 1 from food_return_categories r where r.name = c.name);
 
+            -- "Sonstige Kisten" is not carried over: a catch-all box tells the shop nothing about
+            -- what it is getting back. Anything not in this list is recorded as free-text
+            -- Retourware with a real description instead.
+            --
+            -- Dropping it loses no history: R__00083 runs first (Flyway orders repeatable
+            -- migrations by description) and has already copied every recorded amount into
+            -- food_collections_return_items as free text, keeping "Sonstige Kisten" as the
+            -- description. Those rows carry no reference to this table, so they survive.
+            delete from food_return_categories where name = 'Sonstige Kisten';
+
             -- return categories had their own sort-order sequence starting well above the regular
             -- ones (2000+), which is meaningless once they are on their own - renumber to 1..n
             update food_return_categories r

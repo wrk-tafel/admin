@@ -755,8 +755,6 @@ INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order
 VALUES (13, NOW(), NOW(), 'Grüne/Graue Klappkisten', 3, true);
 INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order, enabled)
 VALUES (14, NOW(), NOW(), 'Ströck Kisten', 4, true);
-INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order, enabled)
-VALUES (15, NOW(), NOW(), 'Sonstige Kisten', 5, true);
 
 -- distributions
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)

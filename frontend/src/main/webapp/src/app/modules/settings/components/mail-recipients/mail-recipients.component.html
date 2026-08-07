@@ -8,6 +8,10 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Empfänger je Mail-Art. Diese Mails werden beim Beenden eines Ausgabetags automatisch versendet.
+    </p>
+
     <form [formGroup]="form" autocomplete="off">
       <mat-tab-group animationDuration="0ms" formArrayName="mailRecipients">
         @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
