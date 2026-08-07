@@ -1,41 +1,43 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {VersionApiService, VersionInfo} from './version-api.service';
+import {AppConfig, ConfigApiService} from './config-api.service';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 
-describe('VersionApiService', () => {
+describe('ConfigApiService', () => {
   let httpMock: HttpTestingController;
-  let apiService: VersionApiService;
+  let apiService: ConfigApiService;
+
+  const testConfig: AppConfig = {version: '1.2.3', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true};
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        VersionApiService
+        ConfigApiService
       ]
     });
 
     httpMock = TestBed.inject(HttpTestingController);
-    apiService = TestBed.inject(VersionApiService);
+    apiService = TestBed.inject(ConfigApiService);
   });
 
-  it('fetch version info', () => {
-    apiService.getVersion().subscribe((data: VersionInfo | null) => {
-      expect(data).toEqual({version: '1.2.3', buildTime: '2026-07-28T15:30:00Z'});
+  it('fetch config', () => {
+    apiService.getConfig().subscribe((data: AppConfig | null) => {
+      expect(data).toEqual(testConfig);
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: '/version'});
-    req.flush({version: '1.2.3', buildTime: '2026-07-28T15:30:00Z'});
+    const req = httpMock.expectOne({method: 'GET', url: '/config'});
+    req.flush(testConfig);
     httpMock.verify();
   });
 
   it('falls back to null when the request fails', () => {
-    apiService.getVersion().subscribe((data: VersionInfo | null) => {
+    apiService.getConfig().subscribe((data: AppConfig | null) => {
       expect(data).toBeNull();
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: '/version'});
+    const req = httpMock.expectOne({method: 'GET', url: '/config'});
     req.flush('error', {status: 500, statusText: 'Internal Server Error'});
     httpMock.verify();
   });

@@ -397,6 +397,33 @@ describe('Customer Detail', () => {
       });
     });
 
+    /**
+     * The scanner folder is optional per deployment (`tafeladmin.storage.scannerPath` plus the
+     * `scannerEnabled` kill switch), and the e2e backend has it on - so the "off" case is driven by
+     * stubbing the config endpoint the frontend reads it from rather than by restarting the backend.
+     */
+    it('hides the scanner source when the deployment has no scanner folder', () => {
+      cy.intercept('GET', '/api/config', (req) => {
+        req.continue((res) => {
+          res.body = {...res.body, scannerFolderEnabled: false};
+        });
+      }).as('config');
+
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.wait('@config');
+
+        cy.byTestId('documentSourceToggle').should('not.exist');
+        cy.byTestId('documentSourceScanner').should('not.exist');
+        // uploading a file from the device is never optional, so the panel stays usable
+        cy.byTestId('documentDropzone').should('be.visible');
+      });
+    });
+
     it('imports the selected scanner file, not just the newest one', () => {
       cy.task('clearScannerInbox');
       const olderFileName = 'scan-older.pdf';
