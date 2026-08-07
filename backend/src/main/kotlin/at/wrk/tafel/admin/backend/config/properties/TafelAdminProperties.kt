@@ -37,6 +37,18 @@ class TafelAdminProperties {
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
     var push: TafelAdminPushProperties? = null
+    var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
+}
+
+@ExcludeFromTestCoverage
+class TafelAdminTestdataProperties {
+    /**
+     * Wipes and re-creates the schema on startup so the `testdata` migrations can seed it from
+     * scratch (`FlywayConfig`). Read once during startup by definition - Flyway has finished long
+     * before anyone could edit the config file - so unlike the rest of this class, reloading it has
+     * no meaning.
+     */
+    var enabled: Boolean = false
 }
 
 @ExcludeFromTestCoverage

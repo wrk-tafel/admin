@@ -148,6 +148,22 @@ internal class ConfigFileReloadServiceRebindTest {
         }
     }
 
+    /**
+     * `tafeladmin.testdata.enabled` decides whether `FlywayConfig` wipes the schema on startup, and
+     * it is only ever set under the `e2e`/`testdata` profiles - so nothing in the normal test run
+     * would notice if this property stopped binding, and the first sign would be the e2e job failing
+     * against a schema that was never cleaned.
+     */
+    @Test
+    fun `binds the testdata flag Flyway reads at startup`() {
+        val configFile = tempDir.resolve("config.yml")
+        Files.writeString(configFile, "tafeladmin:\n  testdata:\n    enabled: true\n")
+
+        start(configFile).use { context ->
+            assertThat(context.getBean(TafelAdminProperties::class.java).testdata.enabled).isTrue()
+        }
+    }
+
     @Test
     fun `reloading can be switched off`() {
         val configFile = tempDir.resolve("config.yml")
