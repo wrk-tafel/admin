@@ -80,6 +80,13 @@ Run the same checks CI will run, so red checks are rare rather than routine:
 cd frontend/src/main/webapp && npm run lint && npm run typecheck && npm run test-ci && cd -
 ```
 
+**Skip the test suites entirely for a pure styling/layout change** — one that only touches CSS
+classes, colours, spacing, ordering or markup structure and changes no behavior. The suites here
+assert functional behavior only, so they cannot confirm or refute a visual change; running them
+just burns minutes. Verify such a change by looking at it (see `run`/browser automation) and let
+CI cover the rest. This does *not* apply the moment the diff also touches component logic,
+bindings, form state or an API — then it's a normal change and gets the full run above.
+
 For larger changes, also run full builds for CI-equivalent confidence: `./gradlew :backend:bootJar`
 and `npm run build-prod`. If the change touches any flow covered by Cypress, verify it end-to-end
 using the `fix-e2e` skill's workflow (it owns the backend-restart-with-`e2e`-profile ritual) rather
