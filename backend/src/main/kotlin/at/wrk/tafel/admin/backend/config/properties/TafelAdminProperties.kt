@@ -32,12 +32,47 @@ class TafelAdminProperties {
     // title/manifest would look identical across all three (see #3027).
     var environmentLabel: String = ""
 
+    var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var mail: TafelAdminMailProperties? = null
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
     var push: TafelAdminPushProperties? = null
     var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
+
+    /**
+     * Whether the scanner folder is available at all - the single rule both the backend
+     * (`ScannerFileService`) and the frontend (via `ConfigController`) go by, so neither can decide
+     * the feature is on while the other has it off.
+     *
+     * Lives here rather than on either section because it is the conjunction of both: the switch
+     * ([TafelAdminFeaturesProperties.scannerFolderEnabled]) says whether this deployment should offer the
+     * feature, the mount point ([TafelAdminStorageProperties.scannerPath]) says whether it *can*.
+     *
+     * Deliberately answered from configuration alone rather than by probing the filesystem: a share
+     * that is momentarily unreachable should surface as an empty file list, not make the whole
+     * feature disappear from the UI mid-shift.
+     */
+    val scannerFolderAvailable: Boolean
+        get() = features.scannerFolderEnabled && !storage.scannerPath.isNullOrBlank()
+}
+
+/**
+ * Switches for optional features, kept apart from the settings that configure them: whether a
+ * deployment offers something is an operational decision an operator flips on its own, while
+ * `storage`, `mail` and friends describe how the thing is wired up once it is on.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminFeaturesProperties {
+    /**
+     * Kill switch for the scanner-folder document picker, independent of whether
+     * [TafelAdminStorageProperties.scannerPath] happens to be set: an environment that has the share
+     * mounted but shouldn't offer the feature (or where the share is misbehaving and the
+     * once-per-second poll needs to stop) can turn it off here without touching the mount
+     * configuration. Defaults to true so environments with a `scannerPath` keep working unchanged;
+     * with no `scannerPath` the feature is off either way.
+     */
+    var scannerFolderEnabled: Boolean = true
 }
 
 @ExcludeFromTestCoverage
@@ -81,26 +116,8 @@ class TafelAdminStorageProperties {
 
     // Mount point for a NAS share a physical scanner writes to. Not every environment has one, so
     // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.githubToken).
+    // Whether the feature is offered at all is TafelAdminProperties.scannerFolderAvailable.
     var scannerPath: String? = null
-
-    // Kill switch for the scanner-folder document picker, independent of whether scannerPath
-    // happens to be set: an environment that has the share mounted but shouldn't offer the feature
-    // (or where the share is misbehaving and the once-per-second poll needs to stop) can turn it
-    // off here without editing the mount configuration. Defaults to true so environments with a
-    // scannerPath keep working unchanged; with no scannerPath the feature is off either way.
-    var scannerEnabled: Boolean = true
-
-    /**
-     * Whether the scanner folder is available at all - the single rule both the backend
-     * (`ScannerFileService`) and the frontend (via `ConfigController`) go by, so neither can
-     * decide the feature is on while the other has it off.
-     *
-     * Deliberately answered from configuration alone rather than by probing the filesystem: a share
-     * that is momentarily unreachable should surface as an empty file list, not make the whole
-     * feature disappear from the UI mid-shift.
-     */
-    val scannerFolderAvailable: Boolean
-        get() = scannerEnabled && !scannerPath.isNullOrBlank()
 }
 
 @ExcludeFromTestCoverage

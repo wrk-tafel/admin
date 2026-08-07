@@ -405,7 +405,7 @@ describe('Customer Detail', () => {
 
     /**
      * The scanner folder is optional per deployment (`tafeladmin.storage.scannerPath` plus the
-     * `scannerEnabled` kill switch), and the e2e backend has it on - so the "off" case is driven by
+     * `features.scannerFolderEnabled` kill switch), and the e2e backend has it on - so the "off" case is driven by
      * stubbing the config endpoint the frontend reads it from rather than by restarting the backend.
      */
     it('hides the scanner source when the deployment has no scanner folder', () => {
@@ -437,7 +437,7 @@ describe('Customer Detail', () => {
      * new config over SSE to a page that stays open the whole time.
      */
     it('drops and restores the scanner source when the backend config is edited, without a reload', () => {
-      const scannerDisabledConfig = ['tafeladmin:', '  storage:', '    scannerEnabled: false'].join('\n');
+      const scannerDisabledConfig = ['tafeladmin:', '  features:', '    scannerFolderEnabled: false'].join('\n');
       cy.task('clearBackendConfig');
 
       cy.createDummyCustomer().then((response) => {

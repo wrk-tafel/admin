@@ -47,7 +47,7 @@ internal class ConfigFileReloadServiceTest {
             ),
         )
         contextRefresher = mockk<ContextRefresher>()
-        every { contextRefresher.refresh() } returns setOf("tafeladmin.storage.scannerEnabled")
+        every { contextRefresher.refresh() } returns setOf("tafeladmin.features.scannerFolderEnabled")
         publishedEvents.clear()
     }
 
@@ -86,14 +86,14 @@ internal class ConfigFileReloadServiceTest {
 
     @Test
     fun `refreshes and publishes once an edited file is noticed`() {
-        val service = startWithConfigFile("tafeladmin:\n  storage:\n    scannerEnabled: true\n")
+        val service = startWithConfigFile("tafeladmin:\n  features:\n    scannerFolderEnabled: true\n")
 
-        touchConfigFile("tafeladmin:\n  storage:\n    scannerEnabled: false\n")
+        touchConfigFile("tafeladmin:\n  features:\n    scannerFolderEnabled: false\n")
         service.reloadChangedConfigFiles()
 
         verify(exactly = 1) { contextRefresher.refresh() }
         assertThat(publishedEvents).singleElement()
-            .satisfies({ assertThat(it.changedKeys).containsExactly("tafeladmin.storage.scannerEnabled") })
+            .satisfies({ assertThat(it.changedKeys).containsExactly("tafeladmin.features.scannerFolderEnabled") })
     }
 
     @Test

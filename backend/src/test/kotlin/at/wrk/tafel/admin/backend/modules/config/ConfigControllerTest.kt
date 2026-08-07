@@ -28,7 +28,7 @@ class ConfigControllerTest {
         val controller = ConfigController(
             TafelAdminProperties().apply {
                 storage.scannerPath = "/mnt/scanner"
-                storage.scannerEnabled = false
+                features.scannerFolderEnabled = false
             },
         )
 

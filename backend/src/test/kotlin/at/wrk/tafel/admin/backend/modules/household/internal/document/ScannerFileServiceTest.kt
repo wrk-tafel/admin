@@ -17,7 +17,7 @@ internal class ScannerFileServiceTest {
 
     private fun propertiesWithScannerPath(path: String?, enabled: Boolean = true) = TafelAdminProperties().apply {
         storage.scannerPath = path
-        storage.scannerEnabled = enabled
+        features.scannerFolderEnabled = enabled
     }
 
     private fun serviceWithScannerPath(path: String?, enabled: Boolean = true) = ScannerFileService(propertiesWithScannerPath(path, enabled))
@@ -58,7 +58,7 @@ internal class ScannerFileServiceTest {
         Files.writeString(tempDir.resolve("scan1.pdf"), "content1")
         assertThat(service.isEnabled()).isTrue()
 
-        properties.storage.scannerEnabled = false
+        properties.features.scannerFolderEnabled = false
 
         assertThat(service.isEnabled()).isFalse()
         assertThat(service.listFiles()).isEmpty()

@@ -87,23 +87,23 @@ internal class ConfigFileReloadServiceRebindTest {
         val configFile = tempDir.resolve("config.yml")
         Files.writeString(
             configFile,
-            "tafeladmin:\n  environmentLabel: TEST\n  storage:\n    scannerPath: /mnt/scanner\n    scannerEnabled: true\n",
+            "tafeladmin:\n  environmentLabel: TEST\n  features:\n    scannerFolderEnabled: true\n  storage:\n    scannerPath: /mnt/scanner\n",
         )
 
         start(configFile).use { context ->
             val properties = context.getBean(TafelAdminProperties::class.java)
             val listener = context.getBean(RecordingListener::class.java)
-            assertThat(properties.storage.scannerFolderAvailable).isTrue()
+            assertThat(properties.scannerFolderAvailable).isTrue()
 
             writeAndTouch(
                 configFile,
-                "tafeladmin:\n  environmentLabel: TEST\n  storage:\n    scannerPath: /mnt/scanner\n    scannerEnabled: false\n",
+                "tafeladmin:\n  environmentLabel: TEST\n  features:\n    scannerFolderEnabled: false\n  storage:\n    scannerPath: /mnt/scanner\n",
             )
             context.reload()
 
             // Same instance, new values - which is what lets every consumer keep its injected bean.
             assertThat(context.getBean(TafelAdminProperties::class.java)).isSameAs(properties)
-            assertThat(properties.storage.scannerFolderAvailable).isFalse()
+            assertThat(properties.scannerFolderAvailable).isFalse()
             assertThat(properties.storage.scannerPath).isEqualTo("/mnt/scanner")
             assertThat(properties.environmentLabel).isEqualTo("TEST")
             assertThat(listener.events).hasSize(1)
@@ -113,16 +113,19 @@ internal class ConfigFileReloadServiceRebindTest {
     @Test
     fun `a key removed from the file falls back to its default instead of keeping the startup value`() {
         val configFile = tempDir.resolve("config.yml")
-        Files.writeString(configFile, "tafeladmin:\n  storage:\n    scannerPath: /mnt/scanner\n    scannerEnabled: false\n")
+        Files.writeString(
+            configFile,
+            "tafeladmin:\n  features:\n    scannerFolderEnabled: false\n  storage:\n    scannerPath: /mnt/scanner\n",
+        )
 
         start(configFile).use { context ->
             val properties = context.getBean(TafelAdminProperties::class.java)
-            assertThat(properties.storage.scannerEnabled).isFalse()
+            assertThat(properties.features.scannerFolderEnabled).isFalse()
 
             writeAndTouch(configFile, "tafeladmin:\n  storage:\n    scannerPath: /mnt/scanner\n")
             context.reload()
 
-            assertThat(properties.storage.scannerEnabled).isTrue()
+            assertThat(properties.features.scannerFolderEnabled).isTrue()
         }
     }
 

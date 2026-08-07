@@ -23,12 +23,12 @@ internal class ConfigChangePublisherTest {
         storage.scannerPath = "/mnt/scanner"
     }
 
-    private val changedEvent = ConfigurationReloadedEvent(setOf("tafeladmin.storage.scannerEnabled"))
+    private val changedEvent = ConfigurationReloadedEvent(setOf("tafeladmin.features.scannerFolderEnabled"))
 
     @Test
     fun `publishes the frontend's view of the reloaded configuration`() {
         val publisher = ConfigChangePublisher(properties, sseOutboxService)
-        properties.storage.scannerEnabled = false
+        properties.features.scannerFolderEnabled = false
 
         publisher.onConfigurationReloaded(changedEvent)
 
@@ -58,10 +58,10 @@ internal class ConfigChangePublisherTest {
     fun `publishes again only when the frontend's view changes again`() {
         val publisher = ConfigChangePublisher(properties, sseOutboxService)
 
-        properties.storage.scannerEnabled = false
+        properties.features.scannerFolderEnabled = false
         publisher.onConfigurationReloaded(changedEvent)
         publisher.onConfigurationReloaded(changedEvent)
-        properties.storage.scannerEnabled = true
+        properties.features.scannerFolderEnabled = true
         publisher.onConfigurationReloaded(changedEvent)
 
         verifySequence {

@@ -52,7 +52,7 @@ export interface AppConfig {
   buildTime: string;
   /**
    * Whether this environment has the scanner folder configured and switched on
-   * (`tafeladmin.storage.scannerPath` / `scannerEnabled`). False means the "Scanner" document
+   * (`tafeladmin.storage.scannerPath` / `tafeladmin.features.scannerFolderEnabled`). False means the "Scanner" document
    * source must not be offered - it could never list anything.
    */
   scannerFolderEnabled: boolean;

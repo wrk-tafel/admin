@@ -66,8 +66,8 @@ the former from the git tag computed in `.github/workflows/release.yml`, the lat
 computed at the moment the image is built in `.github/workflows/subflow_docker_image.yml` (see
 `_build/Dockerfile`). They are displayed at the bottom of the sidebar in `DefaultLayoutComponent`.
 
-`scannerFolderEnabled` mirrors `TafelAdminStorageProperties.scannerFolderAvailable`
-(`tafeladmin.storage.scannerPath` plus the `tafeladmin.storage.scannerEnabled` kill switch) — the
+`scannerFolderEnabled` mirrors `TafelAdminProperties.scannerFolderAvailable`
+(`tafeladmin.storage.scannerPath` plus the `tafeladmin.features.scannerFolderEnabled` kill switch) — the
 same rule `household`'s `ScannerFileService` enforces server-side, so the UI can't offer a document
 source the backend would refuse to serve.
 

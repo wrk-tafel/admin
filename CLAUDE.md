@@ -487,7 +487,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 - **Scanner Integration**: Supports handheld scanners for customer check-in via QR codes.
 - **Scanner Folder**: Optional per deployment — a NAS share a physical document scanner writes to,
   offered as a second document source on a customer's documents tab. Switched on by
-  `tafeladmin.storage.scannerPath` plus the `tafeladmin.storage.scannerEnabled` kill switch;
+  `tafeladmin.storage.scannerPath` plus the `tafeladmin.features.scannerFolderEnabled` kill switch;
   `TafelAdminStorageProperties.scannerFolderAvailable` is the single rule both sides go by, enforced
   server-side by `ScannerFileService` and reported to the frontend as `/api/config`'s
   `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve. Both
@@ -508,7 +508,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     A value that has already been baked into another bean keeps what it was built with and still
     needs a restart — that's why `spring.datasource.url`, the Tomcat connector settings, the
     security filter chain and `tafeladmin.push.vapid*` don't change on a reload, while
-    `tafeladmin.storage.scannerEnabled` does.
+    `tafeladmin.features.scannerFolderEnabled` does.
   - `@Value` is **not** refreshed — it is resolved once when the bean is constructed. The two places
     that use it (`SseOutboxListenerService`'s `spring.datasource.*`, `FlywayConfig`'s
     `tafeladmin.testdata.enabled`) are startup-only concerns and correct as they are, but don't
