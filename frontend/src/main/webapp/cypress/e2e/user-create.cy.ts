@@ -94,6 +94,30 @@ describe('User Create', () => {
     });
   });
 
+  it('password is required', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      cy.byTestId('usernameInput').type('test-username-' + userRandomId);
+      cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
+      cy.byTestId('lastnameInput').type('test-lastname');
+      cy.byTestId('firstnameInput').type('test-firstname');
+
+      // leaving the password fields empty blocks saving and shows the validation message
+      cy.byTestId('passwordInput').click();
+      cy.byTestId('passwordRepeatInput').click().blur();
+
+      cy.contains('mat-error', 'Pflichtfeld').should('be.visible');
+      cy.byTestId('save-button').should('be.disabled');
+
+      // filling the password enables saving again
+      cy.byTestId('generate-password-button').click();
+      cy.byTestId('save-button').should('be.enabled').click();
+
+      cy.url().should('contain', '/benutzer/detail');
+    });
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);
