@@ -63,7 +63,7 @@ class IndexHtmlControllerTest {
     }
 
     @Test
-    fun `title and apple-mobile-web-app-title are branded with the configured environment label`() {
+    fun `title gets the full branding and apple-mobile-web-app-title the short one`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
             "<html><head><base href=\"/\"><title>Tafel Admin</title>" +
                 "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin\"></head><body></body></html>",
@@ -77,7 +77,7 @@ class IndexHtmlControllerTest {
 
         assertThat(response.body).isEqualTo(
             "<html><head><base href=\"/\"><title>Tafel Admin (DEV)</title>" +
-                "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin (DEV)\"></head><body></body></html>",
+                "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel DEV\"></head><body></body></html>",
         )
     }
 
@@ -214,7 +214,7 @@ class IndexHtmlControllerTest {
     }
 
     @Test
-    fun `manifest name and short_name are branded with the configured environment label`() {
+    fun `manifest name gets the full branding and short_name the home-screen-sized one`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/manifest.webmanifest") }) } returns indexHtmlResource(
             "{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\",\n  \"description\": \"Tafel Admin\"\n}",
         )
@@ -227,8 +227,32 @@ class IndexHtmlControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(
-            "{\n  \"name\": \"Tafel Admin (TEST)\",\n  \"short_name\": \"Tafel Admin (TEST)\",\n  \"description\": \"Tafel Admin\"\n}",
+            "{\n  \"name\": \"Tafel Admin (TEST)\",\n  \"short_name\": \"Tafel TEST\",\n  \"description\": \"Tafel Admin\"\n}",
         )
+    }
+
+    /**
+     * The whole point of the short form is that a home-screen label truncates at around twelve
+     * characters, so the labels actually in use have to be checked against that budget rather than
+     * just against "is it shorter than the long form".
+     */
+    @Test
+    fun `short_name stays within a home-screen label's budget for every environment`() {
+        listOf("" to "Tafel Admin", "DEV" to "Tafel DEV", "TEST" to "Tafel TEST", "LOCAL" to "Tafel LOCAL")
+            .forEach { (label, expected) ->
+                every {
+                    resourceLoader.getResource(match { it.endsWith("/static/manifest.webmanifest") })
+                } returns indexHtmlResource("{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}")
+                val controller = IndexHtmlController(
+                    tafelAdminProperties = TafelAdminProperties(environmentLabel = label),
+                    resourceLoader = resourceLoader,
+                )
+
+                val response = controller.manifest()
+
+                assertThat(response.body).contains("\"short_name\": \"$expected\"")
+                assertThat(expected.length).isLessThanOrEqualTo(12)
+            }
     }
 
     @Test

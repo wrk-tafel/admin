@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -144,6 +145,37 @@ internal class PushBroadcastServiceTest {
 
         assertThat(result).isEqualTo(PushSendResult.EXPIRED)
         verify { pushSubscriptionRepository.delete(subscription) }
+    }
+
+    /**
+     * Every other test here mocks the mapper away, which leaves the one thing the browser actually
+     * reads - the payload's shape - unasserted. The icon paths in particular are only ever resolved
+     * at display time on the device, so a wrong or missing one shows up as a notification without
+     * any Tafel branding rather than as any kind of error. The literal paths are pinned here on
+     * purpose: the files themselves live in the frontend
+     * (`frontend/src/main/webapp/public/icons/`), so nothing but this assertion connects the two
+     * sides.
+     */
+    @Test
+    fun `payload carries title, body and both notification icons`() {
+        val realMapper = JsonMapper.builder().build()
+        val serviceWithRealMapper = PushBroadcastService(
+            pushSubscriptionRepository,
+            pushPreferencesService,
+            webPushSenderService,
+            realMapper,
+        )
+        val subscription = subscriptionOf(id = 10, userId = 100)
+        val payload = slot<String>()
+        every { webPushSenderService.send(subscription, capture(payload)) } returns PushSendResult.SENT
+
+        serviceWithRealMapper.sendTo(subscription, "Ausgabe beendet", "Die Ausgabe wurde soeben beendet.")
+
+        val notification = realMapper.readTree(payload.captured)["notification"]
+        assertThat(notification["title"].asString()).isEqualTo("Ausgabe beendet")
+        assertThat(notification["body"].asString()).isEqualTo("Die Ausgabe wurde soeben beendet.")
+        assertThat(notification["icon"].asString()).isEqualTo("/icons/icon-192x192.png")
+        assertThat(notification["badge"].asString()).isEqualTo("/icons/badge-96x96.png")
     }
 
     @Test

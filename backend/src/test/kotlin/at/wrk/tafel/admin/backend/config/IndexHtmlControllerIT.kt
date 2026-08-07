@@ -157,7 +157,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
         assertThat(response.headers().firstValue("Content-Type").orElse(null)).startsWith("application/manifest+json")
         assertThat(response.body()).isEqualTo(
-            "{\n  \"name\": \"Tafel Admin (DEV)\",\n  \"short_name\": \"Tafel Admin (DEV)\"\n}",
+            "{\n  \"name\": \"Tafel Admin (DEV)\",\n  \"short_name\": \"Tafel DEV\"\n}",
         )
     }
 
