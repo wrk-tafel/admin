@@ -109,8 +109,10 @@ the data the team fills in at departure. The odometer readings deliberately do
 
 `kmStart`/`kmEnd` sit on the *items* tab, not with the base data: they're read off
 the car when it's back with the goods, at the same moment the amounts are counted.
-The component renders once in the tab container, above whichever item layout is
-active, so both layouts share it.
+The component renders once in the tab container, but its **position depends on the
+layout**: above the desktop grid, which is filled in one go once the car is back,
+and *below* the responsive wizard, where the co-driver counts shop by shop while
+still on the road and only knows the mileage at the very end.
 
 - Both values are **optional**, but only as a pair — a form-level cross-field
   validator (`createKmValidation()`) rejects one-without-the-other
@@ -149,8 +151,9 @@ freshly saved data with its own stale form state.
 
 ### Section panels
 
-Both item layouts render two titled, colour-coded panels — **Warenmenge** (sky) and **Retourware**
-(amber) — so the two kinds of counting can't be confused at a glance. The km fields above them get
+Both item layouts render two titled, colour-coded panels — **Warenmenge** (green, matching the
+valid-row highlight inside its table) and **Retourware** (amber) — so the two kinds of counting
+can't be confused at a glance. The km fields above them get
 a plain heading and deliberately no panel: they belong to the route, not to a shop's counts.
 
 ### Retourware (both layouts)

@@ -1,8 +1,8 @@
 @if (formReady()) {
   <form [formGroup]="form" autocomplete="off">
-    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4" testid="items-section">
-      <h6 class="font-bold text-sky-900 mb-2">Warenmenge</h6>
-      <table class="min-w-full divide-y divide-sky-200" testid="items-table">
+    <div class="mt-6 rounded-lg border border-green-200 bg-green-50 p-4" testid="items-section">
+      <h6 class="font-bold text-green-900 mb-2">Warenmenge</h6>
+      <table class="min-w-full divide-y divide-green-200" testid="items-table">
         <thead>
         <tr>
           <th scope="col"></th>
@@ -19,7 +19,7 @@
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex">
-                    <mat-form-field subscriptSizing="dynamic" style="min-width: 3.6em; max-width: 5em;">
+                    <mat-form-field subscriptSizing="dynamic" class="w-full">
                       <input matInput type="number" min="0"
                              [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
                              formControlName="amount">
@@ -55,7 +55,7 @@
               <ng-container formArrayName="shops">
                 @for (shop of getReturnCategoryShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex">
-                    <mat-form-field subscriptSizing="dynamic" style="min-width: 3.6em; max-width: 5em;">
+                    <mat-form-field subscriptSizing="dynamic" class="w-full">
                       <input matInput type="number" min="0"
                              [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
                              formControlName="amount">
@@ -103,7 +103,7 @@
                 <mat-error>Mindestens 1</mat-error>
               }
             </mat-form-field>
-            <button type="button" matButton="filled" class="button-danger mt-2"
+            <button type="button" matButton="filled" class="button-danger"
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
                     (click)="removeReturnItem(returnItemIndex)">
               <fa-icon [icon]="faRemove"></fa-icon>

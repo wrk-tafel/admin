@@ -43,9 +43,12 @@
           <ng-template mat-tab-label>
             <span testid="select-items-tab">Waren</span>
           </ng-template>
-          <tafel-food-collection-recording-km [selectedRouteData]="selectedRouteData()">
-          </tafel-food-collection-recording-km>
+          <!-- Desktop is filled in one go once the car is back, so the mileage reads first. On the
+               phone the amounts are counted shop by shop while still on the road and the mileage is
+               only known at the very end, so it moves below them. -->
           @if (isDesktopLayout()) {
+            <tafel-food-collection-recording-km [selectedRouteData]="selectedRouteData()">
+            </tafel-food-collection-recording-km>
             <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
                                                            [foodReturnCategories]="foodReturnCategories()"
                                                            [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
@@ -53,6 +56,8 @@
             <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
                                                               [foodReturnCategories]="foodReturnCategories()"
                                                               [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
+            <tafel-food-collection-recording-km [selectedRouteData]="selectedRouteData()">
+            </tafel-food-collection-recording-km>
           }
         </mat-tab>
       </mat-tab-group>

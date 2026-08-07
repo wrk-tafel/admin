@@ -1,6 +1,6 @@
 <form [formGroup]="form" autocomplete="off">
   <h6 class="font-bold pt-4">Kilometerstand</h6>
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-2">
+  <div class="grid grid-cols-1 gap-5 md:grid-cols-12 md:gap-6 mt-2">
     <div class="md:col-span-3">
       <mat-form-field class="w-full">
         <mat-label>KM Start</mat-label>
@@ -16,7 +16,7 @@
         }
       </mat-form-field>
     </div>
-    <div class="md:col-span-3 mt-4 md:mt-0">
+    <div class="md:col-span-3">
       <mat-form-field class="w-full">
         <mat-label>KM Ende</mat-label>
         <input matInput testid="kmEndInput" type="number" formControlName="kmEnd">

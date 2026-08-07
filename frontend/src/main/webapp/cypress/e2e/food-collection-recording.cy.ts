@@ -22,6 +22,8 @@ describe('Food Collection Recording', () => {
       selectExistingCoDriver();
 
       cy.byTestId('select-items-tab').click();
+      // filled in one go once the car is back, so the mileage reads before the amounts
+      assertKmIsBefore('items-section');
       enterKmData();
       fillCategories();
       fillReturnCategories();
@@ -98,6 +100,9 @@ describe('Food Collection Recording', () => {
       selectExistingCoDriver();
 
       cy.byTestId('select-items-tab').click();
+      // counted shop by shop while still on the road - the mileage is only known at the very end,
+      // so on the phone it sits below the goods rather than above them
+      assertKmIsAfter('return-items-section');
       enterKmData();
 
       // The offline queue coalesces rapid same-field changes into fewer requests than one per
@@ -262,6 +267,28 @@ describe('Food Collection Recording', () => {
   function enterKmData() {
     cy.byTestId('kmStartInput').clear().type('1000');
     cy.byTestId('kmEndInput').clear().type('2000');
+  }
+
+  // The mileage swaps position between the two layouts, so assert on real DOM order rather than
+  // on the CSS classes that happen to produce it.
+  function assertKmIsBefore(sectionTestId: string) {
+    cy.byTestId(sectionTestId).then(($section) => {
+      cy.byTestId('kmStartInput').then(($km) => {
+        // eslint-disable-next-line no-bitwise
+        const kmComesAfterSection = $section[0].compareDocumentPosition($km[0]) & Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(kmComesAfterSection, 'km input renders after ' + sectionTestId).to.equal(0);
+      });
+    });
+  }
+
+  function assertKmIsAfter(sectionTestId: string) {
+    cy.byTestId(sectionTestId).then(($section) => {
+      cy.byTestId('kmStartInput').then(($km) => {
+        // eslint-disable-next-line no-bitwise
+        const kmComesAfterSection = $section[0].compareDocumentPosition($km[0]) & Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(kmComesAfterSection, 'km input renders after ' + sectionTestId).to.be.greaterThan(0);
+      });
+    });
   }
 
   function saveAndConfirmKmDiff() {

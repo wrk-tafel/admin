@@ -29,8 +29,8 @@
         </button>
       </div>
     </div>
-    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4" testid="items-section">
-      <h6 class="font-bold text-sky-900 text-center mb-4">Warenmenge</h6>
+    <div class="mt-6 rounded-lg border border-green-200 bg-green-50 p-4" testid="items-section">
+      <h6 class="font-bold text-green-900 text-center mb-4">Warenmenge</h6>
       @for (category of foodCategories(); track category?.id) {
         <div class="flex flex-col">
           <div class="text-center">{{ category.name }}</div>
@@ -83,7 +83,7 @@
                 <mat-error>Mindestens 1</mat-error>
               }
             </mat-form-field>
-            <button type="button" matButton="filled" class="button-danger mt-2"
+            <button type="button" matButton="filled" class="button-danger"
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
                     (click)="removeReturnItem(returnItemIndex)">
               <fa-icon [icon]="faRemove"></fa-icon>
