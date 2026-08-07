@@ -16,8 +16,8 @@ internal class ScannerFileServiceTest {
     @TempDir
     private lateinit var tempDir: Path
 
-    private fun serviceWithScannerPath(path: String?) = ScannerFileService(
-        TafelAdminProperties(storage = TafelAdminStorageProperties(scannerPath = path)),
+    private fun serviceWithScannerPath(path: String?, enabled: Boolean = true) = ScannerFileService(
+        TafelAdminProperties(storage = TafelAdminStorageProperties(scannerPath = path, scannerEnabled = enabled)),
     )
 
     @Test
@@ -25,6 +25,49 @@ internal class ScannerFileServiceTest {
         val service = serviceWithScannerPath(null)
 
         assertThat(service.listFiles()).isEmpty()
+    }
+
+    @Test
+    fun `isEnabled is true only when a scanner path is configured and the feature is switched on`() {
+        assertThat(serviceWithScannerPath(tempDir.toString()).isEnabled()).isTrue()
+        assertThat(serviceWithScannerPath(tempDir.toString(), enabled = false).isEnabled()).isFalse()
+        assertThat(serviceWithScannerPath(null).isEnabled()).isFalse()
+        assertThat(serviceWithScannerPath(" ").isEnabled()).isFalse()
+    }
+
+    /**
+     * A missing share must not read as "feature removed" - it stays enabled so the picker keeps
+     * showing, just with nothing in it (see `ScannerFileService.isEnabled`).
+     */
+    @Test
+    fun `isEnabled stays true when the configured directory doesn't exist`() {
+        assertThat(serviceWithScannerPath(tempDir.resolve("does-not-exist").toString()).isEnabled()).isTrue()
+    }
+
+    @Test
+    fun `listFiles returns empty list when the feature is switched off despite a configured path`() {
+        Files.writeString(tempDir.resolve("scan1.pdf"), "content1")
+        val service = serviceWithScannerPath(tempDir.toString(), enabled = false)
+
+        assertThat(service.listFiles()).isEmpty()
+    }
+
+    @Test
+    fun `read is rejected when the feature is switched off despite a configured path`() {
+        Files.writeString(tempDir.resolve("scan1.pdf"), "content1")
+        val service = serviceWithScannerPath(tempDir.toString(), enabled = false)
+
+        assertThrows<NotFoundException> { service.read("scan1.pdf") }
+    }
+
+    @Test
+    fun `delete is rejected when the feature is switched off despite a configured path`() {
+        val file = tempDir.resolve("scan1.pdf")
+        Files.writeString(file, "content1")
+        val service = serviceWithScannerPath(tempDir.toString(), enabled = false)
+
+        assertThrows<NotFoundException> { service.delete("scan1.pdf") }
+        assertThat(Files.exists(file)).isTrue()
     }
 
     @Test

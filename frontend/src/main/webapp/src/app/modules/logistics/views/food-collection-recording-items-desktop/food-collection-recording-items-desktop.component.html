@@ -14,7 +14,7 @@
         <tr>
           <th scope="col" class="w-40 pr-4"></th>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" class="px-1" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
+            <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }
         </tr>
         </thead>
@@ -51,7 +51,7 @@
         <tr>
           <th scope="col" class="w-40 pr-4"></th>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" class="px-1" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
+            <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }
         </tr>
         </thead>
@@ -101,7 +101,7 @@
                 <mat-error>Beschreibung bereits erfasst</mat-error>
               }
             </mat-form-field>
-            <mat-form-field subscriptSizing="dynamic" style="min-width: 5em; max-width: 7em;">
+            <mat-form-field subscriptSizing="dynamic" class="min-w-[5em] max-w-[7em]">
               <mat-label>Menge</mat-label>
               <input matInput type="number" min="1"
                      [attr.testid]="'return-item-' + returnItemIndex + '-amount-input'"

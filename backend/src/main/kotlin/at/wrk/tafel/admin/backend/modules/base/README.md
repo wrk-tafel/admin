@@ -3,7 +3,7 @@
 `base` holds the small, shared concerns that *other backend modules* consume: countries, employees,
 and generic exception handling. That consumer test is what defines the module's scope — a small
 concern with no backend consumer is not a `base` slice but its own top-level module (see
-[`modules/version`](../version/README.md), whose only consumer is the frontend over HTTP).
+[`modules/config`](../config/README.md), whose only consumer is the frontend over HTTP).
 
 Unlike every other feature module, **there is no `modules/base/package-info.java`** — the `base`
 package itself is not a Spring Modulith `@ApplicationModule`. Instead, each subpackage (`country`,

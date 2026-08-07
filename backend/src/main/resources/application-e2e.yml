@@ -1,4 +1,7 @@
 tafeladmin:
+  # Set so the login page's environment badge has something to show - it's the one screen that
+  # reads config before logging in, and only a real run proves that endpoint is reachable anonymously.
+  environmentLabel: E2E
   testdata:
     enabled: true
   storage:

@@ -23,8 +23,15 @@ class DocumentScannerWatcherService(
     @Volatile
     private var lastKnownListing: List<ScannerFileItem> = emptyList()
 
+    /**
+     * Skipped entirely while the feature is switched off (see `ScannerFileService.isEnabled`), so a
+     * deployment without a scanner folder doesn't run a once-per-second no-op forever.
+     */
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     fun pollForChanges() {
+        if (!scannerFileService.isEnabled()) {
+            return
+        }
         publishIfChanged()
     }
 

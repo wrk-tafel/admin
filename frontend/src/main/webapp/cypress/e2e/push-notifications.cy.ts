@@ -79,6 +79,11 @@ describe('PushNotifications', () => {
 
       cy.visit('/benachrichtigungen');
 
+      // Sending a test notification is harmless, so it must not be dressed up as a destructive
+      // action the way the neighbouring remove button is - it stays the plain theme-blue button.
+      cy.byTestId('push-device-test').should('not.have.class', 'button-danger');
+      cy.byTestId('push-device-remove').should('have.class', 'button-danger');
+
       cy.byTestId('push-device-test').click();
       cy.get('.toast-message').should('be.visible').and('contain.text', 'nicht konfiguriert');
 

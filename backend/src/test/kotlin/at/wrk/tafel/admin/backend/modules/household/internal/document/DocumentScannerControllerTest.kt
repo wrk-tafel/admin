@@ -29,6 +29,18 @@ internal class DocumentScannerControllerTest {
         assertThat(response.items).isEqualTo(files)
     }
 
+    /**
+     * Whether the feature is available at all is answered by `ConfigController`, not here - this
+     * endpoint just returns whatever the service lists, which is nothing while it's switched off
+     * (see `ScannerFileServiceTest`).
+     */
+    @Test
+    fun `get scanner files returns an empty list while the feature is switched off`() {
+        every { scannerFileService.listFiles() } returns emptyList()
+
+        assertThat(controller.getScannerFiles().items).isEmpty()
+    }
+
     @Test
     fun `get scanner file content`() {
         every { scannerFileService.read("scan1.png") } returns "bytes".toByteArray()

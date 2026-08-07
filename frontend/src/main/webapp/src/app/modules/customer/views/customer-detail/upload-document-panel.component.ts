@@ -11,6 +11,7 @@ import {faEye} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {DocumentType, documentTypeLabel} from '../../../../api/customer-document-api.service';
 import {DocumentScannerApiService, ScannerFileItem} from '../../../../api/document-scanner-api.service';
+import {ConfigApiService} from '../../../../api/config-api.service';
 
 export type UploadDocumentPanelResult =
   | { mode: 'upload'; documentType: DocumentType; file: File }
@@ -27,6 +28,7 @@ type DocumentSource = 'upload' | 'scanner';
 })
 export class UploadDocumentPanelComponent {
   private readonly documentScannerApiService = inject(DocumentScannerApiService);
+  private readonly configApiService = inject(ConfigApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly upload = output<UploadDocumentPanelResult>();
@@ -40,6 +42,13 @@ export class UploadDocumentPanelComponent {
   isDragOver = signal(false);
   scannerFiles = signal<ScannerFileItem[]>([]);
   selectedScannerFileName = signal<string | null>(null);
+  /**
+   * Starts out false so the "Scanner" source is only ever offered once the backend has confirmed
+   * this deployment actually has a scanner folder - showing it first and retracting it would let a
+   * quick click land on a source that doesn't exist here. A config request that fails leaves it
+   * false too, which just falls back to the always-available file upload.
+   */
+  scannerEnabled = signal(false);
 
   private scannerSubscription: Subscription | undefined;
 
@@ -49,6 +58,10 @@ export class UploadDocumentPanelComponent {
 
   constructor() {
     this.destroyRef.onDestroy(() => this.scannerSubscription?.unsubscribe());
+    // Answers "does this deployment have a scanner folder?" before the source toggle is drawn. The
+    // file listing and its SSE stream stay lazy - both are only worth fetching once the user
+    // actually switches to the scanner source.
+    this.configApiService.getConfig().subscribe((config) => this.scannerEnabled.set(config?.scannerFolderEnabled ?? false));
   }
 
   selectSource(source: DocumentSource) {

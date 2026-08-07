@@ -59,9 +59,8 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
             <html>
                 <head>
                     <base href="/">
-                    <meta name="tafel-environment-label" content="">
                 </head>
-                <body>test</body>
+                <body><div class="tafel-app-loading-environment-label"></div></body>
             </html>
             """.trimIndent(),
         )
@@ -88,9 +87,8 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
             <html>
                 <head>
                     <base href="/tafel-admin/">
-                    <meta name="tafel-environment-label" content="DEV">
                 </head>
-                <body>test</body>
+                <body><div class="tafel-app-loading-environment-label">DEV</div></body>
             </html>
             """.trimIndent(),
         )
@@ -113,11 +111,11 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `the spa fallback also carries the real configured environment label meta tag`() {
+    fun `the spa fallback also carries the real configured environment label in its loading screen`() {
         val response = get("/login")
 
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
-        assertThat(response.body()).contains("""<meta name="tafel-environment-label" content="DEV">""")
+        assertThat(response.body()).contains("""<div class="tafel-app-loading-environment-label">DEV</div>""")
     }
 
     @Test

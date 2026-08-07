@@ -46,6 +46,9 @@ tafeladmin:
     documentsPath: documents
     # Drop a file here manually to test the "scanner folder" document picker locally.
     scannerPath: scanner-inbox
+    # Set to false to switch the scanner folder off without unsetting scannerPath - the "Scanner"
+    # document source then disappears from the UI and the folder is no longer polled.
+    scannerEnabled: true
   push:
     # Set a VAPID keypair here to test push notifications locally - see
     # TafelAdminPushProperties.vapidPublicKey/vapidPrivateKey for the exact openssl commands to

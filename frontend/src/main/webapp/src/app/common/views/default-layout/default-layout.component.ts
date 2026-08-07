@@ -12,7 +12,7 @@ import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
-import {VersionApiService} from '../../../api/version-api.service';
+import {ConfigApiService} from '../../../api/config-api.service';
 
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
@@ -38,10 +38,10 @@ export class DefaultLayoutComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly breakpointObserver = inject(BreakpointObserver);
-  private readonly versionApiService = inject(VersionApiService);
+  private readonly configApiService = inject(ConfigApiService);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
-  readonly versionInfo = toSignal(this.versionApiService.getVersion(), {initialValue: null});
+  readonly appConfig = toSignal(this.configApiService.getConfig(), {initialValue: null});
 
   readonly collapsed = signal(false);
   readonly expandedItems = signal<Set<string>>(new Set());

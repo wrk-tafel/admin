@@ -29,9 +29,10 @@ import java.nio.charset.StandardCharsets
  * the static "Tafel Admin" title/manifest name would otherwise be indistinguishable between them -
  * this also rewrites the page title/apple-mobile-web-app-title and (via [manifest]) the PWA
  * manifest's name/short_name to include tafeladmin.environmentLabel, so each environment installs
- * as a clearly separate home-screen app (see #3027). The same value is also written into a
- * "tafel-environment-label" meta tag so the Angular app can read it client-side (e.g. the login
- * page badge, see #3032) without needing an authenticated API call.
+ * as a clearly separate home-screen app (see #3027). The same value also goes into the loading
+ * screen inside <app-root>, which is plain html shown before any Angular code has run - it can only
+ * carry the label if the label is already in the markup by the time it's served. (Once the app is
+ * up, the login page reads the label from `/api/config/public` instead.)
  *
  * Two brandings are produced, not one, because the places they land have very different room:
  * [brandedTitle] ("Tafel Admin (DEV)") goes where a full sentence fits - the browser tab and the
@@ -100,8 +101,8 @@ class IndexHtmlController(
                 "<meta name=\"apple-mobile-web-app-title\" content=\"$brandedShortTitle\">",
             )
             .replace(
-                "<meta name=\"tafel-environment-label\" content=\"\">",
-                "<meta name=\"tafel-environment-label\" content=\"${tafelAdminProperties.environmentLabel.trim()}\">",
+                "<div class=\"tafel-app-loading-environment-label\"></div>",
+                "<div class=\"tafel-app-loading-environment-label\">${tafelAdminProperties.environmentLabel.trim()}</div>",
             )
 
         return ResponseEntity.ok()

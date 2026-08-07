@@ -124,13 +124,17 @@ The backend uses **Spring Modulith** architecture with 10 core feature modules (
 - **support**: In-app support contact form that files a GitHub issue on the user's behalf
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
-- **version**: `GET /api/version` — the running release version and image build time, read only by
-  the frontend
+- **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
+  itself: the running release version, the image build time, and the flags for optional features
+  this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
+  Deployment-fixed configuration only — anything a user can change at runtime belongs in `settings`.
+  `GET /api/config/public` serves the environment label on its own to anonymous callers, for the
+  login page
 - **base**: Shared utilities (countries, employees, exception handling). Its entities live in
   `database/model/base/`, but each utility is also its own `@NamedInterface` submodule under
   `modules/base/{country,employee,exception}/` for other modules to depend on. `base` is only for
   concerns another *backend* module consumes through a named interface — something with no backend
-  consumer belongs in its own top-level module (that's why `version` is one)
+  consumer belongs in its own top-level module (that's why `config` is one)
 
 **Layering Pattern:**
 - Controllers: REST endpoints with `@PreAuthorize` method-level security
@@ -462,6 +466,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/shelters`: Shelter management
 - `/api/settings`: Application settings
 - `/api/support`: Creates a GitHub issue from an in-app support request
+- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags. `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
 
@@ -479,6 +484,12 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.
 - **Ticket System**: Customers receive ticket numbers during distributions for organized food collection.
 - **Scanner Integration**: Supports handheld scanners for customer check-in via QR codes.
+- **Scanner Folder**: Optional per deployment — a NAS share a physical document scanner writes to,
+  offered as a second document source on a customer's documents tab. Switched on by
+  `tafeladmin.storage.scannerPath` plus the `tafeladmin.storage.scannerEnabled` kill switch;
+  `TafelAdminStorageProperties.scannerFolderAvailable` is the single rule both sides go by, enforced
+  server-side by `ScannerFileService` and reported to the frontend as `/api/config`'s
+  `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve.
 - **Real-time Updates**: Dashboard and ticket screen use SSE for live updates without polling.
 
 ## Profiles and Configuration

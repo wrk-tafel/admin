@@ -15,8 +15,10 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('not.exist');
   });
 
-  it('environmentLabel hidden when no environment label is configured', () => {
-    cy.byTestId('environmentLabel').should('not.exist');
+  // Read from /api/config/public, the only endpoint reachable without a session - a unit spec with a
+  // mocked service can't tell whether that request is actually let through unauthenticated.
+  it('environmentLabel shows the environment this deployment is', () => {
+    cy.byTestId('environmentLabel').should('be.visible').and('contain.text', 'E2E');
   });
 
   it('visiting the app root while not logged in redirects to a plain login without an error message', () => {

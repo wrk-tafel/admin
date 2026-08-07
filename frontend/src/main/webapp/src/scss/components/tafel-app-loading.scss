@@ -1,0 +1,35 @@
+// The loading screen inside <app-root> in index.html, shown until Angular has bootstrapped and
+// replaced it. It continues the PWA splash screen an installed app starts with (the manifest's
+// background_color plus its icon), so both are white with the same icon centered - a differently
+// coloured backdrop here would make the icon's white tile pop out of the background mid-launch.
+//
+// Its classes live here rather than as utility classes on the elements themselves: Tailwind scans
+// the app's templates for class names, not index.html, so a utility class used only there produces
+// no css at all.
+@layer components {
+  .tafel-app-loading {
+    @apply flex min-h-dvh flex-col items-center justify-center bg-white text-center;
+  }
+
+  .tafel-app-loading-logo {
+    @apply mb-4 h-24 w-24 object-contain;
+  }
+
+  .tafel-app-loading-title {
+    @apply text-xl font-semibold text-slate-800;
+  }
+
+  // Empty unless the deployment has an environment label (see IndexHtmlController), and hidden in
+  // that case so production doesn't show a stray gap below the title.
+  .tafel-app-loading-environment-label {
+    @apply mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500;
+
+    &:empty {
+      @apply hidden;
+    }
+  }
+
+  .tafel-app-loading-hint {
+    @apply mt-6 text-sm text-slate-500;
+  }
+}
