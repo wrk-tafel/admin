@@ -23,6 +23,10 @@ import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import com.github.romankh3.image.comparison.model.Rectangle
@@ -41,6 +45,7 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -248,6 +253,36 @@ internal class DistributionServiceTest {
                     assertThat(it.startedByUser).isEqualTo(testUserEntity)
                 },
             )
+        }
+    }
+
+    @Test
+    fun `create new distribution logs the start under the correct logger`() {
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        distributionEntity.id = 123
+        every { distributionRepository.save(any()) } returns distributionEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
+
+        val logger = LoggerFactory.getLogger(DistributionService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+
+        try {
+            service.createNewDistribution()
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Started distribution").contains("123")
+            }
+        } finally {
+            logger.detachAppender(logAppender)
         }
     }
 

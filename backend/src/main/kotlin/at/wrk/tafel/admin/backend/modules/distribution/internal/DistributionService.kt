@@ -19,7 +19,6 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.Distributi
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
-import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenTicketResponse
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -51,7 +50,7 @@ class DistributionService(
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
+        private val logger = LoggerFactory.getLogger(DistributionService::class.java)
     }
 
     fun getDistributions(): List<DistributionEntity> = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
@@ -82,6 +81,7 @@ class DistributionService(
             newDistribution.statistic = statisticEntity
 
             result = distributionRepository.save(newDistribution)
+            logger.info("Started distribution: ID ${result?.id} (started by: ${startedByUser.username}, at: ${newDistribution.startedAt})")
         }
 
         if (!acquired) {
