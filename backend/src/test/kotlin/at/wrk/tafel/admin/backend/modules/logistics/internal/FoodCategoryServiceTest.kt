@@ -46,10 +46,16 @@ class FoodCategoryServiceTest {
         assertThat(categories).isEqualTo(
             listOf(
                 FoodCategoryResponse(
+                    id = category2.id,
+                    name = category2.name!!,
+                    weightPerUnit = category2.weightPerUnit,
+                    sortOrder = 0,
+                    enabled = category2.enabled!!,
+                ),
+                FoodCategoryResponse(
                     id = category3.id,
                     name = category3.name!!,
                     weightPerUnit = category3.weightPerUnit,
-                    returnItem = category3.returnItem!!,
                     sortOrder = category3.sortOrder!!,
                     enabled = category3.enabled!!,
                 ),
@@ -57,17 +63,8 @@ class FoodCategoryServiceTest {
                     id = category1.id,
                     name = category1.name!!,
                     weightPerUnit = category1.weightPerUnit,
-                    returnItem = category1.returnItem!!,
                     sortOrder = category1.sortOrder!!,
                     enabled = category1.enabled!!,
-                ),
-                FoodCategoryResponse(
-                    id = category2.id,
-                    name = category2.name!!,
-                    weightPerUnit = category2.weightPerUnit,
-                    returnItem = category2.returnItem!!,
-                    sortOrder = 0,
-                    enabled = category2.enabled!!,
                 ),
             ),
         )
@@ -85,13 +82,12 @@ class FoodCategoryServiceTest {
     }
 
     @Test
-    fun `get all categories excludes return-item categories`() {
-        // testFoodCategory2 is a return-item ("Kisten") fixture
+    fun `get all categories returns every category sorted by sort order`() {
         every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
 
         val categories = service.getAllFoodCategories()
 
-        assertThat(categories.map { it.id }).containsExactly(testFoodCategory1.id)
+        assertThat(categories.map { it.id }).containsExactly(testFoodCategory2.id, testFoodCategory1.id)
     }
 
     @Test
@@ -100,7 +96,6 @@ class FoodCategoryServiceTest {
             id = null,
             name = "New Category",
             weightPerUnit = BigDecimal("15"),
-            returnItem = false,
             sortOrder = 999,
             enabled = true,
         )
@@ -122,7 +117,6 @@ class FoodCategoryServiceTest {
                 id = 42L,
                 name = createInput.name,
                 weightPerUnit = createInput.weightPerUnit,
-                returnItem = createInput.returnItem,
                 sortOrder = 201,
                 enabled = createInput.enabled,
             ),
@@ -137,7 +131,6 @@ class FoodCategoryServiceTest {
             id = null,
             name = "New Category",
             weightPerUnit = BigDecimal("15"),
-            returnItem = false,
             sortOrder = 999,
             enabled = true,
         )
@@ -156,7 +149,7 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `update category`() {
-        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, returnItem = false, enabled = true).apply {
+        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, enabled = true).apply {
             id = 3
             weightPerUnit = BigDecimal("30")
         }
@@ -164,7 +157,6 @@ class FoodCategoryServiceTest {
             id = existingEntity.id,
             name = "Updated Category",
             weightPerUnit = BigDecimal("99"),
-            returnItem = true,
             sortOrder = 5,
             enabled = false,
         )
@@ -179,7 +171,6 @@ class FoodCategoryServiceTest {
                 id = updated.id,
                 name = updated.name,
                 weightPerUnit = updated.weightPerUnit,
-                returnItem = updated.returnItem,
                 sortOrder = updated.sortOrder,
                 enabled = updated.enabled,
             ),
@@ -194,7 +185,6 @@ class FoodCategoryServiceTest {
             id = 99L,
             name = "Updated Category",
             weightPerUnit = BigDecimal("99"),
-            returnItem = true,
             sortOrder = 5,
             enabled = false,
         )
@@ -242,7 +232,6 @@ class FoodCategoryServiceTest {
             id = null,
             name = "New Category",
             weightPerUnit = BigDecimal("15"),
-            returnItem = false,
             sortOrder = 999,
             enabled = true,
         )
@@ -265,7 +254,7 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `update category logs the update`() {
-        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, returnItem = false, enabled = true).apply {
+        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, enabled = true).apply {
             id = 3
             weightPerUnit = BigDecimal("30")
         }
@@ -273,7 +262,6 @@ class FoodCategoryServiceTest {
             id = existingEntity.id,
             name = "Updated Category",
             weightPerUnit = BigDecimal("99"),
-            returnItem = true,
             sortOrder = 5,
             enabled = false,
         )

@@ -10,6 +10,11 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Warenkategorien für die Warenerfassung. Das Gewicht pro Einheit wird für die Hochrechnung der
+      erfassten Warenmenge verwendet.
+    </p>
+
     <div class="hidden md:block">
     <table mat-table [dataSource]="foodCategories()" testid="food-categories-table"
            cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">

@@ -33,7 +33,6 @@ describe('FoodCategoryCreateDialogComponent', () => {
     expect(component.form.value).toMatchObject({
       name: '',
       weightPerUnit: null,
-      returnItem: false,
       sortOrder: 0,
       enabled: true
     });

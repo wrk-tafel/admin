@@ -5,6 +5,11 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Einkommensgrenzen, Zuschläge und Familienbeihilfe-Sätze. Sie sind die Grundlage für die
+      Anspruchsprüfung bei Kunden.
+    </p>
+
     <div class="hidden md:block">
     <table mat-table [dataSource]="staticValues()?.staticValues ?? []" testid="static-values-table">
       <ng-container matColumnDef="type">

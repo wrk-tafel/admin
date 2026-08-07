@@ -3,9 +3,11 @@ package at.wrk.tafel.admin.backend.modules.logistics.model
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
+import jakarta.validation.constraints.Size
 
 @ExcludeFromTestCoverage
 data class FoodCollectionResponse(
@@ -16,6 +18,7 @@ data class FoodCollectionResponse(
     val kmStart: Int?,
     val kmEnd: Int?,
     val items: List<FoodCollectionItem>,
+    val returnItems: List<FoodCollectionReturnItem>,
 )
 
 @ExcludeFromTestCoverage
@@ -26,6 +29,10 @@ data class FoodCollectionSaveRouteRequest(
     val driverId: Long,
     @field:Positive
     val coDriverId: Long,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCollectionSaveKmRequest(
     @field:PositiveOrZero
     val kmStart: Int,
     @field:PositiveOrZero
@@ -42,6 +49,7 @@ data class FoodCollectionItemsRequest(
 @ExcludeFromTestCoverage
 data class FoodCollectionItemsResponse(
     val items: List<FoodCollectionItem>,
+    val returnItems: List<FoodCollectionReturnItem>,
 )
 
 @ExcludeFromTestCoverage
@@ -77,4 +85,36 @@ data class FoodCollectionCategoryAmount(
     val categoryId: Long,
     @field:PositiveOrZero
     val amount: Int,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCollectionReturnItem(
+    @field:Positive
+    val shopId: Long,
+    @field:NotBlank
+    @field:Size(max = 100)
+    val description: String,
+    @field:PositiveOrZero
+    val amount: Int,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCollectionReturnItemAmount(
+    @field:NotBlank
+    @field:Size(max = 100)
+    val description: String,
+    @field:PositiveOrZero
+    val amount: Int,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCollectionSaveReturnItemsRequest(
+    @field:Valid
+    val returnItems: List<FoodCollectionReturnItem>,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCollectionSaveReturnItemsPerShopRequest(
+    @field:Valid
+    val returnItems: List<FoodCollectionReturnItemAmount>,
 )

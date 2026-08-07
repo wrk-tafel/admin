@@ -70,19 +70,31 @@ val testRoute4 = RouteEntity(number = 4.0, name = "Route 4").apply {
     stops = emptyList()
 }
 
-val testFoodCategory1 = FoodCategoryEntity(name = "Category 1", sortOrder = 200, returnItem = false, enabled = true).apply {
+val testFoodCategory1 = FoodCategoryEntity(name = "Category 1", sortOrder = 200, enabled = true).apply {
     id = 1
     weightPerUnit = BigDecimal.TEN
 }
 
-val testFoodCategory2 = FoodCategoryEntity(name = "Category 2", sortOrder = 0, returnItem = true, enabled = true).apply {
+val testFoodCategory2 = FoodCategoryEntity(name = "Category 2", sortOrder = 0, enabled = true).apply {
     id = 2
     weightPerUnit = BigDecimal("20")
 }
 
-val testFoodCategory3 = FoodCategoryEntity(name = "Category 3", sortOrder = 100, returnItem = false, enabled = true).apply {
+val testFoodCategory3 = FoodCategoryEntity(name = "Category 3", sortOrder = 100, enabled = true).apply {
     id = 3
     weightPerUnit = BigDecimal("30")
+}
+
+val testFoodReturnCategory1 = FoodReturnCategoryEntity(name = "Graue Kisten", sortOrder = 2, enabled = true).apply {
+    id = 11
+}
+
+val testFoodReturnCategory2 = FoodReturnCategoryEntity(name = "Klappkisten schwarz", sortOrder = 1, enabled = true).apply {
+    id = 12
+}
+
+val testFoodReturnCategory3 = FoodReturnCategoryEntity(name = "Ströck Kisten", sortOrder = 3, enabled = false).apply {
+    id = 13
 }
 
 val testCar1 = CarEntity(licensePlate = "W-123", sortOrder = 1, enabled = true).apply {
@@ -104,8 +116,12 @@ val testFoodCollectionRoute1Entity = FoodCollectionEntity(distribution = testDis
     items = listOf(
         FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 0),
         FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop2, amount = 2),
-        FoodCollectionItemEntity(category = testFoodCategory2, shop = testShop1, amount = 0),
-        FoodCollectionItemEntity(category = testFoodCategory2, shop = testShop2, amount = 4),
+        FoodCollectionItemEntity(category = testFoodCategory3, shop = testShop1, amount = 0),
+        FoodCollectionItemEntity(category = testFoodCategory3, shop = testShop2, amount = 4),
+    )
+    returnItems = listOf(
+        FoodCollectionReturnItemEntity(shop = testShop1, description = "Graue Kisten", amount = 3),
+        FoodCollectionReturnItemEntity(shop = testShop2, description = "Bananenkartons", amount = 1),
     )
 }
 
@@ -113,7 +129,10 @@ val testFoodCollectionRoute2Entity = FoodCollectionEntity(distribution = testDis
     kmStart = 100
     kmEnd = 200
     items = listOf(
-        FoodCollectionItemEntity(category = testFoodCategory2, shop = testShop3, amount = 5),
+        FoodCollectionItemEntity(category = testFoodCategory3, shop = testShop3, amount = 5),
+    )
+    returnItems = listOf(
+        FoodCollectionReturnItemEntity(shop = testShop3, description = "Klappkisten schwarz", amount = 2),
     )
 }
 

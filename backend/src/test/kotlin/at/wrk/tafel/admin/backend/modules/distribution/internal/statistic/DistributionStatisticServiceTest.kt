@@ -120,8 +120,8 @@ internal class DistributionStatisticServiceTest {
 
         assertThat(savedStatistic.shopsTotalCount).isEqualTo(3)
         assertThat(savedStatistic.shopsWithFoodCount).isEqualTo(2)
-        assertThat(savedStatistic.foodTotalAmount).isEqualTo(BigDecimal(105))
-        assertThat(savedStatistic.foodPerShopAverage).isEqualTo(BigDecimal("52.50"))
+        assertThat(savedStatistic.foodTotalAmount).isEqualTo(BigDecimal(145))
+        assertThat(savedStatistic.foodPerShopAverage).isEqualTo(BigDecimal("72.50"))
         assertThat(savedStatistic.routesLengthKm).isEqualTo(11211)
     }
 

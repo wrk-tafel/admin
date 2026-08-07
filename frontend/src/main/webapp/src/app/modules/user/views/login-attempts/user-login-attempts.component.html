@@ -5,6 +5,11 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Fehlgeschlagene Anmeldungen. Nach zu vielen Versuchen wird ein Benutzer gesperrt — das Löschen
+      der Einträge hebt die Sperre wieder auf.
+    </p>
+
     @if (loginAttempts()) {
       <mat-paginator class="tafel-paginator-responsive mb-4" [length]="loginAttempts()!.totalCount" [pageSize]="loginAttempts()!.pageSize"
                      [pageSizeOptions]="pageSizeOptions"

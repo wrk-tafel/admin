@@ -1,0 +1,38 @@
+### Get active return categories (LOGISTICS - used by the food collection recording screen)
+GET {{baseApiPath}}/food-return-categories/active
+
+### Get all return categories (SETTINGS - used by the settings screen)
+GET {{baseApiPath}}/food-return-categories
+
+### Create a return category (sortOrder is assigned by the backend, new categories go last)
+POST {{baseApiPath}}/food-return-categories
+Content-Type: application/json
+
+{
+  "name": "Bananenkisten",
+  "sortOrder": 0,
+  "enabled": true
+}
+
+### Update a return category
+PUT {{baseApiPath}}/food-return-categories/11
+Content-Type: application/json
+
+{
+  "id": 11,
+  "name": "Graue Kisten",
+  "sortOrder": 1,
+  "enabled": true
+}
+
+### Reorder return categories (order of the ids becomes the new sortOrder)
+POST {{baseApiPath}}/food-return-categories/reorder
+Content-Type: application/json
+
+{
+  "categoryIds": [
+    12,
+    11,
+    13
+  ]
+}

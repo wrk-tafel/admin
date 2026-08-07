@@ -14,6 +14,7 @@ SELECT setval('shops_seq', 10000, false);
 SELECT setval('routes_seq', 10000, false);
 SELECT setval('routes_stops_seq', 10000, false);
 SELECT setval('food_categories_seq', 10000, false);
+SELECT setval('food_return_categories_seq', 10000, false);
 SELECT setval('cars_seq', 10000, false);
 SELECT setval('food_collections_seq', 10000, false);
 SELECT setval('shelters_seq', 10000, false);
@@ -724,36 +725,36 @@ INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (310, NOW(), NOW(), 3, 31, '13:30:00');
 
 -- food categories
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (1, NOW(), NOW(), 'Backwaren', 9, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (2, NOW(), NOW(), 'Obst / Gemüse', 17, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (3, NOW(), NOW(), 'Milchprodukte', 18, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (4, NOW(), NOW(), 'Getränke', 10, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (5, NOW(), NOW(), 'Fertiggerichte', 8, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (6, NOW(), NOW(), 'Fleisch / Fisch', 20, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (7, NOW(), NOW(), 'Konserven', 25, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (8, NOW(), NOW(), 'Süßwaren', 9, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (9, NOW(), NOW(), 'Tiefkühlprodukte', 20, false, 1000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (10, NOW(), NOW(), 'Sonstiges', 15, false, 1100);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (11, NOW(), NOW(), 'Graue Kisten', null, true, 2000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (12, NOW(), NOW(), 'Klappkisten schwarz', null, true, 2000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (13, NOW(), NOW(), 'Grüne/Graue Klappkisten', null, true, 2000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (14, NOW(), NOW(), 'Ströck Kisten', null, true, 2000);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item, sort_order)
-VALUES (15, NOW(), NOW(), 'Sonstige Kisten', null, true, 2100);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (1, NOW(), NOW(), 'Backwaren', 9, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (2, NOW(), NOW(), 'Obst / Gemüse', 17, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (3, NOW(), NOW(), 'Milchprodukte', 18, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (4, NOW(), NOW(), 'Getränke', 10, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (5, NOW(), NOW(), 'Fertiggerichte', 8, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (6, NOW(), NOW(), 'Fleisch / Fisch', 20, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (7, NOW(), NOW(), 'Konserven', 25, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (8, NOW(), NOW(), 'Süßwaren', 9, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (9, NOW(), NOW(), 'Tiefkühlprodukte', 20, 1000);
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
+VALUES (10, NOW(), NOW(), 'Sonstiges', 15, 1100);
+
+-- return categories (own table - they only label the return boxes, they carry no weight)
+INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order, enabled)
+VALUES (11, NOW(), NOW(), 'Graue Kisten', 1, true);
+INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order, enabled)
+VALUES (12, NOW(), NOW(), 'Klappkisten schwarz', 2, true);
+INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order, enabled)
+VALUES (13, NOW(), NOW(), 'Grüne/Graue Klappkisten', 3, true);
+INSERT INTO food_return_categories (id, created_at, updated_at, name, sort_order, enabled)
+VALUES (14, NOW(), NOW(), 'Ströck Kisten', 4, true);
 
 -- distributions
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)

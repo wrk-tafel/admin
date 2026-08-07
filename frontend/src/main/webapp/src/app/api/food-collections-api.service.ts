@@ -15,6 +15,18 @@ export class FoodCollectionsApiService {
     return this.http.post<void>(`/food-collections/routes/${routeId}`, data);
   }
 
+  saveKm(routeId: number, data: FoodCollectionSaveKmRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/routes/${routeId}/km`, data);
+  }
+
+  saveReturnItems(routeId: number, data: FoodCollectionSaveReturnItemsRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/routes/${routeId}/return-items`, data);
+  }
+
+  saveReturnItemsPerShop(routeId: number, shopId: number, data: FoodCollectionSaveReturnItemsPerShopRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/routes/${routeId}/shops/${shopId}/return-items`, data);
+  }
+
   saveItems(routeId: number, data: FoodCollectionSaveItemsRequest): Observable<void> {
     return this.http.post<void>(`/food-collections/routes/${routeId}/items`, data);
   }
@@ -37,8 +49,30 @@ export interface FoodCollectionSaveRouteDataRequest {
   carId: number;
   driverId: number;
   coDriverId: number;
+}
+
+export interface FoodCollectionSaveKmRequest {
   kmStart: number;
   kmEnd: number;
+}
+
+export interface FoodCollectionSaveReturnItemsRequest {
+  returnItems: FoodCollectionReturnItem[];
+}
+
+export interface FoodCollectionSaveReturnItemsPerShopRequest {
+  returnItems: FoodCollectionReturnItemAmount[];
+}
+
+export interface FoodCollectionReturnItem {
+  shopId: number;
+  description: string;
+  amount: number;
+}
+
+export interface FoodCollectionReturnItemAmount {
+  description: string;
+  amount: number;
 }
 
 export interface FoodCollectionSaveItemsPerShopRequest {
@@ -56,6 +90,7 @@ export interface FoodCollectionSaveItemsRequest {
 
 export interface FoodCollectionItemsPerShopResponse {
   items: FoodCollectionItem[];
+  returnItems: FoodCollectionReturnItem[];
 }
 
 export interface FoodCollectionItem {
@@ -72,4 +107,5 @@ export interface FoodCollectionData {
   kmStart: number;
   kmEnd: number;
   items: FoodCollectionItem[];
+  returnItems: FoodCollectionReturnItem[];
 }
