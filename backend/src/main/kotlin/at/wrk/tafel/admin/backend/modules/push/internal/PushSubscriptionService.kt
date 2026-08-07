@@ -60,7 +60,7 @@ class PushSubscriptionService(
      */
     @Transactional
     fun createSubscription(request: PushSubscriptionRequest): PushSubscriptionItem {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
 
         val entity = pushSubscriptionRepository.findByEndpoint(request.endpoint) ?: PushSubscriptionEntity()
         entity.user = user
@@ -75,7 +75,7 @@ class PushSubscriptionService(
 
     @Transactional
     fun updateLabel(id: Long, request: PushSubscriptionLabelRequest): PushSubscriptionItem {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
         val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
             ?: throw NotFoundException("Push-Subscription wurde nicht gefunden")
 
@@ -94,7 +94,7 @@ class PushSubscriptionService(
      * deleted as part of the send, which a wrapping read-only transaction would reject.
      */
     fun sendTestNotification(id: Long): PushTestResponse {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
         val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
             ?: throw NotFoundException("Push-Subscription wurde nicht gefunden")
 
@@ -111,7 +111,7 @@ class PushSubscriptionService(
 
     @Transactional
     fun deleteSubscription(id: Long) {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
         val deletedCount = pushSubscriptionRepository.deleteByIdAndUserId(id, user.id!!)
         if (deletedCount == 0L) {
             throw NotFoundException("Push-Subscription wurde nicht gefunden")
@@ -120,6 +120,9 @@ class PushSubscriptionService(
 
     private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
         ?.let { userRepository.findByUsername(it) }
+
+    private fun requireCurrentUser() = currentUser()
+        ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
 
     private fun mapToItem(entity: PushSubscriptionEntity) = PushSubscriptionItem(
         id = entity.id!!,

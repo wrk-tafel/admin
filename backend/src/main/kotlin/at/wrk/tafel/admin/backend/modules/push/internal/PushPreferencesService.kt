@@ -33,13 +33,13 @@ class PushPreferencesService(
 
     @Transactional(readOnly = true)
     fun getPreferencesForCurrentUser(): PushPreferencesResponse {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
         return buildResponse(user.id!!)
     }
 
     @Transactional
     fun updateMasterPreference(request: PushMasterPreferenceRequest): PushPreferencesResponse {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
 
         val entity = pushPreferencesRepository.findByUserId(user.id!!) ?: PushPreferencesEntity()
         entity.user = user
@@ -53,7 +53,7 @@ class PushPreferencesService(
 
     @Transactional
     fun updateTypePreference(type: PushNotificationTypeApi, request: PushTypePreferenceRequest): PushPreferencesResponse {
-        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val user = requireCurrentUser()
         val entityType = PushNotificationTypeEntity.valueOf(type.name)
 
         val entity = pushTypePreferenceRepository.findByUserIdAndNotificationType(user.id!!, entityType)
@@ -105,6 +105,7 @@ class PushPreferencesService(
         return PushPreferencesResponse(masterEnabled = masterEnabled, types = types)
     }
 
-    private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
+    private fun requireCurrentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
         ?.let { userRepository.findByUsername(it) }
+        ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
 }
