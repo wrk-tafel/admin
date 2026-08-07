@@ -13,6 +13,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -301,10 +302,9 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items per shop with existing data and new item`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
+            statistic = DistributionStatisticEntity(distribution = this).apply {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
@@ -312,15 +312,9 @@ class FoodCollectionServiceTest {
                 ).toMutableList()
             }
         }
-        val existingItem = FoodCollectionItemEntity().apply {
-            category = testFoodCategory1
-            shop = testShop1
-            amount = 11
-        }
-        val existingFoodCollection = FoodCollectionEntity().apply {
+        val existingItem = FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory1, amount = 11)
+        val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
-            route = testRoute1
-            distribution = distributionEntity
             items = mutableListOf(existingItem)
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
@@ -366,10 +360,9 @@ class FoodCollectionServiceTest {
     @Test
     fun `save items per shop with existing data and updating items`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
+            statistic = DistributionStatisticEntity(distribution = this).apply {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
@@ -378,21 +371,11 @@ class FoodCollectionServiceTest {
             }
         }
         val existingItems = listOf(
-            FoodCollectionItemEntity().apply {
-                category = testFoodCategory1
-                shop = testShop1
-                amount = 11
-            },
-            FoodCollectionItemEntity().apply {
-                category = testFoodCategory2
-                shop = testShop1
-                amount = 22
-            },
+            FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory1, amount = 11),
+            FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory2, amount = 22),
         )
-        val existingFoodCollection = FoodCollectionEntity().apply {
+        val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
-            route = testRoute1
-            distribution = distributionEntity
             items = existingItems
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
@@ -440,10 +423,9 @@ class FoodCollectionServiceTest {
     @Test
     fun `get items per shop without existing data`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
+            statistic = DistributionStatisticEntity(distribution = this).apply {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
@@ -466,10 +448,9 @@ class FoodCollectionServiceTest {
     @Test
     fun `get items per shop with existing data`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
+            statistic = DistributionStatisticEntity(distribution = this).apply {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
@@ -478,21 +459,11 @@ class FoodCollectionServiceTest {
             }
         }
         val existingItems = listOf(
-            FoodCollectionItemEntity().apply {
-                category = testFoodCategory1
-                shop = testShop1
-                amount = 11
-            },
-            FoodCollectionItemEntity().apply {
-                category = testFoodCategory2
-                shop = testShop1
-                amount = 22
-            },
+            FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory1, amount = 11),
+            FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory2, amount = 22),
         )
-        val existingFoodCollection = FoodCollectionEntity().apply {
+        val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
-            route = testRoute1
-            distribution = distributionEntity
             items = existingItems
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
@@ -551,10 +522,9 @@ class FoodCollectionServiceTest {
     @Test
     fun `patch a single item with existing data and new item`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
+            statistic = DistributionStatisticEntity(distribution = this).apply {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
@@ -562,15 +532,9 @@ class FoodCollectionServiceTest {
                 ).toMutableList()
             }
         }
-        val existingItem = FoodCollectionItemEntity().apply {
-            category = testFoodCategory1
-            shop = testShop1
-            amount = 11
-        }
-        val existingFoodCollection = FoodCollectionEntity().apply {
+        val existingItem = FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory1, amount = 11)
+        val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
-            route = testRoute1
-            distribution = distributionEntity
             items = mutableListOf(existingItem)
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
@@ -613,10 +577,9 @@ class FoodCollectionServiceTest {
     @Test
     fun `patch a single item with existing data and updating an item`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
+            statistic = DistributionStatisticEntity(distribution = this).apply {
                 employeeCount = 100
                 shelters = listOf(
                     testDistributionStatisticShelterEntity1,
@@ -624,15 +587,9 @@ class FoodCollectionServiceTest {
                 ).toMutableList()
             }
         }
-        val existingItem = FoodCollectionItemEntity().apply {
-            category = testFoodCategory1
-            shop = testShop1
-            amount = 11
-        }
-        val existingFoodCollection = FoodCollectionEntity().apply {
+        val existingItem = FoodCollectionItemEntity(shop = testShop1, category = testFoodCategory1, amount = 11)
+        val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
-            route = testRoute1
-            distribution = distributionEntity
             items = mutableListOf(existingItem)
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
@@ -669,14 +626,11 @@ class FoodCollectionServiceTest {
     @Test
     fun `get items per shop with existing collection but no items returns empty list`() {
         val routeId = testRoute1.id!!
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
         }
-        val existingFoodCollection = FoodCollectionEntity().apply {
+        val existingFoodCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
             id = 1
-            route = testRoute1
-            distribution = distributionEntity
             items = null
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
@@ -760,19 +714,16 @@ class FoodCollectionServiceTest {
             kmStart = 1000,
             kmEnd = 2000,
         )
-        val otherRouteCollection = FoodCollectionEntity().apply {
-            id = 1
-            route = testRoute2
-        }
-        val existingCollection = FoodCollectionEntity().apply {
-            id = 2
-            route = testRoute1
-        }
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            foodCollections = mutableListOf(otherRouteCollection, existingCollection)
         }
+        val otherRouteCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute2).apply {
+            id = 1
+        }
+        val existingCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+            id = 2
+        }
+        distributionEntity.foodCollections = mutableListOf(otherRouteCollection, existingCollection)
         every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { employeeRepository.findByIdOrNull(driverId) } returns testEmployee1
@@ -874,19 +825,16 @@ class FoodCollectionServiceTest {
                 ),
             ),
         )
-        val otherRouteCollection = FoodCollectionEntity().apply {
-            id = 1
-            route = testRoute2
-        }
-        val existingCollection = FoodCollectionEntity().apply {
-            id = 2
-            route = testRoute1
-        }
-        val distributionEntity = DistributionEntity().apply {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
-            foodCollections = mutableListOf(otherRouteCollection, existingCollection)
         }
+        val otherRouteCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute2).apply {
+            id = 1
+        }
+        val existingCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+            id = 2
+        }
+        distributionEntity.foodCollections = mutableListOf(otherRouteCollection, existingCollection)
         every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1

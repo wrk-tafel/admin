@@ -42,11 +42,11 @@ class EmployeeService(
             throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
         }
 
-        val employeeEntity = EmployeeEntity().apply {
-            personnelNumber = employeeRequest.personnelNumber.trim()
-            firstname = employeeRequest.firstname.trim()
-            lastname = employeeRequest.lastname.trim()
-        }
+        val employeeEntity = EmployeeEntity(
+            personnelNumber = employeeRequest.personnelNumber.trim(),
+            firstname = employeeRequest.firstname.trim(),
+            lastname = employeeRequest.lastname.trim(),
+        )
         employeeRepository.save(employeeEntity)
         return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(employeeRequest.personnelNumber)!!)
     }
@@ -70,8 +70,8 @@ class EmployeeService(
 
     private fun mapEntityToEmployee(it: EmployeeEntity) = EmployeeResponse(
         id = it.id!!,
-        personnelNumber = it.personnelNumber!!,
-        firstname = it.firstname!!,
-        lastname = it.lastname!!,
+        personnelNumber = it.personnelNumber,
+        firstname = it.firstname,
+        lastname = it.lastname,
     )
 }

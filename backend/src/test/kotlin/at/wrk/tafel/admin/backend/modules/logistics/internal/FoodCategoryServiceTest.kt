@@ -151,13 +151,9 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `update category`() {
-        val existingEntity = FoodCategoryEntity().apply {
+        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, returnItem = false, enabled = true).apply {
             id = 3
-            name = "Category 3"
             weightPerUnit = BigDecimal("30")
-            returnItem = false
-            sortOrder = 100
-            enabled = true
         }
         val updated = FoodCategoryRequest(
             id = existingEntity.id,
@@ -204,17 +200,14 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `reorder categories assigns sequential sort order matching the given order`() {
-        val entity1 = FoodCategoryEntity().apply {
+        val entity1 = FoodCategoryEntity(name = "Category 1", sortOrder = 200).apply {
             id = 1
-            sortOrder = 200
         }
-        val entity2 = FoodCategoryEntity().apply {
+        val entity2 = FoodCategoryEntity(name = "Category 2", sortOrder = 100).apply {
             id = 2
-            sortOrder = 100
         }
-        val entity3 = FoodCategoryEntity().apply {
+        val entity3 = FoodCategoryEntity(name = "Category 3", sortOrder = 300).apply {
             id = 3
-            sortOrder = 300
         }
 
         every { foodCategoryRepository.findByIdOrNull(3L) } returns entity3

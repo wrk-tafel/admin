@@ -13,6 +13,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistribution
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -40,15 +42,14 @@ internal class DistributionStatisticServiceTest {
     @InjectMockKs
     private lateinit var service: DistributionStatisticService
 
+    private var nextHouseholdIdCounter = 1000L
+    private fun nextHouseholdId() = nextHouseholdIdCounter++
+
     @Test
     fun `create and save statistic`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now().minusHours(2)
             endedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity().apply {
-                employeeCount = 100
-            }
             households = listOf(
                 testDistributionHouseholdEntity1,
                 testDistributionHouseholdEntity2,
@@ -60,7 +61,10 @@ internal class DistributionStatisticServiceTest {
                 testFoodCollectionRoute3Entity,
             )
         }
-        val statisticStartTime = testDistributionEntity.startedAt!!.toLocalDate().atStartOfDay()
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
+            employeeCount = 100
+        }
+        val statisticStartTime = testDistributionEntity.startedAt.toLocalDate().atStartOfDay()
         val statisticEndTime = testDistributionEntity.endedAt!!
 
         val testCustomersNew =
@@ -123,12 +127,11 @@ internal class DistributionStatisticServiceTest {
 
     @Test
     fun `create and save empty statistic with empty distribution including empty statistic`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now().minusHours(2)
             endedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity()
         }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
 
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
@@ -162,31 +165,27 @@ internal class DistributionStatisticServiceTest {
 
     @Test
     fun `count single parent households only counts registered households flagged as such`() {
-        val singleParentHousehold1 = DistributionHouseholdEntity().apply {
-            household = HouseholdEntity().apply { singleParent = true }
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = LocalDateTime.now()
         }
-        val singleParentHousehold2 = DistributionHouseholdEntity().apply {
-            household = HouseholdEntity().apply { singleParent = true }
-        }
-        val nonSingleParentHousehold = DistributionHouseholdEntity().apply {
-            household = HouseholdEntity().apply { singleParent = false }
-        }
-        val unknownHousehold = DistributionHouseholdEntity().apply {
-            household = HouseholdEntity().apply { singleParent = null }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
+
+        fun household(singleParent: Boolean?) = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now()).apply {
+            this.singleParent = singleParent
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
-            id = 123
-            startedAt = LocalDateTime.now().minusHours(2)
-            endedAt = LocalDateTime.now()
-            statistic = DistributionStatisticEntity()
-            households = listOf(
-                singleParentHousehold1,
-                singleParentHousehold2,
-                nonSingleParentHousehold,
-                unknownHousehold,
-            )
-        }
+        val singleParentHousehold1 = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(true), ticketNumber = 1)
+        val singleParentHousehold2 = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(true), ticketNumber = 2)
+        val nonSingleParentHousehold = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(false), ticketNumber = 3)
+        val unknownHousehold = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(null), ticketNumber = 4)
+
+        testDistributionEntity.households = listOf(
+            singleParentHousehold1,
+            singleParentHousehold2,
+            nonSingleParentHousehold,
+            unknownHousehold,
+        )
 
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
@@ -203,9 +202,8 @@ internal class DistributionStatisticServiceTest {
 
     @Test
     fun `create and save empty statistic with empty distribution missing statistic`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now().minusHours(2)
             endedAt = LocalDateTime.now()
         }
 

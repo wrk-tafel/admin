@@ -87,9 +87,17 @@ class TafelUserDetailsManager(
 
     override fun createUser(user: UserDetails) {
         val tafelUser = user as TafelUser
+        val newPassword: String = tafelUser.password ?: throw PasswordChangeException("Passwort ist erforderlich!")
+        isPasswordValid(tafelUser.username, newPassword)
 
-        val userEntity = UserEntity()
-        mapToUserEntity(userEntity, tafelUser)
+        val userEntity = UserEntity(
+            username = tafelUser.username,
+            password = passwordEncoder.encode(newPassword)!!,
+            employee = resolveEmployee(tafelUser),
+            enabled = tafelUser.enabled,
+            passwordChangeRequired = tafelUser.passwordChangeRequired,
+        )
+        syncAuthorities(userEntity, tafelUser)
         userRepository.save(userEntity)
     }
 
@@ -119,8 +127,8 @@ class TafelUserDetailsManager(
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
 
-        if (isPasswordValid(storedUser.username!!, newPassword)) {
-            storedUser.password = passwordEncoder.encode(newPassword)
+        if (isPasswordValid(storedUser.username, newPassword)) {
+            storedUser.password = passwordEncoder.encode(newPassword)!!
             storedUser.passwordChangeRequired = false
             userRepository.save(storedUser)
         }
@@ -150,15 +158,32 @@ class TafelUserDetailsManager(
 
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser = TafelUser(
         id = userEntity.id!!,
-        username = userEntity.username!!,
-        password = userEntity.password!!,
-        enabled = userEntity.enabled!!,
-        personnelNumber = userEntity.employee!!.personnelNumber!!,
-        firstname = userEntity.employee!!.firstname!!,
-        lastname = userEntity.employee!!.lastname!!,
-        authorities = userEntity.authorities.filter { it.name != null }.map { SimpleGrantedAuthority(it.name!!) },
-        passwordChangeRequired = userEntity.passwordChangeRequired!!,
+        username = userEntity.username,
+        password = userEntity.password,
+        enabled = userEntity.enabled,
+        personnelNumber = userEntity.employee.personnelNumber,
+        firstname = userEntity.employee.firstname,
+        lastname = userEntity.employee.lastname,
+        authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
+        passwordChangeRequired = userEntity.passwordChangeRequired,
     )
+
+    private fun resolveEmployee(tafelUser: TafelUser): EmployeeEntity {
+        val existingEmployee = employeeRepository.findByPersonnelNumber(tafelUser.personnelNumber)
+        return if (existingEmployee != null) {
+            existingEmployee.apply {
+                personnelNumber = tafelUser.personnelNumber
+                firstname = tafelUser.firstname
+                lastname = tafelUser.lastname
+            }
+        } else {
+            EmployeeEntity(
+                personnelNumber = tafelUser.personnelNumber,
+                firstname = tafelUser.firstname,
+                lastname = tafelUser.lastname,
+            )
+        }
+    }
 
     /**
      * Diffs `userEntity.authorities` against `tafelUser.authorities` (remove-then-add) instead of
@@ -167,38 +192,31 @@ class TafelUserDetailsManager(
      * collection - swapping in a brand-new list would leave the old rows orphaned in the DB rather
      * than removed.
      */
-    private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
-        val existingEmployee = employeeRepository.findByPersonnelNumber(tafelUser.personnelNumber) ?: EmployeeEntity()
-
-        userEntity.employee = existingEmployee.apply {
-            personnelNumber = tafelUser.personnelNumber
-            firstname = tafelUser.firstname
-            lastname = tafelUser.lastname
-        }
-        userEntity.username = tafelUser.username
-        userEntity.enabled = tafelUser.enabled
-        val newPassword = tafelUser.password
-        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
-            userEntity.password = passwordEncoder.encode(newPassword)
-        }
-        userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
-
+    private fun syncAuthorities(userEntity: UserEntity, tafelUser: TafelUser) {
         // remove old permissions
         userEntity.authorities.removeIf { authorityEntity ->
-            !tafelUser.authorities.map { it.authority }.contains(authorityEntity.name)
+            !tafelUser.authorities.map { it.authority!! }.contains(authorityEntity.name)
         }
 
         // add new permissions
         val currentAuthorities = userEntity.authorities.map { it.name }
-        val newAuthorities = tafelUser.authorities.map { it.authority } - currentAuthorities.toSet()
+        val newAuthorities = tafelUser.authorities.map { it.authority!! } - currentAuthorities.toSet()
         userEntity.authorities.addAll(
-            newAuthorities.map { name ->
-                val userAuthorityEntity = UserAuthorityEntity()
-                userAuthorityEntity.user = userEntity
-                userAuthorityEntity.name = name
-                userAuthorityEntity
-            }.toMutableList(),
+            newAuthorities.map { name -> UserAuthorityEntity(user = userEntity, name = name) }.toMutableList(),
         )
+    }
+
+    private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
+        userEntity.employee = resolveEmployee(tafelUser)
+        userEntity.username = tafelUser.username
+        userEntity.enabled = tafelUser.enabled
+        val newPassword = tafelUser.password
+        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)!!
+        }
+        userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
+
+        syncAuthorities(userEntity, tafelUser)
     }
 }
 

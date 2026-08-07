@@ -9,18 +9,16 @@ import java.math.BigDecimal
 
 @Embeddable
 @ExcludeFromTestCoverage
-class FoodCollectionItemEntity {
-
+class FoodCollectionItemEntity(
     @ManyToOne
     @JoinColumn(name = "shop_id", nullable = false)
-    var shop: ShopEntity? = null
-
+    var shop: ShopEntity,
     @ManyToOne
     @JoinColumn(name = "food_category_id", nullable = false)
-    var category: FoodCategoryEntity? = null
-
+    var category: FoodCategoryEntity,
     @Column(name = "amount")
-    var amount: Int? = null
+    var amount: Int,
+) {
 
     /**
      * If the shop's [FoodUnit] is `KG`, `amount` already *is* the weight; otherwise the weight is
@@ -28,15 +26,10 @@ class FoodCollectionItemEntity {
      * shop's unit wrong and every weight-based report/statistic derived from this collection is
      * wrong too.
      */
-    fun calculateWeight(): BigDecimal {
-        val amount = amount ?: 0
-        val unit = shop?.foodUnit ?: FoodUnit.BOX
-
-        return if (unit == FoodUnit.KG) {
-            BigDecimal(amount)
-        } else {
-            val weightPerUnit = category?.weightPerUnit ?: BigDecimal.ZERO
-            BigDecimal(amount) * weightPerUnit
-        }
+    fun calculateWeight(): BigDecimal = if (shop.foodUnit == FoodUnit.KG) {
+        BigDecimal(amount)
+    } else {
+        val weightPerUnit = category.weightPerUnit ?: BigDecimal.ZERO
+        BigDecimal(amount) * weightPerUnit
     }
 }

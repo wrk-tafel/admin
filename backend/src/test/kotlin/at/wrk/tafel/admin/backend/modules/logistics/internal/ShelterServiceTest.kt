@@ -298,17 +298,38 @@ class ShelterServiceTest {
 
     @Test
     fun `reorder shelters assigns sequential sort order matching the given order`() {
-        val entity1 = ShelterEntity().apply {
+        val entity1 = ShelterEntity(
+            name = "Shelter 1",
+            addressStreet = "Street 1",
+            addressHouseNumber = "1",
+            addressPostalCode = 11111,
+            addressCity = "City 1",
+            personsCount = 1,
+            sortOrder = 200,
+        ).apply {
             id = 1
-            sortOrder = 200
         }
-        val entity2 = ShelterEntity().apply {
+        val entity2 = ShelterEntity(
+            name = "Shelter 2",
+            addressStreet = "Street 2",
+            addressHouseNumber = "2",
+            addressPostalCode = 22222,
+            addressCity = "City 2",
+            personsCount = 2,
+            sortOrder = 100,
+        ).apply {
             id = 2
-            sortOrder = 100
         }
-        val entity3 = ShelterEntity().apply {
+        val entity3 = ShelterEntity(
+            name = "Shelter 3",
+            addressStreet = "Street 3",
+            addressHouseNumber = "3",
+            addressPostalCode = 33333,
+            addressCity = "City 3",
+            personsCount = 3,
+            sortOrder = 300,
+        ).apply {
             id = 3
-            sortOrder = 300
         }
 
         every { shelterRepository.findByIdOrNull(3L) } returns entity3

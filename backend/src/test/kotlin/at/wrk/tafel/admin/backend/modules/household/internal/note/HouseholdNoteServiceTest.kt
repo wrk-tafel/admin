@@ -51,11 +51,10 @@ internal class HouseholdNoteServiceTest {
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 
-        testHouseholdEntity1 = HouseholdEntity().apply {
+        testHouseholdEntity1 = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
             id = 1
             issuer = testUserEntity.employee
             createdAt = LocalDateTime.now()
-            householdId = 100
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -64,44 +63,38 @@ internal class HouseholdNoteServiceTest {
             addressCity = "Wien"
             telephoneNumber = "0043660123123"
             email = "test@mail.com"
-            validUntil = LocalDate.now()
-            locked = false
-
-            val mainPersonEntity = PersonEntity()
-            mainPersonEntity.id = 1
-            mainPersonEntity.household = this
-            mainPersonEntity.isMainPerson = true
-            mainPersonEntity.lastname = "Mustermann"
-            mainPersonEntity.firstname = "Max"
-            mainPersonEntity.birthDate = LocalDate.now().minusYears(30)
-            mainPersonEntity.country = testCountry1
-            mainPersonEntity.employer = "Employer 123"
-            mainPersonEntity.income = BigDecimal("1000")
-            mainPersonEntity.incomeDue = LocalDate.now()
-
-            val addPerson1 = PersonEntity()
-            addPerson1.id = 2
-            addPerson1.household = this
-            addPerson1.lastname = "Add pers 1"
-            addPerson1.firstname = "Add pers 1"
-            addPerson1.birthDate = LocalDate.now().minusYears(5)
-            addPerson1.income = BigDecimal("100")
-            addPerson1.incomeDue = LocalDate.now()
-            addPerson1.country = testCountry1
-            addPerson1.excludeFromHousehold = false
-
-            val addPerson2 = PersonEntity()
-            addPerson2.id = 3
-            addPerson2.household = this
-            addPerson2.lastname = "Add pers 2"
-            addPerson2.firstname = "Add pers 2"
-            addPerson2.birthDate = LocalDate.now().minusYears(2)
-            addPerson2.country = testCountry1
-            addPerson2.excludeFromHousehold = true
-
-            persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
-            mainPerson = mainPersonEntity
         }
+
+        val mainPersonEntity = PersonEntity(household = testHouseholdEntity1, country = testCountry1, isMainPerson = true).apply {
+            id = 1
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+        }
+
+        val addPerson1 = PersonEntity(household = testHouseholdEntity1, country = testCountry1).apply {
+            id = 2
+            lastname = "Add pers 1"
+            firstname = "Add pers 1"
+            birthDate = LocalDate.now().minusYears(5)
+            income = BigDecimal("100")
+            incomeDue = LocalDate.now()
+            excludeFromHousehold = false
+        }
+
+        val addPerson2 = PersonEntity(household = testHouseholdEntity1, country = testCountry1).apply {
+            id = 3
+            lastname = "Add pers 2"
+            firstname = "Add pers 2"
+            birthDate = LocalDate.now().minusYears(2)
+            excludeFromHousehold = true
+        }
+
+        testHouseholdEntity1.persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
+        testHouseholdEntity1.mainPerson = mainPersonEntity
     }
 
     @AfterEach
@@ -135,15 +128,13 @@ internal class HouseholdNoteServiceTest {
     fun `get notes - found`() {
         val householdId = 123L
         val noteEntities = listOf(
-            HouseholdNoteEntity().apply {
+            HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 2").apply {
                 this.employee = testUserEntity.employee
                 this.createdAt = LocalDateTime.now().minusDays(1)
-                this.note = "note 2"
             },
-            HouseholdNoteEntity().apply {
+            HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
                 this.employee = testUserEntity.employee
                 this.createdAt = LocalDateTime.now().minusDays(2)
-                this.note = "note 1"
             },
         )
 
@@ -182,16 +173,14 @@ internal class HouseholdNoteServiceTest {
     fun `create new note`() {
         val note = "test note"
 
-        val noteEntity = HouseholdNoteEntity()
-        noteEntity.household = testHouseholdEntity1
+        val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = note)
         noteEntity.createdAt = LocalDateTime.now()
         noteEntity.employee = testUserEntity.employee
-        noteEntity.note = note
         every { householdNoteRepository.save(any()) } returns noteEntity
 
-        every { householdRepository.findByHouseholdId(testHouseholdEntity1.householdId!!) } returns testHouseholdEntity1
+        every { householdRepository.findByHouseholdId(testHouseholdEntity1.householdId) } returns testHouseholdEntity1
 
-        val noteItem = service.createNewNote(householdId = testHouseholdEntity1.householdId!!, note = note)
+        val noteItem = service.createNewNote(householdId = testHouseholdEntity1.householdId, note = note)
 
         assertThat(noteItem.author).isEqualTo("${testUser.personnelNumber} ${testUser.firstname} ${testUser.lastname}")
         assertThat(noteItem.timestamp).isEqualTo(noteEntity.createdAt)

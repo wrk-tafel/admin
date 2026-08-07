@@ -25,11 +25,12 @@ class CarService(
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
     fun createCar(car: CarRequest): CarResponse {
-        val carEntity = CarEntity().apply {
-            licensePlate = car.licensePlate
+        val carEntity = CarEntity(
+            licensePlate = car.licensePlate,
+            sortOrder = nextSortOrder(),
+            enabled = car.enabled,
+        ).apply {
             name = car.name
-            enabled = car.enabled
-            sortOrder = nextSortOrder()
         }
 
         val savedEntity = carRepository.save(carEntity)
@@ -60,13 +61,13 @@ class CarService(
         }
     }
 
-    private fun nextSortOrder(): Int = (carRepository.findAll().maxOfOrNull { it.sortOrder ?: 0 } ?: 0) + 1
+    private fun nextSortOrder(): Int = (carRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
 
     private fun mapCar(carEntity: CarEntity): CarResponse = CarResponse(
         id = carEntity.id!!,
-        licensePlate = carEntity.licensePlate!!,
+        licensePlate = carEntity.licensePlate,
         name = carEntity.name!!,
-        enabled = carEntity.enabled!!,
-        sortOrder = carEntity.sortOrder ?: 0,
+        enabled = carEntity.enabled,
+        sortOrder = carEntity.sortOrder,
     )
 }

@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -44,33 +45,28 @@ class FoodCollectionsExporterTest {
             testFoodCategory1,
         )
 
-        val distribution1 = DistributionEntity().apply {
+        val distribution1 = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 111
-            startedAt = LocalDateTime.now()
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity,
                 testFoodCollectionRoute2Entity,
                 testFoodCollectionRoute3Entity,
             )
         }
-        val distribution2 = DistributionEntity().apply {
+        val distribution2 = DistributionEntity(startedAt = LocalDateTime.now().minusDays(7), startedByUser = testUserEntity).apply {
             id = 222
-            startedAt = LocalDateTime.now().minusDays(7)
             foodCollections = listOf(
                 testFoodCollectionRoute2Entity,
             )
         }
 
-        val currentDistribution = DistributionEntity().apply {
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
             foodCollections = listOf(
                 testFoodCollectionRoute2Entity,
             )
         }
-        val currentStatistic = DistributionStatisticEntity().apply {
-            distribution = currentDistribution
-        }
+        val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
 
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
             distribution1,
@@ -103,13 +99,10 @@ class FoodCollectionsExporterTest {
             testFoodCategory1,
         )
 
-        val currentDistribution = DistributionEntity().apply {
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            startedAt = LocalDateTime.now()
         }
-        val currentStatistic = DistributionStatisticEntity().apply {
-            distribution = currentDistribution
-        }
+        val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
             currentDistribution,
         )
