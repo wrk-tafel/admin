@@ -17,20 +17,21 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-val testDistributionStatisticEntity = DistributionStatisticEntity().apply {
+val testDistributionEntity = DistributionEntity(
+    startedAt = LocalDateTime.now(),
+    startedByUser = testUserEntity,
+).apply {
+    id = 123
+    endedAt = null
+}
+
+val testDistributionStatisticEntity = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
     employeeCount = 100
     shelters = listOf(
         testDistributionStatisticShelterEntity1,
         testDistributionStatisticShelterEntity2,
     ).toMutableList()
-}
-
-val testDistributionEntity = DistributionEntity().apply {
-    id = 123
-    startedAt = LocalDateTime.now()
-    endedAt = null
-    statistic = testDistributionStatisticEntity
-}
+}.also { testDistributionEntity.statistic = it }
 
 /**
  * Attaches the main person of a household - always the same shape the application produces:
@@ -46,15 +47,12 @@ private fun HouseholdEntity.withMainPerson(
     personIncome: BigDecimal? = null,
     personIncomeDue: LocalDate? = null,
 ): HouseholdEntity {
-    val person = PersonEntity().apply {
+    val person = PersonEntity(household = this@withMainPerson, country = personCountry, isMainPerson = true).apply {
         id = personId
         createdAt = LocalDateTime.now()
-        household = this@withMainPerson
-        isMainPerson = true
         this.firstname = firstname
         this.lastname = lastname
         this.birthDate = birthDate
-        country = personCountry
         employer = personEmployer
         income = personIncome
         incomeDue = personIncomeDue
@@ -71,15 +69,11 @@ private fun HouseholdEntity.withAdditionalPerson(person: PersonEntity): Househol
     return this
 }
 
-val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
-    id = 1
-    createdAt = LocalDateTime.now()
-    distribution = testDistributionEntity
-    household = HouseholdEntity().apply {
+private val testHousehold1 = run {
+    val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
         id = 1
         issuer = testUserEntity.employee
         createdAt = LocalDateTime.now()
-        householdId = 100
         addressStreet = "Test-Straße"
         addressHouseNumber = "100"
         addressStairway = "1"
@@ -88,10 +82,9 @@ val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
         addressCity = "Wien"
         telephoneNumber = "0043660123123"
         email = "test@mail.com"
-        validUntil = LocalDate.now()
-        locked = false
         pendingCostContribution = BigDecimal("12")
-    }.withMainPerson(
+    }
+    household.withMainPerson(
         personId = 1,
         firstname = "Max",
         lastname = "Mustermann",
@@ -100,107 +93,112 @@ val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
         personEmployer = "Employer 123",
         personIncome = BigDecimal("1000"),
         personIncomeDue = LocalDate.now(),
-    ).withAdditionalPerson(
-        PersonEntity().apply {
+    )
+    household.withAdditionalPerson(
+        PersonEntity(household = household, country = testCountry2).apply {
             id = 2
             lastname = "Add pers 1"
             firstname = "Add pers 1"
             birthDate = LocalDate.now().minusYears(1)
             income = BigDecimal("100")
             incomeDue = LocalDate.now()
-            country = testCountry2
             excludeFromHousehold = false
         },
-    ).withAdditionalPerson(
-        PersonEntity().apply {
+    )
+    household.withAdditionalPerson(
+        PersonEntity(household = household, country = testCountry3).apply {
             id = 3
             lastname = "Add pers 2"
             firstname = "Add pers 2"
             birthDate = LocalDate.now().minusYears(21)
-            country = testCountry3
             excludeFromHousehold = true
         },
     )
-    ticketNumber = 50
-    processed = true
-    costContributionPaid = false
+    household
 }
 
-val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
+val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
+    distribution = testDistributionEntity,
+    household = testHousehold1,
+    ticketNumber = 50,
+    processed = true,
+    costContributionPaid = false,
+).apply {
+    id = 1
+    createdAt = LocalDateTime.now()
+}
+
+private val testHousehold2 = HouseholdEntity(householdId = 200, validUntil = LocalDate.now(), locked = false).apply {
     id = 2
     createdAt = LocalDateTime.now()
-    distribution = testDistributionEntity
-    household = HouseholdEntity().apply {
-        id = 2
-        createdAt = LocalDateTime.now()
-        householdId = 200
-        addressStreet = "Test-Straße 2"
-        addressHouseNumber = "200"
-        addressStairway = "1-2"
-        addressPostalCode = 1010
-        addressDoor = "21-2"
-        addressCity = "Wien 2"
-        telephoneNumber = "0043660123123"
-        email = "test2@mail.com"
-        validUntil = LocalDate.now()
-        locked = false
-        pendingCostContribution = BigDecimal.ZERO
-    }.withMainPerson(
-        personId = 2,
-        firstname = "Max 2",
-        lastname = "Mustermann",
-        birthDate = LocalDate.now().minusYears(55),
-        personCountry = testCountry4,
-        personEmployer = "Employer 123-2",
-        personIncome = BigDecimal("2000"),
-        personIncomeDue = LocalDate.now(),
-    )
-    ticketNumber = 51
-    processed = false
-    costContributionPaid = false
+    addressStreet = "Test-Straße 2"
+    addressHouseNumber = "200"
+    addressStairway = "1-2"
+    addressPostalCode = 1010
+    addressDoor = "21-2"
+    addressCity = "Wien 2"
+    telephoneNumber = "0043660123123"
+    email = "test2@mail.com"
+    pendingCostContribution = BigDecimal.ZERO
+}.withMainPerson(
+    personId = 2,
+    firstname = "Max 2",
+    lastname = "Mustermann",
+    birthDate = LocalDate.now().minusYears(55),
+    personCountry = testCountry4,
+    personEmployer = "Employer 123-2",
+    personIncome = BigDecimal("2000"),
+    personIncomeDue = LocalDate.now(),
+)
+
+val testDistributionHouseholdEntity2 = DistributionHouseholdEntity(
+    distribution = testDistributionEntity,
+    household = testHousehold2,
+    ticketNumber = 51,
+    processed = false,
+    costContributionPaid = false,
+).apply {
+    id = 2
+    createdAt = LocalDateTime.now()
 }
 
-val testDistributionHouseholdEntity3 = DistributionHouseholdEntity().apply {
+private val testHousehold3 = HouseholdEntity(householdId = 300, validUntil = LocalDate.now(), locked = false).apply {
     id = 3
     createdAt = LocalDateTime.now()
-    distribution = testDistributionEntity
-    household = HouseholdEntity().apply {
-        id = 3
-        createdAt = LocalDateTime.now()
-        householdId = 300
-        addressStreet = "Test-Straße 3"
-        addressHouseNumber = "300"
-        addressStairway = "1-3"
-        addressPostalCode = 1010
-        addressDoor = "21-3"
-        addressCity = "Wien 3"
-        telephoneNumber = "0043660123123"
-        email = "test3@mail.com"
-        validUntil = LocalDate.now()
-        locked = false
-    }.withMainPerson(
-        personId = 3,
-        firstname = "Max 3",
-        lastname = "Mustermann",
-        birthDate = LocalDate.now().minusYears(85),
-        personCountry = testCountry1,
-        personEmployer = "Employer 123-3",
-        personIncome = BigDecimal("3000"),
-        personIncomeDue = LocalDate.now(),
-    )
-    ticketNumber = 52
-    processed = false
-    costContributionPaid = true
+    addressStreet = "Test-Straße 3"
+    addressHouseNumber = "300"
+    addressStairway = "1-3"
+    addressPostalCode = 1010
+    addressDoor = "21-3"
+    addressCity = "Wien 3"
+    telephoneNumber = "0043660123123"
+    email = "test3@mail.com"
+}.withMainPerson(
+    personId = 3,
+    firstname = "Max 3",
+    lastname = "Mustermann",
+    birthDate = LocalDate.now().minusYears(85),
+    personCountry = testCountry1,
+    personEmployer = "Employer 123-3",
+    personIncome = BigDecimal("3000"),
+    personIncomeDue = LocalDate.now(),
+)
+
+val testDistributionHouseholdEntity3 = DistributionHouseholdEntity(
+    distribution = testDistributionEntity,
+    household = testHousehold3,
+    ticketNumber = 52,
+    processed = false,
+    costContributionPaid = true,
+).apply {
+    id = 3
+    createdAt = LocalDateTime.now()
 }
 
-val testDistributionHouseholdEntity4 = DistributionHouseholdEntity().apply {
-    id = 4
-    createdAt = LocalDateTime.now()
-    distribution = testDistributionEntity
-    household = HouseholdEntity().apply {
+private val testHousehold4 = run {
+    val household = HouseholdEntity(householdId = 400, validUntil = LocalDate.now(), locked = false).apply {
         id = 4
         createdAt = LocalDateTime.now()
-        householdId = 400
         addressStreet = "Test-Straße 4"
         addressHouseNumber = "400"
         addressStairway = "1-4"
@@ -209,9 +207,8 @@ val testDistributionHouseholdEntity4 = DistributionHouseholdEntity().apply {
         addressCity = "Wien 4"
         telephoneNumber = "0043660123123"
         email = "test4@mail.com"
-        validUntil = LocalDate.now()
-        locked = false
-    }.withMainPerson(
+    }
+    household.withMainPerson(
         personId = 4,
         firstname = "Max 4",
         lastname = "Mustermann",
@@ -220,37 +217,46 @@ val testDistributionHouseholdEntity4 = DistributionHouseholdEntity().apply {
         personEmployer = "Employer 123-4",
         personIncome = BigDecimal("4000"),
         personIncomeDue = LocalDate.now(),
-    ).withAdditionalPerson(
-        PersonEntity().apply {
+    )
+    household.withAdditionalPerson(
+        PersonEntity(household = household, country = testCountry3).apply {
             id = 401
             lastname = "Add pers 1"
             firstname = "Add pers 1"
             birthDate = LocalDate.now().minusYears(75)
             income = BigDecimal("100")
             incomeDue = LocalDate.now()
-            country = testCountry3
             excludeFromHousehold = false
         },
-    ).withAdditionalPerson(
-        PersonEntity().apply {
+    )
+    household.withAdditionalPerson(
+        PersonEntity(household = household, country = testCountry1).apply {
             id = 402
             lastname = "Add pers 2"
             firstname = "Add pers 2"
             birthDate = LocalDate.now().minusYears(65)
-            country = testCountry1
             excludeFromHousehold = true
         },
-    ).withAdditionalPerson(
-        PersonEntity().apply {
+    )
+    household.withAdditionalPerson(
+        PersonEntity(household = household, country = testCountry1).apply {
             id = 403
             lastname = "Add pers 3"
             firstname = "Add pers 3"
             birthDate = LocalDate.now().minusYears(35)
-            country = testCountry1
             excludeFromHousehold = true
         },
     )
-    ticketNumber = 52
-    processed = false
-    costContributionPaid = true
+    household
+}
+
+val testDistributionHouseholdEntity4 = DistributionHouseholdEntity(
+    distribution = testDistributionEntity,
+    household = testHousehold4,
+    ticketNumber = 52,
+    processed = false,
+    costContributionPaid = true,
+).apply {
+    id = 4
+    createdAt = LocalDateTime.now()
 }

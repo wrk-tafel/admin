@@ -119,7 +119,7 @@ class HouseholdMergeService(
         }
 
         // 4) only now, with no children left to lose, delete each source shell
-        sources.forEach { source -> householdService.deleteHouseholdByHouseholdId(source.householdId!!) }
+        sources.forEach { source -> householdService.deleteHouseholdByHouseholdId(source.householdId) }
 
         val mergedTarget = householdRepository.findByHouseholdId(targetHouseholdId)!!
         return HouseholdMergeResponse(
@@ -130,11 +130,11 @@ class HouseholdMergeService(
             movedDocumentCount = documentCount,
             movedDistributionCount = plan.distributionRowIdsToMove.size,
             droppedDistributionCount = plan.distributionRowIdsToDrop.size,
-            deletedHouseholdIds = sources.map { it.householdId!! },
+            deletedHouseholdIds = sources.map { it.householdId },
         )
     }
 
-    private fun validateFieldSelections(request: HouseholdMergeRequest, sourcesByHouseholdId: Map<Long?, HouseholdEntity>) {
+    private fun validateFieldSelections(request: HouseholdMergeRequest, sourcesByHouseholdId: Map<Long, HouseholdEntity>) {
         request.fieldSelections.forEach { selection ->
             val sourceHouseholdId = selection.sourceHouseholdId
             if (sourceHouseholdId != null && !sourcesByHouseholdId.containsKey(sourceHouseholdId)) {

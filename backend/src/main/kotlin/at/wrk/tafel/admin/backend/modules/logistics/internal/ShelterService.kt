@@ -27,27 +27,26 @@ class ShelterService(
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
     fun createShelter(shelter: ShelterRequest): ShelterResponse {
-        val shelterEntity = ShelterEntity().apply {
-            name = shelter.name
-            addressStreet = shelter.addressStreet
-            addressHouseNumber = shelter.addressHouseNumber
+        val shelterEntity = ShelterEntity(
+            name = shelter.name,
+            addressStreet = shelter.addressStreet,
+            addressHouseNumber = shelter.addressHouseNumber,
+            addressPostalCode = shelter.addressPostalCode,
+            addressCity = shelter.addressCity,
+            personsCount = shelter.personsCount,
+            sortOrder = nextSortOrder(),
+            enabled = shelter.enabled,
+        ).apply {
             addressStairway = shelter.addressStairway
-            addressPostalCode = shelter.addressPostalCode
-            addressCity = shelter.addressCity
             addressDoor = shelter.addressDoor
             note = shelter.note
-            personsCount = shelter.personsCount
-            enabled = shelter.enabled
-            sortOrder = nextSortOrder()
         }
 
         // attach contacts
         shelterEntity.contacts = shelter.contacts.map { contact ->
-            ShelterContactEntity().apply {
+            ShelterContactEntity(shelter = shelterEntity, phone = contact.phone).apply {
                 firstname = contact.firstname
                 lastname = contact.lastname
-                phone = contact.phone
-                this.shelter = shelterEntity
             }
         }.toMutableList()
 
@@ -57,22 +56,22 @@ class ShelterService(
 
     private fun mapShelter(shelterEntity: ShelterEntity): ShelterResponse = ShelterResponse(
         id = shelterEntity.id!!,
-        name = shelterEntity.name!!,
-        addressStreet = shelterEntity.addressStreet!!,
-        addressHouseNumber = shelterEntity.addressHouseNumber!!,
+        name = shelterEntity.name,
+        addressStreet = shelterEntity.addressStreet,
+        addressHouseNumber = shelterEntity.addressHouseNumber,
         addressStairway = shelterEntity.addressStairway,
-        addressPostalCode = shelterEntity.addressPostalCode!!,
-        addressCity = shelterEntity.addressCity!!,
+        addressPostalCode = shelterEntity.addressPostalCode,
+        addressCity = shelterEntity.addressCity,
         addressDoor = shelterEntity.addressDoor,
         note = shelterEntity.note,
-        personsCount = shelterEntity.personsCount!!,
-        enabled = shelterEntity.enabled!!,
-        sortOrder = shelterEntity.sortOrder ?: 0,
+        personsCount = shelterEntity.personsCount,
+        enabled = shelterEntity.enabled,
+        sortOrder = shelterEntity.sortOrder,
         contacts = shelterEntity.contacts.map {
             ShelterContactItem(
                 firstname = it.firstname,
                 lastname = it.lastname,
-                phone = it.phone!!,
+                phone = it.phone,
             )
         },
     )
@@ -95,11 +94,9 @@ class ShelterService(
 
         // replace contacts
         shelterEntity.contacts = updatedShelter.contacts.map { contact ->
-            ShelterContactEntity().apply {
+            ShelterContactEntity(shelter = shelterEntity, phone = contact.phone).apply {
                 firstname = contact.firstname
                 lastname = contact.lastname
-                phone = contact.phone
-                this.shelter = shelterEntity
             }
         }.toMutableList()
 
@@ -118,5 +115,5 @@ class ShelterService(
         }
     }
 
-    private fun nextSortOrder(): Int = (shelterRepository.findAll().maxOfOrNull { it.sortOrder ?: 0 } ?: 0) + 1
+    private fun nextSortOrder(): Int = (shelterRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
 }

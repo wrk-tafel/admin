@@ -57,15 +57,15 @@ class DailyReportService(
             foodPerShopAverage = statistic.foodPerShopAverage,
             routesLengthKm = statistic.routesLengthKm,
 
-            personsInSheltersTotalCount = statistic.shelters.sumOf { it.personsCount ?: 0 },
+            personsInSheltersTotalCount = statistic.shelters.sumOf { it.personsCount },
             shelters = statistic.shelters
-                .filter { it.personsCount!! > 0 }
-                .sortedWith(compareBy({ it.sortOrder ?: 0 }, { it.name }))
+                .filter { it.personsCount > 0 }
+                .sortedWith(compareBy({ it.sortOrder }, { it.name }))
                 .map {
                     DailyReportShelterPdfModel(
-                        name = it.name!!,
+                        name = it.name,
                         addressFormatted = formatShelterAddress(it),
-                        personCount = it.personsCount!!,
+                        personCount = it.personsCount,
                     )
                 },
         )
@@ -85,9 +85,9 @@ class DailyReportService(
     }
 
     private fun formatDate(statistic: DistributionStatisticEntity): String {
-        val date = statistic.distribution?.startedAt?.toLocalDate()?.format(DATE_FORMATTER)
-        val startTime = statistic.distribution?.startedAt?.format(DATE_TIME_FORMATTER)
-        val endTime = statistic.distribution?.endedAt?.format(DATE_TIME_FORMATTER)
+        val date = statistic.distribution.startedAt.toLocalDate().format(DATE_FORMATTER)
+        val startTime = statistic.distribution.startedAt.format(DATE_TIME_FORMATTER)
+        val endTime = statistic.distribution.endedAt?.format(DATE_TIME_FORMATTER)
         return "$date $startTime - $endTime"
     }
 }

@@ -42,12 +42,12 @@ class SettingsServiceStaticValueCacheIT : TafelBaseIntegrationTest() {
         staticValueRepository.flush()
 
         // distinctive amounts (not the seed data's) so a stale cache hit can't coincidentally match
-        val entity = StaticValueEntity().apply {
-            type = StaticValueType.TOLERANCE
-            validFrom = today.minusDays(1)
-            validTo = today.plusDays(1)
-            amount = BigDecimal("12345.67")
-        }
+        val entity = StaticValueEntity(
+            validFrom = today.minusDays(1),
+            validTo = today.plusDays(1),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("12345.67"),
+        )
         testEntityManager.persist(entity)
         testEntityManager.flush()
 

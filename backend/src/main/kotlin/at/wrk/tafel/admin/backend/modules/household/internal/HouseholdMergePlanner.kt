@@ -56,7 +56,7 @@ internal object HouseholdMergePlanner {
     // Field conflicts
 
     private fun buildFieldConflicts(target: HouseholdEntity, sources: List<HouseholdEntity>): List<HouseholdMergeFieldConflictItem> = HouseholdMergeField.entries.mapNotNull { field ->
-        val conflictingSourceHouseholdIds = sources.filterNot { fieldValuesEqual(field, target, it) }.map { it.householdId!! }
+        val conflictingSourceHouseholdIds = sources.filterNot { fieldValuesEqual(field, target, it) }.map { it.householdId }
         if (conflictingSourceHouseholdIds.isEmpty()) null else HouseholdMergeFieldConflictItem(field, conflictingSourceHouseholdIds)
     }
 
@@ -94,7 +94,7 @@ internal object HouseholdMergePlanner {
             HouseholdMergeField.MAIN_PERSON_LASTNAME -> target.mainPerson!!.lastname = winner.mainPerson?.lastname
             HouseholdMergeField.MAIN_PERSON_BIRTHDATE -> target.mainPerson!!.birthDate = winner.mainPerson?.birthDate
             HouseholdMergeField.MAIN_PERSON_GENDER -> target.mainPerson!!.gender = winner.mainPerson?.gender
-            HouseholdMergeField.MAIN_PERSON_COUNTRY -> target.mainPerson!!.country = winner.mainPerson?.country
+            HouseholdMergeField.MAIN_PERSON_COUNTRY -> target.mainPerson!!.country = winner.mainPerson!!.country
             HouseholdMergeField.MAIN_PERSON_EMPLOYER -> target.mainPerson!!.employer = winner.mainPerson?.employer
             HouseholdMergeField.MAIN_PERSON_INCOME -> target.mainPerson!!.income = winner.mainPerson?.income
             HouseholdMergeField.MAIN_PERSON_INCOME_DUE -> target.mainPerson!!.incomeDue = winner.mainPerson?.incomeDue
@@ -133,7 +133,7 @@ internal object HouseholdMergePlanner {
     )
 
     private fun lockTuple(h: HouseholdEntity): List<Any?> = listOf(
-        h.locked ?: false,
+        h.locked,
         h.lockedAt,
         h.lockedBy?.id,
         normalizedString(h.lockReason),
@@ -190,7 +190,7 @@ internal object HouseholdMergePlanner {
 
                 if (matchedTargetPersonId != null) {
                     items += HouseholdMergePersonItem(
-                        sourceHouseholdId = source.householdId!!,
+                        sourceHouseholdId = source.householdId,
                         person = personMapper(person),
                         duplicate = true,
                         matchedPersonId = matchedTargetPersonId,
@@ -198,7 +198,7 @@ internal object HouseholdMergePlanner {
                     duplicateMap[person.id!!] = matchedTargetPersonId
                 } else {
                     items += HouseholdMergePersonItem(
-                        sourceHouseholdId = source.householdId!!,
+                        sourceHouseholdId = source.householdId,
                         person = personMapper(person),
                         duplicate = false,
                     )
@@ -244,33 +244,33 @@ internal object HouseholdMergePlanner {
         val flagUpdates = mutableMapOf<Long, Pair<Boolean, Boolean>>()
         val collisions = mutableListOf<HouseholdMergeDistributionCollisionItem>()
 
-        rows.groupBy { it.distribution!!.id!! }.forEach { (_, groupRows) ->
+        rows.groupBy { it.distribution.id!! }.forEach { (_, groupRows) ->
             if (groupRows.size == 1) {
                 val row = groupRows.first()
-                if (row.household!!.id != targetEntityId) {
+                if (row.household.id != targetEntityId) {
                     rowIdsToMove += row.id!!
                 }
                 return@forEach
             }
 
-            val winner = groupRows.firstOrNull { it.household!!.id == targetEntityId } ?: groupRows.minBy { it.id!! }
+            val winner = groupRows.firstOrNull { it.household.id == targetEntityId } ?: groupRows.minBy { it.id!! }
             val losers = groupRows.filterNot { it.id == winner.id }
 
-            val processed = (winner.processed ?: false) || losers.any { it.processed ?: false }
-            val costContributionPaid = (winner.costContributionPaid ?: true) && losers.all { it.costContributionPaid ?: true }
+            val processed = winner.processed || losers.any { it.processed }
+            val costContributionPaid = winner.costContributionPaid && losers.all { it.costContributionPaid }
             flagUpdates[winner.id!!] = processed to costContributionPaid
 
-            if (winner.household!!.id != targetEntityId) {
+            if (winner.household.id != targetEntityId) {
                 rowIdsToMove += winner.id!!
             }
             rowIdsToDrop += losers.map { it.id!! }
 
             losers.forEach { loser ->
-                val loserHousehold = entityIdToHousehold.getValue(loser.household!!.id!!)
+                val loserHousehold = entityIdToHousehold.getValue(loser.household.id!!)
                 collisions += HouseholdMergeDistributionCollisionItem(
-                    distributionId = loser.distribution!!.id!!,
-                    distributionStartedAt = loser.distribution!!.startedAt,
-                    sourceHouseholdId = loserHousehold.householdId!!,
+                    distributionId = loser.distribution.id!!,
+                    distributionStartedAt = loser.distribution.startedAt,
+                    sourceHouseholdId = loserHousehold.householdId,
                     targetTicketNumber = winner.ticketNumber,
                     sourceTicketNumber = loser.ticketNumber,
                 )

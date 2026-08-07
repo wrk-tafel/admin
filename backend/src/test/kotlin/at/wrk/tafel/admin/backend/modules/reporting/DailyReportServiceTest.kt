@@ -1,12 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity1
 import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity2
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportPdfModel
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportShelterPdfModel
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.util.MimeTypeUtils
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
@@ -31,7 +34,8 @@ internal class DailyReportServiceTest {
 
     @Test
     fun `generate daily report pdf`() {
-        val statistic = DistributionStatisticEntity().apply {
+        val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        val statistic = DistributionStatisticEntity(distribution = distribution).apply {
             employeeCount = 100
 
             countCustomers = 1
@@ -70,9 +74,9 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.logoContentType).isEqualTo(MimeTypeUtils.IMAGE_PNG_VALUE)
         assertThat(pdfModel.logoBytes).isNotNull()
 
-        val date = statistic.distribution?.startedAt?.toLocalDate()?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        val startTime = statistic.distribution?.startedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
-        val endTime = statistic.distribution?.endedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val date = statistic.distribution.startedAt.toLocalDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val startTime = statistic.distribution.startedAt.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val endTime = statistic.distribution.endedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
         assertThat(pdfModel.date).isEqualTo("$date $startTime - $endTime")
 
         assertThat(pdfModel.employeeCount).isEqualTo(statistic.employeeCount)
@@ -117,18 +121,29 @@ internal class DailyReportServiceTest {
 
     @Test
     fun `shelters are sorted by their frozen sortOrder, not name`() {
-        val statistic = DistributionStatisticEntity().apply {
+        val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        val statistic = DistributionStatisticEntity(distribution = distribution).apply {
             shelters = listOf(
-                DistributionStatisticShelterEntity().apply {
-                    name = "Shelter Z"
-                    personsCount = 1
-                    sortOrder = 1
-                },
-                DistributionStatisticShelterEntity().apply {
-                    name = "Shelter A"
-                    personsCount = 2
-                    sortOrder = 2
-                },
+                DistributionStatisticShelterEntity(
+                    statistic = this,
+                    name = "Shelter Z",
+                    addressStreet = "Street",
+                    addressHouseNumber = "1",
+                    addressPostalCode = 1234,
+                    addressCity = "City",
+                    personsCount = 1,
+                    sortOrder = 1,
+                ),
+                DistributionStatisticShelterEntity(
+                    statistic = this,
+                    name = "Shelter A",
+                    addressStreet = "Street",
+                    addressHouseNumber = "2",
+                    addressPostalCode = 1234,
+                    addressCity = "City",
+                    personsCount = 2,
+                    sortOrder = 2,
+                ),
             ).toMutableList()
         }
 

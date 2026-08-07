@@ -100,8 +100,8 @@ class DistributionClosedEventListener(
 
         val pdfReportBytes = dailyReportService.generateDailyReportPdf(statistic)
 
-        val dateFormatted = distribution.startedAt!!.format(DATE_TIME_FORMATTER)
-        val dateFilenameFormatted = distribution.startedAt!!.format(DATE_FILENAME_FORMATTER)
+        val dateFormatted = distribution.startedAt.format(DATE_TIME_FORMATTER)
+        val dateFilenameFormatted = distribution.startedAt.format(DATE_FILENAME_FORMATTER)
 
         val mailSubject = "TÖ Tafel 1030 - Tagesreport vom $dateFormatted"
         val filename = "tagesreport_$dateFilenameFormatted.pdf"
@@ -130,7 +130,7 @@ class DistributionClosedEventListener(
     private fun sendStatisticMail(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
         val statisticExportFiles = statisticExportService.exportStatisticFiles(statistic)
 
-        val dateFormatted = distribution.startedAt!!.format(DATE_TIME_FORMATTER)
+        val dateFormatted = distribution.startedAt.format(DATE_TIME_FORMATTER)
 
         val mailSubject = "TÖ Tafel 1030 - Statistiken vom $dateFormatted"
         val attachments = statisticExportFiles.map {
@@ -156,7 +156,7 @@ class DistributionClosedEventListener(
     }
 
     private fun sendReturnBoxesMail(distribution: DistributionEntity) {
-        val dateFormatted = distribution.startedAt!!.format(DATE_TIME_FORMATTER)
+        val dateFormatted = distribution.startedAt.format(DATE_TIME_FORMATTER)
 
         val mailSubject = "TÖ Tafel 1030 - Retourkisten vom $dateFormatted"
         val returnBoxes = createReturnBoxesData(distribution)
@@ -191,7 +191,7 @@ class DistributionClosedEventListener(
 
         val routes = uniqueRoutes.mapNotNull { route ->
             val uniqueShopsPerRoute = distribution.foodCollections.asSequence()
-                .filter { it.route!!.id == route.id }
+                .filter { it.route.id == route.id }
                 .flatMap { it.items ?: emptyList() }
                 .mapNotNull { it.shop }
                 .distinctBy { it.id }
@@ -201,7 +201,7 @@ class DistributionClosedEventListener(
             val shops = uniqueShopsPerRoute.mapNotNull { shop ->
                 val uniqueReturnCategories = distribution.foodCollections
                     .asSequence()
-                    .filter { it.route!!.id == route.id }
+                    .filter { it.route.id == route.id }
                     .flatMap { it.items ?: emptyList() }
                     .mapNotNull { it.category }
                     .filter { it.returnItem == true }
@@ -211,18 +211,18 @@ class DistributionClosedEventListener(
 
                 val returnBoxes = uniqueReturnCategories.mapNotNull { category ->
                     val amount = distribution.foodCollections.flatMap { it.items ?: emptyList() }
-                        .filter { it.shop!!.id == shop.id }
-                        .filter { it.category?.id == category.id } // NOSONAR kotlin:S6619
-                        .sumOf { it.amount ?: 0 }
+                        .filter { it.shop.id == shop.id }
+                        .filter { it.category.id == category.id }
+                        .sumOf { it.amount }
 
                     if (amount > 0) "${amount}x ${category.name}" else null
                 }.joinToString(", ")
 
                 if (returnBoxes.trim().isNotEmpty()) {
                     val address = listOfNotNull(
-                        shop.address?.street,
-                        shop.address?.postalCode,
-                        shop.address?.city,
+                        shop.address.street,
+                        shop.address.postalCode,
+                        shop.address.city,
                     )
                         .joinToString(", ")
                         .ifEmpty { "" }
@@ -239,7 +239,7 @@ class DistributionClosedEventListener(
 
             if (shops.isNotEmpty()) {
                 ReturnBoxesRoute(
-                    name = route.name!!,
+                    name = route.name,
                     shops = shops,
                 )
             } else {

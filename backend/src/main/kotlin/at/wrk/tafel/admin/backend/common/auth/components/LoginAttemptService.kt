@@ -40,13 +40,10 @@ class LoginAttemptService(
         advisoryLockService.withLock(AdvisoryLockKey.LOGIN_ATTEMPT_TRACKING) {
             val key = normalize(username)
             val entry = loginAttemptRepository.findByUsername(key)
-                ?: LoginAttemptEntity().apply {
-                    this.username = key
-                    this.failureCount = 0
-                }
+                ?: LoginAttemptEntity(username = key, lastFailureAt = now())
 
             // failures older than the lockout duration don't count towards the limit anymore
-            val failureCount = if (isStale(entry)) 1 else (entry.failureCount ?: 0) + 1
+            val failureCount = if (isStale(entry)) 1 else entry.failureCount + 1
 
             entry.failureCount = failureCount
             entry.lastFailureAt = now()
@@ -86,16 +83,13 @@ class LoginAttemptService(
 
     private fun mapToItem(entity: LoginAttemptEntity) = LoginAttemptItem(
         id = entity.id!!,
-        username = entity.username!!,
-        failureCount = entity.failureCount ?: 0,
-        lastFailureAt = entity.lastFailureAt!!,
+        username = entity.username,
+        failureCount = entity.failureCount,
+        lastFailureAt = entity.lastFailureAt,
         lockedUntil = entity.lockedUntil,
     )
 
-    private fun isStale(entry: LoginAttemptEntity): Boolean {
-        val lastFailureAt = entry.lastFailureAt ?: return false
-        return lastFailureAt.plusSeconds(lockoutDurationInSeconds()).isBefore(now())
-    }
+    private fun isStale(entry: LoginAttemptEntity): Boolean = entry.lastFailureAt.plusSeconds(lockoutDurationInSeconds()).isBefore(now())
 
     private fun maxFailures() = applicationProperties.security.loginAttempts.maxFailures
 

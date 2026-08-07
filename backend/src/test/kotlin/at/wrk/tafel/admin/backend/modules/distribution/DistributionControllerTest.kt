@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -116,7 +117,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `close distribution successful`() {
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
         every { service.validateClose() } returns DistributionCloseResponse(
@@ -148,7 +149,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `close distribution failed with errors`() {
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
@@ -174,7 +175,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `close distribution failed with warnings`() {
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
@@ -200,7 +201,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `close distribution failed with warnings and forceClosed`() {
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
@@ -234,7 +235,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `close distribution failed with errors, warnings and forceClosed`() {
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 

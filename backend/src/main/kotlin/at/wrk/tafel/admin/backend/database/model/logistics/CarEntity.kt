@@ -9,17 +9,15 @@ import jakarta.persistence.Table
 @Entity(name = "Car")
 @Table(name = "cars")
 @ExcludeFromTestCoverage
-class CarEntity : BaseChangeTrackingEntity() {
-
+class CarEntity(
     @Column(name = "license_plate")
-    var licensePlate: String? = null
+    var licensePlate: String,
+    @Column(name = "sort_order")
+    var sortOrder: Int,
+    @Column(name = "enabled")
+    var enabled: Boolean = true,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "name")
     var name: String? = null
-
-    @Column(name = "enabled")
-    var enabled: Boolean? = null
-
-    @Column(name = "sort_order")
-    var sortOrder: Int? = null
 }

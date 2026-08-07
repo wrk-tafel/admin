@@ -56,13 +56,14 @@ class HouseholdDocumentService(
             bytes = file.bytes,
         )
 
-        val entity = DocumentEntity().apply {
-            this.household = household
+        val entity = DocumentEntity(
+            household = household,
+            documentType = DocumentTypeEntity.valueOf(documentType.name),
+            fileName = file.originalFilename ?: "dokument",
+            contentType = file.contentType!!,
+            storagePath = storagePath,
+        ).apply {
             this.person = person
-            this.documentType = DocumentTypeEntity.valueOf(documentType.name)
-            this.fileName = file.originalFilename ?: "dokument"
-            this.contentType = file.contentType!!
-            this.storagePath = storagePath
             this.uploadedByUser = currentUser()
         }
 
@@ -97,13 +98,14 @@ class HouseholdDocumentService(
             bytes = bytes,
         )
 
-        val entity = DocumentEntity().apply {
-            this.household = household
+        val entity = DocumentEntity(
+            household = household,
+            documentType = DocumentTypeEntity.valueOf(documentType.name),
+            fileName = importedFileName,
+            contentType = contentType,
+            storagePath = storagePath,
+        ).apply {
             this.person = person
-            this.documentType = DocumentTypeEntity.valueOf(documentType.name)
-            this.fileName = importedFileName
-            this.contentType = contentType
-            this.storagePath = storagePath
             this.uploadedByUser = currentUser()
         }
 
@@ -121,10 +123,10 @@ class HouseholdDocumentService(
     @Transactional(readOnly = true)
     fun getDocumentFile(householdId: Long, documentId: Long): DocumentFileResult {
         val document = findDocument(householdId, documentId)
-        val bytes = documentStorageService.read(document.storagePath!!)
+        val bytes = documentStorageService.read(document.storagePath)
         return DocumentFileResult(
-            fileName = document.fileName!!,
-            contentType = document.contentType!!,
+            fileName = document.fileName,
+            contentType = document.contentType,
             bytes = bytes,
         )
     }
@@ -132,7 +134,7 @@ class HouseholdDocumentService(
     @Transactional
     fun deleteDocument(householdId: Long, documentId: Long) {
         val document = findDocument(householdId, documentId)
-        documentStorageService.delete(document.storagePath!!)
+        documentStorageService.delete(document.storagePath)
         documentRepository.delete(document)
     }
 
@@ -185,8 +187,8 @@ class HouseholdDocumentService(
 
         return DocumentItem(
             id = entity.id!!,
-            documentType = DocumentType.valueOf(entity.documentType!!.name),
-            fileName = entity.fileName!!,
+            documentType = DocumentType.valueOf(entity.documentType.name),
+            fileName = entity.fileName,
             uploadedAt = entity.createdAt!!,
             uploadedBy = uploadedBy,
             personId = entity.person?.id,

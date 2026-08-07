@@ -93,12 +93,9 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     fun `postProcessingNecessary matches household whose additional person is missing required field`() {
         val tag = "Findme${generateRandomLong()}"
         val withIncompleteAddPerson = persistHousehold(customizeMainPerson = { firstname = tag })
-        val incompleteAddPerson = PersonEntity().apply {
-            household = withIncompleteAddPerson
-            isMainPerson = false
+        val incompleteAddPerson = PersonEntity(household = withIncompleteAddPerson, country = testCountry, isMainPerson = false).apply {
             firstname = "child-${generateRandomLong()}"
             lastname = "child-${generateRandomLong()}"
-            country = testCountry
             excludeFromHousehold = false
             receivesFamilyAllowance = false
             birthDate = null

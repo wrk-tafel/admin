@@ -9,15 +9,11 @@ class CountryService(
     private val countryRepository: CountryRepository,
 ) {
 
-    // static_countries.code/name are NOT NULL in the DB, but CountryEntity models both as String? for the
-    // JPA no-arg constructor, so the assertions below are genuinely required (removing either is a compile
-    // error). Sonar (kotlin:S6619) flags the `code` assertion as dead regardless of which null-check syntax
-    // is used - confirmed false positive, suppressed rather than reworded.
     fun listCountries(): List<CountryItem> = countryRepository.findAll().map {
         CountryItem(
             id = it.id!!,
-            code = it.code!!, // NOSONAR kotlin:S6619
-            name = it.name!!,
+            code = it.code,
+            name = it.name,
         )
     }
 }
