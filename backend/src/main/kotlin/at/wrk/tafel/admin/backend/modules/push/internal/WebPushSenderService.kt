@@ -58,9 +58,15 @@ enum class PushSendResult {
  *   notification this app sends is about the distribution happening right now, so it is worthless
  *   after [TTL_SECONDS] and should expire at the push service instead.
  *
- * The `Topic` additionally makes the push service *replace* an undelivered message of the same
- * topic instead of stacking another one behind it, so a device that was unreachable gets the
- * latest state per topic rather than every intermediate message.
+ * Deliberately *no* RFC 8030 `Topic`, even though replacing an undelivered notification of the same
+ * kind instead of stacking another one behind it sounds like exactly what this app wants: FCM maps
+ * that header onto its own collapse key, and collapsible messages are rate-limited per app, device
+ * and collapse key - a burst of 20, refilling at one message every three minutes, with everything
+ * over that budget silently dropped rather than queued. Every notification here would share one of
+ * three topics, so repeated sends land in one bucket and stop arriving: pressing the test button ten
+ * times delivers about one of them, and a device whose budget is already spent gets nothing at all.
+ * [TTL_SECONDS] already keeps an undelivered backlog from outliving the distribution it's about,
+ * which is what the topic was wanted for in the first place.
  */
 @Component
 class PushNotificationFactory {
@@ -76,14 +82,13 @@ class PushNotificationFactory {
         private const val TTL_SECONDS = 12 * 60 * 60
     }
 
-    fun create(subscription: Subscription, payload: String, topic: String): Notification = Notification.builder()
+    fun create(subscription: Subscription, payload: String): Notification = Notification.builder()
         .endpoint(subscription.endpoint)
         .userPublicKey(subscription.keys.p256dh)
         .userAuth(subscription.keys.auth)
         .payload(payload)
         .ttl(TTL_SECONDS)
         .urgency(URGENCY)
-        .topic(topic)
         .build()
 }
 
@@ -125,13 +130,7 @@ class WebPushSenderService(
         private const val CRYPTO_KEY_HEADER = "Crypto-Key"
     }
 
-    /**
-     * [topic] identifies which kind of notification this is, so the push service can replace a
-     * still-undelivered message of the same topic rather than queue another one behind it - see
-     * [PushNotificationFactory]. Must be at most 32 characters from the base64url alphabet
-     * (RFC 8030 section 5.4).
-     */
-    fun send(subscriptionEntity: PushSubscriptionEntity, payload: String, topic: String): PushSendResult {
+    fun send(subscriptionEntity: PushSubscriptionEntity, payload: String): PushSendResult {
         val service = pushService
         if (service == null) {
             logger.warn("Skipped push send - VAPID isn't configured")
@@ -143,7 +142,7 @@ class WebPushSenderService(
                 subscriptionEntity.endpoint,
                 Subscription.Keys(subscriptionEntity.p256dhKey, subscriptionEntity.authKey),
             )
-            val notification = notificationFactory.create(subscription, payload, topic)
+            val notification = notificationFactory.create(subscription, payload)
             val request = service.preparePost(notification, ENCODING)
             request.removeHeaders(CRYPTO_KEY_HEADER)
 

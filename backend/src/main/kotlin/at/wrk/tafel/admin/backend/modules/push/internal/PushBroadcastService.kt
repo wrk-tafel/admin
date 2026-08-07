@@ -43,7 +43,7 @@ class PushBroadcastService(
                 return@forEach
             }
 
-            sendTo(subscription, title, body, topicOf(type))
+            sendTo(subscription, title, body)
         }
     }
 
@@ -55,14 +55,14 @@ class PushBroadcastService(
      * button, so it has to reach the device even while a preference toggle is off - otherwise the
      * one button meant to answer "does push work on this device at all?" would silently do nothing.
      */
-    fun sendTo(subscription: PushSubscriptionEntity, title: String, body: String, topic: String): PushSendResult {
+    fun sendTo(subscription: PushSubscriptionEntity, title: String, body: String): PushSendResult {
         val payload = jsonMapper.writeValueAsString(
             PushNotificationPayload(
                 notification = PushNotificationPayloadNotification(title = title, body = body),
             ),
         )
 
-        val result = webPushSenderService.send(subscription, payload, topic)
+        val result = webPushSenderService.send(subscription, payload)
         when (result) {
             PushSendResult.SENT -> Unit
             PushSendResult.EXPIRED -> {
@@ -75,16 +75,6 @@ class PushBroadcastService(
         }
         return result
     }
-
-    /**
-     * The RFC 8030 `Topic` under which a notification of this [type] is queued at the push service,
-     * so that a device which was unreachable for several of them gets only the newest one per type
-     * instead of the whole backlog. Derived from the enum name rather than mapped by hand so a new
-     * type can't silently share another one's topic; the names have to stay within the 32-character
-     * base64url limit topics are restricted to, which "distribution-started" (20) and
-     * "distribution-closed" (19) comfortably are.
-     */
-    private fun topicOf(type: PushNotificationType): String = type.name.lowercase().replace('_', '-')
 }
 
 @ExcludeFromTestCoverage

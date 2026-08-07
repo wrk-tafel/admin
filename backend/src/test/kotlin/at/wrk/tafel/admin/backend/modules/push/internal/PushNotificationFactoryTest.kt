@@ -23,7 +23,6 @@ import java.util.Base64
 internal class PushNotificationFactoryTest {
 
     private companion object {
-        private const val TOPIC = "distribution-started"
         private const val TWELVE_HOURS_IN_SECONDS = 12 * 60 * 60
 
         @JvmStatic
@@ -50,30 +49,35 @@ internal class PushNotificationFactoryTest {
 
     @Test
     fun `create marks the notification urgent so FCM delivers it while the device is dozing`() {
-        val notification = factory.create(realSubscription(), "{}", TOPIC)
+        val notification = factory.create(realSubscription(), "{}")
 
         assertThat(notification.urgency).isEqualTo(Urgency.HIGH)
     }
 
     @Test
     fun `create expires the notification after twelve hours instead of the library's 28-day default`() {
-        val notification = factory.create(realSubscription(), "{}", TOPIC)
+        val notification = factory.create(realSubscription(), "{}")
 
         assertThat(notification.ttl).isEqualTo(TWELVE_HOURS_IN_SECONDS)
     }
 
+    /**
+     * A topic becomes FCM's collapse key, and collapsible messages are rate-limited per app, device
+     * and collapse key - so setting one makes repeated notifications stop arriving instead of
+     * merely replacing each other (see [PushNotificationFactory]).
+     */
     @Test
-    fun `create tags the notification with the topic it was given`() {
-        val notification = factory.create(realSubscription(), "{}", TOPIC)
+    fun `create leaves the topic unset so the push service doesn't collapse notifications`() {
+        val notification = factory.create(realSubscription(), "{}")
 
-        assertThat(notification.topic).isEqualTo(TOPIC)
+        assertThat(notification.topic).isNull()
     }
 
     @Test
     fun `create carries the subscription endpoint and payload`() {
         val subscription = realSubscription()
 
-        val notification = factory.create(subscription, """{"notification":{"title":"x"}}""", TOPIC)
+        val notification = factory.create(subscription, """{"notification":{"title":"x"}}""")
 
         assertThat(notification.endpoint).isEqualTo(subscription.endpoint)
         assertThat(notification.payload).isEqualTo("""{"notification":{"title":"x"}}""".toByteArray())

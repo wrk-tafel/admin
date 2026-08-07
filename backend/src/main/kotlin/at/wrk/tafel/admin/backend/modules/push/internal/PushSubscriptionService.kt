@@ -28,13 +28,6 @@ class PushSubscriptionService(
     companion object {
         private const val TEST_NOTIFICATION_TITLE = "Test-Benachrichtigung"
         private const val TEST_NOTIFICATION_BODY = "Wenn du das hier siehst, funktionieren Push-Benachrichtigungen auf diesem Gerät."
-
-        /**
-         * Repeatedly pressing "test" on a device that is currently unreachable should leave one
-         * pending notification rather than a stack of identical ones - see
-         * `PushBroadcastService.topicOf` for what the topic does.
-         */
-        private const val TEST_NOTIFICATION_TOPIC = "test"
     }
 
     fun getPublicKey(): PushPublicKeyResponse {
@@ -105,7 +98,7 @@ class PushSubscriptionService(
         val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
             ?: throw NotFoundException("Push-Subscription wurde nicht gefunden")
 
-        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY, TEST_NOTIFICATION_TOPIC)
+        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY)
         return PushTestResponse(
             result = when (result) {
                 PushSendResult.SENT -> PushTestResult.SENT

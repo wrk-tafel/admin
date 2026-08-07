@@ -309,12 +309,12 @@ internal class PushSubscriptionServiceTest {
             createdAt = LocalDateTime.now()
         }
         every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
-        every { pushBroadcastService.sendTo(entity, any(), any(), any()) } returns PushSendResult.SENT
+        every { pushBroadcastService.sendTo(entity, any(), any()) } returns PushSendResult.SENT
 
         val response = service.sendTestNotification(5L)
 
         assertThat(response.result).isEqualTo(PushTestResult.SENT)
-        verify { pushBroadcastService.sendTo(entity, "Test-Benachrichtigung", any(), "test") }
+        verify { pushBroadcastService.sendTo(entity, "Test-Benachrichtigung", any()) }
     }
 
     @ParameterizedTest
@@ -331,7 +331,7 @@ internal class PushSubscriptionServiceTest {
             createdAt = LocalDateTime.now()
         }
         every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
-        every { pushBroadcastService.sendTo(entity, any(), any(), any()) } returns sendResult
+        every { pushBroadcastService.sendTo(entity, any(), any()) } returns sendResult
 
         assertThat(service.sendTestNotification(5L).result).isEqualTo(expected)
     }
@@ -343,7 +343,7 @@ internal class PushSubscriptionServiceTest {
         assertThatThrownBy { service.sendTestNotification(999L) }
             .isInstanceOf(NotFoundException::class.java)
 
-        verify(exactly = 0) { pushBroadcastService.sendTo(any(), any(), any(), any()) }
+        verify(exactly = 0) { pushBroadcastService.sendTo(any(), any(), any()) }
     }
 
     @Test
