@@ -1,9 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
-import at.wrk.tafel.admin.backend.common.api.PagedResponse
-import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
-import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -18,7 +14,6 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -26,6 +21,10 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -37,8 +36,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -51,9 +49,6 @@ class SettingsServiceTest {
 
     @RelaxedMockK
     private lateinit var staticValueRepository: StaticValueRepository
-
-    @RelaxedMockK
-    private lateinit var loginAttemptService: LoginAttemptService
 
     @InjectMockKs
     private lateinit var service: SettingsService
@@ -138,36 +133,12 @@ class SettingsServiceTest {
         }
 
         assertThat(recipientsSlot.captured).containsExactly(
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.TO
-                address = "TO"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.TO
-                address = "TO"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.CC
-                address = "CC"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.CC
-                address = "CC"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.BCC
-                address = "BCC"
-            },
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.BCC
-                address = "BCC"
-            },
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.TO, address = "TO"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.TO, address = "TO"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "CC"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "CC"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.BCC, address = "BCC"),
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.BCC, address = "BCC"),
         )
     }
 
@@ -200,11 +171,7 @@ class SettingsServiceTest {
         }
 
         assertThat(recipientsSlot.captured).containsExactly(
-            MailRecipientEntity().apply {
-                mailType = MailType.DAILY_REPORT
-                recipientType = RecipientType.CC
-                address = "c c1"
-            },
+            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "c c1"),
         )
     }
 
@@ -212,26 +179,25 @@ class SettingsServiceTest {
     fun `fetch static values only returns rows currently valid today`() {
         val today = LocalDate.now()
 
-        val current = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = today.minusDays(10)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-        }
-        val expired = StaticValueEntity().apply {
-            id = 2
-            type = StaticValueType.TOLERANCE
-            validFrom = LocalDate.of(1900, 1, 1)
-            validTo = today.minusDays(11)
-            amount = BigDecimal("50.00")
-        }
-        val notYetValid = StaticValueEntity().apply {
+        val current = StaticValueEntity(
+            validFrom = today.minusDays(10),
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("100.00"),
+        ).apply { id = 1 }
+        val expired = StaticValueEntity(
+            validFrom = LocalDate.of(1900, 1, 1),
+            validTo = today.minusDays(11),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("50.00"),
+        ).apply { id = 2 }
+        val notYetValid = StaticValueEntity(
+            validFrom = today.plusDays(1),
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1328.00"),
+        ).apply {
             id = 3
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = today.plusDays(1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("1328.00")
             countAdults = 1
             countChildren = 0
         }
@@ -256,12 +222,13 @@ class SettingsServiceTest {
     @Test
     fun `update static value historizes - closes the current row yesterday and opens a new one today`() {
         val today = LocalDate.now()
-        val existing = StaticValueEntity().apply {
+        val existing = StaticValueEntity(
+            validFrom = LocalDate.of(2022, 1, 1),
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1328.00"),
+        ).apply {
             id = 1
-            type = StaticValueType.INCOME_LIMIT
-            validFrom = LocalDate.of(2022, 1, 1)
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("1328.00")
             countAdults = 1
             countChildren = 0
         }
@@ -304,13 +271,12 @@ class SettingsServiceTest {
     @Test
     fun `update static value updates in place when the currently valid row already started today`() {
         val today = LocalDate.now()
-        val existing = StaticValueEntity().apply {
-            id = 1
-            type = StaticValueType.TOLERANCE
-            validFrom = today
-            validTo = LocalDate.of(2999, 12, 31)
-            amount = BigDecimal("100.00")
-        }
+        val existing = StaticValueEntity(
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("100.00"),
+        ).apply { id = 1 }
         every { staticValueRepository.findByIdOrNull(1L) } returns existing
         every { staticValueRepository.save(any()) } answers { firstArg() }
 
@@ -362,77 +328,69 @@ class SettingsServiceTest {
     }
 
     @Test
-    fun `fetch login attempts as a page`() {
-        val older = LoginAttemptEntity().apply {
-            id = 1
-            username = "user1"
-            failureCount = 1
-            lastFailureAt = LocalDate.of(2026, 1, 1).atStartOfDay()
-            lockedUntil = null
-        }
-        val newer = LoginAttemptEntity().apply {
-            id = 2
-            username = "user2"
-            failureCount = 3
-            lastFailureAt = LocalDate.of(2026, 1, 2).atStartOfDay()
-            lockedUntil = LocalDate.of(2026, 1, 2).atStartOfDay().plusMinutes(15)
-        }
-        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
-        val pagedResult = PageImpl(listOf(newer, older), pageRequest, 123)
-        every { loginAttemptService.findAll(pageRequest) } returns pagedResult
-
-        val response = service.getLoginAttempts()
-
-        assertThat(response).isEqualTo(
-            PagedResponse(
-                items = listOf(
-                    LoginAttemptItem(
-                        id = 2,
-                        username = "user2",
-                        failureCount = 3,
-                        lastFailureAt = newer.lastFailureAt!!,
-                        lockedUntil = newer.lockedUntil,
-                    ),
-                    LoginAttemptItem(
-                        id = 1,
-                        username = "user1",
-                        failureCount = 1,
-                        lastFailureAt = older.lastFailureAt!!,
-                        lockedUntil = null,
+    fun `update mail recipients logs the update`() {
+        val updatedSettings = MailRecipientsRequest(
+            mailRecipients = listOf(
+                MailRecipientsPerMailType(
+                    mailType = MailType.DAILY_REPORT.name,
+                    recipients = listOf(
+                        MailRecipientAdresses(recipientType = MailRecipientType.TO, addresses = listOf("to1")),
                     ),
                 ),
-                totalCount = 123,
-                currentPage = 1,
-                totalPages = pagedResult.totalPages,
-                pageSize = PaginationDefaults.DEFAULT_PAGE_SIZE,
             ),
         )
+
+        withLogAppender(SettingsService::class.java) { logAppender ->
+            service.updateMailRecipients(updatedSettings)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated mail recipients")
+            }
+        }
     }
 
     @Test
-    fun `fetch login attempts with explicit valid pageSize`() {
-        val pageRequest = PageRequest.of(0, 25)
-        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+    fun `update static value logs the update`() {
+        val today = LocalDate.now()
+        val existing = StaticValueEntity(
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("100.00"),
+        ).apply { id = 1 }
+        every { staticValueRepository.findByIdOrNull(1L) } returns existing
+        every { staticValueRepository.save(any()) } answers { firstArg() }
 
-        val response = service.getLoginAttempts(page = 1, pageSize = 25)
+        val requestedChanges = StaticValueRequest(
+            id = 1,
+            type = "TOLERANCE",
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("999.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
 
-        assertThat(response.pageSize).isEqualTo(25)
+        withLogAppender(SettingsService::class.java) { logAppender ->
+            service.updateStaticValue(1L, requestedChanges)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated static value").contains("1").contains("999.00")
+            }
+        }
     }
 
-    @Test
-    fun `fetch login attempts with invalid pageSize falls back to default`() {
-        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
-        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
-
-        val response = service.getLoginAttempts(page = 1, pageSize = 7)
-
-        assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
-    }
-
-    @Test
-    fun `delete login attempt`() {
-        service.deleteLoginAttempt(1L)
-
-        verify(exactly = 1) { loginAttemptService.deleteById(1L) }
+    private fun withLogAppender(loggerClass: Class<*>, block: (ListAppender<ILoggingEvent>) -> Unit) {
+        val logger = LoggerFactory.getLogger(loggerClass) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            block(logAppender)
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 }

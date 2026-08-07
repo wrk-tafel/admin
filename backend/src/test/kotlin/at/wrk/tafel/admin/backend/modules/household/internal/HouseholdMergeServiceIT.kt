@@ -78,7 +78,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val remaining = distributionHouseholdRepository.findByDistributionId(distribution.id!!)
         assertThat(remaining).hasSize(1)
         val survivor = remaining.single()
-        assertThat(survivor.household!!.householdId).isEqualTo(target.householdId)
+        assertThat(survivor.household.householdId).isEqualTo(target.householdId)
         assertThat(survivor.ticketNumber).isEqualTo(5) // target's own ticket, never overwritten
         assertThat(survivor.processed).isTrue() // OR-folded from the source's processed=true
         assertThat(survivor.costContributionPaid).isFalse() // AND-folded from the source's unpaid=false
@@ -108,7 +108,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val remaining = distributionHouseholdRepository.findByDistributionId(distribution.id!!)
         assertThat(remaining).hasSize(1)
         val survivor = remaining.single()
-        assertThat(survivor.household!!.householdId).isEqualTo(target.householdId)
+        assertThat(survivor.household.householdId).isEqualTo(target.householdId)
         assertThat(survivor.id).isEqualTo(source1Row.id) // lowest-id row wins
         assertThat(survivor.ticketNumber).isEqualTo(3)
         assertThat(survivor.processed).isTrue() // OR-folded from source2
@@ -181,10 +181,8 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val target = persistHousehold()
         val source = persistHousehold()
 
-        val note = HouseholdNoteEntity().apply {
-            household = source
+        val note = HouseholdNoteEntity(household = source, note = "some note on the source household").apply {
             employee = testUser.employee
-            this.note = "some note on the source household"
         }
         testEntityManager.persist(note)
 
@@ -196,7 +194,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
 
         val movedNote = testEntityManager.find<HouseholdNoteEntity>(note.id!!)
         assertThat(movedNote).isNotNull
-        assertThat(movedNote!!.household!!.householdId).isEqualTo(target.householdId)
+        assertThat(movedNote!!.household.householdId).isEqualTo(target.householdId)
     }
 
     @Test
@@ -212,13 +210,14 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val documentFile = tempDir.resolve("document.pdf")
         Files.write(documentFile, byteArrayOf(1, 2, 3))
 
-        val document = DocumentEntity().apply {
-            household = source
+        val document = DocumentEntity(
+            household = source,
+            documentType = DocumentType.OTHER,
+            fileName = "document.pdf",
+            contentType = "application/pdf",
+            storagePath = documentFile.toAbsolutePath().toString(),
+        ).apply {
             person = sourceDuplicatePerson
-            documentType = DocumentType.OTHER
-            fileName = "document.pdf"
-            contentType = "application/pdf"
-            storagePath = documentFile.toAbsolutePath().toString()
         }
         testEntityManager.persist(document)
 
@@ -230,7 +229,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
 
         val movedDocument = testEntityManager.find<DocumentEntity>(document.id!!)
         assertThat(movedDocument).isNotNull
-        assertThat(movedDocument!!.household!!.householdId).isEqualTo(target.householdId)
+        assertThat(movedDocument!!.household.householdId).isEqualTo(target.householdId)
         assertThat(movedDocument.person!!.id).isEqualTo(targetPerson.id)
         assertThat(Files.exists(documentFile)).isTrue()
     }
@@ -288,7 +287,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
     }
 
     private fun persistHousehold(): HouseholdEntity {
-        val household = createHousehold(testUser.employee!!, testCountry)
+        val household = createHousehold(testUser.employee, testCountry)
         testEntityManager.persist(household)
         testEntityManager.flush()
 
@@ -300,14 +299,11 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
     }
 
     private fun addPerson(household: HouseholdEntity, firstname: String, lastname: String, birthDate: LocalDate): PersonEntity {
-        val person = PersonEntity().apply {
-            this.household = household
-            isMainPerson = false
+        val person = PersonEntity(household = household, country = testCountry, isMainPerson = false).apply {
             this.firstname = firstname
             this.lastname = lastname
             this.birthDate = birthDate
             gender = household.mainPerson?.gender
-            country = testCountry
             income = BigDecimal.ZERO
         }
         testEntityManager.persist(person)
@@ -321,13 +317,13 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         processed: Boolean,
         costContributionPaid: Boolean,
     ): DistributionHouseholdEntity {
-        val distributionHouseholdEntity = DistributionHouseholdEntity()
-
-        distributionHouseholdEntity.household = household
-        distributionHouseholdEntity.distribution = distribution
-        distributionHouseholdEntity.ticketNumber = ticketNumber
-        distributionHouseholdEntity.processed = processed
-        distributionHouseholdEntity.costContributionPaid = costContributionPaid
+        val distributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = distribution,
+            household = household,
+            ticketNumber = ticketNumber,
+            processed = processed,
+            costContributionPaid = costContributionPaid,
+        )
 
         testEntityManager.persist(distributionHouseholdEntity)
         return distributionHouseholdEntity

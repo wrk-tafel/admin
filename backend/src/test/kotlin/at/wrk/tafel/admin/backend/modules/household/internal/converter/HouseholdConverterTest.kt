@@ -123,97 +123,91 @@ internal class HouseholdConverterTest {
         ),
     )
 
-    private val testHouseholdEntity1 = HouseholdEntity().apply {
-        createdAt = LocalDateTime.now()
-        issuer = testUserEntity.employee
-        householdId = 100
-        addressStreet = "Test-Straße"
-        addressHouseNumber = "100"
-        addressStairway = "1"
-        addressPostalCode = 1010
-        addressDoor = "21"
-        addressCity = "Wien"
-        telephoneNumber = "0043660123123"
-        email = "test@mail.com"
-        validUntil = LocalDate.now()
-        locked = false
-        prolongedAt = null
-        pendingCostContribution = BigDecimal.TEN
-        singleParent = true
+    private val testHouseholdEntity1 = run {
+        val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
+            createdAt = LocalDateTime.now()
+            issuer = testUserEntity.employee
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            prolongedAt = null
+            pendingCostContribution = BigDecimal.TEN
+            singleParent = true
+        }
 
-        val mainPersonEntity = PersonEntity()
-        mainPersonEntity.id = 1
-        mainPersonEntity.household = this
-        mainPersonEntity.isMainPerson = true
-        mainPersonEntity.lastname = "Mustermann"
-        mainPersonEntity.firstname = "Max"
-        mainPersonEntity.birthDate = LocalDate.now().minusYears(30)
-        mainPersonEntity.gender = Gender.FEMALE
-        mainPersonEntity.country = testCountry1
-        mainPersonEntity.employer = "Employer 123"
-        mainPersonEntity.income = BigDecimal("1000")
-        mainPersonEntity.incomeDue = LocalDate.now()
+        val mainPersonEntity = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            id = 1
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            gender = Gender.FEMALE
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+        }
 
-        val addPerson1 = PersonEntity()
-        addPerson1.id = 2
-        addPerson1.household = this
-        addPerson1.lastname = "Add pers 1"
-        addPerson1.firstname = "Add pers 1"
-        addPerson1.birthDate = LocalDate.now().minusYears(5)
-        addPerson1.gender = Gender.MALE
-        addPerson1.income = BigDecimal("100")
-        addPerson1.incomeDue = LocalDate.now()
-        addPerson1.receivesFamilyAllowance = false
-        addPerson1.country = testCountry1
-        addPerson1.excludeFromHousehold = false
+        val addPerson1 = PersonEntity(household = household, country = testCountry1).apply {
+            id = 2
+            lastname = "Add pers 1"
+            firstname = "Add pers 1"
+            birthDate = LocalDate.now().minusYears(5)
+            gender = Gender.MALE
+            income = BigDecimal("100")
+            incomeDue = LocalDate.now()
+            receivesFamilyAllowance = false
+            excludeFromHousehold = false
+        }
 
-        val addPerson2 = PersonEntity()
-        addPerson2.id = 3
-        addPerson2.household = this
-        addPerson2.lastname = "Add pers 2"
-        addPerson2.firstname = "Add pers 2"
-        addPerson2.birthDate = LocalDate.now().minusYears(2)
-        addPerson2.gender = Gender.FEMALE
-        addPerson2.country = testCountry1
-        addPerson2.receivesFamilyAllowance = true
-        addPerson2.excludeFromHousehold = true
+        val addPerson2 = PersonEntity(household = household, country = testCountry1).apply {
+            id = 3
+            lastname = "Add pers 2"
+            firstname = "Add pers 2"
+            birthDate = LocalDate.now().minusYears(2)
+            gender = Gender.FEMALE
+            receivesFamilyAllowance = true
+            excludeFromHousehold = true
+        }
 
-        persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
-        mainPerson = mainPersonEntity
+        household.persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
+        household.mainPerson = mainPersonEntity
+        household
     }
 
-    private val testHouseholdEntity2 = HouseholdEntity().apply {
-        id = 2
-        createdAt = LocalDateTime.now()
-        householdId = 200
-        addressStreet = "Test-Straße 2"
-        addressHouseNumber = "200"
-        addressStairway = "1-2"
-        addressPostalCode = 1010
-        addressDoor = "21-2"
-        addressCity = "Wien 2"
-        telephoneNumber = "0043660123123"
-        email = "test2@mail.com"
-        validUntil = LocalDate.now()
-        locked = true
-        lockReason = "dummy reason"
-        lockedBy = testUserEntity
-        pendingCostContribution = BigDecimal.ZERO
+    private val testHouseholdEntity2 = run {
+        val household = HouseholdEntity(householdId = 200, validUntil = LocalDate.now(), locked = true).apply {
+            id = 2
+            createdAt = LocalDateTime.now()
+            addressStreet = "Test-Straße 2"
+            addressHouseNumber = "200"
+            addressStairway = "1-2"
+            addressPostalCode = 1010
+            addressDoor = "21-2"
+            addressCity = "Wien 2"
+            telephoneNumber = "0043660123123"
+            email = "test2@mail.com"
+            lockReason = "dummy reason"
+            lockedBy = testUserEntity
+            pendingCostContribution = BigDecimal.ZERO
+        }
 
-        val mainPersonEntity = PersonEntity()
-        mainPersonEntity.id = 20
-        mainPersonEntity.household = this
-        mainPersonEntity.isMainPerson = true
-        mainPersonEntity.lastname = "Mustermann"
-        mainPersonEntity.firstname = "Max 2"
-        mainPersonEntity.birthDate = LocalDate.now().minusYears(22)
-        mainPersonEntity.country = testCountry1
-        mainPersonEntity.employer = "Employer 123-2"
-        mainPersonEntity.income = BigDecimal("2000")
-        mainPersonEntity.incomeDue = LocalDate.now()
+        val mainPersonEntity = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            id = 20
+            lastname = "Mustermann"
+            firstname = "Max 2"
+            birthDate = LocalDate.now().minusYears(22)
+            employer = "Employer 123-2"
+            income = BigDecimal("2000")
+            incomeDue = LocalDate.now()
+        }
 
-        persons = mutableListOf(mainPersonEntity)
-        mainPerson = mainPersonEntity
+        household.persons = mutableListOf(mainPersonEntity)
+        household.mainPerson = mainPersonEntity
+        household
     }
 
     @BeforeEach

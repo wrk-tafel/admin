@@ -53,7 +53,7 @@ class DailyReportsExporter(
                 null
             }
         }
-        val currentRows = generateStatisticColumns(currentStatistic.distribution!!, currentStatistic)
+        val currentRows = generateStatisticColumns(currentStatistic.distribution, currentStatistic)
 
         val result = mutableListOf(descriptionHeaderRow, columnsHeaderRow)
         if (previousRows.isNotEmpty()) {
@@ -69,11 +69,11 @@ class DailyReportsExporter(
     ): List<String> {
         val columns = mutableListOf<String>()
 
-        val startedAt = distribution.startedAt!!
+        val startedAt = distribution.startedAt
         columns.add(startedAt.format(DATE_FORMATTER))
         columns.add(startedAt[IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString())
 
-        val countPersonsInShelter = statistic.shelters.sumOf { it.personsCount ?: 0 }
+        val countPersonsInShelter = statistic.shelters.sumOf { it.personsCount }
         val countPeopleTotal = statistic.countCustomers
             .plus(statistic.countPersons)
             .plus(countPersonsInShelter)

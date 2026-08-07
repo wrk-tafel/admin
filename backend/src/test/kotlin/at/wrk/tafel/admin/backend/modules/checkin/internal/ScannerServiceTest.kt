@@ -39,10 +39,10 @@ internal class ScannerServiceTest {
     @Test
     fun `register new scanner`() {
         val newScannerId = 1
-        every { scannerRegisteredRepository.save(any()) } returns ScannerRegistrationEntity().apply {
-            registrationTime = LocalDateTime.now()
-            scannerId = newScannerId
-        }
+        every { scannerRegisteredRepository.save(any()) } returns ScannerRegistrationEntity(
+            registrationTime = LocalDateTime.now(),
+            scannerId = newScannerId,
+        )
         every { scannerRegisteredRepository.getNextScannerId() } returns newScannerId
         every { scannerRegisteredRepository.findByScannerId(newScannerId) } returns null
 
@@ -66,14 +66,14 @@ internal class ScannerServiceTest {
         val existingScannerId = 1
         val nextScannerId = 2
         every { scannerRegisteredRepository.getNextScannerId() } returns nextScannerId
-        every { scannerRegisteredRepository.findByScannerId(existingScannerId) } returns ScannerRegistrationEntity().apply {
-            registrationTime = null
-            scannerId = existingScannerId
-        }
-        every { scannerRegisteredRepository.save(any()) } returns ScannerRegistrationEntity().apply {
-            registrationTime = LocalDateTime.now()
-            scannerId = existingScannerId
-        }
+        every { scannerRegisteredRepository.findByScannerId(existingScannerId) } returns ScannerRegistrationEntity(
+            registrationTime = LocalDateTime.now().minusDays(1),
+            scannerId = existingScannerId,
+        )
+        every { scannerRegisteredRepository.save(any()) } returns ScannerRegistrationEntity(
+            registrationTime = LocalDateTime.now(),
+            scannerId = existingScannerId,
+        )
 
         val firstId = service.registerScanner(existingScannerId)
         assertThat(firstId).isEqualTo(1)
@@ -94,14 +94,8 @@ internal class ScannerServiceTest {
     @Test
     fun `get scanner ids`() {
         every { scannerRegisteredRepository.findAll() } returns listOf(
-            ScannerRegistrationEntity().apply {
-                registrationTime = LocalDateTime.now()
-                scannerId = 2
-            },
-            ScannerRegistrationEntity().apply {
-                registrationTime = LocalDateTime.now()
-                scannerId = 1
-            },
+            ScannerRegistrationEntity(registrationTime = LocalDateTime.now(), scannerId = 2),
+            ScannerRegistrationEntity(registrationTime = LocalDateTime.now(), scannerId = 1),
         )
 
         val scannerIds = service.getScannerIds()

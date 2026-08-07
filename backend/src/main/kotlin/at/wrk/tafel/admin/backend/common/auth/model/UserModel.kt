@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.validation.constraints.NotBlank
+import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
 data class ChangePasswordRequest(
@@ -70,4 +71,13 @@ data class UserInfoResponse(
 @ExcludeFromTestCoverage
 data class PermissionsListResponse(
     val permissions: List<UserPermissionItem>,
+)
+
+@ExcludeFromTestCoverage
+data class LoginAttemptItem(
+    val id: Long,
+    val username: String,
+    val failureCount: Int,
+    val lastFailureAt: LocalDateTime,
+    val lockedUntil: LocalDateTime?,
 )

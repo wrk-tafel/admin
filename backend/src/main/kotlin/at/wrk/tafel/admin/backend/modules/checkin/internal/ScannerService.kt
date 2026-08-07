@@ -50,10 +50,10 @@ class ScannerService(
 
         if (scannerRegistration == null) {
             scannerRegistration = scannerRegisteredRepository.save(
-                ScannerRegistrationEntity().apply {
-                    registrationTime = LocalDateTime.now()
-                    scannerId = nextScannerId
-                },
+                ScannerRegistrationEntity(
+                    registrationTime = LocalDateTime.now(),
+                    scannerId = nextScannerId,
+                ),
             )
             logger.info("Registered new scanner with id: {}", nextScannerId)
         } else {
@@ -63,10 +63,10 @@ class ScannerService(
             logger.info("Registered existing scanner with id: {}", existingScannerId)
         }
 
-        scannerRegistration.scannerId!!
+        scannerRegistration.scannerId
     }
 
-    fun getScannerIds(): List<Int> = scannerRegisteredRepository.findAll().mapNotNull { it.scannerId }.sorted()
+    fun getScannerIds(): List<Int> = scannerRegisteredRepository.findAll().map { it.scannerId }.sorted()
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupScannerRegistrations() {

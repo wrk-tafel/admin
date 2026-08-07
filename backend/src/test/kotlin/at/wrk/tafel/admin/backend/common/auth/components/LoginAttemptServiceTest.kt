@@ -9,13 +9,19 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.Clock
@@ -106,6 +112,21 @@ internal class LoginAttemptServiceTest {
         service = LoginAttemptService(loginAttemptRepository, advisoryLockService, applicationProperties, clock)
     }
 
+    private lateinit var logAppender: ListAppender<ILoggingEvent>
+    private lateinit var logger: Logger
+
+    @BeforeEach
+    fun setUpLogCapture() {
+        logger = LoggerFactory.getLogger(LoginAttemptService::class.java) as Logger
+        logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+    }
+
+    @AfterEach
+    fun tearDownLogCapture() {
+        logger.detachAppender(logAppender)
+    }
+
     @Test
     fun `not locked without any failures`() {
         assertThat(service.isLocked("user")).isFalse
@@ -123,6 +144,20 @@ internal class LoginAttemptServiceTest {
         repeat(MAX_FAILURES) { service.recordFailure("user") }
 
         assertThat(service.isLocked("user")).isTrue
+    }
+
+    @Test
+    fun `logs a warning once the lockout is triggered, but not before`() {
+        repeat(MAX_FAILURES - 1) { service.recordFailure("user") }
+        assertThat(logAppender.list).isEmpty()
+
+        service.recordFailure("user")
+
+        assertThat(logAppender.list).hasSize(1)
+        assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
+        assertThat(logAppender.list.single().formattedMessage)
+            .contains("user")
+            .contains(MAX_FAILURES.toString())
     }
 
     @Test

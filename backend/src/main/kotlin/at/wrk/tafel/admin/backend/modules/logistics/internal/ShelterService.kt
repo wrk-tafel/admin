@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
@@ -7,6 +8,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,6 +17,10 @@ import org.springframework.transaction.annotation.Transactional
 class ShelterService(
     private val shelterRepository: ShelterRepository,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(ShelterService::class.java)
+    }
 
     @Transactional(readOnly = true)
     fun getActiveShelters(): List<ShelterResponse> = shelterRepository.findByEnabledIsTrue()
@@ -27,52 +33,52 @@ class ShelterService(
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
     fun createShelter(shelter: ShelterRequest): ShelterResponse {
-        val shelterEntity = ShelterEntity().apply {
-            name = shelter.name
-            addressStreet = shelter.addressStreet
-            addressHouseNumber = shelter.addressHouseNumber
+        val shelterEntity = ShelterEntity(
+            name = shelter.name,
+            addressStreet = shelter.addressStreet,
+            addressHouseNumber = shelter.addressHouseNumber,
+            addressPostalCode = shelter.addressPostalCode,
+            addressCity = shelter.addressCity,
+            personsCount = shelter.personsCount,
+            sortOrder = nextSortOrder(),
+            enabled = shelter.enabled,
+        ).apply {
             addressStairway = shelter.addressStairway
-            addressPostalCode = shelter.addressPostalCode
-            addressCity = shelter.addressCity
             addressDoor = shelter.addressDoor
             note = shelter.note
-            personsCount = shelter.personsCount
-            enabled = shelter.enabled
-            sortOrder = nextSortOrder()
         }
 
         // attach contacts
         shelterEntity.contacts = shelter.contacts.map { contact ->
-            ShelterContactEntity().apply {
+            ShelterContactEntity(shelter = shelterEntity, phone = contact.phone).apply {
                 firstname = contact.firstname
                 lastname = contact.lastname
-                phone = contact.phone
-                this.shelter = shelterEntity
             }
         }.toMutableList()
 
         val savedEntity = shelterRepository.save(shelterEntity)
+        log.info("Created shelter {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapShelter(savedEntity)
     }
 
     private fun mapShelter(shelterEntity: ShelterEntity): ShelterResponse = ShelterResponse(
         id = shelterEntity.id!!,
-        name = shelterEntity.name!!,
-        addressStreet = shelterEntity.addressStreet!!,
-        addressHouseNumber = shelterEntity.addressHouseNumber!!,
+        name = shelterEntity.name,
+        addressStreet = shelterEntity.addressStreet,
+        addressHouseNumber = shelterEntity.addressHouseNumber,
         addressStairway = shelterEntity.addressStairway,
-        addressPostalCode = shelterEntity.addressPostalCode!!,
-        addressCity = shelterEntity.addressCity!!,
+        addressPostalCode = shelterEntity.addressPostalCode,
+        addressCity = shelterEntity.addressCity,
         addressDoor = shelterEntity.addressDoor,
         note = shelterEntity.note,
-        personsCount = shelterEntity.personsCount!!,
-        enabled = shelterEntity.enabled!!,
-        sortOrder = shelterEntity.sortOrder ?: 0,
+        personsCount = shelterEntity.personsCount,
+        enabled = shelterEntity.enabled,
+        sortOrder = shelterEntity.sortOrder,
         contacts = shelterEntity.contacts.map {
             ShelterContactItem(
                 firstname = it.firstname,
                 lastname = it.lastname,
-                phone = it.phone!!,
+                phone = it.phone,
             )
         },
     )
@@ -95,15 +101,14 @@ class ShelterService(
 
         // replace contacts
         shelterEntity.contacts = updatedShelter.contacts.map { contact ->
-            ShelterContactEntity().apply {
+            ShelterContactEntity(shelter = shelterEntity, phone = contact.phone).apply {
                 firstname = contact.firstname
                 lastname = contact.lastname
-                phone = contact.phone
-                this.shelter = shelterEntity
             }
         }.toMutableList()
 
         val savedEntity = shelterRepository.save(shelterEntity)
+        log.info("Updated shelter {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapShelter(savedEntity)
     }
 
@@ -116,7 +121,8 @@ class ShelterService(
             entity.sortOrder = index + 1
             shelterRepository.save(entity)
         }
+        log.info("Reordered shelters: {}", shelterIds)
     }
 
-    private fun nextSortOrder(): Int = (shelterRepository.findAll().maxOfOrNull { it.sortOrder ?: 0 } ?: 0) + 1
+    private fun nextSortOrder(): Int = (shelterRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
 }

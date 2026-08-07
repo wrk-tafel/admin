@@ -1,17 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
-import at.wrk.tafel.admin.backend.common.api.PagedResponse
-import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
-import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.settings.model.LoginAttemptItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -20,8 +16,8 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,12 +27,12 @@ import java.time.LocalDate
 class SettingsService(
     private val mailRecipientRepository: MailRecipientRepository,
     private val staticValueRepository: StaticValueRepository,
-    private val loginAttemptService: LoginAttemptService,
 ) {
 
     companion object {
         // Placeholder "no known end date" marker used throughout static_values (see migrations/testdata)
         private val FICTIVE_END_DATE = LocalDate.of(2999, 12, 31)
+        private val log = LoggerFactory.getLogger(SettingsService::class.java)
     }
 
     fun getMailRecipients(): MailRecipientsResponse {
@@ -45,7 +41,7 @@ class SettingsService(
             val mailType = it.key
             val recipients = it.value
 
-            mapToMailRecipientSetting(mailType!!, recipients)
+            mapToMailRecipientSetting(mailType, recipients)
         }
 
         return MailRecipientsResponse(mailRecipients = mailRecipients)
@@ -61,8 +57,8 @@ class SettingsService(
             mailType = mailType.name,
             recipients = groupedByType.entries.map { recipientsPerType ->
                 MailRecipientAdresses(
-                    recipientType = MailRecipientType.valueOf(recipientsPerType.key!!.name.uppercase()),
-                    addresses = recipientsPerType.value.map { it.address!! },
+                    recipientType = MailRecipientType.valueOf(recipientsPerType.key.name.uppercase()),
+                    addresses = recipientsPerType.value.map { it.address },
                 )
             },
         )
@@ -75,17 +71,18 @@ class SettingsService(
                 updatedRecipients
                     .filter { it.trim().isNotBlank() }
                     .map { updatedRecipient ->
-                        MailRecipientEntity().apply {
-                            mailType = MailType.valueOf(mailRecipient.mailType)
-                            recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase())
-                            address = updatedRecipient
-                        }
+                        MailRecipientEntity(
+                            mailType = MailType.valueOf(mailRecipient.mailType),
+                            recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase()),
+                            address = updatedRecipient,
+                        )
                     }
             }
         }
 
         mailRecipientRepository.deleteAll()
         mailRecipientRepository.saveAll(recipients)
+        log.info("Updated mail recipients ({} entries across {} mail type(s))", recipients.size, settings.mailRecipients.size)
     }
 
     // Only ever shows the row currently valid "today" per (type, countAdults, countChildren, age) -
@@ -116,66 +113,43 @@ class SettingsService(
     fun updateStaticValue(staticValueId: Long, item: StaticValueRequest): StaticValueResponse {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
             ?: throw NotFoundException("Statischer Wert mit ID $staticValueId nicht gefunden")
+        val amount = item.amount ?: throw BusinessRuleException("Betrag ist erforderlich!")
 
         val today = LocalDate.now()
 
         if (entity.validFrom == today) {
-            entity.amount = item.amount
-            return mapStaticValue(staticValueRepository.save(entity))
+            entity.amount = amount
+            val savedEntity = staticValueRepository.save(entity)
+            log.info("Updated static value {} ({}) to {}", staticValueId, entity.type, amount)
+            return mapStaticValue(savedEntity)
         }
 
         entity.validTo = today.minusDays(1)
         staticValueRepository.save(entity)
 
-        val historizedEntity = StaticValueEntity().apply {
-            type = entity.type
-            validFrom = today
-            validTo = FICTIVE_END_DATE
-            amount = item.amount
+        val historizedEntity = StaticValueEntity(
+            validFrom = today,
+            validTo = FICTIVE_END_DATE,
+            type = entity.type,
+            amount = amount,
+        ).apply {
             countAdults = entity.countAdults
             countChildren = entity.countChildren
             age = entity.age
         }
 
-        return mapStaticValue(staticValueRepository.save(historizedEntity))
+        val savedEntity = staticValueRepository.save(historizedEntity)
+        log.info("Updated static value {} ({}) to {} (historized as new entry {})", staticValueId, entity.type, amount, savedEntity.id)
+        return mapStaticValue(savedEntity)
     }
 
-    fun getLoginAttempts(page: Int? = null, pageSize: Int? = null): PagedResponse<LoginAttemptItem> {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = loginAttemptService.findAll(pageRequest)
-
-        return PagedResponse(
-            items = pagedResult.map { mapLoginAttempt(it) }.toList(),
-            totalCount = pagedResult.totalElements,
-            currentPage = page ?: 1,
-            totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize,
-        )
-    }
-
-    fun deleteLoginAttempt(loginAttemptId: Long) {
-        loginAttemptService.deleteById(loginAttemptId)
-    }
-
-    private fun mapLoginAttempt(entity: LoginAttemptEntity) = LoginAttemptItem(
-        id = entity.id!!,
-        username = entity.username!!,
-        failureCount = entity.failureCount ?: 0,
-        lastFailureAt = entity.lastFailureAt!!,
-        lockedUntil = entity.lockedUntil,
-    )
-
-    private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean {
-        val validFrom = entity.validFrom
-        val validTo = entity.validTo
-        return validFrom != null && validTo != null && !today.isBefore(validFrom) && !today.isAfter(validTo)
-    }
+    private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean = !today.isBefore(entity.validFrom) && !today.isAfter(entity.validTo)
 
     private fun mapStaticValue(entity: StaticValueEntity): StaticValueResponse = StaticValueResponse(
         id = entity.id,
-        type = entity.type!!.name,
-        validFrom = entity.validFrom!!,
-        validTo = entity.validTo!!,
+        type = entity.type.name,
+        validFrom = entity.validFrom,
+        validTo = entity.validTo,
         amount = entity.amount,
         countAdults = entity.countAdults,
         countChildren = entity.countChildren,

@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testRoute4
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
 import at.wrk.tafel.admin.backend.modules.logistics.testShop1
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -33,6 +34,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 internal class DashboardServiceTest {
@@ -51,7 +53,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get registered customers`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
         }
@@ -67,7 +69,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get tickets`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -86,23 +88,36 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get statistics`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
-            statistic = DistributionStatisticEntity().apply {
-                employeeCount = 100
-                shelters = mutableListOf(
-                    DistributionStatisticShelterEntity().apply {
-                        id = testShelter1.id
-                        name = testShelter1.name
-                    },
-                    DistributionStatisticShelterEntity().apply {
-                        id = testShelter2.id
-                        name = testShelter2.name
-                    },
-                )
-            }
         }
+        val testStatistic = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
+            employeeCount = 100
+        }
+        testStatistic.shelters = mutableListOf(
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = testShelter1.name,
+                addressStreet = testShelter1.addressStreet,
+                addressHouseNumber = testShelter1.addressHouseNumber,
+                addressPostalCode = testShelter1.addressPostalCode,
+                addressCity = testShelter1.addressCity,
+                personsCount = testShelter1.personsCount,
+                sortOrder = testShelter1.sortOrder,
+            ).apply { id = testShelter1.id },
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = testShelter2.name,
+                addressStreet = testShelter2.addressStreet,
+                addressHouseNumber = testShelter2.addressHouseNumber,
+                addressPostalCode = testShelter2.addressPostalCode,
+                addressCity = testShelter2.addressCity,
+                personsCount = testShelter2.personsCount,
+                sortOrder = testShelter2.sortOrder,
+            ).apply { id = testShelter2.id },
+        )
+        testDistributionEntity.statistic = testStatistic
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
@@ -118,23 +133,36 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get statistics sorts shelters by their frozen sortOrder, not name`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
-            statistic = DistributionStatisticEntity().apply {
-                employeeCount = 100
-                shelters = mutableListOf(
-                    DistributionStatisticShelterEntity().apply {
-                        name = "Shelter Z"
-                        sortOrder = 1
-                    },
-                    DistributionStatisticShelterEntity().apply {
-                        name = "Shelter A"
-                        sortOrder = 2
-                    },
-                )
-            }
         }
+        val testStatistic = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
+            employeeCount = 100
+        }
+        testStatistic.shelters = mutableListOf(
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = "Shelter Z",
+                addressStreet = "Street",
+                addressHouseNumber = "1",
+                addressPostalCode = 1234,
+                addressCity = "City",
+                personsCount = 1,
+                sortOrder = 1,
+            ),
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = "Shelter A",
+                addressStreet = "Street",
+                addressHouseNumber = "2",
+                addressPostalCode = 1234,
+                addressCity = "City",
+                personsCount = 1,
+                sortOrder = 2,
+            ),
+        )
+        testDistributionEntity.statistic = testStatistic
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val data = service.getData()
@@ -145,7 +173,7 @@ internal class DashboardServiceTest {
     @Test
     fun `get notes`() {
         val testNotes = "dummy-notes"
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             notes = testNotes
@@ -159,57 +187,35 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get logistics`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+
         // fully recorded, same as testFoodCollectionRoute1Entity but for a different/later route -
         // verifies recordedRouteNames covers more than one route and sorts by route number
-        val doneRoute4 = FoodCollectionEntity().apply {
-            route = testRoute4
+        val doneRoute4 = FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute4).apply {
             car = testCar1
             driver = testEmployee1
             coDriver = testEmployee2
             kmStart = 10
             kmEnd = 20
             items = listOf(
-                FoodCollectionItemEntity().apply {
-                    category = testFoodCategory1
-                    shop = testShop1
-                    amount = 0
-                },
-            )
-        }
-        // fully recorded but without a route reference (defensive case, route is nullable on the
-        // entity) - must fall back to the default sort key instead of throwing, and must be
-        // dropped from recordedRouteNames (no name to show) while still counting towards the total
-        val doneWithoutRoute = FoodCollectionEntity().apply {
-            route = null
-            car = testCar1
-            driver = testEmployee1
-            coDriver = testEmployee2
-            kmStart = 10
-            kmEnd = 20
-            items = listOf(
-                FoodCollectionItemEntity().apply {
-                    category = testFoodCategory1
-                    shop = testShop1
-                    amount = 0
-                },
+                FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 0),
             )
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        testDistributionEntity.apply {
             id = 123
             endedAt = null
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity,
                 // real "getOrCreateFoodCollectionEntity" scenario: base data saved, items field
                 // never touched yet and still at its entity default of null (not an empty list)
-                partiallyRecordedFoodCollection(items = null),
-                partiallyRecordedFoodCollection(items = emptyList()),
-                partiallyRecordedFoodCollection(driver = null),
-                partiallyRecordedFoodCollection(coDriver = null),
-                partiallyRecordedFoodCollection(kmStart = null),
-                partiallyRecordedFoodCollection(kmEnd = null),
+                partiallyRecordedFoodCollection(testDistributionEntity, items = null),
+                partiallyRecordedFoodCollection(testDistributionEntity, items = emptyList()),
+                partiallyRecordedFoodCollection(testDistributionEntity, driver = null),
+                partiallyRecordedFoodCollection(testDistributionEntity, coDriver = null),
+                partiallyRecordedFoodCollection(testDistributionEntity, kmStart = null),
+                partiallyRecordedFoodCollection(testDistributionEntity, kmEnd = null),
                 doneRoute4,
-                doneWithoutRoute,
             )
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
@@ -223,7 +229,7 @@ internal class DashboardServiceTest {
 
         val data = service.getData()
 
-        assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(3)
+        assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(2)
         assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
         assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
         assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(100))
@@ -233,19 +239,15 @@ internal class DashboardServiceTest {
     // each call below nulls out exactly one of those fields, to exercise every individual
     // "not fully recorded" branch in DashboardService.isFullyRecorded() on its own.
     private fun partiallyRecordedFoodCollection(
+        distribution: DistributionEntity,
         driver: EmployeeEntity? = testEmployee1,
         coDriver: EmployeeEntity? = testEmployee2,
         kmStart: Int? = 100,
         kmEnd: Int? = 200,
         items: List<FoodCollectionItemEntity>? = listOf(
-            FoodCollectionItemEntity().apply {
-                category = testFoodCategory1
-                shop = testShop1
-                amount = 0
-            },
+            FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 0),
         ),
-    ): FoodCollectionEntity = FoodCollectionEntity().apply {
-        route = testRoute2
+    ): FoodCollectionEntity = FoodCollectionEntity(distribution = distribution, route = testRoute2).apply {
         car = testCar1
         this.driver = driver
         this.coDriver = coDriver

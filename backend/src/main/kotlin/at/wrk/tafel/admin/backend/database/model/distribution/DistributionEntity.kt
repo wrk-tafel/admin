@@ -17,20 +17,19 @@ import java.time.LocalDateTime
 @Entity(name = "Distribution")
 @Table(name = "distributions")
 @ExcludeFromTestCoverage
-class DistributionEntity : BaseChangeTrackingEntity() {
-
+class DistributionEntity(
     @Column(name = "started_at", nullable = false)
-    var startedAt: LocalDateTime? = null
+    var startedAt: LocalDateTime,
+    @ManyToOne
+    @JoinColumn(name = "startedby_userid", nullable = false)
+    var startedByUser: UserEntity,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "ended_at")
     var endedAt: LocalDateTime? = null
 
     @Column(name = "notes")
     var notes: String? = null
-
-    @ManyToOne
-    @JoinColumn(name = "startedby_userid", nullable = false)
-    var startedByUser: UserEntity? = null
 
     @ManyToOne
     @JoinColumn(name = "endedby_userid")

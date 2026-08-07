@@ -13,6 +13,7 @@ import at.wrk.tafel.admin.backend.modules.household.HouseholdMergePreviewRespons
 import at.wrk.tafel.admin.backend.modules.household.HouseholdMergeRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdMergeResponse
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,6 +27,10 @@ class HouseholdMergeService(
     private val householdConverter: HouseholdConverter,
     private val householdService: HouseholdService,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(HouseholdMergeService::class.java)
+    }
 
     @Transactional(readOnly = true)
     fun preview(targetHouseholdId: Long, sourceHouseholdIds: List<Long>): HouseholdMergePreviewResponse {
@@ -119,9 +124,16 @@ class HouseholdMergeService(
         }
 
         // 4) only now, with no children left to lose, delete each source shell
-        sources.forEach { source -> householdService.deleteHouseholdByHouseholdId(source.householdId!!) }
+        sources.forEach { source -> householdService.deleteHouseholdByHouseholdId(source.householdId) }
 
         val mergedTarget = householdRepository.findByHouseholdId(targetHouseholdId)!!
+        log.info(
+            "Merged households {} into {} (moved {} person(s), dropped {} duplicate person(s))",
+            sources.map { it.householdId },
+            targetHouseholdId,
+            plan.personIdsToMove.size,
+            plan.duplicatePersonIdToMatchedTargetPersonId.size,
+        )
         return HouseholdMergeResponse(
             target = householdConverter.mapEntityToHousehold(mergedTarget),
             movedPersonCount = plan.personIdsToMove.size,
@@ -130,11 +142,11 @@ class HouseholdMergeService(
             movedDocumentCount = documentCount,
             movedDistributionCount = plan.distributionRowIdsToMove.size,
             droppedDistributionCount = plan.distributionRowIdsToDrop.size,
-            deletedHouseholdIds = sources.map { it.householdId!! },
+            deletedHouseholdIds = sources.map { it.householdId },
         )
     }
 
-    private fun validateFieldSelections(request: HouseholdMergeRequest, sourcesByHouseholdId: Map<Long?, HouseholdEntity>) {
+    private fun validateFieldSelections(request: HouseholdMergeRequest, sourcesByHouseholdId: Map<Long, HouseholdEntity>) {
         request.fieldSelections.forEach { selection ->
             val sourceHouseholdId = selection.sourceHouseholdId
             if (sourceHouseholdId != null && !sourcesByHouseholdId.containsKey(sourceHouseholdId)) {

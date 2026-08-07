@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistribution
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity4
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -22,12 +23,8 @@ class AgeDistributionExporterTest {
 
     @Test
     fun `exported properly`() {
-        val testStatistic = DistributionStatisticEntity().apply {
-            employeeCount = 100
-        }
-        testStatistic.distribution = DistributionEntity().apply {
+        val testStatisticDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
-            statistic = testStatistic
             households = listOf(
                 testDistributionHouseholdEntity1,
                 testDistributionHouseholdEntity2,
@@ -35,6 +32,10 @@ class AgeDistributionExporterTest {
                 testDistributionHouseholdEntity4,
             )
         }
+        val testStatistic = DistributionStatisticEntity(distribution = testStatisticDistribution).apply {
+            employeeCount = 100
+        }
+        testStatisticDistribution.statistic = testStatistic
         val exporter = AgeDistributionExporter()
 
         val filename = exporter.getName()
@@ -61,13 +62,13 @@ class AgeDistributionExporterTest {
 
     @Test
     fun `exported properly without data`() {
-        val testStatistic = DistributionStatisticEntity().apply {
+        val testStatisticDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+        }
+        val testStatistic = DistributionStatisticEntity(distribution = testStatisticDistribution).apply {
             employeeCount = 100
         }
-        testStatistic.distribution = DistributionEntity().apply {
-            id = 123
-            statistic = testStatistic
-        }
+        testStatisticDistribution.statistic = testStatistic
 
         val exporter = AgeDistributionExporter()
 

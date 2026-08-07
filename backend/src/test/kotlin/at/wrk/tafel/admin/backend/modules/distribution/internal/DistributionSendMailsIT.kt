@@ -83,7 +83,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         val distribution = createDistribution(testUser)
         testEntityManager.persist(distribution)
 
-        val statistic = DistributionStatisticEntity().apply { this.distribution = distribution }
+        val statistic = DistributionStatisticEntity(distribution = distribution)
         testEntityManager.persist(statistic)
 
         val household = persistHousehold()
@@ -94,7 +94,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
 
         distributionService.sendMails(distribution.id!!)
 
-        val dateFormatted = distribution.startedAt!!.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val dateFormatted = distribution.startedAt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         val expectedSubjects = setOf(
             "TÖ Tafel 1030 - Tagesreport vom $dateFormatted",
             "TÖ Tafel 1030 - Retourkisten vom $dateFormatted",
@@ -120,7 +120,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
     }
 
     private fun persistHousehold(): HouseholdEntity {
-        val household = createHousehold(testUser.employee!!, testCountry)
+        val household = createHousehold(testUser.employee, testCountry)
         testEntityManager.persist(household)
         testEntityManager.flush()
 
@@ -136,12 +136,12 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         distribution: DistributionEntity,
         ticketNumber: Int,
     ): DistributionHouseholdEntity {
-        val distributionHouseholdEntity = DistributionHouseholdEntity()
-
-        distributionHouseholdEntity.household = household
-        distributionHouseholdEntity.distribution = distribution
-        distributionHouseholdEntity.ticketNumber = ticketNumber
-        distributionHouseholdEntity.processed = false
+        val distributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = distribution,
+            household = household,
+            ticketNumber = ticketNumber,
+            processed = false,
+        )
 
         testEntityManager.persist(distributionHouseholdEntity)
         return distributionHouseholdEntity

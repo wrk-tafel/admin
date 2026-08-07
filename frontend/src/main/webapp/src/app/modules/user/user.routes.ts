@@ -4,6 +4,7 @@ import {UserDetailComponent} from './views/user-detail/user-detail.component';
 import {UserDataResolver} from './resolver/userdata-resolver.component';
 import {UserEditComponent} from './views/user-edit/user-edit.component';
 import {PermissionsDataResolver} from './resolver/permissionsdata-resolver.component';
+import {UserLoginAttemptsComponent} from './views/login-attempts/user-login-attempts.component';
 
 export const routes: Routes = [
   {
@@ -31,5 +32,9 @@ export const routes: Routes = [
     resolve: {
       permissionsData: PermissionsDataResolver
     }
+  },
+  {
+    path: 'anmelde-versuche',
+    component: UserLoginAttemptsComponent
   }
 ];

@@ -27,3 +27,31 @@
 .mat-mdc-tab-body-content {
   padding: 1rem;
 }
+
+// Let an overflowing tab header scroll natively instead of via Material's default of click-only
+// pagination arrows (see #3024): touch/swipe on phone and tablet, trackpad two-finger swipe, and
+// shift+mouse-wheel on desktop - all standard browser gestures for a horizontally overflowing
+// element, none of which the default arrow-click UI supports. `.mat-mdc-tab-label-container` is
+// the header's scroll viewport (`overflow: hidden` by default); switching it to `overflow-x: auto`
+// hands scrolling to the browser natively. Material still drives its own click-to-scroll via a
+// `transform` on the child `.mat-mdc-tab-list` (recalculated from `scrollWidth`/`offsetWidth`,
+// which are unaffected by the container's scrollLeft) - neutralizing that transform is what stops
+// it from fighting the native scroll position, and hiding the now-redundant pagination arrows
+// avoids two conflicting scroll mechanisms sitting on top of each other.
+.mat-mdc-tab-header-pagination {
+  display: none !important;
+}
+
+.mat-mdc-tab-label-container {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.mat-mdc-tab-list {
+  transform: none !important;
+}

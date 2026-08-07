@@ -12,11 +12,13 @@ import java.time.LocalTime
 @Entity(name = "RouteStop")
 @Table(name = "routes_stops")
 @ExcludeFromTestCoverage
-class RouteStopEntity : BaseChangeTrackingEntity() {
-
+class RouteStopEntity(
     @ManyToOne
-    @JoinColumn(name = "route_id")
-    var route: RouteEntity? = null
+    @JoinColumn(name = "route_id", nullable = false)
+    var route: RouteEntity,
+    @Column(name = "time")
+    var time: LocalTime,
+) : BaseChangeTrackingEntity() {
 
     @ManyToOne
     @JoinColumn(name = "shop_id")
@@ -24,7 +26,4 @@ class RouteStopEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "description")
     var description: String? = null
-
-    @Column(name = "time")
-    var time: LocalTime? = null
 }

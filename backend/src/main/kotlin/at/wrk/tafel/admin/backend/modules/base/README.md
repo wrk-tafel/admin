@@ -73,8 +73,21 @@ Entities backing this module are **not** colocated with it: they live under `dat
   three types above) and Spring's own `ErrorResponse`-producing exceptions (e.g.
   `MethodArgumentNotValidException`) into a `ProblemDetail` response.
   - `handleExceptionInternal` is the shared hook all of those funnel through: it localizes the
-    `ProblemDetail`'s `title` (`http-error.<status>.title` message key looked up via `MessageSource`)
-    and logs at `debug` (expected/user-facing failures shouldn't spam the log).
+    `ProblemDetail`'s `title` and `detail` (`http-error.<status>.title`/`.detail` message keys in
+    `i18n/messages.properties`, looked up via `MessageSource`, falling back to `http-error.default.*`
+    for a status with no entry of its own) and logs at `debug` (expected/user-facing failures
+    shouldn't spam the log).
+  - **Only a `detail` this application authored itself survives** — the message a `TafelApiException`
+    was thrown with, and `handleMethodArgumentNotValid`'s own wording. Everything else reaching that
+    hook is one of Spring's built-in MVC exceptions, whose `detail` is English framework-internals
+    text ("Failed to read request"), so it is replaced with the generic German sentence for the
+    status. That matters because the frontend puts `detail` straight into an error toast
+    (`extractErrorMessage()` in `common/api/problem-detail.ts`). Same reason `handleGenericException`
+    never puts the raw exception message in the body — it only logs it.
+    - Related trap, see issue #3008: `MessageConfig` must **not** enable
+      `useCodeAsDefaultMessage`. Spring probes a family of optional `problemDetail.<exception class>`
+      codes it expects to be missing, and that flag turns every miss into a hit, so the raw message
+      code is what ends up in `detail` (and as the problem `type` URI).
   - `handleMethodArgumentNotValid` additionally attaches a structured `errors: [{field, message}]`
     extension property to the `ProblemDetail`, instead of joining field errors into one string.
   - Anything else (`Exception`) is caught by a dedicated `@ExceptionHandler`, logged at `error`, and

@@ -8,6 +8,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class TafelAdminProperties(
     val version: String = "dev",
     val buildTime: String = "unknown",
+    // Set per-deployment (e.g. "DEV", "TEST", empty for prod) alongside server.relativeBaseUrl -
+    // dev/test/prod share one origin at different path prefixes, so without this the PWA install
+    // title/manifest would look identical across all three (see #3027).
+    val environmentLabel: String = "",
     val mail: TafelAdminMailProperties? = null,
     val server: TafelAdminServerProperties = TafelAdminServerProperties(),
     val support: TafelAdminSupportProperties? = null,

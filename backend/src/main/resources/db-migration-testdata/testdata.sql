@@ -903,7 +903,14 @@ INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (6, 'RETURN_BOXES', 'TO', 'retourkisten-empfaenger@beispiel.at');
 
 -- login attempts
+-- last_failure_at is set a couple of years into the future (rather than NOW()) so these rows never
+-- look "stale" to LoginAttemptService.cleanupStaleEntries(), which hourly deletes anything older
+-- than the lockout duration (5 min by default) - without this, the seeded rows would vanish shortly
+-- after the app starts. 2 years is comfortably longer than any local dev/testing session while
+-- still rendering as a plausible-looking date rather than an obviously-fake far-future one.
+-- locked_until is pushed out the same way, so the "Gesperrt" status (isLocked() in the frontend
+-- just compares against "now") stays visible for as long as this testdata is loaded.
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
-VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW(), NOW() + interval '15 minutes');
+VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW() + interval '2 years', NOW() + interval '2 years');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
-VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW(), NULL);
+VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);

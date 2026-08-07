@@ -1,11 +1,14 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.LoginAttemptItem
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
@@ -28,6 +31,10 @@ class LoginAttemptService(
     private val clock: Clock,
 ) {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(LoginAttemptService::class.java)
+    }
+
     @Transactional(readOnly = true)
     fun isLocked(username: String): Boolean {
         val lockedUntil = loginAttemptRepository.findByUsername(normalize(username))?.lockedUntil ?: return false
@@ -39,20 +46,26 @@ class LoginAttemptService(
         advisoryLockService.withLock(AdvisoryLockKey.LOGIN_ATTEMPT_TRACKING) {
             val key = normalize(username)
             val entry = loginAttemptRepository.findByUsername(key)
-                ?: LoginAttemptEntity().apply {
-                    this.username = key
-                    this.failureCount = 0
-                }
+                ?: LoginAttemptEntity(username = key, lastFailureAt = now())
 
             // failures older than the lockout duration don't count towards the limit anymore
-            val failureCount = if (isStale(entry)) 1 else (entry.failureCount ?: 0) + 1
+            val failureCount = if (isStale(entry)) 1 else entry.failureCount + 1
 
             entry.failureCount = failureCount
             entry.lastFailureAt = now()
-            entry.lockedUntil =
-                if (failureCount >= maxFailures()) now().plusSeconds(lockoutDurationInSeconds()) else null
+            val locked = failureCount >= maxFailures()
+            entry.lockedUntil = if (locked) now().plusSeconds(lockoutDurationInSeconds()) else null
 
             loginAttemptRepository.save(entry)
+
+            if (locked) {
+                log.warn(
+                    "User '{}' locked out until {} after {} consecutive failed login attempts",
+                    sanitizeForLog(key),
+                    entry.lockedUntil,
+                    failureCount,
+                )
+            }
         }
     }
 
@@ -61,8 +74,11 @@ class LoginAttemptService(
         loginAttemptRepository.deleteByUsername(normalize(username))
     }
 
+    // Returns already-mapped DTOs rather than the entity itself: LoginAttemptService is called
+    // directly from UserController (a @RestController), and an ArchUnit rule
+    // (ProjectSpecificRulesTest) forbids controllers from depending on database entities.
     @Transactional(readOnly = true)
-    fun findAll(pageRequest: PageRequest): Page<LoginAttemptEntity> = loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(pageRequest)
+    fun findAll(pageRequest: PageRequest): Page<LoginAttemptItem> = loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(pageRequest).map { mapToItem(it) }
 
     @Transactional
     fun deleteById(id: Long) {
@@ -80,10 +96,15 @@ class LoginAttemptService(
         loginAttemptRepository.deleteAllByLastFailureAtBefore(now().minusSeconds(lockoutDurationInSeconds()))
     }
 
-    private fun isStale(entry: LoginAttemptEntity): Boolean {
-        val lastFailureAt = entry.lastFailureAt ?: return false
-        return lastFailureAt.plusSeconds(lockoutDurationInSeconds()).isBefore(now())
-    }
+    private fun mapToItem(entity: LoginAttemptEntity) = LoginAttemptItem(
+        id = entity.id!!,
+        username = entity.username,
+        failureCount = entity.failureCount,
+        lastFailureAt = entity.lastFailureAt,
+        lockedUntil = entity.lockedUntil,
+    )
+
+    private fun isStale(entry: LoginAttemptEntity): Boolean = entry.lastFailureAt.plusSeconds(lockoutDurationInSeconds()).isBefore(now())
 
     private fun maxFailures() = applicationProperties.security.loginAttempts.maxFailures
 

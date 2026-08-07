@@ -8,6 +8,10 @@ import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -17,6 +21,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 
@@ -151,13 +156,9 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `update category`() {
-        val existingEntity = FoodCategoryEntity().apply {
+        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, returnItem = false, enabled = true).apply {
             id = 3
-            name = "Category 3"
             weightPerUnit = BigDecimal("30")
-            returnItem = false
-            sortOrder = 100
-            enabled = true
         }
         val updated = FoodCategoryRequest(
             id = existingEntity.id,
@@ -204,17 +205,14 @@ class FoodCategoryServiceTest {
 
     @Test
     fun `reorder categories assigns sequential sort order matching the given order`() {
-        val entity1 = FoodCategoryEntity().apply {
+        val entity1 = FoodCategoryEntity(name = "Category 1", sortOrder = 200).apply {
             id = 1
-            sortOrder = 200
         }
-        val entity2 = FoodCategoryEntity().apply {
+        val entity2 = FoodCategoryEntity(name = "Category 2", sortOrder = 100).apply {
             id = 2
-            sortOrder = 100
         }
-        val entity3 = FoodCategoryEntity().apply {
+        val entity3 = FoodCategoryEntity(name = "Category 3", sortOrder = 300).apply {
             id = 3
-            sortOrder = 300
         }
 
         every { foodCategoryRepository.findByIdOrNull(3L) } returns entity3
@@ -236,5 +234,86 @@ class FoodCategoryServiceTest {
 
         val exception = assertThrows<NotFoundException> { service.reorderFoodCategories(listOf(99L)) }
         assertThat(exception.body.detail).isEqualTo("FoodCategory with id 99 not found")
+    }
+
+    @Test
+    fun `create category logs the creation`() {
+        val createInput = FoodCategoryRequest(
+            id = null,
+            name = "New Category",
+            weightPerUnit = BigDecimal("15"),
+            returnItem = false,
+            sortOrder = 999,
+            enabled = true,
+        )
+        every { foodCategoryRepository.findAll() } returns emptyList()
+        every { foodCategoryRepository.save(any()) } answers {
+            val arg = firstArg() as FoodCategoryEntity
+            arg.id = 42
+            arg
+        }
+
+        withLogAppender(FoodCategoryService::class.java) { logAppender ->
+            service.createFoodCategory(createInput)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Created food category").contains("42").contains("New Category")
+            }
+        }
+    }
+
+    @Test
+    fun `update category logs the update`() {
+        val existingEntity = FoodCategoryEntity(name = "Category 3", sortOrder = 100, returnItem = false, enabled = true).apply {
+            id = 3
+            weightPerUnit = BigDecimal("30")
+        }
+        val updated = FoodCategoryRequest(
+            id = existingEntity.id,
+            name = "Updated Category",
+            weightPerUnit = BigDecimal("99"),
+            returnItem = true,
+            sortOrder = 5,
+            enabled = false,
+        )
+        every { foodCategoryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { foodCategoryRepository.save(any()) } answers { firstArg() as FoodCategoryEntity }
+
+        withLogAppender(FoodCategoryService::class.java) { logAppender ->
+            service.updateFoodCategory(existingEntity.id!!, updated)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated food category").contains("3").contains("Updated Category")
+            }
+        }
+    }
+
+    @Test
+    fun `reorder categories logs the new order`() {
+        val entity1 = FoodCategoryEntity(name = "Category 1", sortOrder = 200).apply { id = 1 }
+        every { foodCategoryRepository.findByIdOrNull(1L) } returns entity1
+        every { foodCategoryRepository.save(any()) } answers { firstArg() as FoodCategoryEntity }
+
+        withLogAppender(FoodCategoryService::class.java) { logAppender ->
+            service.reorderFoodCategories(listOf(1L))
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Reordered food categories").contains("[1]")
+            }
+        }
+    }
+
+    private fun withLogAppender(loggerClass: Class<*>, block: (ListAppender<ILoggingEvent>) -> Unit) {
+        val logger = LoggerFactory.getLogger(loggerClass) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            block(logAppender)
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 }

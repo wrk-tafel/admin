@@ -86,3 +86,9 @@ Content-Type: application/json
 ### Get all available permissions
 GET {{baseApiPath}}/users/permissions
 Content-Type: application/json
+
+### Get login attempts
+GET {{baseApiPath}}/users/login-attempts
+
+### Delete login attempt 1
+DELETE {{baseApiPath}}/users/login-attempts/1

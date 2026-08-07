@@ -1,11 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryResponse
 import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -13,6 +15,10 @@ import org.springframework.stereotype.Service
 class FoodCategoryService(
     private val foodCategoriesRepository: FoodCategoryRepository,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(FoodCategoryService::class.java)
+    }
 
     fun getActiveFoodCategories(): List<FoodCategoryResponse> = sortCategories(foodCategoriesRepository.findByEnabledIsTrue())
         .map { mapFoodCategory(it) }
@@ -24,15 +30,17 @@ class FoodCategoryService(
         .map { mapFoodCategory(it) }
 
     fun createFoodCategory(category: FoodCategoryRequest): FoodCategoryResponse {
-        val entity = FoodCategoryEntity().apply {
-            name = category.name
+        val entity = FoodCategoryEntity(
+            name = category.name,
+            sortOrder = nextSortOrder(),
+            returnItem = category.returnItem,
+            enabled = category.enabled,
+        ).apply {
             weightPerUnit = category.weightPerUnit
-            returnItem = category.returnItem
-            sortOrder = nextSortOrder()
-            enabled = category.enabled
         }
 
         val savedEntity = foodCategoriesRepository.save(entity)
+        log.info("Created food category {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapFoodCategory(savedEntity)
     }
 
@@ -47,6 +55,7 @@ class FoodCategoryService(
         entity.enabled = updatedCategory.enabled
 
         val savedEntity = foodCategoriesRepository.save(entity)
+        log.info("Updated food category {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapFoodCategory(savedEntity)
     }
 
@@ -59,12 +68,13 @@ class FoodCategoryService(
             entity.sortOrder = index + 1
             foodCategoriesRepository.save(entity)
         }
+        log.info("Reordered food categories: {}", categoryIds)
     }
 
     private fun nextSortOrder(): Int = (
         foodCategoriesRepository.findAll()
             .filter { it.returnItem != true }
-            .maxOfOrNull { it.sortOrder ?: 0 } ?: 0
+            .maxOfOrNull { it.sortOrder } ?: 0
         ) + 1
 
     private fun sortCategories(categories: List<FoodCategoryEntity>): List<FoodCategoryEntity> = categories
@@ -78,10 +88,10 @@ class FoodCategoryService(
 
     private fun mapFoodCategory(foodCategoryEntity: FoodCategoryEntity): FoodCategoryResponse = FoodCategoryResponse(
         id = foodCategoryEntity.id,
-        name = foodCategoryEntity.name!!,
+        name = foodCategoryEntity.name,
         weightPerUnit = foodCategoryEntity.weightPerUnit,
-        returnItem = foodCategoryEntity.returnItem ?: false,
-        sortOrder = foodCategoryEntity.sortOrder ?: 0,
-        enabled = foodCategoryEntity.enabled ?: false,
+        returnItem = foodCategoryEntity.returnItem,
+        sortOrder = foodCategoryEntity.sortOrder,
+        enabled = foodCategoryEntity.enabled,
     )
 }

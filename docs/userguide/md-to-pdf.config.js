@@ -27,28 +27,82 @@ const pageMargin = '20mm';
 // top of md-to-pdf's default markdown.css. Overriding `stylesheet` instead would replace that
 // default outright and lose the base styling.
 const css = `
-  /* Keep each screenshot glued to the paragraph introducing it: without this, a page break can
-     land between the two, leaving an image alone at the top of a page with its explanation
-     stranded on the previous one. */
+  /* Chromium's print engine only reliably honours break-inside: avoid on a single box - a
+     break-after: avoid on one element paired with break-before: avoid on its next sibling does not
+     reliably keep the two together (if the first element alone already fits the remaining page
+     space, Chromium can still break right after it and push only the sibling to the next page).
+     So the 'keep-together' wrapper (built by the script below) merges an intro paragraph and the
+     image/list it introduces into one box, where break-inside: avoid applies directly. */
+  .keep-together {
+    break-inside: avoid;
+  }
+
+  /* Standalone images (no intro paragraph immediately before them, so not wrapped above) still get
+     a baseline break-inside: avoid so the image itself is never split across a page break. */
   p:has(img) {
-    break-before: avoid;
     break-inside: avoid;
   }
 
   /* Same for headings, which would otherwise sometimes end up alone at the bottom of a page with
-     their section's actual content pushed to the next one. */
+     their section's actual content pushed to the next one. This is the one-sided case (a box's own
+     break-after against the normal flow that follows it) rather than the two-sided pairing above,
+     which is why it doesn't hit the same Chromium limitation. */
   h1, h2, h3, h4 {
     break-after: avoid;
     break-inside: avoid;
   }
 
-  /* Start every chapter (README.md's own title plus each of the module files) on a fresh page.
-     This replaces what used to be a manually inserted page-break div between chapters in the
-     workflow's concatenation step, so a new chapter file added there gets the same treatment for
-     free. */
+  /* Keep a single paragraph, list item, or table row from being split across a page break. */
+  p, li, tr {
+    break-inside: avoid;
+  }
+
+  /* Keep an entire bullet/numbered list on one page rather than starting it mid-list on a fresh
+     page - every list in this guide is short enough to fit on a single page, so there's no
+     multi-page list this would force to (unsuccessfully) fight for space. */
+  ul, ol {
+    break-inside: avoid;
+  }
+
+  /* Start every chapter (README.md's own title plus each of the module files) on a fresh page. */
   h1 {
     break-before: page;
   }
+`;
+
+// Runs in the rendered page (via Puppeteer's page.addScriptTag(), see the `script` key below)
+// *before* PDF generation, so document.querySelectorAll sees the final markdown->HTML output.
+// Wraps each "intro paragraph + the image/list it introduces" pair in a `.keep-together` div - see
+// the comment on that class above for why this needs to be a single merged box.
+const keepTogetherScript = `
+  (function () {
+    function wrap(intro, target) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'keep-together';
+      intro.parentNode.insertBefore(wrapper, intro);
+      wrapper.appendChild(intro);
+      wrapper.appendChild(target);
+    }
+
+    function wrapWithNextSibling(introSelector) {
+      Array.from(document.querySelectorAll(introSelector)).forEach(function (intro) {
+        var target = intro.nextElementSibling;
+        if (target) wrap(intro, target);
+      });
+    }
+
+    // Not expressed as a single 'p:has(+ p:has(img))' selector: :has() cannot contain another
+    // :has() in its argument per the CSS Selectors spec (Chromium throws
+    // "'...' is not a valid selector" for it), so the sibling-with-an-image check is done as a
+    // plain previousElementSibling walk instead.
+    Array.from(document.querySelectorAll('p:has(img)')).forEach(function (imgParagraph) {
+      var intro = imgParagraph.previousElementSibling;
+      if (intro && intro.tagName === 'P') wrap(intro, imgParagraph);
+    });
+
+    wrapWithNextSibling('p:has(+ ul)');
+    wrapWithNextSibling('p:has(+ ol)');
+  })();
 `;
 
 // Puppeteer renders header/footer templates in a separate document that does *not* inherit the
@@ -85,6 +139,7 @@ module.exports = {
     args: ['--no-sandbox'],
   },
   css,
+  script: [{ content: keepTogetherScript }],
   pdf_options: {
     // Explicit rather than inherited from md-to-pdf's defaults so the page geometry is stated in
     // one place: A4 portrait (`landscape: false`), 2cm on every side.

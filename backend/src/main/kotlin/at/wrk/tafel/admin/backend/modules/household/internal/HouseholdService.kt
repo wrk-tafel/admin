@@ -28,6 +28,7 @@ import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValida
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -49,6 +50,10 @@ class HouseholdService(
     private val distributionRepository: DistributionRepository,
 ) {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(HouseholdService::class.java)
+    }
+
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
@@ -66,6 +71,7 @@ class HouseholdService(
                 throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
             } else {
                 val savedEntity = saveWithMainPerson(entity)
+                log.info("Created household {} (income above limit, forced by supervisor)", savedEntity.householdId)
                 return HouseholdCreationResponse(
                     data = householdConverter.mapEntityToHousehold(savedEntity),
                     errorMsg = null,
@@ -75,6 +81,7 @@ class HouseholdService(
             // When a household is created with an invalid income - force set it invalid
             entity.validUntil = LocalDate.now().minusDays(1)
             val savedEntity = saveWithMainPerson(entity)
+            log.info("Created household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdCreationResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
                 errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
@@ -82,6 +89,7 @@ class HouseholdService(
         }
 
         val savedEntity = saveWithMainPerson(entity)
+        log.info("Created household {}", savedEntity.householdId)
         return HouseholdCreationResponse(
             data = householdConverter.mapEntityToHousehold(savedEntity),
             errorMsg = null,
@@ -104,6 +112,7 @@ class HouseholdService(
                 throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
             } else {
                 val savedEntity = saveWithMainPerson(mappedEntity)
+                log.info("Updated household {} (income above limit, forced by supervisor)", savedEntity.householdId)
                 return HouseholdUpdateResponse(
                     data = householdConverter.mapEntityToHousehold(savedEntity),
                     errorMsg = null,
@@ -113,6 +122,7 @@ class HouseholdService(
             // When a household is updated with an invalid income - force set it invalid
             mappedEntity.validUntil = LocalDate.now().minusDays(1)
             val savedEntity = saveWithMainPerson(mappedEntity)
+            log.info("Updated household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdUpdateResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
                 errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
@@ -120,6 +130,7 @@ class HouseholdService(
         }
 
         val savedEntity = saveWithMainPerson(mappedEntity)
+        log.info("Updated household {}", savedEntity.householdId)
         return HouseholdUpdateResponse(
             data = householdConverter.mapEntityToHousehold(savedEntity),
             errorMsg = null,
@@ -251,7 +262,7 @@ class HouseholdService(
             )
         }
 
-        val fromDate = distribution.startedAt!!
+        val fromDate = distribution.startedAt
         val toDate = distribution.endedAt ?: LocalDateTime.now()
 
         return HouseholdOverviewResponse(
@@ -310,9 +321,10 @@ class HouseholdService(
 
         // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
         // those have to be cleaned up explicitly.
-        household.documents.forEach { documentStorageService.delete(it.storagePath!!) }
+        household.documents.forEach { documentStorageService.delete(it.storagePath) }
 
         householdRepository.delete(household)
+        log.info("Deleted household {}", householdId)
     }
 
     private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {
@@ -351,6 +363,7 @@ class HouseholdService(
         }
 
         val savedEntity = householdRepository.saveAndFlush(entity)
+        log.info("Paid cost contribution for household {}, remaining pending amount: {}", householdId, savedEntity.pendingCostContribution)
         return householdConverter.mapEntityToHousehold(savedEntity)
     }
 
@@ -364,6 +377,7 @@ class HouseholdService(
         entity.pendingCostContribution = amount.coerceAtLeast(BigDecimal.ZERO)
 
         val savedEntity = householdRepository.saveAndFlush(entity)
+        log.info("Edited pending cost contribution for household {} to {}", householdId, savedEntity.pendingCostContribution)
         return householdConverter.mapEntityToHousehold(savedEntity)
     }
 }

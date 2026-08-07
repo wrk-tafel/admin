@@ -53,12 +53,12 @@ class HouseholdPdfService(
             issuer = issuer,
             issuedAtDate = household.createdAt!!.format(DATE_FORMATTER),
             customer = PdfCustomerData(
-                id = household.householdId!!,
+                id = household.householdId,
                 lastname = mainPerson?.lastname ?: "-",
                 firstname = mainPerson?.firstname ?: "-",
                 birthDate = mainPerson?.birthDate?.format(DATE_FORMATTER) ?: "-",
                 gender = mainPerson?.gender?.title ?: "-",
-                country = mainPerson!!.country!!.name!!,
+                country = mainPerson!!.country.name,
                 telephoneNumber = household.telephoneNumber ?: "-",
                 email = household.email ?: "-",
                 address = PdfAddressData(
@@ -88,7 +88,7 @@ class HouseholdPdfService(
         firstname = person.firstname!!,
         birthDate = person.birthDate?.format(DATE_FORMATTER) ?: "-",
         gender = person.gender?.title ?: "-",
-        country = person.country!!.name!!,
+        country = person.country.name,
         employer = person.employer ?: "-",
         income = formatIncome(person.income),
         incomeDueDate = person.incomeDue?.format(DATE_FORMATTER) ?: "-",

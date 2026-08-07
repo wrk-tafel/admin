@@ -29,6 +29,7 @@ security:
     expirationTimeInSeconds: 604800 # 1 week for local development
 
 tafeladmin:
+  environmentLabel: "LOCAL"
   mail:
     from: "dummy@localhost"
     defaultRecipientsBcc:

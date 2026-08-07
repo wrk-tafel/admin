@@ -151,6 +151,27 @@ describe('Customer Detail', () => {
     cy.byTestId('lock-info-banner').should('not.exist');
   });
 
+  it('lets the overflowing detail tab header scroll natively instead of only via pagination arrows', () => {
+    // the tab labels only reliably overflow the available width at phone size for this page's
+    // 3 tabs, but the underlying fix (see #3024) is viewport-agnostic - it also covers tablet
+    // and desktop (trackpad/shift+wheel), which just aren't exercised by this particular page
+    cy.viewport(PHONE_VIEWPORT);
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id;
+      cy.visit('/kunden/detail/' + customerId);
+
+      // Material's default click-only pagination arrows are hidden in favor of native
+      // touch/swipe scrolling of the tab header
+      cy.get('.mat-mdc-tab-header-pagination-before').should('not.be.visible');
+      cy.get('.mat-mdc-tab-header-pagination-after').should('not.be.visible');
+
+      // the tab labels overflow the phone viewport width, so the "Dokumente" tab starts out
+      // scrolled out of view - reaching and clicking it exercises the native horizontal scroll
+      cy.byTestId('documents-tab-label').scrollIntoView().click();
+      cy.byTestId('upload-document-panel').should('be.visible');
+    });
+  });
+
   it('renders correctly at tablet breakpoint and still allows prolonging', () => {
     cy.viewport(TABLET_VIEWPORT);
     cy.visit('/kunden/detail/100');

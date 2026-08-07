@@ -38,17 +38,8 @@ class EmployeeServiceTest {
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
         val searchInput = "test-input"
 
-        val employee1 = EmployeeEntity()
-        employee1.id = 1
-        employee1.personnelNumber = "00001"
-        employee1.firstname = "first 1"
-        employee1.lastname = "last 1"
-
-        val employee2 = EmployeeEntity()
-        employee2.id = 2
-        employee2.personnelNumber = "00002"
-        employee2.firstname = "first 2"
-        employee2.lastname = "last 2"
+        val employee1 = EmployeeEntity(personnelNumber = "00001", firstname = "first 1", lastname = "last 1").apply { id = 1 }
+        val employee2 = EmployeeEntity(personnelNumber = "00002", firstname = "first 2", lastname = "last 2").apply { id = 2 }
 
         val pagedResult = PageImpl(listOf(employee1, employee2), pageRequest, 123)
         every { employeeRepository.findBySearchInput(searchInput, pageRequest) } returns pagedResult
@@ -71,11 +62,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `find employees without searchInput and page`() {
-        val employee1 = EmployeeEntity()
-        employee1.id = 1
-        employee1.personnelNumber = "00001"
-        employee1.firstname = "first 1"
-        employee1.lastname = "last 1"
+        val employee1 = EmployeeEntity(personnelNumber = "00001", firstname = "first 1", lastname = "last 1").apply { id = 1 }
 
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE, Sort.by("id"))
         val pagedResult = PageImpl(listOf(employee1), pageRequest, 123)
@@ -126,12 +113,7 @@ class EmployeeServiceTest {
             firstname = "first 1  ",
             lastname = "last 1    ",
         )
-        val entity = EmployeeEntity().apply {
-            id = 1
-            personnelNumber = "00001"
-            firstname = "first 1"
-            lastname = "last 1"
-        }
+        val entity = EmployeeEntity(personnelNumber = "00001", firstname = "first 1", lastname = "last 1").apply { id = 1 }
         every { employeeRepository.save(any()) } returns entity
         every { employeeRepository.findByPersonnelNumber(employeeCreateRequest.personnelNumber) } returns entity
 
@@ -149,12 +131,7 @@ class EmployeeServiceTest {
     @Test
     fun `update employee`() {
         val employeeId = 1L
-        val existingEntity = EmployeeEntity().apply {
-            id = employeeId
-            personnelNumber = "00001"
-            firstname = "Old firstname"
-            lastname = "Old lastname"
-        }
+        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "Old firstname", lastname = "Old lastname").apply { id = employeeId }
         val employeeUpdateRequest = EmployeeRequest(
             personnelNumber = "  00002",
             firstname = "New firstname  ",
@@ -200,12 +177,7 @@ class EmployeeServiceTest {
     @Test
     fun `update employee throws exception when personnelNumber already used by another employee`() {
         val employeeId = 1L
-        val existingEntity = EmployeeEntity().apply {
-            id = employeeId
-            personnelNumber = "00001"
-            firstname = "first"
-            lastname = "last"
-        }
+        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = employeeId }
         every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
         every { employeeRepository.existsByPersonnelNumberAndIdNot("00002", employeeId) } returns true
 

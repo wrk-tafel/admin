@@ -39,7 +39,7 @@ class DistributionStatisticService(
 
     private fun saveStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
         val statistic = distribution.statistic ?: throw BusinessRuleException("Statistik-Daten nicht vorhanden!")
-        val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
+        val statisticStartTime = distribution.startedAt.toLocalDate().atStartOfDay()
         val statisticEndTime = distribution.endedAt!!
         statistic.distribution = distribution
 
@@ -65,12 +65,12 @@ class DistributionStatisticService(
         statistic.countCustomers = countHouseholds
 
         val countPersons =
-            distribution.households.flatMap { it.household?.additionalPersons() ?: emptyList() }
+            distribution.households.flatMap { it.household.additionalPersons() }
                 .filterNot { it.excludeFromHousehold }
                 .count() + countHouseholds
         statistic.countPersons = countPersons
 
-        val countInfants = distribution.households.flatMap { it.household?.additionalPersons() ?: emptyList() }
+        val countInfants = distribution.households.flatMap { it.household.additionalPersons() }
             .filterNot { it.excludeFromHousehold }
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
         statistic.countInfants = countInfants
@@ -111,7 +111,7 @@ class DistributionStatisticService(
         statistic.countCustomersUpdated = countHouseholdsUpdated - countHouseholdsNew - countHouseholdsProlonged
 
         statistic.countSingleParentHouseholds =
-            distribution.households.count { it.household?.singleParent == true }
+            distribution.households.count { it.household.singleParent == true }
     }
 
     private fun fillLogisticsStatistics(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
@@ -125,7 +125,7 @@ class DistributionStatisticService(
         val shopsWithFoodCount = distribution.foodCollections
             .asSequence()
             .flatMap { it.items ?: emptyList() }
-            .filter { (it.amount ?: 0) > 0 }
+            .filter { it.amount > 0 }
             .mapNotNull { it.shop }
             .distinctBy { it.id }
             .count()

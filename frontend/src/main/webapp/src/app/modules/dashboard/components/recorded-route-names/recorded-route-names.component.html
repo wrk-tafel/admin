@@ -4,11 +4,11 @@
       <h4 class="text-white">Erfasste Routen (Details)</h4>
     </mat-card-title>
   </mat-card-header>
-  <mat-card-content class="text-left">
+  <mat-card-content class="text-right">
     @if (recordedRouteNames() && recordedRouteNames()!.length > 0) {
       <div testid="recorded-route-names" class="text-white text-3xl">{{ recordedRouteNames()!.join(', ') }}</div>
     } @else {
-      <div testid="recorded-route-names" class="text-white text-3xl">-</div>
+      <div testid="recorded-route-names" class="text-white text-5xl">-</div>
     }
   </mat-card-content>
 </mat-card>

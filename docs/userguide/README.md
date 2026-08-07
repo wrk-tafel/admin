@@ -9,8 +9,8 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
 | [Kunden](kunden.md) | Kunden suchen, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
 | [Logistik](logistik.md) | Warenerfassung pro Route |
-| [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen |
-| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter, Anmelde-Versuche |
+| [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
+| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Schulstartpakete |
 
 ## Anmeldung
@@ -18,6 +18,10 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt man automatisch zur Übersicht (Dashboard).
 
 ![Login](images/login.jpg)
+
+Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlich eine Umgebungskennzeichnung (z. B. "DEV" oder "TEST") angezeigt, damit diese optisch klar von der Produktivumgebung unterscheidbar sind. Auf der Produktivumgebung bleibt diese Kennzeichnung wie oben abgebildet ausgeblendet.
+
+![Login mit Umgebungskennzeichnung](images/login-umgebungskennzeichnung.jpg)
 
 Über das Benutzer-Icon oben rechts kann das eigene Passwort jederzeit geändert oder man kann sich abmelden.
 

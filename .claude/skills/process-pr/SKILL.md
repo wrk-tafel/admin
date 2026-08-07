@@ -59,9 +59,11 @@ the PR didn't already touch. If you find a bug that's clearly unrelated to this 
 (pre-existing, not introduced by this diff), don't fix it here: `gh issue create` a separate ticket
 and mention it to the user instead of expanding this PR's scope.
 
-## 4. Test locally
+## 4. Test locally — only if step 3 found something to fix
 
-Run the same checks CI will run, so any additional red check is a surprise rather than routine:
+Don't run local verification just because a PR exists — CI already runs the full suite, and
+proactively re-running it here is redundant with step 6. Only run local checks (and only the
+ones relevant to what changed) when you're actually validating a fix you're about to push:
 
 ```bash
 ./gradlew :backend:test
@@ -72,6 +74,9 @@ cd frontend/src/main/webapp && npm run lint && npm run typecheck && npm run test
 For larger fixes, also run full builds for CI-equivalent confidence: `./gradlew :backend:bootJar`
 and `npm run build-prod`. If the change touches any flow covered by Cypress, verify it end-to-end
 using the `fix-e2e` skill's workflow rather than re-deriving that setup here.
+
+If step 3 found nothing to fix, skip this step entirely and go straight to step 6 — let the
+pipeline be the check.
 
 ## 5. Commit and push any fixes
 
@@ -94,6 +99,15 @@ This blocks until every job on the PR — `commitlint`, `pr-title-lint`, `build`
 `build-push-image`, `e2e-test`, `deploy-dev` — has finished, then reports pass/fail per job.
 `deploy-dev` shares one `dev-environment` concurrency group across every PR in the repo, so it can
 sit queued behind another PR's deploy rather than fail — that's expected, not a problem to fix.
+
+A PR's head commit can have more than one workflow run against it (e.g. a double-triggered
+`pull_request` event) — `gh pr checks` only reflects the latest run per job name, so an older run
+against the same commit can have failed without showing here. Before reporting "all green," confirm
+you're looking at the latest run: `gh run list --repo <owner>/<repo> --branch <headRefName> --limit
+5 --json databaseId,conclusion,headSha,createdAt` and check that the run `gh pr checks` is drawing
+from is the most recent one for the current head SHA. Older failed runs on the same commit are not
+something to chase down or explain — they're superseded by the latest run, which is the one that
+actually gates the merge.
 
 ## 7. Investigate and fix any red check
 

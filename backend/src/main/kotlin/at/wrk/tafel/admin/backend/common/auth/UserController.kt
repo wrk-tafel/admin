@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
@@ -14,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -30,6 +33,7 @@ class UserController(
     private val userDetailsManager: TafelUserDetailsManager,
     private val tafelPasswordGenerator: TafelPasswordGenerator,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val loginAttemptService: LoginAttemptService,
 ) {
 
     companion object {
@@ -197,6 +201,31 @@ class UserController(
             .sortedBy { it.title }
             .mapNotNull { mapToUserPermission(it.key) }
         return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
+    }
+
+    @GetMapping("/login-attempts")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getLoginAttempts(
+        @RequestParam page: Int? = null,
+        @RequestParam pageSize: Int? = null,
+    ): PagedResponse<LoginAttemptItem> {
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pagedResult = loginAttemptService.findAll(pageRequest)
+
+        return PagedResponse(
+            items = pagedResult.content,
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize,
+        )
+    }
+
+    @DeleteMapping("/login-attempts/{loginAttemptId}")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun deleteLoginAttempt(@PathVariable loginAttemptId: Long): ResponseEntity<Unit> {
+        loginAttemptService.deleteById(loginAttemptId)
+        return ResponseEntity.noContent().build()
     }
 
     private fun mapToTafelUser(user: UserRequest): TafelUser = TafelUser(

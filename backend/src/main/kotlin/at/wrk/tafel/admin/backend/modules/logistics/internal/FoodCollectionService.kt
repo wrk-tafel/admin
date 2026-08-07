@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,11 +28,15 @@ class FoodCollectionService(
     private val advisoryLockService: AdvisoryLockService,
 ) {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(FoodCollectionService::class.java)
+    }
+
     @Transactional(readOnly = true)
     fun getFoodCollection(routeId: Long): FoodCollectionResponse? {
         val distribution = distributionRepository.getCurrentDistribution()!!
 
-        val foodCollection = distribution.foodCollections.firstOrNull { it.route?.id == routeId }
+        val foodCollection = distribution.foodCollections.firstOrNull { it.route.id == routeId }
 
         return foodCollection?.let { foodCollection ->
             val driver = foodCollection.driver?.id?.let { driverId ->
@@ -45,7 +50,7 @@ class FoodCollectionService(
             }
 
             FoodCollectionResponse(
-                routeId = foodCollection.route!!.id!!,
+                routeId = foodCollection.route.id!!,
                 carId = foodCollection.car?.id,
                 driver = driver,
                 coDriver = coDriver,
@@ -61,6 +66,14 @@ class FoodCollectionService(
         val distribution = distributionRepository.getCurrentDistribution()!!
 
         foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
+        log.info(
+            "Saved food collection route data for route {} (distribution: {}, car: {}, driver: {}, coDriver: {})",
+            routeId,
+            distribution.id,
+            data.carId,
+            data.driverId,
+            data.coDriverId,
+        )
     }
 
     @Transactional
@@ -98,11 +111,11 @@ class FoodCollectionService(
         val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
         val collectionForRoute = distributionEntity.foodCollections.firstOrNull {
-            it.route?.id == routeId
+            it.route.id == routeId
         }
         collectionForRoute?.let {
             val items = it.items?.filter { item ->
-                item.shop?.id == shopId
+                item.shop.id == shopId
             } ?: emptyList()
 
             return FoodCollectionItemsResponse(
@@ -142,19 +155,19 @@ class FoodCollectionService(
         newAmount: Int,
     ) {
         val existingItem = items.firstOrNull {
-            it.category?.id == categoryId && it.shop?.id == shopId // NOSONAR kotlin:S6619
+            it.category.id == categoryId && it.shop.id == shopId
         }
         if (existingItem != null) {
             existingItem.amount = newAmount
         } else {
             items.add(
-                FoodCollectionItemEntity().apply {
+                FoodCollectionItemEntity(
                     category = foodCategoryRepository.findByIdOrNull(categoryId)
-                        ?: throw NotFoundException("Kategorie nicht gefunden!")
+                        ?: throw NotFoundException("Kategorie nicht gefunden!"),
                     shop = shopRepository.findByIdOrNull(shopId)
-                        ?: throw NotFoundException("Filiale nicht gefunden!")
-                    amount = newAmount
-                },
+                        ?: throw NotFoundException("Filiale nicht gefunden!"),
+                    amount = newAmount,
+                ),
             )
         }
     }
@@ -163,18 +176,17 @@ class FoodCollectionService(
         distributionEntity: DistributionEntity,
         routeId: Long,
     ): FoodCollectionEntity = distributionEntity.foodCollections.firstOrNull {
-        it.route?.id == routeId
-    } ?: FoodCollectionEntity().apply {
-        distribution = distributionEntity
-        route = routeRepository.findByIdOrNull(routeId)
-            ?: throw NotFoundException("Route $routeId nicht gefunden!")
-    }
+        it.route.id == routeId
+    } ?: FoodCollectionEntity(
+        distribution = distributionEntity,
+        route = routeRepository.findByIdOrNull(routeId) ?: throw NotFoundException("Route $routeId nicht gefunden!"),
+    )
 
     private fun mapEmployee(employee: EmployeeEntity): EmployeeResponse = EmployeeResponse(
         id = employee.id!!,
-        personnelNumber = employee.personnelNumber!!,
-        firstname = employee.firstname!!,
-        lastname = employee.lastname!!,
+        personnelNumber = employee.personnelNumber,
+        firstname = employee.firstname,
+        lastname = employee.lastname,
     )
 
     private fun mapRouteData(
@@ -182,14 +194,14 @@ class FoodCollectionService(
         routeId: Long,
         data: FoodCollectionSaveRouteRequest,
     ): FoodCollectionEntity {
+        val route = routeRepository.findByIdOrNull(routeId) ?: throw NotFoundException("Route $routeId nicht gefunden!")
         val entity = distributionEntity.foodCollections.firstOrNull {
-            it.route?.id == routeId
-        } ?: FoodCollectionEntity()
+            it.route.id == routeId
+        } ?: FoodCollectionEntity(distribution = distributionEntity, route = route)
 
         return entity.apply {
-            distribution = distributionEntity
-            route = routeRepository.findByIdOrNull(routeId)
-                ?: throw NotFoundException("Route $routeId nicht gefunden!")
+            this.distribution = distributionEntity
+            this.route = route
             car = carRepository.findByIdOrNull(data.carId)
                 ?: throw NotFoundException("KFZ nicht gefunden!")
             driver = employeeRepository.findByIdOrNull(data.driverId)
@@ -206,33 +218,33 @@ class FoodCollectionService(
         routeId: Long,
         data: FoodCollectionItemsRequest,
     ): FoodCollectionEntity {
+        val route = routeRepository.findByIdOrNull(routeId) ?: throw NotFoundException("Route $routeId nicht gefunden!")
         val entity = distributionEntity.foodCollections.firstOrNull {
-            it.route?.id == routeId
-        } ?: FoodCollectionEntity()
+            it.route.id == routeId
+        } ?: FoodCollectionEntity(distribution = distributionEntity, route = route)
 
         return entity.apply {
-            distribution = distributionEntity
-            route = routeRepository.findByIdOrNull(routeId)
-                ?: throw NotFoundException("Route $routeId nicht gefunden!")
+            this.distribution = distributionEntity
+            this.route = route
             items = mapItemsToEntity(data.items)
         }
     }
 
     private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> = items.map {
-        FoodCollectionItemEntity().apply {
+        FoodCollectionItemEntity(
             category = foodCategoryRepository.findByIdOrNull(it.categoryId)
-                ?: throw NotFoundException("Kategorie nicht gefunden!")
+                ?: throw NotFoundException("Kategorie nicht gefunden!"),
             shop = shopRepository.findByIdOrNull(it.shopId)
-                ?: throw NotFoundException("Filiale nicht gefunden!")
-            amount = it.amount
-        }
+                ?: throw NotFoundException("Filiale nicht gefunden!"),
+            amount = it.amount,
+        )
     }
 
     private fun mapItemsEntityToItems(items: List<FoodCollectionItemEntity>): List<FoodCollectionItem> = items.map {
         FoodCollectionItem(
-            categoryId = it.category!!.id!!, // NOSONAR kotlin:S6619
-            shopId = it.shop!!.id!!, // NOSONAR kotlin:S6619
-            amount = it.amount ?: 0,
+            categoryId = it.category.id!!,
+            shopId = it.shop.id!!,
+            amount = it.amount,
         )
     }
 }

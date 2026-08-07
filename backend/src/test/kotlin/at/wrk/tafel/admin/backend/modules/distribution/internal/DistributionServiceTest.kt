@@ -23,6 +23,10 @@ import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import com.github.romankh3.image.comparison.model.Rectangle
@@ -41,6 +45,7 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -117,11 +122,10 @@ internal class DistributionServiceTest {
     fun beforeEach() {
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        testHouseholdEntity1 = HouseholdEntity().apply {
+        testHouseholdEntity1 = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
             id = 1
             issuer = testUserEntity.employee
             createdAt = LocalDateTime.now()
-            householdId = 100
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -130,49 +134,40 @@ internal class DistributionServiceTest {
             addressCity = "Wien"
             telephoneNumber = "0043660123123"
             email = "test@mail.com"
-            validUntil = LocalDate.now()
-            locked = false
-
-            val mainPersonEntity = PersonEntity()
+        }
+        run {
+            val mainPersonEntity = PersonEntity(household = testHouseholdEntity1, country = testCountry1, isMainPerson = true)
             mainPersonEntity.id = 1
-            mainPersonEntity.household = this
-            mainPersonEntity.isMainPerson = true
             mainPersonEntity.lastname = "Mustermann"
             mainPersonEntity.firstname = "Max"
             mainPersonEntity.birthDate = LocalDate.now().minusYears(30)
-            mainPersonEntity.country = testCountry1
             mainPersonEntity.employer = "Employer 123"
             mainPersonEntity.income = BigDecimal("1000")
             mainPersonEntity.incomeDue = LocalDate.now()
 
-            val addPerson1 = PersonEntity()
+            val addPerson1 = PersonEntity(household = testHouseholdEntity1, country = testCountry1)
             addPerson1.id = 2
-            addPerson1.household = this
             addPerson1.lastname = "Add pers 1"
             addPerson1.firstname = "Add pers 1"
             addPerson1.birthDate = LocalDate.now().minusYears(5)
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
-            addPerson1.country = testCountry1
             addPerson1.excludeFromHousehold = false
 
-            val addPerson2 = PersonEntity()
+            val addPerson2 = PersonEntity(household = testHouseholdEntity1, country = testCountry1)
             addPerson2.id = 3
-            addPerson2.household = this
             addPerson2.lastname = "Add pers 2"
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
-            addPerson2.country = testCountry1
             addPerson2.excludeFromHousehold = true
 
-            persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
-            mainPerson = mainPersonEntity
+            testHouseholdEntity1.persons = mutableListOf(mainPersonEntity, addPerson1, addPerson2)
+            testHouseholdEntity1.mainPerson = mainPersonEntity
         }
 
-        testHouseholdEntity2 = HouseholdEntity().apply {
+        testHouseholdEntity2 = HouseholdEntity(householdId = 200, validUntil = LocalDate.now(), locked = false).apply {
             id = 2
             createdAt = LocalDateTime.now()
-            householdId = 200
             addressStreet = "Test-Straße 2"
             addressHouseNumber = "200"
             addressStairway = "1-2"
@@ -181,23 +176,19 @@ internal class DistributionServiceTest {
             addressCity = "Wien 2"
             telephoneNumber = "0043660123123"
             email = "test2@mail.com"
-            validUntil = LocalDate.now()
-            locked = false
-
-            val mainPersonEntity = PersonEntity()
+        }
+        run {
+            val mainPersonEntity = PersonEntity(household = testHouseholdEntity2, country = testCountry1, isMainPerson = true)
             mainPersonEntity.id = 20
-            mainPersonEntity.household = this
-            mainPersonEntity.isMainPerson = true
             mainPersonEntity.lastname = "Mustermann"
             mainPersonEntity.firstname = "Max 2"
             mainPersonEntity.birthDate = LocalDate.now().minusYears(22)
-            mainPersonEntity.country = testCountry1
             mainPersonEntity.employer = "Employer 123-2"
             mainPersonEntity.income = BigDecimal("2000")
             mainPersonEntity.incomeDue = LocalDate.now()
 
-            persons = mutableListOf(mainPersonEntity)
-            mainPerson = mainPersonEntity
+            testHouseholdEntity2.persons = mutableListOf(mainPersonEntity)
+            testHouseholdEntity2.mainPerson = mainPersonEntity
         }
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
@@ -241,7 +232,7 @@ internal class DistributionServiceTest {
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
         every { distributionRepository.save(any()) } returns distributionEntity
         every { advisoryLockService.tryWithLock(any(), any()) } answers {
@@ -266,13 +257,42 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `create new distribution logs the start under the correct logger`() {
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        distributionEntity.id = 123
+        every { distributionRepository.save(any()) } returns distributionEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
+
+        val logger = LoggerFactory.getLogger(DistributionService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+
+        try {
+            service.createNewDistribution()
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Started distribution").contains("123")
+            }
+        } finally {
+            logger.detachAppender(logAppender)
+        }
+    }
+
+    @Test
     fun `create new distribution item`() {
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
-        val distributionEntity = DistributionEntity()
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
         distributionEntity.id = 123
-        distributionEntity.startedAt = LocalDateTime.now()
         every { distributionRepository.save(any()) } returns distributionEntity
         every { advisoryLockService.tryWithLock(any(), any()) } answers {
             val block = secondArg<() -> Unit>()
@@ -457,7 +477,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `validate close distribution when statistic data is missing`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity().apply {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             endedAt = null
         }
 
@@ -469,7 +489,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `validate close distribution when not all routes are recorded`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity().apply {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             endedAt = null
             statistic = testDistributionStatisticEntity
             foodCollections = listOf(
@@ -486,18 +506,15 @@ internal class DistributionServiceTest {
 
     @Test
     fun `validate close distribution when a route is missing data`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity().apply {
+        val distributionForRouteCheck = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             endedAt = null
             statistic = testDistributionStatisticEntity
-            foodCollections = listOf(
-                FoodCollectionEntity().apply {
-                    route = testRoute1
-                },
-                FoodCollectionEntity().apply {
-                    route = testRoute2
-                },
-            )
         }
+        distributionForRouteCheck.foodCollections = listOf(
+            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute1),
+            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute2),
+        )
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionForRouteCheck
         every { routeRepository.findAll() } returns listOf(testRoute1, testRoute2)
 
         val result = service.validateClose()
@@ -553,7 +570,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `assign customer with existing entry (update)`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -585,7 +602,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `assign existing ticketnumber to another customer`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -610,7 +627,7 @@ internal class DistributionServiceTest {
     @Test
     fun `generate customerlist pdf - successful`() {
         val date = LocalDateTime.now()
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             startedAt = date
             endedAt = null
@@ -684,7 +701,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticketNumber with open tickets left`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -701,20 +718,21 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticket-screen ticket maps householdId and pending cost contribution`() {
-        val testDistributionHouseholdEntity = DistributionHouseholdEntity().apply {
+        val ticketScreenHousehold = HouseholdEntity(householdId = 500, validUntil = LocalDate.now()).apply {
+            id = 1
+            pendingCostContribution = BigDecimal("42.00")
+        }
+        val testDistributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = ticketScreenHousehold,
+            ticketNumber = 5,
+            processed = false,
+        ).apply {
             id = 1
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = HouseholdEntity().apply {
-                id = 1
-                householdId = 500
-                pendingCostContribution = BigDecimal("42.00")
-            }
-            ticketNumber = 5
-            processed = false
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(testDistributionHouseholdEntity)
@@ -739,7 +757,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticketNumber value with open tickets left`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -756,7 +774,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticketNumber for customer`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -767,7 +785,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val distributionHouseholdEntity = service.getCurrentTicketNumber(
-            testDistributionHouseholdEntity2.household!!.householdId,
+            testDistributionHouseholdEntity2.household.householdId,
         )
 
         assertThat(distributionHouseholdEntity?.ticketNumber).isEqualTo(51)
@@ -775,16 +793,17 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticketNumber with all tickets resolved`() {
-        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = true,
+        ).apply {
             id = 1
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity1
-            ticketNumber = 1
-            processed = true
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -812,26 +831,28 @@ internal class DistributionServiceTest {
     fun `reopen ticket and previous with open tickets before`() {
         every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
 
-        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = true,
+            costContributionPaid = true,
+        ).apply {
             id = 1
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity1
-            ticketNumber = 1
-            costContributionPaid = true
-            processed = true
         }
 
-        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity2,
+            ticketNumber = 2,
+            processed = false,
+        ).apply {
             id = 2
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity2
-            ticketNumber = 2
-            processed = false
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -858,25 +879,27 @@ internal class DistributionServiceTest {
     fun `reopen ticket and previous without open tickets before`() {
         every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
 
-        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = false,
+        ).apply {
             id = 1
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity1
-            ticketNumber = 1
-            processed = false
         }
 
-        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity2,
+            ticketNumber = 2,
+            processed = false,
+        ).apply {
             id = 2
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity2
-            ticketNumber = 2
-            processed = false
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -910,27 +933,29 @@ internal class DistributionServiceTest {
     fun `close current ticket and next with open tickets left`() {
         every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
 
-        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = false,
+            costContributionPaid = false,
+        ).apply {
             id = 1
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity1
-            ticketNumber = 1
-            costContributionPaid = false
-            processed = false
         }
 
-        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity2 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity2,
+            ticketNumber = 2,
+            processed = false,
+            costContributionPaid = false,
+        ).apply {
             id = 2
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity2
-            ticketNumber = 2
-            costContributionPaid = false
-            processed = false
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -957,16 +982,17 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close current ticket and next with all tickets resolved`() {
-        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity().apply {
+        val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = true,
+        ).apply {
             id = 1
             createdAt = LocalDateTime.now()
-            distribution = testDistributionEntity
-            household = testHouseholdEntity1
-            ticketNumber = 1
-            processed = true
         }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -982,7 +1008,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `delete current ticket of customer`() {
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
             households = listOf(
@@ -993,7 +1019,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val result =
-            service.deleteCurrentTicket(testDistributionHouseholdEntity2.household!!.householdId!!)
+            service.deleteCurrentTicket(testDistributionHouseholdEntity2.household.householdId)
 
         assertThat(result).isTrue()
         verify(exactly = 1) { distributionHouseholdRepository.delete(testDistributionHouseholdEntity2) }
@@ -1005,11 +1031,11 @@ internal class DistributionServiceTest {
         val selectedShelters = listOf(testShelter1, testShelter2)
         val selectedShelterIds = selectedShelters.mapNotNull { it.id }
 
-        val testDistributionEntity = DistributionEntity().apply {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             endedAt = null
-            statistic = DistributionStatisticEntity().apply {
-                employeeCount = 1
-            }
+        }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
+            employeeCount = 1
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
@@ -1047,7 +1073,7 @@ internal class DistributionServiceTest {
     fun `update notes data of distribution`() {
         val notes = "  test notes, easy peasy  "
 
-        val testDistributionEntity = DistributionEntity().apply { endedAt = null }
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 
@@ -1064,7 +1090,7 @@ internal class DistributionServiceTest {
     fun `update sanitized notes data of distribution`() {
         val notes = "   "
 
-        val testDistributionEntity = DistributionEntity().apply { endedAt = null }
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 

@@ -47,23 +47,18 @@ class HouseholdPdfServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        val testUserEntity = UserEntity()
-        testUserEntity.username = "test-username"
-        testUserEntity.password = null
-        testUserEntity.enabled = true
-        testUserEntity.id = 0
-        testUserEntity.employee = EmployeeEntity().apply {
-            personnelNumber = "0000"
-            firstname = "First"
-            lastname = "Last"
-        }
+        val testUserEntity = UserEntity(
+            username = "test-username",
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "0000", firstname = "First", lastname = "Last"),
+            enabled = true,
+        ).apply { id = 0 }
 
-        testHousehold = HouseholdEntity()
+        testHousehold = HouseholdEntity(householdId = 123, validUntil = LocalDate.of(2030, 3, 1))
         testHousehold.createdAt = LocalDateTime.of(
             LocalDate.of(2022, 10, 3),
             LocalTime.of(10, 10),
         )
-        testHousehold.householdId = 123
         testHousehold.issuer = testUserEntity.employee
         testHousehold.addressStreet = "Karl-Schäfer-Straße"
         testHousehold.addressHouseNumber = "8"
@@ -71,11 +66,8 @@ class HouseholdPdfServiceTest {
         testHousehold.addressDoor = "3A"
         testHousehold.addressPostalCode = 1210
         testHousehold.addressCity = "Wien"
-        testHousehold.validUntil = LocalDate.of(2030, 3, 1)
 
-        val mainPerson = PersonEntity()
-        mainPerson.household = testHousehold
-        mainPerson.isMainPerson = true
+        val mainPerson = PersonEntity(household = testHousehold, country = testCountry1, isMainPerson = true)
         mainPerson.lastname = "Mustermann"
         mainPerson.firstname = "Max"
         mainPerson.birthDate = LocalDate.of(1980, 6, 10)
@@ -83,33 +75,26 @@ class HouseholdPdfServiceTest {
         mainPerson.employer = "WRK Team Österreich Tafel"
         mainPerson.income = BigDecimal("977.94587")
         mainPerson.incomeDue = LocalDate.of(2030, 1, 1)
-        mainPerson.country = testCountry1
 
-        val addPers1 = PersonEntity()
-        addPers1.household = testHousehold
+        val addPers1 = PersonEntity(household = testHousehold, country = testCountry1)
         addPers1.lastname = "Mustermann"
         addPers1.firstname = "Eva-Maria Magdalena"
         addPers1.birthDate = LocalDate.of(2000, 1, 1)
         addPers1.gender = Gender.MALE
         addPers1.income = BigDecimal("1000")
-        addPers1.country = testCountry1
         addPers1.excludeFromHousehold = false
 
-        val addPers2 = PersonEntity()
-        addPers2.household = testHousehold
+        val addPers2 = PersonEntity(household = testHousehold, country = testCountry1)
         addPers2.lastname = "Mustermann"
         addPers2.firstname = "Max"
         addPers2.birthDate = LocalDate.of(2001, 12, 1)
-        addPers2.country = testCountry1
         addPers2.excludeFromHousehold = false
 
-        val addPers3 = PersonEntity()
-        addPers3.household = testHousehold
+        val addPers3 = PersonEntity(household = testHousehold, country = testCountry1)
         addPers3.lastname = "Mustermann"
         addPers3.firstname = "Maria"
         addPers3.birthDate = LocalDate.of(2005, 2, 28)
         addPers3.income = BigDecimal("132")
-        addPers3.country = testCountry1
         addPers3.excludeFromHousehold = true
 
         testHousehold.persons = mutableListOf(mainPerson, addPers1, addPers2, addPers3)

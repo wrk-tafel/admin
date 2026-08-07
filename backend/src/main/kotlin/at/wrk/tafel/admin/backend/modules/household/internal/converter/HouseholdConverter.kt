@@ -20,6 +20,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Component
@@ -39,9 +40,13 @@ class HouseholdConverter(
     fun mapHouseholdToEntity(householdUpdate: HouseholdRequest, storedEntity: HouseholdEntity? = null): HouseholdEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val userEntity = userRepository.findByUsername(user.username!!)
-        val householdEntity = storedEntity ?: HouseholdEntity()
+        val householdId = householdUpdate.id ?: householdRepository.getNextHouseholdSequenceValue()
+        val householdEntity = storedEntity ?: HouseholdEntity(
+            householdId = householdId,
+            validUntil = householdUpdate.validUntil ?: LocalDate.now(),
+        )
 
-        householdEntity.householdId = householdUpdate.id ?: householdRepository.getNextHouseholdSequenceValue()
+        householdEntity.householdId = householdId
         householdEntity.issuer = householdEntity.issuer ?: userEntity!!.employee
         householdEntity.addressStreet = householdUpdate.address.street?.trim()
         householdEntity.addressHouseNumber = householdUpdate.address.houseNumber?.trim()
@@ -54,7 +59,7 @@ class HouseholdConverter(
         householdEntity.singleParent = householdUpdate.singleParent
 
         val prolongedAt =
-            if (storedEntity?.validUntil != null &&
+            if (storedEntity != null &&
                 householdUpdate.validUntil != null &&
                 householdUpdate.validUntil.isAfter(storedEntity.validUntil)
             ) {
@@ -63,7 +68,9 @@ class HouseholdConverter(
                 null
             }
         householdEntity.prolongedAt = prolongedAt
-        householdEntity.validUntil = householdUpdate.validUntil
+        if (householdUpdate.validUntil != null) {
+            householdEntity.validUntil = householdUpdate.validUntil
+        }
 
         if (householdUpdate.locked == true) {
             householdEntity.locked = true
@@ -91,7 +98,10 @@ class HouseholdConverter(
             } else {
                 person.id?.let { personRepository.findByIdOrNull(it) }
             }
-            val personEntity = existingEntity ?: PersonEntity()
+            val personEntity = existingEntity ?: PersonEntity(
+                household = householdEntity,
+                country = countryRepository.findById(person.country.id).get(),
+            )
 
             personEntity.household = householdEntity
             personEntity.isMainPerson = person.isMainPerson
@@ -125,9 +135,9 @@ class HouseholdConverter(
             id = householdEntity.householdId,
             issuer = householdEntity.issuer?.let {
                 HouseholdIssuer(
-                    personnelNumber = it.personnelNumber!!,
-                    firstname = it.firstname!!,
-                    lastname = it.lastname!!,
+                    personnelNumber = it.personnelNumber,
+                    firstname = it.firstname,
+                    lastname = it.lastname,
                 )
             },
             issuedAt = householdEntity.createdAt!!.toLocalDate(),
@@ -144,7 +154,7 @@ class HouseholdConverter(
             validUntil = householdEntity.validUntil,
             locked = householdEntity.locked,
             lockedAt = householdEntity.lockedAt,
-            lockedBy = householdEntity.lockedBy?.let { "${it.employee!!.personnelNumber} ${it.employee!!.firstname} ${it.employee!!.lastname}" },
+            lockedBy = householdEntity.lockedBy?.let { "${it.employee.personnelNumber} ${it.employee.firstname} ${it.employee.lastname}" },
             lockReason = householdEntity.lockReason,
             pendingCostContribution = householdEntity.pendingCostContribution,
             singleParent = householdEntity.singleParent,
@@ -163,7 +173,7 @@ class HouseholdConverter(
         lastname = personEntity.lastname,
         birthDate = personEntity.birthDate,
         gender = mapGender(personEntity.gender),
-        country = mapCountryToResponse(personEntity.country!!),
+        country = mapCountryToResponse(personEntity.country),
         employer = personEntity.employer,
         income = personEntity.income,
         incomeDue = personEntity.incomeDue,
@@ -173,13 +183,9 @@ class HouseholdConverter(
 
     private fun mapGender(gender: Gender?): PersonGender? = gender?.let { PersonGender.valueOf(it.name) }
 
-    // static_countries.code/name are NOT NULL in the DB, but CountryEntity models both as String? for the
-    // JPA no-arg constructor, so the assertions below are genuinely required (removing either is a compile
-    // error). Sonar (kotlin:S6619) flags the `code` assertion as dead regardless of which null-check syntax
-    // is used - confirmed false positive, suppressed rather than reworded.
     private fun mapCountryToResponse(country: CountryEntity): CountryItem = CountryItem(
         id = country.id!!,
-        code = country.code!!, // NOSONAR kotlin:S6619
-        name = country.name!!,
+        code = country.code,
+        name = country.name,
     )
 }

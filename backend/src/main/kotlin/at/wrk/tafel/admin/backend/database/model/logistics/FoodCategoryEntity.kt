@@ -10,20 +10,17 @@ import java.math.BigDecimal
 @Entity(name = "FoodCategory")
 @Table(name = "food_categories")
 @ExcludeFromTestCoverage
-class FoodCategoryEntity : BaseChangeTrackingEntity() {
-
+class FoodCategoryEntity(
     @Column(name = "name")
-    var name: String? = null
+    var name: String,
+    @Column(name = "sort_order")
+    var sortOrder: Int,
+    @Column(name = "return_item")
+    var returnItem: Boolean = false,
+    @Column(name = "enabled")
+    var enabled: Boolean = true,
+) : BaseChangeTrackingEntity() {
 
     @Column(name = "weight_per_unit")
     var weightPerUnit: BigDecimal? = null
-
-    @Column(name = "return_item")
-    var returnItem: Boolean? = null
-
-    @Column(name = "sort_order")
-    var sortOrder: Int? = null
-
-    @Column(name = "enabled")
-    var enabled: Boolean? = null
 }

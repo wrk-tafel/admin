@@ -13,7 +13,8 @@ import {
   faPlus,
   faTriangleExclamation,
   faTruck,
-  faUser
+  faUser,
+  faUserLock
 } from '@fortawesome/free-solid-svg-icons';
 
 export interface ITafelNavData {
@@ -127,6 +128,11 @@ export const navigationMenuItems: ITafelNavData[] = [
         name: 'Benutzer anlegen',
         url: '/benutzer/erstellen',
         icon: faPlus
+      },
+      {
+        name: 'Anmelde-Versuche',
+        url: '/benutzer/anmelde-versuche',
+        icon: faUserLock
       }
     ]
   },
@@ -162,10 +168,6 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Grenzwerte',
         url: '/einstellungen/statische-werte'
-      },
-      {
-        name: 'Anmelde-Versuche',
-        url: '/einstellungen/anmelde-versuche'
       },
       {
         name: 'Mitarbeiter',

@@ -6,14 +6,11 @@ import jakarta.persistence.Embeddable
 
 @Embeddable
 @ExcludeFromTestCoverage
-class ShopAddress {
-
+class ShopAddress(
     @Column(name = "address_postal_code")
-    var postalCode: Int? = null
-
+    var postalCode: Int,
     @Column(name = "address_street")
-    var street: String? = null
-
+    var street: String,
     @Column(name = "address_city")
-    var city: String? = null
-}
+    var city: String,
+)
