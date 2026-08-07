@@ -82,9 +82,22 @@ data class PushNotificationPayload(
     val notification: PushNotificationPayloadNotification,
 )
 
+/**
+ * Both icon paths are resolved by the browser against the app's own origin (the Angular service
+ * worker passes them straight through to `showNotification`, see `ngsw-worker.js`), so they have to
+ * match files actually shipped under `frontend/.../public/icons/`.
+ *
+ * [icon] and [badge] are two different images on purpose, not a duplicated setting: [icon] is the
+ * full-colour logo shown inside the notification itself, while [badge] is the small monochrome
+ * mark Android puts in the status bar and next to the app name in the notification shade. Android
+ * uses only the badge's alpha channel and tints the result, so it must be a white-on-transparent
+ * silhouette - handing it the colour logo instead renders as a featureless filled blob, and
+ * omitting it altogether falls back to a generic Chrome icon with no Tafel branding at all.
+ */
 @ExcludeFromTestCoverage
 data class PushNotificationPayloadNotification(
     val title: String,
     val body: String,
     val icon: String = "/icons/icon-192x192.png",
+    val badge: String = "/icons/badge-96x96.png",
 )
