@@ -6,7 +6,7 @@
         <tr>
           <th scope="col"></th>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
+            <th scope="col" class="break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }
         </tr>
         </thead>
@@ -18,7 +18,7 @@
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex">
-                    <mat-form-field subscriptSizing="dynamic" style="min-width: 3.6em; max-width: 5em;">
+                    <mat-form-field subscriptSizing="dynamic" class="min-w-[3.6em] max-w-[5em]">
                       <input matInput type="number" min="0"
                              [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
                              formControlName="amount">
