@@ -1,14 +1,20 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
@@ -45,11 +51,24 @@ internal class GenericExceptionHandlerTest {
     @InjectMockKs
     private lateinit var exceptionHandler: GenericExceptionHandler
 
+    private lateinit var logAppender: ListAppender<ILoggingEvent>
+    private lateinit var logger: Logger
+
     @BeforeEach
     fun beforeEach() {
         every { request.request.requestURI } returns "/dummy-path"
+        every { request.getDescription(false) } returns "uri=/dummy-path"
         every { request.locale } returns Locale.GERMAN
         stubMessages { code -> "localized-${code.substringAfterLast('.')}" }
+
+        logger = LoggerFactory.getLogger(GenericExceptionHandler::class.java) as Logger
+        logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+    }
+
+    @AfterEach
+    fun afterEach() {
+        logger.detachAppender(logAppender)
     }
 
     /**
@@ -86,6 +105,22 @@ internal class GenericExceptionHandlerTest {
         assertThat(errorBody.status).isEqualTo(HttpStatus.NOT_FOUND.value())
         assertThat(errorBody.title).isEqualTo("localized-title")
         assertThat(errorBody.detail).isEqualTo("notfound-msg")
+    }
+
+    @Test
+    fun `logs every handled exception at warn with method, uri, status and exception type`() {
+        every { request.request.method } returns "DELETE"
+        val exception = NotFoundException("notfound-msg")
+
+        exceptionHandler.handleExceptionInternal(exception, null, HttpHeaders.EMPTY, exception.statusCode, request)
+
+        assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
+        assertThat(logAppender.list.single().formattedMessage)
+            .contains("DELETE")
+            .contains("uri=/dummy-path")
+            .contains("404")
+            .contains("NotFoundException")
+            .contains("notfound-msg")
     }
 
     @Test

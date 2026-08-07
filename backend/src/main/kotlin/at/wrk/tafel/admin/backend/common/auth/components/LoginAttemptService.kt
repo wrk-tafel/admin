@@ -1,12 +1,14 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.LoginAttemptItem
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
@@ -29,6 +31,10 @@ class LoginAttemptService(
     private val clock: Clock,
 ) {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(LoginAttemptService::class.java)
+    }
+
     @Transactional(readOnly = true)
     fun isLocked(username: String): Boolean {
         val lockedUntil = loginAttemptRepository.findByUsername(normalize(username))?.lockedUntil ?: return false
@@ -47,10 +53,19 @@ class LoginAttemptService(
 
             entry.failureCount = failureCount
             entry.lastFailureAt = now()
-            entry.lockedUntil =
-                if (failureCount >= maxFailures()) now().plusSeconds(lockoutDurationInSeconds()) else null
+            val locked = failureCount >= maxFailures()
+            entry.lockedUntil = if (locked) now().plusSeconds(lockoutDurationInSeconds()) else null
 
             loginAttemptRepository.save(entry)
+
+            if (locked) {
+                log.warn(
+                    "User '{}' locked out until {} after {} consecutive failed login attempts",
+                    sanitizeForLog(key),
+                    entry.lockedUntil,
+                    failureCount,
+                )
+            }
         }
     }
 

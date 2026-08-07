@@ -52,6 +52,13 @@ class GenericExceptionHandler(
      * its detail as the exception's `toString()` (`"400 BAD_REQUEST, ProblemDetail[type='null',
      * ...]"`) rather than the message it was constructed with. Note the existing unit tests never
      * caught that: they pass `exception.body` explicitly, which production never does.
+     *
+     * Every exception reaching this hook is logged at `warn` (not `debug`) so it's actually visible
+     * in production, where `logging.level.root` is `INFO` - before this, every 4xx handled here
+     * (business-rule violations, validation failures, malformed requests) was silently swallowed.
+     * Logged in the same "<METHOD> <uri>" shape as [handleAccessDeniedException] so both denial paths
+     * can be grepped together; no stack trace, since every exception classified here is an expected,
+     * already-categorized failure - an unexpected one goes through [handleGenericException] instead.
      */
     public override fun handleExceptionInternal(
         ex: Exception,
@@ -60,7 +67,14 @@ class GenericExceptionHandler(
         statusCode: HttpStatusCode,
         request: WebRequest,
     ): ResponseEntity<Any> {
-        log.debug(ex.message, ex)
+        log.warn(
+            "{} {} answered with {} ({}): {}",
+            sanitizeForLog((request as? ServletWebRequest)?.request?.method ?: "?"),
+            sanitizeForLog(request.getDescription(false)),
+            statusCode.value(),
+            ex::class.simpleName,
+            sanitizeForLog(ex.message),
+        )
 
         val status = HttpStatus.valueOf(statusCode.value())
         val problemDetail = (body as? ProblemDetail)

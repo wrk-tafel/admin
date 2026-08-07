@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -17,6 +19,10 @@ class TafelLoginProvider(
     private val loginAttemptService: LoginAttemptService,
 ) : AbstractUserDetailsAuthenticationProvider() {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(TafelLoginProvider::class.java)
+    }
+
     /**
      * A login for an unknown username would fail without running Argon2 and therefore respond
      * measurably faster than a wrong password, allowing username enumeration via timing.
@@ -29,15 +35,18 @@ class TafelLoginProvider(
     override fun authenticate(authentication: Authentication): Authentication {
         val username = authentication.name ?: ""
         if (loginAttemptService.isLocked(username)) {
+            log.warn("Login rejected for locked-out user '{}'", sanitizeForLog(username))
             throw LockedException("User '$username' is locked due to too many failed login attempts")
         }
 
         try {
             val result = super.authenticate(authentication)
             loginAttemptService.recordSuccess(username)
+            log.info("Login successful for user '{}'", sanitizeForLog(username))
             return result
         } catch (e: BadCredentialsException) {
             loginAttemptService.recordFailure(username)
+            log.warn("Login failed for user '{}': {}", sanitizeForLog(username), sanitizeForLog(e.message))
             throw e
         }
     }
