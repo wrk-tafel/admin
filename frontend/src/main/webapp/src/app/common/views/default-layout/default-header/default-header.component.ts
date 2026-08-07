@@ -5,7 +5,7 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog} from '@angular/material/dialog';
 import {NgClass, NgOptimizedImage} from '@angular/common';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faBars, faKey, faLock} from '@fortawesome/free-solid-svg-icons';
+import {faBars, faBell, faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
@@ -54,6 +54,7 @@ export class DefaultHeaderComponent {
   }
 
   protected readonly faBars = faBars;
+  protected readonly faBell = faBell;
   protected readonly faKey = faKey;
   protected readonly faLock = faLock;
 }

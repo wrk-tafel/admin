@@ -13,6 +13,9 @@ import {
   TicketScreenFullscreenComponent
 } from './modules/checkin/views/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
 import {UserPasswordChangeComponent} from './modules/user/components/user-passwordchange/user-passwordchange.component';
+import {
+  PushNotificationSettingsComponent
+} from './modules/user/components/push-notification-settings/push-notification-settings.component';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
@@ -109,6 +112,10 @@ export const routes: Routes = [
       {
         path: 'passwortaendern',
         component: UserPasswordChangeComponent
+      },
+      {
+        path: 'benachrichtigungen',
+        component: PushNotificationSettingsComponent
       }
     ]
   },

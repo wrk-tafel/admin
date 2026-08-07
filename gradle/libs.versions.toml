@@ -10,6 +10,8 @@ jackson-legacy = "2.22.1"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85"
+web-push = "5.1.2"
+apache-httpclient = "4.5.13"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
@@ -81,6 +83,13 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # Crypto
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+
+# Web Push (VAPID)
+web-push = { module = "nl.martijndwars:web-push", version.ref = "web-push" }
+# web-push's own PushService#send() return type (org.apache.http.HttpResponse) - pulled in by
+# web-push only as a runtime-scoped transitive, so it needs to be explicit here to be visible on
+# the compile classpath too.
+apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "apache-httpclient" }
 
 # PDF / QR
 apache-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "apache-fop" }
