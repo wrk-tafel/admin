@@ -30,6 +30,9 @@
     @if (devices().length > 0) {
       <div class="mt-6">
         <div class="font-bold mb-2">Deine Geräte</div>
+        <p class="text-sm text-gray-500 mb-2">
+          Mit dem Senden-Symbol kann eine Test-Benachrichtigung an ein Gerät geschickt werden, um zu prüfen, ob dort tatsächlich Benachrichtigungen ankommen.
+        </p>
         @for (device of devices(); track device.id) {
           <div testid="push-device" [attr.data-device-id]="device.id" class="flex items-center justify-between gap-2 py-2 border-t border-gray-200">
             <div class="min-w-0">
@@ -44,6 +47,17 @@
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                testid="push-device-test"
+                matButton="filled"
+                class="button-danger"
+                [disabled]="testedDeviceId() === device.id"
+                (click)="sendTestNotification(device)"
+                [attr.aria-label]="'Test-Benachrichtigung senden'"
+              >
+                <fa-icon [icon]="faPaperPlane"></fa-icon>
+              </button>
               <button
                 type="button"
                 testid="push-device-rename"

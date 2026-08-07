@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionItem
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionLabelRequest
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionListResponse
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionRequest
+import at.wrk.tafel.admin.backend.modules.push.model.PushTestResponse
 import at.wrk.tafel.admin.backend.modules.push.model.PushTypePreferenceRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -52,6 +53,14 @@ class PushController(
 
     @PutMapping("/subscriptions/{id}/label")
     fun updateLabel(@PathVariable id: Long, @Valid @RequestBody request: PushSubscriptionLabelRequest): PushSubscriptionItem = pushSubscriptionService.updateLabel(id, request)
+
+    /**
+     * Sends a test notification to one specific device of the calling user - a POST rather than a
+     * GET since it triggers a real send, and a 200 with an outcome rather than a 201 since nothing
+     * is created (see [PushTestResponse] for why failures aren't error statuses).
+     */
+    @PostMapping("/subscriptions/{id}/test")
+    fun sendTestNotification(@PathVariable id: Long): PushTestResponse = pushSubscriptionService.sendTestNotification(id)
 
     @DeleteMapping("/subscriptions/{id}")
     fun deleteSubscription(@PathVariable id: Long): ResponseEntity<Void> {

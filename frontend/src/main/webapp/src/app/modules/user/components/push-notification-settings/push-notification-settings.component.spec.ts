@@ -7,7 +7,7 @@ import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {PushNotificationSettingsComponent} from './push-notification-settings.component';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {PushNotificationType} from '../../../../api/push-api.service';
+import {PushNotificationType, PushTestResult} from '../../../../api/push-api.service';
 
 describe('PushNotificationSettingsComponent', () => {
   let pushNotificationService: MockedObject<PushNotificationService>;
@@ -43,6 +43,7 @@ describe('PushNotificationSettingsComponent', () => {
             getDevices: vi.fn().mockResolvedValue([]),
             renameDevice: vi.fn().mockResolvedValue(undefined),
             removeDevice: vi.fn().mockResolvedValue(undefined),
+            sendTestNotification: vi.fn().mockResolvedValue(PushTestResult.SENT),
             getPreferences: vi.fn().mockResolvedValue(testPreferences),
             setMasterEnabled: vi.fn().mockResolvedValue(testPreferences),
             setTypeEnabled: vi.fn().mockResolvedValue(testPreferences)
@@ -189,6 +190,88 @@ describe('PushNotificationSettingsComponent', () => {
       await fixture.whenStable();
 
       expect(toastr.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('sendTestNotification', () => {
+    it('sends a test notification to the given device and reports success', async () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      await fixture.componentInstance.sendTestNotification(testDevice);
+
+      expect(pushNotificationService.sendTestNotification).toHaveBeenCalledWith(testDevice.id);
+      expect(toastr.success).toHaveBeenCalled();
+      expect(fixture.componentInstance.testedDeviceId()).toBeNull();
+    });
+
+    it('reports a server without push configuration as an error', async () => {
+      pushNotificationService.sendTestNotification.mockResolvedValue(PushTestResult.NOT_CONFIGURED);
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      await fixture.componentInstance.sendTestNotification(testDevice);
+
+      expect(toastr.error).toHaveBeenCalledWith(expect.stringContaining('nicht konfiguriert'));
+      expect(toastr.success).not.toHaveBeenCalled();
+    });
+
+    it('reloads the list and disables the toggle when the current device turned out to be expired', async () => {
+      pushNotificationService.sendTestNotification.mockResolvedValue(PushTestResult.EXPIRED);
+      pushNotificationService.getDevices.mockResolvedValue([]);
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.componentInstance.enabled.set(true);
+
+      await fixture.componentInstance.sendTestNotification(testDevice);
+
+      expect(fixture.componentInstance.enabled()).toBe(false);
+      expect(fixture.componentInstance.devices()).toEqual([]);
+      expect(toastr.error).toHaveBeenCalled();
+    });
+
+    it('keeps the toggle untouched when another device turned out to be expired', async () => {
+      const otherDevice: PushDeviceItem = {...testDevice, id: 2, isCurrentDevice: false};
+      pushNotificationService.sendTestNotification.mockResolvedValue(PushTestResult.EXPIRED);
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.componentInstance.enabled.set(true);
+
+      await fixture.componentInstance.sendTestNotification(otherDevice);
+
+      expect(fixture.componentInstance.enabled()).toBe(true);
+    });
+
+    it('reports a failed send as an error', async () => {
+      pushNotificationService.sendTestNotification.mockResolvedValue(PushTestResult.FAILED);
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      await fixture.componentInstance.sendTestNotification(testDevice);
+
+      expect(toastr.error).toHaveBeenCalled();
+    });
+
+    it('shows an error and stops the per-device spinner when the request itself fails', async () => {
+      pushNotificationService.sendTestNotification.mockRejectedValue(new Error('fail'));
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      await fixture.componentInstance.sendTestNotification(testDevice);
+
+      expect(toastr.error).toHaveBeenCalled();
+      expect(fixture.componentInstance.testedDeviceId()).toBeNull();
     });
   });
 

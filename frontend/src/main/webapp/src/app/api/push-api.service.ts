@@ -39,6 +39,17 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.DISTRIBUTION_CLOSED]: 'Ausgabe beendet'
 };
 
+export enum PushTestResult {
+  SENT = 'SENT',
+  EXPIRED = 'EXPIRED',
+  NOT_CONFIGURED = 'NOT_CONFIGURED',
+  FAILED = 'FAILED'
+}
+
+export interface PushTestResponse {
+  result: PushTestResult;
+}
+
 export interface PushNotificationTypePreferenceItem {
   type: PushNotificationType;
   enabled: boolean;
@@ -75,6 +86,10 @@ export class PushApiService {
 
   updateLabel(id: number, request: PushSubscriptionLabelRequest): Observable<PushSubscriptionItem> {
     return this.http.put<PushSubscriptionItem>(`/push/subscriptions/${id}/label`, request);
+  }
+
+  sendTestNotification(id: number): Observable<PushTestResponse> {
+    return this.http.post<PushTestResponse>(`/push/subscriptions/${id}/test`, {});
   }
 
   deleteSubscription(id: number): Observable<void> {

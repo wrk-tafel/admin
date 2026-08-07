@@ -1,7 +1,13 @@
 import {inject, Service} from '@angular/core';
 import {SwPush} from '@angular/service-worker';
 import {firstValueFrom} from 'rxjs';
-import {PushApiService, PushNotificationType, PushPreferencesResponse, PushSubscriptionRequest} from '../../api/push-api.service';
+import {
+  PushApiService,
+  PushNotificationType,
+  PushPreferencesResponse,
+  PushSubscriptionRequest,
+  PushTestResult
+} from '../../api/push-api.service';
 
 export interface PushDeviceItem {
   id: number;
@@ -102,6 +108,17 @@ export class PushNotificationService {
    */
   async renameDevice(deviceId: number, label: string | null): Promise<void> {
     await firstValueFrom(this.pushApiService.updateLabel(deviceId, {label}));
+  }
+
+  /**
+   * Sends a test notification to one specific device, so "does push actually work here?" can be
+   * answered right away instead of by waiting for the next distribution. The backend deliberately
+   * answers 200 with an outcome rather than an error status for a failed send - see
+   * `PushTestResult` for the cases the caller has to distinguish.
+   */
+  async sendTestNotification(deviceId: number): Promise<PushTestResult> {
+    const {result} = await firstValueFrom(this.pushApiService.sendTestNotification(deviceId));
+    return result;
   }
 
   /**

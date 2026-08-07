@@ -2,14 +2,14 @@ import {Component, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatSlideToggle, MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faBell, faBellSlash, faPen, faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {faBell, faBellSlash, faPaperPlane, faPen, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {DatePipe} from '@angular/common';
 import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {userAgentLabel} from '../../../../common/util/user-agent-label.util';
-import {PushNotificationType, PushPreferencesResponse, pushNotificationTypeLabel} from '../../../../api/push-api.service';
+import {PushNotificationType, PushPreferencesResponse, PushTestResult, pushNotificationTypeLabel} from '../../../../api/push-api.service';
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
 
 const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types: []};
@@ -39,6 +39,9 @@ export class PushNotificationSettingsComponent {
   readonly devices = signal<PushDeviceItem[]>([]);
   readonly preferences = signal<PushPreferencesResponse>(DEFAULT_PREFERENCES);
   readonly preferencesLoading = signal(true);
+  // Id of the device whose test notification is currently in flight - per-device rather than a
+  // single flag so testing one device doesn't disable the button on all the others.
+  readonly testedDeviceId = signal<number | null>(null);
 
   constructor() {
     effect(() => {
@@ -95,6 +98,50 @@ export class PushNotificationSettingsComponent {
         this.toastr.error('Gerät konnte nicht umbenannt werden.');
       }
     });
+  }
+
+  /**
+   * Each outcome gets its own message on purpose: "nothing arrived" is exactly the situation this
+   * button exists for, so the difference between "the server has no VAPID keypair configured",
+   * "this device's subscription is gone" and "the push service rejected the send" has to be
+   * visible here rather than collapsed into one generic error.
+   */
+  async sendTestNotification(device: PushDeviceItem) {
+    this.testedDeviceId.set(device.id);
+
+    try {
+      const result = await this.pushNotificationService.sendTestNotification(device.id);
+
+      switch (result) {
+        case PushTestResult.SENT:
+          this.toastr.success('Test-Benachrichtigung wurde gesendet und sollte gleich am Gerät erscheinen.');
+          break;
+        case PushTestResult.EXPIRED:
+          // The backend removes such a subscription as part of the send attempt, so the list has
+          // to be reloaded to stay in sync with it.
+          this.toastr.error(
+            'Das Gerät ist beim Push-Dienst nicht mehr angemeldet und wurde entfernt. '
+            + 'Bitte die Benachrichtigungen auf diesem Gerät neu aktivieren.'
+          );
+          if (device.isCurrentDevice) {
+            this.enabled.set(false);
+          }
+          await this.loadDevices();
+          break;
+        case PushTestResult.NOT_CONFIGURED:
+          this.toastr.error(
+            'Push-Benachrichtigungen sind am Server nicht konfiguriert, es kann derzeit keine Benachrichtigung zugestellt werden.'
+          );
+          break;
+        default:
+          this.toastr.error('Test-Benachrichtigung konnte nicht zugestellt werden.');
+          break;
+      }
+    } catch {
+      this.toastr.error('Test-Benachrichtigung konnte nicht gesendet werden.');
+    } finally {
+      this.testedDeviceId.set(null);
+    }
   }
 
   async removeDevice(device: PushDeviceItem) {
@@ -165,4 +212,5 @@ export class PushNotificationSettingsComponent {
   protected readonly faBellSlash = faBellSlash;
   protected readonly faTrashCan = faTrashCan;
   protected readonly faPen = faPen;
+  protected readonly faPaperPlane = faPaperPlane;
 }

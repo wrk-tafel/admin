@@ -45,6 +45,29 @@ data class PushPublicKeyResponse(
     val publicKey: String,
 )
 
+/**
+ * Outcome of a per-device test notification. Deliberately a 200 response with an explicit result
+ * rather than an error status per failure: the whole point of the button is to tell the user
+ * *which* of these happened, and the frontend needs to react differently to each (e.g. reloading
+ * the device list after [EXPIRED] pruned it).
+ */
+@ExcludeFromTestCoverage
+data class PushTestResponse(
+    val result: PushTestResult,
+)
+
+@ExcludeFromTestCoverage
+enum class PushTestResult {
+    SENT,
+
+    /** The push service no longer knows this subscription; it has been removed from the device list. */
+    EXPIRED,
+
+    /** No VAPID keypair configured on the server - nothing was sent, and no device can ever receive a push. */
+    NOT_CONFIGURED,
+    FAILED,
+}
+
 @ExcludeFromTestCoverage
 data class PushPreferencesResponse(
     // Master switch: whether this user receives push notifications at all, on any of their

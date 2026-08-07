@@ -1,0 +1,50 @@
+### Fetch the server's VAPID public key (fails with 500 when push isn't configured)
+GET {{baseApiPath}}/push/public-key
+
+### Fetch the current user's registered devices
+GET {{baseApiPath}}/push/subscriptions
+
+### Register the current device (endpoint/keys come from the browser's PushSubscription)
+POST {{baseApiPath}}/push/subscriptions
+Content-Type: application/json
+
+{
+  "endpoint": "https://push.example.com/subscription-id",
+  "p256dhKey": "p256dh-key",
+  "authKey": "auth-key",
+  "userAgent": "Mozilla/5.0 Chrome/128"
+}
+
+### Rename device 1 (null clears the custom label again)
+PUT {{baseApiPath}}/push/subscriptions/1/label
+Content-Type: application/json
+
+{
+  "label": "Tafel Ausgabe 1"
+}
+
+### Send a test notification to device 1
+### Always 200 - the outcome is in the body: SENT / EXPIRED / NOT_CONFIGURED / FAILED
+POST {{baseApiPath}}/push/subscriptions/1/test
+
+### Remove device 1
+DELETE {{baseApiPath}}/push/subscriptions/1
+
+### Fetch the current user's notification preferences
+GET {{baseApiPath}}/push/preferences
+
+### Toggle the master switch (all devices, all notification types)
+PUT {{baseApiPath}}/push/preferences/master
+Content-Type: application/json
+
+{
+  "enabled": true
+}
+
+### Toggle a single notification type
+PUT {{baseApiPath}}/push/preferences/types/DISTRIBUTION_STARTED
+Content-Type: application/json
+
+{
+  "enabled": false
+}

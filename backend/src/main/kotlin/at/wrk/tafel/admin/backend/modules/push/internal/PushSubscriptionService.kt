@@ -11,6 +11,8 @@ import at.wrk.tafel.admin.backend.modules.push.model.PushPublicKeyResponse
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionItem
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionLabelRequest
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionRequest
+import at.wrk.tafel.admin.backend.modules.push.model.PushTestResponse
+import at.wrk.tafel.admin.backend.modules.push.model.PushTestResult
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -21,7 +23,12 @@ class PushSubscriptionService(
     private val pushSubscriptionRepository: PushSubscriptionRepository,
     private val userRepository: UserRepository,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val pushBroadcastService: PushBroadcastService,
 ) {
+    companion object {
+        private const val TEST_NOTIFICATION_TITLE = "Test-Benachrichtigung"
+        private const val TEST_NOTIFICATION_BODY = "Wenn du das hier siehst, funktionieren Push-Benachrichtigungen auf diesem Gerät."
+    }
 
     fun getPublicKey(): PushPublicKeyResponse {
         // Blank, not just null: see WebPushConfig.pushService for why a YAML `~` value can
@@ -76,6 +83,30 @@ class PushSubscriptionService(
 
         val saved = pushSubscriptionRepository.saveAndFlush(entity)
         return mapToItem(saved)
+    }
+
+    /**
+     * Sends a test notification to one of the current user's own devices, so "is push actually
+     * working on this device?" can be answered on the spot instead of by waiting for the next
+     * distribution to start or close.
+     *
+     * No `@Transactional` here, matching [PushBroadcastService]: an expired subscription gets
+     * deleted as part of the send, which a wrapping read-only transaction would reject.
+     */
+    fun sendTestNotification(id: Long): PushTestResponse {
+        val user = currentUser() ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
+        val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
+            ?: throw NotFoundException("Push-Subscription wurde nicht gefunden")
+
+        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY)
+        return PushTestResponse(
+            result = when (result) {
+                PushSendResult.SENT -> PushTestResult.SENT
+                PushSendResult.EXPIRED -> PushTestResult.EXPIRED
+                PushSendResult.NOT_CONFIGURED -> PushTestResult.NOT_CONFIGURED
+                PushSendResult.FAILED -> PushTestResult.FAILED
+            },
+        )
     }
 
     @Transactional

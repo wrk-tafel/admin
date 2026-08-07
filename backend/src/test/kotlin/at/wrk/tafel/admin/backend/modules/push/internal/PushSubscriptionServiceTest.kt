@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionLabelRequest
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionRequest
+import at.wrk.tafel.admin.backend.modules.push.model.PushTestResult
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDateTime
@@ -37,6 +40,9 @@ internal class PushSubscriptionServiceTest {
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
 
+    @RelaxedMockK
+    private lateinit var pushBroadcastService: PushBroadcastService
+
     private val configuredProperties = TafelAdminProperties(
         push = TafelAdminPushProperties(
             vapidPublicKey = "public-key",
@@ -49,7 +55,7 @@ internal class PushSubscriptionServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        service = PushSubscriptionService(pushSubscriptionRepository, userRepository, configuredProperties)
+        service = PushSubscriptionService(pushSubscriptionRepository, userRepository, configuredProperties, pushBroadcastService)
 
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
@@ -71,7 +77,7 @@ internal class PushSubscriptionServiceTest {
     @Test
     fun `getPublicKey fails clearly when push isn't configured`() {
         val unconfiguredService =
-            PushSubscriptionService(pushSubscriptionRepository, userRepository, TafelAdminProperties(push = null))
+            PushSubscriptionService(pushSubscriptionRepository, userRepository, TafelAdminProperties(push = null), pushBroadcastService)
 
         assertThatThrownBy { unconfiguredService.getPublicKey() }
             .isInstanceOf(TafelApiException::class.java)
@@ -289,6 +295,62 @@ internal class PushSubscriptionServiceTest {
         every { userRepository.findByUsername(any()) } returns null
 
         assertThatThrownBy { service.deleteSubscription(5L) }
+            .isInstanceOf(TafelApiException::class.java)
+            .satisfies({ ex ->
+                assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+            })
+    }
+
+    @Test
+    fun `sendTestNotification sends to the given device of the current user`() {
+        val entity = PushSubscriptionEntity().apply {
+            id = 5
+            endpoint = "https://push.example.com/x"
+            createdAt = LocalDateTime.now()
+        }
+        every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
+        every { pushBroadcastService.sendTo(entity, any(), any()) } returns PushSendResult.SENT
+
+        val response = service.sendTestNotification(5L)
+
+        assertThat(response.result).isEqualTo(PushTestResult.SENT)
+        verify { pushBroadcastService.sendTo(entity, "Test-Benachrichtigung", any()) }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "SENT, SENT",
+        "EXPIRED, EXPIRED",
+        "NOT_CONFIGURED, NOT_CONFIGURED",
+        "FAILED, FAILED",
+    )
+    fun `sendTestNotification reports the send result back`(sendResult: PushSendResult, expected: PushTestResult) {
+        val entity = PushSubscriptionEntity().apply {
+            id = 5
+            endpoint = "https://push.example.com/x"
+            createdAt = LocalDateTime.now()
+        }
+        every { pushSubscriptionRepository.findByIdAndUserId(5L, testUserEntity.id!!) } returns entity
+        every { pushBroadcastService.sendTo(entity, any(), any()) } returns sendResult
+
+        assertThat(service.sendTestNotification(5L).result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `sendTestNotification fails clearly for an unknown or foreign subscription`() {
+        every { pushSubscriptionRepository.findByIdAndUserId(any(), any()) } returns null
+
+        assertThatThrownBy { service.sendTestNotification(999L) }
+            .isInstanceOf(NotFoundException::class.java)
+
+        verify(exactly = 0) { pushBroadcastService.sendTo(any(), any(), any()) }
+    }
+
+    @Test
+    fun `sendTestNotification fails clearly when nobody is logged in`() {
+        every { userRepository.findByUsername(any()) } returns null
+
+        assertThatThrownBy { service.sendTestNotification(5L) }
             .isInstanceOf(TafelApiException::class.java)
             .satisfies({ ex ->
                 assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)

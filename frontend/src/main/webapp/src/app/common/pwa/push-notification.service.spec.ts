@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
 import {SwPush} from '@angular/service-worker';
-import {PushApiService, PushNotificationType} from '../../api/push-api.service';
+import {PushApiService, PushNotificationType, PushTestResult} from '../../api/push-api.service';
 import {PushDeviceItem, PushNotificationService} from './push-notification.service';
 
 describe('PushNotificationService', () => {
@@ -18,6 +18,7 @@ describe('PushNotificationService', () => {
     getSubscriptions: ReturnType<typeof vi.fn>;
     createSubscription: ReturnType<typeof vi.fn>;
     updateLabel: ReturnType<typeof vi.fn>;
+    sendTestNotification: ReturnType<typeof vi.fn>;
     deleteSubscription: ReturnType<typeof vi.fn>;
     getPreferences: ReturnType<typeof vi.fn>;
     updateMasterPreference: ReturnType<typeof vi.fn>;
@@ -37,6 +38,7 @@ describe('PushNotificationService', () => {
       getSubscriptions: vi.fn().mockReturnValue(of({items: []})),
       createSubscription: vi.fn().mockReturnValue(of({id: 1, endpoint: 'https://push.example.com/x'})),
       updateLabel: vi.fn().mockReturnValue(of({id: 1, endpoint: 'https://push.example.com/x', label: 'new label'})),
+      sendTestNotification: vi.fn().mockReturnValue(of({result: 'SENT'})),
       deleteSubscription: vi.fn().mockReturnValue(of(undefined)),
       getPreferences: vi.fn().mockReturnValue(of({masterEnabled: true, types: []})),
       updateMasterPreference: vi.fn().mockReturnValue(of({masterEnabled: false, types: []})),
@@ -177,6 +179,21 @@ describe('PushNotificationService', () => {
       await service.renameDevice(7, null);
 
       expect(mockPushApiService.updateLabel).toHaveBeenCalledWith(7, {label: null});
+    });
+  });
+
+  describe('sendTestNotification', () => {
+    it('asks the backend to push to that one device and returns the outcome', async () => {
+      const result = await service.sendTestNotification(7);
+
+      expect(mockPushApiService.sendTestNotification).toHaveBeenCalledWith(7);
+      expect(result).toBe(PushTestResult.SENT);
+    });
+
+    it('passes a failed outcome through instead of throwing', async () => {
+      mockPushApiService.sendTestNotification.mockReturnValue(of({result: PushTestResult.NOT_CONFIGURED}));
+
+      expect(await service.sendTestNotification(7)).toBe(PushTestResult.NOT_CONFIGURED);
     });
   });
 

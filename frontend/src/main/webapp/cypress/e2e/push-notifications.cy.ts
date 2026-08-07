@@ -59,6 +59,37 @@ describe('PushNotifications', () => {
     });
   });
 
+  // The test button's send path is driveable for real against a seeded device - what can't be
+  // asserted here is a *delivered* notification (no real PushSubscription under Cypress, see
+  // above). The e2e profile configures no VAPID keypair, so the send stops before any network
+  // call and the endpoint reports NOT_CONFIGURED - which is precisely the case the button has to
+  // surface as a distinct, actionable message rather than a generic failure.
+  it('sends a test notification to a device and reports that push is not configured', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.request({
+        method: 'POST',
+        url: '/api/push/subscriptions',
+        body: {
+          endpoint: `https://push.example.com/e2e-test-${randomNumber}`,
+          p256dhKey: `p256dh-${randomNumber}`,
+          authKey: `auth-${randomNumber}`,
+          userAgent: 'Mozilla/5.0 Chrome/128',
+        },
+      }).its('status').should('eq', 201);
+
+      cy.visit('/benachrichtigungen');
+
+      cy.byTestId('push-device-test').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'nicht konfiguriert');
+
+      // A device that merely couldn't be reached must stay in the list - only an expired one gets
+      // pruned.
+      cy.byTestId('push-device').should('have.length', 1);
+      cy.byTestId('push-device-remove').click();
+      cy.byTestId('push-device').should('not.exist');
+    });
+  });
+
   // Unlike the per-device toggle/device list above, preferences are plain backend state - not
   // gated behind a real browser PushSubscription - so this flow (unlike the "not supported" test)
   // is fully driveable through the actual UI, no seeding required.

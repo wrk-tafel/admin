@@ -10,6 +10,8 @@ import at.wrk.tafel.admin.backend.modules.push.model.PushPublicKeyResponse
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionItem
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionLabelRequest
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionRequest
+import at.wrk.tafel.admin.backend.modules.push.model.PushTestResponse
+import at.wrk.tafel.admin.backend.modules.push.model.PushTestResult
 import at.wrk.tafel.admin.backend.modules.push.model.PushTypePreferenceRequest
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -96,6 +98,16 @@ internal class PushControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify { pushSubscriptionService.deleteSubscription(5L) }
+    }
+
+    @Test
+    fun `sendTestNotification delegates to the service and returns its outcome`() {
+        every { pushSubscriptionService.sendTestNotification(5L) } returns PushTestResponse(result = PushTestResult.NOT_CONFIGURED)
+
+        val response = pushController.sendTestNotification(5L)
+
+        assertThat(response.result).isEqualTo(PushTestResult.NOT_CONFIGURED)
+        verify { pushSubscriptionService.sendTestNotification(5L) }
     }
 
     @Test

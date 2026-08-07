@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
-import {PushApiService, PushNotificationType} from './push-api.service';
+import {PushApiService, PushNotificationType, PushTestResult} from './push-api.service';
 
 describe('PushApiService', () => {
   let httpMock: HttpTestingController;
@@ -46,6 +46,17 @@ describe('PushApiService', () => {
     httpMock.verify();
 
     expect(req.request.body).toEqual(request);
+  });
+
+  it('sendTestNotification', () => {
+    let result: PushTestResult | undefined;
+    apiService.sendTestNotification(1).subscribe(response => result = response.result);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/push/subscriptions/1/test'});
+    req.flush({result: PushTestResult.SENT});
+    httpMock.verify();
+
+    expect(result).toBe(PushTestResult.SENT);
   });
 
   it('deleteSubscription', () => {
