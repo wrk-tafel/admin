@@ -59,6 +59,10 @@ export class UserFormComponent {
   selectedPermissionsCount = computed(() => this.permissions().filter((permission) => permission.enabled).length);
   totalPermissionsCount = computed(() => this.permissions().length);
 
+  // Without existing user data the form creates a new user, which needs a password;
+  // while editing, empty password fields mean "don't change the password"
+  private createMode = computed(() => !this.userData());
+
   // Create signal form with validation schema
   userForm = form(this.formModel, (schemaPath) => {
     required(schemaPath.personnelNumber, {message: 'Pflichtfeld'});
@@ -72,6 +76,9 @@ export class UserFormComponent {
 
     required(schemaPath.firstname, {message: 'Pflichtfeld'});
     maxLength(schemaPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
+
+    required(schemaPath.password, {message: 'Pflichtfeld', when: () => this.createMode()});
+    required(schemaPath.passwordRepeat, {message: 'Pflichtfeld', when: () => this.createMode()});
 
     // Custom validator for password repeat matching
     validate(schemaPath.passwordRepeat, ({ value, valueOf }) => {

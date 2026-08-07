@@ -202,6 +202,43 @@ describe('UserFormComponent', () => {
     expect(errors?.length).toBe(0);
   });
 
+  it('password is required when creating a new user', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    expect(component.userForm.password().errors()?.some((error: any) => error.kind === 'required')).toBe(true);
+    expect(component.userForm.passwordRepeat().errors()?.some((error: any) => error.kind === 'required')).toBe(true);
+    expect(component.isValid()).toBe(false);
+
+    component.userForm.personnelNumber().value.set('0000');
+    component.userForm.username().value.set('username');
+    component.userForm.lastname().value.set('last');
+    component.userForm.firstname().value.set('first');
+    component.userForm.password().value.set('pwd');
+    component.userForm.passwordRepeat().value.set('pwd');
+    fixture.detectChanges();
+
+    expect(component.userForm.password().errors()?.length).toBe(0);
+    expect(component.userForm.passwordRepeat().errors()?.length).toBe(0);
+    expect(component.isValid()).toBe(true);
+  });
+
+  it('password stays optional when editing an existing user', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    expect(component.userForm.password().value()).toBe('');
+    expect(component.userForm.passwordRepeat().value()).toBe('');
+    expect(component.userForm.password().errors()?.length).toBe(0);
+    expect(component.userForm.passwordRepeat().errors()?.length).toBe(0);
+    expect(component.isValid()).toBe(true);
+  });
+
   it('generate password', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
