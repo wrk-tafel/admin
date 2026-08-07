@@ -1,11 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoryResponse
 import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -13,6 +15,10 @@ import org.springframework.stereotype.Service
 class FoodCategoryService(
     private val foodCategoriesRepository: FoodCategoryRepository,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(FoodCategoryService::class.java)
+    }
 
     fun getActiveFoodCategories(): List<FoodCategoryResponse> = sortCategories(foodCategoriesRepository.findByEnabledIsTrue())
         .map { mapFoodCategory(it) }
@@ -34,6 +40,7 @@ class FoodCategoryService(
         }
 
         val savedEntity = foodCategoriesRepository.save(entity)
+        log.info("Created food category {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapFoodCategory(savedEntity)
     }
 
@@ -48,6 +55,7 @@ class FoodCategoryService(
         entity.enabled = updatedCategory.enabled
 
         val savedEntity = foodCategoriesRepository.save(entity)
+        log.info("Updated food category {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapFoodCategory(savedEntity)
     }
 
@@ -60,6 +68,7 @@ class FoodCategoryService(
             entity.sortOrder = index + 1
             foodCategoriesRepository.save(entity)
         }
+        log.info("Reordered food categories: {}", categoryIds)
     }
 
     private fun nextSortOrder(): Int = (

@@ -21,6 +21,10 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -32,6 +36,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -320,5 +325,72 @@ class SettingsServiceTest {
 
         assertThatThrownBy { service.updateStaticValue(99L, updated) }
             .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `update mail recipients logs the update`() {
+        val updatedSettings = MailRecipientsRequest(
+            mailRecipients = listOf(
+                MailRecipientsPerMailType(
+                    mailType = MailType.DAILY_REPORT.name,
+                    recipients = listOf(
+                        MailRecipientAdresses(recipientType = MailRecipientType.TO, addresses = listOf("to1")),
+                    ),
+                ),
+            ),
+        )
+
+        withLogAppender(SettingsService::class.java) { logAppender ->
+            service.updateMailRecipients(updatedSettings)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated mail recipients")
+            }
+        }
+    }
+
+    @Test
+    fun `update static value logs the update`() {
+        val today = LocalDate.now()
+        val existing = StaticValueEntity(
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            type = StaticValueType.TOLERANCE,
+            amount = BigDecimal("100.00"),
+        ).apply { id = 1 }
+        every { staticValueRepository.findByIdOrNull(1L) } returns existing
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        val requestedChanges = StaticValueRequest(
+            id = 1,
+            type = "TOLERANCE",
+            validFrom = today,
+            validTo = LocalDate.of(2999, 12, 31),
+            amount = BigDecimal("999.00"),
+            countAdults = null,
+            countChildren = null,
+            age = null,
+        )
+
+        withLogAppender(SettingsService::class.java) { logAppender ->
+            service.updateStaticValue(1L, requestedChanges)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Updated static value").contains("1").contains("999.00")
+            }
+        }
+    }
+
+    private fun withLogAppender(loggerClass: Class<*>, block: (ListAppender<ILoggingEvent>) -> Unit) {
+        val logger = LoggerFactory.getLogger(loggerClass) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            block(logAppender)
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 }

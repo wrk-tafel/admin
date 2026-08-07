@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -31,6 +32,7 @@ class SettingsService(
     companion object {
         // Placeholder "no known end date" marker used throughout static_values (see migrations/testdata)
         private val FICTIVE_END_DATE = LocalDate.of(2999, 12, 31)
+        private val log = LoggerFactory.getLogger(SettingsService::class.java)
     }
 
     fun getMailRecipients(): MailRecipientsResponse {
@@ -80,6 +82,7 @@ class SettingsService(
 
         mailRecipientRepository.deleteAll()
         mailRecipientRepository.saveAll(recipients)
+        log.info("Updated mail recipients ({} entries across {} mail type(s))", recipients.size, settings.mailRecipients.size)
     }
 
     // Only ever shows the row currently valid "today" per (type, countAdults, countChildren, age) -
@@ -116,7 +119,9 @@ class SettingsService(
 
         if (entity.validFrom == today) {
             entity.amount = amount
-            return mapStaticValue(staticValueRepository.save(entity))
+            val savedEntity = staticValueRepository.save(entity)
+            log.info("Updated static value {} ({}) to {}", staticValueId, entity.type, amount)
+            return mapStaticValue(savedEntity)
         }
 
         entity.validTo = today.minusDays(1)
@@ -133,7 +138,9 @@ class SettingsService(
             age = entity.age
         }
 
-        return mapStaticValue(staticValueRepository.save(historizedEntity))
+        val savedEntity = staticValueRepository.save(historizedEntity)
+        log.info("Updated static value {} ({}) to {} (historized as new entry {})", staticValueId, entity.type, amount, savedEntity.id)
+        return mapStaticValue(savedEntity)
     }
 
     private fun isCurrentlyValid(entity: StaticValueEntity, today: LocalDate): Boolean = !today.isBefore(entity.validFrom) && !today.isAfter(entity.validTo)

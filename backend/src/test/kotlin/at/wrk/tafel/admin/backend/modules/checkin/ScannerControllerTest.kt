@@ -3,6 +3,10 @@ package at.wrk.tafel.admin.backend.modules.checkin
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService.Companion.SCANNER_RESULT_NOTIFICATION_NAME
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -11,6 +15,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 
 @ExtendWith(MockKExtension::class)
 internal class ScannerControllerTest {
@@ -73,6 +78,27 @@ internal class ScannerControllerTest {
                     value = scanResult,
                 ),
             )
+        }
+    }
+
+    @Test
+    fun `send result logs the relayed scan`() {
+        val scannerId = 123
+        val scanResult = 100L
+
+        val logger = LoggerFactory.getLogger(ScannerController::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+
+        try {
+            controller.sendResult(scannerId = scannerId, scanResult = scanResult)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Relayed scan result").contains("123").contains("100")
+            }
+        } finally {
+            logger.detachAppender(logAppender)
         }
     }
 }

@@ -2,13 +2,19 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.LockedException
@@ -36,6 +42,9 @@ internal class TafelLoginProviderTest {
         passwordChangeRequired = false,
     )
 
+    private lateinit var logAppender: ListAppender<ILoggingEvent>
+    private lateinit var logger: Logger
+
     @BeforeEach
     fun setUp() {
         userDetailsService = mockk()
@@ -44,6 +53,15 @@ internal class TafelLoginProviderTest {
 
         every { passwordEncoder.encode(any()) } returns "fallback-hash"
         provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService)
+
+        logger = LoggerFactory.getLogger(TafelLoginProvider::class.java) as Logger
+        logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        logger.detachAppender(logAppender)
     }
 
     @Test
@@ -77,6 +95,8 @@ internal class TafelLoginProviderTest {
 
         assertThat(result.isAuthenticated).isTrue
         verify { loginAttemptService.recordSuccess("user") }
+        assertThat(logAppender.list.single().level).isEqualTo(Level.INFO)
+        assertThat(logAppender.list.single().formattedMessage).contains("user")
     }
 
     @Test
@@ -89,6 +109,8 @@ internal class TafelLoginProviderTest {
 
         verify(exactly = 0) { userDetailsService.loadUserByUsername(any()) }
         verify(exactly = 0) { loginAttemptService.recordFailure(any()) }
+        assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
+        assertThat(logAppender.list.single().formattedMessage).contains("user")
     }
 
     @Test
@@ -102,6 +124,8 @@ internal class TafelLoginProviderTest {
         }
 
         verify { loginAttemptService.recordFailure("user") }
+        assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
+        assertThat(logAppender.list.single().formattedMessage).contains("user")
     }
 
     @Test
