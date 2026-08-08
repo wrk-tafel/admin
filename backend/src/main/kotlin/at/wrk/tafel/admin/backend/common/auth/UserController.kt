@@ -167,6 +167,12 @@ class UserController(
             requested = user.permissions,
             current = existingUser.authorities.mapNotNull { it.authority },
         )
+        // Revoking the permission and disabling the account are two ways of arriving at the same
+        // place: an administrator who can no longer act.
+        val keepsAdministrator = user.permissions.any { it.key == UserPermissions.ADMINISTRATOR.key } && user.enabled
+        if (!keepsAdministrator) {
+            validateNotLastAdministrator(userId, existingUser)
+        }
 
         if (user.password != user.passwordRepeat) {
             throw BusinessRuleException("Passwörter stimmen nicht überein!")
@@ -191,6 +197,8 @@ class UserController(
     ): ResponseEntity<Unit> {
         val tafelUser = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
+
+        validateNotLastAdministrator(userId, tafelUser)
 
         userDetailsManager.deleteUser(tafelUser.username)
         return ResponseEntity.noContent().build()
@@ -283,6 +291,33 @@ class UserController(
             throw TafelApiException(
                 HttpStatus.FORBIDDEN,
                 "Die Berechtigung \"${UserPermissions.ADMINISTRATOR.title}\" kann nur von einem Administrator vergeben oder entzogen werden!",
+            )
+        }
+    }
+
+    /**
+     * Refuses a change that would leave nobody able to administer the application. Only an
+     * administrator can hand the permission out, so losing the last one is not a mistake anybody
+     * could undo from inside the app - it would need a database edit.
+     *
+     * Applies to every route to that state: revoking the permission, disabling the account, and
+     * deleting it outright. An account that is already disabled is exempt, since it wasn't the
+     * safeguard to begin with.
+     *
+     * A [ConflictException] rather than a permission error: the caller may well be allowed to do
+     * this in general, it is the resulting state that is not permitted.
+     */
+    private fun validateNotLastAdministrator(userId: Long, existingUser: TafelUser) {
+        val isActiveAdministrator = existingUser.enabled &&
+            existingUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
+        if (!isActiveAdministrator) {
+            return
+        }
+
+        if (!userDetailsManager.anotherEnabledAdministratorExists(userId)) {
+            throw ConflictException(
+                "Es muss mindestens ein aktiver Benutzer mit der Berechtigung " +
+                    "\"${UserPermissions.ADMINISTRATOR.title}\" verbleiben!",
             )
         }
     }

@@ -305,6 +305,92 @@ class UserControllerTest {
         verify(exactly = 1) { userDetailsManager.updateUser(any()) }
     }
 
+    /**
+     * Losing the last administrator can't be undone from inside the application - only an
+     * administrator can hand the permission back - so all three routes to that state are refused:
+     * revoking the permission, disabling the account, and deleting it.
+     */
+    @Test
+    fun `update user removing the administrator permission from the last administrator is refused`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
+
+        val exception = assertThrows<ConflictException> {
+            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+        }
+
+        assertThat(exception.body.detail).contains("mindestens ein aktiver Benutzer")
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user removing the administrator permission is allowed while another one remains`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns true
+
+        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * A disabled administrator cannot log in, so disabling the last one locks everybody out just as
+     * effectively as revoking the permission would.
+     */
+    @Test
+    fun `update user disabling the last administrator is refused`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(enabled = false)
+
+        assertThrows<ConflictException> { controller.updateUser(userId = testUser.id!!, user = request) }
+
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `delete user removing the last administrator is refused`() {
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
+
+        assertThrows<ConflictException> { controller.deleteUser(userId = testUser.id!!) }
+
+        verify(exactly = 0) { userDetailsManager.deleteUser(any()) }
+    }
+
+    @Test
+    fun `delete user is allowed while another administrator remains`() {
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns true
+
+        controller.deleteUser(userId = testUser.id!!)
+
+        verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    /**
+     * A user who isn't an active administrator was never the safeguard, so deleting them must not
+     * need a lookup at all.
+     */
+    @Test
+    fun `delete user who is not an administrator doesn't consult the administrator count`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        controller.deleteUser(userId = testUser.id!!)
+
+        verify(exactly = 0) { userDetailsManager.anotherEnabledAdministratorExists(any()) }
+        verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    private fun administratorUser() = testUser.copy(
+        enabled = true,
+        authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
+    )
+
     private fun authenticateWith(vararg permissions: UserPermissions) {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
