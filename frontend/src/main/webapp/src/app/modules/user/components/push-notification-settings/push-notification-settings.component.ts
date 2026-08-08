@@ -6,6 +6,7 @@ import {faBell, faBellSlash, faPaperPlane, faPen, faTrashCan} from '@fortawesome
 import {DatePipe} from '@angular/common';
 import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {userAgentLabel} from '../../../../common/util/user-agent-label.util';
@@ -25,7 +26,8 @@ const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types
     MatSlideToggle,
     FaIconComponent,
     DatePipe,
-    MatButton
+    MatButton,
+    MatTooltipModule
   ]
 })
 export class PushNotificationSettingsComponent {

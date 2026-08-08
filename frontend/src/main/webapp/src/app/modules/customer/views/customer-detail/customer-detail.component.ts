@@ -44,6 +44,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatDialog} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {CommonModule} from '@angular/common';
 import {faDownload, faPlus, faTrashCan, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -58,6 +59,7 @@ import {
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -78,7 +80,9 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
-    UploadDocumentPanelComponent
+    UploadDocumentPanelComponent,
+    MatTooltipModule,
+    TafelInfoTooltipComponent
   ]
 })
 export class CustomerDetailComponent {

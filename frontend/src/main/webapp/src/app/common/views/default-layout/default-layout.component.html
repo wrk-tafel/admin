@@ -33,7 +33,8 @@
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                  [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
-                 [class.opacity-50]="item.attributes?.disabled">
+                 [class.opacity-50]="item.attributes?.disabled"
+                 [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
@@ -49,7 +50,8 @@
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                  [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
-                 [class.opacity-50]="item.attributes?.disabled">
+                 [class.opacity-50]="item.attributes?.disabled"
+                 [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
@@ -80,7 +82,8 @@
 
     <div class="hidden lg:flex px-2 py-2 shrink-0"
          [class.justify-end]="!collapsed()" [class.justify-center]="collapsed()">
-      <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
+      <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen" testid="sidenav-collapse-toggle"
+              [matTooltip]="collapsed() ? 'Menü ausklappen' : 'Menü einklappen'" matTooltipPosition="right"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>

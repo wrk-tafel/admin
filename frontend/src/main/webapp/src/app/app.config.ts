@@ -32,9 +32,19 @@ import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 import {MAT_CARD_CONFIG} from '@angular/material/card';
 import {MatPaginatorIntl} from '@angular/material/paginator';
 import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
+import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from '@angular/material/tooltip';
 
 const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
   position: {top: '16px'}
+};
+
+// Icon-only buttons sit next to each other in dense action columns, so a tooltip that appeared
+// instantly would flash on every pass of the mouse. The short delay means it only shows when the
+// pointer actually rests on a button.
+const DEFAULT_TOOLTIP_CONFIG: MatTooltipDefaultOptions = {
+  showDelay: 300,
+  hideDelay: 0,
+  touchendHideDelay: 1500
 };
 
 export const appConfig: ApplicationConfig = {
@@ -103,6 +113,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MAT_CARD_CONFIG,
       useValue: {appearance: 'outlined'}
+    },
+    {
+      provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
+      useValue: DEFAULT_TOOLTIP_CONFIG
     },
     {
       provide: MatPaginatorIntl,

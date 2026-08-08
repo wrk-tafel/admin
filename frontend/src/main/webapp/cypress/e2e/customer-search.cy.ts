@@ -92,6 +92,27 @@ describe('Customer Search', () => {
     });
   });
 
+  it('explains a search filter through its info tooltip', () => {
+    cy.byTestId('post-processing-info-tooltip').trigger('mouseenter');
+
+    cy.get('.mat-mdc-tooltip')
+      .should('be.visible')
+      .and('contain.text', 'Findet Kunden, bei denen bei einer Person Pflichtangaben fehlen');
+  });
+
+  it('labels the icon-only result buttons through their tooltip', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('search-button').click();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-showcustomer-button-0').filterDisplayed().trigger('mouseenter');
+      cy.get('.mat-mdc-tooltip').should('be.visible').and('contain.text', 'Kundendetails anzeigen');
+    });
+  });
+
   function clickSearchAndOpenFirstResult(expectedCustomerId: number, alreadySearched = false) {
     if (!alreadySearched) {
       cy.byTestId('search-button').click();

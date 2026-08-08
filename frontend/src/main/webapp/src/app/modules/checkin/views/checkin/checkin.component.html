@@ -173,7 +173,8 @@
                 }
               </mat-form-field>
               @if (ticketNumberEdit() === true) {
-                <button matButton="filled" class="button-danger" testid="deleteTicketButton" (click)="deleteTicket()">
+                <button matButton="filled" class="button-danger" testid="deleteTicketButton" (click)="deleteTicket()"
+                        matTooltip="Zugewiesenes Ticket wieder entfernen">
                   <fa-icon [icon]="faTrashCan"></fa-icon>
                 </button>
               }

@@ -110,6 +110,31 @@ describe('API error responses', () => {
 
 });
 
+describe('Sidebar Tooltips', () => {
+
+  it('names a nav item through a tooltip once the sidebar is collapsed', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    // expanded: the name is written out next to the icon, so no tooltip is offered. The wait is
+    // deliberate - without outlasting the configured 300ms show delay, "not.exist" would pass
+    // before a tooltip that *is* on its way ever had the chance to appear.
+    cy.contains('a', 'Übersicht').trigger('mouseenter');
+    cy.wait(1000);
+    cy.get('.mat-mdc-tooltip').should('not.exist');
+
+    // the toggle carries a tooltip of its own ("Menü einklappen"), which the click shows - leave it
+    // again so the assertion below can't accidentally read that one instead
+    cy.byTestId('sidenav-collapse-toggle').click().trigger('mouseleave');
+    cy.get('.mat-mdc-tooltip').should('not.exist');
+
+    // collapsed: only the icon is left, so the name is only reachable through the tooltip
+    cy.get('nav a').first().trigger('mouseenter');
+    cy.get('.mat-mdc-tooltip').should('have.length', 1).and('have.text', 'Übersicht');
+  });
+
+});
+
 describe('Navigation Progress Bar', () => {
 
   it('shows a top-level loading bar while a resolver-gated page is loading, and hides it once loaded', () => {

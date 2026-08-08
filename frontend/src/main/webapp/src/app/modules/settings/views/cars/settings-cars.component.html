@@ -3,7 +3,7 @@
     <mat-card-title>
       <div class="flex items-center gap-2">
         <h5 class="mb-0 mt-1">Fahrzeuge</h5>
-        <button matButton="filled" class="button-success" testid="addCarButton" (click)="addCar()">
+        <button matButton="filled" class="button-success" testid="addCarButton" matTooltip="Neues Fahrzeug anlegen" (click)="addCar()">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
       </div>
@@ -21,7 +21,7 @@
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let car; let i = index">
           <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
-                   [attr.testid]="'dragCarHandle-' + i"></fa-icon>
+                   [attr.testid]="'dragCarHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
         </td>
       </ng-container>
 
@@ -29,12 +29,12 @@
         <th mat-header-cell *matHeaderCellDef>Aktiv</th>
         <td mat-cell *matCellDef="let car; let i = index">
           @if (car.enabled) {
-            <button matButton="filled" class="button-success ms-2" testid="enableCarButton"
+            <button matButton="filled" class="button-success ms-2" testid="enableCarButton" matTooltip="Fahrzeug deaktivieren - es steht bei der Warenerfassung nicht mehr zur Auswahl"
                     (click)="toggleCarVisibility(car, false)">
               <fa-icon [icon]="faEye"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger ms-2" testid="disableCarButton"
+            <button matButton="filled" class="button-danger ms-2" testid="disableCarButton" matTooltip="Fahrzeug wieder aktivieren"
                     (click)="toggleCarVisibility(car, true)">
               <fa-icon [icon]="faEyeSlash"></fa-icon>
             </button>
@@ -75,14 +75,14 @@
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let car; let i = index">
           @if (editingId() === car.id) {
-            <button matButton="filled" [attr.testid]="'saveCarButton-' + i" (click)="saveEdit(car)">
+            <button matButton="filled" [attr.testid]="'saveCarButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(car)">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelCarButton-' + i" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelCarButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i"
+            <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i" matTooltip="Fahrzeug bearbeiten"
                     [disabled]="!car.enabled" (click)="startEdit(car)">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -104,7 +104,7 @@
           <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [class.opacity-50]="!car.enabled" [attr.testid]="'cars-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
-                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragCarHandle-' + i"></fa-icon>
+                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragCarHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
                 @if (editingId() === car.id) {
                   <mat-form-field subscriptSizing="dynamic" class="w-full">
                     <mat-label>Name</mat-label>
@@ -133,25 +133,25 @@
             </mat-card-content>
             <mat-card-actions class="flex gap-2">
               @if (car.enabled) {
-                <button matButton="filled" class="button-success" testid="enableCarButton"
+                <button matButton="filled" class="button-success" testid="enableCarButton" matTooltip="Fahrzeug deaktivieren - es steht bei der Warenerfassung nicht mehr zur Auswahl"
                         (click)="toggleCarVisibility(car, false)">
                   <fa-icon [icon]="faEye"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" testid="disableCarButton"
+                <button matButton="filled" class="button-danger" testid="disableCarButton" matTooltip="Fahrzeug wieder aktivieren"
                         (click)="toggleCarVisibility(car, true)">
                   <fa-icon [icon]="faEyeSlash"></fa-icon>
                 </button>
               }
               @if (editingId() === car.id) {
-                <button matButton="filled" [attr.testid]="'saveCarButtonMobile-' + i" (click)="saveEdit(car)">
+                <button matButton="filled" [attr.testid]="'saveCarButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(car)">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
-                <button matButton="outlined" [attr.testid]="'cancelCarButtonMobile-' + i" (click)="cancelEdit()">
+                <button matButton="outlined" [attr.testid]="'cancelCarButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editCarButtonMobile-' + i"
+                <button matButton="filled" class="button-danger" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
                         [disabled]="!car.enabled" (click)="startEdit(car)">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>

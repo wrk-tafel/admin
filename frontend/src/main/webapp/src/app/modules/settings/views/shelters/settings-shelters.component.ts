@@ -20,6 +20,7 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {ShelterApiService, ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {faEye, faEyeSlash, faGripVertical, faMagnifyingGlass, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
@@ -47,7 +48,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatButton,
     CdkDropList,
     CdkDrag,
-    CdkDragHandle
+    CdkDragHandle,
+    MatTooltipModule
   ]
 })
 export class SettingsSheltersComponent {

@@ -19,6 +19,7 @@ import {LoginAttemptItem, UserApiService} from '../../../../api/user-api.service
 import {PagedResponse, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {DeleteLoginAttemptDialogComponent} from './dialogs/delete-login-attempt-dialog.component';
@@ -46,6 +47,7 @@ import {DeleteLoginAttemptDialogComponent} from './dialogs/delete-login-attempt-
     DatePipe,
     FaIconComponent,
     MatButton,
+    MatTooltipModule
   ]
 })
 export class UserLoginAttemptsComponent {
