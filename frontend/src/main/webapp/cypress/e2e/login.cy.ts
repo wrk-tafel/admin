@@ -1,4 +1,4 @@
-import {UserData} from '../support/commands';
+import {testUserPassword, UserData} from '../support/commands';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Login', () => {
@@ -73,9 +73,17 @@ describe('Login', () => {
       enterLoginData(user.username, testUser.password!);
 
       cy.url().should('contain', '/login/passwortaendern');
+
+      // Cancelling logs out server-side and only then navigates. Wait for that round-trip: the
+      // cy.visit() below otherwise tears the page down while the request is still in flight, which
+      // leaves the session alive and lands on /login/fehlgeschlagen instead of a plain login.
+      cy.intercept('POST', '/api/users/logout').as('cancelLogout');
       cy.byTestId('cancelButton').click();
-      cy.url().should('contain', '/login');
-      cy.url().should('not.contain', 'fehlgeschlagen');
+      cy.wait('@cancelLogout');
+
+      // Matched exactly - a 'contain' assertion would already be satisfied by the
+      // /login/passwortaendern the cancel is supposed to navigate away from.
+      cy.url().should('match', /\/login$/);
 
       // Cancelling must actually end the still-live session (not just navigate away from
       // it) - otherwise a stale session would let this "cancelled" login back into the app.
@@ -195,37 +203,30 @@ describe('Login', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
-  function createTestUser(permissions: { key: string; title: string }[] = [], passwordPrefix = 'dummy-') {
-    return cy.getAnyRandomNumber().then(randomNumber => {
-      const password = passwordPrefix + randomNumber;
-      const testUser: UserData = {
-        username: 'username-' + randomNumber,
-        personnelNumber: 'personnelnumber-' + randomNumber,
-        firstname: 'firstname-' + randomNumber,
-        lastname: 'lastname-' + randomNumber,
-        enabled: true,
-        password: password,
-        passwordRepeat: password,
-        passwordChangeRequired: false,
-        permissions
-      };
-
-      cy.loginDefault();
-      return cy.createUser(testUser).then(response => ({user: response.body, testUser}));
-    });
+  function createTestUser(permissions: { key: string; title: string }[] = [], passwordPrefix?: string) {
+    return createUserWith(false, permissions, passwordPrefix);
   }
 
   function createTestUserRequiringPasswordChange(permissions: { key: string; title: string }[] = []) {
+    return createUserWith(true, permissions);
+  }
+
+  function createUserWith(
+    passwordChangeRequired: boolean,
+    permissions: { key: string; title: string }[],
+    passwordPrefix?: string
+  ) {
     return cy.getAnyRandomNumber().then(randomNumber => {
+      const password = testUserPassword(randomNumber, passwordPrefix);
       const testUser: UserData = {
         username: 'username-' + randomNumber,
         personnelNumber: 'personnelnumber-' + randomNumber,
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: 'dummy-' + randomNumber,
-        passwordRepeat: 'dummy-' + randomNumber,
-        passwordChangeRequired: true,
+        password,
+        passwordRepeat: password,
+        passwordChangeRequired,
         permissions
       };
 
