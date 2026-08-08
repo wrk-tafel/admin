@@ -38,9 +38,7 @@ export class DefaultHeaderComponent {
   readonly sseConnected = this.globalStateService.getConnectionState();
 
   public logout() {
-    this.authenticationService.logout().subscribe(_ => {
-      this.authenticationService.redirectToLogin();
-    });
+    this.authenticationService.logout().subscribe();
   }
 
   public openSupportDialog() {
