@@ -86,8 +86,19 @@ export class AuthenticationService {
       ));
   }
 
+  /**
+   * Base64 of the credentials' **UTF-8** bytes, as RFC 7617 recommends and as the server's
+   * `BasicAuthenticationConverter` reads them. `btoa` alone maps every code unit to a single byte,
+   * i.e. encodes Latin-1, which turns a password with an umlaut into bytes that aren't valid UTF-8
+   * and made every such login fail (see #3100).
+   */
+  private encodeCredentials(username: string, password: string): string {
+    const bytes = new TextEncoder().encode(username + ':' + password);
+    return btoa(String.fromCharCode(...bytes));
+  }
+
   private executeLoginRequest(username: string, password: string): Observable<LoginResponse> {
-    const encodedCredentials = btoa(username + ':' + password);
+    const encodedCredentials = this.encodeCredentials(username, password);
     const options = {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials),
       context: SUPPRESS_ERROR_TOAST_CONTEXT

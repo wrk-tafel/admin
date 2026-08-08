@@ -35,6 +35,19 @@ describe('Login', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
+  // The password generator produces umlauts (GermanCharacterData in WebSecurityConfig), so this is
+  // an everyday password here, not an exotic one. It only works if the credentials go out UTF-8
+  // encoded - the encoding is invisible to a unit spec, which never crosses the wire (see #3100).
+  it('login with an umlaut in the password', () => {
+    createTestUser([{key: 'CHECKIN', title: 'Anmeldung'}], 'pwdMitÄumlaut-').then(({user, testUser}) => {
+      cy.visit('/login');
+
+      enterLoginData(user.username, testUser.password!);
+
+      cy.url().should('contain', '/uebersicht');
+    });
+  });
+
   it('login failed', () => {
     enterLoginData('dummy', 'dummy');
 
@@ -190,17 +203,21 @@ describe('Login', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
-  function createTestUser(permissions: { key: string; title: string }[] = []) {
-    return createUserWith(false, permissions);
+  function createTestUser(permissions: { key: string; title: string }[] = [], passwordPrefix?: string) {
+    return createUserWith(false, permissions, passwordPrefix);
   }
 
   function createTestUserRequiringPasswordChange(permissions: { key: string; title: string }[] = []) {
     return createUserWith(true, permissions);
   }
 
-  function createUserWith(passwordChangeRequired: boolean, permissions: { key: string; title: string }[]) {
+  function createUserWith(
+    passwordChangeRequired: boolean,
+    permissions: { key: string; title: string }[],
+    passwordPrefix?: string
+  ) {
     return cy.getAnyRandomNumber().then(randomNumber => {
-      const password = testUserPassword(randomNumber);
+      const password = testUserPassword(randomNumber, passwordPrefix);
       const testUser: UserData = {
         username: 'username-' + randomNumber,
         personnelNumber: 'personnelnumber-' + randomNumber,

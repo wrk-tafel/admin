@@ -34,10 +34,14 @@ export const xsrfInterceptor: HttpInterceptorFn = (
       // primed by the initial page load, since that's served by the frontend dev server / static
       // hosting, not the backend). A mutating request fired concurrently with the app's other
       // bootstrap calls - e.g. the scanner page's registration call right after login - can race
-      // ahead of the response that would have set the cookie and go out with no token at all.
-      // Retry once with whatever the cookie is now before treating this as a genuine failure.
+      // ahead of the response that would have set the cookie and go out with no token at all, or
+      // with one the cookie has moved on from by the time the request reaches the server.
+      // Retry once with whatever the cookie is now before treating this as a genuine failure - the
+      // value read here can equal the one just sent and still be the one the server accepts, so
+      // this deliberately doesn't require the cookie to have changed. A 403 means the request was
+      // rejected before it reached its controller, so repeating it has no side effect.
       const freshToken = cookieService.get('XSRF-TOKEN');
-      if (!freshToken || freshToken === initialToken) {
+      if (!freshToken) {
         return throwError(() => error);
       }
       return send(freshToken);
