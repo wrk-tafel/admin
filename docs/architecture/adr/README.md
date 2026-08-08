@@ -52,6 +52,7 @@ instead, so a number's position in a group says nothing about its age.
 | # | Decision | Status |
 |---|---|---|
 | [0016](0016-distribution-lifecycle-model.md) | Distribution lifecycle — implicit state, non-blocking locks, two-stage close | accepted |
+| [0032](0032-checkin-relays-scans-without-interpreting-them.md) | Check-in relays scan results without interpreting them | accepted |
 | [0023](0023-ticket-numbers-come-from-the-caller.md) | Ticket numbers come from the caller; backend enforces uniqueness | accepted |
 | [0024](0024-server-side-income-validation.md) | Income validation re-runs server-side, with supervisor override | accepted |
 | [0022](0022-duplicate-detection-and-merge-by-side.md) | Fuzzy duplicate detection; merges resolved by side | accepted |
@@ -67,6 +68,9 @@ instead, so a number's position in a group says nothing about its age.
 | [0013](0013-saturday-production-deploy-freeze.md) | Production deploys blocked all day Saturday | accepted |
 | [0019](0019-supply-chain-and-container-runtime-hardening.md) | Pinned supply chain and a container that fails loudly | accepted |
 | [0014](0014-integration-tests-against-real-postgres.md) | Integration tests against real PostgreSQL via Testcontainers | accepted |
+| [0030](0030-conventions-enforced-by-archunit.md) | Structural conventions enforced by ArchUnit tests | accepted |
+| [0031](0031-sonarcloud-quality-gate-with-explicit-coverage-opt-out.md) | SonarCloud quality gate with an explicit coverage opt-out | accepted |
+| [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | accepted |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 
 ## Related decision documents
