@@ -68,8 +68,14 @@ import java.util.concurrent.CopyOnWriteArrayList
  * reconnect [replayEventsMissedWhileDisconnected] reads the rows written since the connection was
  * last known to be alive and dispatches them to the same callbacks. The watermark for that is
  * deliberately conservative (the *start* of the last poll that confirmed the connection alive), so
- * the replay overlaps rather than leaves a gap: subscribers can see an event twice, which for these
- * state-snapshot pushes is harmless, but must not miss one.
+ * the replay overlaps rather than leaves a gap: a subscriber can see an event twice, and must not
+ * miss one.
+ *
+ * That trade only works for events that are state - re-applying a snapshot of what is currently
+ * true is a no-op, and showing a stale one is the actual harm. It is wrong for an event that reads
+ * as an instruction, where a duplicate acts twice and a late delivery acts at the wrong moment, so
+ * such a stream opts out at registration (`replayable = false`, see [registerCallback]) and its
+ * missed events are dropped rather than delivered late.
  *
  * ## Shutting down
  *
@@ -108,6 +114,13 @@ class SseOutboxListenerService(
 
     lateinit var notificationListenerJob: Job
     val callbacks = ConcurrentHashMap<String, CopyOnWriteArrayList<(String?) -> Unit>>()
+
+    /**
+     * Notification names their subscribers declared unsafe to replay (see [registerCallback]).
+     * A name, not a callback: whether an event survives being delivered late and twice is a
+     * property of what the event *means*, so it holds for every subscriber of that name.
+     */
+    private val nonReplayableNotifications = ConcurrentHashMap.newKeySet<String>()
 
     @Volatile
     private var connectionAliveSince: LocalDateTime = LocalDateTime.now()
@@ -218,13 +231,22 @@ class SseOutboxListenerService(
             )
         }
 
-        val missedEvents = sseOutboxRepository.findAllByEventTimeAfterOrderByEventTimeAsc(replayFrom)
-        if (missedEvents.isEmpty()) {
+        val (skippedEvents, replayableEvents) = sseOutboxRepository
+            .findAllByEventTimeAfterOrderByEventTimeAsc(replayFrom)
+            .partition { nonReplayableNotifications.contains(it.notificationName) }
+        if (skippedEvents.isNotEmpty()) {
+            logger.warn(
+                "Dropping {} event(s) of {} - they are gone rather than late, being unsafe to replay",
+                skippedEvents.size,
+                skippedEvents.mapNotNull { it.notificationName }.distinct(),
+            )
+        }
+        if (replayableEvents.isEmpty()) {
             return
         }
 
-        logger.warn("Replaying {} sse outbox event(s) recorded since {}", missedEvents.size, replayFrom)
-        missedEvents.forEach { event ->
+        logger.warn("Replaying {} sse outbox event(s) recorded since {}", replayableEvents.size, replayFrom)
+        replayableEvents.forEach { event ->
             runCatching { dispatchToCallbacks(event.notificationName, event.payload) }
                 .onFailure { logger.error("Failed to replay sse outbox event: ${event.notificationName}", it) }
         }
@@ -239,11 +261,23 @@ class SseOutboxListenerService(
         notificationListenerJob.cancel()
     }
 
+    /**
+     * @param replayable whether this notification may also be delivered by the reconnect replay
+     * (see [replayEventsMissedWhileDisconnected]). True for the state snapshots that make up most
+     * of this application's server push: re-applying one is a no-op, and missing one leaves a
+     * screen showing something that isn't true any more. Pass false for an event that reads as an
+     * instruction rather than as state, where a duplicate does something and a late delivery does
+     * the wrong thing.
+     */
     fun registerCallback(
         notificationName: String,
         eventCallback: (payload: String?) -> Unit,
+        replayable: Boolean = true,
     ) {
         callbacks.computeIfAbsent(notificationName) { CopyOnWriteArrayList() }.add(eventCallback)
+        if (!replayable) {
+            nonReplayableNotifications.add(notificationName)
+        }
     }
 
     fun unregisterCallback(

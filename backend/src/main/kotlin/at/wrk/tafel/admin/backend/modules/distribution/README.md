@@ -230,7 +230,10 @@ Both the distribution-state stream and the ticket-screen stream go through
 2. `SseOutboxListenerService` holds one dedicated JDBC connection with `LISTEN sse_outbox;` and
    dispatches incoming Postgres notifications to any registered callback for that `notificationName`.
    It reconnects if that connection is lost and replays the outbox rows written in the meantime, so a
-   callback may occasionally be invoked twice for the same event and must tolerate that.
+   callback may occasionally be invoked twice for the same event and must tolerate that. Both streams
+   here carry a full snapshot of the current state, which is exactly what makes that safe — a stream
+   whose events *do* something rather than describe something has to opt out of the replay instead
+   (`replayable = false`, as `checkin`'s scanner-results stream does).
 3. Each open `SseEmitter` (one per browser tab / ticket-screen display) registers a callback via
    `sseOutboxService.forwardNotificationEventsToSse(...)`, optionally filtered (e.g. the scanner-results
    stream in `checkin` filters by `scannerId`).

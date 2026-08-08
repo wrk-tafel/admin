@@ -35,6 +35,9 @@ internal class ScannerSseControllerTest {
                 notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
                 resultType = ScanResult::class.java,
                 acceptFilter = capture(filterSlot),
+                // A scan result acts on the check-in screen, so it must never be replayed late or
+                // twice after the outbox listener reconnects.
+                replayable = false,
             )
         }
 

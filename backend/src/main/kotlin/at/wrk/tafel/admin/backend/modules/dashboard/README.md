@@ -97,7 +97,9 @@ module — or anywhere in application code — ever calls `saveOutboxEntry("dash
    background coroutine. When a notification arrives it looks up any callbacks registered for that
    `notification_name` in an in-memory map and invokes them. If that connection dies it reconnects and replays
    the `sse_outbox` rows written while it was down, since a `NOTIFY` missed by a disconnected session is gone
-   for good — so a callback can see the same event twice, but shouldn't miss one.
+   for good — so a callback can see the same event twice, but shouldn't miss one. `dashboard_update` carries
+   no payload at all and just makes the controller re-read the current snapshot, so a duplicate costs one
+   extra query and changes nothing.
 5. `DashboardController`'s call to `listenForNotificationEvents(notificationName = "dashboard_update", ...)`
    is what registered the callback in step 4. When it fires, the controller re-fetches and re-sends the
    dashboard snapshot over its own `SseEmitter`.

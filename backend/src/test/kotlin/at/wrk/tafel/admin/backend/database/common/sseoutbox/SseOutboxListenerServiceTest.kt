@@ -144,6 +144,31 @@ class SseOutboxListenerServiceTest {
     }
 
     @Test
+    fun `skips events of notifications registered as non-replayable`() {
+        val receivedPayloads = CopyOnWriteArrayList<String?>()
+        every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } throws
+            SQLException("connection died") andThenAnswer { idlePoll() }
+
+        every { sseOutboxRepository.findAllByEventTimeAfterOrderByEventTimeAsc(any()) } returns listOf(
+            outboxEntity(notificationName, "{\"value\":\"missed\"}"),
+            outboxEntity(OTHER_NOTIFICATION_NAME, "{\"value\":\"replayed\"}"),
+        )
+
+        service.registerCallback(
+            notificationName = notificationName,
+            eventCallback = { receivedPayloads.add(it) },
+            replayable = false,
+        )
+        service.registerCallback(
+            notificationName = OTHER_NOTIFICATION_NAME,
+            eventCallback = { receivedPayloads.add(it) },
+        )
+        startListener()
+
+        awaitUntil { assertThat(receivedPayloads).containsExactly("{\"value\":\"replayed\"}") }
+    }
+
+    @Test
     fun `reconnects when an idle connection turns out to be invalid`() {
         every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } returns emptyArray() andThenAnswer {
             idlePoll()
@@ -249,5 +274,6 @@ class SseOutboxListenerServiceTest {
 
     companion object {
         private const val IDLE_POLL_SLEEP_MILLIS = 50L
+        private const val OTHER_NOTIFICATION_NAME = "other_test_notification"
     }
 }
