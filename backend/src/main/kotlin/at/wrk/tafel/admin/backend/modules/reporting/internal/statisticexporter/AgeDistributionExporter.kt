@@ -34,6 +34,9 @@ class AgeDistributionExporter : StatisticExporter {
      * on its own and once merged; that's intentional, not redundant.
      */
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
+        // ages are bucketed as of the distribution's own day, not as of today, so re-exporting a past
+        // distribution reproduces the buckets it had back then instead of shifting everyone forward
+        val referenceDate = statistic.distribution.startedAt.toLocalDate()
         val households = statistic.distribution.households.map { it.household }
         val persons = households.flatMap { it.additionalPersons() }
         val householdsBirthDates = households.map { household ->
@@ -45,8 +48,8 @@ class AgeDistributionExporter : StatisticExporter {
         val countPersons = countCustomers + persons.size
         val averagePersonsPerHousehold = if (countCustomers > 0) countPersons / countCustomers else 0
 
-        val groupedCustomers = countByAgeRange(householdsBirthDates)
-        val groupedPersons = countByAgeRange(personsBirthDates + householdsBirthDates)
+        val groupedCustomers = countByAgeRange(householdsBirthDates, referenceDate)
+        val groupedPersons = countByAgeRange(personsBirthDates + householdsBirthDates, referenceDate)
 
         val rows = mutableListOf<List<String>>()
         AgeRange.entries.forEach { ageRange ->
@@ -79,9 +82,9 @@ class AgeDistributionExporter : StatisticExporter {
         return rows
     }
 
-    private fun countByAgeRange(birthDates: List<LocalDate?>) = birthDates
+    private fun countByAgeRange(birthDates: List<LocalDate?>, referenceDate: LocalDate) = birthDates
         .map { birthDate ->
-            val age = ChronoUnit.YEARS.between(birthDate, LocalDateTime.now()).toInt()
+            val age = ChronoUnit.YEARS.between(birthDate, referenceDate).toInt()
             AgeRange.fromAge(age)
         }
         .groupingBy { it }

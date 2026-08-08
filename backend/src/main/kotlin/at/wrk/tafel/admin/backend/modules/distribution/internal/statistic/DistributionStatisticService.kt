@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -70,9 +69,12 @@ class DistributionStatisticService(
                 .count() + countHouseholds
         statistic.countPersons = countPersons
 
+        // ages are counted as of the distribution's own day, not as of today, so re-running this for
+        // a past distribution yields the same numbers it did when that distribution closed
+        val referenceDate = distribution.startedAt.toLocalDate()
         val countInfants = distribution.households.flatMap { it.household.additionalPersons() }
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+            .count { Period.between(it.birthDate, referenceDate).years < 3 }
         statistic.countInfants = countInfants
 
         val averagePersonsPerHousehold = if (countHouseholds > 0) {
@@ -133,7 +135,7 @@ class DistributionStatisticService(
 
         val foodTotalAmount = distribution.foodCollections
             .flatMap { it.items ?: emptyList() }
-            .map { it.calculateWeight() }
+            .map { it.weight }
             .sumOf { it }
         statistic.foodTotalAmount = foodTotalAmount
 

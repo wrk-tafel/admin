@@ -134,7 +134,7 @@ This is the most involved sub-area — it records what a route's team actually p
   in the catalog. `FoodReturnCategoryEntity` rows are only the recording screen's pre-filled
   counters — saving one stores a return item whose `description` is the category's name, exactly
   like a hand-typed row. Only amounts `> 0` are stored; a zero is the absence of a row. Return
-  boxes are never weighed, so unlike items they have no `calculateWeight()` and contribute nothing
+  boxes are never weighed, so unlike items they have no `weight` and contribute nothing
   to food-amount statistics — their one consumer is the "Retourkisten" mail in
   `reporting.DistributionClosedEventListener`.
 - **Race condition guard, second instance:** both return-item save paths
@@ -153,10 +153,17 @@ This is the most involved sub-area — it records what a route's team actually p
   dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
   they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data
   because they're read off the car on return, long after car/driver/co-driver are known.
-- `FoodCollectionItemEntity.calculateWeight()` is where the shop's `foodUnit` and the category's
+- `FoodCollectionItemEntity.weight` is where the shop's `foodUnit` and the category's
   `weightPerUnit` come together: if the shop's unit is `KG`, `amount` *is* the weight; otherwise
   weight = `amount * category.weightPerUnit`. Get the shop's unit wrong and every subsequent
   weight-based report/statistic derived from this collection is wrong too.
+- **The weight is stored, not derived on read.** `weight` is computed once, when the item is
+  written, and persisted on `food_collections_items` (column added in `R__00086`). `foodUnit` and
+  `weightPerUnit` are master data an operator can edit at any time, so recomputing on every read
+  would rewrite the kg of distributions that closed long ago —
+  `distributions_statistics.food_total_amount` is frozen at close time and the `TOeT_Spenden`
+  export would stop agreeing with it. `updateAmount()` is therefore the only way to change an
+  item's `amount`; it recomputes `weight` in the same step so the two can't drift apart.
 
 ## Persistence gotchas — summary
 

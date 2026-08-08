@@ -1,7 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
@@ -11,6 +15,7 @@ import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -58,6 +63,32 @@ class AgeDistributionExporterTest {
                 listOf("gesamt", "4", "100,00", "9", "2"),
             ),
         )
+    }
+
+    @Test
+    fun `ages are bucketed as of the distribution date, not as of today`() {
+        val startedAt = LocalDateTime.now().minusYears(10)
+        val household = HouseholdEntity(householdId = 900, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            // 25 years old on the day of the distribution, 35 years old today
+            birthDate = startedAt.toLocalDate().minusYears(25)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+
+        val testStatisticDistribution = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            households = listOf(
+                DistributionHouseholdEntity(distribution = this, household = household, ticketNumber = 1),
+            )
+        }
+        val testStatistic = DistributionStatisticEntity(distribution = testStatisticDistribution)
+        testStatisticDistribution.statistic = testStatistic
+
+        val rows = AgeDistributionExporter().getRows(testStatistic)
+
+        assertThat(rows.first { it[0] == "21-30" }[1]).isEqualTo("1")
+        assertThat(rows.first { it[0] == "31-40" }[1]).isEqualTo("0")
     }
 
     @Test

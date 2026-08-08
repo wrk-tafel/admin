@@ -117,5 +117,5 @@ notification.
   cheap/cached read.
 - If there is no currently open distribution, `getData()` returns an all-null `DashboardData`; controllers
   and the frontend must treat `null` as "nothing to show", not "zero".
-- `foodAmountTotal` sums `calculateWeight()` across every item of every food collection of the *current*
+- `foodAmountTotal` sums the stored `weight` across every item of every food collection of the *current*
   distribution only — it has no relation to the historic per-year totals computed in the `reporting` module.

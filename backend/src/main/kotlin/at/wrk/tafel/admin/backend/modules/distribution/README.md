@@ -76,7 +76,9 @@ implementation was left, so the interface/list indirection was removed in favor 
 - **DistributionStatisticService** — builds the `DistributionStatisticEntity` snapshot at close time:
   household/person/infant counts (new, prolonged, updated), average persons per household, and logistics
   numbers (shops visited, food weight collected, route km). Only called from
-  `DistributionEndedEventListener`, never on-demand.
+  `DistributionEndedEventListener`, never on-demand. Every number in the snapshot is reproducible from
+  the distribution alone: infants are counted against `distribution.startedAt`, not against the clock,
+  and the food weight is summed from the weights stored on the collected items.
 - **MissingCostContributionService** — for every household whose `costContributionPaid == false` on this
   distribution, adds the current cost-contribution amount to `household.pendingCostContribution` so it
   can be collected next time. Doesn't touch `reporting`. Deliberately not called by
