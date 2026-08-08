@@ -65,6 +65,21 @@ describe('AuthenticationService', () => {
         expect(router.navigate).not.toHaveBeenCalledWith(['/login/passwortaendern']);
     });
 
+    // The server reads the credentials as UTF-8, so a non-ASCII character has to be sent as its
+    // UTF-8 bytes - plain btoa() would send it as a single Latin-1 byte and the login would fail
+    // even though the password is correct (see #3100).
+    it('login sends non-ascii credentials utf-8 encoded', async () => {
+        service.login('USER', 'pwdMitÄumlaut');
+
+        const mockLoginReq = httpMock.expectOne('/login');
+        const sentHeader = mockLoginReq.request.headers.get('Authorization')!;
+        const decodedBytes = Uint8Array.from(atob(sentHeader.replace('Basic ', '')), char => char.charCodeAt(0));
+        expect(new TextDecoder().decode(decodedBytes)).toBe('USER:pwdMitÄumlaut');
+
+        mockLoginReq.flush({ passwordChangeRequired: false }, { status: 200, statusText: 'OK' });
+        httpMock.expectOne('/users/info').flush({ username: 'test-user', permissions: [] });
+    });
+
     it('login successful but passwordchange is required', async () => {
         const loginResponseBody = { passwordChangeRequired: true };
         const userInfoResponseBody = { username: 'test-user', permissions: [] };
