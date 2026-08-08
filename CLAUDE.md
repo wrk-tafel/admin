@@ -314,6 +314,20 @@ since it lives outside the code you're editing. On every update or regeneration,
   filename list in the `sed` rewrite rules in the `userguide-pdf` job of
   `.github/workflows/release.yml`.
 
+## Architecture Decision Records
+
+`docs/architecture/adr/` holds the ADRs — one record per architectural decision, with the context
+that forced it, its cost, and the alternatives that lost. They are the fastest way to find out *why*
+something is the way it is (modular monolith, repeatable-only migrations, SSE outbox, zoneless
+Angular, ...); `docs/architecture/adr/README.md` is the index.
+
+- An accepted ADR is **not edited** when a decision changes. Write a new one, mark the old one
+  `superseded by ADR-NNNN`, link both ways, and update the index.
+- A change that reverses or materially narrows a recorded decision needs a new ADR as part of the
+  same task — the code and the record must not disagree.
+- Longer evaluations of a decision *not yet taken* (e.g. `docs/architecture/audit-trail.md`) are not
+  ADRs; they sit one level up in `docs/architecture/` and are listed at the bottom of the ADR index.
+
 ## Handling Issues Found Outside the Current Task's Scope
 
 If you notice a bug or problem while working on a task that is **not caused by your current

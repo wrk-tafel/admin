@@ -400,7 +400,13 @@ A German-language user guide (Benutzerhandbuch) covering every feature is availa
 
 [📄 Benutzerhandbuch (PDF, latest release)](https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf)
 
-Architecture decision documents live under [`docs/architecture/`](docs/architecture/):
+Architecture decisions are recorded as ADRs under
+[`docs/architecture/adr/`](docs/architecture/adr/README.md) — one record per decision, covering the
+modular monolith, the database-only infrastructure, the migration and API conventions, the SSE
+outbox, the frontend generation, the release process and more.
+
+Longer evaluations of decisions not yet taken live one level up, in
+[`docs/architecture/`](docs/architecture/):
 
 | Document | Subject |
 |---|---|
