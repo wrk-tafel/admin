@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, computed, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatSlideToggle, MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -15,6 +15,7 @@ import {
   PushPreferencesResponse,
   PushTestResult,
   pushNotificationTypeDescription,
+  pushNotificationTypeGroups,
   pushNotificationTypeLabel
 } from '../../../../api/push-api.service';
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
@@ -174,6 +175,23 @@ export class PushNotificationSettingsComponent {
   protected deviceLabel(device: PushDeviceItem): string {
     return device.label ?? userAgentLabel(device.userAgent);
   }
+
+  /**
+   * The preferences response carries only which types this user may receive, in enum order. This
+   * turns that flat list into the screen's grouping and ordering, keeping only the types that came
+   * back and dropping any group left empty by the permission filtering - so a user who is an
+   * audience for nothing technical sees no "Technisches" heading at all, rather than an empty one.
+   */
+  readonly typeGroups = computed(() => {
+    const receivable = new Map(this.preferences().types.map(item => [item.type, item]));
+
+    return pushNotificationTypeGroups
+      .map(group => ({
+        title: group.title,
+        items: group.types.map(type => receivable.get(type)).filter(item => item !== undefined)
+      }))
+      .filter(group => group.items.length > 0);
+  });
 
   protected typeLabel(type: PushNotificationType): string {
     return pushNotificationTypeLabel[type];

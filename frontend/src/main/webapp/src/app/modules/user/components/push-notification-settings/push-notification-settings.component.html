@@ -111,29 +111,36 @@
     @if (preferences().masterEnabled) {
       <div class="mt-6">
         <div class="font-bold mb-2">Welche Benachrichtigungen möchtest du erhalten?</div>
-        <!--
-          Widens in steps rather than jumping straight to three columns: each entry carries a
-          sentence of explanation under its label, and three of those side by side only stop wrapping
-          awkwardly once there is desktop width to give them. One column on phones, two from medium,
-          three from large.
-        -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-x-8">
-          @for (typePreference of preferences().types; track typePreference.type) {
-            <div testid="push-type-preference" [attr.data-type]="typePreference.type" class="py-2 border-t border-gray-200">
-              <mat-slide-toggle
-                testid="push-type-preference-toggle"
-                [checked]="typePreference.enabled"
-                [disabled]="preferencesLoading()"
-                (change)="onTypeToggle(typePreference.type, $event)"
-              >
-                {{ typeLabel(typePreference.type) }}
-              </mat-slide-toggle>
-              <p testid="push-type-preference-description" class="text-sm text-gray-500 mt-1">
-                {{ typeDescription(typePreference.type) }}
-              </p>
+        @for (group of typeGroups(); track group.title) {
+          <div testid="push-type-group" [attr.data-group]="group.title" class="mt-4 first:mt-2">
+            <div testid="push-type-group-title" class="font-semibold text-sm text-gray-500 uppercase tracking-wide">
+              {{ group.title }}
             </div>
-          }
-        </div>
+            <!--
+              Two columns rather than three: each entry carries a sentence of explanation under its
+              label, and the groups are small enough (six, one, two) that a third column would leave
+              most rows half empty. One column on phones, where two would leave neither the label nor
+              its description enough width.
+            -->
+            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+              @for (typePreference of group.items; track typePreference.type) {
+                <div testid="push-type-preference" [attr.data-type]="typePreference.type" class="py-2 border-t border-gray-200">
+                  <mat-slide-toggle
+                    testid="push-type-preference-toggle"
+                    [checked]="typePreference.enabled"
+                    [disabled]="preferencesLoading()"
+                    (change)="onTypeToggle(typePreference.type, $event)"
+                  >
+                    {{ typeLabel(typePreference.type) }}
+                  </mat-slide-toggle>
+                  <p testid="push-type-preference-description" class="text-sm text-gray-500 mt-1">
+                    {{ typeDescription(typePreference.type) }}
+                  </p>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
     }
   </mat-card-content>

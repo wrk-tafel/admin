@@ -76,6 +76,52 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine Report-E-Mail konnte nach einer Ausgabe nicht versendet werden.'
 };
 
+/**
+ * The notification types in the order and grouping the settings screen presents them, which the flat
+ * response deliberately doesn't carry: the backend returns them in enum declaration order, which
+ * puts a reminder next to a lifecycle event and reads as a jumble.
+ *
+ * The three groups are the distinctions the domain already makes, and they line up with the
+ * permission tiers behind them (everyone / distribution leadership / administrator) - so a user
+ * seeing fewer toggles sees whole groups missing rather than an arbitrarily shorter list.
+ *
+ * Within the first group the order is the order the day actually happens in, which is what makes it
+ * readable without further explanation. `push-notification-settings.component.spec.ts` pins that
+ * every type appears in exactly one group, so a newly added one can't quietly disappear from the
+ * screen by being left out here.
+ */
+export interface PushNotificationTypeGroup {
+  title: string;
+  types: PushNotificationType[];
+}
+
+export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
+  {
+    title: 'Ablauf der Ausgabe',
+    types: [
+      PushNotificationType.DISTRIBUTION_STARTED,
+      PushNotificationType.CHECKIN_STARTED,
+      PushNotificationType.FOOD_COLLECTION_COMPLETED,
+      PushNotificationType.FOOD_HANDOUT_STARTED,
+      PushNotificationType.ALL_TICKETS_PROCESSED,
+      PushNotificationType.DISTRIBUTION_CLOSED
+    ]
+  },
+  {
+    title: 'Erinnerungen',
+    types: [
+      PushNotificationType.DISTRIBUTION_STILL_OPEN
+    ]
+  },
+  {
+    title: 'Technisches',
+    types: [
+      PushNotificationType.REPORT_MAIL_FAILED,
+      PushNotificationType.USER_LOCKED_OUT
+    ]
+  }
+];
+
 export enum PushTestResult {
   SENT = 'SENT',
   EXPIRED = 'EXPIRED',

@@ -124,7 +124,7 @@ describe('PushNotifications', () => {
   // The permission filtering lives entirely in the backend's preferences response, so the only way
   // to see it work is with a real login of a user who lacks those permissions - a mocked component
   // test would just be asserting the fixture it was handed. e2etest2 holds CUSTOMER alone, so it
-  // gets the two types that carry no permission requirement and none of the restricted ones.
+  // gets the six types that carry no permission requirement and none of the restricted ones.
   it('offers only the notification types a user can actually receive', () => {
     cy.loginE2ETest2();
     cy.visit('/benachrichtigungen');
@@ -135,6 +135,36 @@ describe('PushNotifications', () => {
     cy.get('[testid="push-type-preference"][data-type="USER_LOCKED_OUT"]').should('not.exist');
     cy.get('[testid="push-type-preference"][data-type="REPORT_MAIL_FAILED"]').should('not.exist');
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]').should('not.exist');
+
+    // A group with nothing left in it is dropped rather than shown as a bare heading, so the two
+    // restricted groups disappear entirely for this user.
+    cy.byTestId('push-type-group').should('have.length', 1);
+    cy.byTestId('push-type-group-title').should('contain.text', 'Ablauf der Ausgabe');
+  });
+
+  // The types are grouped and ordered by the screen, not by the response - the backend returns them
+  // in its own enum order, which mixes a reminder in among the lifecycle events.
+  it('groups the notification types and lists the distribution day in order', () => {
+    cy.visit('/benachrichtigungen');
+
+    cy.byTestId('push-type-group-title').should('have.length', 3);
+    cy.byTestId('push-type-group-title').eq(0).should('contain.text', 'Ablauf der Ausgabe');
+    cy.byTestId('push-type-group-title').eq(1).should('contain.text', 'Erinnerungen');
+    cy.byTestId('push-type-group-title').eq(2).should('contain.text', 'Technisches');
+
+    cy.get('[testid="push-type-group"][data-group="Ablauf der Ausgabe"]')
+      .find('[testid="push-type-preference"]')
+      .then(items => {
+        const order = [...items].map(item => item.getAttribute('data-type'));
+        expect(order).to.deep.equal([
+          'DISTRIBUTION_STARTED',
+          'CHECKIN_STARTED',
+          'FOOD_COLLECTION_COMPLETED',
+          'FOOD_HANDOUT_STARTED',
+          'ALL_TICKETS_PROCESSED',
+          'DISTRIBUTION_CLOSED'
+        ]);
+      });
   });
 
   // Each toggle carries its own explanation, so the list says when a notification would actually

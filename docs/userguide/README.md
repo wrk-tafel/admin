@@ -51,7 +51,9 @@ Im Bereich **Benachrichtigungsarten** darunter lässt sich feiner steuern, welch
 
 Es werden nur jene Benachrichtigungsarten angezeigt, für die man auch berechtigt ist – wer z. B. keine Administrator-Berechtigung hat, sieht die Art "Benutzer gesperrt" gar nicht erst in der Liste.
 
-Der größte Teil begleitet den Ablauf eines Ausgabetags von Anfang bis Ende, sodass man auch ohne geöffnete Anwendung mitbekommt, wie weit der Tag ist. Diese Arten stehen allen Benutzern zur Verfügung:
+Die Liste ist in drei Bereiche gegliedert: **Ablauf der Ausgabe**, **Erinnerungen** und **Technisches**. Bereiche, für die man keine der nötigen Berechtigungen hat, werden gar nicht erst angezeigt.
+
+Der Bereich **Ablauf der Ausgabe** begleitet einen Ausgabetag von Anfang bis Ende – in genau der Reihenfolge, in der die Schritte tatsächlich passieren –, sodass man auch ohne geöffnete Anwendung mitbekommt, wie weit der Tag ist. Diese Arten stehen allen Benutzern zur Verfügung:
 
 | Benachrichtigungsart | Wird ausgelöst, wenn … |
 | --- | --- |
@@ -62,7 +64,7 @@ Der größte Teil begleitet den Ablauf eines Ausgabetags von Anfang bis Ende, so
 | Alle Kunden abgearbeitet | alle angemeldeten Kunden abgearbeitet wurden |
 | Ausgabe beendet | eine Ausgabe beendet wurde und die Statistiken bereitstehen |
 
-Die übrigen Arten setzen eine Berechtigung voraus:
+Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung voraus:
 
 | Benachrichtigungsart | Wird ausgelöst, wenn … | Erforderliche Berechtigung |
 | --- | --- | --- |

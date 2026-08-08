@@ -11,6 +11,7 @@ import {
   PushNotificationType,
   PushTestResult,
   pushNotificationTypeDescription,
+  pushNotificationTypeGroups,
   pushNotificationTypeLabel
 } from '../../../../api/push-api.service';
 
@@ -378,6 +379,59 @@ describe('PushNotificationSettingsComponent', () => {
         expect(pushNotificationTypeLabel[type]).toBeTruthy();
         expect(pushNotificationTypeDescription[type]).toBeTruthy();
       });
+    });
+  });
+
+  describe('typeGroups', () => {
+    // The screen renders groups, not the raw response, so a type missing from the grouping would
+    // silently never appear - no error, just an option nobody can find.
+    it('assigns every notification type to exactly one group', () => {
+      const grouped = pushNotificationTypeGroups.flatMap(group => group.types);
+
+      expect([...grouped].sort()).toEqual(Object.values(PushNotificationType).sort());
+    });
+
+    it('groups the receivable types in the configured order', () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.componentInstance.preferences.set({
+        masterEnabled: true,
+        types: [
+          // Deliberately in the response's own (enum) order, which is not the display order.
+          {type: PushNotificationType.DISTRIBUTION_CLOSED, enabled: true},
+          {type: PushNotificationType.USER_LOCKED_OUT, enabled: true},
+          {type: PushNotificationType.CHECKIN_STARTED, enabled: true},
+          {type: PushNotificationType.DISTRIBUTION_STARTED, enabled: true}
+        ]
+      });
+
+      expect(fixture.componentInstance.typeGroups()).toEqual([
+        {
+          title: 'Ablauf der Ausgabe',
+          items: [
+            {type: PushNotificationType.DISTRIBUTION_STARTED, enabled: true},
+            {type: PushNotificationType.CHECKIN_STARTED, enabled: true},
+            {type: PushNotificationType.DISTRIBUTION_CLOSED, enabled: true}
+          ]
+        },
+        {
+          title: 'Technisches',
+          items: [{type: PushNotificationType.USER_LOCKED_OUT, enabled: true}]
+        }
+      ]);
+    });
+
+    /**
+     * The permission filtering happens server-side, so a group can come back with nothing in it -
+     * showing its heading above an empty space would suggest something failed to load.
+     */
+    it('drops a group whose types this user cannot receive', () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.componentInstance.preferences.set({
+        masterEnabled: true,
+        types: [{type: PushNotificationType.DISTRIBUTION_STARTED, enabled: true}]
+      });
+
+      expect(fixture.componentInstance.typeGroups().map(group => group.title)).toEqual(['Ablauf der Ausgabe']);
     });
   });
 
