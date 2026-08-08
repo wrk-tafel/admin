@@ -47,8 +47,7 @@ data class HouseholdMergeFieldSelectionItem(
 data class HouseholdMergeRequest(
     @field:NotEmpty
     val sourceHouseholdIds: List<Long>,
-    @field:Valid
-    val fieldSelections: List<HouseholdMergeFieldSelectionItem> = emptyList(),
+    val fieldSelections: List<@Valid HouseholdMergeFieldSelectionItem> = emptyList(),
 )
 
 @ExcludeFromTestCoverage

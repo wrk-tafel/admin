@@ -1090,6 +1090,92 @@ internal class DistributionServiceTest {
     }
 
     /**
+     * Reading the current ticket happens on every ticket-screen poll and on every customer detail
+     * view, so it made up half of a distribution day's whole log file while telling nobody anything
+     * - see https://github.com/wrk-tafel/admin/issues/3106.
+     */
+    @Test
+    fun `reading the current ticket logs nothing`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(testDistributionHouseholdEntity1, testDistributionHouseholdEntity2)
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val logEvents = captureServiceLogs {
+            service.getCurrentTicketNumber()
+            service.getCurrentTicketNumberValue()
+            service.getCurrentTicketScreenTicket()
+        }
+
+        assertThat(logEvents).isEmpty()
+    }
+
+    @Test
+    fun `closing a ticket logs it with household and distribution context`() {
+        val distribution = distributionWithUnprocessedTickets(count = 2)
+
+        val logEvents = captureServiceLogs { service.closeCurrentTicketAndGetNext(costContributionPaid = false) }
+
+        assertThat(logEvents).hasSize(1)
+        assertThat(logEvents.first().level).isEqualTo(Level.INFO)
+        assertThat(logEvents.first().formattedMessage).isEqualTo(
+            "Processed ticket 1 (household: ${testHouseholdEntity1.householdId}, " +
+                "distribution: ID ${distribution.id}), next one: 2",
+        )
+    }
+
+    @Test
+    fun `reopening a ticket logs it with household and distribution context`() {
+        val distribution = distributionWithUnprocessedTickets()
+        distribution.households.first().processed = true
+
+        val logEvents = captureServiceLogs { service.reopenAndGetPreviousTicket() }
+
+        assertThat(logEvents).hasSize(1)
+        assertThat(logEvents.first().level).isEqualTo(Level.INFO)
+        assertThat(logEvents.first().formattedMessage).isEqualTo(
+            "Reopened ticket 1 (household: ${testHouseholdEntity1.householdId}, distribution: ID ${distribution.id})",
+        )
+    }
+
+    @Test
+    fun `deleting a ticket logs it with household and distribution context`() {
+        val distribution = distributionWithUnprocessedTickets()
+
+        val logEvents = captureServiceLogs { service.deleteCurrentTicket(testHouseholdEntity1.householdId) }
+
+        assertThat(logEvents).hasSize(1)
+        assertThat(logEvents.first().level).isEqualTo(Level.INFO)
+        assertThat(logEvents.first().formattedMessage).isEqualTo(
+            "Deleted ticket 1 (household: ${testHouseholdEntity1.householdId}, distribution: ID ${distribution.id})",
+        )
+    }
+
+    @Test
+    fun `deleting a ticket that does not exist logs nothing`() {
+        distributionWithUnprocessedTickets()
+
+        val logEvents = captureServiceLogs { service.deleteCurrentTicket(999) }
+
+        assertThat(logEvents).isEmpty()
+    }
+
+    private fun captureServiceLogs(block: () -> Unit): List<ILoggingEvent> {
+        val logger = LoggerFactory.getLogger(DistributionService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+
+        try {
+            block()
+            return logAppender.list.toList()
+        } finally {
+            logger.detachAppender(logAppender)
+        }
+    }
+
+    /**
      * A processed ticket is the trigger, not a displayed one: the ticket-screen control page issues
      * `show-current` as it loads, so a displayed ticket would announce the hand-out as started the
      * moment somebody merely opened that page.

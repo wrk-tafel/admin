@@ -16,6 +16,8 @@ import org.postgresql.PGNotification
 import org.postgresql.PGProperty
 import org.slf4j.LoggerFactory
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties
+import org.springframework.context.event.ContextClosedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
@@ -79,11 +81,19 @@ import java.util.concurrent.CopyOnWriteArrayList
  *
  * ## Shutting down
  *
- * [cleanup] only cancels the job and returns; the connection is closed by the reader itself, on the
- * next idle wake-up, and by nobody else. Closing it from another thread while the reader is blocked
- * on it is what hung CI for 30-90 minutes in issue #2985 - and it is just as tempting now that
- * there is a reconnect loop, which would also have to be told that this particular failure is not
- * one to retry.
+ * [onContextClosed] cancels the job, and [cleanup] does the same again for a context that somehow
+ * gets torn down without the event. Neither closes the connection or waits for the job to end: the
+ * connection is closed by the reader itself, on the next idle wake-up, and by nobody else. Closing
+ * it from another thread while the reader is blocked on it is what hung CI for 30-90 minutes in
+ * issue #2985 - and it is just as tempting now that there is a reconnect loop, which would also
+ * have to be told that this particular failure is not one to retry.
+ *
+ * Cancelling on `ContextClosedEvent` rather than only from `@PreDestroy` is what keeps a shutdown
+ * that takes the database with it (a `docker compose down` of the whole stack) quiet: the event is
+ * published before the web server's graceful shutdown, whereas bean destruction happens well after
+ * it, leaving the loop several seconds in which a dying database looks exactly like an outage worth
+ * shouting about. Past that point [shuttingDown] makes the loop treat a lost connection as expected
+ * and leave, instead of announcing that server push is down to an application that is ending.
  */
 @Service
 class SseOutboxListenerService(
@@ -124,6 +134,9 @@ class SseOutboxListenerService(
 
     @Volatile
     private var connectionAliveSince: LocalDateTime = LocalDateTime.now()
+
+    @Volatile
+    private var shuttingDown: Boolean = false
 
     @PostConstruct
     fun setupListener() {
@@ -168,6 +181,15 @@ class SseOutboxListenerService(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                if (shuttingDown) {
+                    logger.debug(
+                        "Connection to notification channel '$PG_NOTIFICATION_CHANNEL_NAME' went away " +
+                            "while the application was shutting down",
+                        e,
+                    )
+                    return
+                }
+
                 logger.warn(
                     "Lost the connection to notification channel '$PG_NOTIFICATION_CHANNEL_NAME', " +
                         "retrying in ${reconnectDelay.toMillis()}ms - server push is down until it is back",
@@ -256,8 +278,19 @@ class SseOutboxListenerService(
         notificationName?.let { name -> callbacks[name]?.forEach { it.invoke(payload) } }
     }
 
+    /**
+     * Fires before the web server's graceful shutdown, so the loop already knows the application is
+     * ending by the time a stack that is going down together takes the database with it.
+     */
+    @EventListener(ContextClosedEvent::class)
+    fun onContextClosed() {
+        shuttingDown = true
+        notificationListenerJob.cancel()
+    }
+
     @PreDestroy
     fun cleanup() {
+        shuttingDown = true
         notificationListenerJob.cancel()
     }
 

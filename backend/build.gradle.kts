@@ -28,6 +28,12 @@ java {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
+        // Without this, Kotlin drops annotations written on a type argument (`List<@Valid Person>`)
+        // instead of writing them into the field's bytecode - and Bean Validation then silently
+        // stops cascading into the list's elements. That is the only supported way to declare
+        // container element constraints, `@field:Valid` on the list itself being deprecated
+        // (HV000271), so the flag is what makes those declarations mean anything at runtime.
+        freeCompilerArgs.add("-Xemit-jvm-type-annotations")
     }
 }
 
@@ -66,8 +72,12 @@ dependencies {
     implementation(libs.spring.boot.starter.mail)
     implementation(libs.spring.boot.starter.jackson)
     implementation(libs.spring.boot.starter.thymeleaf)
-    implementation(libs.spring.modulith.starter.core)
-    implementation(libs.spring.modulith.actuator)
+    // Annotations only - the `@ApplicationModule`/`@NamedInterface` declarations in the modules'
+    // package-info.java files. The Modulith runtime (and the ArchUnit classpath scan it does at
+    // every start) is deliberately test-only: nothing reads the module structure at runtime here,
+    // since the Modulith actuator endpoint isn't exposed and no `@ApplicationModuleListener` is
+    // used. `ModularityTest` verifies the structure instead, via spring-modulith-starter-test.
+    implementation(libs.spring.modulith.api)
     // Only for ContextRefresher, which re-runs Spring Boot's config-data pipeline against an already
     // running context - that is what makes editing the mounted config.yml take effect without a
     // restart (see ConfigFileReloadService). Deliberately just this one artifact and not a Spring

@@ -43,10 +43,22 @@ spring:
   datasource:
     driverClassName: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 50
+      # Sized for this application's real concurrency: a handful of simultaneous users plus the
+      # @Async executor's 10 threads (see AsyncConfig). Postgres' default max_connections is 100,
+      # so a pool much larger than this claims connections nobody uses - and every pool-wide event
+      # (see keepalive-time below) costs one log line per connection.
+      maximum-pool-size: 20
       # logs a warning with a stack trace for any connection held longer than this, so a leak
       # (e.g. a missed transaction boundary) surfaces well before the pool is exhausted
       leak-detection-threshold: 60000
+      # A database restart invalidates every pooled connection at once. Without keepalive-time
+      # nothing notices until the next real request, which then works its way through the whole
+      # pool and logs a WARN per dead connection before it is served. With it, the housekeeper
+      # probes idle connections in the background and evicts the dead ones at DEBUG instead.
+      keepalive-time: 120000 # 2 minutes, must stay below max-lifetime
+      # Retires pooled connections well before any infrastructure-side idle timeout can drop them
+      # underneath us (HikariCP's own default is 30 minutes).
+      max-lifetime: 600000 # 10 minutes
   flyway:
     locations: classpath:/db-migration
     group: true

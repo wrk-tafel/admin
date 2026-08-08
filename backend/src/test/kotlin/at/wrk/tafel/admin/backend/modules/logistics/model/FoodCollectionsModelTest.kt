@@ -95,6 +95,16 @@ class FoodCollectionsModelTest {
     }
 
     @Test
+    fun `save items per shop cascades into invalid item`() {
+        val data = FoodCollectionSaveItemsPerShopRequest(items = listOf(FoodCollectionCategoryAmount(categoryId = 0, amount = 1)))
+
+        val violations = validator.validate(data)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("items[0].categoryId")
+    }
+
+    @Test
     fun `return item with non-positive shop, blank description and negative amount is invalid`() {
         val returnItem = FoodCollectionReturnItem(shopId = 0, description = " ", amount = -1)
 

@@ -42,8 +42,7 @@ data class FoodCollectionSaveKmRequest(
 @ExcludeFromTestCoverage
 data class FoodCollectionItemsRequest(
     @field:NotEmpty
-    @field:Valid
-    val items: List<FoodCollectionItem>,
+    val items: List<@Valid FoodCollectionItem>,
 )
 
 @ExcludeFromTestCoverage
@@ -75,8 +74,7 @@ data class FoodCollectionItemRequest(
 @ExcludeFromTestCoverage
 data class FoodCollectionSaveItemsPerShopRequest(
     @field:NotEmpty
-    @field:Valid
-    val items: List<FoodCollectionCategoryAmount>,
+    val items: List<@Valid FoodCollectionCategoryAmount>,
 )
 
 @ExcludeFromTestCoverage
@@ -109,12 +107,10 @@ data class FoodCollectionReturnItemAmount(
 
 @ExcludeFromTestCoverage
 data class FoodCollectionSaveReturnItemsRequest(
-    @field:Valid
-    val returnItems: List<FoodCollectionReturnItem>,
+    val returnItems: List<@Valid FoodCollectionReturnItem>,
 )
 
 @ExcludeFromTestCoverage
 data class FoodCollectionSaveReturnItemsPerShopRequest(
-    @field:Valid
-    val returnItems: List<FoodCollectionReturnItemAmount>,
+    val returnItems: List<@Valid FoodCollectionReturnItemAmount>,
 )

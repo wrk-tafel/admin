@@ -20,8 +20,7 @@ data class RouteRequest(
     val name: String,
     val note: String?,
     val enabled: Boolean,
-    @field:Valid
-    val stops: List<RouteStopItem>,
+    val stops: List<@Valid RouteStopItem>,
 )
 
 @ExcludeFromTestCoverage

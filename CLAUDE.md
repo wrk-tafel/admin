@@ -154,6 +154,15 @@ an accepted pattern, not a bypass to be tidied up. The one hard rule is directio
 must never depend on `modules/*`, enforced by an ArchUnit rule in `architecture/ProjectSpecificRulesTest`.
 Don't read a module's `allowedDependencies` as the full list of what it touches at the DB level.
 
+**Spring Modulith is a build-time concern here.** Only `spring-modulith-api` — the
+`@ApplicationModule`/`@NamedInterface` annotations — is on the production classpath; the Modulith
+runtime and the ArchUnit classpath scan it performs at startup are `testImplementation` only, via
+`spring-modulith-starter-test`. `ModularityTest` is what verifies the module structure. So nothing
+reads the module metadata while the application runs: the Modulith actuator endpoint isn't exposed,
+and `@ApplicationModuleListener` is not available — plain `@EventListener` is what cross-module
+events use (see the `distribution`/`reporting` module READMEs for why that's also the preferred
+choice on its own merits).
+
 **Key Technologies:**
 - Java with Kotlin (coroutines support) — see `backend/build.gradle.kts`'s toolchain block and
   `gradle/libs.versions.toml` for exact versions
