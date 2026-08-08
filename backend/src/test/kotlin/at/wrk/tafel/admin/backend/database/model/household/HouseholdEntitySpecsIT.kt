@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.generateRandomLong
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
@@ -19,6 +20,10 @@ import java.time.LocalDate
 
 @Transactional
 class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
+
+    companion object {
+        private const val SIMILARITY_THRESHOLD = 0.5f
+    }
 
     @Autowired
     private lateinit var testEntityManager: TestEntityManager
@@ -39,37 +44,105 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `firstnameContains returns null spec when firstname is null`() {
-        assertThat(HouseholdEntity.Specs.firstnameContains(null)).isNull()
+    fun `searchTextMatches returns null spec when the search term is null`() {
+        assertThat(HouseholdEntity.Specs.searchTextMatches(null, SIMILARITY_THRESHOLD)).isNull()
     }
 
     @Test
-    fun `firstnameContains matches case insensitively`() {
-        val tag = "Findme${generateRandomLong()}"
-        val matching = persistHousehold(customizeMainPerson = { firstname = "Prefix-$tag-Suffix" })
-        val notMatching = persistHousehold(customizeMainPerson = { firstname = "unrelated-${generateRandomLong()}" })
-        testEntityManager.flush()
-
-        val result = householdRepository.findAll(HouseholdEntity.Specs.firstnameContains(tag.uppercase())!!)
-
-        assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
-    }
-
-    @Test
-    fun `lastnameContains returns null spec when lastname is null`() {
-        assertThat(HouseholdEntity.Specs.lastnameContains(null)).isNull()
-    }
-
-    @Test
-    fun `lastnameContains matches case insensitively`() {
+    fun `searchTextMatches matches case insensitively on the main person`() {
         val tag = "Findme${generateRandomLong()}"
         val matching = persistHousehold(customizeMainPerson = { lastname = "Prefix-$tag-Suffix" })
-        val notMatching = persistHousehold(customizeMainPerson = { lastname = "unrelated-${generateRandomLong()}" })
+        val notMatching = persistHousehold()
         testEntityManager.flush()
 
-        val result = householdRepository.findAll(HouseholdEntity.Specs.lastnameContains(tag.uppercase())!!)
+        val result = householdRepository.findAll(searchSpec(tag.uppercase()))
 
         assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches on an additional person, not just the main person`() {
+        val tag = "Findme${generateRandomLong()}"
+        val matching = persistHousehold()
+        val additionalPerson = PersonEntity(household = matching, country = testCountry, isMainPerson = false).apply {
+            firstname = "child-${generateRandomLong()}"
+            lastname = tag
+            birthDate = LocalDate.now().minusYears(5)
+        }
+        matching.persons.add(additionalPerson)
+        testEntityManager.persist(additionalPerson)
+
+        val notMatching = persistHousehold()
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(searchSpec(tag))
+
+        assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches on the household number, address, phone number and e-mail`() {
+        val tag = distinctiveNumber()
+        val byHouseholdNumber = persistHousehold(customize = { householdId = tag })
+        val byStreet = persistHousehold(customize = { addressStreet = "street-$tag" })
+        val byCity = persistHousehold(customize = { addressCity = "city-$tag" })
+        val byPhone = persistHousehold(customize = { telephoneNumber = "+43 660 $tag" })
+        val byEmail = persistHousehold(customize = { email = "$tag@example.com" })
+        val notMatching = persistHousehold()
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(searchSpec(tag.toString()))
+
+        assertThat(result.map { it.id })
+            .contains(byHouseholdNumber.id, byStreet.id, byCity.id, byPhone.id, byEmail.id)
+            .doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `searchTextMatches still finds a household when the name is mistyped`() {
+        val tag = distinctiveNumber()
+        val matching = persistHousehold(customizeMainPerson = { lastname = "Findme$tag" })
+        val notMatching = persistHousehold()
+        testEntityManager.flush()
+
+        // "findmr..." instead of "findme..." - close enough for trigrams, not a substring
+        val result = householdRepository.findAll(searchSpec("Findmr$tag"))
+
+        assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `searchTextMatches treats like wildcards as ordinary characters`() {
+        val household = persistHousehold()
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(searchSpec("%"))
+
+        assertThat(result.map { it.id }).doesNotContain(household.id)
+    }
+
+    @Test
+    fun `searchTextMatches follows a person moved to another household`() {
+        val tag = "Findme${generateRandomLong()}"
+        val source = persistHousehold()
+        val target = persistHousehold()
+
+        val movedPerson = PersonEntity(household = source, country = testCountry, isMainPerson = false).apply {
+            firstname = "child-${generateRandomLong()}"
+            lastname = tag
+            birthDate = LocalDate.now().minusYears(5)
+        }
+        source.persons.add(movedPerson)
+        testEntityManager.persist(movedPerson)
+        testEntityManager.flush()
+
+        // the re-parenting a household merge does - both households' search text has to follow
+        movedPerson.household = target
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(searchSpec(tag))
+
+        assertThat(result.map { it.id }).contains(target.id).doesNotContain(source.id)
     }
 
     @Test
@@ -83,7 +156,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.postProcessingNecessary().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
+            HouseholdEntity.Specs.postProcessingNecessary().and(searchSpec(tag)),
         )
 
         assertThat(result.map { it.id }).contains(incomplete.id).doesNotContain(complete.id)
@@ -108,7 +181,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.postProcessingNecessary().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
+            HouseholdEntity.Specs.postProcessingNecessary().and(searchSpec(tag)),
         )
 
         assertThat(result.map { it.id }).contains(withIncompleteAddPerson.id).doesNotContain(complete.id)
@@ -128,7 +201,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.pendingCostContribution().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
+            HouseholdEntity.Specs.pendingCostContribution().and(searchSpec(tag)),
         )
 
         assertThat(result.map { it.id }).contains(pending.id).doesNotContain(notPending.id)
@@ -152,7 +225,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.validHousehold().and(HouseholdEntity.Specs.firstnameContains(tag)!!),
+            HouseholdEntity.Specs.validHousehold().and(searchSpec(tag)),
         )
 
         assertThat(result.map { it.id })
@@ -161,7 +234,26 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `orderByUpdatedAtDesc sorts the most recently updated household first`() {
+    fun `orderBySearchRelevance sorts the verbatim match before the merely similar one`() {
+        val tag = distinctiveNumber()
+        val fuzzyHit = persistHousehold(customizeMainPerson = { lastname = "Findmr$tag" })
+        testEntityManager.flush()
+
+        Thread.sleep(50)
+
+        // persisted later, so it would come first on updatedAt alone
+        val verbatimHit = persistHousehold(customizeMainPerson = { lastname = "Findme$tag" })
+        testEntityManager.flush()
+
+        val searchTerm = SearchTextSpecs.normalize("Findme$tag")
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(searchTerm, searchSpec("Findme$tag"))
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(verbatimHit.id, fuzzyHit.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts the most recently updated household first without a search term`() {
         val tag = "Findme${generateRandomLong()}"
         val first = persistHousehold(customizeMainPerson = { firstname = tag })
         testEntityManager.flush()
@@ -171,11 +263,23 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         val second = persistHousehold(customizeMainPerson = { firstname = tag })
         testEntityManager.flush()
 
-        val spec = HouseholdEntity.Specs.orderByUpdatedAtDesc(HouseholdEntity.Specs.firstnameContains(tag)!!)
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag))
         val result = householdRepository.findAll(spec)
 
         assertThat(result.map { it.id }).containsExactly(second.id, first.id)
     }
+
+    /**
+     * A number long enough that it cannot accidentally turn up inside another household's search
+     * text - which a short one plausibly could, since that text holds postal codes, phone numbers
+     * and household numbers too.
+     */
+    private fun distinctiveNumber(): Long = 1_000_000_000_000L + generateRandomLong()
+
+    private fun searchSpec(searchInput: String) = HouseholdEntity.Specs.searchTextMatches(
+        SearchTextSpecs.normalize(searchInput),
+        SIMILARITY_THRESHOLD,
+    )!!
 
     /**
      * Households and persons reference each other, so the main person pointer can only be written

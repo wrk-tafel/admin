@@ -18,30 +18,39 @@ describe('User Search', () => {
     });
   });
 
-  it('search by lastname and firstname', () => {
+  it('search by name', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;
 
-      cy.byTestId('firstnameText').type(user.firstname);
-      cy.byTestId('lastnameText').type(user.lastname);
+      cy.byTestId('searchInputText').type(user.lastname);
       clickSearchAndOpenFirstResult(user.id!);
     });
   });
 
-  it('search by lastname only', () => {
+  it('search by username', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;
 
-      cy.byTestId('lastnameText').type(user.lastname);
+      cy.byTestId('searchInputText').type(user.username);
       clickSearchAndOpenFirstResult(user.id!);
     });
   });
 
-  it('search by firstname only', () => {
+  it('search by personnel number through the search field', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;
 
-      cy.byTestId('firstnameText').type(user.firstname);
+      cy.byTestId('searchInputText').type(user.personnelNumber);
+      clickSearchAndOpenFirstResult(user.id!);
+    });
+  });
+
+  it('search finds the user despite a typo in the name', () => {
+    cy.createDummyUser().then(response => {
+      const user = response.body;
+
+      // "lastnamr-<random>" instead of "lastname-<random>" - close enough for the fuzzy match
+      cy.byTestId('searchInputText').type(user.lastname.replace('lastname-', 'lastnamr-'));
       clickSearchAndOpenFirstResult(user.id!);
     });
   });
@@ -52,7 +61,7 @@ describe('User Search', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;
 
-      cy.byTestId('lastnameText').type(user.lastname);
+      cy.byTestId('searchInputText').type(user.lastname);
       search();
 
       // desktop table branch stays in the DOM but is hidden below the md: breakpoint
@@ -68,7 +77,7 @@ describe('User Search', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;
 
-      cy.byTestId('lastnameText').type(user.lastname);
+      cy.byTestId('searchInputText').type(user.lastname);
       search();
 
       cy.byTestId('searchresult-table').should('be.visible');

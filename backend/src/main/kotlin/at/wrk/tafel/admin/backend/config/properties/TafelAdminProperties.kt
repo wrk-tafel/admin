@@ -38,6 +38,7 @@ class TafelAdminProperties {
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
     var push: TafelAdminPushProperties? = null
+    var search: TafelAdminSearchProperties = TafelAdminSearchProperties()
     var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
 
     /**
@@ -73,6 +74,24 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+}
+
+@ExcludeFromTestCoverage
+class TafelAdminSearchProperties {
+    /**
+     * How close a typed term has to come to a run of words in a household's or user's search text to
+     * still count as a hit, between 0 (everything matches) and 1 (only a perfect match). Verbatim
+     * substring hits are returned regardless of this value - it only governs the typo tolerance on
+     * top.
+     *
+     * The right value depends on the actual data, so it is configuration rather than a constant:
+     * too high and a mistyped name finds nothing, too low and every search returns half the
+     * customers. 0.5 is a little more forgiving than `pg_trgm`'s own 0.6 default, which is about
+     * where a single mistyped character in the middle of a name-length term stops being found - and
+     * the cost of being wrong in that direction is low, since verbatim hits still rank above every
+     * fuzzy one.
+     */
+    var similarityThreshold: Float = 0.5f
 }
 
 @ExcludeFromTestCoverage

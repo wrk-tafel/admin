@@ -104,8 +104,10 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
-(paginated search with `HouseholdEntity.Specs` JPA specifications for name/postProcessing/
-cost-contribution/valid filters), `getHouseholdsAboveLimit`, `getHouseholdsOverview`, `generatePdf`,
+(paginated search with `HouseholdEntity.Specs` JPA specifications - one free-text `searchInput`
+matched against the trigger-maintained `search_text` column plus the postProcessing/
+cost-contribution/valid filters, see `SearchTextSpecs`), `getHouseholdsAboveLimit`,
+`getHouseholdsOverview`, `generatePdf`,
 `deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.

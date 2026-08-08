@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -61,6 +62,9 @@ class TafelUserDetailsManagerTest {
 
     @SpyK
     private var passwordValidator: PasswordValidator = WebSecurityConfig.passwordValidator
+
+    @SpyK
+    private var tafelAdminProperties: TafelAdminProperties = TafelAdminProperties()
 
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
@@ -482,9 +486,7 @@ class TafelUserDetailsManagerTest {
         every { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) } returns page
 
         val searchResult = manager.loadUsers(
-            username = username,
-            firstname = testFirstname,
-            lastname = testLastname,
+            searchInput = username,
             enabled = enabled,
             page = selectedPage,
         )
@@ -511,7 +513,7 @@ class TafelUserDetailsManagerTest {
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
         every { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
 
-        val searchResult = manager.loadUsers(username = null, firstname = null, lastname = null, enabled = null, page = 1, pageSize = 999)
+        val searchResult = manager.loadUsers(searchInput = null, enabled = null, page = 1, pageSize = 999)
 
         assertThat(searchResult.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }

@@ -256,10 +256,10 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
-  it('search customer with firstname and lastname', () => {
-    apiService.searchCustomer('mustermann', 'max').subscribe();
+  it('search customer with a search input and a filter', () => {
+    apiService.searchCustomer('mustermann', null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?lastname=mustermann&firstname=max'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=mustermann&valid=true'});
     req.flush(null);
     httpMock.verify();
   });
@@ -268,7 +268,7 @@ describe('CustomerApiService', () => {
     let result;
     apiService.searchCustomer('mustermann').subscribe(response => result = response);
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?lastname=mustermann'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=mustermann'});
     req.flush({items: [mockHousehold], totalCount: 1, currentPage: 1, totalPages: 1, pageSize: 25});
     httpMock.verify();
 
@@ -278,24 +278,16 @@ describe('CustomerApiService', () => {
     expect(result!.items[0].additionalPersons).toHaveLength(1);
   });
 
-  it('search customer with lastname only', () => {
+  it('search customer with a search input only', () => {
     apiService.searchCustomer('mustermann').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?lastname=mustermann'});
-    req.flush(null);
-    httpMock.verify();
-  });
-
-  it('search customer with firstname only', () => {
-    apiService.searchCustomer(null, 'max').subscribe();
-
-    const req = httpMock.expectOne({method: 'GET', url: '/households?firstname=max'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=mustermann'});
     req.flush(null);
     httpMock.verify();
   });
 
   it('search customer including postProcessing parameter', () => {
-    apiService.searchCustomer(null, null, true, null).subscribe();
+    apiService.searchCustomer(null, true, null).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/households?postProcessing=true'});
     req.flush(null);
@@ -303,7 +295,7 @@ describe('CustomerApiService', () => {
   });
 
   it('search customer including costContribution parameter', () => {
-    apiService.searchCustomer(null, null, null, true).subscribe();
+    apiService.searchCustomer(null, null, true).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/households?costContribution=true'});
     req.flush(null);
@@ -311,7 +303,7 @@ describe('CustomerApiService', () => {
   });
 
   it('search customer including valid parameter', () => {
-    apiService.searchCustomer(null, null, null, null, true).subscribe();
+    apiService.searchCustomer(null, null, null, true).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/households?valid=true'});
     req.flush(null);
@@ -319,9 +311,9 @@ describe('CustomerApiService', () => {
   });
 
   it('search customer including page parameter', () => {
-    apiService.searchCustomer(null, 'max', null, null, null, 3).subscribe();
+    apiService.searchCustomer('max', null, null, null, 3).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?firstname=max&page=3'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=max&page=3'});
     req.flush(null);
     httpMock.verify();
   });
