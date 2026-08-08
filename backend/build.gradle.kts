@@ -28,6 +28,12 @@ java {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
+        // Without this, Kotlin drops annotations written on a type argument (`List<@Valid Person>`)
+        // instead of writing them into the field's bytecode - and Bean Validation then silently
+        // stops cascading into the list's elements. That is the only supported way to declare
+        // container element constraints, `@field:Valid` on the list itself being deprecated
+        // (HV000271), so the flag is what makes those declarations mean anything at runtime.
+        freeCompilerArgs.add("-Xemit-jvm-type-annotations")
     }
 }
 

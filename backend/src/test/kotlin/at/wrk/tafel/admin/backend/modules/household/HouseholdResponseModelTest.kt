@@ -93,4 +93,17 @@ class HouseholdResponseModelTest {
         assertThat(violations).extracting<String> { it.propertyPath.toString() }
             .containsExactly("sourceHouseholdIds")
     }
+
+    @Test
+    fun `household merge request cascades into field selections`() {
+        val request = HouseholdMergeRequest(
+            sourceHouseholdIds = listOf(1),
+            fieldSelections = listOf(HouseholdMergeFieldSelectionItem(field = null, sourceHouseholdId = 1)),
+        )
+
+        val violations = validator.validate(request)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("fieldSelections[0].field")
+    }
 }

@@ -41,8 +41,7 @@ data class HouseholdRequest(
     val lockReason: String? = null,
     val pendingCostContribution: BigDecimal? = null,
     val singleParent: Boolean? = null,
-    @field:Valid
-    val persons: List<Person> = emptyList(),
+    val persons: List<@Valid Person> = emptyList(),
 ) {
     /**
      * The single person of this household flagged as main person.
