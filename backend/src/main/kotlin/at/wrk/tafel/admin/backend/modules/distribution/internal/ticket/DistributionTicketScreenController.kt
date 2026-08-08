@@ -6,7 +6,6 @@ import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
@@ -19,7 +18,6 @@ class DistributionTicketScreenController(
 ) {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
         const val TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME = "ticket_screen_show_value"
         const val TICKET_SCREEN_TITLE = "Ticket"
     }
@@ -34,7 +32,6 @@ class DistributionTicketScreenController(
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showCurrentTicket(): TicketScreenTicketResponse {
         val response = service.getCurrentTicketScreenTicket()
-        logger.info("Ticket-Log - Fetched current ticket-number: ${response.ticketNumber}")
 
         saveToOutbox(text = TICKET_SCREEN_TITLE, response.ticketNumber?.toString())
         return response
@@ -45,7 +42,6 @@ class DistributionTicketScreenController(
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showPreviousTicket(): TicketScreenTicketResponse {
         val response = service.reopenAndGetPreviousTicket()
-        logger.info("Ticket-Log - fetched previous ticket-number: ${response.ticketNumber}")
 
         saveToOutbox(text = TICKET_SCREEN_TITLE, value = response.ticketNumber?.toString())
         return response
@@ -56,7 +52,6 @@ class DistributionTicketScreenController(
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showNextTicket(@Valid @RequestBody request: TicketScreenShowNextTicketRequest): TicketScreenTicketResponse {
         val response = service.closeCurrentTicketAndGetNext(request.costContributionPaid)
-        logger.info("Ticket-Log - fetched next ticket-number: ${response.ticketNumber}")
 
         saveToOutbox(text = TICKET_SCREEN_TITLE, value = response.ticketNumber?.toString())
         return response

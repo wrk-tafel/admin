@@ -200,9 +200,7 @@ class DistributionService(
     fun getCurrentTicketNumber(householdId: Long? = null): DistributionHouseholdEntity? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
-        logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionHouseholdEntity?.ticketNumber}")
-        return distributionHouseholdEntity
+        return getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
     }
 
     @Transactional(readOnly = true)
@@ -231,7 +229,10 @@ class DistributionService(
         if (distributionHouseholdEntity != null) {
             distributionHouseholdEntity.processed = false
             distributionHouseholdRepository.save(distributionHouseholdEntity)
-            logger.info("Ticket-Log - Reopened ticket-number: ${distributionHouseholdEntity.ticketNumber}")
+            logger.info(
+                "Reopened ticket ${distributionHouseholdEntity.ticketNumber} " +
+                    "(household: ${distributionHouseholdEntity.household.householdId}, distribution: ID ${distribution.id})",
+            )
         }
 
         return mapToTicketScreenTicket(getCurrentTicketNumber())
@@ -249,7 +250,11 @@ class DistributionService(
             distributionHouseholdRepository.save(distributionHouseholdEntity)
 
             val nextTicket = getCurrentTicketNumber()
-            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: ${nextTicket?.ticketNumber}")
+            logger.info(
+                "Processed ticket ${distributionHouseholdEntity.ticketNumber} " +
+                    "(household: ${distributionHouseholdEntity.household.householdId}, distribution: ID ${distribution.id}), " +
+                    "next one: ${nextTicket?.ticketNumber}",
+            )
 
             // A ticket having been *processed* is the first point at which food has demonstrably
             // been handed to someone. Deliberately not "a ticket was shown on the screen": the
@@ -290,10 +295,13 @@ class DistributionService(
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
-        logger.info("Ticket-Log - Deleted ticket-number: ${distributionHouseholdEntity?.ticketNumber}, household ${distributionHouseholdEntity?.household?.householdId}")
 
         return distributionHouseholdEntity?.let {
             distributionHouseholdRepository.delete(it)
+            logger.info(
+                "Deleted ticket ${it.ticketNumber} " +
+                    "(household: ${it.household.householdId}, distribution: ID ${distribution.id})",
+            )
             true
         } ?: false
     }
