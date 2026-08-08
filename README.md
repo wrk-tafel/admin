@@ -400,6 +400,12 @@ A German-language user guide (Benutzerhandbuch) covering every feature is availa
 
 [📄 Benutzerhandbuch (PDF, latest release)](https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf)
 
+Architecture decision documents live under [`docs/architecture/`](docs/architecture/):
+
+| Document | Subject |
+|---|---|
+| [Audit trail](docs/architecture/audit-trail.md) | Evaluation of `created_at`/`updated_at` vs. a generic audit table (#2871) |
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
