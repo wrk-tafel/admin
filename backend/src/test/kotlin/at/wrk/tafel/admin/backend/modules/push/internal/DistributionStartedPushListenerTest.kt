@@ -9,10 +9,12 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.scheduling.annotation.Async
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
@@ -39,6 +41,16 @@ internal class DistributionStartedPushListenerTest {
         listener.onDistributionStarted(DistributionStartedEvent(distributionId = 999L))
 
         verify(exactly = 0) { pushBroadcastService.broadcast(any(), any(), any()) }
+    }
+
+    @Test
+    fun `broadcast runs off the publishing thread`() {
+        val method = DistributionStartedPushListener::class.java
+            .getDeclaredMethod("onDistributionStarted", DistributionStartedEvent::class.java)
+
+        // Without @Async the blocking per-device sends would run on the thread that started the
+        // distribution, keeping its request and transaction open for the whole fan-out.
+        assertThat(method.isAnnotationPresent(Async::class.java)).isTrue()
     }
 
     @Test

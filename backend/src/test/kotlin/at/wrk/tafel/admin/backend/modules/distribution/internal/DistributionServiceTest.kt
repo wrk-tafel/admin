@@ -259,6 +259,35 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `create new distribution publishes DistributionStartedEvent after the lock was released`() {
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        distributionEntity.id = 123
+        every { distributionRepository.save(any()) } returns distributionEntity
+
+        var lockHeld = false
+        var lockHeldWhilePublishing: Boolean? = null
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            lockHeld = true
+            block.invoke()
+            lockHeld = false
+            true
+        }
+        every { eventPublisher.publishEvent(any<DistributionStartedEvent>()) } answers {
+            lockHeldWhilePublishing = lockHeld
+        }
+
+        service.createNewDistribution()
+
+        // The lock is transaction-level, so publishing inside the locked block would hold the lock,
+        // its transaction and its connection for as long as the listeners take (push fan-out included).
+        assertThat(lockHeldWhilePublishing).isEqualTo(false)
+    }
+
+    @Test
     fun `create new distribution forwards the error when publishing DistributionStartedEvent fails`() {
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
