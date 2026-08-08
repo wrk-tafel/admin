@@ -100,19 +100,21 @@ class DistributionService(
             throw ConflictException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
+        val createdDistribution = checkNotNull(result) { "Ausgabe konnte nicht gestartet werden!" }
+
         // Published outside the locked block on purpose: the lock is transaction-level, so anything
         // running inside that block extends the lock, its transaction and its pooled connection for as
         // long as it takes. Listeners are free to do slow work (the push fan-out in `push` does blocking
         // HTTPS sends per device), and none of it needs the CREATE_DISTRIBUTION lock - that lock only
         // guards the "no distribution running yet" check plus the insert above.
         try {
-            eventPublisher.publishEvent(DistributionStartedEvent(result!!.id!!))
+            eventPublisher.publishEvent(DistributionStartedEvent(createdDistribution.id!!))
         } catch (e: Exception) {
             logger.error("Publishing DistributionStartedEvent failed", e)
             throw e
         }
 
-        return result!!
+        return createdDistribution
     }
 
     fun createNewDistributionItem(): DistributionItem = mapDistribution(createNewDistribution())
