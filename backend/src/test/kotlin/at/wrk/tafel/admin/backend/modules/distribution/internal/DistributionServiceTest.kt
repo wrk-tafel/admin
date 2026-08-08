@@ -551,7 +551,7 @@ internal class DistributionServiceTest {
         val result = service.validateClose()
 
         assertThat(result.errors).isEmpty()
-        assertThat(result.warnings).containsExactly("Die Route(n) 2.0, 3.0 wurden nicht erfasst!")
+        assertThat(result.warnings).containsExactly("Die Route(n) Route 2, Route 3 wurden nicht erfasst!")
     }
 
     @Test
@@ -569,7 +569,7 @@ internal class DistributionServiceTest {
 
         val result = service.validateClose()
 
-        assertThat(result.errors).containsExactly("Die Route(n) 1.0, 2.0 sind unvollständig!")
+        assertThat(result.errors).containsExactly("Die Route(n) Route 1, Route 2 sind unvollständig!")
         assertThat(result.warnings).isEmpty()
     }
 

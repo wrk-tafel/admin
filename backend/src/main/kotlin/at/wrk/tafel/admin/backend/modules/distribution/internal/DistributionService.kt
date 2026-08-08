@@ -281,7 +281,7 @@ class DistributionService(
                 it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items == null || it.items!!.isEmpty()
             }
             if (incompleteRoutes.isNotEmpty()) {
-                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.number.toString() }} sind unvollständig!")
+                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.name }} sind unvollständig!")
             }
 
             return if (errors.isNotEmpty()) {
@@ -293,10 +293,10 @@ class DistributionService(
                 // Warnings
                 // a disabled route isn't driven anymore, so not recording it is not a problem
                 val routes: List<RouteEntity> = routeRepository.findByEnabledIsTrue()
-                val missingRoutes =
-                    routes.map { it.number } - currentDistribution.foodCollections.map { it.route.number }
+                val recordedRouteIds = currentDistribution.foodCollections.map { it.route.id }
+                val missingRoutes = routes.filterNot { recordedRouteIds.contains(it.id) }
                 if (missingRoutes.isNotEmpty()) {
-                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
+                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ") { it.name }} wurden nicht erfasst!")
                 }
 
                 DistributionCloseResponse(
