@@ -16,6 +16,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 describe('FoodCollectionRecordingBasedataComponent', () => {
   let foodCollectionsApiServiceSpy: MockedObject<FoodCollectionsApiService>;
   let employeeApiServiceSpy: MockedObject<EmployeeApiService>;
+  let matDialogSpy: MockedObject<MatDialog>;
 
   beforeEach(() => {
     const employeeApiSpy = {
@@ -70,6 +71,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as MockedObject<FoodCollectionsApiService>;
     employeeApiServiceSpy = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
+    matDialogSpy = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
   });
 
   const mockEmployees: EmployeeData[] = [
@@ -147,6 +149,49 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.car.value!.id).toEqual(1);
     expect(component.driverSearchInput.value).toEqual('D1');
     expect(component.coDriverSearchInput.value).toEqual('D2');
+  });
+
+  it('should take the stored driver and co-driver over without searching for them again', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    expect(component.selectedDriver()).toEqual(mockEmployees[0]);
+    expect(component.selectedCoDriver()).toEqual(mockEmployees[1]);
+    expect(component.hasInvalidInput()).toEqual(false);
+
+    // a search would open the select/create dialog whenever the stored personnel number matches
+    // several employees or none at all
+    expect(employeeApiServiceSpy.findEmployees).not.toHaveBeenCalled();
+    expect(matDialogSpy.open).not.toHaveBeenCalled();
+  });
+
+  it('should drop the previous driver and co-driver when a route without base data is opened', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    componentRef.setInput('selectedRouteData', {
+      ...mockRouteData,
+      route: {...mockRoute, id: 456},
+      foodCollectionData: null
+    });
+
+    fixture.detectChanges();
+
+    expect(component.selectedDriver()).toBeNull();
+    expect(component.selectedCoDriver()).toBeNull();
+    expect(component.driverSearchInput.value).toBeNull();
+    expect(component.coDriverSearchInput.value).toBeNull();
+    expect(component.car.value).toBeNull();
   });
 
   it('should trigger search for driver and co-driver when input exists', () => {

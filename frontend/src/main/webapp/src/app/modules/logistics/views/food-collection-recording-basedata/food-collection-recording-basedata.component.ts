@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, model, signal, viewChild} from '@angular/core';
+import {Component, effect, inject, input, model, signal, untracked, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -68,38 +68,37 @@ export class FoodCollectionRecordingBasedataComponent {
 
   foodCollectionDataEffect = effect(() => {
     const foodCollectionData = this.selectedRouteData()!.foodCollectionData;
+    const cars = this.carList().cars;
 
-    // reset form without route to prevent an infinite loop
-    this.car.reset();
-    this.driverSearchInput.reset();
-    this.selectedDriver.set(null);
-    this.coDriverSearchInput.reset();
-    this.selectedCoDriver.set(null);
+    // The writes below run the search inputs' validators, which read the selectedDriver /
+    // selectedCoDriver signals - untracked keeps those reads out of this effect's dependencies so
+    // filling the form in here cannot schedule the effect again.
+    untracked(() => {
+      // reset form without route to prevent an infinite loop
+      this.car.reset();
+      this.driverSearchInput.reset();
+      this.selectedDriver.set(null);
+      this.coDriverSearchInput.reset();
+      this.selectedCoDriver.set(null);
 
-    if (foodCollectionData) {
-      this.car.setValue(this.carList().cars.find(car => car.id === foodCollectionData.carId) ?? null);
+      if (foodCollectionData) {
+        this.car.setValue(cars.find(car => car.id === foodCollectionData.carId) ?? null);
 
-      if (foodCollectionData.driver) {
-        this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
-        // Use setTimeout to defer execution until after view is stable
-        setTimeout(() => {
-          const driverSearch = this.driverEmployeeSearchCreate();
-          if (driverSearch) {
-            driverSearch.triggerSearch();
-          }
-        });
+        // A stored driver/co-driver is already a resolved employee, so it is applied directly.
+        // Re-running the employee search on its personnel number would pop the select or create
+        // dialog open the moment the route is picked, because that search matches substrings of
+        // personnel numbers and names and so can return several employees - or none, once an
+        // employee has been renamed.
+        if (foodCollectionData.driver) {
+          this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
+          this.setSelectedDriver(foodCollectionData.driver);
+        }
+        if (foodCollectionData.coDriver) {
+          this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
+          this.setSelectedCoDriver(foodCollectionData.coDriver);
+        }
       }
-      if (foodCollectionData.coDriver) {
-        this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
-        // Use setTimeout to defer execution until after view is stable
-        setTimeout(() => {
-          const coDriverSearch = this.coDriverEmployeeSearchCreate();
-          if (coDriverSearch) {
-            coDriverSearch.triggerSearch();
-          }
-        });
-      }
-    }
+    });
   });
 
   triggerSearchDriver() {
