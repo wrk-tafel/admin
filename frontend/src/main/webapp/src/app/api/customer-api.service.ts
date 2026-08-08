@@ -69,8 +69,7 @@ export class CustomerApiService {
   }
 
   searchCustomer(
-    lastname?: string | null,
-    firstname?: string | null,
+    searchInput?: string | null,
     postProcessing?: boolean | null,
     costContribution?: boolean | null,
     valid?: boolean | null,
@@ -78,11 +77,8 @@ export class CustomerApiService {
     pageSize?: number
   ): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
-    if (lastname) {
-      queryParams = queryParams.set('lastname', lastname);
-    }
-    if (firstname) {
-      queryParams = queryParams.set('firstname', firstname);
+    if (searchInput) {
+      queryParams = queryParams.set('searchInput', searchInput);
     }
     if (postProcessing) {
       queryParams = queryParams.set('postProcessing', postProcessing);

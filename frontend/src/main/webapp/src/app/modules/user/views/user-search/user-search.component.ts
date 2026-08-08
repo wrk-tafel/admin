@@ -21,6 +21,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-user-search',
@@ -41,7 +42,8 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
     FormsModule,
     MatTableModule,
     MatPaginatorModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TafelInfoTooltipComponent
   ]
 })
 // Note: Material modules are added via standalone imports below to keep the decorator concise.
@@ -52,9 +54,7 @@ export class UserSearchComponent {
 
   private searchModel = {
     personnelNumber: '',
-    username: '',
-    lastname: '',
-    firstname: '',
+    searchInput: '',
     enabled: true,
   };
   searchFormModel = signal(this.searchModel);
@@ -86,12 +86,10 @@ export class UserSearchComponent {
   }
 
   searchForDetails(page?: number, pageSize?: number) {
-    const username = this.searchForm.username().value();
+    const searchInput = this.searchForm.searchInput().value();
     const enabled = this.searchForm.enabled().value();
-    const lastname = this.searchForm.lastname().value();
-    const firstname = this.searchForm.firstname().value();
 
-    this.userApiService.searchUser(username, enabled, lastname, firstname, page, pageSize)
+    this.userApiService.searchUser(searchInput, enabled, page, pageSize)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
           this.toastr.info('Keine Benutzer gefunden!');

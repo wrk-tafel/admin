@@ -1,4 +1,8 @@
+import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {Gender} from '../support/commands';
+
+const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
 
 describe('Customer Search', () => {
 
@@ -18,31 +22,80 @@ describe('Customer Search', () => {
     });
   });
 
-  it('search by lastname and firstname', () => {
+  it('search by name', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('lastnameText').type(customer.lastname);
-      cy.byTestId('firstnameText').type(customer.firstname);
+      cy.byTestId('searchInputText').type(customer.lastname);
       clickSearchAndOpenFirstResult(customer.id!);
     });
   });
 
-  it('search by lastname only', () => {
+  it('search by address', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('searchInputText').type(customer.address!.street!);
       clickSearchAndOpenFirstResult(customer.id!);
     });
   });
 
-  it('search by firstname only', () => {
+  it('search by customer number through the search field', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('firstnameText').type(customer.firstname);
+      cy.byTestId('searchInputText').type(customer.id!.toString());
+      clickSearchAndOpenFirstResult(customer.id!, {expectSingleResult: false});
+    });
+  });
+
+  it('search finds the customer despite a typo in the name', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      // "lastnamr-<random>" instead of "lastname-<random>" - close enough for the fuzzy match
+      cy.byTestId('searchInputText').type(customer.lastname.replace('lastname-', 'lastnamr-'));
       clickSearchAndOpenFirstResult(customer.id!);
+    });
+  });
+
+  it('search by the name of an additional household member', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const childLastname = 'child-lastname-' + randomNumber;
+
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        telephoneNumber: '0123456789',
+        email: 'firstname.lastname@test.com',
+        employer: 'employer-' + randomNumber,
+        country: AUSTRIA,
+        income: 1000,
+        incomeDue: dayjs().add(30, 'days').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        },
+        validUntil: dayjs().add(1, 'year').toDate(),
+        additionalPersons: [{
+          id: 0,
+          key: 0,
+          firstname: 'child-firstname-' + randomNumber,
+          lastname: childLastname,
+          birthDate: dayjs().subtract(5, 'year').toDate(),
+          gender: Gender.MALE,
+          country: AUSTRIA,
+          excludeFromHousehold: false,
+          receivesFamilyAllowance: false
+        }]
+      }).then((response) => {
+        cy.byTestId('searchInputText').type(childLastname);
+        clickSearchAndOpenFirstResult(response.body.data.id!, {expectSingleResult: false});
+      });
     });
   });
 
@@ -57,7 +110,7 @@ describe('Customer Search', () => {
       // other specs left dummy customers with leftover debt behind (see #2966). The randomized
       // dummy lastname combined with the cost-contribution filter narrows to just this customer
       // regardless of what other specs have accrued.
-      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('searchInputText').type(customer.lastname);
       cy.byTestId('costContributionInput').click();
       clickSearchAndOpenFirstResult(customerId);
 
@@ -71,13 +124,13 @@ describe('Customer Search', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('searchInputText').type(customer.lastname);
       cy.byTestId('search-button').click();
 
       // below md: the table row is hidden and the card list is shown instead
       cy.byTestId('searchresult-row').should('exist').and('not.be.visible');
 
-      clickSearchAndOpenFirstResult(customer.id!, true);
+      clickSearchAndOpenFirstResult(customer.id!, {alreadySearched: true});
     });
   });
 
@@ -87,7 +140,7 @@ describe('Customer Search', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('searchInputText').type(customer.lastname);
       clickSearchAndOpenFirstResult(customer.id!);
     });
   });
@@ -109,7 +162,7 @@ describe('Customer Search', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('searchInputText').type(customer.lastname);
       cy.byTestId('search-button').click();
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
@@ -120,13 +173,25 @@ describe('Customer Search', () => {
     });
   });
 
-  function clickSearchAndOpenFirstResult(expectedCustomerId: number, alreadySearched = false) {
+  // `expectSingleResult` is off for searches whose term is not unique to one household by
+  // construction - the fuzzy match is meant to also surface near-misses, so any term sharing whole
+  // words with the other dummy customers ("child", "lastname", a run of digits) legitimately returns
+  // more than one row. The searched-for customer was created moments earlier, so it is the top hit
+  // either way: it is the only verbatim match, and verbatim beats similar.
+  function clickSearchAndOpenFirstResult(
+    expectedCustomerId: number,
+    options: { alreadySearched?: boolean; expectSingleResult?: boolean } = {}
+  ) {
+    const {alreadySearched = false, expectSingleResult = true} = options;
+
     if (!alreadySearched) {
       cy.byTestId('search-button').click();
     }
 
     cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 1);
+    if (expectSingleResult) {
+      cy.byTestId('searchresult-row').should('have.length', 1);
+    }
 
     // the table and card list both render a button with this testid (one per branch, only one
     // of which is displayed per viewport - see 'hidden md:block' / 'block md:hidden' in the template)

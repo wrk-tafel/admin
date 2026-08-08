@@ -1,14 +1,11 @@
 ### List households
 GET {{baseApiPath}}/households?pageIndex=3
 
-### Search for households (only firstname)
-GET {{baseApiPath}}/households?firstname=x
+### Search for households (name, address, phone, e-mail or household number - fuzzy)
+GET {{baseApiPath}}/households?searchInput=muster
 
-### Search for households (only lastname)
-GET {{baseApiPath}}/households?lastname=x
-
-### Search for households (firstname and lastname)
-GET {{baseApiPath}}/households?firstname=x&lastname=x
+### Search for households (fuzzy search combined with the filters)
+GET {{baseApiPath}}/households?searchInput=muster&valid=true&costContribution=true
 
 ### Validate household
 POST {{baseApiPath}}/households/validate

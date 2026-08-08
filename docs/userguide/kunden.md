@@ -6,7 +6,11 @@ Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Fam
 
 ## Kunden suchen
 
-Unter **Kunden → Kunden suchen** kann entweder direkt über die **Kundennummer** (Feld oben, Button **Anzeigen**) zur Detailansicht gesprungen werden, oder über Nachname und/oder Vorname gesucht werden. Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" filtern. Das Info-Symbol (ⓘ) neben jedem Filter erklärt, wonach genau gesucht wird – "Daten unvollständig" findet z. B. Kunden, bei denen bei einer Person Pflichtangaben fehlen. Ist zur eingegebenen Kundennummer kein Kunde vorhanden, erscheint die Meldung "Kunde nicht gefunden!".
+Unter **Kunden → Kunden suchen** kann entweder direkt über die **Kundennummer** (Feld oben, Button **Anzeigen**) zur Detailansicht gesprungen werden, oder über das Feld **Suche** gesucht werden. Ist zur eingegebenen Kundennummer kein Kunde vorhanden, erscheint die Meldung "Kunde nicht gefunden!".
+
+Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
+
+Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" filtern; die Filter können auch ohne Sucheingabe verwendet werden. Das Info-Symbol (ⓘ) neben dem Suchfeld und neben jedem Filter erklärt, wonach genau gesucht wird – "Daten unvollständig" findet z. B. Kunden, bei denen bei einer Person Pflichtangaben fehlen.
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 

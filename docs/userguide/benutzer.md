@@ -6,7 +6,7 @@ Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinne
 
 ## Benutzer suchen
 
-Unter **Benutzer → Suchen** kann nach Personalnummer, Benutzername, Nachname und/oder Vorname gesucht werden. Standardmäßig werden nur aktive Benutzer angezeigt (Checkbox "Aktiv").
+Unter **Benutzer → Suchen** durchsucht das Feld **Suche** Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung. Standardmäßig werden nur aktive Benutzer angezeigt (Checkbox "Aktiv").
 
 ![Benutzer-Suche](images/benutzer-suchen.jpg)
 

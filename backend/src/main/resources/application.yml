@@ -109,6 +109,11 @@ tafeladmin:
   configReload:
     enabled: true
     interval: 5s
+  # Typo tolerance of the single search box on the customer and user search screens. See
+  # TafelAdminSearchProperties - this is read per request, so it can be tuned against real data
+  # without restarting the container.
+  search:
+    similarityThreshold: 0.5
   server:
     relativeBaseUrl: /
   support:

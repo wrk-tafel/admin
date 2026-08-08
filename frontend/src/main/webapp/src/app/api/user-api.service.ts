@@ -20,25 +20,17 @@ export class UserApiService {
   }
 
   searchUser(
-    username?: string | null,
+    searchInput?: string | null,
     enabled?: boolean | null,
-    lastname?: string | null,
-    firstname?: string | null,
     page?: number,
     pageSize?: number
   ): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
-    if (username) {
-      queryParams = queryParams.set('username', username);
+    if (searchInput) {
+      queryParams = queryParams.set('searchInput', searchInput);
     }
     if (enabled !== null) {
       queryParams = queryParams.set('enabled', enabled ?? '');
-    }
-    if (lastname) {
-      queryParams = queryParams.set('lastname', lastname);
-    }
-    if (firstname) {
-      queryParams = queryParams.set('firstname', firstname);
     }
     if (page) {
       queryParams = queryParams.set('page', page);

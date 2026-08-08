@@ -50,8 +50,7 @@ export class CustomerSearchComponent {
 
   form = this.fb.group({
     customerId: this.fb.control<number | null>(null),
-    lastname: this.fb.control<string | null>(null),
-    firstname: this.fb.control<string | null>(null),
+    searchInput: this.fb.control<string | null>(null),
     postProcessing: this.fb.control<boolean | null>(null),
     costContribution: this.fb.control<boolean | null>(null),
     valid: this.fb.control<boolean | null>(null),
@@ -83,8 +82,7 @@ export class CustomerSearchComponent {
 
   searchForDetails(page?: number, pageSize?: number) {
     this.customerApiService.searchCustomer(
-      this.lastname.value ?? undefined,
-      this.firstname.value ?? undefined,
+      this.searchInput.value ?? undefined,
       this.postProcessing.value ?? undefined,
       this.costContribution.value ?? undefined,
       this.valid.value ?? undefined,
@@ -119,12 +117,8 @@ export class CustomerSearchComponent {
     return this.form.get('customerId')!;
   }
 
-  get lastname() {
-    return this.form.get('lastname')!;
-  }
-
-  get firstname() {
-    return this.form.get('firstname')!;
+  get searchInput() {
+    return this.form.get('searchInput')!;
   }
 
   get postProcessing() {

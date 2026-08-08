@@ -2,13 +2,14 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.firstnameContains
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lastnameContains
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.orderByUpdatedAtDesc
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.orderBySearchRelevance
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.searchTextMatches
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
@@ -48,6 +49,7 @@ class HouseholdService(
     private val householdConverter: HouseholdConverter,
     private val documentStorageService: DocumentStorageService,
     private val distributionRepository: DistributionRepository,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
@@ -163,8 +165,7 @@ class HouseholdService(
 
     @Transactional(readOnly = true)
     fun getHouseholds(
-        firstname: String? = null,
-        lastname: String? = null,
+        searchInput: String? = null,
         page: Int?,
         postProcessing: Boolean?,
         costContribution: Boolean?,
@@ -172,12 +173,12 @@ class HouseholdService(
         pageSize: Int? = null,
     ): HouseholdSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val searchTerm = SearchTextSpecs.normalize(searchInput)
 
         val where = where(
             Specification.allOf(
                 listOf(
-                    firstnameContains(firstname),
-                    lastnameContains(lastname),
+                    searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
                     if (postProcessing != null) postProcessingNecessary() else null,
                     if (costContribution != null) pendingCostContribution() else null,
                     if (valid != null) validHousehold() else null,
@@ -185,7 +186,7 @@ class HouseholdService(
             ),
         )
 
-        val spec = orderByUpdatedAtDesc(where)
+        val spec = orderBySearchRelevance(searchTerm, where)
         val pagedResult = householdRepository.findAll(spec, pageRequest)
 
         return HouseholdSearchResult(
