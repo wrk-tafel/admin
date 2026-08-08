@@ -163,7 +163,7 @@ class ShopServiceTest {
 
         val exception = assertThrows<BusinessRuleException> { service.createShop(shopRequest(number = 500)) }
 
-        assertThat(exception.body.detail).isEqualTo("Markt-Nummer 500 ist bereits vergeben!")
+        assertThat(exception.body.detail).isEqualTo("Filialnummer 500 ist bereits vergeben!")
     }
 
     @Test
@@ -223,7 +223,7 @@ class ShopServiceTest {
             service.updateShop(99L, shopRequest(number = 500).copy(id = 99))
         }
 
-        assertThat(exception.body.detail).isEqualTo("Markt-Nummer 500 ist bereits vergeben!")
+        assertThat(exception.body.detail).isEqualTo("Filialnummer 500 ist bereits vergeben!")
     }
 
     @Test

@@ -64,7 +64,7 @@ export class SettingsShopsComponent {
   private loadShops() {
     this.shopApiService.getAllShops().subscribe({
       next: data => this._shops.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Märkte', 'Fehler')
+      error: () => this.toastr.error('Fehler beim Laden der Filialen', 'Fehler')
     });
   }
 
@@ -78,7 +78,7 @@ export class SettingsShopsComponent {
       if (created) {
         this.shopApiService.createShop(created).subscribe({
           next: () => {
-            this.toastr.success('Markt erstellt', 'Erfolgreich');
+            this.toastr.success('Filiale erstellt', 'Erfolgreich');
             this.loadShops();
           },
           // the backend's own message (e.g. a duplicate shop number) is what the user needs here
@@ -98,7 +98,7 @@ export class SettingsShopsComponent {
       if (updated) {
         this.shopApiService.updateShop(updated.id, updated).subscribe({
           next: () => {
-            this.toastr.success('Markt gespeichert', 'Erfolgreich');
+            this.toastr.success('Filiale gespeichert', 'Erfolgreich');
             this.loadShops();
           },
           error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Speichern fehlgeschlagen')
@@ -110,7 +110,7 @@ export class SettingsShopsComponent {
   protected toggleShopVisibility(shop: ShopItem, enabled: boolean) {
     this.shopApiService.updateShop(shop.id, {...shop, enabled}).subscribe({
       next: () => {
-        this.toastr.success(`Markt ${shop.name} geändert`, 'Erfolgreich');
+        this.toastr.success(`Filiale ${shop.name} geändert`, 'Erfolgreich');
         this.loadShops();
       },
       error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Fehler beim Ändern')

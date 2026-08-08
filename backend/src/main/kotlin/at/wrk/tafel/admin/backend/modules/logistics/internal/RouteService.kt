@@ -81,7 +81,7 @@ class RouteService(
     private fun validateStops(stops: List<RouteStopItem>) {
         val shopIds = stops.mapNotNull { it.shopId }
         if (shopIds.size != shopIds.distinct().size) {
-            throw BusinessRuleException("Ein Markt darf pro Route nur einmal vorkommen!")
+            throw BusinessRuleException("Eine Filiale darf pro Route nur einmal vorkommen!")
         }
 
         val times = stops.map { it.time }
@@ -92,7 +92,7 @@ class RouteService(
 
     private fun mapStopToEntity(stop: RouteStopItem, routeEntity: RouteEntity): RouteStopEntity = RouteStopEntity(route = routeEntity, time = stop.time).apply {
         shop = stop.shopId?.let {
-            shopRepository.findByIdOrNull(it) ?: throw NotFoundException("Markt mit Id $it nicht gefunden!")
+            shopRepository.findByIdOrNull(it) ?: throw NotFoundException("Filiale mit Id $it nicht gefunden!")
         }
         description = stop.description
     }

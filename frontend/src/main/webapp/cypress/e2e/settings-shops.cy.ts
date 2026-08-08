@@ -4,7 +4,7 @@ describe('Settings - Shops', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/einstellungen/maerkte');
+    cy.visit('/einstellungen/filialen');
   });
 
   // The testdata shops are used by the food-collection recording specs, so every test that changes
@@ -49,7 +49,7 @@ describe('Settings - Shops', () => {
 
   it('creates a new shop', () => {
     cy.getAnyRandomNumber().then((randomId) => {
-      const name = 'E2E Markt ' + randomId;
+      const name = 'E2E Filiale ' + randomId;
 
       createShop(name, shopNumber(randomId), 'Kilogramm');
 
@@ -63,7 +63,7 @@ describe('Settings - Shops', () => {
       // 100 belongs to 'Billa' in the testdata
       createShop('E2E Duplikat ' + randomId, 100);
 
-      cy.contains('.toast-message', 'Markt-Nummer 100 ist bereits vergeben').should('be.visible');
+      cy.contains('.toast-message', 'Filialnummer 100 ist bereits vergeben').should('be.visible');
     });
   });
 
@@ -80,7 +80,7 @@ describe('Settings - Shops', () => {
 
   it('edits a shop', () => {
     cy.getAnyRandomNumber().then((randomId) => {
-      const name = 'E2E Markt bearbeiten ' + randomId;
+      const name = 'E2E Filiale bearbeiten ' + randomId;
       const newName = name + ' geändert';
 
       createShop(name, shopNumber(randomId));
@@ -97,7 +97,7 @@ describe('Settings - Shops', () => {
 
   it('toggles shop visibility', () => {
     cy.getAnyRandomNumber().then((randomId) => {
-      const name = 'E2E Markt umschalten ' + randomId;
+      const name = 'E2E Filiale umschalten ' + randomId;
 
       createShop(name, shopNumber(randomId));
       cy.contains('.toast-message', 'erstellt').should('be.visible');

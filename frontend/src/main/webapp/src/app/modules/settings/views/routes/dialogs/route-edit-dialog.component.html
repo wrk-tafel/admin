@@ -33,9 +33,9 @@
                   <input matInput type="time" formControlName="time" [attr.testid]="'route-stop-time-input-' + i"/>
                 </mat-form-field>
                 <mat-form-field class="flex-1">
-                  <mat-label>Markt</mat-label>
+                  <mat-label>Filiale</mat-label>
                   <mat-select formControlName="shopId" [attr.testid]="'route-stop-shop-select-' + i">
-                    <mat-option [value]="null">Kein Markt</mat-option>
+                    <mat-option [value]="null">Keine Filiale</mat-option>
                     @for (shop of shops; track shop.id) {
                       <mat-option [value]="shop.id">{{ shop.number }} - {{ shop.name }}</mat-option>
                     }

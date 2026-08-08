@@ -166,16 +166,16 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/fahrzeuge'
       },
       {
+        name: 'Filialen',
+        url: '/einstellungen/filialen'
+      },
+      {
         name: 'Grenzwerte',
         url: '/einstellungen/statische-werte'
       },
       {
         name: 'Mitarbeiter',
         url: '/einstellungen/mitarbeiter'
-      },
-      {
-        name: 'Märkte',
-        url: '/einstellungen/maerkte'
       },
       {
         name: 'Notschlafstellen',

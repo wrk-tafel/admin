@@ -68,7 +68,7 @@ DB level — it only governs `modules`-to-`modules` traffic.
 - **Permission split, same shape as cars/food categories:** `getActiveRoutes()` and
   `getShopsOfRoute()` require `LOGISTICS` (the recording screen), while the full list plus
   create/update on both controllers require `SETTINGS` (the maintenance screens under
-  `/einstellungen/routen` and `/einstellungen/maerkte`).
+  `/einstellungen/routen` and `/einstellungen/filialen`).
 
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal

@@ -135,7 +135,7 @@ class RouteServiceTest {
 
         val exception = assertThrows<NotFoundException> { service.createRoute(request) }
 
-        assertThat(exception.body.detail).isEqualTo("Markt mit Id 999 nicht gefunden!")
+        assertThat(exception.body.detail).isEqualTo("Filiale mit Id 999 nicht gefunden!")
     }
 
     @Test
@@ -154,7 +154,7 @@ class RouteServiceTest {
 
         val exception = assertThrows<BusinessRuleException> { service.createRoute(request) }
 
-        assertThat(exception.body.detail).isEqualTo("Ein Markt darf pro Route nur einmal vorkommen!")
+        assertThat(exception.body.detail).isEqualTo("Eine Filiale darf pro Route nur einmal vorkommen!")
     }
 
     @Test

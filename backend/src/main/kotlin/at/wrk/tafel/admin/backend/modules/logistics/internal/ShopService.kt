@@ -100,7 +100,7 @@ class ShopService(
     private fun validateNumberIsUnique(number: Int, shopId: Long?) {
         val existingShop = shopRepository.findByNumber(number)
         if (existingShop != null && existingShop.id != shopId) {
-            throw BusinessRuleException("Markt-Nummer $number ist bereits vergeben!")
+            throw BusinessRuleException("Filialnummer $number ist bereits vergeben!")
         }
     }
 

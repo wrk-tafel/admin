@@ -53,7 +53,7 @@ describe('RouteDetailsDialogComponent', () => {
     expect(native.textContent).toContain('Notiz 1');
     expect(native.textContent).toContain('14:00:00');
     expect(native.textContent).toContain('100 - Billa');
-    expect(native.textContent).toContain('Kein Markt');
+    expect(native.textContent).toContain('Keine Filiale');
     expect(native.textContent).toContain('Pause');
   });
 

@@ -21,7 +21,7 @@ export class RouteDetailsDialogComponent {
 
   protected shopLabel(stop: RouteStopData): string {
     const shop = this.data.shops.find(candidate => candidate.id === stop.shopId);
-    return shop ? `${shop.number} - ${shop.name}` : 'Kein Markt';
+    return shop ? `${shop.number} - ${shop.name}` : 'Keine Filiale';
   }
 
   close() {

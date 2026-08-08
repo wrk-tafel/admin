@@ -31,7 +31,7 @@ export class ShopEditDialogComponent {
   readonly data: ShopEditDialogData = inject(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
 
-  protected readonly title = this.data.shop ? 'Markt bearbeiten' : 'Markt anlegen';
+  protected readonly title = this.data.shop ? 'Filiale bearbeiten' : 'Filiale anlegen';
 
   form = this.fb.group({
     id: [this.data.shop?.id],

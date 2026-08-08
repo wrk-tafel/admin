@@ -45,7 +45,7 @@ export const routes: Routes = [
     component: SettingsRoutesComponent,
   },
   {
-    path: 'maerkte',
+    path: 'filialen',
     component: SettingsShopsComponent,
   },
 ];

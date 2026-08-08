@@ -20,7 +20,7 @@ describe('Settings - Routes', () => {
       cy.byTestId('route-stop-add-button').click();
       cy.byTestId('route-stop-time-input-' + index).type(time);
       cy.byTestId('route-stop-shop-select-' + index).click();
-      // option 0 is 'Kein Markt', so every stop picks a different shop
+      // option 0 is 'Keine Filiale', so every stop picks a different shop
       cy.get('mat-option').eq(index + 1).click();
       cy.byTestId('route-stop-description-input-' + index).type('Stopp ' + (index + 1));
     });
