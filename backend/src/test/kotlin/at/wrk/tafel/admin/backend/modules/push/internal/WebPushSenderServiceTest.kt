@@ -3,137 +3,196 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
-import nl.martijndwars.webpush.Encoding
-import nl.martijndwars.webpush.Notification
-import nl.martijndwars.webpush.PushService
-import nl.martijndwars.webpush.Subscription
-import org.apache.http.StatusLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.impl.client.CloseableHttpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.test.web.client.ExpectedCount
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.header
+import org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist
+import org.springframework.test.web.client.match.MockRestRequestMatchers.method
+import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
+import org.springframework.web.client.RestClient
+import java.net.URI
 
+/**
+ * Covers how a push service's answer is turned into a [PushSendResult]. The signing and encryption
+ * collaborators are mocked here on purpose - [WebPushVapidSigningTest] is what exercises the real
+ * ones end to end.
+ */
 internal class WebPushSenderServiceTest {
 
-    // Plain placeholder strings - real EC key material isn't needed here, since
-    // PushNotificationFactory (mocked below) is what would normally decode it, and this test
-    // never calls the real one.
+    private val pushEndpoint = "https://push.example.com/subscription-id"
+
     private val testSubscription = PushSubscriptionEntity().apply {
         id = 1
-        endpoint = "https://push.example.com/x"
+        endpoint = pushEndpoint
         p256dhKey = "test-p256dh"
         authKey = "test-auth"
     }
 
-    private val notificationFactory = mockk<PushNotificationFactory>()
-    private val fakeNotification = mockk<Notification>()
-    private val httpClient = mockk<CloseableHttpClient>()
+    private val vapidSigner = mockk<VapidSigner>()
+    private val encryptionService = mockk<WebPushEncryptionService>()
 
-    private fun mockResponse(statusCode: Int): CloseableHttpResponse {
-        val statusLine = mockk<StatusLine>()
-        every { statusLine.statusCode } returns statusCode
-        val response = mockk<CloseableHttpResponse>(relaxed = true)
-        every { response.statusLine } returns statusLine
-        return response
+    private val restClientBuilder = RestClient.builder()
+    private val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
+    private val service = WebPushSenderService(vapidSigner, encryptionService, restClientBuilder.build())
+
+    private fun configuredSigner() {
+        every { vapidSigner.isConfigured } returns true
+        every { vapidSigner.authorizationHeader(any()) } returns "vapid t=token, k=key"
+        every { encryptionService.encrypt(any(), any(), any()) } returns byteArrayOf(1, 2, 3)
     }
 
-    /**
-     * A real [HttpPost] rather than a mock, so the `Crypto-Key` header removal below is asserted
-     * against actual header handling instead of a recorded call.
-     */
-    private fun serviceRespondingWith(statusCode: Int, request: HttpPost = HttpPost("https://push.example.com/x")): WebPushSenderService {
-        every { notificationFactory.create(any<Subscription>(), "{}") } returns fakeNotification
-        val pushService = mockk<PushService>()
-        every { pushService.preparePost(fakeNotification, any()) } returns request
-        every { httpClient.execute(any<HttpUriRequest>()) } returns mockResponse(statusCode)
-        return WebPushSenderService(pushService, notificationFactory, httpClient)
+    private fun expectRequestRespondingWith(status: HttpStatus, body: String = "") {
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andRespond(withStatus(status).body(body))
     }
 
     @Test
-    fun `send skips and reports NOT_CONFIGURED when push isn't configured`() {
-        val service = WebPushSenderService(pushService = null, notificationFactory = notificationFactory, httpClient = httpClient)
+    fun `skips and reports NOT_CONFIGURED when VAPID isn't configured`() {
+        every { vapidSigner.isConfigured } returns false
 
         val result = service.send(testSubscription, "{}")
 
         assertThat(result).isEqualTo(PushSendResult.NOT_CONFIGURED)
-        verify(exactly = 0) { httpClient.execute(any<HttpUriRequest>()) }
+        mockServer.verify()
+        verify(exactly = 0) { encryptionService.encrypt(any(), any(), any()) }
     }
 
     @Test
-    fun `send reports SENT on a 2xx response`() {
-        val service = serviceRespondingWith(201)
+    fun `posts the encrypted payload with the vapid and aes128gcm headers`() {
+        configuredSigner()
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "vapid t=token, k=key"))
+            .andExpect(header(HttpHeaders.CONTENT_ENCODING, "aes128gcm"))
+            .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE))
+            .andRespond(withStatus(HttpStatus.CREATED))
 
-        val result = service.send(testSubscription, "{}")
+        val result = service.send(testSubscription, """{"title":"test"}""")
 
         assertThat(result).isEqualTo(PushSendResult.SENT)
+        mockServer.verify()
+        verify { encryptionService.encrypt("test-p256dh", "test-auth", """{"title":"test"}""".toByteArray()) }
+        // The endpoint's origin is what ends up in the token's audience, so the signer needs the
+        // full endpoint rather than just the host.
+        verify { vapidSigner.authorizationHeader(URI.create(pushEndpoint)) }
     }
 
     @Test
-    fun `send requests the aes128gcm encoding`() {
-        val encoding = slot<Encoding>()
-        every { notificationFactory.create(any<Subscription>(), "{}") } returns fakeNotification
-        val pushService = mockk<PushService>()
-        every { pushService.preparePost(fakeNotification, capture(encoding)) } returns HttpPost("https://push.example.com/x")
-        every { httpClient.execute(any<HttpUriRequest>()) } returns mockResponse(201)
-
-        WebPushSenderService(pushService, notificationFactory, httpClient).send(testSubscription, "{}")
-
-        assertThat(encoding.captured).isEqualTo(Encoding.AES128GCM)
-    }
-
-    @Test
-    fun `send drops the library's padded Crypto-Key header, which FCM rejects`() {
-        val request = HttpPost("https://push.example.com/x")
-        request.setHeader("Crypto-Key", "p256ecdsa=BKmPGeVXrI8Zy6rTjVTpoQEODmhImq4=")
-        val service = serviceRespondingWith(201, request)
+    fun `marks the message urgent so FCM delivers it while the device is dozing`() {
+        configuredSigner()
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andExpect(header("Urgency", "high"))
+            .andRespond(withStatus(HttpStatus.CREATED))
 
         service.send(testSubscription, "{}")
 
-        assertThat(request.getHeaders("Crypto-Key")).isEmpty()
+        mockServer.verify()
     }
 
     @Test
-    fun `send reports EXPIRED on a 403 response`() {
-        assertThat(serviceRespondingWith(403).send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
+    fun `expires the message after twelve hours rather than letting it queue for weeks`() {
+        configuredSigner()
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andExpect(header("TTL", "43200"))
+            .andRespond(withStatus(HttpStatus.CREATED))
+
+        service.send(testSubscription, "{}")
+
+        mockServer.verify()
+    }
+
+    /**
+     * A topic becomes FCM's collapse key, and collapsible messages are rate-limited per app, device
+     * and collapse key - so setting one makes repeated notifications stop arriving instead of
+     * merely replacing each other (see [WebPushSenderService.send]).
+     */
+    @Test
+    fun `sends no topic so the push service doesn't collapse notifications`() {
+        configuredSigner()
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andExpect(headerDoesNotExist("Topic"))
+            .andRespond(withStatus(HttpStatus.CREATED))
+
+        service.send(testSubscription, "{}")
+
+        mockServer.verify()
     }
 
     @Test
-    fun `send reports EXPIRED on a 404 response`() {
-        assertThat(serviceRespondingWith(404).send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
+    fun `reports SENT on a 2xx response`() {
+        configuredSigner()
+        expectRequestRespondingWith(HttpStatus.OK)
+
+        assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.SENT)
     }
 
     @Test
-    fun `send reports EXPIRED on a 410 response`() {
-        assertThat(serviceRespondingWith(410).send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
+    fun `reports EXPIRED on a 403 response`() {
+        configuredSigner()
+        expectRequestRespondingWith(HttpStatus.FORBIDDEN, "sender ID mismatch")
+
+        assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
     }
 
     @Test
-    fun `send reports FAILED on an unexpected status code`() {
-        assertThat(serviceRespondingWith(500).send(testSubscription, "{}")).isEqualTo(PushSendResult.FAILED)
+    fun `reports EXPIRED on a 404 response`() {
+        configuredSigner()
+        expectRequestRespondingWith(HttpStatus.NOT_FOUND)
+
+        assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
     }
 
     @Test
-    fun `send reports FAILED when the push library throws`() {
-        every { notificationFactory.create(any<Subscription>(), "{}") } returns fakeNotification
-        val pushService = mockk<PushService>()
-        every { pushService.preparePost(fakeNotification, any()) } throws IllegalStateException("boom")
-        val service = WebPushSenderService(pushService, notificationFactory, httpClient)
+    fun `reports EXPIRED on a 410 response`() {
+        configuredSigner()
+        expectRequestRespondingWith(HttpStatus.GONE, "UnauthorizedRegistration")
+
+        assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.EXPIRED)
+    }
+
+    @Test
+    fun `reports FAILED on an unexpected status code`() {
+        configuredSigner()
+        expectRequestRespondingWith(HttpStatus.INTERNAL_SERVER_ERROR)
 
         assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.FAILED)
     }
 
     @Test
-    fun `send reports FAILED when the request itself throws`() {
-        every { notificationFactory.create(any<Subscription>(), "{}") } returns fakeNotification
-        val pushService = mockk<PushService>()
-        every { pushService.preparePost(fakeNotification, any()) } returns HttpPost("https://push.example.com/x")
-        every { httpClient.execute(any<HttpUriRequest>()) } throws java.io.IOException("no route to host")
-        val service = WebPushSenderService(pushService, notificationFactory, httpClient)
+    fun `reports FAILED when encryption throws`() {
+        every { vapidSigner.isConfigured } returns true
+        every { encryptionService.encrypt(any(), any(), any()) } throws IllegalArgumentException("bad key")
 
         assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.FAILED)
+        mockServer.verify()
+    }
+
+    @Test
+    fun `reports FAILED when the request itself throws`() {
+        configuredSigner()
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andRespond { throw java.io.IOException("no route to host") }
+
+        assertThat(service.send(testSubscription, "{}")).isEqualTo(PushSendResult.FAILED)
+    }
+
+    @Test
+    fun `reports FAILED when the subscription is missing its key material`() {
+        every { vapidSigner.isConfigured } returns true
+        val incomplete = PushSubscriptionEntity().apply {
+            id = 2
+            endpoint = pushEndpoint
+        }
+
+        assertThat(service.send(incomplete, "{}")).isEqualTo(PushSendResult.FAILED)
+        mockServer.verify()
     }
 }

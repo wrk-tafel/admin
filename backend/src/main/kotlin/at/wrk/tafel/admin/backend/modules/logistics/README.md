@@ -88,20 +88,31 @@ DB level — it only governs `modules`-to-`modules` traffic.
   while `getAllCars()` plus create/update/reorder all require `SETTINGS`.
 
 ### Food categories (`FoodCategoriesController`, `internal/FoodCategoryService`)
-- `FoodCategoryEntity` (`food_categories`) has `weightPerUnit` (`BigDecimal`), a `returnItem`
-  flag, `sortOrder`, and `enabled`.
-- `returnItem` marks deposit/return-box categories ("Kisten"). `getAllFoodCategories()` explicitly
-  filters these **out** (`it.returnItem != true`) with the comment that they're "out of scope for
-  this admin listing — they will get their own dedicated form later" — and `nextSortOrder()` also
-  only considers non-return items when computing the next slot, so return-item categories and
-  regular categories effectively occupy separate sort-order sequences.
-- `getActiveFoodCategories()` (used when actually recording a food collection) does **not**
-  filter `returnItem` — only `enabled`. Don't assume the two listing methods return comparable
-  sets.
+- `FoodCategoryEntity` (`food_categories`) has `weightPerUnit` (`BigDecimal`), `sortOrder`, and
+  `enabled`. Every row here is a weighed donation category — return boxes are a separate table
+  entirely (see below).
+- `getActiveFoodCategories()` filters on `enabled`; `getAllFoodCategories()` returns everything for
+  the settings screen. Both sort by `(sortOrder, name)`.
 - **Permission split despite living in the `logistics` module:** `getActiveFoodCategories()`
   requires `LOGISTICS`, but `getAllFoodCategories()` plus create/update/reorder all require
   `SETTINGS`. Category master-data maintenance is gated as a settings concern even though the
   code sits in `logistics`.
+
+### Food return categories (`FoodReturnCategoriesController`, `internal/FoodReturnCategoryService`)
+- `FoodReturnCategoryEntity` (`food_return_categories`) is `name` + `sortOrder` + `enabled` and
+  nothing else — deliberately **not** a flavour of `FoodCategoryEntity`. Return boxes are counted,
+  never weighed, so there's no `weightPerUnit`; and no food collection ever references one, so
+  there's no FK to it either.
+- These rows only *label* the pre-filled counters of the recording screen's return section. What
+  actually gets stored when a counter is saved is a `FoodCollectionReturnItemEntity` whose
+  `description` is this category's `name` — exactly the shape a hand-typed row produces (see food
+  collections below). Renaming a category therefore does not rewrite already-recorded boxes, which
+  is intended: the recorded description is what the shop was actually told.
+- Same shape and permission split as food categories and the other sortable master data
+  (`nextSortOrder()` = max+1 on create, `reorder(ids)` = re-number by client order as `index + 1`,
+  `/active` requires `LOGISTICS`, everything else `SETTINGS`).
+- Consumed by `reporting.DistributionClosedEventListener` (via `FoodReturnCategoryRepository`
+  directly) to order the Retourkisten mail the same way the recording screen orders its counters.
 
 ### Food collections (`FoodCollectionsController`, `internal/FoodCollectionService`)
 This is the most involved sub-area — it records what a route's team actually picked up.
@@ -117,6 +128,20 @@ This is the most involved sub-area — it records what a route's team actually p
   `@ElementCollection`, **not** its own JPA entity — it has no independent identity/repository,
   only exists as part of `FoodCollectionEntity.items`, and is always loaded/replaced together with
   its parent. The DB unique constraint is `(food_category_id, shop_id, food_collection_id)`.
+- **Return boxes are free text, not items.** `FoodCollectionReturnItemEntity` (table
+  `food_collections_return_items`, also an `@Embeddable` `@ElementCollection`) carries
+  `shop` + `description` + `amount` and no category at all, so a team can record a box that isn't
+  in the catalog. `FoodReturnCategoryEntity` rows are only the recording screen's pre-filled
+  counters — saving one stores a return item whose `description` is the category's name, exactly
+  like a hand-typed row. Only amounts `> 0` are stored; a zero is the absence of a row. Return
+  boxes are never weighed, so unlike items they have no `calculateWeight()` and contribute nothing
+  to food-amount statistics — their one consumer is the "Retourkisten" mail in
+  `reporting.DistributionClosedEventListener`.
+- **Race condition guard, second instance:** both return-item save paths
+  (`saveReturnItems`/`saveReturnItemsPerShop`) wrap their read-modify-write in
+  `advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS)`. Hibernate
+  rewrites the whole element collection on any change, so a concurrent per-shop save for another
+  shop of the same route would otherwise drop the rows this one just wrote.
 - **Race condition guard:** `patchItem()` wraps its read-modify-write in
   `advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)` (lock id `4000L` in
   `AdvisoryLockKey`). The code comment explains why: concurrent auto-save requests for the same
@@ -125,7 +150,9 @@ This is the most involved sub-area — it records what a route's team actually p
   read-modify-write path against `items`, consider whether it needs the same lock.
   See `database/common/lock/README.md` for the advisory-lock mechanism itself.
 - `kmStart`/`kmEnd` are nullable at the DB level (migration `R__00061_food_collections_nullable`
-  dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded.
+  dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
+  they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data
+  because they're read off the car on return, long after car/driver/co-driver are known.
 - `FoodCollectionItemEntity.calculateWeight()` is where the shop's `foodUnit` and the category's
   `weightPerUnit` come together: if the shop's unit is `KG`, `amount` *is* the weight; otherwise
   weight = `amount * category.weightPerUnit`. Get the shop's unit wrong and every subsequent
@@ -136,10 +163,10 @@ This is the most involved sub-area — it records what a route's team actually p
 - Unlike `household` (which needs a genuine two-step save because `households` and `persons`
   mutually reference each other), nothing in `logistics` needs that pattern — none of these
   entities have circular FK relationships.
-- Two independent "drag-and-drop sortOrder" implementations exist (shelters, food categories)
-  with essentially copy-pasted logic (`nextSortOrder()` = max+1 on create,
-  `reorder(ids)` = re-number by client-supplied order as `index + 1`). If you touch one, check
-  whether the same fix applies to the other.
+- Several independent "drag-and-drop sortOrder" implementations exist (shelters, cars, food
+  categories, food return categories) with essentially copy-pasted logic (`nextSortOrder()` =
+  max+1 on create, `reorder(ids)` = re-number by client-supplied order as `index + 1`). If you
+  touch one, check whether the same fix applies to the others.
 - Remember that `database/model/logistics/*` entities/repositories are freely reachable from any
   other module (they're outside the Modulith-enforced `modules/*` tree) — grep for
   `ShelterRepository`, `FoodCollectionRepository`, etc. before assuming a change here is

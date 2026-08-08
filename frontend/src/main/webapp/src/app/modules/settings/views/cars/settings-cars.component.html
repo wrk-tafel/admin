@@ -10,6 +10,10 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Fahrzeuge, die bei der Warenerfassung einer Route zugeordnet werden können.
+    </p>
+
     <div class="hidden md:block">
     <table mat-table [dataSource]="cars()?.cars ?? []" testid="cars-table"
            cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">

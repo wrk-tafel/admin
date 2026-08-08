@@ -51,7 +51,6 @@
                 type="button"
                 testid="push-device-test"
                 matButton="filled"
-                class="button-danger"
                 [disabled]="testedDeviceId() === device.id"
                 (click)="sendTestNotification(device)"
                 [attr.aria-label]="'Test-Benachrichtigung senden'"

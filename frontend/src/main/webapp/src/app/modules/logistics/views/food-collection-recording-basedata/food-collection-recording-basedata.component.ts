@@ -5,10 +5,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
-import {MatDialog} from '@angular/material/dialog';
-import {KmDiffDialogComponent} from './dialogs/km-diff-dialog.component';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {faGauge, faRemove, faTruck} from '@fortawesome/free-solid-svg-icons';
+import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {faRemove, faTruck} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelEmployeeSearchCreateComponent} from '../../components/tafel-employee-search-create.component';
 import {EmployeeData} from '../../../../api/employee-api.service';
@@ -19,7 +17,7 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
-import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {Observable} from 'rxjs';
 
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
@@ -46,43 +44,33 @@ export class FoodCollectionRecordingBasedataComponent {
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly fb = inject(FormBuilder);
-  private readonly toastr = inject(TafelToastrService);
-  private readonly dialog = inject(MatDialog);
 
   selectedDriver = signal<EmployeeData | null>(null);
   selectedCoDriver = signal<EmployeeData | null>(null);
 
   form = this.fb.group({
-      car: this.fb.control<CarData | null>(null, [Validators.required]),
-      driverSearchInput: this.fb.control<string | null>(null,
-        [
-          Validators.required,
-          Validators.maxLength(50),
-          CustomValidator.hasValue(() => this.selectedDriver(), 'Bitte die Mitarbeiter-Suche starten')
-        ]
-      ),
-      coDriverSearchInput: this.fb.control<string | null>(null,
-        [
-          Validators.required,
-          Validators.maxLength(50),
-          CustomValidator.hasValue(() => this.selectedCoDriver(), 'Bitte die Mitarbeiter-Suche starten')
-        ]
-      ),
-      kmStart: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-      kmEnd: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-    },
-    {
-      validators: [this.createKmValidation()]
-    }
-  );
+    car: this.fb.control<CarData | null>(null, [Validators.required]),
+    driverSearchInput: this.fb.control<string | null>(null,
+      [
+        Validators.required,
+        Validators.maxLength(50),
+        CustomValidator.hasValue(() => this.selectedDriver(), 'Bitte die Mitarbeiter-Suche starten')
+      ]
+    ),
+    coDriverSearchInput: this.fb.control<string | null>(null,
+      [
+        Validators.required,
+        Validators.maxLength(50),
+        CustomValidator.hasValue(() => this.selectedCoDriver(), 'Bitte die Mitarbeiter-Suche starten')
+      ]
+    ),
+  });
 
   foodCollectionDataEffect = effect(() => {
     const foodCollectionData = this.selectedRouteData()!.foodCollectionData;
 
     // reset form without route to prevent an infinite loop
     this.car.reset();
-    this.kmStart.reset();
-    this.kmEnd.reset();
     this.driverSearchInput.reset();
     this.selectedDriver.set(null);
     this.coDriverSearchInput.reset();
@@ -111,28 +99,8 @@ export class FoodCollectionRecordingBasedataComponent {
           }
         });
       }
-
-      this.kmStart.setValue(foodCollectionData.kmStart);
-      this.kmEnd.setValue(foodCollectionData.kmEnd);
     }
   });
-
-  private createKmValidation() {
-    return (form: FormGroup) => {
-      const kmStart = form.get('kmStart');
-      const kmStartValue = kmStart?.value;
-      const kmEnd = form.get('kmEnd');
-      const kmEndValue = kmEnd?.value;
-
-      if (kmStart && kmEnd && kmStartValue > 0 && kmEndValue > 0 && kmStartValue >= kmEndValue) {
-        const error = {kmValidation: true};
-        kmEnd.setErrors(error);
-        return error;
-      }
-
-      return null;
-    };
-  }
 
   triggerSearchDriver() {
     const driverSearch = this.driverEmployeeSearchCreate();
@@ -158,38 +126,30 @@ export class FoodCollectionRecordingBasedataComponent {
     this.coDriverSearchInput.updateValueAndValidity();
   }
 
-  isSaveDisabled(): boolean {
+  hasInvalidInput(): boolean {
     return this.form.invalid || !this.selectedDriver() || !this.selectedCoDriver();
   }
 
-  save(overrideKmDiff: boolean = false) {
-    const kmStart = this.kmStart.value!;
-    const kmEnd = this.kmEnd.value!;
-    const kmDifference = kmEnd - kmStart;
+  markAllAsTouched() {
+    this.form.markAllAsTouched();
+  }
 
-    if (!overrideKmDiff && kmDifference > 350) {
-      this.dialog.open(KmDiffDialogComponent, {
-        data: {kmDifference}
-      }).afterClosed().subscribe(confirmed => {
-        if (confirmed) {
-          this.save(true);
-        }
-      });
-      return;
+  /**
+   * The route's base data is only sent once it is complete - unlike km and item amounts it has no
+   * meaningful partial state, and the endpoint requires all three references.
+   */
+  saveRequest(): Observable<void> | null {
+    if (this.hasInvalidInput()) {
+      return null;
     }
 
     const routeData: FoodCollectionSaveRouteDataRequest = {
       carId: this.car.value!.id,
       driverId: this.selectedDriver()!.id,
-      coDriverId: this.selectedCoDriver()!.id,
-      kmStart: kmStart,
-      kmEnd: kmEnd
+      coDriverId: this.selectedCoDriver()!.id
     };
 
-    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData()!.route.id, routeData)
-      .subscribe(() => {
-        this.toastr.success('Daten wurden gespeichert!');
-      });
+    return this.foodCollectionsApiService.saveRouteData(this.selectedRouteData()!.route.id, routeData);
   }
 
   resetDriver() {
@@ -214,19 +174,10 @@ export class FoodCollectionRecordingBasedataComponent {
     return this.form.get('coDriverSearchInput')!;
   }
 
-  get kmStart() {
-    return this.form.get('kmStart')!;
-  }
-
-  get kmEnd() {
-    return this.form.get('kmEnd')!;
-  }
-
   compareCar(a: CarData | null, b: CarData | null): boolean {
     return a?.id === b?.id;
   }
 
   protected readonly faTruck = faTruck;
-  protected readonly faGauge = faGauge;
   protected readonly faRemove = faRemove;
 }

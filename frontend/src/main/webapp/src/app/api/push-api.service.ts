@@ -1,6 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../common/http/suppress-error-toast.token';
 
 export interface PushSubscriptionItem {
   id: number;
@@ -76,12 +77,16 @@ export class PushApiService {
     return this.http.get<PushPublicKeyResponse>('/push/public-key');
   }
 
-  getSubscriptions(): Observable<PushSubscriptionListResponse> {
-    return this.http.get<PushSubscriptionListResponse>('/push/subscriptions');
+  /**
+   * `silent` opts out of the generic error toast, for callers that fetch this in the background
+   * rather than because the user asked for it (see `PushNotificationService.syncSubscription`).
+   */
+  getSubscriptions(silent = false): Observable<PushSubscriptionListResponse> {
+    return this.http.get<PushSubscriptionListResponse>('/push/subscriptions', silent ? {context: SUPPRESS_ERROR_TOAST_CONTEXT} : {});
   }
 
-  createSubscription(request: PushSubscriptionRequest): Observable<PushSubscriptionItem> {
-    return this.http.post<PushSubscriptionItem>('/push/subscriptions', request);
+  createSubscription(request: PushSubscriptionRequest, silent = false): Observable<PushSubscriptionItem> {
+    return this.http.post<PushSubscriptionItem>('/push/subscriptions', request, silent ? {context: SUPPRESS_ERROR_TOAST_CONTEXT} : {});
   }
 
   updateLabel(id: number, request: PushSubscriptionLabelRequest): Observable<PushSubscriptionItem> {

@@ -27,12 +27,17 @@ logistics/
       create-employee-dialog.component.ts        # shown when search finds 0 matches
       select-employee-dialog.component.ts         # shown when search finds >1 matches
   resolver/
-    route-data-resolver.component.ts              # GET /routes
-    car-data-resolver.component.ts                # GET /cars
-    food-categories-data-resolver.component.ts    # GET /food-categories/active
+    route-data-resolver.component.ts                     # GET /routes
+    car-data-resolver.component.ts                       # GET /cars
+    food-categories-data-resolver.component.ts           # GET /food-categories/active
+    food-return-categories-data-resolver.component.ts    # GET /food-return-categories/active
+  services/
+    food-collection-offline-queue.service.ts      # localStorage-backed item auto-save queue
+    food-collection-return-items.ts               # free-text return-item validation helpers
   views/
-    food-collection-recording/                    # container: route picker + tabs
-    food-collection-recording-basedata/           # tab 1: car/driver/km
+    food-collection-recording/                    # container: route picker + tabs + save button
+    food-collection-recording-basedata/           # tab 1: car/driver/co-driver
+    food-collection-recording-km/                 # tab 2: km start/end
       dialogs/km-diff-dialog.component.ts
     food-collection-recording-items-desktop/      # tab 2, desktop layout
     food-collection-recording-items-responsive/   # tab 2, mobile layout
@@ -57,10 +62,31 @@ The component redirects back to `uebersicht` via an `effect()` if no distributio
 is currently active (`GlobalStateService.getCurrentDistribution()`), consistent
 with the `tafelIfDistributionActive` pattern used elsewhere in the app.
 
+### One save button for both tabs
+
+The **Speichern** button lives on the container, *below* the tab group, and saves
+every section regardless of which tab is open. Each child section exposes the same
+three-method contract to the container rather than owning a save button itself:
+`markAllAsTouched()`, `hasInvalidInput()`, and `saveRequest()`/`saveRequests()`
+returning cold observables (or `null`/`[]` when there's nothing complete to send).
+`saveAllSections()` collects them, names any section it had to skip in a warning
+toast, and reports one success/error for the whole screen.
+
+Two things to keep in mind when adding a section:
+
+- The requests are run through `concat(...)`, **strictly sequentially, not
+  `forkJoin`**. Every food-collection endpoint creates the route's food collection
+  if it doesn't exist yet, so parallel requests race on that insert and violate the
+  `(distribution, route)` unique constraint.
+- Only the item layout matching the current viewport exists (see below), so the
+  container picks the active one via a `BreakpointObserver` signal instead of
+  saving both.
+
 ### Tab 1 — Basedata (`food-collection-recording-basedata`)
 
-Car selection, driver/co-driver assignment, and start/end odometer (`km`) entry
-for the route/vehicle combination.
+Car selection and driver/co-driver assignment for the route/vehicle combination —
+the data the team fills in at departure. The odometer readings deliberately do
+*not* live here (see the km section below).
 
 - Driver and co-driver are each picked via a
   `TafelEmployeeSearchCreateComponent` (in `components/`). Typing a personnel
@@ -73,34 +99,39 @@ for the route/vehicle combination.
   `CustomValidator.hasValue(...)` validator on the corresponding search-input
   control — so the text field itself is what's marked invalid until a concrete
   employee has actually been resolved, not just typed.
-- `km` fields carry a form-level cross-field validator
-  (`createKmValidation()`) that sets an error on `kmEnd` whenever
-  `kmStart >= kmEnd`.
-- If `kmEnd - kmStart > 350`, saving opens `KmDiffDialogComponent` for
-  confirmation before actually persisting (`save(overrideKmDiff = true)` on
-  confirm) — a sanity check against fat-fingered odometer entry.
 - When switching routes, the effect resets the whole form and, if a saved
   `FoodCollectionData` exists for the new route, re-populates it — including
   re-triggering the employee search via `setTimeout(...)` so the search-create
   component's internal state re-syncs after view stabilization (zoneless mode
   means this can't rely on a digest cycle).
 
+### Tab 2 — Km (`food-collection-recording-km`)
+
+`kmStart`/`kmEnd` sit on the *items* tab, not with the base data: they're read off
+the car when it's back with the goods, at the same moment the amounts are counted.
+The component renders once in the tab container, but its **position depends on the
+layout**: above the desktop grid, which is filled in one go once the car is back,
+and *below* the responsive wizard, where the co-driver counts shop by shop while
+still on the road and only knows the mileage at the very end.
+
+- Both values are **optional**, but only as a pair — a form-level cross-field
+  validator (`createKmValidation()`) rejects one-without-the-other
+  (`kmIncomplete`) as well as `kmStart >= kmEnd` (`kmValidation`). A food
+  collection legitimately exists with base data and no mileage yet, which is why
+  `saveRequest()` simply returns `null` while the fields are empty.
+- If `kmEnd - kmStart > 350`, the container opens `KmDiffDialogComponent` for
+  confirmation before saving anything — a sanity check against fat-fingered
+  odometer entry.
+
 ### Tab 2 — Items (desktop vs. responsive)
 
-Both `FoodCollectionRecordingItemsDesktopComponent` and
-`FoodCollectionRecordingItemsResponsiveComponent` are **always both instantiated**
-in `food-collection-recording.component.html`; there's no `@if` switching between
-them. Visibility is purely a Tailwind class toggle:
-
-```html
-<div class="hidden md:block"><tafel-food-collection-recording-items-desktop .../></div>
-<div class="block md:hidden"><tafel-food-collection-recording-items-responsive .../></div>
-```
-
-This is a gotcha for anyone touching either component: **both run their
-`effect()`s and fire their own API calls simultaneously**, even though only one is
-visible at a given viewport width. There's no lazy instantiation based on actual
-breakpoint detection.
+`FoodCollectionRecordingItemsDesktopComponent` and
+`FoodCollectionRecordingItemsResponsiveComponent` are switched with an `@if` on
+the container's `isDesktopLayout` signal (a `BreakpointObserver` on the Tailwind
+`md` breakpoint, `min-width: 768px`), so **only one of them exists at a time**.
+That matters for the single save button: the container asks the active layout for
+its save requests, and a hidden-but-instantiated layout would otherwise overwrite
+freshly saved data with its own stale form state.
 
 - **Desktop** (`items-desktop`): a full grid — one `FormArray` row per food
   category, each containing a nested `FormArray` of per-shop amount inputs — saved
@@ -108,14 +139,49 @@ breakpoint detection.
 - **Responsive** (`items-responsive`): a one-shop-at-a-time flow using
   `TafelCounterInputComponent`, with prev/next navigation between shops
   (`selectPreviousShop`/`selectNextShop`) and `findNextUnfilledShop()` to jump to
-  the first incomplete shop on load. Every keystroke triggers an individual PATCH
-  (`FoodCollectionsApiService.patchItems`) rather than a batch save. These patches
-  are queued and sent **one at a time** (`itemPatchQueue` / `itemPatchInFlight`)
-  instead of firing in parallel — a fix for a race condition where a slower
-  earlier request could overwrite a value typed afterward (see commit
-  `01e32338`, "Fix race condition overwriting food collection amounts on rapid
-  input"). If you touch this queuing logic, keep the serialization: parallel
-  PATCHes reintroduce the bug it fixed.
+  the first incomplete shop on load. Every keystroke hands the change to
+  `FoodCollectionOfflineQueueService`, which persists it in `localStorage`, sends
+  it as an individual PATCH (`FoodCollectionsApiService.patchItems`), and retries
+  once connectivity returns — the co-driver uses this screen on their phone on the
+  road. The queue sends **one at a time**, never in parallel: a slower earlier
+  request would otherwise overwrite a value typed afterward.
+- The responsive `loadEffect` wraps its body in `untracked()`. Selecting a shop
+  both reads and writes `categoryValues`/`returnCategoryValues`, so without it the
+  effect re-triggers itself on every shop load and spins.
+
+### Section panels
+
+Both item layouts render two titled, colour-coded panels — **Warenmenge** (green) and
+**Retourware** (amber), each with a subtitle saying which direction the boxes travel — so the
+two kinds of counting can't be confused at a glance. The rows inside a panel's table carry no
+background of their own, so they always sit flush on the panel's tint and the whole block reads
+as one surface; the only row background is `bg-red-100` on an invalid row, which is meant to
+break out of it. The km fields above them get
+a plain heading and deliberately no panel: they belong to the route, not to a shop's counts.
+
+### Retourware (both layouts)
+
+Return boxes are stored by free-text `description`, not by category
+(`FoodCollectionsApiService.saveReturnItems` / `saveReturnItemsPerShop`), and are
+rendered in their own visually separated block. The block has two parts:
+
+- pre-filled counters for the return categories, which arrive as their own
+  `foodReturnCategories` input (resolved from `/food-return-categories/active`,
+  separate master data from `foodCategories`) — these are labels only; saving one
+  sends a return item whose `description` is the category's name
+- **Sonstige Retourware**: a `FormArray` of free-text rows (`description` +
+  `amount`, plus a shop picker on desktop where one screen covers all shops)
+
+`services/food-collection-return-items.ts` holds
+`duplicateDescriptionValidator()`, which rejects a row repeating another row for
+the same shop or one of the category names — two rows with the same description
+would collapse into one on save. It's attached **lazily**
+(`attachReturnItemsValidator()`), not at form construction: it reads the
+`foodCategories` `model.required()` input, which throws while still unset.
+
+Return rows are not part of the offline queue. On the responsive layout they're
+sent when the shop changes and by the save button; on desktop, by the save button
+only.
 
 ## Resolvers
 
@@ -141,7 +207,11 @@ this module:
   The full CRUD + reorder methods (`getAllFoodCategories`, `createFoodCategory`,
   `updateFoodCategory`, `reorderFoodCategories`) exist on the same service but are
   only consumed from `settings/views/food-categories`.
+- `food-return-categories-api.service.ts` — same split for the return-box
+  categories, maintained in `settings/views/food-return-categories`.
 - `food-collections-api.service.ts` — `FoodCollectionsApiService`, the
-  read/save/patch endpoints described above.
+  read/save/patch endpoints described above. Note that route base data, km, items
+  and return items each have their own endpoint, matching the sections of the
+  screen.
 - `employee-api.service.ts` — used by the driver/co-driver search-and-create
   flow.

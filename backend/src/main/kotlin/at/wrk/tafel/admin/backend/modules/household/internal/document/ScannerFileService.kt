@@ -14,16 +14,33 @@ import java.time.ZoneId
 /**
  * Reads the shared "scanner" inbox folder (a mount point for a NAS share a physical scanner
  * writes to, [TafelAdminProperties.storage]'s `scannerPath`) so staff can pick an already-scanned
- * file instead of using the browser's file picker. `scannerPath` is optional - not every
- * environment has the NAS share mounted - so every method degrades gracefully when it's unset.
+ * file instead of using the browser's file picker. The folder is optional - not every environment
+ * has the NAS share mounted, and `tafeladmin.features.scannerFolderEnabled` can switch the feature off
+ * even where it is - so every method degrades gracefully when [isEnabled] is false.
+ *
+ * Both settings are read from the injected properties on every call rather than captured once, so
+ * switching the feature off in the backend's config file takes effect on the next request instead
+ * of on the next restart (see `ConfigFileReloadService`).
  */
 @Service
 class ScannerFileService(
     private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
+    private val storageProperties get() = tafelAdminProperties.storage
+
+    /**
+     * Whether the scanner folder is available at all - see
+     * [at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties.scannerFolderAvailable],
+     * which the frontend is told about separately through `ConfigController`.
+     */
+    fun isEnabled(): Boolean = tafelAdminProperties.scannerFolderAvailable
+
     fun listFiles(): List<ScannerFileItem> {
-        val scannerPath = tafelAdminProperties.storage.scannerPath ?: return emptyList()
+        if (!isEnabled()) {
+            return emptyList()
+        }
+        val scannerPath = storageProperties.scannerPath ?: return emptyList()
         val scannerDir = Paths.get(scannerPath)
         if (!Files.isDirectory(scannerDir)) {
             return emptyList()
@@ -55,7 +72,7 @@ class ScannerFileService(
      * the scanner folder is only ever listed/read/deleted as a flat directory.
      */
     private fun resolveSafely(fileName: String): Path {
-        val scannerPath = tafelAdminProperties.storage.scannerPath
+        val scannerPath = storageProperties.scannerPath?.takeIf { isEnabled() }
             ?: throw NotFoundException("Datei $fileName nicht vorhanden!")
         val scannerDir = Paths.get(scannerPath).toAbsolutePath().normalize()
         val resolved = scannerDir.resolve(fileName).normalize()

@@ -45,19 +45,25 @@ export class PushNotificationSettingsComponent {
 
   constructor() {
     effect(() => {
-      this.loadDevices();
-      this.loadPreferences();
-
-      if (!this.supported) {
-        this.loading.set(false);
-        return;
-      }
-
-      this.pushNotificationService.isEnabled().then(value => {
-        this.enabled.set(value);
-        this.loading.set(false);
-      });
+      this.initialize();
     });
+  }
+
+  /**
+   * The subscription sync has to finish *before* the device list is fetched, not alongside it: it
+   * may re-register this device with the backend (see `PushNotificationService.syncSubscription`),
+   * and a list fetched in parallel reads the table before that registration lands - which showed
+   * up as an enabled toggle above an empty device list.
+   */
+  private async initialize() {
+    this.loadPreferences();
+
+    if (this.supported) {
+      this.enabled.set(await this.pushNotificationService.syncSubscription());
+    }
+    this.loading.set(false);
+
+    await this.loadDevices();
   }
 
   async onToggle(event: MatSlideToggleChange) {

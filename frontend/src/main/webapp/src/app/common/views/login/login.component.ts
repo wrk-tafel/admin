@@ -1,4 +1,4 @@
-import {Component, inject, linkedSignal, signal} from '@angular/core';
+import {Component, computed, inject, linkedSignal, signal} from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {form, FormField, required} from '@angular/forms/signals';
 import {ActivatedRoute, Params, Router} from '@angular/router';
@@ -12,6 +12,7 @@ import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash, faKey, faUser} from '@fortawesome/free-solid-svg-icons';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
+import {ConfigApiService} from '../../../api/config-api.service';
 
 @Component({
   selector: 'tafel-login',
@@ -38,6 +39,7 @@ export class LoginComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly configApiService = inject(ConfigApiService);
 
   // Form model as a signal
   loginFormModel = signal({
@@ -69,10 +71,10 @@ export class LoginComponent {
   passwordVisible = signal(false);
   submitting = signal(false);
 
-  // Set server-side per deployment (empty on prod) - see IndexHtmlController, which templates the
-  // "tafel-environment-label" meta tag into index.html so this doesn't need an unauthenticated API.
-  readonly environmentLabel =
-    document.querySelector('meta[name="tafel-environment-label"]')?.getAttribute('content')?.trim() || '';
+  // Empty on production, set per deployment elsewhere. The only config this page can read: it runs
+  // before anyone is logged in, so it goes to the public endpoint rather than /api/config.
+  private readonly publicConfig = toSignal(this.configApiService.getPublicConfig(), {initialValue: null});
+  readonly environmentLabel = computed(() => this.publicConfig()?.environmentLabel ?? '');
 
   public togglePasswordVisibility() {
     this.passwordVisible.update(value => !value);

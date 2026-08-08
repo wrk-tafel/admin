@@ -181,6 +181,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         name: 'Waren-Kategorien',
         url: '/einstellungen/lebensmittelkategorien'
       },
+      {
+        name: 'Retour-Kategorien',
+        url: '/einstellungen/retourkategorien'
+      },
     ],
   },
 ];

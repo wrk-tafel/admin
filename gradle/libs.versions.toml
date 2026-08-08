@@ -3,6 +3,9 @@ kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 spring-boot = "4.1.0"
 spring-modulith = "2.1.0"
+# Release train "Oakwood" - the first line compatible with Spring Boot 4.1. Only spring-cloud-context
+# is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
+spring-cloud = "2025.1.2"
 jackson = "3.2.1"
 # Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
 # used directly by this project. Pinned separately to patch known CVEs in that transitive line.
@@ -10,8 +13,6 @@ jackson-legacy = "2.22.1"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85"
-web-push = "5.1.2"
-apache-httpclient = "4.5.13"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
@@ -56,6 +57,9 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
 spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
 
+# Spring Cloud
+spring-cloud-context = { module = "org.springframework.cloud:spring-cloud-context" }
+
 # Spring Security
 spring-security-messaging = { module = "org.springframework.security:spring-security-messaging" }
 
@@ -81,15 +85,9 @@ jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
-# Crypto
+# Crypto - required by Spring Security's Argon2PasswordEncoder, which uses BouncyCastle's classes
+# directly rather than through a registered JCE provider (see config.WebSecurityConfig).
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
-
-# Web Push (VAPID)
-web-push = { module = "nl.martijndwars:web-push", version.ref = "web-push" }
-# web-push's own PushService#send() return type (org.apache.http.HttpResponse) - pulled in by
-# web-push only as a runtime-scoped transitive, so it needs to be explicit here to be visible on
-# the compile classpath too.
-apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "apache-httpclient" }
 
 # PDF / QR
 apache-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "apache-fop" }
@@ -121,6 +119,7 @@ awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" 
 # BOMs
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
+spring-cloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

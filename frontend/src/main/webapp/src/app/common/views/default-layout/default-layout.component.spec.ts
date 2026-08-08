@@ -4,7 +4,7 @@ import { DefaultLayoutComponent } from './default-layout.component';
 import { AuthenticationService } from '../../security/authentication.service';
 import { GlobalStateService } from '../../state/global-state.service';
 import { DistributionItem } from '../../../api/distribution-api.service';
-import { VersionApiService } from '../../../api/version-api.service';
+import { ConfigApiService } from '../../../api/config-api.service';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
@@ -24,9 +24,9 @@ describe('DefaultLayoutComponent', () => {
             getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
             getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
         };
-        const versionApiServiceSpy = {
-            getVersion: vi.fn().mockName('VersionApiService.getVersion')
-                .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z'}))
+        const configApiServiceSpy = {
+            observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
+                .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true}))
         };
 
         TestBed.configureTestingModule({
@@ -42,8 +42,8 @@ describe('DefaultLayoutComponent', () => {
                     useValue: globalStateServiceSpy
                 },
                 {
-                    provide: VersionApiService,
-                    useValue: versionApiServiceSpy
+                    provide: ConfigApiService,
+                    useValue: configApiServiceSpy
                 }
             ]
         }).compileComponents();
@@ -63,12 +63,12 @@ describe('DefaultLayoutComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('exposes the version info from VersionApiService', () => {
+    it('exposes the app config from ConfigApiService', () => {
         const fixture = TestBed.createComponent(DefaultLayoutComponent);
         const component = fixture.componentInstance;
         fixture.detectChanges();
 
-        expect(component.versionInfo()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z'});
+        expect(component.appConfig()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true});
     });
 
     it('shows the version footer without a "v" prefix when expanded', () => {

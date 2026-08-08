@@ -80,10 +80,20 @@ Run the same checks CI will run, so red checks are rare rather than routine:
 cd frontend/src/main/webapp && npm run lint && npm run typecheck && npm run test-ci && cd -
 ```
 
+**Skip the test suites entirely for a pure styling/layout change** — one that only touches CSS
+classes, colours, spacing, ordering or markup structure and changes no behavior. The suites here
+assert functional behavior only, so they cannot confirm or refute a visual change; running them
+just burns minutes. Verify such a change by looking at it (see `run`/browser automation) and let
+CI cover the rest. This does *not* apply the moment the diff also touches component logic,
+bindings, form state or an API — then it's a normal change and gets the full run above.
+
 For larger changes, also run full builds for CI-equivalent confidence: `./gradlew :backend:bootJar`
-and `npm run build-prod`. If the change touches any flow covered by Cypress, verify it end-to-end
-using the `fix-e2e` skill's workflow (it owns the backend-restart-with-`e2e`-profile ritual) rather
-than re-deriving that setup here.
+and `npm run build-prod`.
+
+**Never run the full Cypress suite locally — that is CI's job.** If the change touches a
+Cypress-covered flow, run only the affected spec(s) via `--spec`, using the `fix-e2e` skill's
+workflow for the backend-restart-with-`e2e`-profile ritual rather than re-deriving that setup here.
+A full local run costs many minutes and duplicates what the pipeline already does on every push.
 
 ## 6. Commit
 
@@ -91,7 +101,32 @@ Conventional Commits subject, matching the format exactly (lowercase
 description, no trailing period, ≤100 char header, valid `type`) — this is enforced by a commit-msg
 hook, `commitlint`, and `pr-title-lint` in CI, and has been the recurring miss in this repo.
 
-## 7. Push and open the PR
+## 7. Make sure the branch still merges into main
+
+main moves while a change is being written, and a branch that conflicts with it gets **no pipeline
+at all**: GitHub builds `pull_request` runs against a merge ref it can only create when the merge is
+clean, so a conflicting PR sits with zero checks queued rather than with red ones — easy to misread
+as "CI is slow". Check before pushing:
+
+```bash
+git fetch origin main
+git merge origin/main --no-edit
+```
+
+If it conflicts, resolve it here rather than handing it back to the user:
+
+- Read both sides in full before picking one. `git log --oneline HEAD..origin/main -- <file>` shows
+  what landed on main and why, which is usually what settles it.
+- Where main reworked the same code this branch touched, main's version is the base to re-apply this
+  branch's intent onto — not something to overwrite with the pre-merge version.
+- Check whether main's new code re-introduced whatever this branch set out to remove (an inline
+  style, a duplicated helper, a deprecated pattern). The branch's goal has to hold for the merged
+  result, not just for its own hunks.
+
+Then re-run the checks from step 5 that cover what the merge touched: the merged tree is code nobody
+has built yet, even though both sides were green on their own.
+
+## 8. Push and open the PR
 
 ```bash
 git push -u origin <branch>

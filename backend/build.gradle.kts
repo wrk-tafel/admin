@@ -52,6 +52,7 @@ dependencies {
     // implementation
     implementation(platform(libs.spring.boot.bom))
     implementation(platform(libs.spring.modulith.bom))
+    implementation(platform(libs.spring.cloud.bom))
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.core)
@@ -67,6 +68,11 @@ dependencies {
     implementation(libs.spring.boot.starter.thymeleaf)
     implementation(libs.spring.modulith.starter.core)
     implementation(libs.spring.modulith.actuator)
+    // Only for ContextRefresher, which re-runs Spring Boot's config-data pipeline against an already
+    // running context - that is what makes editing the mounted config.yml take effect without a
+    // restart (see ConfigFileReloadService). Deliberately just this one artifact and not a Spring
+    // Cloud starter: there is no config server, no config client and no bus in this deployment.
+    implementation(libs.spring.cloud.context)
     implementation(libs.spring.security.messaging)
     implementation(libs.spring.retry)
     implementation(libs.flyway.database.postgresql)
@@ -75,8 +81,6 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.jjwt.api)
     implementation(libs.bouncycastle)
-    implementation(libs.web.push)
-    implementation(libs.apache.httpclient)
     implementation(libs.apache.fop)
     implementation(libs.qrcode.kotlin.jvm)
     implementation(libs.passay)

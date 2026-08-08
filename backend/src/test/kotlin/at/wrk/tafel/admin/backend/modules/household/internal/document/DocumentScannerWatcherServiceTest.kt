@@ -61,6 +61,26 @@ internal class DocumentScannerWatcherServiceTest {
     }
 
     @Test
+    fun `pollForChanges does nothing at all while the scanner folder is switched off`() {
+        every { scannerFileService.isEnabled() } returns false
+
+        service.pollForChanges()
+
+        verify(exactly = 0) { scannerFileService.listFiles() }
+        verify(exactly = 0) { sseOutboxService.saveOutboxEntry(any(), any()) }
+    }
+
+    @Test
+    fun `pollForChanges polls while the scanner folder is switched on`() {
+        every { scannerFileService.isEnabled() } returns true
+        every { scannerFileService.listFiles() } returns emptyList()
+
+        service.pollForChanges()
+
+        verify(exactly = 1) { scannerFileService.listFiles() }
+    }
+
+    @Test
     fun `publishIfChanged does not publish when there was and still is nothing`() {
         every { scannerFileService.listFiles() } returns emptyList()
 

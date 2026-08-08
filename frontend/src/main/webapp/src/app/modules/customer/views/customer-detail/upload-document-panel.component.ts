@@ -11,6 +11,7 @@ import {faEye} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {DocumentType, documentTypeLabel} from '../../../../api/customer-document-api.service';
 import {DocumentScannerApiService, ScannerFileItem} from '../../../../api/document-scanner-api.service';
+import {ConfigApiService} from '../../../../api/config-api.service';
 
 export type UploadDocumentPanelResult =
   | { mode: 'upload'; documentType: DocumentType; file: File }
@@ -27,6 +28,7 @@ type DocumentSource = 'upload' | 'scanner';
 })
 export class UploadDocumentPanelComponent {
   private readonly documentScannerApiService = inject(DocumentScannerApiService);
+  private readonly configApiService = inject(ConfigApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly upload = output<UploadDocumentPanelResult>();
@@ -40,6 +42,15 @@ export class UploadDocumentPanelComponent {
   isDragOver = signal(false);
   scannerFiles = signal<ScannerFileItem[]>([]);
   selectedScannerFileName = signal<string | null>(null);
+  /**
+   * Starts out false so the "Scanner" source is only ever offered once the backend has confirmed
+   * this deployment actually has a scanner folder - showing it first and retracting it would let a
+   * quick click land on a source that doesn't exist here. A config request that fails leaves it
+   * false too, which just falls back to the always-available file upload.
+   */
+  scannerEnabled = signal(false);
+
+  private configSubscription: Subscription | undefined;
 
   private scannerSubscription: Subscription | undefined;
 
@@ -48,7 +59,27 @@ export class UploadDocumentPanelComponent {
   protected readonly faEye = faEye;
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.scannerSubscription?.unsubscribe());
+    this.destroyRef.onDestroy(() => {
+      this.scannerSubscription?.unsubscribe();
+      this.configSubscription?.unsubscribe();
+    });
+    // Answers "does this deployment have a scanner folder?" before the source toggle is drawn, and
+    // keeps answering it: the flag can be switched off (or on) in the backend's config file while
+    // this panel is open, so the toggle follows the stream rather than a single reply. The file
+    // listing and its own SSE stream stay lazy - both are only worth fetching once the user
+    // actually switches to the scanner source.
+    this.configSubscription = this.configApiService.observeConfig().subscribe((config) => {
+      const enabled = config?.scannerFolderEnabled ?? false;
+      this.scannerEnabled.set(enabled);
+
+      // The source the user is standing on can disappear underneath them, and the toggle that would
+      // let them leave it disappears with it - so put them back on the file upload, which every
+      // deployment has, and drop the now-unreachable scanner file they had picked.
+      if (!enabled && this.source() === 'scanner') {
+        this.source.set('upload');
+        this.selectedScannerFileName.set(null);
+      }
+    });
   }
 
   selectSource(source: DocumentSource) {

@@ -24,16 +24,12 @@ class FoodCategoryService(
         .map { mapFoodCategory(it) }
 
     fun getAllFoodCategories(): List<FoodCategoryResponse> = sortCategories(foodCategoriesRepository.findAll().toList())
-        // Return/deposit item categories ("Kisten") are out of scope for this admin listing -
-        // they will get their own dedicated form later.
-        .filter { it.returnItem != true }
         .map { mapFoodCategory(it) }
 
     fun createFoodCategory(category: FoodCategoryRequest): FoodCategoryResponse {
         val entity = FoodCategoryEntity(
             name = category.name,
             sortOrder = nextSortOrder(),
-            returnItem = category.returnItem,
             enabled = category.enabled,
         ).apply {
             weightPerUnit = category.weightPerUnit
@@ -50,7 +46,6 @@ class FoodCategoryService(
 
         entity.name = updatedCategory.name
         entity.weightPerUnit = updatedCategory.weightPerUnit
-        entity.returnItem = updatedCategory.returnItem
         entity.sortOrder = updatedCategory.sortOrder
         entity.enabled = updatedCategory.enabled
 
@@ -71,16 +66,11 @@ class FoodCategoryService(
         log.info("Reordered food categories: {}", categoryIds)
     }
 
-    private fun nextSortOrder(): Int = (
-        foodCategoriesRepository.findAll()
-            .filter { it.returnItem != true }
-            .maxOfOrNull { it.sortOrder } ?: 0
-        ) + 1
+    private fun nextSortOrder(): Int = (foodCategoriesRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
 
     private fun sortCategories(categories: List<FoodCategoryEntity>): List<FoodCategoryEntity> = categories
         .sortedWith(
             compareBy(
-                { it.returnItem },
                 { it.sortOrder },
                 { it.name },
             ),
@@ -90,7 +80,6 @@ class FoodCategoryService(
         id = foodCategoryEntity.id,
         name = foodCategoryEntity.name,
         weightPerUnit = foodCategoryEntity.weightPerUnit,
-        returnItem = foodCategoryEntity.returnItem,
         sortOrder = foodCategoryEntity.sortOrder,
         enabled = foodCategoryEntity.enabled,
     )

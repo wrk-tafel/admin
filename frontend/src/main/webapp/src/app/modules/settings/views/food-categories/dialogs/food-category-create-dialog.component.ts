@@ -27,7 +27,6 @@ export class FoodCategoryCreateDialogComponent {
   form = this.fb.group({
     name: ['', [Validators.required]],
     weightPerUnit: [null as number | null, [Validators.required]],
-    returnItem: [false],
     // Not user-editable here - the backend auto-assigns the actual sort order on create,
     // placing new categories last; reordering afterwards happens via drag-and-drop.
     sortOrder: [0],

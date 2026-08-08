@@ -9,7 +9,12 @@
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <mat-form-field class="w-full mt-6">
+      <p class="mb-4 text-sm text-slate-600">
+        Versendet die Mails eines bereits beendeten Ausgabetags noch einmal an die oben
+        hinterlegten Empfänger.
+      </p>
+
+      <mat-form-field class="w-full">
         <mat-label>Ausgabe vom:</mat-label>
         <mat-select [value]="selectedDistribution()" (selectionChange)="selectedDistribution.set($event.value)">
           @for (distribution of distributions(); track distribution) {

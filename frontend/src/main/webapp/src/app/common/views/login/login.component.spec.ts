@@ -4,14 +4,19 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
 import {LoginComponent} from './login.component';
 import {EMPTY, of} from 'rxjs';
+import {ConfigApiService} from '../../../api/config-api.service';
 
 describe('LoginComponent', () => {
     let authService: MockedObject<AuthenticationService>;
     let router: MockedObject<Router>;
+    let configApiService: MockedObject<ConfigApiService>;
 
     beforeEach(() => {
         const authServiceSpy = {
             login: vi.fn().mockName('AuthenticationService.login')
+        };
+        const configApiServiceSpy = {
+            getPublicConfig: vi.fn().mockName('ConfigApiService.getPublicConfig').mockReturnValue(of(null))
         };
         const routerSpy = {
             navigate: vi.fn().mockName('Router.navigate'),
@@ -34,11 +39,16 @@ describe('LoginComponent', () => {
                         params: EMPTY
                     }
                 },
+                {
+                    provide: ConfigApiService,
+                    useValue: configApiServiceSpy
+                },
             ],
         }).compileComponents();
 
         authService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
+        configApiService = TestBed.inject(ConfigApiService) as MockedObject<ConfigApiService>;
     });
 
     it('should create the component', () => {
@@ -142,28 +152,32 @@ describe('LoginComponent', () => {
     });
 
     describe('environmentLabel', () => {
-        afterEach(() => {
-            document.head.querySelector('meta[name="tafel-environment-label"]')?.remove();
-        });
+        it('stays empty when the public config cannot be read', () => {
+            configApiService.getPublicConfig.mockReturnValue(of(null));
 
-        it('stays empty when the meta tag is missing', () => {
             const fixture = TestBed.createComponent(LoginComponent);
             const component = fixture.componentInstance;
 
-            expect(component.environmentLabel).toBe('');
+            expect(component.environmentLabel()).toBe('');
         });
 
-        it('is read from the tafel-environment-label meta tag and shown beneath the title', () => {
-            const meta = document.createElement('meta');
-            meta.name = 'tafel-environment-label';
-            meta.content = 'DEV';
-            document.head.appendChild(meta);
+        it('is hidden when the deployment has no environment label', () => {
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: ''}));
+
+            const fixture = TestBed.createComponent(LoginComponent);
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('[testid="environmentLabel"]')).toBeNull();
+        });
+
+        it('is read from the public config and shown beneath the title', () => {
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: 'DEV'}));
 
             const fixture = TestBed.createComponent(LoginComponent);
             const component = fixture.componentInstance;
             fixture.detectChanges();
 
-            expect(component.environmentLabel).toBe('DEV');
+            expect(component.environmentLabel()).toBe('DEV');
             const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="environmentLabel"]');
             expect(badge.textContent?.trim()).toBe('DEV');
         });

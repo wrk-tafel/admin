@@ -3,6 +3,9 @@ import {SettingsEmailComponent} from './views/email/settings-email.component';
 import {SettingsSheltersComponent} from './views/shelters/settings-shelters.component';
 import {SettingsStaticValuesComponent} from './views/static-values/settings-static-values.component';
 import {SettingsFoodCategoriesComponent} from './views/food-categories/settings-food-categories.component';
+import {
+  SettingsFoodReturnCategoriesComponent
+} from './views/food-return-categories/settings-food-return-categories.component';
 import {SettingsCarsComponent} from './views/cars/settings-cars.component';
 import {SettingsEmployeesComponent} from './views/employees/settings-employees.component';
 
@@ -22,6 +25,10 @@ export const routes: Routes = [
   {
     path: 'lebensmittelkategorien',
     component: SettingsFoodCategoriesComponent,
+  },
+  {
+    path: 'retourkategorien',
+    component: SettingsFoodReturnCategoriesComponent,
   },
   {
     path: 'fahrzeuge',

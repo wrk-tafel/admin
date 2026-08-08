@@ -8,6 +8,9 @@ import {
   FoodCollectionsApiService,
   FoodCollectionSaveItemsPerShopRequest,
   FoodCollectionSaveItemsRequest,
+  FoodCollectionSaveKmRequest,
+  FoodCollectionSaveReturnItemsPerShopRequest,
+  FoodCollectionSaveReturnItemsRequest,
   FoodCollectionSaveRouteDataRequest
 } from './food-collections-api.service';
 
@@ -43,6 +46,9 @@ describe('FoodCollectionsApiService', () => {
         {categoryId: 1, shopId: 0, amount: 1},
         {categoryId: 0, shopId: 1, amount: 2},
         {categoryId: 1, shopId: 1, amount: 3},
+      ],
+      returnItems: [
+        {shopId: 0, description: 'Graue Kisten', amount: 4},
       ]
     };
 
@@ -60,9 +66,7 @@ describe('FoodCollectionsApiService', () => {
     const mockRouteData: FoodCollectionSaveRouteDataRequest = {
       carId: 1,
       driverId: 2,
-      coDriverId: 3,
-      kmStart: 1000,
-      kmEnd: 2000
+      coDriverId: 3
     };
 
     apiService.saveRouteData(routeId, mockRouteData).subscribe();
@@ -72,6 +76,61 @@ describe('FoodCollectionsApiService', () => {
     httpMock.verify();
 
     expect(req.request.body).toEqual(mockRouteData);
+  });
+
+  it('save km', () => {
+    const routeId = 1;
+    const mockKmData: FoodCollectionSaveKmRequest = {
+      kmStart: 1000,
+      kmEnd: 2000
+    };
+
+    apiService.saveKm(routeId, mockKmData).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/routes/${routeId}/km`});
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockKmData);
+  });
+
+  it('save return items', () => {
+    const routeId = 1;
+    const mockReturnItems: FoodCollectionSaveReturnItemsRequest = {
+      returnItems: [
+        {shopId: 0, description: 'Graue Kisten', amount: 4},
+        {shopId: 1, description: 'Bananenkartons', amount: 2},
+      ]
+    };
+
+    apiService.saveReturnItems(routeId, mockReturnItems).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/routes/${routeId}/return-items`});
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockReturnItems);
+  });
+
+  it('save return items per shop', () => {
+    const routeId = 1;
+    const shopId = 2;
+    const mockReturnItems: FoodCollectionSaveReturnItemsPerShopRequest = {
+      returnItems: [
+        {description: 'Graue Kisten', amount: 4},
+      ]
+    };
+
+    apiService.saveReturnItemsPerShop(routeId, shopId, mockReturnItems).subscribe();
+
+    const req = httpMock.expectOne({
+      method: 'POST',
+      url: `/food-collections/routes/${routeId}/shops/${shopId}/return-items`
+    });
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockReturnItems);
   });
 
   it('save items', () => {

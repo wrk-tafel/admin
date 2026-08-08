@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
@@ -50,6 +51,7 @@ import java.time.format.DateTimeFormatter
 @Component
 class DistributionClosedEventListener(
     private val distributionRepository: DistributionRepository,
+    private val foodReturnCategoryRepository: FoodReturnCategoryRepository,
     private val dailyReportService: DailyReportService,
     private val statisticExportService: StatisticExportService,
     private val mailSenderService: MailSenderService,
@@ -178,13 +180,24 @@ class DistributionClosedEventListener(
     }
 
     /**
-     * Builds the route -> shop -> return-category hierarchy for the mail by re-filtering
+     * Builds the route -> shop -> return-box hierarchy for the mail by re-filtering
      * `distribution.foodCollections` at each nesting level (by route, then by route+shop) rather
      * than grouping once, and drops any route/shop with no return items via `null` filtering. Not
      * the cheapest possible approach, but distribution-sized data volumes make this fine, and it
      * keeps each level's filter self-contained.
+     *
+     * Return boxes are free-text (`FoodCollectionEntity.returnItems`), so the shops considered here
+     * come from those rows alone - a shop whose only recorded data is return boxes still has to
+     * show up in the mail.
+     *
+     * Within a shop, boxes are listed in the order the return categories are maintained in
+     * (`food_return_categories.sort_order`) so the mail reads the same way the recording screen
+     * does; anything typed in free-text has no category and is appended alphabetically after them.
      */
     private fun createReturnBoxesData(distribution: DistributionEntity): ReturnBoxesDataModel {
+        val returnCategoryOrder = foodReturnCategoryRepository.findAll()
+            .associate { it.name to it.sortOrder }
+
         val uniqueRoutes = distribution.foodCollections.mapNotNull { it.route }
             .distinctBy { it.id }
             .sortedBy { it.name }
@@ -192,30 +205,35 @@ class DistributionClosedEventListener(
         val routes = uniqueRoutes.mapNotNull { route ->
             val uniqueShopsPerRoute = distribution.foodCollections.asSequence()
                 .filter { it.route.id == route.id }
-                .flatMap { it.items ?: emptyList() }
+                .flatMap { it.returnItems ?: emptyList() }
                 .mapNotNull { it.shop }
                 .distinctBy { it.id }
                 .sortedBy { it.name }
                 .toList()
 
             val shops = uniqueShopsPerRoute.mapNotNull { shop ->
-                val uniqueReturnCategories = distribution.foodCollections
+                val uniqueDescriptions = distribution.foodCollections
                     .asSequence()
                     .filter { it.route.id == route.id }
-                    .flatMap { it.items ?: emptyList() }
-                    .mapNotNull { it.category }
-                    .filter { it.returnItem == true }
-                    .distinctBy { it.id }
-                    .sortedBy { it.name }
+                    .flatMap { it.returnItems ?: emptyList() }
+                    .filter { it.shop.id == shop.id }
+                    .map { it.description }
+                    .distinct()
+                    .sortedWith(
+                        compareBy(
+                            { returnCategoryOrder[it] ?: Int.MAX_VALUE },
+                            { it },
+                        ),
+                    )
                     .toList()
 
-                val returnBoxes = uniqueReturnCategories.mapNotNull { category ->
-                    val amount = distribution.foodCollections.flatMap { it.items ?: emptyList() }
+                val returnBoxes = uniqueDescriptions.mapNotNull { description ->
+                    val amount = distribution.foodCollections.flatMap { it.returnItems ?: emptyList() }
                         .filter { it.shop.id == shop.id }
-                        .filter { it.category.id == category.id }
+                        .filter { it.description == description }
                         .sumOf { it.amount }
 
-                    if (amount > 0) "${amount}x ${category.name}" else null
+                    if (amount > 0) "${amount}x $description" else null
                 }.joinToString(", ")
 
                 if (returnBoxes.trim().isNotEmpty()) {

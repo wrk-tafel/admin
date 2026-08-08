@@ -6,10 +6,16 @@ POST {{baseApiPath}}/food-collections/routes/1
 Content-Type: application/json
 
 {
-  "routeId": 1,
-  "carLicensePlate": "W-12345",
+  "carId": 1,
   "driverId": 100,
-  "coDriverId": 100,
+  "coDriverId": 100
+}
+
+### Save km
+POST {{baseApiPath}}/food-collections/routes/1/km
+Content-Type: application/json
+
+{
   "kmStart": 100,
   "kmEnd": 200
 }
@@ -52,6 +58,38 @@ Content-Type: application/json
 
 ### Get food items per shop
 GET {{baseApiPath}}/food-collections/routes/1/shops/1/items
+
+### Save return items (replaces all return items of the route)
+POST {{baseApiPath}}/food-collections/routes/1/return-items
+Content-Type: application/json
+
+{
+  "returnItems": [
+    {
+      "shopId": 20,
+      "description": "Graue Kisten",
+      "amount": 4
+    },
+    {
+      "shopId": 21,
+      "description": "Bananenkartons grün",
+      "amount": 2
+    }
+  ]
+}
+
+### Save return items per shop (replaces the return items of that shop only)
+POST {{baseApiPath}}/food-collections/routes/1/shops/20/return-items
+Content-Type: application/json
+
+{
+  "returnItems": [
+    {
+      "description": "Graue Kisten",
+      "amount": 4
+    }
+  ]
+}
 
 ### Patch a single food item
 PATCH {{baseApiPath}}/food-collections/routes/1/items

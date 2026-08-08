@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import io.mockk.every
 import io.mockk.mockk
 import jakarta.servlet.http.HttpServletRequest
@@ -22,7 +21,7 @@ class IndexHtmlControllerTest {
             "<html><head><base href=\"/\"></head><body></body></html>",
         )
         val controller = IndexHtmlController(
-            tafelAdminProperties = TafelAdminProperties(server = TafelAdminServerProperties(relativeBaseUrl = "/verwaltung-dev/")),
+            tafelAdminProperties = TafelAdminProperties().apply { server.relativeBaseUrl = "/verwaltung-dev/" },
             resourceLoader = resourceLoader,
         )
 
@@ -38,7 +37,7 @@ class IndexHtmlControllerTest {
             "<html><head><base href=\"/\"></head><body></body></html>",
         )
         val controller = IndexHtmlController(
-            tafelAdminProperties = TafelAdminProperties(server = TafelAdminServerProperties(relativeBaseUrl = "/verwaltung-dev")),
+            tafelAdminProperties = TafelAdminProperties().apply { server.relativeBaseUrl = "/verwaltung-dev" },
             resourceLoader = resourceLoader,
         )
 
@@ -69,7 +68,7 @@ class IndexHtmlControllerTest {
                 "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin\"></head><body></body></html>",
         )
         val controller = IndexHtmlController(
-            tafelAdminProperties = TafelAdminProperties(environmentLabel = "DEV"),
+            tafelAdminProperties = TafelAdminProperties().apply { environmentLabel = "DEV" },
             resourceLoader = resourceLoader,
         )
 
@@ -99,50 +98,29 @@ class IndexHtmlControllerTest {
     }
 
     @Test
-    fun `tafel-environment-label meta tag is filled with the configured environment label`() {
+    fun `loading screen environment label is filled with the configured environment label`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
-            """
-            <html>
-                <head>
-                    <base href="/">
-                    <meta name="tafel-environment-label" content="">
-                </head>
-                <body></body>
-            </html>
-            """.trimIndent(),
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\"></div></body></html>",
         )
         val controller = IndexHtmlController(
-            tafelAdminProperties = TafelAdminProperties(environmentLabel = "DEV"),
+            tafelAdminProperties = TafelAdminProperties().apply { environmentLabel = "DEV" },
             resourceLoader = resourceLoader,
         )
 
         val response = controller.index()
 
         assertThat(response.body).isEqualTo(
-            """
-            <html>
-                <head>
-                    <base href="/">
-                    <meta name="tafel-environment-label" content="DEV">
-                </head>
-                <body></body>
-            </html>
-            """.trimIndent(),
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\">DEV</div></body></html>",
         )
     }
 
     @Test
-    fun `tafel-environment-label meta tag left empty when no environment label is configured`() {
+    fun `loading screen environment label left empty when no environment label is configured`() {
         every { resourceLoader.getResource(match { it.endsWith("/static/index.html") }) } returns indexHtmlResource(
-            """
-            <html>
-                <head>
-                    <base href="/">
-                    <meta name="tafel-environment-label" content="">
-                </head>
-                <body></body>
-            </html>
-            """.trimIndent(),
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\"></div></body></html>",
         )
         val controller = IndexHtmlController(
             tafelAdminProperties = TafelAdminProperties(),
@@ -152,15 +130,8 @@ class IndexHtmlControllerTest {
         val response = controller.index()
 
         assertThat(response.body).isEqualTo(
-            """
-            <html>
-                <head>
-                    <base href="/">
-                    <meta name="tafel-environment-label" content="">
-                </head>
-                <body></body>
-            </html>
-            """.trimIndent(),
+            "<html><head><base href=\"/\"></head><body>" +
+                "<div class=\"tafel-app-loading-environment-label\"></div></body></html>",
         )
     }
 
@@ -219,7 +190,7 @@ class IndexHtmlControllerTest {
             "{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\",\n  \"description\": \"Tafel Admin\"\n}",
         )
         val controller = IndexHtmlController(
-            tafelAdminProperties = TafelAdminProperties(environmentLabel = "TEST"),
+            tafelAdminProperties = TafelAdminProperties().apply { environmentLabel = "TEST" },
             resourceLoader = resourceLoader,
         )
 
@@ -244,7 +215,7 @@ class IndexHtmlControllerTest {
                     resourceLoader.getResource(match { it.endsWith("/static/manifest.webmanifest") })
                 } returns indexHtmlResource("{\n  \"name\": \"Tafel Admin\",\n  \"short_name\": \"Tafel Admin\"\n}")
                 val controller = IndexHtmlController(
-                    tafelAdminProperties = TafelAdminProperties(environmentLabel = label),
+                    tafelAdminProperties = TafelAdminProperties().apply { environmentLabel = label },
                     resourceLoader = resourceLoader,
                 )
 

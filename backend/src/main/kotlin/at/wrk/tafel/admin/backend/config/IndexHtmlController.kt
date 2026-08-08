@@ -29,9 +29,10 @@ import java.nio.charset.StandardCharsets
  * the static "Tafel Admin" title/manifest name would otherwise be indistinguishable between them -
  * this also rewrites the page title/apple-mobile-web-app-title and (via [manifest]) the PWA
  * manifest's name/short_name to include tafeladmin.environmentLabel, so each environment installs
- * as a clearly separate home-screen app (see #3027). The same value is also written into a
- * "tafel-environment-label" meta tag so the Angular app can read it client-side (e.g. the login
- * page badge, see #3032) without needing an authenticated API call.
+ * as a clearly separate home-screen app (see #3027). The same value also goes into the loading
+ * screen inside <app-root>, which is plain html shown before any Angular code has run - it can only
+ * carry the label if the label is already in the markup by the time it's served. (Once the app is
+ * up, the login page reads the label from `/api/config/public` instead.)
  *
  * Two brandings are produced, not one, because the places they land have very different room:
  * [brandedTitle] ("Tafel Admin (DEV)") goes where a full sentence fits - the browser tab and the
@@ -85,14 +86,9 @@ class IndexHtmlController(
         }
 
         val html = resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
-        // A <base href> without a trailing slash treats its last path segment as a filename, so a
-        // relative URL replaces it instead of appending to it (e.g. "/verwaltung-dev" + "main.js"
-        // resolves to "/main.js", not "/verwaltung-dev/main.js") - relativeBaseUrl historically only
-        // fed the cookie path, where that distinction doesn't matter, so not every environment's
-        // config has a trailing slash. Normalize here rather than relying on ops config for it.
-        val relativeBaseUrl = tafelAdminProperties.server.relativeBaseUrl.let {
-            if (it.endsWith("/")) it else "$it/"
-        }
+        // basePath, not relativeBaseUrl: a <base href> has to carry a trailing slash to be appended
+        // to rather than replaced - see TafelAdminServerProperties.basePath.
+        val relativeBaseUrl = tafelAdminProperties.server.basePath
         val templatedHtml = html.replace("<base href=\"/\">", "<base href=\"$relativeBaseUrl\">")
             .replace("<title>Tafel Admin</title>", "<title>$brandedTitle</title>")
             .replace(
@@ -100,8 +96,8 @@ class IndexHtmlController(
                 "<meta name=\"apple-mobile-web-app-title\" content=\"$brandedShortTitle\">",
             )
             .replace(
-                "<meta name=\"tafel-environment-label\" content=\"\">",
-                "<meta name=\"tafel-environment-label\" content=\"${tafelAdminProperties.environmentLabel.trim()}\">",
+                "<div class=\"tafel-app-loading-environment-label\"></div>",
+                "<div class=\"tafel-app-loading-environment-label\">${tafelAdminProperties.environmentLabel.trim()}</div>",
             )
 
         return ResponseEntity.ok()

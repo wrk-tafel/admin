@@ -18,39 +18,6 @@
         }
       </mat-form-field>
     </div>
-    <div class="md:col-span-3 mt-4 md:mt-0">
-      <mat-form-field class="w-full">
-        <mat-label>KM Start</mat-label>
-        <input matInput testid="kmStartInput" type="number" formControlName="kmStart">
-        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-          <fa-icon [icon]="faGauge"></fa-icon>
-        </mat-icon>
-        @if (kmStart.errors?.required && kmStart.touched) {
-          <mat-error>Pflichtfeld</mat-error>
-        }
-        @if (kmStart.errors?.min && kmStart.touched) {
-          <mat-error>Muss mindestens 1 sein</mat-error>
-        }
-      </mat-form-field>
-    </div>
-    <div class="md:col-span-3 mt-4 md:mt-0">
-      <mat-form-field class="w-full">
-        <mat-label>KM Ende</mat-label>
-        <input matInput testid="kmEndInput" type="number" formControlName="kmEnd">
-        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-          <fa-icon [icon]="faGauge"></fa-icon>
-        </mat-icon>
-        @if (kmEnd.errors?.required && kmEnd.touched) {
-          <mat-error>Pflichtfeld</mat-error>
-        }
-        @if (kmEnd.errors?.min && kmEnd.touched) {
-          <mat-error>Muss mindestens 1 sein</mat-error>
-        }
-        @if (kmEnd.errors?.kmValidation && kmEnd.touched) {
-          <mat-error>KM Ende muss größer als KM Start sein</mat-error>
-        }
-      </mat-form-field>
-    </div>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
     <div class="md:col-span-5">
@@ -123,5 +90,3 @@
     </div>
   </div>
 </form>
-<hr>
-<button testid="save-routedata-button" matButton="filled" [disabled]="isSaveDisabled()" (click)="save()">Speichern</button>

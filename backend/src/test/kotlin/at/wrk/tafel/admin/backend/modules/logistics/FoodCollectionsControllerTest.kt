@@ -49,6 +49,13 @@ class FoodCollectionsControllerTest {
                     amount = 3,
                 ),
             ),
+            returnItems = listOf(
+                FoodCollectionReturnItem(
+                    shopId = 2,
+                    description = "Graue Kisten",
+                    amount = 4,
+                ),
+            ),
         )
 
         every { service.getFoodCollection(routeId) } returns testFoodCollectionData
@@ -77,13 +84,60 @@ class FoodCollectionsControllerTest {
             carId = 1,
             driverId = 1,
             coDriverId = 2,
-            kmStart = 1000,
-            kmEnd = 2000,
         )
 
         controller.saveFoodCollectionRouteData(routeId = routeId, request = request)
 
         verify(exactly = 1) { service.saveRouteData(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `saves km`() {
+        val routeId = 123L
+        val request = FoodCollectionSaveKmRequest(
+            kmStart = 1000,
+            kmEnd = 2000,
+        )
+
+        controller.saveFoodCollectionKm(routeId = routeId, request = request)
+
+        verify(exactly = 1) { service.saveKm(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `save return items`() {
+        val routeId = 123L
+        val request = FoodCollectionSaveReturnItemsRequest(
+            returnItems = listOf(
+                FoodCollectionReturnItem(
+                    shopId = 2,
+                    description = "Bananenkartons",
+                    amount = 3,
+                ),
+            ),
+        )
+
+        controller.saveFoodCollectionReturnItems(routeId = routeId, request = request)
+
+        verify(exactly = 1) { service.saveReturnItems(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `save return items per shop`() {
+        val routeId = 123L
+        val shopId = 456L
+        val request = FoodCollectionSaveReturnItemsPerShopRequest(
+            returnItems = listOf(
+                FoodCollectionReturnItemAmount(
+                    description = "Bananenkartons",
+                    amount = 3,
+                ),
+            ),
+        )
+
+        controller.saveFoodCollectionReturnItemsPerShop(routeId = routeId, shopId = shopId, request = request)
+
+        verify(exactly = 1) { service.saveReturnItemsPerShop(routeId = routeId, shopId = shopId, data = request) }
     }
 
     @Test
@@ -132,6 +186,13 @@ class FoodCollectionsControllerTest {
                     categoryId = 1,
                     shopId = 2,
                     amount = 3,
+                ),
+            ),
+            returnItems = listOf(
+                FoodCollectionReturnItem(
+                    shopId = 2,
+                    description = "Graue Kisten",
+                    amount = 4,
                 ),
             ),
         )

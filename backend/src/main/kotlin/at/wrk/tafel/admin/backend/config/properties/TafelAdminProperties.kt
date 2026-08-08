@@ -3,54 +3,138 @@ package at.wrk.tafel.admin.backend.config.properties
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.context.properties.ConfigurationProperties
 
+/**
+ * Mutable, JavaBean-bound on purpose - that is what makes this application's configuration
+ * reloadable at runtime (see [ConfigFileReloadService]).
+ *
+ * Spring Cloud's `ConfigurationPropertiesRebinder` re-binds the *existing* bean instance when the
+ * environment changes, so every consumer that injected it keeps seeing current values without
+ * knowing anything about reloading. That only works for setter binding: a Kotlin primary
+ * constructor with parameters makes Spring Boot deduce value-object binding and produce an
+ * instance that can only ever be replaced, never updated - which is why these classes declare a
+ * no-arg constructor and their properties in the body rather than as constructor parameters.
+ *
+ * The trade-off is that a reload mutates fields other threads may be reading at that moment. A
+ * reader can therefore briefly see one setting updated and another not (they are written one at a
+ * time), and there is no happens-before edge guaranteeing it sees the new value on the very next
+ * read. Both are inherent to how Spring Cloud refreshes configuration and are acceptable here:
+ * reloads are operator-driven, seconds apart from anything that reads them, and every value is
+ * re-read per request rather than cached.
+ */
 @ConfigurationProperties(prefix = "tafeladmin")
 @ExcludeFromTestCoverage
-data class TafelAdminProperties(
-    val version: String = "dev",
-    val buildTime: String = "unknown",
+class TafelAdminProperties {
+    var version: String = "dev"
+    var buildTime: String = "unknown"
+
     // Set per-deployment (e.g. "DEV", "TEST", empty for prod) alongside server.relativeBaseUrl -
     // dev/test/prod share one origin at different path prefixes, so without this the PWA install
     // title/manifest would look identical across all three (see #3027).
-    val environmentLabel: String = "",
-    val mail: TafelAdminMailProperties? = null,
-    val server: TafelAdminServerProperties = TafelAdminServerProperties(),
-    val support: TafelAdminSupportProperties? = null,
-    val storage: TafelAdminStorageProperties = TafelAdminStorageProperties(),
-    val push: TafelAdminPushProperties? = null,
-)
+    var environmentLabel: String = ""
+
+    var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
+    var mail: TafelAdminMailProperties? = null
+    var server: TafelAdminServerProperties = TafelAdminServerProperties()
+    var support: TafelAdminSupportProperties? = null
+    var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
+    var push: TafelAdminPushProperties? = null
+    var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
+
+    /**
+     * Whether the scanner folder is available at all - the single rule both the backend
+     * (`ScannerFileService`) and the frontend (via `ConfigController`) go by, so neither can decide
+     * the feature is on while the other has it off.
+     *
+     * Lives here rather than on either section because it is the conjunction of both: the switch
+     * ([TafelAdminFeaturesProperties.scannerFolderEnabled]) says whether this deployment should offer the
+     * feature, the mount point ([TafelAdminStorageProperties.scannerPath]) says whether it *can*.
+     *
+     * Deliberately answered from configuration alone rather than by probing the filesystem: a share
+     * that is momentarily unreachable should surface as an empty file list, not make the whole
+     * feature disappear from the UI mid-shift.
+     */
+    val scannerFolderAvailable: Boolean
+        get() = features.scannerFolderEnabled && !storage.scannerPath.isNullOrBlank()
+}
+
+/**
+ * Switches for optional features, kept apart from the settings that configure them: whether a
+ * deployment offers something is an operational decision an operator flips on its own, while
+ * `storage`, `mail` and friends describe how the thing is wired up once it is on.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminFeaturesProperties {
+    /**
+     * Kill switch for the scanner-folder document picker, independent of whether
+     * [TafelAdminStorageProperties.scannerPath] happens to be set: an environment that has the share
+     * mounted but shouldn't offer the feature (or where the share is misbehaving and the
+     * once-per-second poll needs to stop) can turn it off here without touching the mount
+     * configuration. Defaults to true so environments with a `scannerPath` keep working unchanged;
+     * with no `scannerPath` the feature is off either way.
+     */
+    var scannerFolderEnabled: Boolean = true
+}
 
 @ExcludeFromTestCoverage
-data class TafelAdminMailProperties(
-    val from: String,
-    val subjectPrefix: String? = null,
-    val defaultRecipientsBcc: List<String>? = emptyList(),
-)
+class TafelAdminTestdataProperties {
+    /**
+     * Wipes and re-creates the schema on startup so the `testdata` migrations can seed it from
+     * scratch (`FlywayConfig`). Read once during startup by definition - Flyway has finished long
+     * before anyone could edit the config file - so unlike the rest of this class, reloading it has
+     * no meaning.
+     */
+    var enabled: Boolean = false
+}
 
 @ExcludeFromTestCoverage
-data class TafelAdminServerProperties(
-    val relativeBaseUrl: String = "/",
-)
+class TafelAdminMailProperties {
+    var from: String = ""
+    var subjectPrefix: String? = null
+    var defaultRecipientsBcc: List<String>? = emptyList()
+}
 
 @ExcludeFromTestCoverage
-data class TafelAdminSupportProperties(
+class TafelAdminServerProperties {
+    var relativeBaseUrl: String = "/"
+
+    /**
+     * [relativeBaseUrl] with a guaranteed trailing slash - what anything building a URL *below* the
+     * app's base has to use.
+     *
+     * Without one, the last path segment counts as a filename and gets replaced rather than
+     * appended to: `"/verwaltung-dev" + "main.js"` resolves to `/main.js`, not
+     * `/verwaltung-dev/main.js`. [relativeBaseUrl] historically only fed the JWT cookie path, where
+     * that distinction doesn't matter, so not every environment's config carries the slash -
+     * normalized here rather than relied upon from ops config.
+     */
+    val basePath: String
+        get() = relativeBaseUrl.let { if (it.endsWith("/")) it else "$it/" }
+}
+
+@ExcludeFromTestCoverage
+class TafelAdminSupportProperties {
     // Personal access token (Issues: Read and write) for creating support-request issues via the
     // GitHub REST API. Not set here on purpose - only mounted in prod via /app/config/config.yml.
-    val githubToken: String? = null,
-    val githubRepository: String,
+    var githubToken: String? = null
+
+    var githubRepository: String = ""
+
     // Prepended to every issue title so it's obvious which environment a support request came from.
-    val titlePrefix: String,
-)
+    var titlePrefix: String = ""
+}
 
 @ExcludeFromTestCoverage
-data class TafelAdminStorageProperties(
-    val documentsPath: String = "documents",
+class TafelAdminStorageProperties {
+    var documentsPath: String = "documents"
+
     // Mount point for a NAS share a physical scanner writes to. Not every environment has one, so
     // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.githubToken).
-    val scannerPath: String? = null,
-)
+    // Whether the feature is offered at all is TafelAdminProperties.scannerFolderAvailable.
+    var scannerPath: String? = null
+}
 
 @ExcludeFromTestCoverage
-data class TafelAdminPushProperties(
+class TafelAdminPushProperties {
     // A VAPID keypair identifies this server to browser push services. Both values must be the
     // RAW key material, base64url-encoded (NOT the PEM file's own base64, which wraps DER/ASN.1
     // structure around the raw bytes and will fail to decode). Generate and extract with:
@@ -67,9 +151,10 @@ data class TafelAdminPushProperties(
     //
     // Not set here on purpose - only mounted in prod via /app/config/config.yml (same reasoning
     // as TafelAdminSupportProperties.githubToken).
-    val vapidPublicKey: String? = null,
-    val vapidPrivateKey: String? = null,
+    var vapidPublicKey: String? = null
+    var vapidPrivateKey: String? = null
+
     // Contact address browser push services may use to reach the sender, per RFC 8292 - a mailto:
     // URI or an https: URL. Not defaulted since it must be a real, reachable contact.
-    val vapidSubject: String? = null,
-)
+    var vapidSubject: String? = null
+}

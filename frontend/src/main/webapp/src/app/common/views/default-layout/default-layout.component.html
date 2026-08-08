@@ -85,7 +85,7 @@
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
-    @if (!collapsed() && versionInfo(); as info) {
+    @if (!collapsed() && appConfig(); as info) {
       <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-500 shrink-0 text-center">
         <div class="truncate">{{ info.version }}</div>
         @if (info.buildTime !== 'unknown') {

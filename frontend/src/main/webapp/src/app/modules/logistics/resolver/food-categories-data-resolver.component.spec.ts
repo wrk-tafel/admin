@@ -32,8 +32,8 @@ describe('FoodCategoriesDataResolver', () => {
 
   it('resolve', () => {
     const mockCategories: FoodCategory[] = [
-      {id: 0, name: 'Cat 1', weightPerUnit: 1, returnItem: false, sortOrder: 0, enabled: true},
-      {id: 1, name: 'Cat 2', weightPerUnit: 2, returnItem: true, sortOrder: 1, enabled: true},
+      {id: 0, name: 'Cat 1', weightPerUnit: 1, sortOrder: 0, enabled: true},
+      {id: 1, name: 'Cat 2', weightPerUnit: 2, sortOrder: 1, enabled: true},
     ];
     apiService.getActiveFoodCategories.mockReturnValue(of(mockCategories));
 

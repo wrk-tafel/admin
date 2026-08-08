@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminStorageProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -14,7 +13,7 @@ internal class DocumentStorageServiceTest {
     private lateinit var tempDir: Path
 
     private val service by lazy {
-        DocumentStorageService(TafelAdminProperties(storage = TafelAdminStorageProperties(documentsPath = tempDir.toString())))
+        DocumentStorageService(TafelAdminProperties().apply { storage.documentsPath = tempDir.toString() })
     }
 
     @Test

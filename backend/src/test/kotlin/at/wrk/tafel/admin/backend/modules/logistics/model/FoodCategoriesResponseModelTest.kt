@@ -13,7 +13,6 @@ class FoodCategoriesResponseModelTest {
             id = null,
             name = "",
             weightPerUnit = BigDecimal(-1),
-            returnItem = false,
             sortOrder = 0,
             enabled = true,
         )
@@ -30,7 +29,6 @@ class FoodCategoriesResponseModelTest {
             id = null,
             name = "Category",
             weightPerUnit = BigDecimal.ZERO,
-            returnItem = false,
             sortOrder = 0,
             enabled = true,
         )

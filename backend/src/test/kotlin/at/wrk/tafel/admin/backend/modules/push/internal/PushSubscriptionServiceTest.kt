@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminPushProperties
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
@@ -43,19 +45,25 @@ internal class PushSubscriptionServiceTest {
     @RelaxedMockK
     private lateinit var pushBroadcastService: PushBroadcastService
 
-    private val configuredProperties = TafelAdminProperties(
-        push = TafelAdminPushProperties(
-            vapidPublicKey = "public-key",
-            vapidPrivateKey = "private-key",
-            vapidSubject = "mailto:test@localhost",
-        ),
-    )
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
+
+    private val configuredProperties = TafelAdminProperties().apply {
+        push = TafelAdminPushProperties().apply {
+            vapidPublicKey = "public-key"
+            vapidPrivateKey = "private-key"
+            vapidSubject = "mailto:test@localhost"
+        }
+    }
 
     private lateinit var service: PushSubscriptionService
 
     @BeforeEach
     fun beforeEach() {
-        service = PushSubscriptionService(pushSubscriptionRepository, userRepository, configuredProperties, pushBroadcastService)
+        service = PushSubscriptionService(pushSubscriptionRepository, userRepository, configuredProperties, pushBroadcastService, advisoryLockService)
+
+        // Runs the guarded block inline - the lock's own behaviour is AdvisoryLockServiceIT's job.
+        every { advisoryLockService.withLock<Any>(any(), any()) } answers { secondArg<() -> Any>().invoke() }
 
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
@@ -77,7 +85,7 @@ internal class PushSubscriptionServiceTest {
     @Test
     fun `getPublicKey fails clearly when push isn't configured`() {
         val unconfiguredService =
-            PushSubscriptionService(pushSubscriptionRepository, userRepository, TafelAdminProperties(push = null), pushBroadcastService)
+            PushSubscriptionService(pushSubscriptionRepository, userRepository, TafelAdminProperties(), pushBroadcastService, advisoryLockService)
 
         assertThatThrownBy { unconfiguredService.getPublicKey() }
             .isInstanceOf(TafelApiException::class.java)
@@ -149,6 +157,27 @@ internal class PushSubscriptionServiceTest {
         assertThat(savedSlot.captured.user).isEqualTo(testUserEntity)
         assertThat(savedSlot.captured.p256dhKey).isEqualTo("p256dh")
         assertThat(savedSlot.captured.authKey).isEqualTo("auth")
+    }
+
+    /**
+     * `endpoint` is UNIQUE and the upsert is a check-then-act, so two registrations of the same
+     * browser's endpoint arriving at once (two tabs both syncing on load) would otherwise both find
+     * nothing and both insert - the loser getting a duplicate-key 500 instead of a registration.
+     */
+    @Test
+    fun `createSubscription serializes the upsert against concurrent registrations`() {
+        val request = PushSubscriptionRequest(endpoint = "https://push.example.com/x", p256dhKey = "p", authKey = "a")
+        every { pushSubscriptionRepository.findByEndpoint(request.endpoint) } returns null
+        every { pushSubscriptionRepository.saveAndFlush(any<PushSubscriptionEntity>()) } answers {
+            firstArg<PushSubscriptionEntity>().apply {
+                id = 1
+                createdAt = LocalDateTime.now()
+            }
+        }
+
+        service.createSubscription(request)
+
+        verify { advisoryLockService.withLock<Any>(AdvisoryLockKey.REGISTER_PUSH_SUBSCRIPTION, any()) }
     }
 
     @Test
