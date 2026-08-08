@@ -27,7 +27,7 @@
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
         <mat-label>Route suchen</mat-label>
-        <fa-icon matPrefix [icon]="faMagnifyingGlass" class="me-2 text-slate-400"></fa-icon>
+        <fa-icon matPrefix [icon]="faMagnifyingGlass" class="ms-3 me-2 text-slate-400"></fa-icon>
         <input matInput [formControl]="searchControl" testid="routes-search-input"
                placeholder="Nummer, Name, Filiale oder Hinweis"/>
         @if (searchControl.value) {
@@ -92,7 +92,7 @@
                   <span class="absolute -start-[30px] top-1.5 h-3 w-3 rounded-full bg-slate-400 ring-4 ring-white"></span>
                   <div class="flex flex-wrap items-baseline gap-x-3">
                     <span class="font-semibold tabular-nums">{{ stop.time }}</span>
-                    <span>{{ stop.shopLabel }}</span>
+                    <span>{{ stop.label }}</span>
                   </div>
                   @if (stop.shopAddress) {
                     <div class="text-sm text-slate-500">{{ stop.shopAddress }}</div>

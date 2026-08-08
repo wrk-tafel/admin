@@ -24,8 +24,10 @@ import {RouteEditDialogComponent} from './dialogs/route-edit-dialog.component';
 interface RouteStopView {
   key: string;
   time: string;
-  shopLabel: string;
+  /** the shop, or - for a stop without one - its description, which is all that identifies it */
+  label: string;
   shopAddress?: string;
+  /** only set alongside a shop; for a stop without one the description already is the label */
   description?: string;
 }
 
@@ -187,7 +189,7 @@ export class SettingsRoutesComponent {
       route.number,
       route.name,
       route.note,
-      ...stops.map(stop => `${stop.shopLabel} ${stop.description ?? ''}`)
+      ...stops.map(stop => `${stop.label} ${stop.description ?? ''}`)
     ].join(' ').toLowerCase();
 
     return {
@@ -200,12 +202,13 @@ export class SettingsRoutesComponent {
 
   private toStopView(stop: RouteStopData, index: number): RouteStopView {
     const shop = stop.shopId != null ? this.shopsById().get(stop.shopId) : undefined;
+    const description = stop.description?.trim() ? stop.description : undefined;
     return {
       key: stop.id != null ? `stop-${stop.id}` : `index-${index}`,
       time: formatStopTime(stop.time),
-      shopLabel: shop ? `${shop.number} - ${shop.name}` : 'Ohne Filiale',
+      label: shop ? `${shop.number} - ${shop.name}` : (description ?? ''),
       shopAddress: shop ? formatShopAddress(shop) : undefined,
-      description: stop.description?.trim() ? stop.description : undefined
+      description: shop ? description : undefined
     };
   }
 

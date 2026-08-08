@@ -29,7 +29,7 @@ describe('SettingsRoutesComponent', () => {
     enabled: true,
     stops: [
       {id: 11, time: '14:00:00', shopId: activeShop.id, description: 'Stopp 1'},
-      {id: 12, time: '15:30:00', shopId: undefined, description: ''}
+      {id: 12, time: '15:30:00', shopId: undefined, description: 'Pause'}
     ]
   };
   const testRoute2: RouteData = {
@@ -102,12 +102,12 @@ describe('SettingsRoutesComponent', () => {
     expect(stops[0]).toEqual({
       key: 'stop-11',
       time: '14:00',
-      shopLabel: '100 - Billa',
+      label: '100 - Billa',
       shopAddress: 'Teststraße 1, 1100 Wien',
       description: 'Stopp 1'
     });
-    // a stop without a shop is a plain intermediate halt, and an empty description stays unset
-    expect(stops[1].shopLabel).toBe('Ohne Filiale');
+    // a stop without a shop is identified by its description alone, so that becomes the label
+    expect(stops[1].label).toBe('Pause');
     expect(stops[1].shopAddress).toBeUndefined();
     expect(stops[1].description).toBeUndefined();
   });
