@@ -11,12 +11,12 @@ name: Update Gradle Lock File
 on:
   pull_request:
     paths:
+      # The version catalog is the only path a Dependabot gradle PR is
+      # guaranteed to touch — every dependency coordinate lives there, none are
+      # declared inline in the build scripts. Listing the build scripts and the
+      # lock/checksum files as well only queues the workflow on ordinary PRs,
+      # where the actor guard below reports it as a skipped run.
       - 'gradle/libs.versions.toml'
-      - 'backend/build.gradle.kts'
-      - 'build.gradle.kts'
-      - 'backend/gradle.lockfile'
-      - 'settings-gradle.lockfile'
-      - 'gradle/verification-metadata.xml'
 
 env:
   JAVA_VERSION: '26'
