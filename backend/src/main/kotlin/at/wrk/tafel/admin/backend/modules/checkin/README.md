@@ -16,6 +16,11 @@ know what a scan means (customer lookup, ticket assignment, etc.) — that's ent
   decoded QR code payload) for a given scanner and publish it via the SSE outbox.
 - `GET /api/sse/scanners/{scannerId}/results` — SSE stream of `ScanResult` events for one specific
   scanner (filtered by `scannerId` client-side of the outbox forwarding, via `acceptFilter`).
+  Registered as `replayable = false`: this is the only stream excluded from the replay
+  `SseOutboxListenerService` does after it reconnects, because the check-in screen *acts* on a scan
+  result (loads that customer and resets the form) instead of just displaying it — so a duplicate
+  would discard a ticket number being typed, and a late one would jump to a customer scanned
+  minutes ago. A scan that is dropped instead simply gets scanned again.
 
 ### ScannerService (`internal/ScannerService.kt`)
 - `registerScanner(existingScannerId: Int? = null)` — see gotchas below for its exact (non-obvious)

@@ -8,4 +8,10 @@ interface SseOutboxRepository : JpaRepository<SseOutboxEntity, Long> {
 
     @Transactional
     fun deleteAllByEventTimeBefore(eventTime: LocalDateTime)
+
+    /**
+     * Backlog for [SseOutboxListenerService]'s reconnect replay - the events whose `pg_notify` was
+     * delivered to nobody because the listening connection was down when they were written.
+     */
+    fun findAllByEventTimeAfterOrderByEventTimeAsc(eventTime: LocalDateTime): List<SseOutboxEntity>
 }

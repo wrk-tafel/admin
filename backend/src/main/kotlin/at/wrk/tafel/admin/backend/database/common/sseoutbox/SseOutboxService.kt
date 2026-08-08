@@ -55,11 +55,16 @@ class SseOutboxService(
         return sseOutboxRepository.save(sseOutboxEntity)
     }
 
+    /**
+     * @param replayable see [SseOutboxListenerService.registerCallback] - whether this stream's
+     * subscribers can take a duplicate or a late delivery of an event after a reconnect.
+     */
     fun <T> forwardNotificationEventsToSse(
         sseEmitter: SseEmitter,
         notificationName: String,
         resultType: Class<T>,
         acceptFilter: (data: T?) -> Boolean = { true },
+        replayable: Boolean = true,
     ) {
         val callback: (String?) -> Unit = { payload ->
             val value = if (payload != null) jsonMapper.readValue(payload, resultType) else null
@@ -70,7 +75,7 @@ class SseOutboxService(
 
         val job = CoroutineScope(Dispatchers.IO).launch {
             try {
-                sseOutboxListenerService.registerCallback(notificationName, callback)
+                sseOutboxListenerService.registerCallback(notificationName, callback, replayable)
                 logger.debug("Registered SSE callback for notification: {}", notificationName)
             } catch (e: Exception) {
                 logger.error("Failed to listen for notification name: $notificationName", e)
