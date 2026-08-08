@@ -103,17 +103,13 @@ class UserController(
     @GetMapping
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUsers(
-        @RequestParam username: String? = null,
-        @RequestParam firstname: String? = null,
-        @RequestParam lastname: String? = null,
+        @RequestParam searchInput: String? = null,
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
-            username = username?.trim(),
-            firstname = firstname?.trim(),
-            lastname = lastname?.trim(),
+            searchInput = searchInput,
             enabled = enabled,
             page = page,
             pageSize = pageSize,

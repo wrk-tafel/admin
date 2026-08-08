@@ -103,9 +103,7 @@ describe('UserSearchComponent', () => {
 
     component.searchFormModel.set({
       personnelNumber: testPersonnelNumber,
-      firstname: '',
-      lastname: '',
-      username: '',
+      searchInput: '',
       enabled: false
     });
     component.searchForPersonnelNumber();
@@ -119,9 +117,7 @@ describe('UserSearchComponent', () => {
 
     component.searchFormModel.set({
       personnelNumber: 'personnelnumber',
-      firstname: 'firstname',
-      lastname: 'lastname',
-      username: 'username',
+      searchInput: 'muster',
       enabled: true
     });
 
@@ -129,7 +125,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('username', true, 'lastname', 'firstname', undefined, undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('muster', true, undefined, undefined);
 
     fixture.detectChanges();
     // mat-table renders rows; query by attribute selector on nativeElement
@@ -143,31 +139,27 @@ describe('UserSearchComponent', () => {
     expect(enabledEl?.textContent?.trim()).toBe('Ja');
   });
 
-  it('search with firstname only', () => {
+  it('search with the filter only', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.searchFormModel.set({
       personnelNumber: '',
-      firstname: 'firstname',
-      lastname: '',
-      username: '',
+      searchInput: '',
       enabled: false
     });
     apiService.searchUser.mockReturnValue(EMPTY);
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined, undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('', false, undefined, undefined);
   });
 
-  it('search with firstname no results', () => {
+  it('search with no results', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.searchFormModel.set({
       personnelNumber: '',
-      firstname: 'firstname',
-      lastname: '',
-      username: '',
+      searchInput: 'muster',
       enabled: false
     });
 
@@ -176,7 +168,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined, undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('muster', false, undefined, undefined);
     expect(toastr.info).toHaveBeenCalledWith('Keine Benutzer gefunden!');
   });
 

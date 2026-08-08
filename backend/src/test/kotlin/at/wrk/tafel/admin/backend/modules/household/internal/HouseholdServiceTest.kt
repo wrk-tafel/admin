@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -78,6 +79,9 @@ class HouseholdServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
+
+    @RelaxedMockK
+    private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @InjectMockKs
     private lateinit var service: HouseholdService

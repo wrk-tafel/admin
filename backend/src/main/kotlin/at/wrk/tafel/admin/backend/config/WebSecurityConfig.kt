@@ -170,7 +170,7 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties)
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
