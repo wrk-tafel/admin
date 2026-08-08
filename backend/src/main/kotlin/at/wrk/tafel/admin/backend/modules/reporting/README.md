@@ -46,7 +46,8 @@ in the mailed export set without any other wiring change:
 
 - **`AgeDistributionExporter`** (`TOeT_Verteilung_Alter`) – Buckets every household member into fixed age
   ranges (`AgeRange` enum, 0-20 … 91+) and reports household/person counts and percentages per bucket, for the
-  *current* distribution only.
+  *current* distribution only. Ages are taken as of `distribution.startedAt`, not as of the export run, so
+  re-exporting an old distribution reproduces the buckets it had rather than shifting everyone forward.
 - **`CountryDistributionExporter`** (`TOeT_Verteilung_Nationalitaeten`) – Same idea, grouped by
   `Person.country`, current distribution only.
 - **`HouseholdSizeDistributionExporter`** (`TOeT_Verteilung_Haushaltsgroesse`) – Distribution of household

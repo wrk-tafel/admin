@@ -2,11 +2,12 @@
 -- filtering/joining on these columns. None of them were indexed, so every query does a sequential scan -
 -- fine with the small local/test datasets but increasingly slow in prod as history accumulates.
 
-CREATE INDEX IF NOT EXISTS idx_customers_valid_until
-    ON customers (valid_until);
+-- The household-side index lives in R__00085 instead of here: `households` is only created by
+-- R__00067, which sorts after this script. `customers`/`customers_addpersons` are read-only
+-- leftovers awaiting cleanup and no statistics query touches them, so indexing them is dead weight.
+DROP INDEX IF EXISTS idx_customers_valid_until;
 
-CREATE INDEX IF NOT EXISTS idx_customers_addpersons_customer_id
-    ON customers_addpersons (customer_id);
+DROP INDEX IF EXISTS idx_customers_addpersons_customer_id;
 
 -- Matches the exact `DATE(started_at)` expression used in the statistics queries' WHERE clauses,
 -- since a plain index on started_at can't be used by the planner for that wrapped expression.

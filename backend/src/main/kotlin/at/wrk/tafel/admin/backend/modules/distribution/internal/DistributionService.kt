@@ -178,7 +178,7 @@ class DistributionService(
             halftimeTicketNumber = halftimeTicketNumber,
             countHouseholdsOverall = countHouseholds,
             countPersonsOverall = countAddPersons + countHouseholds,
-            households = mapHouseholdsForPdf(sortedHouseholds),
+            households = mapHouseholdsForPdf(sortedHouseholds, currentDistribution.startedAt.toLocalDate()),
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -380,14 +380,21 @@ class DistributionService(
         .sortedBy { it.ticketNumber }
         .firstOrNull()
 
-    private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
+    /**
+     * [referenceDate] is the distribution's own day rather than today, so a list regenerated for a
+     * past distribution still counts the infants it had on the day.
+     */
+    private fun mapHouseholdsForPdf(
+        households: List<DistributionHouseholdEntity>,
+        referenceDate: LocalDate,
+    ): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
         val household = distributionHouseholdEntity.household
         val countPersons = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
             .size + 1
         val countInfants = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+            .count { Period.between(it.birthDate, referenceDate).years < 3 }
 
         HouseholdListItem(
             ticketNumber = distributionHouseholdEntity.ticketNumber,

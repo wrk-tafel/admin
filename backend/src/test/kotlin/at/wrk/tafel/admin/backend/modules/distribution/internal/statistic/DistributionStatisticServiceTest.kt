@@ -6,6 +6,8 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
@@ -198,6 +200,50 @@ internal class DistributionStatisticServiceTest {
         verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
 
         assertThat(savedStatisticSlot.captured.countSingleParentHouseholds).isEqualTo(2)
+    }
+
+    @Test
+    fun `count infants uses the age on the distribution day, not the age today`() {
+        val startedAt = LocalDateTime.now().minusYears(3)
+        val testDistributionEntity = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = startedAt.plusHours(2)
+        }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
+
+        val household = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = LocalDate.now().minusYears(40)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        // 2 years old when the distribution ran, 5 years old today
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = startedAt.toLocalDate().minusYears(2)
+                excludeFromHousehold = false
+            },
+        )
+
+        testDistributionEntity.households = listOf(
+            DistributionHouseholdEntity(
+                distribution = testDistributionEntity,
+                household = household,
+                ticketNumber = 1,
+            ),
+        )
+
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.saveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        assertThat(savedStatisticSlot.captured.countInfants).isEqualTo(1)
     }
 
     @Test
