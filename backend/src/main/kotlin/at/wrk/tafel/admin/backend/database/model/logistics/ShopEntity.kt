@@ -22,6 +22,8 @@ class ShopEntity(
     @Column(name = "food_unit")
     @Enumerated(EnumType.STRING)
     var foodUnit: FoodUnit = FoodUnit.BOX,
+    @Column(name = "enabled")
+    var enabled: Boolean = true,
 ) : BaseChangeTrackingEntity() {
 
     @Column(name = "phone")

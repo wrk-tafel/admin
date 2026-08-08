@@ -36,22 +36,39 @@ DB level — it only governs `modules`-to-`modules` traffic.
 
 ## Components by sub-area
 
-### Routes & shops (`RouteController`, `internal/RouteService`, `internal/ShopService`)
-- `RouteEntity` (`routes`) has a `number` (`Double`, allows things like route "2.1") and a `name`,
-  plus `stops: List<RouteStopEntity>` (mapped by `route`, table `routes_stops`).
+### Routes & shops (`RouteController`, `ShopsController`, `internal/RouteService`, `internal/ShopService`)
+- `RouteEntity` (`routes`) has a `number` (`Double`, allows things like route "2.1"), a `name` and
+  an `enabled` flag, plus `stops: MutableList<RouteStopEntity>` (mapped by `route`, table
+  `routes_stops`, `cascade = [CascadeType.ALL], orphanRemoval = true`).
 - `RouteStopEntity` links a route to a `ShopEntity` at a given `time` (`LocalTime`), with a free
-  `description`.
-- There is **no standalone "list all shops" endpoint**. `ShopService.getShopsForRouteId(routeId)`
-  is the only way shops are surfaced to the frontend: it loads the route, sorts its `stops` by
-  `time`, and maps each stop's shop. Shops are always presented in route/stop-time order, never
-  independently.
+  `description`. The shop is nullable — a stop can be a pause or anything else that isn't a pickup.
+  `routes_stops` is unique on both `(route_id, shop_id)` and `(route_id, time)`, so a route visits
+  each shop once and has one stop per time.
+- **A route's stops are replaced wholesale on update**, like shelter contacts below — but with an
+  explicit `saveAndFlush()` between clearing and re-adding them. Without that flush the inserts of
+  the new stops can reach the database before the removed ones are deleted, and re-using a shop or
+  a time that a removed stop still occupies then violates one of those unique constraints.
+  `RouteServiceIT` covers exactly that case (swapping two stops' times).
+- **`time` is the ordering key, there is no `sortOrder`.** Both `RouteService.getAllRoutes()` and
+  `ShopService.getShopsForRouteId()` sort a route's stops by `time`; routes and shops themselves
+  sort by their `number`. This is the one piece of sortable master data here that is *not* the
+  drag-and-drop `sortOrder` pattern used by shelters/cars/categories.
 - `ShopEntity` (`shops`) embeds `ShopAddress` (`address_street`/`address_postal_code`/
   `address_city`) and carries a `foodUnit: FoodUnit` (`BOX` or `KG`) — this drives weight
-  calculation in food collections (see below).
-- There is no standalone shop repository — `ShopService` goes through `RouteRepository` for
-  everything (see above). A `RouteShopRepository` used to exist here (`JpaRepository<RouteStopEntity, Long>`,
-  despite its name actually repository-managing *stops*, not shops) but was unused dead code and
-  has been removed; don't recreate a shop-specific repository without checking `ShopService` first.
+  calculation in food collections (see below) — plus an `enabled` flag. `number` is unique, checked
+  in `ShopService` before saving so a duplicate surfaces as a `BusinessRuleException` rather than a
+  constraint violation.
+- `ShopService.getShopsForRouteId(routeId)` is what the food-collection recording screen sees: it
+  loads the route, sorts its stops by `time`, and maps each stop's shop, **skipping disabled ones**.
+  `RouteController.getActiveRoutes()` (`GET /api/routes/active`) does the same for routes.
+- **Neither routes nor shops can be deleted** — `food_collections.route_id`,
+  `food_collections_items.shop_id` and `food_collections_return_items.shop_id` all reference them,
+  so recorded history would break. The `enabled` flag is the only way to retire one; disabling
+  keeps every past food collection intact.
+- **Permission split, same shape as cars/food categories:** `getActiveRoutes()` and
+  `getShopsOfRoute()` require `LOGISTICS` (the recording screen), while the full list plus
+  create/update on both controllers require `SETTINGS` (the maintenance screens under
+  `/einstellungen/routen` and `/einstellungen/maerkte`).
 
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal

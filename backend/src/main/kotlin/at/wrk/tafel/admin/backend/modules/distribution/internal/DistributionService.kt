@@ -286,7 +286,8 @@ class DistributionService(
                 )
             } else {
                 // Warnings
-                val routes: List<RouteEntity> = routeRepository.findAll()
+                // a disabled route isn't driven anymore, so not recording it is not a problem
+                val routes: List<RouteEntity> = routeRepository.findByEnabledIsTrue()
                 val missingRoutes =
                     routes.map { it.number } - currentDistribution.foodCollections.map { it.route.number }
                 if (missingRoutes.isNotEmpty()) {

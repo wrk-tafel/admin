@@ -1,0 +1,123 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <div class="flex items-center gap-2">
+        <h5 class="mb-0 mt-1">Märkte</h5>
+        <button matButton="filled" class="button-success" testid="addShopButton" (click)="addShop()">
+          <fa-icon [icon]="faPlus"></fa-icon>
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Märkte, bei denen Waren abgeholt werden. Die Einheit legt fest, ob die Warenerfassung dort in
+      Kisten oder in Kilogramm zählt. Inaktive Märkte werden bei der Warenerfassung nicht mehr
+      angezeigt, bleiben aber in bereits erfassten Ausgabetagen erhalten.
+    </p>
+
+    <div class="hidden md:block">
+      <table mat-table [dataSource]="shops()?.shops ?? []" testid="shops-table">
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef>Aktiv</th>
+          <td mat-cell *matCellDef="let shop" [class.opacity-50]="!shop.enabled">
+            @if (shop.enabled) {
+              <button matButton="filled" class="button-success ms-2" testid="enableShopButton"
+                      (click)="toggleShopVisibility(shop, false)">
+                <fa-icon [icon]="faEye"></fa-icon>
+              </button>
+            } @else {
+              <button matButton="filled" class="button-danger ms-2" testid="disableShopButton"
+                      (click)="toggleShopVisibility(shop, true)">
+                <fa-icon [icon]="faEyeSlash"></fa-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="number">
+          <th mat-header-cell *matHeaderCellDef>Nummer</th>
+          <td mat-cell *matCellDef="let shop" [class.opacity-50]="!shop.enabled">{{ shop.number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let shop" [class.opacity-50]="!shop.enabled">{{ shop.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="address">
+          <th mat-header-cell *matHeaderCellDef>Adresse</th>
+          <td mat-cell *matCellDef="let shop" [class.opacity-50]="!shop.enabled">{{ shop | formatShopAddress }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="foodUnit">
+          <th mat-header-cell *matHeaderCellDef>Einheit</th>
+          <td mat-cell *matCellDef="let shop" [class.opacity-50]="!shop.enabled">
+            {{ shop.foodUnit === 'KG' ? 'Kilogramm' : 'Kisten' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+          <td mat-cell *matCellDef="let shop; let i = index">
+            <button matButton="filled" class="button-secondary me-2" testid="viewShopButton"
+                    (click)="viewShopDetails(shop)">
+              <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+            </button>
+            <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
+                    [disabled]="!shop.enabled" (click)="editShop(shop)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
+            [attr.testid]="'shops-row-' + i"></tr>
+      </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="shops-cards">
+        @for (shop of shops()?.shops ?? []; track shop.id; let i = $index) {
+          <mat-card class="shadow-sm" [class.opacity-50]="!shop.enabled" [attr.testid]="'shops-row-' + i">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="text-base font-semibold">
+                {{ shop.number }} - {{ shop.name }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="font-bold">Adresse:</div>
+                <div>{{ shop | formatShopAddress }}</div>
+                <div class="font-bold">Einheit:</div>
+                <div>{{ shop.foodUnit === 'KG' ? 'Kilogramm' : 'Kisten' }}</div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions class="flex gap-2">
+              @if (shop.enabled) {
+                <button matButton="filled" class="button-success" testid="enableShopButton"
+                        (click)="toggleShopVisibility(shop, false)">
+                  <fa-icon [icon]="faEye"></fa-icon>
+                </button>
+              } @else {
+                <button matButton="filled" class="button-danger" testid="disableShopButton"
+                        (click)="toggleShopVisibility(shop, true)">
+                  <fa-icon [icon]="faEyeSlash"></fa-icon>
+                </button>
+              }
+              <button matButton="filled" class="button-secondary" testid="viewShopButton"
+                      (click)="viewShopDetails(shop)">
+                <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+              </button>
+              <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
+                      [disabled]="!shop.enabled" (click)="editShop(shop)">
+                <fa-icon [icon]="faPencil"></fa-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

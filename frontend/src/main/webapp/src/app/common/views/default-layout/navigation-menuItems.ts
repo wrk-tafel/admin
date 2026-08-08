@@ -174,8 +174,16 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/mitarbeiter'
       },
       {
+        name: 'Märkte',
+        url: '/einstellungen/maerkte'
+      },
+      {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen'
+      },
+      {
+        name: 'Routen',
+        url: '/einstellungen/routen'
       },
       {
         name: 'Waren-Kategorien',

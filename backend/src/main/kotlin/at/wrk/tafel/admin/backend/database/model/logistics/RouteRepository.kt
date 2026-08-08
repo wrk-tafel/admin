@@ -2,4 +2,6 @@ package at.wrk.tafel.admin.backend.database.model.logistics
 
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface RouteRepository : JpaRepository<RouteEntity, Long>
+interface RouteRepository : JpaRepository<RouteEntity, Long> {
+    fun findByEnabledIsTrue(): List<RouteEntity>
+}

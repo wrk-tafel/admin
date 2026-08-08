@@ -6,8 +6,20 @@ import {Observable} from 'rxjs';
 export class RouteApiService {
   private readonly http = inject(HttpClient);
 
-  getRoutes(): Observable<RouteList> {
+  getActiveRoutes(): Observable<RouteList> {
+    return this.http.get<RouteList>('/routes/active');
+  }
+
+  getAllRoutes(): Observable<RouteList> {
     return this.http.get<RouteList>('/routes');
+  }
+
+  createRoute(route: RouteData): Observable<RouteData> {
+    return this.http.post<RouteData>('/routes', route);
+  }
+
+  updateRoute(routeId: number, route: RouteData): Observable<RouteData> {
+    return this.http.put<RouteData>(`/routes/${routeId}`, route);
   }
 
   getShopsOfRoute(routeId: number): Observable<ShopsOfRouteData> {
@@ -22,7 +34,18 @@ export interface RouteList {
 
 export interface RouteData {
   id: number;
+  number: number;
   name: string;
+  note?: string;
+  enabled: boolean;
+  stops: RouteStopData[];
+}
+
+export interface RouteStopData {
+  id?: number;
+  time: string;
+  shopId?: number;
+  description?: string;
 }
 
 export interface ShopsOfRouteData {

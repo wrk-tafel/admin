@@ -1,5 +1,50 @@
-### Fetch all routes
+### Fetch active routes (used by the food collection recording screen)
+GET {{baseApiPath}}/routes/active
+
+### Fetch all routes (maintenance screen)
 GET {{baseApiPath}}/routes
+
+### Create a route
+POST {{baseApiPath}}/routes
+Content-Type: application/json
+
+{
+  "number": 4.0,
+  "name": "Route 4",
+  "note": "Notiz zur Route",
+  "enabled": true,
+  "stops": [
+    {
+      "time": "14:00",
+      "shopId": 1,
+      "description": "Erster Stopp"
+    },
+    {
+      "time": "14:30",
+      "shopId": null,
+      "description": "Pause"
+    }
+  ]
+}
+
+### Update a route
+PUT {{baseApiPath}}/routes/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "number": 1.0,
+  "name": "Route 1",
+  "note": "Notiz 1",
+  "enabled": true,
+  "stops": [
+    {
+      "time": "14:00",
+      "shopId": 1,
+      "description": null
+    }
+  ]
+}
 
 ### Fetch shops for a specific route
 GET {{baseApiPath}}/routes/1/shops

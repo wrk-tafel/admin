@@ -56,6 +56,34 @@ Unter **Einstellungen → Fahrzeuge** werden die für die Warenerfassung verfüg
 
 ![Fahrzeuge](images/einstellungen-fahrzeuge.jpg)
 
+<a id="maerkte"></a>
+
+## Märkte
+
+Unter **Einstellungen → Märkte** werden die Geschäfte gepflegt, bei denen Ware abgeholt wird. Neben Nummer, Name und Adresse werden Telefonnummer, Ansprechperson und ein freier **Hinweis**-Text erfasst.
+
+Die **Einheit** legt fest, wie die Menge dieses Markts in der [Warenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Lebensmittelkategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieses Markts.
+
+Die **Nummer** muss eindeutig sein; ist sie bereits vergeben, erscheint beim Speichern die Meldung "Markt-Nummer ... ist bereits vergeben!".
+
+![Märkte](images/einstellungen-maerkte.jpg)
+
+Märkte können angesehen, bearbeitet und über das Augen-Symbol aktiviert/deaktiviert werden. Ein deaktivierter Markt steht in der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion. Ein deaktivierter Markt kann erst wieder bearbeitet werden, nachdem er reaktiviert wurde (der Stift-Button ist so lange deaktiviert).
+
+<a id="routen"></a>
+
+## Routen
+
+Unter **Einstellungen → Routen** werden die Routen samt ihren Stopps gepflegt. Eine Route hat eine Nummer (Zwischennummern wie 2.1 sind möglich), einen Namen und einen freien **Hinweis**-Text.
+
+![Routen](images/einstellungen-routen.jpg)
+
+Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, ein **Markt** und eine **Beschreibung** erfasst. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in dieser Ansicht als auch in der [Warenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Zur Auswahl stehen alle aktiven [Märkte](#maerkte); mit "Kein Markt" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen.
+
+![Routen-Stopps](images/einstellungen-routen-stopps.jpg)
+
+Pro Route darf jeder Markt nur einmal vorkommen und jede Uhrzeit nur einmal vergeben sein; andernfalls erscheint beim Speichern eine entsprechende Meldung. Wie bei den Märkten können Routen deaktiviert statt gelöscht werden: eine deaktivierte Route steht in der Warenerfassung nicht mehr zur Auswahl, bereits erfasste Ausgabetage bleiben aber unverändert.
+
 ## Mitarbeiter
 
 Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die [Benutzerkonten](benutzer.md) sowie die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basieren. Über die Suche (auch per Enter-Taste auslösbar) kann gezielt nach Mitarbeitern gefiltert werden. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung oder Löschfunktion, nur Anlegen und Bearbeiten. Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Zeichen).

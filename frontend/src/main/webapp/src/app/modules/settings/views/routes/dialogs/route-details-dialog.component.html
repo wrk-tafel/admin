@@ -1,0 +1,31 @@
+<tafel-dialog title="Route Details" testId="route-details-dialog">
+  <div tafel-dialog-content>
+    <div class="grid grid-cols-1 gap-2">
+      <div><strong>Nummer:</strong> {{ data.route?.number }}</div>
+      <div><strong>Name:</strong> {{ data.route?.name }}</div>
+      <div><strong>Aktiv:</strong> {{ data.route?.enabled ? 'Ja' : 'Nein' }}</div>
+      <div><strong>Hinweis:</strong> {{ data.route?.note || '-' }}</div>
+
+      <div class="mt-2">
+        <h5 class="mb-2">Stopps</h5>
+        @if (data.route.stops.length > 0) {
+          <ul class="list-disc pl-4">
+            @for (stop of data.route.stops; track stop.id) {
+              <li>
+                <div><strong>{{ stop.time }}</strong> - {{ shopLabel(stop) }}</div>
+                @if (stop.description) {
+                  <div>{{ stop.description }}</div>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <div>Keine Stopps vorhanden</div>
+        }
+      </div>
+    </div>
+  </div>
+  <div tafel-dialog-actions>
+    <button matButton="filled" testid="route-details-close-button" (click)="close()">Schließen</button>
+  </div>
+</tafel-dialog>

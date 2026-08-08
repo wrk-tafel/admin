@@ -35,7 +35,7 @@ val testShop3 = ShopEntity(
 val testRoute1 = RouteEntity(number = 1.0, name = "Route 1").apply {
     id = 1
     note = "Note 1"
-    stops = listOf(
+    stops = mutableListOf(
         RouteStopEntity(route = this, time = LocalTime.MIDNIGHT.plusHours(5)).apply {
             id = 33
             shop = testShop1
@@ -55,19 +55,19 @@ val testRoute1 = RouteEntity(number = 1.0, name = "Route 1").apply {
 val testRoute2 = RouteEntity(number = 2.0, name = "Route 2").apply {
     id = 2
     note = null
-    stops = emptyList()
+    stops = mutableListOf()
 }
 
 val testRoute3 = RouteEntity(number = 3.0, name = "Route 3").apply {
     id = 3
     note = null
-    stops = emptyList()
+    stops = mutableListOf()
 }
 
 val testRoute4 = RouteEntity(number = 4.0, name = "Route 4").apply {
     id = 4
     note = null
-    stops = emptyList()
+    stops = mutableListOf()
 }
 
 val testFoodCategory1 = FoodCategoryEntity(name = "Category 1", sortOrder = 200, enabled = true).apply {

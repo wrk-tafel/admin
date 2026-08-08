@@ -69,7 +69,8 @@ class DashboardService(
 
         return DashboardLogisticsData(
             foodCollectionsRecordedCount = doneFoodCollections.size,
-            foodCollectionsTotalCount = routeRepository.findAll().size,
+            // disabled routes aren't driven anymore, so they must not inflate the target count
+            foodCollectionsTotalCount = routeRepository.findByEnabledIsTrue().size,
             recordedRouteNames = doneFoodCollections
                 .sortedWith(compareBy({ it.route.number }, { it.route.name }))
                 .map { it.route.name },
