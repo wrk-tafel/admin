@@ -64,8 +64,8 @@ class FoodCollectionEntity(
      *
      * Lives on the entity rather than in either caller because two modules ask the same question and
      * have to agree on the answer: `dashboard` counts recorded routes for its progress display, and
-     * `push` decides from it whether a distribution closed with recording still outstanding. Return
-     * items are deliberately not part of it - not every route brings any back.
+     * `logistics` decides from it when the last outstanding route has been recorded. Return items
+     * are deliberately not part of it - not every route brings any back.
      */
     fun isFullyRecorded(): Boolean = car != null &&
         driver != null &&
