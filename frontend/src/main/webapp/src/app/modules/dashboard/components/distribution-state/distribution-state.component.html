@@ -7,7 +7,7 @@
   <mat-card-content class="text-center">
     <div testid="distribution-state-text" class="font-bold text-5xl">{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</div>
   </mat-card-content>
-  <mat-card-footer class="mt-6">
+  <mat-card-footer>
     @if (!isDistributionActive()) {
       <button testid="distribution-start-button"
               mat-raised-button
