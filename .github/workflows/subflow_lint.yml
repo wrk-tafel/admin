@@ -7,9 +7,27 @@ env:
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      backend:
+        description: 'Run ktlint - pass false when the change cannot affect the backend sources'
+        type: boolean
+        required: false
+        default: true
+      frontend:
+        description: 'Run eslint and the type-check - pass false when the change cannot affect the frontend sources'
+        type: boolean
+        required: false
+        default: true
+      docker:
+        description: 'Run hadolint - pass false when the Dockerfile is untouched'
+        type: boolean
+        required: false
+        default: true
 
 jobs:
+  # inputs.* are unset on a manual run, which should exercise everything.
   lint-backend:
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.backend }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -24,6 +42,7 @@ jobs:
         run: ./gradlew :backend:ktlintCheck
 
   lint-docker:
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.docker }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,6 +52,7 @@ jobs:
           dockerfile: _build/Dockerfile
 
   lint-frontend:
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.frontend }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

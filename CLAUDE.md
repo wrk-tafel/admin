@@ -504,6 +504,16 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   including `deploy-test` still succeeds, and prod is deployed by re-running the failed jobs once it
   is no longer Saturday. A red release run whose only failure is `check-deploy-window` means the
   freeze, not a broken build.
+- **Path-Aware Pipeline**: `pull_request.yml` and `main_push.yml` gate every job on what the change
+  actually touches. `subflow_changes.yml` classifies the changed files into backend / frontend /
+  docker image (a change under `.github/workflows/` counts as all three, since only running the
+  pipeline proves a pipeline change), and the callers skip the jobs that can say nothing about it.
+  So a docs-only change — or a PR title/description edit, which re-triggers the workflow with
+  unchanged commits — runs nothing but `commitlint`/`pr-title-lint`, and a run showing build, test,
+  e2e and deploy as *skipped* is the intended outcome, not a broken pipeline. The one job not gated
+  on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
+  runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
+  every release produces a new version tag, image and userguide PDF regardless of what changed.
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)
