@@ -1,4 +1,4 @@
-import {TEST_USER_PASSWORD, UserData} from '../support/commands';
+import {testUserPassword, UserData} from '../support/commands';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Login', () => {
@@ -191,35 +191,25 @@ describe('Login', () => {
   });
 
   function createTestUser(permissions: { key: string; title: string }[] = []) {
-    return cy.getAnyRandomNumber().then(randomNumber => {
-      const testUser: UserData = {
-        username: 'username-' + randomNumber,
-        personnelNumber: 'personnelnumber-' + randomNumber,
-        firstname: 'firstname-' + randomNumber,
-        lastname: 'lastname-' + randomNumber,
-        enabled: true,
-        password: TEST_USER_PASSWORD,
-        passwordRepeat: TEST_USER_PASSWORD,
-        passwordChangeRequired: false,
-        permissions
-      };
-
-      cy.loginDefault();
-      return cy.createUser(testUser).then(response => ({user: response.body, testUser}));
-    });
+    return createUserWith(false, permissions);
   }
 
   function createTestUserRequiringPasswordChange(permissions: { key: string; title: string }[] = []) {
+    return createUserWith(true, permissions);
+  }
+
+  function createUserWith(passwordChangeRequired: boolean, permissions: { key: string; title: string }[]) {
     return cy.getAnyRandomNumber().then(randomNumber => {
+      const password = testUserPassword(randomNumber);
       const testUser: UserData = {
         username: 'username-' + randomNumber,
         personnelNumber: 'personnelnumber-' + randomNumber,
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: TEST_USER_PASSWORD,
-        passwordRepeat: TEST_USER_PASSWORD,
-        passwordChangeRequired: true,
+        password,
+        passwordRepeat: password,
+        passwordChangeRequired,
         permissions
       };
 

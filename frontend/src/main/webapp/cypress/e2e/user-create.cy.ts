@@ -69,10 +69,11 @@ describe('User Create', () => {
       cy.byTestId('lastnameInput').type('test-lastname');
       cy.byTestId('firstnameInput').type('test-firstname');
 
-      // "tafel" is one of the words the backend's password validator rejects outright - the
-      // rejection has to come back as a 400 with its message, not as a generic server error
-      cy.byTestId('passwordInput').type('tafel-password');
-      cy.byTestId('passwordRepeatInput').type('tafel-password');
+      // "tafel" is one of the words the backend's password validator rejects outright (and it is
+      // below the minimum length too) - the rejection has to come back as a 400 carrying its
+      // message, not as a generic server error
+      cy.byTestId('passwordInput').type('tafel');
+      cy.byTestId('passwordRepeatInput').type('tafel');
 
       cy.byTestId('save-button').click();
 

@@ -1,5 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
-import {TEST_USER_PASSWORD, UserData} from '../support/commands';
+import {testUserPassword, UserData} from '../support/commands';
 
 describe('User Detail', () => {
 
@@ -9,14 +9,15 @@ describe('User Detail', () => {
 
   it('shows permissions grouped by category', () => {
     cy.getAnyRandomNumber().then(randomNumber => {
+      const generatedPassword = testUserPassword(randomNumber);
       const userData: UserData = {
         username: 'permcheck-' + randomNumber,
         personnelNumber: 'permcheck-' + randomNumber,
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: TEST_USER_PASSWORD,
-        passwordRepeat: TEST_USER_PASSWORD,
+        password: generatedPassword,
+        passwordRepeat: generatedPassword,
         passwordChangeRequired: false,
         permissions: [
           {key: 'CHECKIN', title: 'Anmeldung'},

@@ -1,5 +1,5 @@
 import {recurse} from 'cypress-recurse';
-import {TEST_USER_PASSWORD, UserData} from '../support/commands';
+import {testUserPassword, UserData} from '../support/commands';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('PasswordChange', () => {
@@ -61,14 +61,15 @@ describe('PasswordChange', () => {
 
   it('change password', () => {
     cy.getAnyRandomNumber().then(randomNumber => {
+      const generatedPassword = testUserPassword(randomNumber);
       const testUser: UserData = {
         username: 'username-' + randomNumber,
         personnelNumber: 'personnelnumber-' + randomNumber,
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: TEST_USER_PASSWORD,
-        passwordRepeat: TEST_USER_PASSWORD,
+        password: generatedPassword,
+        passwordRepeat: generatedPassword,
         passwordChangeRequired: false,
         // Needs at least one permission to pass the dashboard's anyPermission guard - the cy.visit
         // below is a real page reload (not just an in-app navigation), so the guard genuinely runs
