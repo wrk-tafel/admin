@@ -35,7 +35,8 @@
                                 class="button-success"
                                 [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
                                 (click)="addAddress(i, j)"
-                                matTooltip="Weitere E-Mail Adresse hinzufügen">
+                                matTooltip="Weitere E-Mail Adresse hinzufügen"
+                                matTooltipPosition="above">
                           <fa-icon [icon]="faPlus"></fa-icon>
                         </button>
                       </div>

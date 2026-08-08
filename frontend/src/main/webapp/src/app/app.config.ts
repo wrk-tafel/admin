@@ -41,10 +41,16 @@ const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
 // Icon-only buttons sit next to each other in dense action columns, so a tooltip that appeared
 // instantly would flash on every pass of the mouse. The short delay means it only shows when the
 // pointer actually rests on a button.
+//
+// A tooltip only hides on mouseleave/wheel - never on click - so it stays up over whatever the
+// click just revealed underneath it (e.g. the address field that the mail-recipient "+" button
+// appends right below itself). Interactive is the default, which makes that overlap swallow
+// clicks meant for the element behind it; a passive hint must never do that.
 const DEFAULT_TOOLTIP_CONFIG: MatTooltipDefaultOptions = {
   showDelay: 300,
   hideDelay: 0,
-  touchendHideDelay: 1500
+  touchendHideDelay: 1500,
+  disableTooltipInteractivity: true
 };
 
 export const appConfig: ApplicationConfig = {
