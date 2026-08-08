@@ -129,10 +129,12 @@ internal class HouseholdNoteServiceTest {
         val householdId = 123L
         val noteEntities = listOf(
             HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 2").apply {
+                this.id = 2
                 this.employee = testUserEntity.employee
                 this.createdAt = LocalDateTime.now().minusDays(1)
             },
             HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
+                this.id = 1
                 this.employee = testUserEntity.employee
                 this.createdAt = LocalDateTime.now().minusDays(2)
             },
@@ -140,11 +142,13 @@ internal class HouseholdNoteServiceTest {
 
         val notes = listOf(
             HouseholdNoteItem(
+                id = 2,
                 author = "test-personnelnumber test-firstname test-lastname",
                 timestamp = noteEntities[0].createdAt!!,
                 note = "note 2",
             ),
             HouseholdNoteItem(
+                id = 1,
                 author = "test-personnelnumber test-firstname test-lastname",
                 timestamp = noteEntities[1].createdAt!!,
                 note = "note 1",
@@ -174,6 +178,7 @@ internal class HouseholdNoteServiceTest {
         val note = "test note"
 
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = note)
+        noteEntity.id = 42
         noteEntity.createdAt = LocalDateTime.now()
         noteEntity.employee = testUserEntity.employee
         every { householdNoteRepository.save(any()) } returns noteEntity
@@ -182,6 +187,7 @@ internal class HouseholdNoteServiceTest {
 
         val noteItem = service.createNewNote(householdId = testHouseholdEntity1.householdId, note = note)
 
+        assertThat(noteItem.id).isEqualTo(42)
         assertThat(noteItem.author).isEqualTo("${testUser.personnelNumber} ${testUser.firstname} ${testUser.lastname}")
         assertThat(noteItem.timestamp).isEqualTo(noteEntity.createdAt)
         assertThat(noteItem.note).isEqualTo(note)

@@ -28,6 +28,7 @@ export class CustomerNoteApiService {
 export type CustomerNotesResponse = PagedResponse<CustomerNoteItem>;
 
 export interface CustomerNoteItem {
+  id: number;
   author?: string;
   timestamp: Date;
   note: string;

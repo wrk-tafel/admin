@@ -117,6 +117,45 @@ describe('Customer Detail', () => {
     cy.byTestId('latest-customer-note-none').should('be.visible');
   });
 
+  // Customer 103's notes are all inserted in one testdata transaction, so they share a single
+  // created_at to the microsecond. Tracking the list by that timestamp collapsed every row onto
+  // one key (NG0955) - only a real render over real data shows all ten actually surviving.
+  it('all notes dialog lists every note of a customer whose notes share a timestamp', () => {
+    cy.visit('/kunden/detail/103');
+
+    cy.byTestId('showall-notes-button').click();
+
+    // Scoped to the dialog - the "latest note" panel behind it carries the same testid.
+    cy.get('mat-dialog-content').within(() => {
+      cy.byTestId('note-title').should('have.length', 10);
+      // Newest first, so note 10 is at the top and note 1 sits below the dialog's scroll fold.
+      cy.contains('Testnotiz 10.').should('be.visible');
+      cy.contains('Testnotiz 1.').scrollIntoView().should('be.visible');
+    });
+  });
+
+  // The panel and the dialog render the same note text and used to disagree about it: the panel
+  // interpreted it as HTML, the dialog escaped it. Both now show plain text with real newlines.
+  it('note text renders identically as plain text in the panel and the dialog', () => {
+    cy.visit('/kunden/detail/103');
+
+    // The testdata note carries a real newline; it has to survive as one instead of collapsing.
+    const assertPlainTextWithNewline = () => {
+      cy.byTestId('note-text')
+        .filterDisplayed()
+        .first()
+        .invoke('text')
+        .should('contain', 'Testnotiz 10.\nLorem ipsum');
+    };
+
+    assertPlainTextWithNewline();
+
+    cy.byTestId('showall-notes-button').click();
+    cy.get('mat-dialog-content').within(() => {
+      assertPlainTextWithNewline();
+    });
+  });
+
   it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/kunden/detail/101');

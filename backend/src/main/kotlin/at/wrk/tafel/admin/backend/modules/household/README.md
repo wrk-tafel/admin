@@ -271,7 +271,9 @@ library, with the Tafel logo overlaid.
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with
 the authoring employee and a timestamp. Simple create/list (paginated, 5 per page, newest first);
-no update or delete endpoint exists.
+no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
+timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
+frontend needs the id as a stable list key.
 
 ## Gotchas / best practices
 

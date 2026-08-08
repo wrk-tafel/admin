@@ -36,11 +36,13 @@ describe('CustomerNotesResolver', () => {
         const mockNotesResponse: CustomerNotesResponse = {
             items: [
                 {
+                    id: 38,
                     author: 'author1',
                     timestamp: dayjs().subtract(1, 'hour').toDate(),
                     note: 'note from author 1'
                 },
                 {
+                    id: 43,
                     author: 'author2',
                     timestamp: dayjs().subtract(2, 'hour').toDate(),
                     note: 'note from author 2'
