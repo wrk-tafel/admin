@@ -1,5 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
-import {UserData} from '../support/commands';
+import {TEST_USER_PASSWORD, UserData} from '../support/commands';
 
 describe('User Detail', () => {
 
@@ -15,8 +15,8 @@ describe('User Detail', () => {
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: 'dummy-' + randomNumber,
-        passwordRepeat: 'dummy-' + randomNumber,
+        password: TEST_USER_PASSWORD,
+        passwordRepeat: TEST_USER_PASSWORD,
         passwordChangeRequired: false,
         permissions: [
           {key: 'CHECKIN', title: 'Anmeldung'},

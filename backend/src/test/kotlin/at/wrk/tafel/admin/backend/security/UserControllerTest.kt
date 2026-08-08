@@ -250,6 +250,18 @@ class UserControllerTest {
     }
 
     @Test
+    fun `create user with invalid password`() {
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+        every { userDetailsManager.createUser(any()) } throws PasswordChangeException("Das neue Passwort ist ungültig!")
+
+        val exception = assertThrows<BusinessRuleException> { controller.createUser(user = testUserRequest) }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(exception.body.detail).isEqualTo("Das neue Passwort ist ungültig!")
+    }
+
+    @Test
     fun `create user exists by username`() {
         every { userDetailsManager.loadUserByUsername(any()) } returns testUser
 

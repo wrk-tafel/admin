@@ -1,5 +1,5 @@
 import {recurse} from 'cypress-recurse';
-import {UserData} from '../support/commands';
+import {TEST_USER_PASSWORD, UserData} from '../support/commands';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('PasswordChange', () => {
@@ -67,8 +67,8 @@ describe('PasswordChange', () => {
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: 'dummy-' + randomNumber,
-        passwordRepeat: 'dummy-' + randomNumber,
+        password: TEST_USER_PASSWORD,
+        passwordRepeat: TEST_USER_PASSWORD,
         passwordChangeRequired: false,
         // Needs at least one permission to pass the dashboard's anyPermission guard - the cy.visit
         // below is a real page reload (not just an in-app navigation), so the guard genuinely runs

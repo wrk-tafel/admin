@@ -377,7 +377,7 @@ Cypress.Commands.add(
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: 'dummy-pwd-' + randomNumber,
+        password: TEST_USER_PASSWORD,
         passwordChangeRequired: false,
         permissions: []
       };
@@ -476,6 +476,13 @@ export interface CustomerAddPersonData {
   excludeFromHousehold: boolean;
   receivesFamilyAllowance: boolean;
 }
+
+// Password for every user an e2e spec creates. Deliberately a fixed string: it must not embed
+// getAnyRandomNumber()'s value, because that number carries a timestamp and therefore periodically
+// contains one of the substrings the backend's password validator rejects (e.g. "1030", see
+// WebSecurityConfig.passwordValidator), which fails user creation for whole seconds of every
+// ~27.7h cycle.
+export const TEST_USER_PASSWORD = 'e2e-test-user-pwd';
 
 export interface UserData {
   id?: number;
