@@ -234,12 +234,15 @@ Both follow the same shape, and a change to one usually belongs in the other:
 - **Search + status filter.** A `FormControl` fed through `toSignal()` and an `enabledFilter`
   signal (`EnabledFilter` from `views/enabled-filter.ts`) drive a `visibleShops()`/`visibleRoutes()`
   `computed()`. Filtering is purely client-side; both endpoints return the full list anyway.
-- **Enabling/disabling** happens with a `mat-slide-toggle` in the panel body's action row rather
-  than in the header — a control nested inside the header's `role="button"` would swallow clicks
-  meant for the panel and is a nested-interactive-element a11y problem. On a failed update the list
-  is reloaded, because the toggle has already moved on its own and only fresh data puts it back.
+- **Enabling/disabling** happens with a `mat-slide-toggle`. On a failed update the list is
+  reloaded, because the toggle has already moved on its own and only fresh data puts it back.
 - **Editing** stays dialog-based (`shop-edit-dialog`, `route-edit-dialog`), and the edit button is
   disabled while the record is inactive, same convention as cars/food-categories.
+- **Both controls sit in the panel header**, not in the expanded body, so a record can be switched
+  or edited without expanding it first. That needs `(click)`/`(keydown)` `stopPropagation()` on
+  their wrapper, since the header treats both events as "toggle the panel" — anything else added
+  there needs the same. It is also a nested-interactive-element a11y compromise (controls inside
+  the header's `role="button"`), which is why it stays limited to these two actions.
 - `route-edit-dialog` manages the stops as a nested `stops: FormArray` of
   `{ time, shopId, description }` with `addStop()`/`removeStop()` plus manual
   `ChangeDetectorRef.detectChanges()` calls, structurally the twin of `shelter-edit-dialog`'s

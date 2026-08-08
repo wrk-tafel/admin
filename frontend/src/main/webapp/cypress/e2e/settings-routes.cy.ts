@@ -32,10 +32,6 @@ describe('Settings - Routes', () => {
     return cy.byTestId('routes-list').contains('mat-expansion-panel', name);
   }
 
-  function expandRoute(name: string) {
-    routePanel(name).find('mat-expansion-panel-header').click();
-  }
-
   it('lists routes with their stop summary', () => {
     cy.byTestId('routes-list').should('exist');
     cy.byTestId('routes-row-0').should('contain.text', 'Route 1').and('contain.text', 'Stopps');
@@ -90,8 +86,9 @@ describe('Settings - Routes', () => {
       createRoute(name, '90.3', ['10:00', '10:30']);
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
-      expandRoute(name);
+      // the edit button sits in the collapsed header, so editing needs no expanding
       routePanel(name).find('[testid^="editRouteButton-"]').click();
+      cy.byTestId('route-edit-dialog').should('be.visible');
       cy.byTestId('route-name-input').should('be.visible').clear().type(newName);
       cy.byTestId('route-stop-remove-button-1').click();
       cy.byTestId('route-save-button').click();
@@ -108,7 +105,7 @@ describe('Settings - Routes', () => {
       createRoute(name, '90.4', ['11:00']);
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
-      expandRoute(name);
+      // the toggle sits in the collapsed header next to the edit button
       routePanel(name).find('[testid^="routes-enabled-toggle-"]').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 

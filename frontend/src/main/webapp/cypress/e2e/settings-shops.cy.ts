@@ -33,10 +33,6 @@ describe('Settings - Shops', () => {
     return cy.byTestId('shops-list').contains('mat-expansion-panel', name);
   }
 
-  function expandShop(name: string) {
-    shopPanel(name).find('mat-expansion-panel-header').click();
-  }
-
   it('lists shops with their address and unit', () => {
     cy.byTestId('shops-list').should('exist');
     cy.byTestId('shops-row-0').should('contain.text', 'Billa').and('contain.text', 'Kisten');
@@ -92,8 +88,9 @@ describe('Settings - Shops', () => {
       createShop(name, shopNumber(randomId));
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
-      expandShop(name);
+      // the edit button sits in the collapsed header, so editing needs no expanding
       shopPanel(name).find('[testid^="editShopButton-"]').click();
+      cy.byTestId('shop-edit-dialog').should('be.visible');
       cy.byTestId('shop-name-input').should('be.visible').clear().type(newName);
       cy.byTestId('shop-save-button').click();
 
@@ -109,7 +106,7 @@ describe('Settings - Shops', () => {
       createShop(name, shopNumber(randomId));
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
-      expandShop(name);
+      // the toggle sits in the collapsed header next to the edit button
       shopPanel(name).find('[testid^="shops-enabled-toggle-"]').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 

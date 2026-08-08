@@ -59,6 +59,20 @@
                 @if (!view.shop.enabled) {
                   <span class="badge badge-danger" testid="shops-inactive-badge">Inaktiv</span>
                 }
+                <!-- both actions stay reachable without expanding the shop first - the panel
+                     header would otherwise swallow the click and toggle the panel instead -->
+                <span class="ms-auto me-2 flex items-center gap-4" (click)="$event.stopPropagation()"
+                      (keydown)="$event.stopPropagation()">
+                  <mat-slide-toggle [checked]="view.shop.enabled" [attr.testid]="'shops-enabled-toggle-' + i"
+                                    (change)="onEnabledToggled(view.shop, $event)">
+                    Aktiv
+                  </mat-slide-toggle>
+                  <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
+                          [disabled]="!view.shop.enabled" aria-label="Filiale bearbeiten"
+                          (click)="editShop(view.shop)">
+                    <fa-icon [icon]="faPencil"></fa-icon>
+                  </button>
+                </span>
               </div>
             </mat-panel-title>
           </mat-expansion-panel-header>
@@ -102,22 +116,11 @@
             </div>
           }
 
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
-            <mat-slide-toggle [checked]="view.shop.enabled" [attr.testid]="'shops-enabled-toggle-' + i"
-                              (change)="onEnabledToggled(view.shop, $event)">
-              Aktiv
-            </mat-slide-toggle>
-            <div class="flex flex-wrap items-center gap-3">
-              @if (!view.shop.enabled) {
-                <span class="text-sm text-slate-500">Zum Bearbeiten zuerst aktivieren</span>
-              }
-              <button matButton="outlined" [attr.testid]="'editShopButton-' + i"
-                      [disabled]="!view.shop.enabled" (click)="editShop(view.shop)">
-                <fa-icon [icon]="faPencil" class="me-2"></fa-icon>
-                Bearbeiten
-              </button>
-            </div>
-          </div>
+          @if (!view.shop.enabled) {
+            <p class="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-500">
+              Zum Bearbeiten zuerst aktivieren
+            </p>
+          }
         </mat-expansion-panel>
       } @empty {
         @if (loaded()) {
