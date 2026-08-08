@@ -28,10 +28,13 @@ class AgeDistributionExporter : StatisticExporter {
 
     /**
      * `household.additionalPersons()` deliberately excludes the household's own main person, so
-     * `householdsBirthDates` (the main persons) has to be derived separately and spliced back into
+     * `householdsBirthDates` (the main persons) has to be derived separately and spliced into
      * `personsBirthDates` to get correct *person*-level age buckets - while the *household*-level
-     * buckets (`groupedCustomers`) use `householdsBirthDates` alone. The same list is reused once
-     * on its own and once merged; that's intentional, not redundant.
+     * buckets (`groupedCustomers`) use `householdsBirthDates` alone.
+     *
+     * `personsBirthDates` is where the main persons join the person list, and the only place they
+     * may: bucketing them a second time inflates the `Personen` column by exactly `countCustomers`,
+     * so the column no longer adds up to the export's own `gesamt` row.
      */
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
         // ages are bucketed as of the distribution's own day, not as of today, so re-exporting a past
@@ -49,7 +52,7 @@ class AgeDistributionExporter : StatisticExporter {
         val averagePersonsPerHousehold = if (countCustomers > 0) countPersons / countCustomers else 0
 
         val groupedCustomers = countByAgeRange(householdsBirthDates, referenceDate)
-        val groupedPersons = countByAgeRange(personsBirthDates + householdsBirthDates, referenceDate)
+        val groupedPersons = countByAgeRange(personsBirthDates, referenceDate)
 
         val rows = mutableListOf<List<String>>()
         AgeRange.entries.forEach { ageRange ->
