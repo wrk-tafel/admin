@@ -71,16 +71,77 @@ describe('SettingsShopsComponent', () => {
     const fixture = TestBed.createComponent(SettingsShopsComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance['shops']()?.shops.length).toBe(2);
+    expect(fixture.componentInstance['visibleShops']().length).toBe(2);
+    expect(fixture.componentInstance['totalCount']()).toBe(2);
+    expect(fixture.componentInstance['enabledCount']()).toBe(1);
   });
 
-  it('shows an error toast when loading fails', () => {
+  it('builds the view of a shop with its address and unit label', () => {
+    const fixture = TestBed.createComponent(SettingsShopsComponent);
+    fixture.detectChanges();
+
+    const [first, second] = fixture.componentInstance['visibleShops']();
+    expect(first.address).toBe('Teststraße 1, 1100 Wien');
+    expect(first.foodUnitLabel).toBe('Kisten');
+    expect(second.foodUnitLabel).toBe('Kilogramm');
+  });
+
+  it('shows an error toast when loading fails and does not stay in the loading state', () => {
     shopApiMock.getAllShops = vi.fn(() => throwError(() => new Error('failed')));
 
     const fixture = TestBed.createComponent(SettingsShopsComponent);
     fixture.detectChanges();
 
     expect(toastrMock.error).toHaveBeenCalled();
+    expect(fixture.componentInstance['loaded']()).toBe(true);
+  });
+
+  it('filters by the search text across number, name, address and contact', () => {
+    const fixture = TestBed.createComponent(SettingsShopsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('hofer');
+    expect(component['visibleShops']().map(view => view.shop.id)).toEqual([testShop2.id]);
+
+    component['searchControl'].setValue('musterfrau');
+    expect(component['visibleShops']().length).toBe(2);
+
+    component['searchControl'].setValue('200');
+    expect(component['visibleShops']().map(view => view.shop.id)).toEqual([testShop2.id]);
+
+    component['searchControl'].setValue('gibtsnicht');
+    expect(component['visibleShops']()).toEqual([]);
+  });
+
+  it('filters by the enabled state', () => {
+    const fixture = TestBed.createComponent(SettingsShopsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['enabledFilter'].set('ENABLED');
+    expect(component['visibleShops']().map(view => view.shop.id)).toEqual([testShop1.id]);
+
+    component['enabledFilter'].set('DISABLED');
+    expect(component['visibleShops']().map(view => view.shop.id)).toEqual([testShop2.id]);
+
+    component['enabledFilter'].set('ALL');
+    expect(component['visibleShops']().length).toBe(2);
+  });
+
+  it('clearSearch() resets the search field', () => {
+    const fixture = TestBed.createComponent(SettingsShopsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('hofer');
+    expect(component['filtered']()).toBe(true);
+
+    component['clearSearch']();
+
+    expect(component['searchControl'].value).toBe('');
+    expect(component['filtered']()).toBe(false);
+    expect(component['visibleShops']().length).toBe(2);
   });
 
   it('addShop() creates the shop returned by the dialog', () => {
@@ -106,31 +167,33 @@ describe('SettingsShopsComponent', () => {
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('toggleShopVisibility() persists the new enabled state', () => {
+  it('setShopEnabled() persists the new enabled state', () => {
     const fixture = TestBed.createComponent(SettingsShopsComponent);
     fixture.detectChanges();
-    fixture.componentInstance['toggleShopVisibility'](testShop1, false);
+    fixture.componentInstance['setShopEnabled'](testShop1, false);
 
     expect(shopApiMock.updateShop).toHaveBeenCalledWith(testShop1.id, {...testShop1, enabled: false});
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('toggleShopVisibility() shows an error toast when saving fails', () => {
+  it('onEnabledToggled() persists the state of the toggle', () => {
+    const fixture = TestBed.createComponent(SettingsShopsComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['onEnabledToggled'](testShop2, {checked: true} as any);
+
+    expect(shopApiMock.updateShop).toHaveBeenCalledWith(testShop2.id, {...testShop2, enabled: true});
+  });
+
+  it('setShopEnabled() shows an error toast and reloads when saving fails', () => {
     shopApiMock.updateShop = vi.fn(() => throwError(() => new Error('failed')));
 
     const fixture = TestBed.createComponent(SettingsShopsComponent);
     fixture.detectChanges();
-    fixture.componentInstance['toggleShopVisibility'](testShop1, false);
+    fixture.componentInstance['setShopEnabled'](testShop1, false);
 
     expect(toastrMock.error).toHaveBeenCalled();
-  });
-
-  it('viewShopDetails() opens the details dialog', () => {
-    const fixture = TestBed.createComponent(SettingsShopsComponent);
-    fixture.detectChanges();
-    fixture.componentInstance['viewShopDetails'](testShop1);
-
-    expect(matDialogMock.open).toHaveBeenCalled();
+    // the failed toggle has to be undone visually, which only a reload can do
+    expect(shopApiMock.getAllShops).toHaveBeenCalledTimes(2);
   });
 
 });
