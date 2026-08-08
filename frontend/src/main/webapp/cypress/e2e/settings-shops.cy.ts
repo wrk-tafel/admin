@@ -1,4 +1,4 @@
-import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {PHONE_VIEWPORT} from '../support/viewports';
 
 describe('Settings - Shops', () => {
 
@@ -8,7 +8,7 @@ describe('Settings - Shops', () => {
   });
 
   // The testdata shops are used by the food-collection recording specs, so every test that changes
-  // something works on a shop it created itself and finds it by name rather than by row index
+  // something works on a shop it created itself and finds it by name rather than by panel index
   // (shops are ordered by their number).
   function createShop(name: string, number: number, foodUnit: 'Kisten' | 'Kilogramm' = 'Kisten') {
     cy.byTestId('addShopButton').click();
@@ -29,22 +29,24 @@ describe('Settings - Shops', () => {
     return 90_000 + (randomId % 900_000);
   }
 
-  function shopRow(name: string) {
-    return cy.byTestId('shops-table').contains('tr[testid^="shops-row-"]', name);
+  function shopPanel(name: string) {
+    return cy.byTestId('shops-list').contains('mat-expansion-panel', name);
   }
 
-  it('lists shops', () => {
-    cy.byTestId('shops-table').should('exist');
-    cy.byTestId('shops-row-0').should('contain.text', 'Billa');
+  it('lists shops with their address and unit', () => {
+    cy.byTestId('shops-list').should('exist');
+    cy.byTestId('shops-row-0').should('contain.text', 'Billa').and('contain.text', 'Kisten');
+    cy.byTestId('shops-summary').should('contain.text', 'aktiv');
   });
 
-  it('opens the details dialog', () => {
-    cy.byTestId('viewShopButton').filterDisplayed().first().click();
+  it('shows the contact details of a shop only once it is expanded', () => {
+    cy.byTestId('shop-details-0').should('not.be.visible');
 
-    cy.byTestId('shop-details-dialog').should('be.visible')
-      .and('contain.text', 'Billa')
-      .and('contain.text', 'Kisten');
-    cy.byTestId('shop-details-close-button').click();
+    cy.byTestId('shops-row-0').find('mat-expansion-panel-header').click();
+
+    cy.byTestId('shop-details-0').should('be.visible')
+      .and('contain.text', 'Fr. Musterfrau')
+      .and('contain.text', 'Bloch-Bauer-Promenade 1');
   });
 
   it('creates a new shop', () => {
@@ -54,7 +56,7 @@ describe('Settings - Shops', () => {
       createShop(name, shopNumber(randomId), 'Kilogramm');
 
       cy.contains('.toast-message', 'erstellt').should('be.visible');
-      shopRow(name).should('contain.text', 'Kilogramm');
+      shopPanel(name).should('contain.text', 'Kilogramm');
     });
   });
 
@@ -73,7 +75,7 @@ describe('Settings - Shops', () => {
     cy.byTestId('shop-name-input').should('be.visible').clear();
     cy.byTestId('shop-save-button').click();
 
-    cy.byTestId('shop-edit-dialog').should('be.visible');
+    cy.byTestId('shop-edit-dialog').should('be.visible').and('contain.text', 'Pflichtfeld');
     cy.byTestId('shop-name-input').should('have.class', 'ng-invalid');
     cy.byTestId('shop-cancel-button').click();
   });
@@ -86,46 +88,69 @@ describe('Settings - Shops', () => {
       createShop(name, shopNumber(randomId));
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
-      shopRow(name).find('[testid^="editShopButton-"]').click();
+      // the edit button sits in the collapsed header, so editing needs no expanding
+      shopPanel(name).find('[testid^="editShopButton-"]').click();
+      cy.byTestId('shop-edit-dialog').should('be.visible');
       cy.byTestId('shop-name-input').should('be.visible').clear().type(newName);
       cy.byTestId('shop-save-button').click();
 
       cy.contains('.toast-message', 'gespeichert').should('be.visible');
-      shopRow(newName).should('exist');
+      shopPanel(newName).should('exist');
     });
   });
 
-  it('toggles shop visibility', () => {
+  it('deactivates a shop and finds it again through the status filter', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const name = 'E2E Filiale umschalten ' + randomId;
 
       createShop(name, shopNumber(randomId));
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
-      shopRow(name).find('[testid="enableShopButton"]').click();
+      // the toggle sits in the collapsed header next to the edit button
+      shopPanel(name).find('[testid^="shops-enabled-toggle-"]').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 
-      shopRow(name).find('[testid="disableShopButton"]').should('exist');
-      shopRow(name).find('[testid^="editShopButton-"]').should('be.disabled');
+      shopPanel(name).should('contain.text', 'Inaktiv');
+      shopPanel(name).find('[testid^="editShopButton-"]').should('be.disabled');
+
+      cy.byTestId('shops-filter-enabled').click();
+      cy.byTestId('shops-list').should('not.contain.text', name);
+
+      cy.byTestId('shops-filter-disabled').click();
+      cy.byTestId('shops-list').should('contain.text', name);
     });
   });
 
-  it('renders as a card list on phone and stays usable', () => {
+  it('filters the list by the search text', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const name = 'E2E Filiale suchen ' + randomId;
+
+      createShop(name, shopNumber(randomId));
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+      cy.byTestId('shops-search-input').type(name);
+      cy.byTestId('shops-list').find('mat-expansion-panel').should('have.length', 1);
+      cy.byTestId('shops-row-0').should('contain.text', name);
+
+      cy.byTestId('shops-search-clear-button').click();
+      cy.byTestId('shops-list').find('mat-expansion-panel').should('have.length.greaterThan', 1);
+    });
+  });
+
+  it('shows an empty state when nothing matches the search', () => {
+    cy.byTestId('shops-search-input').type('gibt-es-nicht');
+
+    cy.byTestId('shops-empty').should('be.visible').and('contain.text', 'Keine Filiale');
+  });
+
+  it('stays usable on phone', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.reload();
 
-    cy.byTestId('shops-table').should('not.be.visible');
-    cy.byTestId('shops-cards').should('be.visible').and('contain.text', 'Billa');
     cy.byTestId('addShopButton').should('be.visible');
-  });
-
-  it('renders as a table at tablet breakpoint', () => {
-    cy.viewport(TABLET_VIEWPORT);
-    cy.reload();
-
-    cy.byTestId('shops-table').should('be.visible');
-    cy.byTestId('shops-cards').should('not.be.visible');
-    cy.byTestId('addShopButton').should('be.visible');
+    cy.byTestId('shops-search-input').should('be.visible');
+    cy.byTestId('shops-row-0').should('be.visible').find('mat-expansion-panel-header').click();
+    cy.byTestId('shop-details-0').should('be.visible').and('contain.text', 'Fr. Musterfrau');
   });
 
 });

@@ -1,56 +1,83 @@
 <tafel-dialog [title]="title" testId="shop-edit-dialog">
   <div tafel-dialog-content>
-    <form [formGroup]="form" class="grid grid-cols-1">
-      <mat-form-field>
-        <mat-label>Nummer</mat-label>
-        <input matInput type="number" formControlName="number" testid="shop-number-input"/>
-      </mat-form-field>
+    <form [formGroup]="form">
+      <h6 class="mb-1 text-xs uppercase tracking-wide text-slate-500">Stammdaten</h6>
+      <div class="flex flex-wrap gap-x-4">
+        <mat-form-field class="w-32">
+          <mat-label>Nummer</mat-label>
+          <input matInput type="number" formControlName="number" testid="shop-number-input"/>
+          @if (form.controls.number.hasError('required')) {
+            <mat-error>Pflichtfeld</mat-error>
+          } @else if (form.controls.number.hasError('min')) {
+            <mat-error>Muss größer als 0 sein</mat-error>
+          }
+        </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Name</mat-label>
-        <input matInput formControlName="name" testid="shop-name-input"/>
-      </mat-form-field>
+        <mat-form-field class="min-w-48 flex-1">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" testid="shop-name-input"/>
+          @if (form.controls.name.hasError('required')) {
+            <mat-error>Pflichtfeld</mat-error>
+          }
+        </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Straße</mat-label>
-        <input matInput formControlName="addressStreet" testid="shop-street-input"/>
-      </mat-form-field>
+        <mat-form-field class="min-w-48 flex-1">
+          <mat-label>Einheit</mat-label>
+          <mat-select formControlName="foodUnit" testid="shop-foodunit-select">
+            <mat-option value="BOX">Kisten</mat-option>
+            <mat-option value="KG">Kilogramm</mat-option>
+          </mat-select>
+          <mat-hint>Zählweise der Warenerfassung</mat-hint>
+        </mat-form-field>
+      </div>
 
-      <mat-form-field>
-        <mat-label>PLZ</mat-label>
-        <input matInput type="number" formControlName="addressPostalCode" testid="shop-postalcode-input"/>
-      </mat-form-field>
+      <h6 class="mb-1 mt-4 text-xs uppercase tracking-wide text-slate-500">Adresse</h6>
+      <div class="flex flex-wrap gap-x-4">
+        <mat-form-field class="w-full">
+          <mat-label>Straße</mat-label>
+          <input matInput formControlName="addressStreet" testid="shop-street-input"/>
+          @if (form.controls.addressStreet.hasError('required')) {
+            <mat-error>Pflichtfeld</mat-error>
+          }
+        </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Ort</mat-label>
-        <input matInput formControlName="addressCity" testid="shop-city-input"/>
-      </mat-form-field>
+        <mat-form-field class="w-32">
+          <mat-label>PLZ</mat-label>
+          <input matInput type="number" formControlName="addressPostalCode" testid="shop-postalcode-input"/>
+          @if (form.controls.addressPostalCode.invalid) {
+            <mat-error>Pflichtfeld</mat-error>
+          }
+        </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Einheit</mat-label>
-        <mat-select formControlName="foodUnit" testid="shop-foodunit-select">
-          <mat-option value="BOX">Kisten</mat-option>
-          <mat-option value="KG">Kilogramm</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <mat-form-field class="min-w-48 flex-1">
+          <mat-label>Ort</mat-label>
+          <input matInput formControlName="addressCity" testid="shop-city-input"/>
+          @if (form.controls.addressCity.hasError('required')) {
+            <mat-error>Pflichtfeld</mat-error>
+          }
+        </mat-form-field>
+      </div>
 
-      <mat-form-field>
-        <mat-label>Telefon</mat-label>
-        <input matInput formControlName="phone" testid="shop-phone-input"/>
-      </mat-form-field>
+      <h6 class="mb-1 mt-4 text-xs uppercase tracking-wide text-slate-500">Kontakt</h6>
+      <div class="flex flex-wrap gap-x-4">
+        <mat-form-field class="min-w-48 flex-1">
+          <mat-label>Telefon</mat-label>
+          <input matInput formControlName="phone" testid="shop-phone-input"/>
+        </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Ansprechperson</mat-label>
-        <input matInput formControlName="contactPerson" testid="shop-contactperson-input"/>
-      </mat-form-field>
+        <mat-form-field class="min-w-48 flex-1">
+          <mat-label>Ansprechperson</mat-label>
+          <input matInput formControlName="contactPerson" testid="shop-contactperson-input"/>
+        </mat-form-field>
+      </div>
 
-      <mat-checkbox formControlName="enabled" class="mb-6" testid="shop-enabled-checkbox">Aktiv</mat-checkbox>
-
-      <mat-form-field>
+      <mat-form-field class="mt-4 w-full">
         <mat-label>Hinweis</mat-label>
         <textarea matInput formControlName="note" placeholder="Notiz für diese Filiale eingeben ..."
-                  rows="5" testid="shop-note-input"></textarea>
+                  rows="4" testid="shop-note-input"></textarea>
       </mat-form-field>
+
+      <mat-slide-toggle formControlName="enabled" testid="shop-enabled-toggle">Aktiv</mat-slide-toggle>
     </form>
   </div>
 
