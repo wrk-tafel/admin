@@ -133,8 +133,12 @@ class UserController(
         validateIfUserExists(user)
         validateAdministratorAssignment(requested = user.permissions, current = emptyList())
 
-        val tafelUser = mapToTafelUser(user)
-        userDetailsManager.createUser(tafelUser)
+        try {
+            val tafelUser = mapToTafelUser(user)
+            userDetailsManager.createUser(tafelUser)
+        } catch (e: PasswordChangeException) {
+            throw BusinessRuleException(e.message)
+        }
 
         val userResponse = mapToResponse(userDetailsManager.loadUserByUsername(user.username))
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse)

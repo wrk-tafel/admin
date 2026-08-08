@@ -27,7 +27,10 @@ describe('SettingsRoutesComponent', () => {
     name: 'Route 1',
     note: 'Notiz 1',
     enabled: true,
-    stops: [{id: 11, time: '14:00:00', shopId: activeShop.id, description: 'Stopp 1'}]
+    stops: [
+      {id: 11, time: '14:00:00', shopId: activeShop.id, description: 'Stopp 1'},
+      {id: 12, time: '15:30:00', shopId: undefined, description: 'Pause'}
+    ]
   };
   const testRoute2: RouteData = {
     id: 2,
@@ -84,17 +87,96 @@ describe('SettingsRoutesComponent', () => {
     const fixture = TestBed.createComponent(SettingsRoutesComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance['routes']()?.routes.length).toBe(2);
+    expect(fixture.componentInstance['visibleRoutes']().length).toBe(2);
+    expect(fixture.componentInstance['totalCount']()).toBe(2);
+    expect(fixture.componentInstance['enabledCount']()).toBe(1);
     expect(fixture.componentInstance['activeShops']().map(shop => shop.id)).toEqual([activeShop.id]);
+    expect(fixture.componentInstance['loaded']()).toBe(true);
   });
 
-  it('shows an error toast when loading fails', () => {
+  it('resolves every stop against its shop and shortens the time', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    const stops = fixture.componentInstance['visibleRoutes']()[0].stops;
+    expect(stops[0]).toEqual({
+      key: 'stop-11',
+      time: '14:00',
+      label: '100 - Billa',
+      shopAddress: 'Teststraße 1, 1100 Wien',
+      description: 'Stopp 1'
+    });
+    // a stop without a shop is identified by its description alone, so that becomes the label
+    expect(stops[1].label).toBe('Pause');
+    expect(stops[1].shopAddress).toBeUndefined();
+    expect(stops[1].description).toBeUndefined();
+  });
+
+  it('summarizes the stops of a route', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    const [first, second] = fixture.componentInstance['visibleRoutes']();
+    expect(first.stopsSummary).toBe('2 Stopps · 14:00 – 15:30');
+    expect(second.stopsSummary).toBe('Keine Stopps');
+  });
+
+  it('shows an error toast when loading fails and does not stay in the loading state', () => {
     routeApiMock.getAllRoutes = vi.fn(() => throwError(() => new Error('failed')));
 
     const fixture = TestBed.createComponent(SettingsRoutesComponent);
     fixture.detectChanges();
 
     expect(toastrMock.error).toHaveBeenCalled();
+    expect(fixture.componentInstance['loaded']()).toBe(true);
+  });
+
+  it('filters by the search text across name, note and stops', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('route 2');
+    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute2.id]);
+
+    component['searchControl'].setValue('notiz 1');
+    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute1.id]);
+
+    component['searchControl'].setValue('billa');
+    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute1.id]);
+
+    component['searchControl'].setValue('gibtsnicht');
+    expect(component['visibleRoutes']()).toEqual([]);
+  });
+
+  it('filters by the enabled state', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['enabledFilter'].set('ENABLED');
+    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute1.id]);
+
+    component['enabledFilter'].set('DISABLED');
+    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute2.id]);
+
+    component['enabledFilter'].set('ALL');
+    expect(component['visibleRoutes']().length).toBe(2);
+  });
+
+  it('clearSearch() resets the search field', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('route 2');
+    expect(component['filtered']()).toBe(true);
+
+    component['clearSearch']();
+
+    expect(component['searchControl'].value).toBe('');
+    expect(component['filtered']()).toBe(false);
+    expect(component['visibleRoutes']().length).toBe(2);
   });
 
   it('addRoute() offers only active shops', () => {
@@ -145,33 +227,33 @@ describe('SettingsRoutesComponent', () => {
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('toggleRouteVisibility() persists the new enabled state', () => {
+  it('setRouteEnabled() persists the new enabled state', () => {
     const fixture = TestBed.createComponent(SettingsRoutesComponent);
     fixture.detectChanges();
-    fixture.componentInstance['toggleRouteVisibility'](testRoute1, false);
+    fixture.componentInstance['setRouteEnabled'](testRoute1, false);
 
     expect(routeApiMock.updateRoute).toHaveBeenCalledWith(testRoute1.id, {...testRoute1, enabled: false});
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('toggleRouteVisibility() shows an error toast when saving fails', () => {
+  it('onEnabledToggled() persists the state of the toggle', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['onEnabledToggled'](testRoute2, {checked: true} as any);
+
+    expect(routeApiMock.updateRoute).toHaveBeenCalledWith(testRoute2.id, {...testRoute2, enabled: true});
+  });
+
+  it('setRouteEnabled() shows an error toast and reloads when saving fails', () => {
     routeApiMock.updateRoute = vi.fn(() => throwError(() => new Error('failed')));
 
     const fixture = TestBed.createComponent(SettingsRoutesComponent);
     fixture.detectChanges();
-    fixture.componentInstance['toggleRouteVisibility'](testRoute1, false);
+    fixture.componentInstance['setRouteEnabled'](testRoute1, false);
 
     expect(toastrMock.error).toHaveBeenCalled();
-  });
-
-  it('viewRouteDetails() opens the details dialog with every shop', () => {
-    const fixture = TestBed.createComponent(SettingsRoutesComponent);
-    fixture.detectChanges();
-    fixture.componentInstance['viewRouteDetails'](testRoute1);
-
-    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      data: {route: testRoute1, shops: [activeShop, disabledShop]}
-    }));
+    // the failed toggle has to be undone visually, which only a reload can do
+    expect(routeApiMock.getAllRoutes).toHaveBeenCalledTimes(2);
   });
 
 });

@@ -377,7 +377,7 @@ Cypress.Commands.add(
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: 'dummy-pwd-' + randomNumber,
+        password: testUserPassword(randomNumber),
         passwordChangeRequired: false,
         permissions: []
       };
@@ -476,6 +476,17 @@ export interface CustomerAddPersonData {
   excludeFromHousehold: boolean;
   receivesFamilyAllowance: boolean;
 }
+
+/**
+ * Password for a user an e2e spec creates, derived from its getAnyRandomNumber() so it stays
+ * unique. Every digit is mapped to a letter a-j: that number carries a timestamp and periodically
+ * spells one of the substrings the backend's password validator rejects ("1030", see
+ * WebSecurityConfig.passwordValidator), which used to fail user creation for whole seconds out of
+ * every ~27.7h cycle. None of the blocked words can be spelled with a-j alone, so what comes out
+ * of here is always accepted.
+ */
+export const testUserPassword = (randomNumber: number): string =>
+  'dummy-' + randomNumber.toString().replace(/\d/g, digit => 'abcdefghij'[Number(digit)]);
 
 export interface UserData {
   id?: number;
