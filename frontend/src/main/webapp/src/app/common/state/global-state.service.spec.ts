@@ -50,4 +50,18 @@ describe('GlobalStateService', () => {
         expect(service.getConnectionState()()).toBe(true);
     });
 
+    // The resolver that calls init() runs again on every login, so a logout/login round trip in the
+    // same tab hits this a second time. Opening another EventSource there leaks a browser
+    // connection for good and eventually starves the tab of them entirely.
+    it('opens the sse connection only once even when init is called repeatedly', () => {
+        const { service, sseServiceSpy } = setup();
+        sseServiceSpy.listen.mockReturnValue(of());
+
+        service.init();
+        service.init();
+        service.init();
+
+        expect(sseServiceSpy.listen).toHaveBeenCalledTimes(1);
+    });
+
 });
