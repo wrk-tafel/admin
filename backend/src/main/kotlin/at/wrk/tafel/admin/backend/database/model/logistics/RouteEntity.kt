@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.model.logistics
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
@@ -15,11 +16,13 @@ class RouteEntity(
     var number: Double,
     @Column(name = "name")
     var name: String,
+    @Column(name = "enabled")
+    var enabled: Boolean = true,
 ) : BaseChangeTrackingEntity() {
 
     @Column(name = "note")
     var note: String? = null
 
-    @OneToMany(mappedBy = "route")
-    var stops: List<RouteStopEntity> = emptyList()
+    @OneToMany(mappedBy = "route", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var stops: MutableList<RouteStopEntity> = mutableListOf()
 }

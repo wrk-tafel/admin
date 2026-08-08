@@ -32,7 +32,8 @@ describe('Settings - Food Categories', () => {
     cy.get('input[formControlName="name"]').should('be.visible').clear();
     cy.get('input[formControlName="weightPerUnit"]').clear();
     cy.contains('Speichern').click();
-    // Ensure dialog still open (save did not close because of validation)
+
+    cy.byTestId('food-category-create-dialog').should('be.visible');
     cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
   });
 

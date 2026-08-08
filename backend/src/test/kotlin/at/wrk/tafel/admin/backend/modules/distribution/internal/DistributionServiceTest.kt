@@ -546,7 +546,7 @@ internal class DistributionServiceTest {
                 testFoodCollectionRoute1Entity,
             )
         }
-        every { routeRepository.findAll() } returns listOf(testRoute1, testRoute2, testRoute3)
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2, testRoute3)
 
         val result = service.validateClose()
 
@@ -565,7 +565,7 @@ internal class DistributionServiceTest {
             FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute2),
         )
         every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionForRouteCheck
-        every { routeRepository.findAll() } returns listOf(testRoute1, testRoute2)
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
 
         val result = service.validateClose()
 

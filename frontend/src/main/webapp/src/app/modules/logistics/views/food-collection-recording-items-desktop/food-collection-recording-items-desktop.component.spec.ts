@@ -53,7 +53,10 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
     };
     const testRoute: RouteData = {
         id: 0,
-        name: 'Route 1'
+        number: 1,
+        name: 'Route 1',
+        enabled: true,
+        stops: []
     };
     const testFoodCategories: FoodCategory[] = [
         { id: 0, name: 'Category 1', weightPerUnit: 1, sortOrder: 0, enabled: true },

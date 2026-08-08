@@ -31,7 +31,8 @@ describe('Settings - Cars', () => {
     // Try to save without required fields
     cy.get('input[formControlName="licensePlate"]').should('be.visible').clear();
     cy.contains('Speichern').click();
-    // Ensure dialog still open (save did not close because of validation)
+
+    cy.byTestId('car-create-dialog').should('be.visible');
     cy.get('input[formControlName="licensePlate"]').should('have.class', 'ng-invalid');
   });
 

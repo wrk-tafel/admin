@@ -99,7 +99,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       {id: 2, name: 'Car 2', licensePlate: 'XYZ789', enabled: true, sortOrder: 2}
     ]
   };
-  const mockRoute: RouteData = {id: 123, name: 'Test Route'};
+  const mockRoute: RouteData = {id: 123, number: 1, name: 'Test Route', enabled: true, stops: []};
   const mockRouteData: SelectedRouteData = {
     route: mockRoute,
     shops: [],

@@ -19,7 +19,7 @@ describe('RouteDataResolver', () => {
         {
           provide: RouteApiService,
           useValue: {
-            getRoutes: vi.fn().mockName('RouteApiService.getRoutes')
+            getActiveRoutes: vi.fn().mockName('RouteApiService.getActiveRoutes')
           }
         },
         RouteDataResolver
@@ -35,15 +35,21 @@ describe('RouteDataResolver', () => {
       routes: [
         {
           id: 1,
+          number: 1,
           name: 'Route 1',
+          enabled: true,
+          stops: []
         },
         {
           id: 2,
+          number: 2,
           name: 'Route 2',
+          enabled: true,
+          stops: []
         }
       ]
     };
-    apiService.getRoutes.mockReturnValue(of(mockRoutes));
+    apiService.getActiveRoutes.mockReturnValue(of(mockRoutes));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
     resolver.resolve(activatedRoute).subscribe((routeList: RouteList) => {

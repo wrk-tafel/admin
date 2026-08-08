@@ -8,7 +8,7 @@ export class RouteDataResolver {
   private readonly routeApiService = inject(RouteApiService);
 
   public resolve(_route: ActivatedRouteSnapshot): Observable<RouteList> {
-    return this.routeApiService.getRoutes();
+    return this.routeApiService.getActiveRoutes();
   }
 
 }

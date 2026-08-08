@@ -220,7 +220,7 @@ internal class DashboardServiceTest {
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
-        every { routeRepository.findAll() } returns listOf(
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(
             testRoute1,
             testRoute2,
             testRoute3,

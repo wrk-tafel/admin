@@ -14,11 +14,11 @@ describe('Settings - Shelters', () => {
 
   it('opens details dialog', () => {
     cy.byTestId('viewShelterButton').first().click();
-    // Dialog content may be rendered in the overlay; assert by visible text instead of relying on the host attribute
-    cy.contains('Shelter').should('be.visible');
-    cy.contains('Erdberg').should('be.visible');
-    cy.contains('Anz. Personen').should('be.visible');
-    // Close dialog by clicking the close button
+
+    cy.byTestId('shelter-details-dialog').should('be.visible')
+      .and('contain.text', 'Shelter')
+      .and('contain.text', 'Erdberg')
+      .and('contain.text', 'Anz. Personen');
     cy.contains('Schließen').click();
   });
 
@@ -66,10 +66,10 @@ describe('Settings - Shelters', () => {
     cy.byTestId('addShelterButton').click();
 
     // Try to save without required fields
-    // Dialog fields are rendered in the overlay; target visible inputs instead
     cy.get('input[formControlName="name"]').should('be.visible').clear();
     cy.contains('Speichern').click();
-    // Ensure dialog still open (save did not close because of validation)
+
+    cy.byTestId('shelter-edit-dialog').should('be.visible');
     cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
   });
 

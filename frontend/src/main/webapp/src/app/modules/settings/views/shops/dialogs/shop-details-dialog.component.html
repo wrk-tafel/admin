@@ -1,0 +1,17 @@
+<tafel-dialog title="Filiale Details" testId="shop-details-dialog">
+  <div tafel-dialog-content>
+    <div class="grid grid-cols-1 gap-2">
+      <div><strong>Nummer:</strong> {{ data.shop?.number }}</div>
+      <div><strong>Name:</strong> {{ data.shop?.name }}</div>
+      <div><strong>Adresse:</strong> {{ data.shop | formatShopAddress }}</div>
+      <div><strong>Einheit:</strong> {{ data.shop?.foodUnit === 'KG' ? 'Kilogramm' : 'Kisten' }}</div>
+      <div><strong>Telefon:</strong> {{ data.shop?.phone || '-' }}</div>
+      <div><strong>Ansprechperson:</strong> {{ data.shop?.contactPerson || '-' }}</div>
+      <div><strong>Aktiv:</strong> {{ data.shop?.enabled ? 'Ja' : 'Nein' }}</div>
+      <div><strong>Hinweis:</strong> {{ data.shop?.note || '-' }}</div>
+    </div>
+  </div>
+  <div tafel-dialog-actions>
+    <button matButton="filled" testid="shop-details-close-button" (click)="close()">Schließen</button>
+  </div>
+</tafel-dialog>

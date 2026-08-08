@@ -1,0 +1,177 @@
+import {TestBed} from '@angular/core/testing';
+import {provideHttpClient, withXhr} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {MatDialog} from '@angular/material/dialog';
+import {of, throwError} from 'rxjs';
+import {SettingsRoutesComponent} from './settings-routes.component';
+import {RouteApiService, RouteData, RouteList} from '../../../../api/route-api.service';
+import {ShopApiService, ShopItem, ShopListResponse} from '../../../../api/shop-api.service';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+
+describe('SettingsRoutesComponent', () => {
+  const activeShop: ShopItem = {
+    id: 1,
+    number: 100,
+    name: 'Billa',
+    addressStreet: 'Teststraße 1',
+    addressPostalCode: 1100,
+    addressCity: 'Wien',
+    foodUnit: 'BOX',
+    enabled: true
+  };
+  const disabledShop: ShopItem = {...activeShop, id: 2, number: 200, name: 'Hofer', enabled: false};
+
+  const testRoute1: RouteData = {
+    id: 1,
+    number: 1,
+    name: 'Route 1',
+    note: 'Notiz 1',
+    enabled: true,
+    stops: [{id: 11, time: '14:00:00', shopId: activeShop.id, description: 'Stopp 1'}]
+  };
+  const testRoute2: RouteData = {
+    id: 2,
+    number: 2,
+    name: 'Route 2',
+    enabled: false,
+    stops: []
+  };
+
+  let routeApiMock: Partial<RouteApiService>;
+  let shopApiMock: Partial<ShopApiService>;
+  let toastrMock: Partial<TafelToastrService>;
+  let matDialogMock: Partial<MatDialog>;
+
+  beforeEach(() => {
+    routeApiMock = {
+      getAllRoutes: vi.fn(() => of<RouteList>({routes: [testRoute1, testRoute2]})),
+      createRoute: vi.fn(() => of(testRoute1)),
+      updateRoute: vi.fn(() => of(testRoute1))
+    };
+
+    shopApiMock = {
+      getAllShops: vi.fn(() => of<ShopListResponse>({shops: [activeShop, disabledShop]}))
+    };
+
+    toastrMock = {
+      success: vi.fn(),
+      error: vi.fn()
+    };
+
+    matDialogMock = {
+      open: vi.fn(() => ({afterClosed: () => of(undefined)})) as any
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
+        {provide: RouteApiService, useValue: routeApiMock},
+        {provide: ShopApiService, useValue: shopApiMock},
+        {provide: TafelToastrService, useValue: toastrMock},
+        {provide: MatDialog, useValue: matDialogMock}
+      ]
+    }).compileComponents();
+  });
+
+  it('component can be created', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('loads routes and shops on init', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['routes']()?.routes.length).toBe(2);
+    expect(fixture.componentInstance['activeShops']().map(shop => shop.id)).toEqual([activeShop.id]);
+  });
+
+  it('shows an error toast when loading fails', () => {
+    routeApiMock.getAllRoutes = vi.fn(() => throwError(() => new Error('failed')));
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    expect(toastrMock.error).toHaveBeenCalled();
+  });
+
+  it('addRoute() offers only active shops', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['addRoute']();
+
+    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {route: undefined, shops: [activeShop]}
+    }));
+  });
+
+  it('addRoute() creates the route returned by the dialog', () => {
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of(testRoute1)})) as any;
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['addRoute']();
+
+    expect(routeApiMock.createRoute).toHaveBeenCalledWith(testRoute1);
+    expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('editRoute() keeps a disabled shop selectable when the route already stops there', () => {
+    const routeWithDisabledShop: RouteData = {
+      ...testRoute1,
+      stops: [{id: 11, time: '14:00:00', shopId: disabledShop.id}]
+    };
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['editRoute'](routeWithDisabledShop);
+
+    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {route: routeWithDisabledShop, shops: [activeShop, disabledShop]}
+    }));
+  });
+
+  it('editRoute() updates the route returned by the dialog', () => {
+    const updated = {...testRoute1, name: 'Route 1 neu'};
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of(updated)})) as any;
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['editRoute'](testRoute1);
+
+    expect(routeApiMock.updateRoute).toHaveBeenCalledWith(testRoute1.id, updated);
+    expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('toggleRouteVisibility() persists the new enabled state', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['toggleRouteVisibility'](testRoute1, false);
+
+    expect(routeApiMock.updateRoute).toHaveBeenCalledWith(testRoute1.id, {...testRoute1, enabled: false});
+    expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('toggleRouteVisibility() shows an error toast when saving fails', () => {
+    routeApiMock.updateRoute = vi.fn(() => throwError(() => new Error('failed')));
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['toggleRouteVisibility'](testRoute1, false);
+
+    expect(toastrMock.error).toHaveBeenCalled();
+  });
+
+  it('viewRouteDetails() opens the details dialog with every shop', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['viewRouteDetails'](testRoute1);
+
+    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {route: testRoute1, shops: [activeShop, disabledShop]}
+    }));
+  });
+
+});

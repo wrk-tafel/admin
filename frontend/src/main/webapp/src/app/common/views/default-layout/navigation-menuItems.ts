@@ -166,6 +166,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/fahrzeuge'
       },
       {
+        name: 'Filialen',
+        url: '/einstellungen/filialen'
+      },
+      {
         name: 'Grenzwerte',
         url: '/einstellungen/statische-werte'
       },
@@ -176,6 +180,10 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen'
+      },
+      {
+        name: 'Routen',
+        url: '/einstellungen/routen'
       },
       {
         name: 'Waren-Kategorien',
