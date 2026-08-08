@@ -41,10 +41,23 @@ jobs:
             The description "{subject}" found in title "{title}" must start with a lowercase
             letter, must not end with a period, and (with its type/scope prefix) must keep the
             whole title under 100 characters — matches the commitlint check on commits.
+  # Every job below is gated on what this pull request actually touches, so a docs-only change (or
+  # a title/description edit, which re-triggers this workflow with unchanged commits) costs nothing
+  # beyond the two lint jobs above. See subflow_changes.yml for the classification rules.
+  changes:
+    uses: ./.github/workflows/subflow_changes.yml
   build:
+    # Both artifacts are built whenever the application changed at all: the image and the e2e run
+    # need the jar and the frontend bundle together, no matter which of the two was edited.
     uses: ./.github/workflows/subflow_build.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
   test:
     uses: ./.github/workflows/subflow_test.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
   version:
     runs-on: ubuntu-latest
     outputs:
@@ -62,6 +75,14 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:
     uses: ./.github/workflows/subflow_lint.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      backend: ${{ needs.changes.outputs.backend == 'true' }}
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+      docker: ${{ needs.changes.outputs.docker == 'true' }}
+  # sonar, build-push-image, e2e-test and deploy-dev need no gate of their own: they depend on
+  # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, version]
