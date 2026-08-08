@@ -10,11 +10,14 @@ import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribu
 import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.logistics.events.FoodCollectionCompletedEvent
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class FoodCollectionService(
@@ -26,6 +29,7 @@ class FoodCollectionService(
     private val foodCategoryRepository: FoodCategoryRepository,
     private val carRepository: CarRepository,
     private val advisoryLockService: AdvisoryLockService,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
@@ -78,6 +82,7 @@ class FoodCollectionService(
             data.driverId,
             data.coDriverId,
         )
+        publishIfFoodCollectionCompleted(distribution.id!!)
     }
 
     @Transactional
@@ -96,6 +101,7 @@ class FoodCollectionService(
             data.kmStart,
             data.kmEnd,
         )
+        publishIfFoodCollectionCompleted(distribution.id!!)
     }
 
     @Transactional
@@ -103,6 +109,7 @@ class FoodCollectionService(
         val distribution = distributionRepository.getCurrentDistribution()!!
 
         foodCollectionRepository.save(mapAllItems(distribution, routeId, data))
+        publishIfFoodCollectionCompleted(distribution.id!!)
     }
 
     @Transactional
@@ -126,6 +133,7 @@ class FoodCollectionService(
 
         foodCollectionEntity.items = items
         foodCollectionRepository.save(foodCollectionEntity)
+        publishIfFoodCollectionCompleted(distributionEntity.id!!)
     }
 
     @Transactional
@@ -212,6 +220,7 @@ class FoodCollectionService(
 
             foodCollectionEntity.items = items
             foodCollectionRepository.save(foodCollectionEntity)
+            publishIfFoodCollectionCompleted(distributionEntity.id!!)
         }
     }
 
@@ -235,6 +244,41 @@ class FoodCollectionService(
                         ?: throw NotFoundException(SHOP_NOT_FOUND),
                     amount = newAmount,
                 ),
+            )
+        }
+    }
+
+    /**
+     * Publishes [FoodCollectionCompletedEvent] the first time every enabled route of this
+     * distribution is fully recorded. Called from each save that can supply the last missing piece -
+     * base data, mileage, or items - since any of them can be the one that completes the picture;
+     * return items deliberately don't count, as not every route brings any back.
+     *
+     * Re-queries the food collections rather than reading them off the distribution the caller
+     * holds: the save that just happened is what may have completed the picture, and an
+     * already-loaded lazy collection would not contain it.
+     *
+     * A disabled route isn't driven anymore, so nothing is expected for it - and a distribution with
+     * no enabled routes at all is not "complete", it's misconfigured, so it stays silent.
+     */
+    private fun publishIfFoodCollectionCompleted(distributionId: Long) {
+        val enabledRouteIds = routeRepository.findByEnabledIsTrue().mapNotNull { it.id }.toSet()
+        if (enabledRouteIds.isEmpty()) {
+            return
+        }
+
+        val recordedRouteIds = foodCollectionRepository.findAllByDistributionId(distributionId)
+            .filter { it.isFullyRecorded() }
+            .mapNotNull { it.route.id }
+            .toSet()
+        if (!recordedRouteIds.containsAll(enabledRouteIds)) {
+            return
+        }
+
+        if (distributionRepository.markFoodCollectionCompleted(distributionId, LocalDateTime.now()) == 1) {
+            log.info("Food collection completed for distribution {} ({} routes)", distributionId, enabledRouteIds.size)
+            eventPublisher.publishEvent(
+                FoodCollectionCompletedEvent(distributionId = distributionId, routeCount = enabledRouteIds.size),
             )
         }
     }

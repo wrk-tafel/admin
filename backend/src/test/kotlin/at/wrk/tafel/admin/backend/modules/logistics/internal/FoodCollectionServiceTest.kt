@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.logistics.*
+import at.wrk.tafel.admin.backend.modules.logistics.events.FoodCollectionCompletedEvent
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import ch.qos.logback.classic.Level
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
@@ -60,6 +62,9 @@ class FoodCollectionServiceTest {
 
     @RelaxedMockK
     private lateinit var advisoryLockService: AdvisoryLockService
+
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @InjectMockKs
     private lateinit var service: FoodCollectionService
@@ -1087,5 +1092,92 @@ class FoodCollectionServiceTest {
 
         val exception = assertThrows<NotFoundException> { service.saveItems(routeId = routeId, data = data) }
         assertThat(exception.body.detail).isEqualTo("Filiale nicht gefunden!")
+    }
+
+    /**
+     * The completion check queries the food collections rather than reading them off the
+     * distribution, because the save that just happened is what may have completed them - so the
+     * stub has to answer that query, not only the current-distribution call.
+     */
+    private fun distributionWithRecordedRoutes(vararg foodCollections: FoodCollectionEntity): DistributionEntity {
+        val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 99
+            this.foodCollections = foodCollections.toList()
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        every { foodCollectionRepository.findAllByDistributionId(99L) } returns foodCollections.toList()
+        // saveKm, the save these tests drive the check through, looks the route up to attach it to a
+        // newly created collection and then persists it.
+        every { routeRepository.findByIdOrNull(any()) } returns testRoute1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+        return distribution
+    }
+
+    private fun fullyRecordedCollectionFor(route: RouteEntity) = FoodCollectionEntity(
+        distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity),
+        route = route,
+    ).apply {
+        car = testCar1
+        driver = testEmployee1
+        coDriver = testEmployee2
+        kmStart = 100
+        kmEnd = 200
+        items = listOf(FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 5))
+    }
+
+    @Test
+    fun `publishes FoodCollectionCompletedEvent once every enabled route is fully recorded`() {
+        val route = testRoute1
+        val distribution = distributionWithRecordedRoutes(fullyRecordedCollectionFor(route))
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(route)
+        every { distributionRepository.markFoodCollectionCompleted(99L, any()) } returns 1
+
+        service.saveKm(routeId = route.id!!, data = FoodCollectionSaveKmRequest(kmStart = 100, kmEnd = 200))
+
+        verify {
+            eventPublisher.publishEvent(FoodCollectionCompletedEvent(distributionId = distribution.id!!, routeCount = 1))
+        }
+    }
+
+    @Test
+    fun `publishes nothing while an enabled route is still unrecorded`() {
+        val recorded = testRoute1
+        val missing = testRoute2
+        distributionWithRecordedRoutes(fullyRecordedCollectionFor(recorded))
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(recorded, missing)
+
+        service.saveKm(routeId = recorded.id!!, data = FoodCollectionSaveKmRequest(kmStart = 100, kmEnd = 200))
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<FoodCollectionCompletedEvent>()) }
+    }
+
+    /**
+     * A later correction to an already-complete recording must not announce completion a second
+     * time - the stamp has been taken, so the conditional UPDATE matches nothing.
+     */
+    @Test
+    fun `publishes nothing a second time once completion was already stamped`() {
+        val route = testRoute1
+        distributionWithRecordedRoutes(fullyRecordedCollectionFor(route))
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(route)
+        every { distributionRepository.markFoodCollectionCompleted(any(), any()) } returns 0
+
+        service.saveKm(routeId = route.id!!, data = FoodCollectionSaveKmRequest(kmStart = 100, kmEnd = 200))
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<FoodCollectionCompletedEvent>()) }
+    }
+
+    /**
+     * No enabled routes at all is a misconfigured distribution, not a completed one - announcing
+     * completion there would fire on the very first save of a day with nothing set up.
+     */
+    @Test
+    fun `publishes nothing when there are no enabled routes at all`() {
+        distributionWithRecordedRoutes()
+        every { routeRepository.findByEnabledIsTrue() } returns emptyList()
+
+        service.saveKm(routeId = 1L, data = FoodCollectionSaveKmRequest(kmStart = 100, kmEnd = 200))
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<FoodCollectionCompletedEvent>()) }
     }
 }

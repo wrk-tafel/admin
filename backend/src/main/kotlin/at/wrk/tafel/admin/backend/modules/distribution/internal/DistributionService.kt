@@ -13,8 +13,11 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.AllTicketsProcessedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.CheckinStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
@@ -155,6 +158,11 @@ class DistributionService(
         entry.processed = false
 
         distributionHouseholdRepository.save(entry)
+
+        // The first check-in of the day is the moment the desk opens - see DistributionPhaseEvents.
+        if (distributionRepository.markCheckinStarted(distribution.id!!, LocalDateTime.now()) == 1) {
+            eventPublisher.publishEvent(CheckinStartedEvent(distribution.id!!))
+        }
     }
 
     @Transactional(readOnly = true)
@@ -242,6 +250,30 @@ class DistributionService(
 
             val nextTicket = getCurrentTicketNumber()
             logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: ${nextTicket?.ticketNumber}")
+
+            // A ticket having been *processed* is the first point at which food has demonstrably
+            // been handed to someone. Deliberately not "a ticket was shown on the screen": the
+            // ticket-screen control page calls show-current on load (see
+            // `ticket-screen-control.component.ts`), so merely opening it - possibly hours early,
+            // with the monitor still switched off - would otherwise announce the hand-out as
+            // started. See DistributionPhaseEvents.
+            if (distributionRepository.markFoodHandoutStarted(distribution.id!!, LocalDateTime.now()) == 1) {
+                eventPublisher.publishEvent(FoodHandoutStartedEvent(distribution.id!!))
+            }
+
+            // Nothing left to call means every household that checked in has been served - see
+            // DistributionPhaseEvents.
+            if (nextTicket == null &&
+                distributionRepository.markTicketsCompleted(distribution.id!!, LocalDateTime.now()) == 1
+            ) {
+                eventPublisher.publishEvent(
+                    AllTicketsProcessedEvent(
+                        distributionId = distribution.id!!,
+                        ticketCount = distribution.households.size,
+                    ),
+                )
+            }
+
             return mapToTicketScreenTicket(nextTicket)
         }
         return mapToTicketScreenTicket(null)

@@ -1,12 +1,24 @@
 /**
  * Web Push notifications (VAPID) - lets a user opt a browser/device in to receiving push
- * notifications, and broadcasts one to every subscribed device whose owner currently allows it on
- * events other modules care about: a distribution starting ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent})
- * or closing ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent}).
- * Delivery is gated per user by a master switch plus a per-notification-type opt-out (see
- * {@code internal.PushPreferencesService}).
+ * notifications, and broadcasts one to the subscribed devices of every user who may receive that
+ * notification type and hasn't switched it off. Delivery is gated per user by what the type is for
+ * (permissions, see {@code internal.PushNotificationTypeTargeting}) and by what the user asked for
+ * (a master switch plus a per-type opt-out, see {@code internal.PushPreferencesService}).
+ * <p>
+ * This module only ever listens - it calls no other module's services, and no module knows it
+ * exists. The dependencies below are on the {@code ::events} named interfaces alone, which is as
+ * narrow as the declaration can be made: an event still has to be referenced as a type to be
+ * listened for, so publishing one does not decouple the listener from the class, only from the
+ * publisher. Reacted to are a distribution starting or closing, the phases the day passes through in
+ * between (see {@code distribution.events} and {@code logistics.events}), and a report mail that
+ * could not be sent ({@code reporting.events}).
+ * <p>
+ * Two more triggers need no module dependency at all: an account lockout, published from
+ * {@code common.auth}, and a distribution left open, which is a scheduled check rather than an event
+ * since the point is that nothing happened. {@code base::exception} is the one dependency here that
+ * is not an event - the exceptions this module's own controllers throw.
  */
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"distribution", "base::exception"}
+        allowedDependencies = {"distribution::events", "logistics::events", "reporting::events", "base::exception"}
 )
 package at.wrk.tafel.admin.backend.modules.push;

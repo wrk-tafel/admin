@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -130,6 +131,7 @@ class UserController(
         @Valid @RequestBody user: UserRequest,
     ): ResponseEntity<UserResponse> {
         validateIfUserExists(user)
+        validateAdministratorAssignment(requested = user.permissions, current = emptyList())
 
         val tafelUser = mapToTafelUser(user)
         userDetailsManager.createUser(tafelUser)
@@ -158,8 +160,13 @@ class UserController(
         @PathVariable userId: Long,
         @Valid @RequestBody user: UserRequest,
     ): ResponseEntity<UserResponse> {
-        userDetailsManager.loadUserById(userId)
+        val existingUser = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
+
+        validateAdministratorAssignment(
+            requested = user.permissions,
+            current = existingUser.authorities.mapNotNull { it.authority },
+        )
 
         if (user.password != user.passwordRepeat) {
             throw BusinessRuleException("Passwörter stimmen nicht überein!")
@@ -251,6 +258,34 @@ class UserController(
             .map { authority -> mapToUserPermission(authority.authority!!) }
             .sortedBy { it.title },
     )
+
+    /**
+     * [UserPermissions.ADMINISTRATOR] grants every other permission, so handing it out is handing
+     * out everything - only someone who already holds it may add or remove it. Without this,
+     * `USER_MANAGEMENT` alone would be enough to promote yourself, which would make every other
+     * permission check decorative.
+     *
+     * Both directions are guarded: revoking it matters as much as granting it, since otherwise a
+     * user manager could lock the administrators out. Only an actual *change* is rejected, so a user
+     * manager can still edit an administrator's name or personnel number as long as the permission
+     * itself is submitted unchanged - which is what the (disabled) checkbox in the editor sends.
+     */
+    private fun validateAdministratorAssignment(requested: List<UserPermissionItem>, current: List<String>) {
+        val administratorKey = UserPermissions.ADMINISTRATOR.key
+        val requestedAdministrator = requested.any { it.key == administratorKey }
+        val currentAdministrator = current.contains(administratorKey)
+        if (requestedAdministrator == currentAdministrator) {
+            return
+        }
+
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        if (authenticatedUser.authorities.none { it.authority == administratorKey }) {
+            throw TafelApiException(
+                HttpStatus.FORBIDDEN,
+                "Die Berechtigung \"${UserPermissions.ADMINISTRATOR.title}\" kann nur von einem Administrator vergeben oder entzogen werden!",
+            )
+        }
+    }
 
     private fun mapToUserPermission(key: String): UserPermissionItem {
         val permissionEnum = UserPermissions.valueOfKey(key)

@@ -92,6 +92,13 @@ data class PushNotificationTypePreferenceItem(
 enum class PushNotificationType {
     DISTRIBUTION_STARTED,
     DISTRIBUTION_CLOSED,
+    DISTRIBUTION_STILL_OPEN,
+    CHECKIN_STARTED,
+    FOOD_HANDOUT_STARTED,
+    ALL_TICKETS_PROCESSED,
+    FOOD_COLLECTION_COMPLETED,
+    USER_LOCKED_OUT,
+    REPORT_MAIL_FAILED,
 }
 
 @ExcludeFromTestCoverage

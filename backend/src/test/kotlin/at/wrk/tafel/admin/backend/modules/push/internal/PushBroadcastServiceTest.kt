@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
@@ -45,13 +47,16 @@ internal class PushBroadcastServiceTest {
         every { pushPreferencesService.isEnabled(any(), any()) } returns true
     }
 
-    private fun subscriptionOf(id: Long, userId: Long) = PushSubscriptionEntity().apply {
+    private fun subscriptionOf(id: Long, userId: Long, permissions: List<UserPermissions> = emptyList()) = PushSubscriptionEntity().apply {
         this.id = id
         user = UserEntity(
             username = "user-$userId",
             password = "pw",
             employee = EmployeeEntity(personnelNumber = "p-$userId", firstname = "first", lastname = "last"),
-        ).apply { this.id = userId }
+        ).apply {
+            this.id = userId
+            authorities = permissions.map { UserAuthorityEntity(user = this, name = it.key) }.toMutableList()
+        }
     }
 
     @Test
@@ -66,6 +71,53 @@ internal class PushBroadcastServiceTest {
         verify { webPushSenderService.send(subscription1, "payload-json") }
         verify { webPushSenderService.send(subscription2, "payload-json") }
         verify(exactly = 0) { pushSubscriptionRepository.delete(any()) }
+    }
+
+    @Test
+    fun `sends a permission-restricted type only to users who hold one of its permissions`() {
+        val leadership = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.DISTRIBUTION_LCM))
+        val supervisor = subscriptionOf(id = 11, userId = 101, permissions = listOf(UserPermissions.SUPERVISOR))
+        val unrelated = subscriptionOf(id = 12, userId = 102, permissions = listOf(UserPermissions.CHECKIN))
+        every { pushSubscriptionRepository.findAll() } returns listOf(leadership, supervisor, unrelated)
+        every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
+
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STILL_OPEN, title = "title", body = "body")
+
+        verify { webPushSenderService.send(leadership, "payload-json") }
+        verify { webPushSenderService.send(supervisor, "payload-json") }
+        verify(exactly = 0) { webPushSenderService.send(unrelated, any()) }
+    }
+
+    /**
+     * Every type tracing the distribution day concerns the whole team and carries no permission
+     * requirement, so a user with no permissions at all still receives them - the opt-out is the
+     * only thing standing between them and the device.
+     */
+    @Test
+    fun `sends an unrestricted type regardless of the recipient's permissions`() {
+        val withoutPermissions = subscriptionOf(id = 10, userId = 100)
+        every { pushSubscriptionRepository.findAll() } returns listOf(withoutPermissions)
+        every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
+
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_CLOSED, title = "title", body = "body")
+
+        verify { webPushSenderService.send(withoutPermissions, "payload-json") }
+    }
+
+    /**
+     * Permissions decide whether someone is an audience for a type at all, so a user who isn't must
+     * not even be looked up in the preferences table - the in-memory check is there precisely to
+     * keep a broadcast's query count proportional to its actual recipients.
+     */
+    @Test
+    fun `doesn't query preferences for a user who isn't an audience for the type`() {
+        val unrelated = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.CHECKIN))
+        every { pushSubscriptionRepository.findAll() } returns listOf(unrelated)
+
+        service.broadcast(type = PushNotificationType.USER_LOCKED_OUT, title = "title", body = "body")
+
+        verify(exactly = 0) { pushPreferencesService.isEnabled(any(), any()) }
+        verify(exactly = 0) { webPushSenderService.send(any(), any()) }
     }
 
     @Test
@@ -122,7 +174,7 @@ internal class PushBroadcastServiceTest {
         val subscription = subscriptionOf(id = 10, userId = 100)
         every { webPushSenderService.send(subscription, any()) } returns PushSendResult.SENT
 
-        val result = service.sendTo(subscription, "title", "body")
+        val result = service.sendTo(subscription, "title", "body", "uebersicht")
 
         assertThat(result).isEqualTo(PushSendResult.SENT)
         verify { webPushSenderService.send(subscription, "payload-json") }
@@ -135,7 +187,7 @@ internal class PushBroadcastServiceTest {
         every { pushPreferencesService.isEnabled(any(), any()) } returns false
         every { webPushSenderService.send(subscription, any()) } returns PushSendResult.SENT
 
-        service.sendTo(subscription, "title", "body")
+        service.sendTo(subscription, "title", "body", "uebersicht")
 
         verify { webPushSenderService.send(subscription, "payload-json") }
     }
@@ -145,7 +197,7 @@ internal class PushBroadcastServiceTest {
         val subscription = subscriptionOf(id = 10, userId = 100)
         every { webPushSenderService.send(subscription, any()) } returns PushSendResult.EXPIRED
 
-        val result = service.sendTo(subscription, "title", "body")
+        val result = service.sendTo(subscription, "title", "body", "uebersicht")
 
         assertThat(result).isEqualTo(PushSendResult.EXPIRED)
         verify { pushSubscriptionRepository.delete(subscription) }
@@ -185,6 +237,54 @@ internal class PushBroadcastServiceTest {
         assertThat(notification["badge"].asString()).isEqualTo("/verwaltung-dev/icons/badge-96x96.png")
     }
 
+    /**
+     * The click target is read by `ngsw-worker.js`, not by any code of ours, so its exact shape -
+     * `data.onActionClick.default` with an operation the service worker knows - is the whole
+     * contract. Get it wrong and nothing errors anywhere: the notification simply arrives and does
+     * nothing when tapped.
+     */
+    @Test
+    fun `payload carries a click target the Angular service worker understands`() {
+        val notification = sentNotificationFor(relativeBaseUrl = "/")
+
+        val action = notification["data"]["onActionClick"]["default"]
+        assertThat(action["operation"].asString()).isEqualTo("navigateLastFocusedOrOpen")
+        assertThat(action["url"].asString()).isEqualTo("/uebersicht")
+    }
+
+    @Test
+    fun `the click target is addressed below the app's base path, not the origin root`() {
+        val notification = sentNotificationFor(relativeBaseUrl = "/verwaltung-dev")
+
+        assertThat(notification["data"]["onActionClick"]["default"]["url"].asString())
+            .isEqualTo("/verwaltung-dev/uebersicht")
+    }
+
+    /**
+     * Each type's own screen has to reach the payload - a broadcast that sent everyone to the same
+     * page would look right in every unit test of the send path and still strand the recipient.
+     */
+    @Test
+    fun `broadcast points the notification at the screen belonging to its type`() {
+        val realMapper = JsonMapper.builder().build()
+        val serviceWithRealMapper = PushBroadcastService(
+            pushSubscriptionRepository,
+            pushPreferencesService,
+            webPushSenderService,
+            realMapper,
+            TafelAdminProperties(),
+        )
+        val subscription = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.ADMINISTRATOR))
+        every { pushSubscriptionRepository.findAll() } returns listOf(subscription)
+        val payload = slot<String>()
+        every { webPushSenderService.send(subscription, capture(payload)) } returns PushSendResult.SENT
+
+        serviceWithRealMapper.broadcast(PushNotificationType.USER_LOCKED_OUT, "Benutzer gesperrt", "body")
+
+        val url = realMapper.readTree(payload.captured)["notification"]["data"]["onActionClick"]["default"]["url"]
+        assertThat(url.asString()).isEqualTo("/benutzer/anmelde-versuche")
+    }
+
     private fun sentNotificationFor(relativeBaseUrl: String): JsonNode {
         val realMapper = JsonMapper.builder().build()
         val properties = TafelAdminProperties().apply { server.relativeBaseUrl = relativeBaseUrl }
@@ -199,7 +299,7 @@ internal class PushBroadcastServiceTest {
         val payload = slot<String>()
         every { webPushSenderService.send(subscription, capture(payload)) } returns PushSendResult.SENT
 
-        serviceWithRealMapper.sendTo(subscription, "Ausgabe beendet", "Die Ausgabe wurde soeben beendet.")
+        serviceWithRealMapper.sendTo(subscription, "Ausgabe beendet", "Die Ausgabe wurde soeben beendet.", "uebersicht")
 
         return realMapper.readTree(payload.captured)["notification"]
     }
@@ -209,7 +309,7 @@ internal class PushBroadcastServiceTest {
         val subscription = subscriptionOf(id = 10, userId = 100)
         every { webPushSenderService.send(subscription, any()) } returns PushSendResult.NOT_CONFIGURED
 
-        val result = service.sendTo(subscription, "title", "body")
+        val result = service.sendTo(subscription, "title", "body", "uebersicht")
 
         assertThat(result).isEqualTo(PushSendResult.NOT_CONFIGURED)
         verify(exactly = 0) { pushSubscriptionRepository.delete(any()) }

@@ -56,4 +56,21 @@ class FoodCollectionEntity(
         joinColumns = [JoinColumn(name = "food_collection_id")],
     )
     var returnItems: List<FoodCollectionReturnItemEntity>? = null
+
+    /**
+     * A route only counts as recorded once the whole trip is done: base data (car/driver/co-driver/
+     * mileage) plus the picked-up food items - a row can otherwise exist with only one of the two
+     * (see `FoodCollectionService.getOrCreateFoodCollectionEntity`).
+     *
+     * Lives on the entity rather than in either caller because two modules ask the same question and
+     * have to agree on the answer: `dashboard` counts recorded routes for its progress display, and
+     * `logistics` decides from it when the last outstanding route has been recorded. Return items
+     * are deliberately not part of it - not every route brings any back.
+     */
+    fun isFullyRecorded(): Boolean = car != null &&
+        driver != null &&
+        coDriver != null &&
+        kmStart != null &&
+        kmEnd != null &&
+        !items.isNullOrEmpty()
 }

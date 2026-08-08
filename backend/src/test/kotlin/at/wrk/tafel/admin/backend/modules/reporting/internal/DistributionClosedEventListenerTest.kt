@@ -7,7 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute4Enti
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportFile
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
+import at.wrk.tafel.admin.backend.modules.reporting.events.ReportMailFailedEvent
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.retry.support.RetryTemplate
 import org.thymeleaf.context.Context
@@ -52,6 +54,9 @@ class DistributionClosedEventListenerTest {
     @RelaxedMockK
     private lateinit var mailSenderService: MailSenderService
 
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
+
     private lateinit var listener: DistributionClosedEventListener
 
     @BeforeEach
@@ -71,6 +76,7 @@ class DistributionClosedEventListenerTest {
             statisticExportService,
             mailSenderService,
             retryTemplate,
+            eventPublisher,
         )
     }
 
@@ -303,6 +309,59 @@ class DistributionClosedEventListenerTest {
         verify(exactly = 3) { mailSenderService.sendHtmlMail(MailType.RETURN_BOXES, any(), any(), any(), any()) }
         verify { mailSenderService.sendHtmlMail(MailType.DAILY_REPORT, any(), any(), any(), any()) }
         verify { mailSenderService.sendHtmlMail(mailType = MailType.STATISTICS, subject = any(), attachments = any(), templateName = any(), context = any()) }
+    }
+
+    @Test
+    fun `publishes a ReportMailFailedEvent naming the mail that was given up on`() {
+        val (distributionId, distribution, distributionStatistic) = setupDistribution()
+
+        every { dailyReportService.generateDailyReportPdf(distributionStatistic) } returns ByteArray(10)
+        every { statisticExportService.exportStatisticFiles(distributionStatistic) } throws
+            IllegalStateException("permanent failure")
+
+        assertThrows<IllegalStateException> {
+            listener.onDistributionClosed(DistributionClosedEvent(distributionId))
+        }
+
+        verify(exactly = 1) {
+            eventPublisher.publishEvent(ReportMailFailedEvent(distributionId = distributionId, reportName = "Statistiken"))
+        }
+    }
+
+    /**
+     * The event is what tells anyone a mail is missing, so it has to be published per failed mail
+     * rather than once for the batch - a run where two of the three fail must not report only one
+     * of them.
+     */
+    @Test
+    fun `publishes one ReportMailFailedEvent per failed mail`() {
+        val (distributionId, distribution, distributionStatistic) = setupDistribution()
+
+        every { dailyReportService.generateDailyReportPdf(distributionStatistic) } throws
+            IllegalStateException("daily report failure")
+        every { statisticExportService.exportStatisticFiles(distributionStatistic) } returns emptyList()
+        every { mailSenderService.sendHtmlMail(MailType.RETURN_BOXES, any(), any(), any(), any()) } throws
+            IllegalStateException("return boxes failure")
+
+        assertThrows<IllegalStateException> {
+            listener.onDistributionClosed(DistributionClosedEvent(distributionId))
+        }
+
+        verify(exactly = 1) { eventPublisher.publishEvent(ReportMailFailedEvent(distributionId, "Tagesreport")) }
+        verify(exactly = 1) { eventPublisher.publishEvent(ReportMailFailedEvent(distributionId, "Retourkisten")) }
+        verify(exactly = 0) { eventPublisher.publishEvent(ReportMailFailedEvent(distributionId, "Statistiken")) }
+    }
+
+    @Test
+    fun `publishes no ReportMailFailedEvent when every mail goes out`() {
+        val (distributionId, distribution, distributionStatistic) = setupDistribution()
+
+        every { dailyReportService.generateDailyReportPdf(distributionStatistic) } returns ByteArray(10)
+        every { statisticExportService.exportStatisticFiles(distributionStatistic) } returns emptyList()
+
+        listener.onDistributionClosed(DistributionClosedEvent(distributionId))
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<ReportMailFailedEvent>()) }
     }
 
     @Test
