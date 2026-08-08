@@ -47,6 +47,8 @@ describe('Settings - Employees', () => {
     cy.byTestId('addEmployeeButton').click();
 
     cy.byTestId('employeeCreateSaveButton').click();
+
+    cy.byTestId('employee-create-dialog').should('be.visible');
     cy.byTestId('employeeCreatePersonnelNumberInput').should('have.class', 'ng-invalid');
   });
 

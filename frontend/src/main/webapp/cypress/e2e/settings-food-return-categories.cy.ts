@@ -29,7 +29,8 @@ describe('Settings - Food Return Categories', () => {
 
     cy.get('input[formControlName="name"]').should('be.visible').clear();
     cy.contains('Speichern').click();
-    // Ensure dialog still open (save did not close because of validation)
+
+    cy.byTestId('food-return-category-create-dialog').should('be.visible');
     cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
   });
 
