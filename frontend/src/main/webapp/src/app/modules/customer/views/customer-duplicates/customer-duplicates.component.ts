@@ -6,6 +6,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatDialog} from '@angular/material/dialog';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -24,7 +25,8 @@ import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-c
     NgClass,
     MatButtonModule,
     FaIconComponent,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule
   ]
 })
 export class CustomerDuplicatesComponent {

@@ -4,6 +4,7 @@ import {faCalculator} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 import {MatDialog} from '@angular/material/dialog';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {SelectSheltersDialogComponent} from './dialogs/select-shelters-dialog.component';
 
 @Component({
@@ -11,7 +12,8 @@ import {SelectSheltersDialogComponent} from './dialogs/select-shelters-dialog.co
   templateUrl: 'select-shelters.component.html',
   imports: [
     MatButton,
-    FaIconComponent
+    FaIconComponent,
+    MatTooltipModule
   ]
 })
 export class SelectSheltersComponent {

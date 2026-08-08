@@ -17,6 +17,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {form, FormField} from '@angular/forms/signals';
 import {MatDividerModule} from '@angular/material/divider';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
@@ -39,7 +40,8 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
     MatDividerModule,
     FormsModule,
     MatTableModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ]
 })
 // Note: Material modules are added via standalone imports below to keep the decorator concise.

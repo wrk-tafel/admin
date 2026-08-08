@@ -6,6 +6,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faPlus, faRemove} from '@fortawesome/free-solid-svg-icons';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
@@ -37,7 +38,8 @@ import {Observable} from 'rxjs';
     MatInputModule,
     MatSelectModule,
     FaIconComponent,
-    NgClass
+    NgClass,
+    MatTooltipModule
   ]
 })
 export class FoodCollectionRecordingItemsDesktopComponent {

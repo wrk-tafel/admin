@@ -10,6 +10,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {CommonModule} from '@angular/common';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -18,6 +19,7 @@ import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-custome
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -35,7 +37,9 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
     CommonModule,
     FaIconComponent,
     TafelAutofocusDirective,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule,
+    TafelInfoTooltipComponent
   ]
 })
 export class CustomerSearchComponent {

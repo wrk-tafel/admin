@@ -5,6 +5,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {CommonModule} from '@angular/common';
 import {faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -21,7 +22,8 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
     MatPaginatorModule,
     CommonModule,
     FaIconComponent,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule
   ]
 })
 export class CustomerAboveLimitComponent {

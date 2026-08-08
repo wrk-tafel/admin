@@ -34,7 +34,9 @@
                         <button type="button" matButton="filled"
                                 class="button-success"
                                 [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
-                                (click)="addAddress(i, j)">
+                                (click)="addAddress(i, j)"
+                                matTooltip="Weitere E-Mail Adresse hinzufügen"
+                                matTooltipPosition="above">
                           <fa-icon [icon]="faPlus"></fa-icon>
                         </button>
                       </div>
@@ -62,7 +64,8 @@
                             <button type="button" matButton="filled"
                                     class="button-danger"
                                     [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
-                                    (click)="removeAddress(i, j, k)">
+                                    (click)="removeAddress(i, j, k)"
+                                    matTooltip="E-Mail Adresse entfernen">
                               <fa-icon [icon]="faTrashCan"></fa-icon>
                             </button>
                           </div>

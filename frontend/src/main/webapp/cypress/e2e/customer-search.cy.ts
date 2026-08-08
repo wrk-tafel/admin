@@ -92,6 +92,34 @@ describe('Customer Search', () => {
     });
   });
 
+  // Tooltips are deliberately not hit-testable (disableTooltipInteractivity in app.config.ts), so
+  // they must not be asserted with `be.visible`: for a `position: fixed` element that check probes
+  // document.elementFromPoint, which now passes straight through the tooltip and reports it as
+  // "covered" by whatever sits behind it. `mat-mdc-tooltip-show` is the class Material puts on the
+  // panel for as long as it is displayed, so it says the same thing without a pointer probe.
+  it('explains a search filter through its info tooltip', () => {
+    cy.byTestId('post-processing-info-tooltip').trigger('mouseenter');
+
+    cy.get('.mat-mdc-tooltip')
+      .should('have.class', 'mat-mdc-tooltip-show')
+      .and('contain.text', 'Findet Kunden, bei denen bei einer Person Pflichtangaben fehlen');
+  });
+
+  it('labels the icon-only result buttons through their tooltip', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('search-button').click();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-showcustomer-button-0').filterDisplayed().trigger('mouseenter');
+      cy.get('.mat-mdc-tooltip')
+        .should('have.class', 'mat-mdc-tooltip-show')
+        .and('contain.text', 'Kundendetails anzeigen');
+    });
+  });
+
   function clickSearchAndOpenFirstResult(expectedCustomerId: number, alreadySearched = false) {
     if (!alreadySearched) {
       cy.byTestId('search-button').click();

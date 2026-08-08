@@ -11,6 +11,7 @@ import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.serv
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',
@@ -29,7 +30,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     FormsModule,
     SelectSheltersComponent,
     MatError,
-    MatLabel
+    MatLabel,
+    TafelInfoTooltipComponent
   ]
 })
 export class DistributionStatisticsInputComponent {

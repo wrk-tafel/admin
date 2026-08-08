@@ -14,6 +14,8 @@
           formControlName="employeeCount"
           placeholder="Anzahl der Mitarbeiter"
         />
+        <tafel-info-tooltip matSuffix [testId]="'employee-count-info-tooltip'"
+                            text="Anzahl der Mitarbeiter, die an diesem Ausgabetag im Einsatz waren. Fließt in die Statistik und den Tagesbericht ein."></tafel-info-tooltip>
         @if (employeeCount.errors?.required && employeeCount.touched) {
           <mat-error>
             Pflichtfeld
@@ -37,6 +39,8 @@
             [readonly]="true"
             [disabled]="panelDisabled()"
           />
+          <tafel-info-tooltip matSuffix [testId]="'persons-in-shelter-info-tooltip'"
+                              text="Wird nicht direkt eingegeben: über den Rechner daneben werden die belieferten Notschlafstellen ausgewählt, die Summe ihrer Personen steht dann hier."></tafel-info-tooltip>
           @if (personsInShelterCount.errors?.required && personsInShelterCount.touched) {
             <mat-error>
               Pflichtfeld

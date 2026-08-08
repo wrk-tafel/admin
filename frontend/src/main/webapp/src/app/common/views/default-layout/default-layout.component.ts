@@ -2,6 +2,7 @@ import {Component, computed, inject, signal, viewChild} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {map} from 'rxjs';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -31,7 +32,8 @@ const MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
     NgClass,
     DatePipe,
     NgOptimizedImage,
-    DefaultHeaderComponent
+    DefaultHeaderComponent,
+    MatTooltipModule
   ]
 })
 export class DefaultLayoutComponent {

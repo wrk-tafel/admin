@@ -3,6 +3,7 @@ import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} fro
 import {MatButtonModule} from '@angular/material/button';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {faEnvelope, faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -25,7 +26,8 @@ import {isControlInvalid, isControlValid} from '../../../../common/util/reactive
     MatIconModule,
     FaIconComponent,
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    MatTooltipModule
   ]
 })
 export class MailRecipientsComponent {

@@ -54,6 +54,7 @@
                 [disabled]="testedDeviceId() === device.id"
                 (click)="sendTestNotification(device)"
                 [attr.aria-label]="'Test-Benachrichtigung senden'"
+                matTooltip="Test-Benachrichtigung an dieses Gerät senden"
               >
                 <fa-icon [icon]="faPaperPlane"></fa-icon>
               </button>
@@ -64,6 +65,7 @@
                 class="button-danger"
                 (click)="renameDevice(device)"
                 [attr.aria-label]="'Gerät benennen'"
+                matTooltip="Gerät umbenennen"
               >
                 <fa-icon [icon]="faPen"></fa-icon>
               </button>
@@ -74,6 +76,7 @@
                 class="button-danger"
                 (click)="removeDevice(device)"
                 [attr.aria-label]="'Gerät entfernen'"
+                matTooltip="Gerät entfernen - es erhält danach keine Benachrichtigungen mehr"
               >
                 <fa-icon [icon]="faTrashCan"></fa-icon>
               </button>

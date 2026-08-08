@@ -109,10 +109,12 @@
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
                 <td mat-cell *matCellDef="let user; let i = index" class="px-4 py-2">
                   <div class="flex gap-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
+                            matTooltip="Benutzerdetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
+                            matTooltip="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </div>
@@ -145,10 +147,12 @@
                     </div>
                   </mat-card-content>
                   <mat-card-actions class="flex gap-2 mt-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
+                            matTooltip="Benutzerdetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
+                            matTooltip="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </mat-card-actions>

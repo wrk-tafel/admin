@@ -25,6 +25,7 @@ import {MatButton} from '@angular/material/button';
 import {faCheck, faPencil, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {staticValueTypeLabels} from './static-value-type-labels';
 
@@ -52,7 +53,8 @@ import {staticValueTypeLabels} from './static-value-type-labels';
     CurrencyPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatTooltipModule
   ]
 })
 export class SettingsStaticValuesComponent {
