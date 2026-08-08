@@ -117,12 +117,13 @@
               {{ group.title }}
             </div>
             <!--
-              Two columns rather than three: each entry carries a sentence of explanation under its
-              label, and the groups are small enough (six, one, two) that a third column would leave
-              most rows half empty. One column on phones, where two would leave neither the label nor
-              its description enough width.
+              Three columns on wide screens so the whole card fits on a laptop screen without
+              scrolling - two made it tall enough to push the last group below the fold, which costs
+              more than the trailing empty cells the small groups leave. Widens in steps because each
+              entry carries a sentence of explanation: one column on phones, two from medium, three
+              only once there is desktop width to keep those sentences from wrapping raggedly.
             -->
-            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-x-8">
               @for (typePreference of group.items; track typePreference.type) {
                 <div testid="push-type-preference" [attr.data-type]="typePreference.type" class="py-2 border-t border-gray-200">
                   <mat-slide-toggle
