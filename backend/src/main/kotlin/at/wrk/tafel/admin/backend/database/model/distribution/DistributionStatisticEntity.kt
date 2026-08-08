@@ -72,31 +72,21 @@ class DistributionStatisticEntity(
     @Column(name = "employee_count")
     var employeeCount: Int = 0
 
-    @Column(name = "persons_in_shelter_count")
-    @Deprecated("Use shelters instead - remove earliest in 2026")
-    var personsInShelterCount: Int = 0
-
-    fun isEmpty(): Boolean {
-        @Suppress("DEPRECATION")
-        val personsInShelterCountIsEmpty = personsInShelterCount == 0
-
-        return countCustomers == 0 &&
-            countPersons == 0 &&
-            countInfants == 0 &&
-            BigDecimal.ZERO.compareTo(averagePersonsPerCustomer) == 0 &&
-            countCustomersNew == 0 &&
-            countPersonsNew == 0 &&
-            countCustomersProlonged == 0 &&
-            countPersonsProlonged == 0 &&
-            countCustomersUpdated == 0 &&
-            countSingleParentHouseholds == 0 &&
-            shopsTotalCount == 0 &&
-            shopsWithFoodCount == 0 &&
-            BigDecimal.ZERO.compareTo(foodTotalAmount) == 0 &&
-            BigDecimal.ZERO.compareTo(foodPerShopAverage) == 0 &&
-            routesLengthKm == 0 &&
-            employeeCount == 0 &&
-            personsInShelterCountIsEmpty &&
-            shelters.isEmpty()
-    }
+    fun isEmpty(): Boolean = countCustomers == 0 &&
+        countPersons == 0 &&
+        countInfants == 0 &&
+        BigDecimal.ZERO.compareTo(averagePersonsPerCustomer) == 0 &&
+        countCustomersNew == 0 &&
+        countPersonsNew == 0 &&
+        countCustomersProlonged == 0 &&
+        countPersonsProlonged == 0 &&
+        countCustomersUpdated == 0 &&
+        countSingleParentHouseholds == 0 &&
+        shopsTotalCount == 0 &&
+        shopsWithFoodCount == 0 &&
+        BigDecimal.ZERO.compareTo(foodTotalAmount) == 0 &&
+        BigDecimal.ZERO.compareTo(foodPerShopAverage) == 0 &&
+        routesLengthKm == 0 &&
+        employeeCount == 0 &&
+        shelters.isEmpty()
 }

@@ -24,7 +24,7 @@ class DistributionClosedPushListener(
     @EventListener
     fun onDistributionClosed(event: DistributionClosedEvent) {
         val distribution = distributionRepository.findByIdOrNull(event.distributionId) ?: return
-        val dateFormatted = distribution.startedAt!!.format(DATE_FORMATTER)
+        val dateFormatted = distribution.startedAt.format(DATE_FORMATTER)
 
         pushBroadcastService.broadcast(
             type = PushNotificationType.DISTRIBUTION_CLOSED,
