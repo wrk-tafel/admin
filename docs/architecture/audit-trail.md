@@ -89,10 +89,11 @@ with them:
   save of that screen looks like a fresh create with no predecessor.
 
 **A mutable column is a lossy event log.** `households.prolonged_at` is the clearest example: it is
-set to "now" when an update pushes `validUntil` further out, and reset to `null` on any update that
-does not (`HouseholdConverter.kt:70`). One later edit within the same distribution window therefore
-removes a household from the "Verlängert" list. That is the structural weakness of encoding events
-in a single mutable column, and an append-only log is exactly what fixes it.
+set to "now" when an update pushes `validUntil` further out, and each prolongation overwrites the
+previous one. The column can answer "when was this household last prolonged", never "how often" or
+"when before that" — and it says nothing about who did it. That is the structural weakness of
+encoding a repeating event in a single mutable column, and an append-only log is exactly what fixes
+it.
 
 **Conclusion on question 2: yes, a real audit trail is worth building** — the gap is "who changed
 what, and what did it look like before", and nothing in the current schema addresses it.
@@ -221,7 +222,9 @@ written:
 
 ## 6. Related finding
 
-The `prolonged_at` reset described in section 2 is a pre-existing defect independent of this
-evaluation: a household prolonged and then edited again within the same distribution window drops
-out of the "Verlängert" list. Tracked as
-[#3112](https://github.com/wrk-tafel/admin/issues/3112) rather than fixed here.
+A defect found during this evaluation — a household prolonged and then edited again within the same
+distribution window dropped out of the "Verlängert" list, because any update that did not prolong
+reset `prolonged_at` to `null` — was filed as
+[#3112](https://github.com/wrk-tafel/admin/issues/3112) rather than fixed here, and has since been
+fixed: the column is now only ever set, never cleared. The argument in section 2 is unaffected — one
+mutable column still keeps only the most recent prolongation.
