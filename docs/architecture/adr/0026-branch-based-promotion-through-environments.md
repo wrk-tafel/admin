@@ -25,6 +25,14 @@ depends on.
 Non-release builds are tagged with a seven-character commit SHA, which is also what the frontend
 shows as the running version; only a release produces a semantic version and moves `latest`.
 
+A `changes` job classifies the touched files first, and the callers gate on its output, so a change
+skips the jobs that cannot say anything about it — a docs-only pull request runs no build, no tests,
+no image and no deployment. The classification deliberately lives in a job rather than in `paths:`
+filters on the workflow triggers: a workflow that never starts leaves its checks *pending* forever,
+while a job skipped by an `if:` reports a proper "skipped" conclusion. A change under
+`.github/workflows/` counts as a change to every area, since the only proof a pipeline change works
+is running it.
+
 - Each environment has a concurrency group, so two runs cannot deploy to the same environment at once.
 - Deploying to dev deliberately requires only a successful build: the point of dev is to *see* a
   change while it is being reviewed, including one whose tests are still failing.
@@ -50,6 +58,10 @@ shows as the running version; only a release produces a semantic version and mov
   same path.
 - Dependabot PRs skip the dev deploy — they should not take over the review environment for a
   dependency bump.
+- Because jobs are skipped rather than filtered out at the trigger, a docs-only PR shows its checks
+  as "skipped" instead of hanging as "pending" — the distinction that makes required checks usable.
+  The cost is that the classification list is a second place that has to learn about a new top-level
+  directory; a path nobody classified falls into the catch-all and ships nothing.
 
 ## Alternatives considered
 
