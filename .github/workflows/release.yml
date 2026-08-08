@@ -157,28 +157,27 @@ jobs:
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
   check-deploy-window:
     runs-on: ubuntu-latest
-    outputs:
-      blocked: ${{ steps.check.outputs.blocked }}
     steps:
       - name: Check for the Saturday event window
-        id: check
         env:
           TZ: Europe/Vienna
         # The app is used live Sat ~12:00-24:00 and must not restart (Flyway migrations run on
         # boot) during that window - see issue #2931. Block the whole Saturday to be safe.
+        # This fails the run on purpose so a blocked prod deploy is visible instead of a silent skip.
         run: |
           day=$(date +%u) # ISO weekday, 6 = Saturday
           if [ "$day" -eq 6 ]; then
-            echo "blocked=true" >> "$GITHUB_OUTPUT"
-            echo "### :no_entry: Prod deploy blocked" >> "$GITHUB_STEP_SUMMARY"
-            echo "Current day in Europe/Vienna is $(date '+%A %H:%M'). Prod deploys are blocked all day Saturday. Skipping deploy-prod." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "blocked=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### :no_entry: Prod deploy blocked"
+              echo "Current day in Europe/Vienna is $(date '+%A %H:%M'). Prod deploys are blocked all day Saturday."
+              echo "Re-run this workflow's failed jobs once it is no longer Saturday to deploy to prod."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Prod deploy blocked::Prod deploys are blocked all day Saturday (Europe/Vienna) - see issue #2931."
+            exit 1
           fi
   deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [version, github-release, check-deploy-window]
-    if: needs.check-deploy-window.outputs.blocked != 'true'
     with:
       environment: prod
       version: ${{ needs.version.outputs.version }}
