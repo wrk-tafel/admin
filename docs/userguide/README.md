@@ -59,7 +59,7 @@ Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzernam
 
 ## Navigation
 
-Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), sind mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde. Untergeordnete Bereiche wie "Benutzer", "Statistiken" und "Einstellungen" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Hamburger-Menü ein-/ausgeblendet.
+Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), sind mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde. Untergeordnete Bereiche wie "Benutzer", "Statistiken" und "Einstellungen" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)).
 
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
@@ -73,6 +73,23 @@ Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berec
 Ist die Seitenleiste eingeklappt, sind nur noch die Icons sichtbar. Fährt man mit der Maus über ein Icon, wird der Name des Menüpunkts als Kurzhinweis (Tooltip) eingeblendet.
 
 Oben rechts in der Kopfzeile zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
+
+<a id="darstellung-auf-schmalen-bildschirmen"></a>
+
+## Darstellung auf schmalen Bildschirmen
+
+Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei der Kunden-Annahme (siehe [Anmeldung](anmeldung.md)) oder für die Warenerfassung unterwegs im Fahrzeug (siehe [Logistik](logistik.md)). Dafür gibt es keine eigene App und keine eigene Adresse: Es ist dieselbe Anwendung im Browser, die sich lediglich automatisch an die verfügbare Bildschirmbreite anpasst. Wird am PC das Browserfenster schmal gezogen, passiert dasselbe.
+
+Umgestellt wird in zwei Stufen:
+
+- **Unter rund 1.000 Pixel Breite** (Tablets, schmale Fenster) wird die Seitenleiste ausgeblendet und stattdessen über das Menü-Symbol (☰) links oben als Überblendung geöffnet. Sie schließt sich wieder, sobald ein Menüpunkt gewählt oder daneben getippt wird. Die Schaltfläche zum Einklappen auf reine Icons entfällt in dieser Ansicht.
+- **Unter rund 770 Pixel Breite** (Handys) werden zusätzlich alle Tabellen als **Kartenliste** dargestellt: eine Karte je Eintrag, in der die Tabellenspalten als Beschriftung und Wert untereinander stehen. Formulare werden einspaltig untereinander angeordnet statt in mehreren Spalten nebeneinander.
+
+![Navigation auf schmalen Bildschirmen](images/mobil-navigation.jpg)
+
+Inhaltlich ändert sich dadurch nichts: Es sind dieselben Daten, dieselben Aktionen (Lupe, Stift, Papierkorb usw.), dieselbe Seitennavigation und dieselben Berechtigungen wie in der Tabellenansicht. Als Kartenliste dargestellt werden das Suchergebnis der Kunden-Suche, die Listen "Kunden über Limit" und "Kunden-Übersicht" (siehe [Kunden](kunden.md)), das Suchergebnis der Benutzer-Suche und die Anmelde-Versuche (siehe [Benutzer](benutzer.md)), sämtliche Listen der [Einstellungen](einstellungen.md) sowie die Ergebnisliste der Schulstartpakete (siehe [Statistiken](statistiken.md)).
+
+Eine Ausnahme ist die Warenerfassung: Sie wird auf schmalen Bildschirmen nicht als Kartenliste, sondern als eigener Ablauf Geschäft für Geschäft dargestellt (siehe [Logistik](logistik.md)).
 
 <a id="tooltips-und-erklaerungen"></a>
 

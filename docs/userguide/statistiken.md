@@ -26,4 +26,8 @@ Unter **Statistiken → Schulstartpakete** wird ermittelt, wie viele Kinder in e
 
 ![Schulstartpakete](images/statistiken-schulstartpakete.jpg)
 
+Auf schmalen Bildschirmen wird die Ergebnisliste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+
+![Schulstartpakete auf schmalen Bildschirmen](images/statistiken-schulstartpakete-mobil.jpg)
+
 Auch hier steht ein **CSV-Export** der Liste zur Verfügung.
