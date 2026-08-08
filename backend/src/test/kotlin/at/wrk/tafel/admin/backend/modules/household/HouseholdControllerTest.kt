@@ -344,7 +344,6 @@ class HouseholdControllerTest {
         every {
             householdService.getHouseholds(
                 any(),
-                any(),
                 testSearchResult.currentPage,
                 true,
                 true,
@@ -353,8 +352,7 @@ class HouseholdControllerTest {
         } returns testSearchResult
 
         val response = controller.getHouseholds(
-            firstname = " first ",
-            lastname = " last ",
+            searchInput = " muster ",
             page = testSearchResult.currentPage,
             postProcessing = true,
             costContribution = true,
@@ -363,8 +361,7 @@ class HouseholdControllerTest {
 
         verify {
             householdService.getHouseholds(
-                firstname = "first",
-                lastname = "last",
+                searchInput = " muster ",
                 page = testSearchResult.currentPage,
                 postProcessing = true,
                 costContribution = true,
@@ -384,15 +381,14 @@ class HouseholdControllerTest {
             pageSize = 10,
         )
         every {
-            householdService.getHouseholds(null, null, null, null, null, null)
+            householdService.getHouseholds(null, null, null, null, null)
         } returns testSearchResult
 
         val response = controller.getHouseholds()
 
         verify {
             householdService.getHouseholds(
-                firstname = null,
-                lastname = null,
+                searchInput = null,
                 page = null,
                 postProcessing = null,
                 costContribution = null,

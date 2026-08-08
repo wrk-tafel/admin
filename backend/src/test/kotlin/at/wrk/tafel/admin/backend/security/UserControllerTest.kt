@@ -187,9 +187,7 @@ class UserControllerTest {
 
     @Test
     fun `get users filtered by other parameters`() {
-        val firstname = " test-firstname "
-        val lastname = " test-lastname "
-        val username = " test-username "
+        val searchInput = " test-searchinput "
         val enabled = true
         val page = 5
         val userSearchResult = UserSearchResult(
@@ -202,9 +200,7 @@ class UserControllerTest {
 
         every {
             userDetailsManager.loadUsers(
-                username = username.trim(),
-                firstname = firstname.trim(),
-                lastname = lastname.trim(),
+                searchInput = searchInput,
                 enabled = enabled,
                 page = page,
             )
@@ -212,9 +208,7 @@ class UserControllerTest {
 
         val response =
             controller.getUsers(
-                firstname = firstname,
-                lastname = lastname,
-                username = username,
+                searchInput = searchInput,
                 enabled = enabled,
                 page = page,
             )
@@ -227,9 +221,7 @@ class UserControllerTest {
 
         verify(exactly = 1) {
             userDetailsManager.loadUsers(
-                username = username.trim(),
-                firstname = firstname.trim(),
-                lastname = lastname.trim(),
+                searchInput = searchInput,
                 enabled = enabled,
                 page = page,
             )

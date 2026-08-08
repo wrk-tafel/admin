@@ -82,8 +82,7 @@ class HouseholdController(
     @GetMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getHouseholds(
-        @RequestParam firstname: String? = null,
-        @RequestParam lastname: String? = null,
+        @RequestParam searchInput: String? = null,
         @RequestParam page: Int? = null,
         @RequestParam postProcessing: Boolean? = null,
         @RequestParam costContribution: Boolean? = null,
@@ -91,8 +90,7 @@ class HouseholdController(
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
-            firstname = firstname?.trim(),
-            lastname = lastname?.trim(),
+            searchInput = searchInput,
             page = page,
             postProcessing = postProcessing,
             costContribution = costContribution,

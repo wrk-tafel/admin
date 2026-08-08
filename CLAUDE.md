@@ -483,6 +483,17 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   freeze, not a broken build.
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
+- **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)
+  rather than per-field inputs. Both match against a denormalized, lower-cased `search_text` column
+  that a database trigger keeps in sync (`R__00088_fulltext_search.sql`) — for a household that
+  covers its number, the names of *all* its persons, address, phone and e-mail; for a user, username
+  plus the linked employee's personnel number and name. Two modes are OR'd: `like '%term%'` for the
+  verbatim hit and `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results
+  ranked verbatim-first — see `SearchTextSpecs`. The cutoff is
+  `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart.
+  Note the trigger is the only thing maintaining `search_text`: a new searchable column on
+  `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
+  silently won't be findable.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.

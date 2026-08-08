@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.model.auth
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import jakarta.persistence.CascadeType
@@ -14,7 +15,6 @@ import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
-import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
@@ -43,34 +43,19 @@ class UserEntity(
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var authorities: MutableList<UserAuthorityEntity> = mutableListOf()
 
+    /**
+     * Everything the single search box may match a user on - username plus the personnel number and
+     * name of the linked employee - concatenated and lower-cased. Maintained by a database trigger
+     * (see `R__00088_fulltext_search.sql`), hence read-only here.
+     */
+    @Column(name = "search_text", insertable = false, updatable = false)
+    var searchText: String? = null
+
     interface Specs {
         companion object {
-            fun usernameContains(username: String?): Specification<UserEntity>? = username?.let {
+            fun searchTextMatches(searchTerm: String?, similarityThreshold: Float): Specification<UserEntity>? = searchTerm?.let {
                 Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    cb.like(
-                        cb.lower(root["username"]),
-                        "%${username.lowercase()}%",
-                    )
-                }
-            }
-
-            fun firstnameContains(firstname: String?): Specification<UserEntity>? = firstname?.let {
-                Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
-                    cb.like(
-                        cb.lower(employee["firstname"]),
-                        "%${firstname.lowercase()}%",
-                    )
-                }
-            }
-
-            fun lastnameContains(lastname: String?): Specification<UserEntity>? = lastname?.let {
-                Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
-                    cb.like(
-                        cb.lower(employee["lastname"]),
-                        "%${lastname.lowercase()}%",
-                    )
+                    SearchTextSpecs.matches(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], searchTerm, similarityThreshold)
                 }
             }
 
@@ -82,11 +67,23 @@ class UserEntity(
                 }
             }
 
-            fun orderByUpdatedAtDesc(spec: Specification<UserEntity>): Specification<UserEntity> = Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-
+            /**
+             * Best match first while a search term is given, most recently updated first otherwise
+             * (a plain filter-only search has no notion of a better hit). Ordering always ends on the
+             * id so paging stays stable when two users score - or were updated - identically.
+             */
+            fun orderBySearchRelevance(searchTerm: String?, spec: Specification<UserEntity>): Specification<UserEntity> = Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val updatedAt: Expression<LocalDateTime> = root["updatedAt"]
                 val id: Expression<Long> = root["id"]
-                cq!!.orderBy(cb.desc(updatedAt), cb.desc(id))
+
+                val orders = buildList {
+                    searchTerm?.let {
+                        add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                    }
+                    add(cb.desc(updatedAt))
+                    add(cb.desc(id))
+                }
+                cq!!.orderBy(orders)
                 spec.toPredicate(root, cq, cb)
             }
         }
