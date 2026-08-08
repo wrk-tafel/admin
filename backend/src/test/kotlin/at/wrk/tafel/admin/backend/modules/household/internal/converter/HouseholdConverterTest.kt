@@ -349,6 +349,9 @@ internal class HouseholdConverterTest {
 
     @Test
     fun `update household and prolongedAt is filled`() {
+        val previousProlongedAt = LocalDateTime.now().minusYears(1)
+        testHouseholdEntity1.prolongedAt = previousProlongedAt
+
         val validUntil = LocalDate.now().plusYears(1)
         val updatedHousehold = testHousehold.copy(
             validUntil = validUntil,
@@ -356,7 +359,43 @@ internal class HouseholdConverterTest {
 
         val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
 
-        assertThat(result.prolongedAt).isNotNull()
+        assertThat(result.prolongedAt).isAfter(previousProlongedAt)
+    }
+
+    @Test
+    fun `update household without prolonging keeps the stored prolongedAt`() {
+        val prolongedAt = LocalDateTime.now().minusHours(2)
+        testHouseholdEntity1.prolongedAt = prolongedAt
+
+        val updatedHousehold = testHousehold.copy(
+            validUntil = testHouseholdEntity1.validUntil,
+            telephoneNumber = "0043660999999",
+        )
+
+        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
+
+        assertThat(result.prolongedAt).isEqualTo(prolongedAt)
+    }
+
+    @Test
+    fun `update household with an earlier validUntil keeps the stored prolongedAt`() {
+        val prolongedAt = LocalDateTime.now().minusHours(2)
+        testHouseholdEntity1.prolongedAt = prolongedAt
+
+        val updatedHousehold = testHousehold.copy(
+            validUntil = testHouseholdEntity1.validUntil.minusMonths(1),
+        )
+
+        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
+
+        assertThat(result.prolongedAt).isEqualTo(prolongedAt)
+    }
+
+    @Test
+    fun `create household has no prolongedAt`() {
+        val result = converter.mapHouseholdToEntity(testHousehold)
+
+        assertThat(result.prolongedAt).isNull()
     }
 
     @Test

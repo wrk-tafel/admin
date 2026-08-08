@@ -137,7 +137,10 @@ Bidirectional mapping between the API-facing `Household`/`Person` models and
   this is how the module gets employee data without depending on `base::employee`. It needs the
   managed entity to assign, which is exactly what that named interface's service doesn't hand out.
 - Tracks `prolongedAt`: set to "now" whenever an update pushes `validUntil` further into the future
-  than it already was.
+  than it already was. Every other update leaves the stored value alone - `getHouseholdsOverview`'s
+  "Verlängert" list and `DistributionStatisticService.countCustomersProlonged` both select on
+  `prolongedAt` falling inside a distribution's window, so clearing it on an unrelated later edit
+  would drop the household out of that distribution's numbers.
 - Force-clears `migrated = false` whenever a household is saved through the app (there's a
   `// TODO revisit on 01.01.2026` comment - this flag exists only to track post-refactor
   data-quality fixups and can likely be removed after that date).
