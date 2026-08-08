@@ -40,6 +40,11 @@ DB level — it only governs `modules`-to-`modules` traffic.
 - `RouteEntity` (`routes`) has a `number` (`Double`, allows things like route "2.1"), a `name` and
   an `enabled` flag, plus `stops: MutableList<RouteStopEntity>` (mapped by `route`, table
   `routes_stops`, `cascade = [CascadeType.ALL], orphanRemoval = true`).
+- The `number` is an ordering/identification field, not a label: it is used to sort routes and to
+  address them in the API, never to name one in text a user reads. Anywhere a route has to be named
+  — a validation message (`DistributionService.validateClose()`), the "Route" column of the
+  `TOeT_Spenden` CSV export — use its `name`, which already carries the number ("Route 2"). Printing
+  the raw `Double` would read as "2.0" anyway.
 - `RouteStopEntity` links a route to a `ShopEntity` at a given `time` (`LocalTime`), with a free
   `description`. The shop is nullable — a stop can be a pause or anything else that isn't a pickup.
   `routes_stops` is unique on both `(route_id, shop_id)` and `(route_id, time)`, so a route visits
