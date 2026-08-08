@@ -4,7 +4,7 @@
                    [pageSizeOptions]="pageSizeOptions"
                    [pageIndex]="notesResponse().currentPage - 1" [showFirstLastButtons]="true"
                    (page)="getCustomerNotes($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
-    @for (noteItem of notesResponse().items; track noteItem.timestamp; let i = $index) {
+    @for (noteItem of notesResponse().items; track noteItem.id; let i = $index) {
       @if (i > 0) {
         <hr>
       }

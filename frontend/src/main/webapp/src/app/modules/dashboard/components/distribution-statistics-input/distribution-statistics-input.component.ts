@@ -57,6 +57,9 @@ export class DistributionStatisticsInputComponent {
 
   selectedShelters = signal<ShelterItem[]>([]);
 
+  // Both controls get their disabled state from here, never from a [disabled] binding in the
+  // template: on a `formControlName` that binding is what Angular warns about, since the reactive
+  // control is the single source of truth for it.
   distributionEffect = effect(() => {
     const distribution = this.distribution();
     if (distribution) {

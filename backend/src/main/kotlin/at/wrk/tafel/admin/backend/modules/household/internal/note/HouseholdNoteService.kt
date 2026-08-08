@@ -39,6 +39,7 @@ class HouseholdNoteService(
             .ifBlank { null }
 
         return HouseholdNoteItem(
+            id = entity.id!!,
             author = userDisplayString,
             timestamp = entity.createdAt!!,
             note = entity.note,

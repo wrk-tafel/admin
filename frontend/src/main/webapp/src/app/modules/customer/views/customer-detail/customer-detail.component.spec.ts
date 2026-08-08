@@ -116,11 +116,13 @@ describe('CustomerDetailComponent', () => {
   const mockCustomerNotesResponse: CustomerNotesResponse = {
     items: [
       {
+        id: 118,
         author: 'author1',
         timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
         note: 'note from author 2'
       },
       {
+        id: 123,
         author: 'author2',
         timestamp: dayjs('2023-03-20T19:45:25.615477+01:00').toDate(),
         note: 'note from author 1'
@@ -625,6 +627,7 @@ describe('CustomerDetailComponent', () => {
 
     const sanitizedNoteText = 'new note<br/>text';
     const resultNote: CustomerNoteItem = {
+      id: 627,
       author: 'author1',
       timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
       note: sanitizedNoteText
@@ -650,6 +653,7 @@ describe('CustomerDetailComponent', () => {
     fixture.detectChanges();
 
     const resultNote: CustomerNoteItem = {
+      id: 652,
       author: 'newAuthor',
       timestamp: dayjs('2024-01-15T10:00:00.000+01:00').toDate(),
       note: noteText

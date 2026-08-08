@@ -43,11 +43,13 @@ internal class HouseholdNoteControllerTest {
         val selectedPage = 3
         val notes = listOf(
             HouseholdNoteItem(
+                id = 2,
                 author = "author 2",
                 timestamp = LocalDateTime.now().minusDays(1),
                 note = "note 2",
             ),
             HouseholdNoteItem(
+                id = 1,
                 author = "author 1",
                 timestamp = LocalDateTime.now().minusDays(2),
                 note = "note 1",
@@ -81,6 +83,7 @@ internal class HouseholdNoteControllerTest {
         val note = "test note"
 
         val noteItem = HouseholdNoteItem(
+            id = 2,
             author = "author 2",
             timestamp = LocalDateTime.now().minusDays(1),
             note = "note 2",
