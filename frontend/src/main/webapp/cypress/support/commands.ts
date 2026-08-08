@@ -77,9 +77,13 @@ Cypress.Commands.overwrite('request', (originalFn, ...args: any[]): Cypress.Chai
   // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing) between
   // reading it and this request reaching the server, so the header we sent no longer matches the
   // cookie Cypress auto-attached, causing a 403. It can keep rotating out from under us, so bound
-  // the retries rather than assuming a single retry always lands on a stable value. Only retry
-  // when the cookie actually changed though - if it's the same as what we just sent, this 403
-  // isn't a rotation race and retrying won't help.
+  // the retries rather than assuming a single retry always lands on a stable value. The value read
+  // back can be identical to the one just sent and still be the one that gets through, so an
+  // unchanged cookie is deliberately not a reason to stop retrying (see #3101). A 403 means the
+  // request never reached its controller, so repeating it has no side effect. Two calls opt out of
+  // the retry because for them a 403 is the expected answer rather than a race: /api/login, which
+  // is CSRF-exempt and whose failed attempts the lockout tests count, and any call that passes its
+  // own X-XSRF-TOKEN header (general.cy.ts sends a deliberately mismatching one).
   //
   // Each recursive call must return a *bare* command from the `cy.getCookie().then()` callback
   // that invokes it, with the response handling living in a separate, sibling `.then()` rather
@@ -88,27 +92,23 @@ Cypress.Commands.overwrite('request', (originalFn, ...args: any[]): Cypress.Chai
   // track of the command queue and throw "returned a promise from a command while also invoking
   // one or more cy commands in that promise" even on the plain non-retry path.
   const MAX_ATTEMPTS = 4;
+  const callerSuppliedToken = Object.keys(options.headers ?? {}).some(header => header.toLowerCase() === 'x-xsrf-token');
+  const retryable = !callerSuppliedToken && !(options.url ?? '').toString().includes('/api/login');
 
-  const requestWithRetry = (attemptsLeft: number): Cypress.Chainable<Cypress.Response<any>> => {
-    let tokenValue: string | undefined;
-
-    return cy.getCookie('XSRF-TOKEN')
-      .then(cookie => {
-        tokenValue = cookie?.value;
-        return send(tokenValue);
-      })
+  const requestWithRetry = (attemptsLeft: number): Cypress.Chainable<Cypress.Response<any>> =>
+    cy.getCookie('XSRF-TOKEN')
+      .then(cookie => send(cookie?.value))
       .then((response): Cypress.Chainable<Cypress.Response<any>> => {
-        if (response.status !== 403 || attemptsLeft <= 1) {
+        if (response.status !== 403 || attemptsLeft <= 1 || !retryable) {
           return cy.wrap(response, {log: false});
         }
         return cy.getCookie('XSRF-TOKEN').then((freshCookie): Cypress.Chainable<Cypress.Response<any>> => {
-          if (!freshCookie || freshCookie.value === tokenValue) {
+          if (!freshCookie) {
             return cy.wrap(response, {log: false});
           }
           return requestWithRetry(attemptsLeft - 1);
         });
       });
-  };
 
   return requestWithRetry(MAX_ATTEMPTS)
     .then((response): Cypress.Chainable<Cypress.Response<any>> => {

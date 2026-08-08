@@ -87,14 +87,46 @@ describe('XsrfInterceptor', () => {
         expect(result).toBeUndefined();
     });
 
-    it('does not retry a 403 when the cookie is unchanged', () => {
+    // The value read back after the 403 can be identical to the one just sent and still be the one
+    // the server accepts (the cookie can move between the read and the request reaching the
+    // server), so an unchanged cookie is not a reason to give up - see #3101.
+    it('retries once after a 403 even when the cookie is unchanged', () => {
         cookieServiceSpy.get.mockReturnValue('token-value');
+
+        let result: unknown;
+        httpClient.post('/test', {}).subscribe({error: (err) => result = err});
+
+        const firstRequest = httpTestingController.expectOne('/test');
+        firstRequest.flush(null, {status: 403, statusText: 'Forbidden'});
+
+        const retriedRequest = httpTestingController.expectOne('/test');
+        expect(retriedRequest.request.headers.get('X-XSRF-TOKEN')).toBe('token-value');
+        retriedRequest.flush({});
+
+        expect(result).toBeUndefined();
+    });
+
+    it('gives up on a 403 when there is no token cookie to retry with', () => {
+        cookieServiceSpy.get.mockReturnValue('');
 
         let result: unknown;
         httpClient.post('/test', {}).subscribe({error: (err) => result = err});
 
         const request = httpTestingController.expectOne('/test');
         request.flush(null, {status: 403, statusText: 'Forbidden'});
+
+        expect(result).toBeInstanceOf(HttpErrorResponse);
+        expect((result as HttpErrorResponse).status).toBe(403);
+    });
+
+    it('does not retry a second time when the retry is denied as well', () => {
+        cookieServiceSpy.get.mockReturnValue('token-value');
+
+        let result: unknown;
+        httpClient.post('/test', {}).subscribe({error: (err) => result = err});
+
+        httpTestingController.expectOne('/test').flush(null, {status: 403, statusText: 'Forbidden'});
+        httpTestingController.expectOne('/test').flush(null, {status: 403, statusText: 'Forbidden'});
 
         expect(result).toBeInstanceOf(HttpErrorResponse);
         expect((result as HttpErrorResponse).status).toBe(403);
