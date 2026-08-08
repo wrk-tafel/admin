@@ -112,11 +112,12 @@
       <div class="mt-6">
         <div class="font-bold mb-2">Welche Benachrichtigungen möchtest du erhalten?</div>
         <!--
-          Two columns from the medium breakpoint up: the list grew past the point where a single
-          column reads as a list rather than a scroll. Stays one column on phones, where two would
-          leave neither the label nor its description enough width.
+          Widens in steps rather than jumping straight to three columns: each entry carries a
+          sentence of explanation under its label, and three of those side by side only stop wrapping
+          awkwardly once there is desktop width to give them. One column on phones, two from medium,
+          three from large.
         -->
-        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-x-8">
           @for (typePreference of preferences().types; track typePreference.type) {
             <div testid="push-type-preference" [attr.data-type]="typePreference.type" class="py-2 border-t border-gray-200">
               <mat-slide-toggle
