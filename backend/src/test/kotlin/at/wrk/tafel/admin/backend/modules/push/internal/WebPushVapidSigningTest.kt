@@ -18,11 +18,6 @@ import java.security.KeyPair
 import java.security.SecureRandom
 import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
-import javax.crypto.Cipher
-import javax.crypto.KeyAgreement
-import javax.crypto.Mac
-import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.SecretKeySpec
 
 /**
  * The acceptance test for a Web Push send: real P-256 key material on both sides, the real signer
@@ -104,53 +99,12 @@ internal class WebPushVapidSigningTest {
         assertThat(claims.audience).containsExactly("https://push.example.com")
         assertThat(claims.subject).isEqualTo("mailto:test@localhost")
 
-        assertThat(decryptAsSubscriber(requireNotNull(capturedBody))).isEqualTo(payload)
-    }
-
-    /**
-     * What the browser does with the body: read the salt and the server's ephemeral public key out
-     * of the RFC 8188 header, redo the RFC 8291 derivation from the subscription's private key, and
-     * open the record.
-     */
-    private fun decryptAsSubscriber(body: ByteArray): String {
-        val salt = body.copyOfRange(0, 16)
-        val keyIdStart = 16 + 4 + 1
-        val ephemeralPublicKey = body.copyOfRange(keyIdStart, keyIdStart + WebPushEcKeys.UNCOMPRESSED_POINT_LENGTH)
-        val ciphertext = body.copyOfRange(keyIdStart + WebPushEcKeys.UNCOMPRESSED_POINT_LENGTH, body.size)
-
-        val sharedSecret = KeyAgreement.getInstance("ECDH").run {
-            init(subscriptionKeys.private)
-            doPhase(WebPushEcKeys.decodePublicKey(ephemeralPublicKey), true)
-            generateSecret()
-        }
-
-        val inputKeyingMaterial = hkdf(
-            authSecret,
-            sharedSecret,
-            label("WebPush: info") + subscriptionPublicKey + ephemeralPublicKey,
-            32,
+        val decrypted = WebPushSubscriberDecryption.decrypt(
+            body = requireNotNull(capturedBody),
+            subscriptionPrivateKey = subscriptionKeys.private,
+            subscriptionPublicKey = subscriptionPublicKey,
+            authSecret = authSecret,
         )
-        val plaintext = Cipher.getInstance("AES/GCM/NoPadding").run {
-            init(
-                Cipher.DECRYPT_MODE,
-                SecretKeySpec(hkdf(salt, inputKeyingMaterial, label("Content-Encoding: aes128gcm"), 16), "AES"),
-                GCMParameterSpec(128, hkdf(salt, inputKeyingMaterial, label("Content-Encoding: nonce"), 12)),
-            )
-            doFinal(ciphertext)
-        }
-
-        return String(plaintext.copyOf(plaintext.size - 1), Charsets.UTF_8)
-    }
-
-    private fun label(value: String): ByteArray = value.toByteArray(Charsets.US_ASCII) + 0x00.toByte()
-
-    private fun hkdf(salt: ByteArray, keyingMaterial: ByteArray, info: ByteArray, length: Int): ByteArray {
-        val pseudoRandomKey = hmacSha256(salt, keyingMaterial)
-        return hmacSha256(pseudoRandomKey, info + 0x01.toByte()).copyOf(length)
-    }
-
-    private fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray = Mac.getInstance("HmacSHA256").run {
-        init(SecretKeySpec(key, "HmacSHA256"))
-        doFinal(data)
+        assertThat(decrypted).isEqualTo(payload)
     }
 }

@@ -52,13 +52,17 @@ class VapidSigner(tafelAdminProperties: TafelAdminProperties) {
     fun authorizationHeader(endpoint: URI): String {
         val keys = checkNotNull(keys) { "VAPID isn't configured" }
 
+        // `audience().single` is deprecated only to discourage its use, not to remove it - jjwt's
+        // own javadoc says "this is technically not deprecated because the JWT RFC mandates support
+        // for single string values" and its source carries a "DO NOT REMOVE EVER" note. It is the
+        // right call here: RFC 8292's `aud` is one origin, `add` would serialize even a
+        // one-element audience as a JSON array, and while RFC 7519 permits that, push services
+        // expect the plain string.
+        @Suppress("DEPRECATION")
         val token = Jwts.builder()
             // Optional per RFC 7519, but RFC 8292's own examples carry it and push services are
             // stricter than the spec in practice, so it's set rather than left to jjwt's default.
             .header().add("typ", "JWT").and()
-            // `single`, not `add`: RFC 8292's `aud` is one origin, and jjwt's collection form would
-            // serialize even a one-element audience as a JSON array. RFC 7519 allows that, but the
-            // push services this talks to expect the plain string.
             .audience().single(originOf(endpoint))
             .expiration(Date.from(Instant.now().plus(TOKEN_VALIDITY)))
             .subject(keys.subject)

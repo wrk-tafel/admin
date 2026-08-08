@@ -51,6 +51,19 @@ export class PushNotificationService {
    * anyway.
    */
   async syncSubscription(): Promise<boolean> {
+    // Concurrent callers share one run rather than each issuing their own registration: landing
+    // directly on the settings screen starts this from AppComponent and from that screen at the
+    // same moment, and both would find the backend unaware of the subscription and register it.
+    // The endpoint is UNIQUE, so the second insert loses on a duplicate key - see
+    // `PushSubscriptionService.createSubscription`, which additionally guards the case this
+    // can't: two browser tabs, each its own app instance, sharing one endpoint.
+    this.inFlightSync ??= this.runSync().finally(() => (this.inFlightSync = undefined));
+    return this.inFlightSync;
+  }
+
+  private inFlightSync?: Promise<boolean>;
+
+  private async runSync(): Promise<boolean> {
     if (!this.swPush.isEnabled) {
       return false;
     }

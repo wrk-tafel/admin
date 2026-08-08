@@ -105,6 +105,36 @@ describe('PushNotificationService', () => {
     }, true);
   });
 
+  /**
+   * Landing straight on the settings screen starts this from AppComponent and from that screen at
+   * the same moment. Two registrations of one endpoint race on a UNIQUE constraint, so concurrent
+   * callers have to share a single run.
+   */
+  it('syncSubscription collapses concurrent calls into one registration', async () => {
+    const subscriptionJson = {endpoint: 'https://push.example.com/x', keys: {p256dh: 'p', auth: 'a'}};
+    mockSwPush.subscription = of({endpoint: 'https://push.example.com/x', toJSON: () => subscriptionJson});
+    mockPushApiService.getSubscriptions.mockReturnValue(of({items: []}));
+
+    const [first, second] = await Promise.all([service.syncSubscription(), service.syncSubscription()]);
+
+    expect(first).toBe(true);
+    expect(second).toBe(true);
+    expect(mockPushApiService.createSubscription).toHaveBeenCalledOnce();
+    expect(mockPushApiService.getSubscriptions).toHaveBeenCalledOnce();
+  });
+
+  it('syncSubscription runs again once the previous one has finished', async () => {
+    mockSwPush.subscription = of({endpoint: 'https://push.example.com/x'});
+    mockPushApiService.getSubscriptions.mockReturnValue(of({
+      items: [{id: 42, endpoint: 'https://push.example.com/x'}]
+    }));
+
+    await service.syncSubscription();
+    await service.syncSubscription();
+
+    expect(mockPushApiService.getSubscriptions).toHaveBeenCalledTimes(2);
+  });
+
   it('syncSubscription reports false instead of rejecting when the backend call fails', async () => {
     mockSwPush.subscription = of({endpoint: 'https://push.example.com/x'});
     mockPushApiService.getSubscriptions.mockReturnValue(throwError(() => new Error('offline')));

@@ -19,4 +19,9 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // element collection is rewritten on every save, so concurrent saves for different shops of
     // the same route would otherwise drop each other's rows
     SAVE_FOOD_COLLECTION_RETURN_ITEMS(6000L),
+
+    // serializes the upsert-by-endpoint of a push subscription: `endpoint` is UNIQUE and the
+    // upsert is a check-then-act, so overlapping registrations of one browser's endpoint would
+    // otherwise both insert and the loser would fail on a duplicate key
+    REGISTER_PUSH_SUBSCRIPTION(7000L),
 }
