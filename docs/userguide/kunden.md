@@ -14,6 +14,10 @@ Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adress
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
 
+Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und denselben Aktionen (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+
+![Suchergebnis auf schmalen Bildschirmen](images/kunden-suchen-ergebnis-mobil.jpg)
+
 ## Kunden-Detail
 
 Die Detailansicht eines Kunden zeigt alle Stammdaten des Hauptbeziehers sowie die zuletzt erfasste Notiz.
@@ -105,6 +109,8 @@ Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Ge
 
 ![Kunden über Limit](images/kunden-ueber-limit.jpg)
 
+Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
+
 <a id="kunden-übersicht"></a>
 
 ## Kunden-Übersicht
@@ -112,3 +118,5 @@ Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Ge
 Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet, getrennt in die Bereiche "Neu" und "Verlängert". Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Über die Auswahlbox **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden; ohne Auswahl zeigt die Seite den zuletzt begonnenen (bzw. laufenden) Ausgabetag. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
 
 ![Kunden-Übersicht](images/kunden-uebersicht.jpg)
+
+Auf schmalen Bildschirmen werden beide Bereiche ("Neu" und "Verlängert") jeweils als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
