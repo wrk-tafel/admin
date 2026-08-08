@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
@@ -52,6 +53,12 @@ class TafelUserDetailsManager(
         val user = userRepository.findByEmployeePersonnelNumber(personnelNumber)
         return user?.let { mapToUserDetails(user) }
     }
+
+    /**
+     * Whether anyone other than [excludedUserId] would still be an administrator able to log in.
+     * Used to keep the last one from being removed - see `UserController`.
+     */
+    fun anotherEnabledAdministratorExists(excludedUserId: Long): Boolean = userRepository.countOtherEnabledUsersWithAuthority(UserPermissions.ADMINISTRATOR.key, excludedUserId) > 0
 
     fun loadUsers(
         searchInput: String?,

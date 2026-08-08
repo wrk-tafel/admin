@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesRepository
@@ -34,7 +35,7 @@ class PushPreferencesService(
     @Transactional(readOnly = true)
     fun getPreferencesForCurrentUser(): PushPreferencesResponse {
         val user = requireCurrentUser()
-        return buildResponse(user.id!!)
+        return buildResponse(user)
     }
 
     @Transactional
@@ -48,7 +49,7 @@ class PushPreferencesService(
 
         // Built from the entity just saved rather than re-querying it, so the response reflects
         // this call's own write immediately.
-        return buildResponse(user.id!!, masterEnabled = entity.enabled)
+        return buildResponse(user, masterEnabled = entity.enabled)
     }
 
     @Transactional
@@ -63,7 +64,7 @@ class PushPreferencesService(
         entity.enabled = request.enabled
         pushTypePreferenceRepository.saveAndFlush(entity)
 
-        return buildResponse(user.id!!, typeOverride = entityType to entity.enabled)
+        return buildResponse(user, typeOverride = entityType to entity.enabled)
     }
 
     /**
@@ -85,22 +86,30 @@ class PushPreferencesService(
     /**
      * [masterEnabled]/[typeOverride] let a caller that just wrote a preference pass its own
      * in-memory result straight through, rather than relying on a re-query to see its own write.
+     *
+     * Only the types this user is actually an audience for are listed
+     * ([PushNotificationTypeTargeting]) - the same rule [PushBroadcastService] applies when sending,
+     * so the settings screen can't offer a toggle for something that would never arrive whichever
+     * way it is set.
      */
     private fun buildResponse(
-        userId: Long,
-        masterEnabled: Boolean = pushPreferencesRepository.findByUserId(userId)?.enabled ?: true,
+        user: UserEntity,
+        masterEnabled: Boolean = pushPreferencesRepository.findByUserId(user.id!!)?.enabled ?: true,
         typeOverride: Pair<PushNotificationTypeEntity, Boolean>? = null,
     ): PushPreferencesResponse {
-        val typePreferencesByType = pushTypePreferenceRepository.findAllByUserId(userId)
+        val typePreferencesByType = pushTypePreferenceRepository.findAllByUserId(user.id!!)
             .associate { it.notificationType to it.enabled }
             .let { if (typeOverride != null) it + typeOverride else it }
 
-        val types = PushNotificationTypeEntity.entries.map { type ->
-            PushNotificationTypePreferenceItem(
-                type = PushNotificationTypeApi.valueOf(type.name),
-                enabled = typePreferencesByType[type] ?: true,
-            )
-        }
+        val authorities = user.authorities.map { it.name }
+        val types = PushNotificationTypeEntity.entries
+            .filter { PushNotificationTypeTargeting.isAllowedFor(it, authorities) }
+            .map { type ->
+                PushNotificationTypePreferenceItem(
+                    type = PushNotificationTypeApi.valueOf(type.name),
+                    enabled = typePreferencesByType[type] ?: true,
+                )
+            }
 
         return PushPreferencesResponse(masterEnabled = masterEnabled, types = types)
     }

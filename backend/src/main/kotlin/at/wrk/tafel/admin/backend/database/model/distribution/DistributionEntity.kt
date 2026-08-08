@@ -28,6 +28,27 @@ class DistributionEntity(
     @Column(name = "ended_at")
     var endedAt: LocalDateTime? = null
 
+    /**
+     * When each phase of the day was first reached. Null means "not yet" - including for every
+     * distribution that predates these columns. Never written directly through this entity: the
+     * `DistributionRepository.mark*` methods set them with a conditional UPDATE so the first writer
+     * wins, which is what makes the matching phase notifications fire exactly once (see
+     * `modules.push`). Because those are bulk updates, an entity already loaded in the persistence
+     * context keeps its stale null until refreshed - fine, since nothing reads these back in the
+     * same transaction that sets them.
+     */
+    @Column(name = "checkin_started_at")
+    var checkinStartedAt: LocalDateTime? = null
+
+    @Column(name = "food_handout_started_at")
+    var foodHandoutStartedAt: LocalDateTime? = null
+
+    @Column(name = "tickets_completed_at")
+    var ticketsCompletedAt: LocalDateTime? = null
+
+    @Column(name = "food_collection_completed_at")
+    var foodCollectionCompletedAt: LocalDateTime? = null
+
     @Column(name = "notes")
     var notes: String? = null
 

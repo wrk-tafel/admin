@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.distribution
+package at.wrk.tafel.admin.backend.modules.distribution.events
 
 /**
  * Published once a newly started distribution has been committed (see

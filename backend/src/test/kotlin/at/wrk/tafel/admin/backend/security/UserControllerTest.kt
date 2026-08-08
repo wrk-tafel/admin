@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -241,6 +242,170 @@ class UserControllerTest {
         verify(exactly = 1) { userDetailsManager.createUser(testUser) }
     }
 
+    /**
+     * ADMINISTRATOR implies every other permission, so being allowed to hand it out is being allowed
+     * to grant yourself everything. USER_MANAGEMENT alone must therefore not be enough - otherwise
+     * every other permission check in the application would be decorative.
+     */
+    @Test
+    fun `create user with the administrator permission is refused without it`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+
+        val exception = assertThrows<TafelApiException> {
+            controller.createUser(user = requestWithPermissions(UserPermissions.ADMINISTRATOR))
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.createUser(any()) }
+    }
+
+    @Test
+    fun `create user with the administrator permission is allowed for an administrator`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy") andThen testUser
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+
+        controller.createUser(user = requestWithPermissions(UserPermissions.ADMINISTRATOR))
+
+        verify(exactly = 1) { userDetailsManager.createUser(any()) }
+    }
+
+    /**
+     * Revoking matters as much as granting: without this a user manager could strip the
+     * administrators and leave nobody able to put the permission back.
+     */
+    @Test
+    fun `update user removing the administrator permission is refused without it`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        val administrator = testUser.copy(authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)))
+        every { userDetailsManager.loadUserById(any()) } returns administrator
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * Only a *change* is refused - a user manager still has to be able to edit an administrator's
+     * name, which means submitting the unchanged permission back untouched.
+     */
+    @Test
+    fun `update user leaving the administrator permission untouched is allowed without it`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        val administrator = testUser.copy(authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)))
+        every { userDetailsManager.loadUserById(any()) } returns administrator
+
+        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.ADMINISTRATOR))
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * Losing the last administrator can't be undone from inside the application - only an
+     * administrator can hand the permission back - so all three routes to that state are refused:
+     * revoking the permission, disabling the account, and deleting it.
+     */
+    @Test
+    fun `update user removing the administrator permission from the last administrator is refused`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
+
+        val exception = assertThrows<ConflictException> {
+            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+        }
+
+        assertThat(exception.body.detail).contains("mindestens ein aktiver Benutzer")
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user removing the administrator permission is allowed while another one remains`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns true
+
+        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * A disabled administrator cannot log in, so disabling the last one locks everybody out just as
+     * effectively as revoking the permission would.
+     */
+    @Test
+    fun `update user disabling the last administrator is refused`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(enabled = false)
+
+        assertThrows<ConflictException> { controller.updateUser(userId = testUser.id!!, user = request) }
+
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `delete user removing the last administrator is refused`() {
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
+
+        assertThrows<ConflictException> { controller.deleteUser(userId = testUser.id!!) }
+
+        verify(exactly = 0) { userDetailsManager.deleteUser(any()) }
+    }
+
+    @Test
+    fun `delete user is allowed while another administrator remains`() {
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns true
+
+        controller.deleteUser(userId = testUser.id!!)
+
+        verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    /**
+     * A user who isn't an active administrator was never the safeguard, so deleting them must not
+     * need a lookup at all.
+     */
+    @Test
+    fun `delete user who is not an administrator doesn't consult the administrator count`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        controller.deleteUser(userId = testUser.id!!)
+
+        verify(exactly = 0) { userDetailsManager.anotherEnabledAdministratorExists(any()) }
+        verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    private fun administratorUser() = testUser.copy(
+        enabled = true,
+        authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
+    )
+
+    private fun authenticateWith(vararg permissions: UserPermissions) {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = permissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+    }
+
+    private fun requestWithPermissions(vararg permissions: UserPermissions) = testUserRequest.copy(
+        permissions = permissions.map {
+            UserPermissionItem(key = it.key, title = it.title, category = it.category.title)
+        },
+    )
+
     @Test
     fun `create user exists by username`() {
         every { userDetailsManager.loadUserByUsername(any()) } returns testUser
@@ -370,14 +535,15 @@ class UserControllerTest {
 
         val permissions = response.body?.permissions
 
-        val userPermissionEntries = UserPermissions.entries
-        assertThat(permissions).hasSize(userPermissionEntries.size)
-        assertThat(permissions?.first()).isEqualTo(
-            UserPermissionItem(
-                key = userPermissionEntries.first().key,
-                title = userPermissionEntries.first().title,
-                category = userPermissionEntries.first().category.title,
-            ),
+        // Every permission is offered, mapped key/title/category, and ordered by title - the order
+        // the permission editor renders them in. Asserted against the enum rather than a literal
+        // list so a newly added permission doesn't need this test edited, and by content rather
+        // than by position, which the enum's own declaration order says nothing about.
+        assertThat(permissions).hasSize(UserPermissions.entries.size)
+        assertThat(permissions).containsExactlyElementsOf(
+            UserPermissions.entries
+                .sortedBy { it.title }
+                .map { UserPermissionItem(key = it.key, title = it.title, category = it.category.title) },
         )
     }
 

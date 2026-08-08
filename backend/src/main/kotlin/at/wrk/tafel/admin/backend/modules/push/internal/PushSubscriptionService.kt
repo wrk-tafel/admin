@@ -31,6 +31,11 @@ class PushSubscriptionService(
     companion object {
         private const val TEST_NOTIFICATION_TITLE = "Test-Benachrichtigung"
         private const val TEST_NOTIFICATION_BODY = "Wenn du das hier siehst, funktionieren Push-Benachrichtigungen auf diesem Gerät."
+
+        // Tapping the test notification returns to the screen the test was triggered from, rather
+        // than to the app's start page - the point of the test is to end up back where the result
+        // is being judged.
+        private const val TEST_NOTIFICATION_TARGET_PATH = "benachrichtigungen"
         private const val SUBSCRIPTION_NOT_FOUND_MESSAGE = "Push-Subscription wurde nicht gefunden"
     }
 
@@ -116,7 +121,7 @@ class PushSubscriptionService(
         val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
             ?: throw NotFoundException(SUBSCRIPTION_NOT_FOUND_MESSAGE)
 
-        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY)
+        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY, TEST_NOTIFICATION_TARGET_PATH)
         return PushTestResponse(
             result = when (result) {
                 PushSendResult.SENT -> PushTestResult.SENT

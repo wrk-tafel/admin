@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
@@ -62,9 +61,6 @@ class DashboardService(
     )
 
     private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {
-        // A route only counts as "recorded" once the whole trip is done: base data (car/driver/
-        // co-driver/mileage) plus the picked-up food items - a FoodCollectionEntity can otherwise
-        // exist with only one of the two (see FoodCollectionService.getOrCreateFoodCollectionEntity).
         val doneFoodCollections = currentDistribution.foodCollections.filter { it.isFullyRecorded() }
 
         return DashboardLogisticsData(
@@ -80,11 +76,4 @@ class DashboardService(
                 .sumOf { it },
         )
     }
-
-    private fun FoodCollectionEntity.isFullyRecorded(): Boolean = car != null &&
-        driver != null &&
-        coDriver != null &&
-        kmStart != null &&
-        kmEnd != null &&
-        !items.isNullOrEmpty()
 }

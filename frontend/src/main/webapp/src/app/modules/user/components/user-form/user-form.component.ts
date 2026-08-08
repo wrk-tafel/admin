@@ -14,6 +14,13 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {groupPermissionsByCategory, PermissionGroup} from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
+
+/**
+ * Mirrors `UserPermissions.ADMINISTRATOR` on the backend. Kept as a constant rather than inline, so
+ * the one permission with special handling in this form is named once.
+ */
+const ADMINISTRATOR_PERMISSION = 'ADMINISTRATOR';
 
 @Component({
     selector: 'tafel-user-form',
@@ -38,6 +45,7 @@ export class UserFormComponent {
 
   private readonly userApiService = inject(UserApiService);
   private readonly toastr = inject(TafelToastrService);
+  private readonly authenticationService = inject(AuthenticationService);
 
   // Signal for form model
   private formModel = signal<UserFormModel>({
@@ -193,20 +201,38 @@ export class UserFormComponent {
     this.passwordRepeatTextVisible.update(value => !value);
   }
 
+  /**
+   * ADMINISTRATOR grants every other permission, so only an administrator may hand it out or take
+   * it away — the backend rejects the change either way (see `UserController`). Locking it here just
+   * keeps the form from offering an edit that would be refused on save.
+   */
+  public isPermissionLocked(key: string): boolean {
+    return key === ADMINISTRATOR_PERMISSION && !this.authenticationService.hasPermission(ADMINISTRATOR_PERMISSION);
+  }
+
   public togglePermission(key: string) {
+    if (this.isPermissionLocked(key)) {
+      return;
+    }
     this.permissions.update(perms => perms.map(permission =>
       permission.key === key ? {...permission, enabled: !permission.enabled} : permission
     ));
   }
 
   public isGroupFullySelected(group: PermissionGroup<UserPermissionFormItem>): boolean {
-    return group.permissions.every((permission) => permission.enabled);
+    // A locked permission can't be changed, so it must not decide whether the group counts as fully
+    // selected - otherwise "Alle auswählen" would sit there permanently unable to do what it says.
+    return group.permissions
+      .filter((permission) => !this.isPermissionLocked(permission.key))
+      .every((permission) => permission.enabled);
   }
 
   public toggleGroup(group: PermissionGroup<UserPermissionFormItem>) {
     const enable = !this.isGroupFullySelected(group);
     this.permissions.update(perms => perms.map(permission =>
-      permission.category === group.category ? {...permission, enabled: enable} : permission
+      permission.category === group.category && !this.isPermissionLocked(permission.key)
+        ? {...permission, enabled: enable}
+        : permission
     ));
   }
 

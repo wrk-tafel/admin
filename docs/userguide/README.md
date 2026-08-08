@@ -31,7 +31,11 @@ Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlic
 
 ![Passwort ändern](images/passwort-aendern.jpg)
 
-Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde. Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
+<a id="benachrichtigungen"></a>
+
+Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde. Solche Benachrichtigungen erreichen das Gerät auch dann, wenn die Anwendung gerade nicht geöffnet ist. Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
+
+Tippt bzw. klickt man auf eine eingetroffene Benachrichtigung, öffnet sich direkt die passende Seite in der Anwendung – z. B. die Waren-Eingabe bei einer unvollständigen Warenerfassung. Ist die Anwendung bereits in einem Fenster geöffnet, wird dieses verwendet, statt ein weiteres zu öffnen.
 
 Darunter listet **Deine Geräte** alle für den eigenen Account aktivierten Geräte, jeweils mit Browser-/Betriebssystem-Erkennung und dem Zeitpunkt der Registrierung. Über das Stift-Symbol kann jedem Gerät ein eigener, frei wählbarer Name gegeben werden (z. B. "Tafel Ausgabe 1"), um es in der Liste leichter wiederzuerkennen – dieser Name überschreibt dann die automatische Browser-/Betriebssystem-Anzeige.
 
@@ -43,7 +47,38 @@ Darunter listet **Deine Geräte** alle für den eigenen Account aktivierten Ger�
 
 Über das Mistkübel-Symbol kann ein Gerät entfernt werden – etwa wenn es nicht mehr verwendet wird oder verloren gegangen ist. Wird dabei das gerade selbst verwendete Gerät entfernt, wird der Schalter zum Aktivieren der Benachrichtigungen automatisch deaktiviert.
 
-Im Bereich **Benachrichtigungsarten** darunter lässt sich feiner steuern, welche Benachrichtigungen man erhält. Der Schalter **Alle Benachrichtigungen erhalten** ist ein zentraler Hauptschalter für den eigenen Account: Ist er deaktiviert, erhält man auf keinem der eigenen Geräte mehr Benachrichtigungen, unabhängig von den einzelnen Einstellungen darunter – im Gegensatz zum Schalter weiter oben betrifft dies also nicht nur das aktuell verwendete Gerät, sondern alle. Ist der Hauptschalter aktiv, kann darunter für jede einzelne Benachrichtigungsart (z. B. "Ausgabe gestartet", "Ausgabe beendet") separat festgelegt werden, ob man sie erhalten möchte.
+Im Bereich **Benachrichtigungsarten** darunter lässt sich feiner steuern, welche Benachrichtigungen man erhält. Der Schalter **Alle Benachrichtigungen erhalten** ist ein zentraler Hauptschalter für den eigenen Account: Ist er deaktiviert, erhält man auf keinem der eigenen Geräte mehr Benachrichtigungen, unabhängig von den einzelnen Einstellungen darunter – im Gegensatz zum Schalter weiter oben betrifft dies also nicht nur das aktuell verwendete Gerät, sondern alle. Ist der Hauptschalter aktiv, kann darunter für jede einzelne Benachrichtigungsart separat festgelegt werden, ob man sie erhalten möchte. Unter jedem Schalter steht, wann die jeweilige Benachrichtigung ausgelöst wird.
+
+Es werden nur jene Benachrichtigungsarten angezeigt, für die man auch berechtigt ist – wer z. B. keine Administrator-Berechtigung hat, sieht die Art "Benutzer gesperrt" gar nicht erst in der Liste.
+
+Die Liste ist in drei Bereiche gegliedert: **Ablauf der Ausgabe**, **Erinnerungen** und **Technisches**. Bereiche, für die man keine der nötigen Berechtigungen hat, werden gar nicht erst angezeigt.
+
+Der Bereich **Ablauf der Ausgabe** begleitet einen Ausgabetag von Anfang bis Ende – in genau der Reihenfolge, in der die Schritte tatsächlich passieren –, sodass man auch ohne geöffnete Anwendung mitbekommt, wie weit der Tag ist. Diese Arten stehen allen Benutzern zur Verfügung:
+
+| Benachrichtigungsart | Wird ausgelöst, wenn … |
+| --- | --- |
+| Ausgabe gestartet | eine Ausgabe gestartet wurde |
+| Anmeldung gestartet | der erste Kunde des Tages angemeldet wurde |
+| Warenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden |
+| Warenausgabe gestartet | das erste Ticket abgearbeitet wurde, die Warenausgabe also tatsächlich läuft |
+| Alle Kunden abgearbeitet | alle angemeldeten Kunden abgearbeitet wurden |
+| Ausgabe beendet | eine Ausgabe beendet wurde und die Statistiken bereitstehen |
+
+Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung voraus:
+
+| Benachrichtigungsart | Wird ausgelöst, wenn … | Erforderliche Berechtigung |
+| --- | --- | --- |
+| Ausgabe noch offen | eine Ausgabe an einem früheren Tag gestartet und bis dahin nicht beendet wurde (Erinnerung jeweils in der Früh, bis die Ausgabe beendet ist) | Ausgabe-Ablauf oder Supervisor |
+| E-Mail nicht versendet | eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) auch nach mehreren Versuchen nicht versendet werden konnte | Administrator |
+| Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Administrator |
+
+Die beiden letzten sind technische Meldungen: sie richten sich an jene Personen, die die Anwendung selbst betreuen, und nicht an die Ausgabe-Leitung. Da die Berechtigung "Administrator" alle anderen Berechtigungen einschließt, sehen Administratoren sämtliche Benachrichtigungsarten.
+
+Jede dieser Benachrichtigungen wird pro Ausgabe nur ein einziges Mal verschickt. Wird z. B. ein bereits abgearbeitetes Ticket noch einmal geöffnet und erneut abgeschlossen, kommt "Alle Kunden abgearbeitet" trotzdem kein zweites Mal.
+
+Die "Startzeit", die auf dem Ticket-Monitor angezeigt werden kann, ist davon unabhängig: sie ist eine Ankündigung an die wartenden Kunden, während sich "Warenausgabe gestartet" nach dem tatsächlichen Beginn richtet.
+
+Die Berechtigungen sind unter [Benutzer](benutzer.md) beschrieben.
 
 ![Benachrichtigungsarten](images/benachrichtigungen-arten.jpg)
 

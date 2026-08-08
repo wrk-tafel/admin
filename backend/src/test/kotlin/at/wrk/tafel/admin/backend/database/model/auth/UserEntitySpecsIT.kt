@@ -175,6 +175,61 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         SIMILARITY_THRESHOLD,
     )!!
 
+    /**
+     * This query is what keeps the last administrator from being removed, so its exact semantics
+     * matter more than most: it counts *other*, *enabled* holders, and counts each of them once.
+     * Exercised against a real database because none of that is visible in a mocked repository - a
+     * missing `distinct`, in particular, would inflate the count and quietly let the lockout it
+     * exists to prevent go through.
+     */
+    @Test
+    fun `countOtherEnabledUsersWithAuthority counts each enabled holder once, excluding the given user`() {
+        val authority = "AUTH${generateRandomLong()}"
+        val self = persistUserWithAuthorities(authority, "SOMETHING_ELSE")
+        // Several authorities on one user: without `distinct` the join would count this user twice.
+        persistUserWithAuthorities(authority, "SOMETHING_ELSE", "AND_ANOTHER")
+        testEntityManager.flush()
+
+        val result = userRepository.countOtherEnabledUsersWithAuthority(authority, self.id!!)
+
+        assertThat(result).isEqualTo(1)
+    }
+
+    @Test
+    fun `countOtherEnabledUsersWithAuthority ignores disabled holders`() {
+        val authority = "AUTH${generateRandomLong()}"
+        val self = persistUserWithAuthorities(authority)
+        persistUserWithAuthorities(authority) { enabled = false }
+        testEntityManager.flush()
+
+        val result = userRepository.countOtherEnabledUsersWithAuthority(authority, self.id!!)
+
+        assertThat(result).isZero()
+    }
+
+    @Test
+    fun `countOtherEnabledUsersWithAuthority ignores users without the authority`() {
+        val authority = "AUTH${generateRandomLong()}"
+        val self = persistUserWithAuthorities(authority)
+        persistUserWithAuthorities("A_DIFFERENT_ONE")
+        testEntityManager.flush()
+
+        val result = userRepository.countOtherEnabledUsersWithAuthority(authority, self.id!!)
+
+        assertThat(result).isZero()
+    }
+
+    private fun persistUserWithAuthorities(
+        vararg authorities: String,
+        customize: UserEntity.() -> Unit = {},
+    ): UserEntity = persistUser {
+        enabled = true
+        customize()
+        this.authorities = authorities
+            .map { UserAuthorityEntity(user = this, name = it) }
+            .toMutableList()
+    }
+
     private fun persistUser(customize: UserEntity.() -> Unit = {}): UserEntity {
         val user = createUser()
         user.customize()
