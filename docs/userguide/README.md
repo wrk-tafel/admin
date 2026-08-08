@@ -165,6 +165,9 @@ Vor dem Beenden des Ausgabetags sollten Statistik und Anmerkungen vollständig a
 
 Über die Schaltfläche **Support-Anfrage** oben in der Kopfzeile kann jederzeit ein Anliegen (Fehler, Verbesserungsvorschlag) mit Titel und Beschreibung gemeldet werden. Die Anfrage wird direkt als GitHub-Issue angelegt.
 
+> [!IMPORTANT]
+> Diese Issues sind **öffentlich sichtbar**. Titel und Beschreibung dürfen daher keine personenbezogenen Daten enthalten – also keine Namen, Adressen, Geburtsdaten oder Einkommensangaben von Kundinnen und Kunden. Statt „Kunde Max Mustermann kann sich nicht anmelden“ besser die Kundennummer oder nur den Ablauf beschreiben.
+
 ![Support-Anfrage](images/support-anfrage.jpg)
 
 ## Fehlerseiten

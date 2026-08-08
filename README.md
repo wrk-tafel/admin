@@ -262,9 +262,12 @@ The project uses GitHub Actions with the following pipelines:
 
 | Workflow | Trigger | Actions |
 |---|---|---|
-| Pull Request | PR opened/updated | Build, test, Docker image (`dev`), E2E tests, deploy to dev |
-| Main Push | Push to `main` | Build, test, Docker image (`test`), E2E tests, deploy to test |
-| Release | Push to `release` | Build, test, Docker images (`test` + `latest`), deploy to test + prod |
+| Pull Request | PR opened/updated | Build, test, E2E tests, Docker image (tagged with the PR head's short commit SHA), deploy to dev |
+| Main Push | Push to `main` | Build, test, E2E tests, Docker image (tagged with the short commit SHA), deploy to test |
+| Release | Push to `release` | Build, test, E2E tests, Docker image (`<version>` + `latest`), user guide PDF, GitHub release, deploy to test + prod |
+
+See [ADR-0026](docs/architecture/adr/0026-branch-based-promotion-through-environments.md) for why
+promotion works this way, and which of these deploys is actually gated on a green pipeline.
 
 Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 
@@ -400,7 +403,13 @@ A German-language user guide (Benutzerhandbuch) covering every feature is availa
 
 [📄 Benutzerhandbuch (PDF, latest release)](https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf)
 
-Architecture decision documents live under [`docs/architecture/`](docs/architecture/):
+Architecture decisions are recorded as ADRs under
+[`docs/architecture/adr/`](docs/architecture/adr/README.md) — one record per decision, covering the
+modular monolith, the database-only infrastructure, the migration and API conventions, the SSE
+outbox, the frontend generation, the release process and more.
+
+Longer evaluations of decisions not yet taken live one level up, in
+[`docs/architecture/`](docs/architecture/):
 
 | Document | Subject |
 |---|---|
