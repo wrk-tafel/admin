@@ -102,7 +102,9 @@ describe('PushNotifications', () => {
     cy.visit('/benachrichtigungen');
 
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
-    cy.byTestId('push-type-preference').should('have.length', 2);
+    // e2etest holds SUPERVISOR, the one permission every notification type accepts, so every type
+    // is listed here - the filtered case is the separate test below.
+    cy.byTestId('push-type-preference').should('have.length', 6);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -117,6 +119,31 @@ describe('PushNotifications', () => {
 
     cy.reload();
     cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
+  });
+
+  // The permission filtering lives entirely in the backend's preferences response, so the only way
+  // to see it work is with a real login of a user who lacks those permissions - a mocked component
+  // test would just be asserting the fixture it was handed. e2etest2 holds CUSTOMER alone, so it
+  // gets the two types that carry no permission requirement and none of the restricted ones.
+  it('offers only the notification types a user can actually receive', () => {
+    cy.loginE2ETest2();
+    cy.visit('/benachrichtigungen');
+
+    cy.byTestId('push-type-preference').should('have.length', 2);
+    cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STARTED"]').should('exist');
+    cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_CLOSED"]').should('exist');
+    cy.get('[testid="push-type-preference"][data-type="USER_LOCKED_OUT"]').should('not.exist');
+    cy.get('[testid="push-type-preference"][data-type="FOOD_COLLECTION_INCOMPLETE"]').should('not.exist');
+  });
+
+  // Each toggle carries its own explanation, so the list says when a notification would actually
+  // arrive rather than leaving that to the label alone.
+  it('explains each notification type below its toggle', () => {
+    cy.visit('/benachrichtigungen');
+
+    cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]')
+      .find('[testid="push-type-preference-description"]')
+      .should('contain.text', 'noch nicht beendet');
   });
 
 });

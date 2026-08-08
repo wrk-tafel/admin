@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.UserLockedOutEvent
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
@@ -7,7 +8,6 @@ import at.wrk.tafel.admin.backend.config.properties.SecurityLoginAttemptsPropert
 import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
-import at.wrk.tafel.admin.backend.common.auth.model.UserLockedOutEvent
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import ch.qos.logback.classic.Level

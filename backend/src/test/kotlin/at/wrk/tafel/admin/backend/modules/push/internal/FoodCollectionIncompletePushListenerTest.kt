@@ -48,27 +48,24 @@ internal class FoodCollectionIncompletePushListenerTest {
         enabled = true
     }
 
-    private fun distributionWith(vararg foodCollections: FoodCollectionEntity): DistributionEntity =
-        DistributionEntity(startedAt = LocalDateTime.parse("2024-03-02T13:30:00"), startedByUser = testUserEntity).apply {
-            id = distributionId
-            this.foodCollections = foodCollections.toList()
-        }
+    private fun distributionWith(vararg foodCollections: FoodCollectionEntity): DistributionEntity = DistributionEntity(startedAt = LocalDateTime.parse("2024-03-02T13:30:00"), startedByUser = testUserEntity).apply {
+        id = distributionId
+        this.foodCollections = foodCollections.toList()
+    }
 
-    private fun fullyRecordedCollectionFor(route: RouteEntity, distribution: DistributionEntity? = null) =
-        FoodCollectionEntity(
-            distribution = distribution ?: DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity),
-            route = route,
-        ).apply {
-            car = testCar1
-            driver = testEmployee1
-            coDriver = testEmployee2
-            kmStart = 100
-            kmEnd = 200
-            items = listOf(FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 5))
-        }
+    private fun fullyRecordedCollectionFor(route: RouteEntity, distribution: DistributionEntity? = null) = FoodCollectionEntity(
+        distribution = distribution ?: DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity),
+        route = route,
+    ).apply {
+        car = testCar1
+        driver = testEmployee1
+        coDriver = testEmployee2
+        kmStart = 100
+        kmEnd = 200
+        items = listOf(FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 5))
+    }
 
-    private fun partiallyRecordedCollectionFor(route: RouteEntity) =
-        fullyRecordedCollectionFor(route).apply { items = emptyList() }
+    private fun partiallyRecordedCollectionFor(route: RouteEntity) = fullyRecordedCollectionFor(route).apply { items = emptyList() }
 
     @Test
     fun `notifies about the routes whose food collection was never fully recorded`() {

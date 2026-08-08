@@ -62,7 +62,8 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.DISTRIBUTION_STARTED]: 'Eine Ausgabe wurde gestartet.',
   [PushNotificationType.DISTRIBUTION_CLOSED]: 'Eine Ausgabe wurde beendet und die Statistiken sind bereit.',
   [PushNotificationType.DISTRIBUTION_STILL_OPEN]: 'Eine Ausgabe wurde an einem früheren Tag gestartet und noch nicht beendet.',
-  [PushNotificationType.FOOD_COLLECTION_INCOMPLETE]: 'Eine Ausgabe wurde beendet, obwohl noch nicht für alle Routen die Waren erfasst wurden.',
+  [PushNotificationType.FOOD_COLLECTION_INCOMPLETE]:
+    'Eine Ausgabe wurde beendet, obwohl noch nicht für alle Routen die Waren erfasst wurden.',
   [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine Report-E-Mail konnte nach einer Ausgabe nicht versendet werden.'
 };

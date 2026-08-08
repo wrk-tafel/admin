@@ -7,7 +7,12 @@ import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {PushNotificationSettingsComponent} from './push-notification-settings.component';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {PushNotificationType, PushTestResult} from '../../../../api/push-api.service';
+import {
+  PushNotificationType,
+  PushTestResult,
+  pushNotificationTypeDescription,
+  pushNotificationTypeLabel
+} from '../../../../api/push-api.service';
 
 describe('PushNotificationSettingsComponent', () => {
   let pushNotificationService: MockedObject<PushNotificationService>;
@@ -364,6 +369,23 @@ describe('PushNotificationSettingsComponent', () => {
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       const label = (fixture.componentInstance as any).typeLabel(PushNotificationType.DISTRIBUTION_STARTED);
       expect(label).toEqual('Ausgabe gestartet');
+    });
+
+    // The backend decides which types come back, so any type in the enum can turn up in the list -
+    // a missing entry would render as an empty toggle label rather than failing anywhere.
+    it('has a label and a description for every notification type', () => {
+      Object.values(PushNotificationType).forEach(type => {
+        expect(pushNotificationTypeLabel[type]).toBeTruthy();
+        expect(pushNotificationTypeDescription[type]).toBeTruthy();
+      });
+    });
+  });
+
+  describe('typeDescription', () => {
+    it('returns the German description for a notification type', () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      const description = (fixture.componentInstance as any).typeDescription(PushNotificationType.DISTRIBUTION_STILL_OPEN);
+      expect(description).toContain('noch nicht beendet');
     });
   });
 
