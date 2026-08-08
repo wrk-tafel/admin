@@ -36,13 +36,34 @@ export class PushNotificationService {
   /**
    * The browser's own PushManager subscription and the backend's `push_subscriptions` row for it
    * can drift apart independently of the user ever touching the toggle - e.g. the backend's table
-   * gets wiped (a dev/test data reset) while the browser still holds a perfectly live
-   * subscription. Rather than surface that as a silently-broken "on" toggle (no notifications
-   * ever arrive, with nothing telling the user why), this re-registers the still-valid browser
-   * subscription with the backend whenever the two disagree, so `isEnabled()` returning `true`
-   * always actually means "this device will receive pushes."
+   * gets wiped (a dev/test data reset), or the row was pruned after a push service answered
+   * EXPIRED, while the browser still holds a perfectly live subscription. Rather than surface that
+   * as a silently-broken "on" toggle (no notifications ever arrive, with nothing telling the user
+   * why), this re-registers the still-valid browser subscription with the backend whenever the two
+   * disagree, so a `true` result always actually means "this device will receive pushes."
+   *
+   * Runs once per session from `AppComponent` as well as on the settings screen, so a device that
+   * lost its backend row re-registers itself without anyone having to visit that screen at all.
+   *
+   * Both requests opt out of the generic error toast and a failure resolves to `false` rather than
+   * rejecting: this runs unprompted in the background, where an error toast would be noise the user
+   * can't act on, and on the settings screen the device list's own load surfaces the same failure
+   * anyway.
    */
-  async isEnabled(): Promise<boolean> {
+  async syncSubscription(): Promise<boolean> {
+    // Concurrent callers share one run rather than each issuing their own registration: landing
+    // directly on the settings screen starts this from AppComponent and from that screen at the
+    // same moment, and both would find the backend unaware of the subscription and register it.
+    // The endpoint is UNIQUE, so the second insert loses on a duplicate key - see
+    // `PushSubscriptionService.createSubscription`, which additionally guards the case this
+    // can't: two browser tabs, each its own app instance, sharing one endpoint.
+    this.inFlightSync ??= this.runSync().finally(() => (this.inFlightSync = undefined));
+    return this.inFlightSync;
+  }
+
+  private inFlightSync?: Promise<boolean>;
+
+  private async runSync(): Promise<boolean> {
     if (!this.swPush.isEnabled) {
       return false;
     }
@@ -51,13 +72,16 @@ export class PushNotificationService {
       return false;
     }
 
-    const {items} = await firstValueFrom(this.pushApiService.getSubscriptions());
-    const knownToBackend = items.some(item => item.endpoint === subscription.endpoint);
-    if (!knownToBackend) {
-      await firstValueFrom(this.pushApiService.createSubscription(this.toSubscriptionRequest(subscription)));
+    try {
+      const {items} = await firstValueFrom(this.pushApiService.getSubscriptions(true));
+      const knownToBackend = items.some(item => item.endpoint === subscription.endpoint);
+      if (!knownToBackend) {
+        await firstValueFrom(this.pushApiService.createSubscription(this.toSubscriptionRequest(subscription), true));
+      }
+      return true;
+    } catch {
+      return false;
     }
-
-    return true;
   }
 
   async enable(): Promise<void> {

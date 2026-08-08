@@ -1,7 +1,9 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, effect, inject, signal} from '@angular/core';
 import {NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterOutlet} from '@angular/router';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AuthenticationService} from './common/security/authentication.service';
+import {PushNotificationService} from './common/pwa/push-notification.service';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -15,6 +17,8 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 export class AppComponent {
   private readonly router = inject(Router);
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly pushNotificationService = inject(PushNotificationService);
 
   // Route resolvers (e.g. list-page data fetches) block navigation before the target component
   // even mounts, so a component-level spinner can't cover that window - this shows a top-level
@@ -60,6 +64,18 @@ export class AppComponent {
 
       if (evt instanceof NavigationEnd) {
         window.scrollTo(0, 0);
+      }
+    });
+
+    // Re-registers this device with the backend once a session exists, if the backend has lost
+    // track of a browser subscription that's still live - see
+    // `PushNotificationService.syncSubscription`. Keyed on userInfo rather than run once at
+    // bootstrap so it covers both a fresh login and a reload into an existing session, and re-runs
+    // when a different user logs in on the same device (which re-attributes the subscription).
+    // Costs nothing for devices without a subscription: the sync returns before any request.
+    effect(() => {
+      if (this.authenticationService.userInfo()) {
+        this.pushNotificationService.syncSubscription();
       }
     });
   }

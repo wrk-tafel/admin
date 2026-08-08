@@ -1,88 +1,110 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
-import nl.martijndwars.webpush.Encoding
-import nl.martijndwars.webpush.Notification
-import nl.martijndwars.webpush.PushService
-import nl.martijndwars.webpush.Subscription
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminPushProperties
+import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
+import io.jsonwebtoken.Jwts
 import org.assertj.core.api.Assertions.assertThat
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.mock.http.client.MockClientHttpRequest
+import org.springframework.test.web.client.ExpectedCount
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
+import org.springframework.web.client.RestClient
 import java.security.KeyPair
-import java.security.KeyPairGenerator
 import java.security.SecureRandom
-import java.security.Security
-import java.security.spec.ECGenParameterSpec
-import java.util.Base64
-import org.bouncycastle.jce.interfaces.ECPrivateKey as BCECPrivateKey
-import org.bouncycastle.jce.interfaces.ECPublicKey as BCECPublicKey
+import java.security.interfaces.ECPrivateKey
+import java.security.interfaces.ECPublicKey
 
 /**
- * Exercises the real `nl.martijndwars:web-push` VAPID signing path - unlike
- * [WebPushSenderServiceTest], which mocks [PushService] away entirely and so never runs a line of
- * the library or its dependencies.
+ * The acceptance test for a Web Push send: real P-256 key material on both sides, the real signer
+ * and the real encryption, asserted from the position of the two parties that receive the request.
  *
- * The point is binary compatibility of the transitive stack underneath web-push, not the header
- * format itself: web-push 5.1.2 is compiled against jose4j 0.7.9, but that version carries four
- * advisories and is pinned forward to 0.9.x in `libs.versions.toml`. A signature-incompatible bump
- * there surfaces as a `NoSuchMethodError`/`NoClassDefFoundError` out of `preparePost` - an `Error`,
- * which `WebPushSenderService.send`'s `catch (e: Exception)` deliberately does not swallow, so in
- * production it would take down the whole send rather than degrade to a FAILED result. Nothing else
- * in the suite would notice, hence this test.
+ * The push service sees the `Authorization: vapid t=..., k=...` header and the `aes128gcm` content
+ * encoding - that part is checked here directly. The browser behind it sees a body only its own
+ * subscription key can open, which is checked by decrypting it with that key. Everything in between
+ * ([WebPushSenderServiceTest], [VapidSignerTest], [WebPushEncryptionServiceTest]) tests one piece
+ * with the others mocked or reimplemented; this is the one test where a mistake in how the pieces
+ * are wired together still shows up.
  */
 internal class WebPushVapidSigningTest {
 
-    private companion object {
-        const val P256_CURVE = "secp256r1"
+    private val endpoint = "https://push.example.com/subscription-id"
 
-        init {
-            if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-                Security.addProvider(BouncyCastleProvider())
-            }
-        }
+    private val serverKeys: KeyPair = WebPushEcKeys.generateKeyPair()
+    private val serverPublicKey = WebPushEcKeys.encodePublicKey(serverKeys.public as ECPublicKey)
+
+    // Stands in for the browser's subscription keypair - only its public half ever reaches a real
+    // server, so only that half is handed to the subscription below.
+    private val subscriptionKeys: KeyPair = WebPushEcKeys.generateKeyPair()
+    private val subscriptionPublicKey = WebPushEcKeys.encodePublicKey(subscriptionKeys.public as ECPublicKey)
+    private val authSecret = ByteArray(16).also { SecureRandom().nextBytes(it) }
+
+    private val subscription = PushSubscriptionEntity().apply {
+        id = 1
+        endpoint = this@WebPushVapidSigningTest.endpoint
+        p256dhKey = WebPushEcKeys.encodeBase64Url(subscriptionPublicKey)
+        authKey = WebPushEcKeys.encodeBase64Url(authSecret)
     }
 
-    private val base64Url: Base64.Encoder = Base64.getUrlEncoder().withoutPadding()
+    private val vapidSigner = VapidSigner(
+        TafelAdminProperties().apply {
+            push = TafelAdminPushProperties().apply {
+                vapidPublicKey = WebPushEcKeys.encodeBase64Url(serverPublicKey)
+                vapidPrivateKey = WebPushEcKeys.encodeBase64Url((serverKeys.private as ECPrivateKey).s.toByteArray())
+                vapidSubject = "mailto:test@localhost"
+            }
+        },
+    )
 
-    private fun generateP256KeyPair(): KeyPair = KeyPairGenerator.getInstance("ECDH", BouncyCastleProvider.PROVIDER_NAME).apply {
-        initialize(ECGenParameterSpec(P256_CURVE), SecureRandom())
-    }.generateKeyPair()
-
-    /** Uncompressed point (`0x04 || X || Y`), the encoding VAPID and the `p256dh` key both use. */
-    private fun encodePublicKey(keyPair: KeyPair): String = base64Url.encodeToString((keyPair.public as BCECPublicKey).q.getEncoded(false))
-
-    private fun encodePrivateKey(keyPair: KeyPair): String = base64Url.encodeToString((keyPair.private as BCECPrivateKey).d.toByteArray())
+    private val restClientBuilder = RestClient.builder()
+    private val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
+    private val service = WebPushSenderService(vapidSigner, WebPushEncryptionService(), restClientBuilder.build())
 
     @Test
-    fun `preparePost signs a VAPID request against the real web-push stack`() {
-        val serverKeys = generateP256KeyPair()
-        // Stands in for the browser's subscription keypair - only its public half ever reaches a
-        // real server, which is why just the encoded point is handed to Subscription.Keys below.
-        val clientKeys = generateP256KeyPair()
-        val auth = ByteArray(16).also { SecureRandom().nextBytes(it) }
+    fun `sends a VAPID-signed, aes128gcm-encrypted notification the subscriber can read`() {
+        val payload = """{"notification":{"title":"test","body":"Ausgabe beendet"}}"""
+        var capturedAuthorization: String? = null
+        var capturedContentEncoding: String? = null
+        var capturedBody: ByteArray? = null
 
-        val pushService = PushService(
-            encodePublicKey(serverKeys),
-            encodePrivateKey(serverKeys),
-            "mailto:test@localhost",
-        )
-        val subscription = Subscription(
-            "https://push.example.com/subscription-id",
-            Subscription.Keys(encodePublicKey(clientKeys), base64Url.encodeToString(auth)),
-        )
+        mockServer.expect(ExpectedCount.once(), requestTo(endpoint))
+            .andRespond { request ->
+                val sentRequest = request as MockClientHttpRequest
+                capturedAuthorization = sentRequest.headers.getFirst(HttpHeaders.AUTHORIZATION)
+                capturedContentEncoding = sentRequest.headers.getFirst(HttpHeaders.CONTENT_ENCODING)
+                capturedBody = sentRequest.bodyAsBytes
+                withStatus(HttpStatus.CREATED).createResponse(sentRequest)
+            }
 
-        val request = pushService.preparePost(
-            Notification(subscription, """{"title":"test"}"""),
-            Encoding.AES128GCM,
-        )
+        val result = service.send(subscription, payload)
 
-        val authorization = request.getFirstHeader("Authorization").value
-        // `t=` is the jose4j-signed JWT, `k=` the VAPID public key - if jose4j failed to load or
-        // sign, neither would be here to assert on.
+        assertThat(result).isEqualTo(PushSendResult.SENT)
+        mockServer.verify()
+
+        assertThat(capturedContentEncoding).isEqualTo("aes128gcm")
+
+        // `t=` is the signed VAPID token, `k=` this server's public key - a push service checks that
+        // the token verifies against exactly that key.
+        val authorization = requireNotNull(capturedAuthorization)
         assertThat(authorization).startsWith("vapid t=")
-        assertThat(authorization).contains(", k=${encodePublicKey(serverKeys)}")
-        // Three base64url segments: a real signed JWS, not an empty/unsigned placeholder.
-        val jwt = authorization.removePrefix("vapid t=").substringBefore(", k=")
-        assertThat(jwt.split(".")).hasSize(3).noneMatch { it.isEmpty() }
-        assertThat(request.getFirstHeader("Content-Encoding").value).isEqualTo("aes128gcm")
+        assertThat(authorization).endsWith(", k=${WebPushEcKeys.encodeBase64Url(serverPublicKey)}")
+        val token = authorization.removePrefix("vapid t=").substringBefore(", k=")
+        assertThat(token.split(".")).hasSize(3).noneMatch { it.isEmpty() }
+
+        val claims = Jwts.parser().verifyWith(serverKeys.public as ECPublicKey).build().parseSignedClaims(token).payload
+        assertThat(claims.audience).containsExactly("https://push.example.com")
+        assertThat(claims.subject).isEqualTo("mailto:test@localhost")
+
+        val decrypted = WebPushSubscriberDecryption.decrypt(
+            body = requireNotNull(capturedBody),
+            subscriptionPrivateKey = subscriptionKeys.private,
+            subscriptionPublicKey = subscriptionPublicKey,
+            authSecret = authSecret,
+        )
+        assertThat(decrypted).isEqualTo(payload)
     }
 }

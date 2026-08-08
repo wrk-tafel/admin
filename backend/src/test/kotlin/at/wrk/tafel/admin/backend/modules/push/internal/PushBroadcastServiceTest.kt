@@ -1,12 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 @ExtendWith(MockKExtension::class)
@@ -32,11 +33,14 @@ internal class PushBroadcastServiceTest {
     @RelaxedMockK
     private lateinit var jsonMapper: JsonMapper
 
-    @InjectMockKs
+    private val tafelAdminProperties = TafelAdminProperties()
+
     private lateinit var service: PushBroadcastService
 
     @BeforeEach
     fun beforeEach() {
+        service = PushBroadcastService(pushSubscriptionRepository, pushPreferencesService, webPushSenderService, jsonMapper, tafelAdminProperties)
+
         every { jsonMapper.writeValueAsString(any()) } returns "payload-json"
         every { pushPreferencesService.isEnabled(any(), any()) } returns true
     }
@@ -158,12 +162,38 @@ internal class PushBroadcastServiceTest {
      */
     @Test
     fun `payload carries title, body and both notification icons`() {
+        val notification = sentNotificationFor(relativeBaseUrl = "/")
+
+        assertThat(notification["title"].asString()).isEqualTo("Ausgabe beendet")
+        assertThat(notification["body"].asString()).isEqualTo("Die Ausgabe wurde soeben beendet.")
+        assertThat(notification["icon"].asString()).isEqualTo("/icons/icon-192x192.png")
+        assertThat(notification["badge"].asString()).isEqualTo("/icons/badge-96x96.png")
+    }
+
+    /**
+     * dev/test/prod share one origin at different path prefixes, so a root-absolute `/icons/...`
+     * points at the *host* root on every deployment not served at `/` and 404s - a notification
+     * with no icon and nothing else to show for it. The trailing slash is left off the configured
+     * value here on purpose: not every environment's config carries one (see
+     * `TafelAdminServerProperties.basePath`).
+     */
+    @Test
+    fun `icon paths are addressed below the app's base path, not the origin root`() {
+        val notification = sentNotificationFor(relativeBaseUrl = "/verwaltung-dev")
+
+        assertThat(notification["icon"].asString()).isEqualTo("/verwaltung-dev/icons/icon-192x192.png")
+        assertThat(notification["badge"].asString()).isEqualTo("/verwaltung-dev/icons/badge-96x96.png")
+    }
+
+    private fun sentNotificationFor(relativeBaseUrl: String): JsonNode {
         val realMapper = JsonMapper.builder().build()
+        val properties = TafelAdminProperties().apply { server.relativeBaseUrl = relativeBaseUrl }
         val serviceWithRealMapper = PushBroadcastService(
             pushSubscriptionRepository,
             pushPreferencesService,
             webPushSenderService,
             realMapper,
+            properties,
         )
         val subscription = subscriptionOf(id = 10, userId = 100)
         val payload = slot<String>()
@@ -171,11 +201,7 @@ internal class PushBroadcastServiceTest {
 
         serviceWithRealMapper.sendTo(subscription, "Ausgabe beendet", "Die Ausgabe wurde soeben beendet.")
 
-        val notification = realMapper.readTree(payload.captured)["notification"]
-        assertThat(notification["title"].asString()).isEqualTo("Ausgabe beendet")
-        assertThat(notification["body"].asString()).isEqualTo("Die Ausgabe wurde soeben beendet.")
-        assertThat(notification["icon"].asString()).isEqualTo("/icons/icon-192x192.png")
-        assertThat(notification["badge"].asString()).isEqualTo("/icons/badge-96x96.png")
+        return realMapper.readTree(payload.captured)["notification"]
     }
 
     @Test

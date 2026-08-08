@@ -47,11 +47,6 @@ dependencies {
         implementation(libs.jackson.databind.legacy) {
             because("Fixes GHSA-mhm7-754m-9p8w, CVE-2026-54515, CVE-2026-59889 (JsonView bypass / ignored-properties issues)")
         }
-
-        // Transitive-only, via web-push. web-push asks for 0.7.9, which carries four advisories.
-        implementation(libs.jose4j) {
-            because("Fixes CVE-2023-31582, CVE-2024-29371, CVE-2023-51775, GHSA-jgvc-jfgh-rjvv")
-        }
     }
 
     // implementation
@@ -86,17 +81,6 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.jjwt.api)
     implementation(libs.bouncycastle)
-    // async-http-client is reachable only from web-push's PushAsyncService, which this project never
-    // touches - `push.internal.WebPushSenderService` uses PushService.preparePost and executes the
-    // request through its own Apache HttpClient. Excluding it drops async-http-client and the 15
-    // netty artifacts it drags in off the runtime classpath entirely, which is the only way to clear
-    // their advisories: the async-http-client 2.x line ends at 2.12.4, so the fixed 2.14.5/2.15.0
-    // that the advisories name were never published, and 3.x is a breaking API change web-push is
-    // not compiled against.
-    implementation(libs.web.push) {
-        exclude(group = "org.asynchttpclient")
-    }
-    implementation(libs.apache.httpclient)
     implementation(libs.apache.fop)
     implementation(libs.qrcode.kotlin.jvm)
     implementation(libs.passay)

@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
@@ -24,6 +26,7 @@ class PushSubscriptionService(
     private val userRepository: UserRepository,
     private val tafelAdminProperties: TafelAdminProperties,
     private val pushBroadcastService: PushBroadcastService,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
     companion object {
         private const val TEST_NOTIFICATION_TITLE = "Test-Benachrichtigung"
@@ -31,8 +34,8 @@ class PushSubscriptionService(
     }
 
     fun getPublicKey(): PushPublicKeyResponse {
-        // Blank, not just null: see WebPushConfig.pushService for why a YAML `~` value can
-        // surface as an empty string rather than a true absent/null property.
+        // Blank, not just null: see VapidSigner for why a YAML `~` value can surface as an empty
+        // string rather than a true absent/null property.
         val publicKey = tafelAdminProperties.push?.vapidPublicKey?.takeIf { it.isNotBlank() }
             ?: throw TafelApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Push-Benachrichtigungen sind nicht konfiguriert")
         return PushPublicKeyResponse(publicKey = publicKey)
@@ -57,9 +60,23 @@ class PushSubscriptionService(
      * enabled it, and `user` is meant to track "who this device currently represents" (relevant
      * for e.g. future per-user notification preferences), not "who historically first subscribed
      * it."
+     *
+     * Wrapped in [AdvisoryLockKey.REGISTER_PUSH_SUBSCRIPTION] because the find-then-save below is a
+     * check-then-act against a `UNIQUE` column: any two registrations of the same endpoint that
+     * overlap both find nothing and both insert, and the loser gets a duplicate-key 500 instead of
+     * the registration it asked for - the "push silently never works" symptom this upsert exists to
+     * prevent in the first place.
+     *
+     * They overlap more easily than it looks. `endpoint` identifies the browser, not the caller, so
+     * anything holding that browser's subscription is a candidate: reloading straight onto the push
+     * settings screen starts a sync from the app shell and from that screen at once, and a second
+     * tab or an installed PWA window is another app instance sharing the same endpoint. The
+     * frontend collapses the first case into a single request (see
+     * `PushNotificationService.syncSubscription`); it cannot see across app instances, and nothing
+     * client-side should be load-bearing for a DB constraint anyway.
      */
     @Transactional
-    fun createSubscription(request: PushSubscriptionRequest): PushSubscriptionItem {
+    fun createSubscription(request: PushSubscriptionRequest): PushSubscriptionItem = advisoryLockService.withLock(AdvisoryLockKey.REGISTER_PUSH_SUBSCRIPTION) {
         val user = requireCurrentUser()
 
         val entity = pushSubscriptionRepository.findByEndpoint(request.endpoint) ?: PushSubscriptionEntity()
@@ -70,7 +87,7 @@ class PushSubscriptionService(
         entity.userAgent = request.userAgent
 
         val saved = pushSubscriptionRepository.saveAndFlush(entity)
-        return mapToItem(saved)
+        mapToItem(saved)
     }
 
     @Transactional

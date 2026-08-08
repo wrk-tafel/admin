@@ -22,6 +22,11 @@ describe('PushNotificationSettingsComponent', () => {
     isCurrentDevice: true
   };
 
+  // Several flows here chain more than one await - the init effect runs the subscription sync and
+  // only then loads the device list, and renaming reloads the list before toasting. A single
+  // microtask tick doesn't see those through, so drain them with a macrotask instead.
+  const flushAsync = () => new Promise(resolve => setTimeout(resolve, 0));
+
   const testPreferences = {
     masterEnabled: true,
     types: [
@@ -37,7 +42,7 @@ describe('PushNotificationSettingsComponent', () => {
           provide: PushNotificationService,
           useValue: {
             isSupported: vi.fn().mockReturnValue(true),
-            isEnabled: vi.fn().mockResolvedValue(false),
+            syncSubscription: vi.fn().mockResolvedValue(false),
             enable: vi.fn().mockResolvedValue(undefined),
             disable: vi.fn().mockResolvedValue(undefined),
             getDevices: vi.fn().mockResolvedValue([]),
@@ -86,15 +91,38 @@ describe('PushNotificationSettingsComponent', () => {
   });
 
   it('loads the current subscription state and devices on init', async () => {
-    pushNotificationService.isEnabled.mockResolvedValue(true);
+    pushNotificationService.syncSubscription.mockResolvedValue(true);
     pushNotificationService.getDevices.mockResolvedValue([testDevice]);
 
     const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
     fixture.detectChanges(); // Trigger effect in constructor
-    await Promise.resolve();
+    await flushAsync();
 
     expect(fixture.componentInstance.enabled()).toBe(true);
     expect(fixture.componentInstance.loading()).toBe(false);
+    expect(fixture.componentInstance.devices()).toEqual([testDevice]);
+  });
+
+  /**
+   * The sync may re-register this device, so a device list fetched alongside it reads the backend
+   * before that registration lands - which showed as an enabled toggle above an empty list.
+   */
+  it('fetches the device list only after the subscription sync has finished', async () => {
+    const callOrder: string[] = [];
+    pushNotificationService.syncSubscription.mockImplementation(async () => {
+      callOrder.push('sync');
+      return true;
+    });
+    pushNotificationService.getDevices.mockImplementation(async () => {
+      callOrder.push('getDevices');
+      return [testDevice];
+    });
+
+    const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+    fixture.detectChanges(); // Trigger effect in constructor
+    await flushAsync();
+
+    expect(callOrder).toEqual(['sync', 'getDevices']);
     expect(fixture.componentInstance.devices()).toEqual([testDevice]);
   });
 
@@ -104,7 +132,7 @@ describe('PushNotificationSettingsComponent', () => {
 
     const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
     fixture.detectChanges(); // Trigger effect in constructor
-    await Promise.resolve();
+    await flushAsync();
 
     expect(fixture.componentInstance.devices()).toEqual([testDevice]);
     expect(fixture.componentInstance.preferences()).toEqual(testPreferences);
@@ -114,7 +142,7 @@ describe('PushNotificationSettingsComponent', () => {
   it('onToggle(true) enables push notifications', async () => {
     const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
     fixture.detectChanges(); // Trigger effect in constructor
-    await Promise.resolve();
+    await flushAsync();
 
     await fixture.componentInstance.onToggle({checked: true, source: {checked: false}} as MatSlideToggleChange);
 
@@ -126,7 +154,7 @@ describe('PushNotificationSettingsComponent', () => {
   it('onToggle(false) disables push notifications', async () => {
     const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
     fixture.detectChanges(); // Trigger effect in constructor
-    await Promise.resolve();
+    await flushAsync();
 
     await fixture.componentInstance.onToggle({checked: false, source: {checked: true}} as MatSlideToggleChange);
 
@@ -140,7 +168,7 @@ describe('PushNotificationSettingsComponent', () => {
 
     const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
     fixture.detectChanges(); // Trigger effect in constructor
-    await Promise.resolve();
+    await flushAsync();
 
     const event = {checked: true, source: {checked: true}} as MatSlideToggleChange;
     await fixture.componentInstance.onToggle(event);
@@ -156,10 +184,10 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       fixture.componentInstance.renameDevice(testDevice);
-      await fixture.whenStable();
+      await flushAsync();
 
       expect(pushNotificationService.renameDevice).toHaveBeenCalledWith(testDevice.id, 'Tafel 1');
       expect(toastr.success).toHaveBeenCalled();
@@ -170,7 +198,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       fixture.componentInstance.renameDevice(testDevice);
       await Promise.resolve();
@@ -184,10 +212,10 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       fixture.componentInstance.renameDevice(testDevice);
-      await fixture.whenStable();
+      await flushAsync();
 
       expect(toastr.error).toHaveBeenCalled();
     });
@@ -197,7 +225,7 @@ describe('PushNotificationSettingsComponent', () => {
     it('sends a test notification to the given device and reports success', async () => {
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.sendTestNotification(testDevice);
 
@@ -211,7 +239,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.sendTestNotification(testDevice);
 
@@ -225,7 +253,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
       fixture.componentInstance.enabled.set(true);
 
       await fixture.componentInstance.sendTestNotification(testDevice);
@@ -241,7 +269,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
       fixture.componentInstance.enabled.set(true);
 
       await fixture.componentInstance.sendTestNotification(otherDevice);
@@ -254,7 +282,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.sendTestNotification(testDevice);
 
@@ -266,7 +294,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.sendTestNotification(testDevice);
 
@@ -281,7 +309,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
       fixture.componentInstance.enabled.set(true);
 
       await fixture.componentInstance.removeDevice(testDevice);
@@ -296,7 +324,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
       fixture.componentInstance.enabled.set(true);
 
       await fixture.componentInstance.removeDevice(otherDevice);
@@ -309,7 +337,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.removeDevice(testDevice);
 
@@ -345,7 +373,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.onMasterToggle({checked: true, source: {checked: true}} as MatSlideToggleChange);
 
@@ -359,7 +387,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.onMasterToggle({checked: false, source: {checked: false}} as MatSlideToggleChange);
 
@@ -373,7 +401,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       const event = {checked: false, source: {checked: false}} as MatSlideToggleChange;
       await fixture.componentInstance.onMasterToggle(event);
@@ -393,7 +421,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       await fixture.componentInstance.onTypeToggle(
         PushNotificationType.DISTRIBUTION_STARTED,
@@ -410,7 +438,7 @@ describe('PushNotificationSettingsComponent', () => {
 
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       fixture.detectChanges();
-      await Promise.resolve();
+      await flushAsync();
 
       const event = {checked: false, source: {checked: false}} as MatSlideToggleChange;
       await fixture.componentInstance.onTypeToggle(PushNotificationType.DISTRIBUTION_STARTED, event);
