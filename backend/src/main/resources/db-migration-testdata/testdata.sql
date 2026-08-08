@@ -790,24 +790,31 @@ INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route
 VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500);
 
 -- food collections items for route 1
+-- `weight` is stored, not derived on read (see FoodCollectionItemEntity), so it has to be computed
+-- here exactly as the application would: the amount itself for a shop measuring in KG, otherwise
+-- amount * the category's weight per unit.
 WITH ShopCategories AS (
-                        SELECT s.id AS shop_id, fc.id AS food_category_id
+                        SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
                         FROM shops s
                         JOIN routes_stops rs ON rs.shop_id = s.id
                         JOIN routes r ON rs.route_id = r.id
                         CROSS JOIN food_categories fc
                         WHERE r.id = 1
-                        )
+                        ),
+     Items AS (SELECT sc.*, sc.shop_id AS amount -- using same as amount
+               FROM ShopCategories sc)
 INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
-                             amount)
+                             amount,
+                             weight)
 SELECT 1,         -- fixed collection 1
-       sc.shop_id,
-       sc.food_category_id,
-       sc.shop_id -- using same as amount
-FROM ShopCategories sc;
+       i.shop_id,
+       i.food_category_id,
+       i.amount,
+       CASE WHEN i.food_unit = 'KG' THEN i.amount ELSE i.amount * COALESCE(i.weight_per_unit, 0) END
+FROM Items i;
 
 -- food collection for route 2
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
@@ -827,11 +834,13 @@ INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
-                             amount)
+                             amount,
+                             weight)
 SELECT 2,         -- fixed collection 2
        sc.shop_id,
        sc.food_category_id,
-       0 -- amount
+       0, -- amount
+       0  -- a zero amount weighs nothing whatever the unit is
 FROM ShopCategories sc;
 
 -- food collection for route 3 (empty)
@@ -841,7 +850,7 @@ VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200);
 
 -- food collections items for route 3 (all empty)
 WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id
+    SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
     FROM shops s
              JOIN routes_stops rs ON rs.shop_id = s.id
              JOIN routes r ON rs.route_id = r.id
@@ -852,11 +861,13 @@ INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
-                             amount)
+                             amount,
+                             weight)
 SELECT 3,         -- fixed collection 3
        sc.shop_id,
        sc.food_category_id,
-       1 -- amount
+       1, -- amount
+       CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END
 FROM ShopCategories sc;
 
 -- shelters

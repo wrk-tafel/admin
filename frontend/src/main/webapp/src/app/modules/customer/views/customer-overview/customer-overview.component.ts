@@ -7,6 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {faRotate, faSearch, faUserPlus} from '@fortawesome/free-solid-svg-icons';
@@ -25,7 +26,8 @@ import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-custome
     FormsModule,
     CommonModule,
     FaIconComponent,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule
   ]
 })
 export class CustomerOverviewComponent {

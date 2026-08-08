@@ -476,8 +476,11 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 - **Saturday Deploy Freeze**: `deploy-prod` in `.github/workflows/release.yml` refuses to run for the
   entire day every Saturday (Europe/Vienna time). The app is live-used during Saturday distributions
   (~12:00-24:00) and Flyway migrations run on application boot, so a deploy mid-event would restart
-  the app under load — see issue #2931. If a release doesn't show up in prod, check whether it landed
-  on a Saturday before assuming something's broken.
+  the app under load — see issue #2931. The `check-deploy-window` job **fails** the release run on a
+  Saturday rather than skipping quietly, so a blocked deploy is visible: everything up to and
+  including `deploy-test` still succeeds, and prod is deployed by re-running the failed jobs once it
+  is no longer Saturday. A red release run whose only failure is `check-deploy-window` means the
+  freeze, not a broken build.
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.

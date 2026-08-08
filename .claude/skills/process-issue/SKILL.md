@@ -70,30 +70,48 @@ relevant module's existing code before writing new code, don't guess at patterns
   directly related to the code you're touching; otherwise `gh issue create` a separate ticket and
   mention it to the user — don't silently expand this PR's scope.
 
-## 5. Test locally before pushing
+## 5. Verify locally — only what this branch changed
 
-Run the same checks CI will run, so red checks are rare rather than routine:
+**Run only the tests and checks that cover the code this branch touched, and never a full suite —
+of any kind.** That applies to every category equally: backend tests, backend integration tests,
+frontend unit specs, Cypress e2e, lint, type-check and builds. A full local run costs many minutes
+and duplicates exactly what the pipeline does on every push, so it delays the PR without adding
+information. Running the whole suite is CI's job, not this workflow's.
+
+Targeted invocations — filter every one of them:
 
 ```bash
-./gradlew :backend:test
-./gradlew :backend:ktlintCheck
-cd frontend/src/main/webapp && npm run lint && npm run typecheck && npm run test-ci && cd -
+# Backend: the touched test/IT classes only (wildcards, since method names are backticked)
+./gradlew :backend:test --tests "*HouseholdServiceTest" --tests "*AdvisoryLockServiceIT"
+
+# Frontend unit: the touched specs only
+cd frontend/src/main/webapp && npm test -- --include="src/app/<path>/<file>.spec.ts"
+
+# Frontend lint: the touched files only
+npx eslint src/app/<path>/<file>.ts
+
+# Cypress: the affected spec(s) only, via fix-e2e's backend-restart-with-`e2e`-profile ritual
+npx cypress run --spec "cypress/e2e/<file>.cy.ts"
 ```
 
-**Skip the test suites entirely for a pure styling/layout change** — one that only touches CSS
-classes, colours, spacing, ordering or markup structure and changes no behavior. The suites here
-assert functional behavior only, so they cannot confirm or refute a visual change; running them
-just burns minutes. Verify such a change by looking at it (see `run`/browser automation) and let
-CI cover the rest. This does *not* apply the moment the diff also touches component logic,
-bindings, form state or an API — then it's a normal change and gets the full run above.
+What follows from that rule:
 
-For larger changes, also run full builds for CI-equivalent confidence: `./gradlew :backend:bootJar`
-and `npm run build-prod`.
-
-**Never run the full Cypress suite locally — that is CI's job.** If the change touches a
-Cypress-covered flow, run only the affected spec(s) via `--spec`, using the `fix-e2e` skill's
-workflow for the backend-restart-with-`e2e`-profile ritual rather than re-deriving that setup here.
-A full local run costs many minutes and duplicates what the pipeline already does on every push.
+- Never run `./gradlew :backend:test`, `npm run test-ci`, `npm run lint`, `npm run typecheck` or
+  `npm run cy:run-ci` unfiltered, and never a full `./gradlew :backend:bootJar` / `npm run build-prod`
+  "for CI-equivalent confidence". If such a run is already going, stop it.
+- A check that has no per-file filter (`ktlintCheck`, `typecheck`) is CI's by default. Run it only
+  when the change is specifically about formatting or typing and there is no narrower way to see the
+  result — and say so when reporting.
+- If a targeted run comes back red, fix the cause and re-run that same targeted set. Don't widen to
+  the full suite to check whether anything else broke; that's precisely what the pipeline is for.
+- **Skip tests entirely for a pure styling/layout change** — one that only touches CSS classes,
+  colours, spacing, ordering or markup structure and changes no behavior. These suites assert
+  functional behavior only, so they can neither confirm nor refute a visual change. Verify it by
+  looking at it (see `run`/browser automation) and let CI cover the rest. This stops applying the
+  moment the diff also touches component logic, bindings, form state or an API — then it's a normal
+  change and gets the targeted runs above.
+- Report honestly in the PR which targeted checks ran and that the full suites were left to CI —
+  never imply a broader run happened than actually did.
 
 ## 6. Commit
 
@@ -123,8 +141,8 @@ If it conflicts, resolve it here rather than handing it back to the user:
   style, a duplicated helper, a deprecated pattern). The branch's goal has to hold for the merged
   result, not just for its own hunks.
 
-Then re-run the checks from step 5 that cover what the merge touched: the merged tree is code nobody
-has built yet, even though both sides were green on their own.
+Then re-run the step 5 checks that cover what the merge touched — still only those, not the full
+suite: the merged tree is code nobody has built yet, even though both sides were green on their own.
 
 ## 8. Push and open the PR
 
@@ -139,9 +157,8 @@ gh pr create --repo <owner>/<repo> --base main --head <branch> \
 Closes #<issue-number>
 
 ## Test plan
-- [x] ./gradlew :backend:test
-- [x] npm run lint / typecheck / test-ci
-- [ ] CI
+- [x] <the targeted runs that were actually executed, e.g. ./gradlew :backend:test --tests "*XyzServiceTest">
+- [ ] CI (full backend/frontend suites, lint, build)
 
 🤖 Generated with Claude Code
 EOF

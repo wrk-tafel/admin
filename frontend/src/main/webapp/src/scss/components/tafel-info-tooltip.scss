@@ -1,0 +1,5 @@
+// Inside a form field the info icon is rendered as a suffix, which places it flush against the
+// field's right border. Pull it back in so it doesn't touch the outline.
+.mat-mdc-form-field-icon-suffix .tafel-info-tooltip {
+  margin-right: 0.5rem;
+}

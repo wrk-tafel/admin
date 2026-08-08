@@ -116,6 +116,72 @@ describe('SseService', () => {
     expect(FakeEventSource.instances).toHaveLength(1);
   });
 
+  it('backs off exponentially up to 30s while reconnecting keeps failing', () => {
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const failCurrentConnection = () => {
+      const instance = FakeEventSource.latest();
+      instance.readyState = FakeEventSource.CLOSED;
+      instance.onerror!({} as Event);
+    };
+
+    // 1s, then 2s, 4s, 8s, 16s and from there capped at 30s - each step must not fire a moment
+    // early, so every delay is checked just below and then at its expected value.
+    const expectedDelays = [1000, 2000, 4000, 8000, 16000, 30000, 30000];
+
+    expectedDelays.forEach((delay, index) => {
+      failCurrentConnection();
+
+      vi.advanceTimersByTime(delay - 1);
+      expect(FakeEventSource.instances).toHaveLength(index + 1);
+
+      vi.advanceTimersByTime(1);
+      expect(FakeEventSource.instances).toHaveLength(index + 2);
+    });
+  });
+
+  it('restarts the backoff after a connection opens again', () => {
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CLOSED;
+    firstInstance.onerror!({} as Event);
+    vi.advanceTimersByTime(1000);
+
+    const secondInstance = FakeEventSource.latest();
+    secondInstance.readyState = FakeEventSource.CLOSED;
+    secondInstance.onerror!({} as Event);
+    vi.advanceTimersByTime(2000);
+
+    // A successful open means the next drop is a fresh incident, not a continuation of the last.
+    FakeEventSource.latest().onopen!();
+
+    const thirdInstance = FakeEventSource.latest();
+    thirdInstance.readyState = FakeEventSource.CLOSED;
+    thirdInstance.onerror!({} as Event);
+
+    vi.advanceTimersByTime(1000);
+
+    expect(FakeEventSource.instances).toHaveLength(4);
+  });
+
+  it('opens only one replacement even when onerror fires repeatedly for the same dead connection', () => {
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CLOSED;
+    firstInstance.onerror!({} as Event);
+    firstInstance.onerror!({} as Event);
+    firstInstance.onerror!({} as Event);
+
+    vi.advanceTimersByTime(1000);
+
+    expect(FakeEventSource.instances).toHaveLength(2);
+  });
+
   it('closes the EventSource and stops a pending reconnect on unsubscribe', () => {
     const service = setup();
     const subscription = service.listen('/sse/dashboard').subscribe();

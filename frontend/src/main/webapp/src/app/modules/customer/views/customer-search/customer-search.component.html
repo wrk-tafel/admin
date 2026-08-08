@@ -46,9 +46,21 @@
 
       <div class="mb-4">
         <div class="flex flex-col sm:flex-row gap-6">
-          <mat-checkbox formControlName="postProcessing" testid="postProcessingInput">Daten unvollständig</mat-checkbox>
-          <mat-checkbox formControlName="costContribution" testid="costContributionInput">Unkostenbeitrag offen</mat-checkbox>
-          <mat-checkbox formControlName="valid" testid="validInput">Derzeit bezugsberechtigt</mat-checkbox>
+          <div class="flex items-center">
+            <mat-checkbox formControlName="postProcessing" testid="postProcessingInput">Daten unvollständig</mat-checkbox>
+            <tafel-info-tooltip [testId]="'post-processing-info-tooltip'"
+                                text="Findet Kunden, bei denen bei einer Person Pflichtangaben fehlen - Name, Geburtsdatum, Geschlecht, Nationalität, Arbeitgeber oder Adresse."></tafel-info-tooltip>
+          </div>
+          <div class="flex items-center">
+            <mat-checkbox formControlName="costContribution" testid="costContributionInput">Unkostenbeitrag offen</mat-checkbox>
+            <tafel-info-tooltip [testId]="'cost-contribution-info-tooltip'"
+                                text="Findet Kunden, die aus einer früheren Ausgabe noch einen offenen Unkostenbeitrag haben."></tafel-info-tooltip>
+          </div>
+          <div class="flex items-center">
+            <mat-checkbox formControlName="valid" testid="validInput">Derzeit bezugsberechtigt</mat-checkbox>
+            <tafel-info-tooltip [testId]="'valid-info-tooltip'"
+                                text="Findet nur Kunden, deren 'Gültig bis'-Datum heute noch nicht abgelaufen ist."></tafel-info-tooltip>
+          </div>
         </div>
       </div>
 
@@ -121,10 +133,12 @@
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
                 <td mat-cell *matCellDef="let customer; let i = index" class="px-4 py-2">
                   <div class="flex gap-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)"
+                            matTooltip="Kundendetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)"
+                            matTooltip="Kundendaten bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </div>
@@ -160,10 +174,12 @@
                     </div>
                   </mat-card-content>
                   <mat-card-actions class="flex gap-2 mt-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)"
+                            matTooltip="Kundendetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)"
+                            matTooltip="Kundendaten bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </mat-card-actions>

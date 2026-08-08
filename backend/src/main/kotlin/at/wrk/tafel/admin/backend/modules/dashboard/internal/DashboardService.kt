@@ -76,7 +76,7 @@ class DashboardService(
                 .map { it.route.name },
             foodAmountTotal = currentDistribution.foodCollections
                 .flatMap { it.items ?: emptyList() }
-                .map { it.calculateWeight() }
+                .map { it.weight }
                 .sumOf { it },
         )
     }

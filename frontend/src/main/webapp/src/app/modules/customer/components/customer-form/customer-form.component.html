@@ -149,6 +149,8 @@
             <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
               <fa-icon [icon]="faEuroSign"></fa-icon>
             </mat-icon>
+            <tafel-info-tooltip matSuffix [testId]="'income-info-tooltip'"
+                                text="Monatliches Nettoeinkommen dieser Person. Die Einkommen aller Personen im Haushalt werden zusammengezählt und gegen die Einkommensgrenze geprüft."></tafel-info-tooltip>
             @for (errorMessage of visibleErrorMessages(customerForm.income()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
@@ -156,19 +158,25 @@
           <mat-form-field>
             <mat-label>nachgewiesen bis</mat-label>
             <input matInput testid="incomeDueInput" type="date" [formField]="customerForm.incomeDue">
+            <tafel-info-tooltip matSuffix [testId]="'income-due-info-tooltip'"
+                                text="Datum, bis zu dem der vorgelegte Einkommensnachweis gültig ist. Danach ist ein neuer Nachweis nötig."></tafel-info-tooltip>
             @for (errorMessage of visibleErrorMessages(customerForm.incomeDue()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
           </mat-form-field>
         </div>
         <hr/>
-        <div class="mb-2">
+        <div class="mb-2 flex items-center">
           <mat-checkbox [formField]="customerForm.singleParent" testid="singleParentInput">Alleinerzieher</mat-checkbox>
+          <tafel-info-tooltip [testId]="'single-parent-info-tooltip'"
+                              text="Wird nur für die Statistik erfasst und beeinflusst die Einkommensgrenze nicht."></tafel-info-tooltip>
         </div>
         <hr/>
         <mat-form-field class="w-full mb-2">
           <mat-label>Gültig bis</mat-label>
           <input matInput testid="validUntilInput" type="date" [formField]="customerForm.validUntil">
+          <tafel-info-tooltip matSuffix [testId]="'valid-until-info-tooltip'"
+                              text="Ende der Bezugsberechtigung. Nach diesem Datum wird der Kunde beim Check-In als ungültig angezeigt - über 'Bezug verlängern' in der Kundenansicht kann das Datum verlängert werden."></tafel-info-tooltip>
           @for (errorMessage of visibleErrorMessages(customerForm.validUntil()); track $index) {
             <mat-error>{{errorMessage}}</mat-error>
           }
@@ -280,14 +288,22 @@
                     }
                   </mat-form-field>
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
-                                  testid="receivesFamilyAllowanceInput">
-                      Bezieht Familienbeihilfe
-                    </mat-checkbox>
-                    <mat-checkbox [formField]="personField(i).excludeFromHousehold"
-                                  testid="excludeFromHouseholdInput">
-                      Nicht im selben Haushalt (keine Berechnung)
-                    </mat-checkbox>
+                    <div class="flex items-center">
+                      <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
+                                    testid="receivesFamilyAllowanceInput">
+                        Bezieht Familienbeihilfe
+                      </mat-checkbox>
+                      <tafel-info-tooltip [testId]="'family-allowance-info-tooltip'"
+                                          text="Für Kinder mit Familienbeihilfe werden Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel automatisch zum Haushaltseinkommen dazugerechnet."></tafel-info-tooltip>
+                    </div>
+                    <div class="flex items-center">
+                      <mat-checkbox [formField]="personField(i).excludeFromHousehold"
+                                    testid="excludeFromHouseholdInput">
+                        Nicht im selben Haushalt (keine Berechnung)
+                      </mat-checkbox>
+                      <tafel-info-tooltip [testId]="'exclude-from-household-info-tooltip'"
+                                          text="Die Person zählt weiterhin zum Kunden, ihr Einkommen wird aber weder mitgezählt noch erhöht sie die Einkommensgrenze."></tafel-info-tooltip>
+                    </div>
                   </div>
                   <div class="mt-4">
                     <button type="button" [attr.testid]="'remove-personform-' + i" matButton="filled"

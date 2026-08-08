@@ -93,18 +93,23 @@ class DistributionService(
                 }
             }
 
-            try {
-                eventPublisher.publishEvent(DistributionStartedEvent(newDistribution.id!!))
-            } catch (e: Exception) {
-                logger.error("Publishing DistributionStartedEvent failed", e)
-                throw e
-            }
-
             result = newDistribution
         }
 
         if (!acquired) {
             throw ConflictException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
+        }
+
+        // Published outside the locked block on purpose: the lock is transaction-level, so anything
+        // running inside that block extends the lock, its transaction and its pooled connection for as
+        // long as it takes. Listeners are free to do slow work (the push fan-out in `push` does blocking
+        // HTTPS sends per device), and none of it needs the CREATE_DISTRIBUTION lock - that lock only
+        // guards the "no distribution running yet" check plus the insert above.
+        try {
+            eventPublisher.publishEvent(DistributionStartedEvent(result!!.id!!))
+        } catch (e: Exception) {
+            logger.error("Publishing DistributionStartedEvent failed", e)
+            throw e
         }
 
         return result!!
@@ -173,7 +178,7 @@ class DistributionService(
             halftimeTicketNumber = halftimeTicketNumber,
             countHouseholdsOverall = countHouseholds,
             countPersonsOverall = countAddPersons + countHouseholds,
-            households = mapHouseholdsForPdf(sortedHouseholds),
+            households = mapHouseholdsForPdf(sortedHouseholds, currentDistribution.startedAt.toLocalDate()),
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -376,14 +381,21 @@ class DistributionService(
         .sortedBy { it.ticketNumber }
         .firstOrNull()
 
-    private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
+    /**
+     * [referenceDate] is the distribution's own day rather than today, so a list regenerated for a
+     * past distribution still counts the infants it had on the day.
+     */
+    private fun mapHouseholdsForPdf(
+        households: List<DistributionHouseholdEntity>,
+        referenceDate: LocalDate,
+    ): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
         val household = distributionHouseholdEntity.household
         val countPersons = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
             .size + 1
         val countInfants = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+            .count { Period.between(it.birthDate, referenceDate).years < 3 }
 
         HouseholdListItem(
             ticketNumber = distributionHouseholdEntity.ticketNumber,

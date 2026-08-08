@@ -10,6 +10,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatIcon} from '@angular/material/icon';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {
   faBuilding,
   faEnvelope,
@@ -42,7 +43,8 @@ import dayjs from 'dayjs';
     MatIcon,
     FaIconComponent,
     TafelAutofocusDirective,
-    GenderLabelPipe
+    GenderLabelPipe,
+    TafelInfoTooltipComponent
   ]
 })
 export class CustomerFormComponent {

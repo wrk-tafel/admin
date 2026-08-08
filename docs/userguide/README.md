@@ -70,7 +70,25 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 
+Ist die Seitenleiste eingeklappt, sind nur noch die Icons sichtbar. Fährt man mit der Maus über ein Icon, wird der Name des Menüpunkts als Kurzhinweis (Tooltip) eingeblendet.
+
 Oben rechts in der Kopfzeile zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
+
+<a id="tooltips-und-erklaerungen"></a>
+
+## Kurzhinweise (Tooltips)
+
+An zwei Stellen blendet die Anwendung zusätzliche Erklärungen ein, ohne dass die Oberfläche dadurch voller wird.
+
+**Schaltflächen mit reinem Symbol** (Lupe, Stift, Mistkübel, Auge, Plus, Haken usw.) zeigen ihre Funktion als Kurzhinweis an, sobald man mit der Maus darauf stehen bleibt. Damit muss die Bedeutung eines Symbols nicht auswendig gewusst werden – im Beispiel die Lupe im Suchergebnis der Kunden-Suche:
+
+![Kurzhinweis an einer Symbol-Schaltfläche](images/tooltip-symbol-schaltflaeche.jpg)
+
+**Felder mit fachlicher Bedeutung** haben ein kleines Info-Symbol (ⓘ) neben der Beschriftung. Der Kurzhinweis dahinter erklärt, was das Feld bewirkt – etwa wie das eingetragene Einkommen in die Anspruchsprüfung einfließt oder dass "Alleinerzieher" ausschließlich in die Statistik einfließt und die Einkommensgrenze nicht verändert:
+
+![Kurzhinweis an einem Eingabefeld](images/tooltip-erklaerung-feld.jpg)
+
+Auf Touch-Geräten erscheinen die Kurzhinweise, wenn man das Symbol kurz gedrückt hält. Mit der Tastatur werden sie eingeblendet, sobald die jeweilige Schaltfläche den Fokus erhält.
 
 <a id="übersicht-dashboard"></a>
 

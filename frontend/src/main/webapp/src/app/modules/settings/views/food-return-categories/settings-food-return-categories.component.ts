@@ -23,6 +23,7 @@ import {faCheck, faEye, faEyeSlash, faGripVertical, faPencil, faPlus, faXmark} f
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'tafel-settings-food-return-categories',
@@ -50,7 +51,8 @@ import {MatInputModule} from '@angular/material/input';
     MatInputModule,
     CdkDropList,
     CdkDrag,
-    CdkDragHandle
+    CdkDragHandle,
+    MatTooltipModule
   ]
 })
 export class SettingsFoodReturnCategoriesComponent {

@@ -13,12 +13,33 @@ describe('Settings - Employees', () => {
   });
 
   it('paginates through the employee list', () => {
-    cy.get('.tafel-paginator-responsive').should('have.length', 2);
-    cy.byTestId('employees-paginator').should('exist');
-    cy.byTestId('employees-row-0').invoke('text').then((firstPageText) => {
-      cy.byTestId('employees-paginator').find('.mat-mdc-paginator-navigation-next').click();
+    // The testdata seeds exactly 10 employees, which is exactly the default page size - so on a
+    // freshly migrated database there is only ever one page and the next-page button is disabled.
+    // Create a dedicated employee first so a second page is guaranteed to exist, rather than
+    // relying on leftovers from earlier tests/runs.
+    cy.getAnyRandomNumber().then((randomId) => {
+      cy.request({
+        method: 'POST',
+        url: '/api/employees',
+        body: {
+          personnelNumber: 'PAGE-' + randomId,
+          firstname: 'Pagination',
+          lastname: 'Fixture ' + randomId
+        }
+      });
+      cy.reload();
 
-      cy.byTestId('employees-row-0').invoke('text').should('not.equal', firstPageText);
+      cy.get('.tafel-paginator-responsive').should('have.length', 2);
+      cy.byTestId('employees-paginator').should('exist');
+
+      // The row testid exists in both responsive branches (desktop table and mobile card list), so
+      // scope the lookup to the table - an unscoped one concatenates the displayed row's text with
+      // the hidden branch's copy of it.
+      cy.byTestId('employees-table').find('[testid="employees-row-0"]').invoke('text').then((firstPageText) => {
+        cy.byTestId('employees-paginator').find('.mat-mdc-paginator-navigation-next').click();
+
+        cy.byTestId('employees-table').find('[testid="employees-row-0"]').invoke('text').should('not.equal', firstPageText);
+      });
     });
   });
 

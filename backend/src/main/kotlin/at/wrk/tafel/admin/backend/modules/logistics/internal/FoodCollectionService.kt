@@ -225,7 +225,7 @@ class FoodCollectionService(
             it.category.id == categoryId && it.shop.id == shopId
         }
         if (existingItem != null) {
-            existingItem.amount = newAmount
+            existingItem.updateAmount(newAmount)
         } else {
             items.add(
                 FoodCollectionItemEntity(

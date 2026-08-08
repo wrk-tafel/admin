@@ -22,6 +22,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatOption, MatSelect} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -49,6 +50,7 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     MatSelect,
     MatOption,
     FaIconComponent,
+    MatTooltipModule
   ]
 })
 export class CheckinComponent {

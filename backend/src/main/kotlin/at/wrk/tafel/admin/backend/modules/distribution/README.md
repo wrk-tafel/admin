@@ -76,7 +76,9 @@ implementation was left, so the interface/list indirection was removed in favor 
 - **DistributionStatisticService** — builds the `DistributionStatisticEntity` snapshot at close time:
   household/person/infant counts (new, prolonged, updated), average persons per household, and logistics
   numbers (shops visited, food weight collected, route km). Only called from
-  `DistributionEndedEventListener`, never on-demand.
+  `DistributionEndedEventListener`, never on-demand. Every number in the snapshot is reproducible from
+  the distribution alone: infants are counted against `distribution.startedAt`, not against the clock,
+  and the food weight is summed from the weights stored on the collected items.
 - **MissingCostContributionService** — for every household whose `costContributionPaid == false` on this
   distribution, adds the current cost-contribution amount to `household.pendingCostContribution` so it
   can be collected next time. Doesn't touch `reporting`. Deliberately not called by
@@ -193,6 +195,19 @@ its own `REQUIRES_NEW` transaction *before* publishing `DistributionEndedEvent` 
 This matters because the post-processor runs on a different thread/connection — if `endedAt` were only
 visible in the (still-open, lock-holding) outer transaction, the async thread's own transaction might not
 see it yet.
+
+Both locks are **transaction-level** (`pg_try_advisory_xact_lock`), so everything that runs inside the
+locked block adds its own runtime to the lock, its transaction and its pooled connection. Two rules
+follow, and both are what keeps "Ausgabe starten" from spuriously reporting a concurrent start:
+
+- `createNewDistribution()` publishes `DistributionStartedEvent` **after** the locked block returns. The
+  lock only guards the "no distribution running yet" check plus the insert; nothing a listener does
+  belongs inside it.
+- Listeners that do slow work do it off the publishing thread. `push`'s `DistributionStartedPushListener`
+  is `@Async` for exactly that reason — its fan-out does one blocking HTTPS send per subscribed device
+  (up to 40s each on an unreachable push service) and a synchronous listener would hold the caller's
+  request open for the sum of them. The close path is the same shape, via the `@Async`
+  `DistributionEndedEventListener`.
 
 ## Ticket numbering — correction vs. common assumption
 
