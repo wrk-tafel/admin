@@ -340,6 +340,33 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
   });
 
+  it('note text is rendered as plain text, keeping newlines and escaping markup', () => {
+    const notesWithMarkup: CustomerNotesResponse = {
+      ...mockCustomerNotesResponse,
+      items: [
+        {
+          id: 500,
+          author: 'author1',
+          timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
+          note: 'Zeile eins\nZeile zwei <b>fett</b>'
+        }
+      ]
+    };
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', notesWithMarkup);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    const noteElement = fixture.debugElement.query(By.css('[testid="note-text"]')).nativeElement;
+
+    // The newline has to survive into the text, and the tag must stay text rather than becoming
+    // an element - free-text notes are never markup.
+    expect(noteElement.textContent).toBe('Zeile eins\nZeile zwei <b>fett</b>');
+    expect(noteElement.querySelector('b')).toBeNull();
+  });
+
   it('printMasterdata', () => {
     const response = new HttpResponse({
       status: 200,

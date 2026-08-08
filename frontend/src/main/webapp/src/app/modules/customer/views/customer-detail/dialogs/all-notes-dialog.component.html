@@ -12,7 +12,7 @@
         <div class="font-bold" testid="note-title">
           {{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}
         </div>
-        <div>{{noteItem.note}}</div>
+        <div class="whitespace-pre-line" testid="note-text">{{noteItem.note}}</div>
       </div>
     }
     <mat-paginator class="tafel-paginator-center mt-6" [length]="notesResponse().totalCount" [pageSize]="notesResponse().pageSize"

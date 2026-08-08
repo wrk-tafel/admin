@@ -233,7 +233,10 @@
                         <span class="font-bold"
                               testid="note-title">{{ customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()[0].author }}</span>
                       </div>
-                      <div testid="note-text" [innerHtml]="customerNotes()[0].note"></div>
+                      <!-- Notes are free text, never markup: interpolated (not [innerHtml]) so a
+                           tag stays text, with pre-line so typed newlines still break the line.
+                           The all-notes dialog and the check-in panel render it the same way. -->
+                      <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()[0].note }}</div>
                     </div>
                   }
                 </mat-card-content>

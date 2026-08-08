@@ -134,6 +134,28 @@ describe('Customer Detail', () => {
     });
   });
 
+  // The panel and the dialog render the same note text and used to disagree about it: the panel
+  // interpreted it as HTML, the dialog escaped it. Both now show plain text with real newlines.
+  it('note text renders identically as plain text in the panel and the dialog', () => {
+    cy.visit('/kunden/detail/103');
+
+    // The testdata note carries a real newline; it has to survive as one instead of collapsing.
+    const assertPlainTextWithNewline = () => {
+      cy.byTestId('note-text')
+        .filterDisplayed()
+        .first()
+        .invoke('text')
+        .should('contain', 'Testnotiz 10.\nLorem ipsum');
+    };
+
+    assertPlainTextWithNewline();
+
+    cy.byTestId('showall-notes-button').click();
+    cy.get('mat-dialog-content').within(() => {
+      assertPlainTextWithNewline();
+    });
+  });
+
   it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/kunden/detail/101');

@@ -146,9 +146,7 @@
                     <div class="mb-2 font-semibold" testid="note-title">
                       {{ customerNotes()![0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()![0].author }}
                     </div>
-                    <div testid="note-text">
-                      {{ customerNotes()![0].note }}
-                    </div>
+                    <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()![0].note }}</div>
                   </div>
                 }
               </mat-card-content>
