@@ -14,7 +14,7 @@
         hinterlegten Empfänger.
       </p>
 
-      <mat-form-field class="w-full">
+      <mat-form-field class="w-full" subscriptSizing="dynamic">
         <mat-label>Ausgabe vom:</mat-label>
         <mat-select [value]="selectedDistribution()" (selectionChange)="selectedDistribution.set($event.value)">
           @for (distribution of distributions(); track distribution) {
