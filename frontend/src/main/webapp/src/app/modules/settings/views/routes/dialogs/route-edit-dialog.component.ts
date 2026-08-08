@@ -4,9 +4,11 @@ import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
-import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatButton} from '@angular/material/button';
-import {MatDividerModule} from '@angular/material/divider';
+import {MatTooltip} from '@angular/material/tooltip';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {RouteData, RouteStopData} from '../../../../../api/route-api.service';
 import {ShopItem} from '../../../../../api/shop-api.service';
@@ -25,9 +27,10 @@ export interface RouteEditDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatCheckboxModule,
+    MatSlideToggleModule,
     MatButton,
-    MatDividerModule
+    MatTooltip,
+    FaIconComponent
   ]
 })
 export class RouteEditDialogComponent {
@@ -85,4 +88,7 @@ export class RouteEditDialogComponent {
   cancel() {
     this.dialogRef.close();
   }
+
+  protected readonly faPlus = faPlus;
+  protected readonly faTrashCan = faTrashCan;
 }

@@ -57,6 +57,34 @@ describe('User Create', () => {
     });
   });
 
+  it('create new user with a password the backend rejects', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.intercept('POST', '/api/users').as('createUserRequest');
+    cy.once('uncaught:exception', (err) => !err.message.includes('400'));
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      cy.byTestId('usernameInput').type('test-username-' + userRandomId);
+      cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
+      cy.byTestId('lastnameInput').type('test-lastname');
+      cy.byTestId('firstnameInput').type('test-firstname');
+
+      // "tafel" is one of the words the backend's password validator rejects outright (and it is
+      // below the minimum length too) - the rejection has to come back as a 400 carrying its
+      // message, not as a generic server error
+      cy.byTestId('passwordInput').type('tafel');
+      cy.byTestId('passwordRepeatInput').type('tafel');
+
+      cy.byTestId('save-button').click();
+
+      cy.wait('@createUserRequest').its('response.statusCode').should('eq', 400);
+
+      cy.get('.toast-message')
+        .should('be.visible')
+        .should('contain.text', 'Das neue Passwort ist ungültig!');
+    });
+  });
+
   it('permissions are grouped by category with a working select-all toggle', () => {
     cy.visit('/benutzer/erstellen');
 
