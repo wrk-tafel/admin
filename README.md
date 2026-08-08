@@ -262,9 +262,12 @@ The project uses GitHub Actions with the following pipelines:
 
 | Workflow | Trigger | Actions |
 |---|---|---|
-| Pull Request | PR opened/updated | Build, test, Docker image (`dev`), E2E tests, deploy to dev |
-| Main Push | Push to `main` | Build, test, Docker image (`test`), E2E tests, deploy to test |
-| Release | Push to `release` | Build, test, Docker images (`test` + `latest`), deploy to test + prod |
+| Pull Request | PR opened/updated | Build, test, E2E tests, Docker image (tagged with the PR head's short commit SHA), deploy to dev |
+| Main Push | Push to `main` | Build, test, E2E tests, Docker image (tagged with the short commit SHA), deploy to test |
+| Release | Push to `release` | Build, test, E2E tests, Docker image (`<version>` + `latest`), user guide PDF, GitHub release, deploy to test + prod |
+
+See [ADR-0026](docs/architecture/adr/0026-branch-based-promotion-through-environments.md) for why
+promotion works this way, and which of these deploys is actually gated on a green pipeline.
 
 Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 

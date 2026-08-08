@@ -10,24 +10,64 @@ reconstructed from the code, the module READMEs and the issue history
 ([#3114](https://github.com/wrk-tafel/admin/issues/3114)). The **Recorded** date on each is the date
 it was written down, not the date the decision was made.
 
+Numbers are assigned in the order records are written; the index below groups them by subject
+instead, so a number's position in a group says nothing about its age.
+
 ## Index
+
+### Platform and structure
 
 | # | Decision | Status |
 |---|---|---|
+| [0015](0015-kotlin-spring-boot-backend-angular-frontend.md) | Kotlin/Spring Boot backend, Angular frontend | accepted |
 | [0001](0001-modular-monolith-with-spring-modulith.md) | Modular monolith with Spring Modulith | accepted |
 | [0002](0002-single-deployable-image-with-independent-builds.md) | One deployable image, two independent builds | accepted |
 | [0003](0003-postgresql-as-the-only-infrastructure-dependency.md) | PostgreSQL is the only infrastructure dependency | accepted |
-| [0004](0004-repeatable-only-flyway-migrations.md) | Repeatable-only Flyway migrations, never edited once released | accepted |
-| [0005](0005-server-sent-events-with-a-transactional-outbox.md) | Real-time updates via SSE fed by a transactional outbox | accepted |
-| [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
-| [0007](0007-household-person-model-with-customer-vocabulary-in-the-frontend.md) | Household/person model, "customer" vocabulary in the frontend | accepted |
-| [0008](0008-rest-api-and-dto-naming-conventions.md) | REST conventions and Request/Response/Item DTO naming | accepted |
-| [0009](0009-server-side-document-generation-with-xsl-fo.md) | Server-side documents — XSL-FO/FOP for PDF, Commons CSV | accepted |
 | [0010](0010-zoneless-standalone-angular-with-signals.md) | Zoneless, standalone Angular with signal-based state | accepted |
+| [0029](0029-installable-pwa-with-an-explicit-update-prompt.md) | Installable PWA with an explicit update prompt | accepted |
+| [0027](0027-single-locale-and-timezone.md) | One locale and one timezone, fixed at the image level | accepted |
+
+### Data and persistence
+
+| # | Decision | Status |
+|---|---|---|
+| [0004](0004-repeatable-only-flyway-migrations.md) | Repeatable-only Flyway migrations, never edited once released | accepted |
+| [0007](0007-household-person-model-with-customer-vocabulary-in-the-frontend.md) | Household/person model, "customer" vocabulary in the frontend | accepted |
+| [0020](0020-reports-are-frozen-snapshots.md) | Reports and statistics are frozen snapshots, never live joins | accepted |
+| [0021](0021-documents-on-a-volume-metadata-in-the-database.md) | Documents on a mounted volume, metadata in the database | accepted |
+| [0025](0025-single-free-text-fuzzy-search.md) | One free-text search box over a trigger-maintained column | accepted |
+
+### Interfaces and communication
+
+| # | Decision | Status |
+|---|---|---|
+| [0008](0008-rest-api-and-dto-naming-conventions.md) | REST conventions and Request/Response/Item DTO naming | accepted |
+| [0005](0005-server-sent-events-with-a-transactional-outbox.md) | Real-time updates via SSE fed by a transactional outbox | accepted |
+| [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
+| [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
+| [0009](0009-server-side-document-generation-with-xsl-fo.md) | Server-side documents — XSL-FO/FOP for PDF, Commons CSV | accepted |
+
+### Domain rules
+
+| # | Decision | Status |
+|---|---|---|
+| [0016](0016-distribution-lifecycle-model.md) | Distribution lifecycle — implicit state, non-blocking locks, two-stage close | accepted |
+| [0023](0023-ticket-numbers-come-from-the-caller.md) | Ticket numbers come from the caller; backend enforces uniqueness | accepted |
+| [0024](0024-server-side-income-validation.md) | Income validation re-runs server-side, with supervisor override | accepted |
+| [0022](0022-duplicate-detection-and-merge-by-side.md) | Fuzzy duplicate detection; merges resolved by side | accepted |
+
+### Operations, build and delivery
+
+| # | Decision | Status |
+|---|---|---|
 | [0011](0011-configuration-hot-reload-instead-of-restarts.md) | Configuration reloaded on a running instance | accepted |
+| [0018](0018-optional-features-behind-a-kill-switch.md) | Optional per-deployment features gated by one availability rule | accepted |
 | [0012](0012-conventional-commits-drive-releases.md) | Conventional Commits drive the release version | accepted |
+| [0026](0026-branch-based-promotion-through-environments.md) | Branch-based promotion through dev, test and prod | accepted |
 | [0013](0013-saturday-production-deploy-freeze.md) | Production deploys blocked all day Saturday | accepted |
+| [0019](0019-supply-chain-and-container-runtime-hardening.md) | Pinned supply chain and a container that fails loudly | accepted |
 | [0014](0014-integration-tests-against-real-postgres.md) | Integration tests against real PostgreSQL via Testcontainers | accepted |
+| [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 
 ## Related decision documents
 
