@@ -5,6 +5,7 @@ import {FormField} from '@angular/forms/signals';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
@@ -25,6 +26,7 @@ describe('UserFormComponent', () => {
 
   let userApiService: MockedObject<UserApiService>;
   let toastr: MockedObject<TafelToastrService>;
+  let authenticationService: MockedObject<AuthenticationService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -43,12 +45,19 @@ describe('UserFormComponent', () => {
           useValue: {
             error: vi.fn().mockName('TafelToastrService.error')
           }
+        },
+        {
+          provide: AuthenticationService,
+          useValue: {
+            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission').mockReturnValue(false)
+          }
         }
       ]
     }).compileComponents();
 
     userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+    authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
   });
 
   it('should create the component', () => {
@@ -169,6 +178,60 @@ describe('UserFormComponent', () => {
 
     component.toggleGroup(component.permissionGroups()[0]);
     expect(component.permissions()[0].enabled).toBe(false);
+  });
+
+  describe('administrator permission', () => {
+    const permissionsWithAdministrator: UserPermission[] = [
+      ...mockPermissions,
+      {key: 'ADMINISTRATOR', title: 'Administrator', category: 'Verwaltung'}
+    ];
+
+    function createComponentWithAdministrator(currentUserIsAdministrator: boolean) {
+      authenticationService.hasPermission.mockImplementation(
+        (permission: string) => currentUserIsAdministrator && permission === 'ADMINISTRATOR'
+      );
+      const fixture = TestBed.createComponent(UserFormComponent);
+      fixture.componentRef.setInput('permissionsData', permissionsWithAdministrator);
+      fixture.detectChanges();
+      return fixture.componentInstance;
+    }
+
+    // The backend refuses the change either way (see UserController), so the form only avoids
+    // offering an edit that would be rejected on save.
+    it('locks the administrator checkbox for a user who is not an administrator', () => {
+      const component = createComponentWithAdministrator(false);
+
+      expect(component.isPermissionLocked('ADMINISTRATOR')).toBe(true);
+      expect(component.isPermissionLocked('PERM1')).toBe(false);
+    });
+
+    it('leaves the administrator checkbox editable for an administrator', () => {
+      const component = createComponentWithAdministrator(true);
+
+      expect(component.isPermissionLocked('ADMINISTRATOR')).toBe(false);
+    });
+
+    it('ignores a toggle of the locked permission', () => {
+      const component = createComponentWithAdministrator(false);
+
+      component.togglePermission('ADMINISTRATOR');
+
+      expect(component.permissions().find(permission => permission.key === 'ADMINISTRATOR')?.enabled).toBe(false);
+    });
+
+    /**
+     * "Alle auswählen" must not be able to grant what the individual checkbox refuses - and it has
+     * to stay usable, which is why the locked entry is excluded from the fully-selected check
+     * rather than blocking the whole group.
+     */
+    it('skips the locked permission when selecting a whole category', () => {
+      const component = createComponentWithAdministrator(false);
+      const administratorGroup = component.permissionGroups().find(group => group.category === 'Verwaltung')!;
+
+      component.toggleGroup(administratorGroup);
+
+      expect(component.permissions().find(permission => permission.key === 'ADMINISTRATOR')?.enabled).toBe(false);
+    });
   });
 
   it('password-repeat validator passwords different', () => {

@@ -115,9 +115,20 @@
               @for (permission of group.permissions; track permission.key) {
                 <div [attr.testid]="'permission-' + permission.key">
                   <mat-checkbox [checked]="permission.enabled" (change)="togglePermission(permission.key)"
+                                [disabled]="isPermissionLocked(permission.key)"
                                 [attr.testid]="'permission-checkbox-' + permission.key">
                     {{permission.title}}
                   </mat-checkbox>
+                  @if (isPermissionLocked(permission.key)) {
+                    <!--
+                      Shown rather than hiding the checkbox: its current state still has to be
+                      visible and still has to be submitted, so that a user manager editing an
+                      administrator doesn't strip the permission just by saving the form.
+                    -->
+                    <div testid="permission-locked-hint" class="text-xs text-gray-500">
+                      Nur ein Administrator kann diese Berechtigung vergeben oder entziehen.
+                    </div>
+                  }
                 </div>
               }
             </div>

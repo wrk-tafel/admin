@@ -102,8 +102,8 @@ describe('PushNotifications', () => {
     cy.visit('/benachrichtigungen');
 
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
-    // e2etest holds SUPERVISOR, the one permission every notification type accepts, so every type
-    // is listed here - the filtered case is the separate test below.
+    // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
+    // here - the filtered case is the separate test below.
     cy.byTestId('push-type-preference').should('have.length', 9);
 
     cy.byTestId('push-master-toggle').click();
@@ -129,11 +129,12 @@ describe('PushNotifications', () => {
     cy.loginE2ETest2();
     cy.visit('/benachrichtigungen');
 
-    cy.byTestId('push-type-preference').should('have.length', 2);
+    cy.byTestId('push-type-preference').should('have.length', 6);
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STARTED"]').should('exist');
-    cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_CLOSED"]').should('exist');
+    cy.get('[testid="push-type-preference"][data-type="ALL_TICKETS_PROCESSED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="USER_LOCKED_OUT"]').should('not.exist');
-    cy.get('[testid="push-type-preference"][data-type="ALL_TICKETS_PROCESSED"]').should('not.exist');
+    cy.get('[testid="push-type-preference"][data-type="REPORT_MAIL_FAILED"]').should('not.exist');
+    cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]').should('not.exist');
   });
 
   // Each toggle carries its own explanation, so the list says when a notification would actually

@@ -75,21 +75,21 @@ internal class PushBroadcastServiceTest {
 
     @Test
     fun `sends a permission-restricted type only to users who hold one of its permissions`() {
-        val logistics = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.LOGISTICS))
+        val leadership = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.DISTRIBUTION_LCM))
         val supervisor = subscriptionOf(id = 11, userId = 101, permissions = listOf(UserPermissions.SUPERVISOR))
         val unrelated = subscriptionOf(id = 12, userId = 102, permissions = listOf(UserPermissions.CHECKIN))
-        every { pushSubscriptionRepository.findAll() } returns listOf(logistics, supervisor, unrelated)
+        every { pushSubscriptionRepository.findAll() } returns listOf(leadership, supervisor, unrelated)
         every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
 
-        service.broadcast(type = PushNotificationType.FOOD_COLLECTION_COMPLETED, title = "title", body = "body")
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STILL_OPEN, title = "title", body = "body")
 
-        verify { webPushSenderService.send(logistics, "payload-json") }
+        verify { webPushSenderService.send(leadership, "payload-json") }
         verify { webPushSenderService.send(supervisor, "payload-json") }
         verify(exactly = 0) { webPushSenderService.send(unrelated, any()) }
     }
 
     /**
-     * The two distribution-lifecycle types concern the whole team and carry no permission
+     * Every type tracing the distribution day concerns the whole team and carries no permission
      * requirement, so a user with no permissions at all still receives them - the opt-out is the
      * only thing standing between them and the device.
      */
@@ -274,7 +274,7 @@ internal class PushBroadcastServiceTest {
             realMapper,
             TafelAdminProperties(),
         )
-        val subscription = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.SUPERVISOR))
+        val subscription = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.ADMINISTRATOR))
         every { pushSubscriptionRepository.findAll() } returns listOf(subscription)
         val payload = slot<String>()
         every { webPushSenderService.send(subscription, capture(payload)) } returns PushSendResult.SENT
