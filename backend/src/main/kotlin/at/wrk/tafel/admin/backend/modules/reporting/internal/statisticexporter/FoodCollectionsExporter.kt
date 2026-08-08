@@ -64,7 +64,7 @@ class FoodCollectionsExporter(
                 shops.forEach { currentShop ->
                     val columns = mutableListOf<String>()
                     columns.add(distribution.startedAt.format(DATE_FORMATTER))
-                    columns.add(foodCollection.route.number.toString())
+                    columns.add(foodCollection.route.name)
                     columns.add(currentShop.number.toString())
 
                     sortedFoodCategories.forEach { foodCategory ->

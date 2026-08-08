@@ -100,19 +100,21 @@ class DistributionService(
             throw ConflictException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
+        val createdDistribution = checkNotNull(result) { "Ausgabe konnte nicht gestartet werden!" }
+
         // Published outside the locked block on purpose: the lock is transaction-level, so anything
         // running inside that block extends the lock, its transaction and its pooled connection for as
         // long as it takes. Listeners are free to do slow work (the push fan-out in `push` does blocking
         // HTTPS sends per device), and none of it needs the CREATE_DISTRIBUTION lock - that lock only
         // guards the "no distribution running yet" check plus the insert above.
         try {
-            eventPublisher.publishEvent(DistributionStartedEvent(result!!.id!!))
+            eventPublisher.publishEvent(DistributionStartedEvent(createdDistribution.id!!))
         } catch (e: Exception) {
             logger.error("Publishing DistributionStartedEvent failed", e)
             throw e
         }
 
-        return result!!
+        return createdDistribution
     }
 
     fun createNewDistributionItem(): DistributionItem = mapDistribution(createNewDistribution())
@@ -281,7 +283,7 @@ class DistributionService(
                 it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items == null || it.items!!.isEmpty()
             }
             if (incompleteRoutes.isNotEmpty()) {
-                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.number.toString() }} sind unvollständig!")
+                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.name }} sind unvollständig!")
             }
 
             return if (errors.isNotEmpty()) {
@@ -293,10 +295,10 @@ class DistributionService(
                 // Warnings
                 // a disabled route isn't driven anymore, so not recording it is not a problem
                 val routes: List<RouteEntity> = routeRepository.findByEnabledIsTrue()
-                val missingRoutes =
-                    routes.map { it.number } - currentDistribution.foodCollections.map { it.route.number }
+                val recordedRouteIds = currentDistribution.foodCollections.map { it.route.id }
+                val missingRoutes = routes.filterNot { recordedRouteIds.contains(it.id) }
                 if (missingRoutes.isNotEmpty()) {
-                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
+                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ") { it.name }} wurden nicht erfasst!")
                 }
 
                 DistributionCloseResponse(

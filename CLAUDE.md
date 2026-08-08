@@ -604,6 +604,16 @@ You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/proces
    `<table>_seq` — without it, inserts fail at runtime with `relation "<table>_seq" does not exist`.
    A MockK-based unit test with a mocked repository will not catch this; only a real Postgres run
    (an `*IT.kt` test via `TafelBaseIntegrationTest`, or manual testing) will.
+6. **Never edit a migration that is already released to production — always add a new one.** Every
+   script here is a Flyway *repeatable* migration, so changing one changes its checksum and Flyway
+   re-runs it against databases where it long since ran; against a schema that has moved on, those
+   statements fail and the application does not boot. This holds even when the edit looks purely
+   cosmetic or like a tidy-up (removing an `add column` for a column that is being dropped again,
+   reformatting, fixing a comment). To undo something an old migration did, write a new
+   `R__XXXXX_<description>.sql` that does the undoing (e.g.
+   `R__00087_drop_persons_in_shelter_count.sql` dropping a column `R__00044` added) and leave the
+   old file byte-for-byte alone. The one exception is a migration added on the current branch and
+   not yet merged/released — that one is still yours to edit.
 
 ### Adding a New Permission
 1. Add permission to `UserPermissions` enum in backend
