@@ -9,6 +9,9 @@ on:
     branches: [ 'release' ]
 
 jobs:
+  # Unlike pull_request.yml and main_push.yml this pipeline is deliberately not gated on the changed
+  # files: every release produces a new version tag, a new image carrying it and a fresh userguide
+  # PDF, no matter how small the change that triggered it was.
   build:
     uses: ./.github/workflows/subflow_build.yml
   test:

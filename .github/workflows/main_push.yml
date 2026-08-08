@@ -6,10 +6,23 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Gates every job below on what the pushed commits actually touch - a docs-only merge builds no
+  # image and deploys nothing, since the running test environment is already up to date. See
+  # subflow_changes.yml for the classification rules.
+  changes:
+    uses: ./.github/workflows/subflow_changes.yml
   build:
+    # Both artifacts are built whenever the application changed at all: the image and the e2e run
+    # need the jar and the frontend bundle together, no matter which of the two was edited.
     uses: ./.github/workflows/subflow_build.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
   test:
     uses: ./.github/workflows/subflow_test.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
   version:
     runs-on: ubuntu-latest
     outputs:
@@ -25,6 +38,14 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:
     uses: ./.github/workflows/subflow_lint.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      backend: ${{ needs.changes.outputs.backend == 'true' }}
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+      docker: ${{ needs.changes.outputs.docker == 'true' }}
+  # sonar, build-push-image, e2e-test and deploy-test need no gate of their own: they depend on
+  # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, test, version, sonar, e2e-test]
