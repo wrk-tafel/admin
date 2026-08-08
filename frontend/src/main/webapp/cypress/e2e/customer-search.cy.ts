@@ -27,7 +27,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('searchInputText').type(customer.lastname);
-      clickSearchAndOpenFirstResult(customer.id!);
+      clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
 
@@ -36,7 +36,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('searchInputText').type(customer.address!.street!);
-      clickSearchAndOpenFirstResult(customer.id!);
+      clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
 
@@ -45,7 +45,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('searchInputText').type(customer.id!.toString());
-      clickSearchAndOpenFirstResult(customer.id!, {expectSingleResult: false});
+      clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
 
@@ -55,7 +55,7 @@ describe('Customer Search', () => {
 
       // "lastnamr-<random>" instead of "lastname-<random>" - close enough for the fuzzy match
       cy.byTestId('searchInputText').type(customer.lastname.replace('lastname-', 'lastnamr-'));
-      clickSearchAndOpenFirstResult(customer.id!);
+      clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
 
@@ -94,7 +94,7 @@ describe('Customer Search', () => {
         }]
       }).then((response) => {
         cy.byTestId('searchInputText').type(childLastname);
-        clickSearchAndOpenFirstResult(response.body.data.id!, {expectSingleResult: false});
+        clickSearchAndOpenExpectedResult(response.body.data.id!);
       });
     });
   });
@@ -112,7 +112,7 @@ describe('Customer Search', () => {
       // regardless of what other specs have accrued.
       cy.byTestId('searchInputText').type(customer.lastname);
       cy.byTestId('costContributionInput').click();
-      clickSearchAndOpenFirstResult(customerId);
+      clickSearchAndOpenExpectedResult(customerId);
 
       cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
     });
@@ -130,7 +130,7 @@ describe('Customer Search', () => {
       // below md: the table row is hidden and the card list is shown instead
       cy.byTestId('searchresult-row').should('exist').and('not.be.visible');
 
-      clickSearchAndOpenFirstResult(customer.id!, {alreadySearched: true});
+      clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
     });
   });
 
@@ -141,7 +141,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('searchInputText').type(customer.lastname);
-      clickSearchAndOpenFirstResult(customer.id!);
+      clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
 
@@ -166,38 +166,33 @@ describe('Customer Search', () => {
       cy.byTestId('search-button').click();
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
-      cy.byTestId('searchresult-showcustomer-button-0').filterDisplayed().trigger('mouseenter');
+      cy.byTestId('searchresult-showcustomer-button-' + customer.id).filterDisplayed().trigger('mouseenter');
       cy.get('.mat-mdc-tooltip')
         .should('have.class', 'mat-mdc-tooltip-show')
         .and('contain.text', 'Kundendetails anzeigen');
     });
   });
 
-  // `expectSingleResult` is off for searches whose term is not unique to one household by
-  // construction - the fuzzy match is meant to also surface near-misses, so any term sharing whole
-  // words with the other dummy customers ("child", "lastname", a run of digits) legitimately returns
-  // more than one row. The searched-for customer was created moments earlier, so it is the top hit
-  // either way: it is the only verbatim match, and verbatim beats similar.
-  function clickSearchAndOpenFirstResult(
-    expectedCustomerId: number,
-    options: { alreadySearched?: boolean; expectSingleResult?: boolean } = {}
-  ) {
-    const {alreadySearched = false, expectSingleResult = true} = options;
+  // Deliberately no assertion on the number of result rows: the search is fuzzy
+  // (`strict_word_similarity`, see SearchTextSpecs), and every dummy customer of a run is named
+  // `lastname-<timestamp+random>`, so customers created moments apart are similar enough to each
+  // other that a second, entirely correct row can show up for any of these terms (see #3102).
+  // The row of the customer under test is picked by its id instead, which is unambiguous no matter
+  // what else the fuzzy match surfaced.
+  function clickSearchAndOpenExpectedResult(expectedCustomerId: number, options: { alreadySearched?: boolean } = {}) {
+    const {alreadySearched = false} = options;
 
     if (!alreadySearched) {
       cy.byTestId('search-button').click();
     }
 
     cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
-    if (expectSingleResult) {
-      cy.byTestId('searchresult-row').should('have.length', 1);
-    }
 
     // the table and card list both render a button with this testid (one per branch, only one
     // of which is displayed per viewport - see 'hidden md:block' / 'block md:hidden' in the template)
-    cy.byTestId('searchresult-showcustomer-button-0').filterDisplayed().should('have.length', 1);
+    cy.byTestId('searchresult-showcustomer-button-' + expectedCustomerId).filterDisplayed().should('have.length', 1);
 
-    cy.byTestId('searchresult-showcustomer-button-0').filterDisplayed().click();
+    cy.byTestId('searchresult-showcustomer-button-' + expectedCustomerId).filterDisplayed().click();
     cy.url().should('include', '/kunden/detail/' + expectedCustomerId);
   }
 
