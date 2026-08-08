@@ -3,6 +3,10 @@ package at.wrk.tafel.admin.backend.database.common.sseoutbox
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.CONNECTION_APPLICATION_NAME
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.NOTIFICATIONS_POLL_TIMEOUT
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService.Companion.PG_NOTIFICATION_CHANNEL_NAME
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -21,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.postgresql.PGConnection
 import org.postgresql.PGNotification
 import org.postgresql.PGProperty
+import org.slf4j.LoggerFactory
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties
 import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
@@ -31,6 +36,8 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.Properties
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockKExtension::class)
 class SseOutboxListenerServiceTest {
@@ -206,6 +213,55 @@ class SseOutboxListenerServiceTest {
         service.cleanup()
 
         verify { notificationListenerJob.cancel() }
+    }
+
+    @Test
+    fun `context closed cancels the notification listener job`() {
+        val notificationListenerJob = mockk<Job>()
+        every { notificationListenerJob.cancel(null) } returns Unit
+
+        service.notificationListenerJob = notificationListenerJob
+
+        service.onContextClosed()
+
+        verify { notificationListenerJob.cancel() }
+    }
+
+    /**
+     * A shutdown that takes the database with it (a `docker compose down` of the whole stack) used
+     * to run the reconnect loop for another eight seconds, announcing at WARN that server push was
+     * down - to an application that was ending anyway. See
+     * https://github.com/wrk-tafel/admin/issues/3109.
+     */
+    @Test
+    fun `stops reconnecting quietly when the connection is lost while shutting down`() {
+        val pollStarted = CountDownLatch(1)
+        val connectionMayDie = CountDownLatch(1)
+        every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } answers {
+            pollStarted.countDown()
+            connectionMayDie.await()
+            throw SQLException("terminating connection due to administrator command")
+        }
+
+        val logger = LoggerFactory.getLogger(SseOutboxListenerService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+
+        try {
+            startListener()
+            assertThat(pollStarted.await(10, TimeUnit.SECONDS)).isTrue()
+
+            service.onContextClosed()
+            connectionMayDie.countDown()
+
+            awaitUntil { assertThat(service.notificationListenerJob.isCompleted).isTrue() }
+            // Left the loop rather than re-issuing LISTEN on a fresh connection...
+            verify(exactly = 1) { mockStatement.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;") }
+            // ...and without the stack trace that reads like an outage.
+            assertThat(logAppender.list).noneMatch { it.level == Level.WARN }
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 
     @Test
