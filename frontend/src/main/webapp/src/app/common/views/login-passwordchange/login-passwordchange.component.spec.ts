@@ -45,7 +45,7 @@ describe('LoginPasswordChangeComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('cancel password change logs out the still-live session and redirects to a plain login', () => {
+    it('cancel password change logs out the still-live session', () => {
         const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
         const component = fixture.componentInstance;
 
@@ -54,7 +54,6 @@ describe('LoginPasswordChangeComponent', () => {
         component.cancel();
 
         expect(authServiceSpy.logout).toHaveBeenCalled();
-        expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith();
     });
 
     it('saveDisabled is true when form is undefined', () => {

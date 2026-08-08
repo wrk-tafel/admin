@@ -194,6 +194,19 @@ This matters because the post-processor runs on a different thread/connection �
 visible in the (still-open, lock-holding) outer transaction, the async thread's own transaction might not
 see it yet.
 
+Both locks are **transaction-level** (`pg_try_advisory_xact_lock`), so everything that runs inside the
+locked block adds its own runtime to the lock, its transaction and its pooled connection. Two rules
+follow, and both are what keeps "Ausgabe starten" from spuriously reporting a concurrent start:
+
+- `createNewDistribution()` publishes `DistributionStartedEvent` **after** the locked block returns. The
+  lock only guards the "no distribution running yet" check plus the insert; nothing a listener does
+  belongs inside it.
+- Listeners that do slow work do it off the publishing thread. `push`'s `DistributionStartedPushListener`
+  is `@Async` for exactly that reason — its fan-out does one blocking HTTPS send per subscribed device
+  (up to 40s each on an unreachable push service) and a synchronous listener would hold the caller's
+  request open for the sum of them. The close path is the same shape, via the `@Async`
+  `DistributionEndedEventListener`.
+
 ## Ticket numbering — correction vs. common assumption
 
 Contributors sometimes assume the backend computes/generates the next ticket number. **It doesn't.**
@@ -229,6 +242,11 @@ Both the distribution-state stream and the ticket-screen stream go through
    see the sseoutbox module) on the `sse_outbox` channel.
 2. `SseOutboxListenerService` holds one dedicated JDBC connection with `LISTEN sse_outbox;` and
    dispatches incoming Postgres notifications to any registered callback for that `notificationName`.
+   It reconnects if that connection is lost and replays the outbox rows written in the meantime, so a
+   callback may occasionally be invoked twice for the same event and must tolerate that. Both streams
+   here carry a full snapshot of the current state, which is exactly what makes that safe — a stream
+   whose events *do* something rather than describe something has to opt out of the replay instead
+   (`replayable = false`, as `checkin`'s scanner-results stream does).
 3. Each open `SseEmitter` (one per browser tab / ticket-screen display) registers a callback via
    `sseOutboxService.forwardNotificationEventsToSse(...)`, optionally filtered (e.g. the scanner-results
    stream in `checkin` filters by `scannerId`).

@@ -23,13 +23,14 @@ import javax.sql.DataSource
  * - the Hikari connection pool, which earlier Spring Cloud versions re-created on every refresh by
  *   default. Tearing it down mid-request closes connections other threads are using.
  * - `SseOutboxListenerService`, which holds one dedicated `LISTEN sse_outbox` connection opened in
- *   `@PostConstruct` and reads it from a coroutine that blocks indefinitely. Re-creating that bean
- *   would close the connection under the blocked reader - the failure mode behind issue #2985 - and
- *   every open SSE stream in the app would go quiet without anything looking broken.
+ *   `@PostConstruct` and reads it from a coroutine blocked on it. Re-creating that bean would close
+ *   the connection under that reader - the failure mode behind issue #2985 - and it is the reader
+ *   alone that ever closes it (see `SseOutboxListenerReconnectIT` for the connection loss it *is*
+ *   built to survive).
  *
- * Its `spring.datasource.*` values come from `@Value` constructor parameters, which are resolved
- * once when the bean is built and are *not* re-resolved by a refresh. That is the intended
- * behaviour, not an oversight: changing the database a running application talks to is a restart.
+ * Its `spring.datasource.*` values are read once, when the listener opens its connection, and the
+ * connection then outlives any refresh. That is the intended behaviour, not an oversight: changing
+ * the database a running application talks to is a restart.
  */
 internal class ConfigRefreshSideEffectsIT : TafelBaseIntegrationTest() {
 

@@ -30,20 +30,10 @@ class AdvisoryLockServiceTest {
         assertThat(result).isEqualTo("success")
         assertThat(executed).isTrue()
         verify { repository.acquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
-        verify { repository.releaseLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
     }
 
     @Test
-    fun `withLock should release lock after execution`() {
-        service.withLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
-            "test"
-        }
-
-        verify { repository.releaseLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
-    }
-
-    @Test
-    fun `withLock should release lock even when block throws exception`() {
+    fun `withLock should propagate exceptions from the block`() {
         assertThrows<IllegalStateException> {
             service.withLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
                 throw IllegalStateException("test exception")
@@ -51,7 +41,6 @@ class AdvisoryLockServiceTest {
         }
 
         verify { repository.acquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
-        verify { repository.releaseLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
     }
 
     @Test
@@ -66,7 +55,6 @@ class AdvisoryLockServiceTest {
         assertThat(result).isTrue()
         assertThat(executed).isTrue()
         verify { repository.tryAcquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
-        verify { repository.releaseLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
     }
 
     @Test
@@ -81,11 +69,10 @@ class AdvisoryLockServiceTest {
         assertThat(result).isFalse()
         assertThat(executed).isFalse()
         verify { repository.tryAcquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
-        verify(exactly = 0) { repository.releaseLock(any()) }
     }
 
     @Test
-    fun `tryWithLock should release lock even when block throws exception`() {
+    fun `tryWithLock should propagate exceptions from the block`() {
         every { repository.tryAcquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) } returns true
 
         assertThrows<IllegalStateException> {
@@ -95,7 +82,6 @@ class AdvisoryLockServiceTest {
         }
 
         verify { repository.tryAcquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
-        verify { repository.releaseLock(AdvisoryLockKey.CREATE_DISTRIBUTION.lockId) }
     }
 
     @Test
@@ -132,13 +118,6 @@ class AdvisoryLockServiceTest {
         val result = service.tryAcquireLock(AdvisoryLockKey.CREATE_DISTRIBUTION)
 
         assertThat(result).isFalse()
-    }
-
-    @Test
-    fun `releaseLock should call repository`() {
-        service.releaseLock(AdvisoryLockKey.CLOSE_DISTRIBUTION)
-
-        verify { repository.releaseLock(AdvisoryLockKey.CLOSE_DISTRIBUTION.lockId) }
     }
 
     @Test

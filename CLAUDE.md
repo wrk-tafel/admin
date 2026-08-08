@@ -509,10 +509,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     needs a restart — that's why `spring.datasource.url`, the Tomcat connector settings, the
     security filter chain and `tafeladmin.push.vapid*` don't change on a reload, while
     `tafeladmin.features.scannerFolderEnabled` does.
-  - `@Value` is **not** refreshed — it is resolved once when the bean is constructed. The two places
-    that use it (`SseOutboxListenerService`'s `spring.datasource.*`, `FlywayConfig`'s
-    `tafeladmin.testdata.enabled`) are startup-only concerns and correct as they are, but don't
-    reach for `@Value` for anything meant to be reloadable; use `@ConfigurationProperties`.
+  - `@Value` is **not** refreshed — it is resolved once when the bean is constructed. The one place
+    that uses it (`FlywayImportTestdataCallback`'s `tafeladmin.testdata.enabled`) is a startup-only
+    concern and correct as it is, but don't reach for `@Value` for anything meant to be reloadable;
+    use `@ConfigurationProperties`.
   - `ApplicationProperties` (`security.*`) is intentionally *not* reloadable — it stays a
     constructor-bound data class so a missing JWT secret still fails startup. `LoginAttemptService`
     and `TafelLoginFilter` read it per call, which looks live but isn't; see its KDoc.
@@ -520,7 +520,8 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     destroys no beans: the Hikari pool and `SseOutboxListenerService`'s dedicated `LISTEN sse_outbox`
     connection survive it untouched. `ConfigRefreshSideEffectsIT` locks that down — re-creating that
     listener would close the connection under its blocked reader (issue #2985) and silently kill
-    every open SSE stream.
+    every open SSE stream. That connection closes itself and nothing else ever closes it, which is
+    also why `SseOutboxListenerService.cleanup()` only cancels the job instead of waiting for it.
   - `tafeladmin.configReload.enabled: false` switches the whole mechanism off; it is read at startup
     only. `tafeladmin.configReload.interval` (default 5s) is the poll interval.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over

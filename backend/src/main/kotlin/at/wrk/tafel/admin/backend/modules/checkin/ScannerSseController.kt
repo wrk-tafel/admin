@@ -24,11 +24,17 @@ class ScannerSseController(
         val acceptFilter = { result: ScanResult? ->
             result?.scannerId == scannerId
         }
+        // The one stream that must not be replayed after a listener reconnect: a scan result is an
+        // instruction ("show this customer"), not state. The check-in screen acts on it by loading
+        // that customer and resetting the form, so a duplicate throws away a ticket number being
+        // typed, and one delivered late pulls the screen to a customer scanned minutes ago. A
+        // missed scan is the harmless outcome here - the card gets scanned again.
         sseOutboxService.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
             resultType = ScanResult::class.java,
             acceptFilter = acceptFilter,
+            replayable = false,
         )
 
         return sseEmitter

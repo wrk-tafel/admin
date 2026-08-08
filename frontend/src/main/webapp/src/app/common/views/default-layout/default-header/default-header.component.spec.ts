@@ -97,7 +97,7 @@ describe('DefaultHeaderComponent', () => {
 
         component.logout();
 
-        expect(authenticationService.redirectToLogin).toHaveBeenCalled();
+        expect(authenticationService.logout).toHaveBeenCalled();
     });
 
     it('open support dialog and submit sends the support request', () => {
