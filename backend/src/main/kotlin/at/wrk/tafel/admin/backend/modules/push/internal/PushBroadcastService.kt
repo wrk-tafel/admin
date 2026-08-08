@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
@@ -26,6 +27,7 @@ class PushBroadcastService(
     private val pushPreferencesService: PushPreferencesService,
     private val webPushSenderService: WebPushSenderService,
     private val jsonMapper: JsonMapper,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PushBroadcastService::class.java)
@@ -58,7 +60,12 @@ class PushBroadcastService(
     fun sendTo(subscription: PushSubscriptionEntity, title: String, body: String): PushSendResult {
         val payload = jsonMapper.writeValueAsString(
             PushNotificationPayload(
-                notification = PushNotificationPayloadNotification(title = title, body = body),
+                notification = PushNotificationPayloadNotification(
+                    title = title,
+                    body = body,
+                    icon = iconPath("icon-192x192.png"),
+                    badge = iconPath("badge-96x96.png"),
+                ),
             ),
         )
 
@@ -75,6 +82,18 @@ class PushBroadcastService(
         }
         return result
     }
+
+    /**
+     * Icon URLs have to be built against the app's own base path, not the origin root: dev, test
+     * and prod share one origin at different path prefixes (see
+     * [at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties.relativeBaseUrl]), so
+     * a bare `/icons/...` resolves to the *host* root on every deployment that isn't served at `/`
+     * and 404s - which shows up as a notification with no icon and nothing else wrong.
+     *
+     * Read per send rather than cached, so a reloaded configuration takes effect (see
+     * `config.properties.ConfigFileReloadService`).
+     */
+    private fun iconPath(fileName: String) = "${tafelAdminProperties.server.basePath}icons/$fileName"
 }
 
 @ExcludeFromTestCoverage
@@ -83,9 +102,10 @@ data class PushNotificationPayload(
 )
 
 /**
- * Both icon paths are resolved by the browser against the app's own origin (the Angular service
- * worker passes them straight through to `showNotification`, see `ngsw-worker.js`), so they have to
- * match files actually shipped under `frontend/.../public/icons/`.
+ * Both icon paths are handed straight to `showNotification` by the Angular service worker (see
+ * `ngsw-worker.js`) and resolved by the browser from there, so they have to match files actually
+ * shipped under `frontend/.../public/icons/` *and* be addressed below the app's base path - see
+ * [PushBroadcastService.iconPath], which is why neither carries a default here.
  *
  * [icon] and [badge] are two different images on purpose, not a duplicated setting: [icon] is the
  * full-colour logo shown inside the notification itself, while [badge] is the small monochrome
@@ -98,6 +118,6 @@ data class PushNotificationPayload(
 data class PushNotificationPayloadNotification(
     val title: String,
     val body: String,
-    val icon: String = "/icons/icon-192x192.png",
-    val badge: String = "/icons/badge-96x96.png",
+    val icon: String,
+    val badge: String,
 )

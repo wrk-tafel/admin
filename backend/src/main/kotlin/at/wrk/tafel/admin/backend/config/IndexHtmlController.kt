@@ -86,14 +86,9 @@ class IndexHtmlController(
         }
 
         val html = resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
-        // A <base href> without a trailing slash treats its last path segment as a filename, so a
-        // relative URL replaces it instead of appending to it (e.g. "/verwaltung-dev" + "main.js"
-        // resolves to "/main.js", not "/verwaltung-dev/main.js") - relativeBaseUrl historically only
-        // fed the cookie path, where that distinction doesn't matter, so not every environment's
-        // config has a trailing slash. Normalize here rather than relying on ops config for it.
-        val relativeBaseUrl = tafelAdminProperties.server.relativeBaseUrl.let {
-            if (it.endsWith("/")) it else "$it/"
-        }
+        // basePath, not relativeBaseUrl: a <base href> has to carry a trailing slash to be appended
+        // to rather than replaced - see TafelAdminServerProperties.basePath.
+        val relativeBaseUrl = tafelAdminProperties.server.basePath
         val templatedHtml = html.replace("<base href=\"/\">", "<base href=\"$relativeBaseUrl\">")
             .replace("<title>Tafel Admin</title>", "<title>$brandedTitle</title>")
             .replace(
