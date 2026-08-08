@@ -7,9 +7,17 @@ env:
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      frontend:
+        description: 'Run the frontend unit tests - pass false when the change cannot affect the frontend'
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   test-backend:
+    # Deliberately not gated on whether the backend changed: the sonar analysis consumes the jacoco
+    # report uploaded below, and an analysis without it reports the whole backend as uncovered.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,6 +45,8 @@ jobs:
           retention-days: 1
 
   test-frontend:
+    # inputs.* are unset on a manual run, which should exercise everything.
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.frontend }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

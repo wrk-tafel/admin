@@ -1,0 +1,152 @@
+name: Detect changes
+
+# Classifies the files a pull request or a main push touches, so the callers can skip the jobs that
+# cannot say anything about that change - a docs-only pull request needs no build, no tests, no
+# image and no deployment.
+#
+# The classification is done here rather than with `paths:` filters on the calling workflows'
+# triggers on purpose: a workflow that never starts leaves its checks pending forever, whereas a
+# job skipped by an `if:` reports a proper "skipped" conclusion.
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      backend:
+        description: 'true when the change can affect the backend build, tests or lint result'
+        value: ${{ jobs.detect.outputs.backend }}
+      frontend:
+        description: 'true when the change can affect the frontend build, tests or lint result'
+        value: ${{ jobs.detect.outputs.frontend }}
+      docker:
+        description: 'true when the change can affect the docker image definition'
+        value: ${{ jobs.detect.outputs.docker }}
+      app:
+        description: 'true when the change affects the deployable application at all (backend, frontend or docker)'
+        value: ${{ jobs.detect.outputs.app }}
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      backend: ${{ steps.classify.outputs.backend }}
+      frontend: ${{ steps.classify.outputs.frontend }}
+      docker: ${{ steps.classify.outputs.docker }}
+      app: ${{ steps.classify.outputs.app }}
+    steps:
+      # No checkout: the compare API returns the changed file names directly, which is both faster
+      # and independent of the clone depth.
+      - name: List the changed files
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          # A pull request carries both ends of the comparison in its payload, a push carries the
+          # range that was pushed. A manual workflow_dispatch run carries neither.
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_ACTION: ${{ github.event.action }}
+          # Only set when a pull request "edited" event changed the base branch, i.e. when the
+          # edit actually changed the diff rather than just the title or the description.
+          BASE_REF_CHANGED_FROM: ${{ github.event.changes.base.ref.from }}
+        run: |
+          if [ "$EVENT_ACTION" = "edited" ] && [ -z "$BASE_REF_CHANGED_FROM" ]; then
+            # Editing a pull request's title or description re-triggers the whole workflow while
+            # the commits stay exactly as they were validated before. Only the title lint has to
+            # look at this again, so report no changed area at all.
+            echo "Pull request title/description edit - no file change to validate."
+            echo "metadataEditOnly=true" >> "$GITHUB_OUTPUT"
+            : > changed-files.txt
+            exit 0
+          fi
+
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "No comparable base commit - every area is treated as changed."
+            exit 0
+          fi
+
+          if ! gh api "repos/${REPO}/compare/${BASE_SHA}...${HEAD_SHA}" --paginate \
+                --jq '.files[].filename' > changed-files.txt; then
+            echo "::warning title=Change detection fell back::Could not compare ${BASE_SHA}...${HEAD_SHA}, every area is treated as changed."
+            rm -f changed-files.txt
+          fi
+
+      - name: Classify the changed files
+        id: classify
+        env:
+          METADATA_EDIT_ONLY: ${{ steps.diff.outputs.metadataEditOnly }}
+        run: |
+          backend=false
+          frontend=false
+          docker=false
+
+          # Missing file means the step above could not determine a diff - run everything rather
+          # than silently validating nothing.
+          if [ ! -f changed-files.txt ]; then
+            backend=true
+            frontend=true
+            docker=true
+          else
+            while IFS= read -r file; do
+              case "$file" in
+                # Everything the Gradle build reads. The lock/verification files matter because a
+                # stale one fails the build on its own.
+                backend/*|gradle/*|gradlew|gradlew.bat|gradle.properties|build.gradle.kts|settings.gradle.kts|settings-gradle.lockfile)
+                  backend=true
+                  ;;
+                frontend/*)
+                  frontend=true
+                  ;;
+                _build/*)
+                  docker=true
+                  ;;
+                # A workflow change is only proven by running the pipeline it changes, so it counts
+                # as a change to every area.
+                .github/workflows/*)
+                  backend=true
+                  frontend=true
+                  docker=true
+                  ;;
+                # Everything else - docs/, the *.md files, _http-calls/, _scripts/, _reporting/,
+                # docker-compose.yml, .claude/ - ships nothing into the image and is covered by
+                # none of the jobs the callers gate on these outputs.
+                *)
+                  ;;
+              esac
+            done < changed-files.txt
+          fi
+
+          app=false
+          if [ "$backend" = true ] || [ "$frontend" = true ] || [ "$docker" = true ]; then
+            app=true
+          fi
+
+          {
+            echo "backend=$backend"
+            echo "frontend=$frontend"
+            echo "docker=$docker"
+            echo "app=$app"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Detected changes"
+            echo ""
+            if [ "$METADATA_EDIT_ONLY" = true ]; then
+              echo "This run was triggered by an edit to the pull request's title or description."
+              echo "The commits are unchanged, so everything but the title lint is skipped and the"
+              echo "build, test and analysis results of the previous run still apply."
+            else
+              echo "| Area | Changed |"
+              echo "| --- | --- |"
+              echo "| Backend | $backend |"
+              echo "| Frontend | $frontend |"
+              echo "| Docker image | $docker |"
+              if [ "$app" = false ]; then
+                echo ""
+                echo "Nothing that affects the application changed - build, tests, lint, analysis,"
+                echo "image and deployment are skipped."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
