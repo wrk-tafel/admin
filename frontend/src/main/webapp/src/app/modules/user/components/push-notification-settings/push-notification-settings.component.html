@@ -112,7 +112,7 @@
       <div class="mt-6">
         <div class="font-bold mb-2">Welche Benachrichtigungen möchtest du erhalten?</div>
         @for (typePreference of preferences().types; track typePreference.type) {
-          <div testid="push-type-preference" class="py-2 border-t border-gray-200">
+          <div testid="push-type-preference" [attr.data-type]="typePreference.type" class="py-2 border-t border-gray-200">
             <mat-slide-toggle
               testid="push-type-preference-toggle"
               [checked]="typePreference.enabled"
@@ -121,6 +121,9 @@
             >
               {{ typeLabel(typePreference.type) }}
             </mat-slide-toggle>
+            <p testid="push-type-preference-description" class="text-sm text-gray-500 mt-1">
+              {{ typeDescription(typePreference.type) }}
+            </p>
           </div>
         }
       </div>

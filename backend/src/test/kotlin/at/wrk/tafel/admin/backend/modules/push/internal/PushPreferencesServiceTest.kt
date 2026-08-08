@@ -1,7 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesRepository
@@ -58,11 +62,43 @@ internal class PushPreferencesServiceTest {
     }
 
     @Test
-    fun `getPreferencesForCurrentUser defaults the master switch and every type to enabled`() {
+    fun `getPreferencesForCurrentUser defaults the master switch and every listed type to enabled`() {
         val result = service.getPreferencesForCurrentUser()
 
         assertThat(result.masterEnabled).isTrue()
         assertThat(result.types).allSatisfy { assertThat(it.enabled).isTrue() }
+    }
+
+    /**
+     * The test user holds CHECKIN and USER_MANAGEMENT, so it is an audience for the two unrestricted
+     * distribution types plus the lockout one - and for none of the rest. Offering a toggle for a
+     * type this user can never receive would be a setting with no effect whichever way it is set.
+     */
+    @Test
+    fun `getPreferencesForCurrentUser lists only the types this user can actually receive`() {
+        val result = service.getPreferencesForCurrentUser()
+
+        assertThat(result.types.map { it.type }).containsExactlyInAnyOrder(
+            PushNotificationTypeApi.DISTRIBUTION_STARTED,
+            PushNotificationTypeApi.DISTRIBUTION_CLOSED,
+            PushNotificationTypeApi.USER_LOCKED_OUT,
+        )
+    }
+
+    @Test
+    fun `getPreferencesForCurrentUser lists every type for a user holding the supervisor permission`() {
+        val supervisor = UserEntity(
+            username = "supervisor",
+            password = "pw",
+            employee = EmployeeEntity(personnelNumber = "s-1", firstname = "first", lastname = "last"),
+        ).apply {
+            id = 42
+            authorities = mutableListOf(UserAuthorityEntity(user = this, name = UserPermissions.SUPERVISOR.key))
+        }
+        every { userRepository.findByUsername(any()) } returns supervisor
+
+        val result = service.getPreferencesForCurrentUser()
+
         assertThat(result.types.map { it.type }).containsExactlyInAnyOrderElementsOf(PushNotificationTypeApi.entries)
     }
 

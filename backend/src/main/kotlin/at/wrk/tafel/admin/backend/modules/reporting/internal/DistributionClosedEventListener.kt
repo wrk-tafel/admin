@@ -10,8 +10,10 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
+import at.wrk.tafel.admin.backend.modules.reporting.ReportMailFailedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.data.repository.findByIdOrNull
@@ -56,6 +58,7 @@ class DistributionClosedEventListener(
     private val statisticExportService: StatisticExportService,
     private val mailSenderService: MailSenderService,
     private val retryTemplate: RetryTemplate,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionClosedEventListener::class.java)
@@ -70,9 +73,10 @@ class DistributionClosedEventListener(
         val statistic = distribution.statistic ?: return
 
         val failures = mutableListOf<Exception>()
-        runIsolatedWithRetry("daily report mail", failures) { sendDailyReportMail(distribution, statistic) }
-        runIsolatedWithRetry("statistic mail", failures) { sendStatisticMail(distribution, statistic) }
-        runIsolatedWithRetry("return boxes mail", failures) { sendReturnBoxesMail(distribution) }
+        val distributionId = distribution.id!!
+        runIsolatedWithRetry("daily report mail", "Tagesreport", distributionId, failures) { sendDailyReportMail(distribution, statistic) }
+        runIsolatedWithRetry("statistic mail", "Statistiken", distributionId, failures) { sendStatisticMail(distribution, statistic) }
+        runIsolatedWithRetry("return boxes mail", "Retourkisten", distributionId, failures) { sendReturnBoxesMail(distribution) }
 
         failures.firstOrNull()?.let { first ->
             failures.drop(1).forEach { first.addSuppressed(it) }
@@ -80,7 +84,20 @@ class DistributionClosedEventListener(
         }
     }
 
-    private fun runIsolatedWithRetry(description: String, failures: MutableList<Exception>, block: () -> Unit) {
+    /**
+     * [description] names the mail in the log; [reportName] names it to people, in the
+     * [ReportMailFailedEvent] published when it is given up on. That event is published per failed
+     * mail and before the collected failures are rethrown, so a mail that fails while a later one
+     * succeeds is still reported - and so the notification goes out on the automatic post-close path
+     * too, which swallows the rethrown exception.
+     */
+    private fun runIsolatedWithRetry(
+        description: String,
+        reportName: String,
+        distributionId: Long,
+        failures: MutableList<Exception>,
+        block: () -> Unit,
+    ) {
         try {
             retryTemplate.execute<Unit, Exception> { context ->
                 if (context.retryCount > 0) {
@@ -91,6 +108,7 @@ class DistributionClosedEventListener(
         } catch (e: Exception) {
             logger.error("Sending $description failed after retrying", e)
             failures += e
+            eventPublisher.publishEvent(ReportMailFailedEvent(distributionId = distributionId, reportName = reportName))
         }
     }
 

@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.LoginAttemptItem
+import at.wrk.tafel.admin.backend.common.auth.model.UserLockedOutEvent
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
@@ -9,6 +10,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
@@ -29,6 +31,7 @@ class LoginAttemptService(
     private val advisoryLockService: AdvisoryLockService,
     private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
@@ -65,6 +68,11 @@ class LoginAttemptService(
                     entry.lockedUntil,
                     failureCount,
                 )
+                // Published from inside the transaction rather than after it commits: a rollback here
+                // would at worst announce a lockout that didn't stick, which is the harmless
+                // direction to be wrong in for a notification, and an after-commit listener would
+                // silently publish nothing at all if this were ever called without a transaction.
+                eventPublisher.publishEvent(UserLockedOutEvent(username = key, failureCount = failureCount))
             }
         }
     }

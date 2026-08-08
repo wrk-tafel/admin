@@ -30,14 +30,41 @@ export interface PushSubscriptionLabelRequest {
   label: string | null;
 }
 
+/**
+ * Mirrors the backend's `PushNotificationType`. Which of these a user actually sees is decided
+ * server-side by their permissions (`PushNotificationTypeTargeting`) - the preferences response only
+ * lists the types they can receive, so this map covers every type but the settings screen renders
+ * only the subset that came back.
+ */
 export enum PushNotificationType {
   DISTRIBUTION_STARTED = 'DISTRIBUTION_STARTED',
-  DISTRIBUTION_CLOSED = 'DISTRIBUTION_CLOSED'
+  DISTRIBUTION_CLOSED = 'DISTRIBUTION_CLOSED',
+  DISTRIBUTION_STILL_OPEN = 'DISTRIBUTION_STILL_OPEN',
+  FOOD_COLLECTION_INCOMPLETE = 'FOOD_COLLECTION_INCOMPLETE',
+  USER_LOCKED_OUT = 'USER_LOCKED_OUT',
+  REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED'
 }
 
 export const pushNotificationTypeLabel: { [key in PushNotificationType]: string } = {
   [PushNotificationType.DISTRIBUTION_STARTED]: 'Ausgabe gestartet',
-  [PushNotificationType.DISTRIBUTION_CLOSED]: 'Ausgabe beendet'
+  [PushNotificationType.DISTRIBUTION_CLOSED]: 'Ausgabe beendet',
+  [PushNotificationType.DISTRIBUTION_STILL_OPEN]: 'Ausgabe noch offen',
+  [PushNotificationType.FOOD_COLLECTION_INCOMPLETE]: 'Warenerfassung unvollständig',
+  [PushNotificationType.USER_LOCKED_OUT]: 'Benutzer gesperrt',
+  [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet'
+};
+
+/**
+ * Shown under each toggle, so the list reads as "what would reach me and when" rather than as a set
+ * of labels whose wording has to carry the whole explanation on its own.
+ */
+export const pushNotificationTypeDescription: { [key in PushNotificationType]: string } = {
+  [PushNotificationType.DISTRIBUTION_STARTED]: 'Eine Ausgabe wurde gestartet.',
+  [PushNotificationType.DISTRIBUTION_CLOSED]: 'Eine Ausgabe wurde beendet und die Statistiken sind bereit.',
+  [PushNotificationType.DISTRIBUTION_STILL_OPEN]: 'Eine Ausgabe wurde an einem früheren Tag gestartet und noch nicht beendet.',
+  [PushNotificationType.FOOD_COLLECTION_INCOMPLETE]: 'Eine Ausgabe wurde beendet, obwohl noch nicht für alle Routen die Waren erfasst wurden.',
+  [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
+  [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine Report-E-Mail konnte nach einer Ausgabe nicht versendet werden.'
 };
 
 export enum PushTestResult {

@@ -10,7 +10,13 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {userAgentLabel} from '../../../../common/util/user-agent-label.util';
-import {PushNotificationType, PushPreferencesResponse, PushTestResult, pushNotificationTypeLabel} from '../../../../api/push-api.service';
+import {
+  PushNotificationType,
+  PushPreferencesResponse,
+  PushTestResult,
+  pushNotificationTypeDescription,
+  pushNotificationTypeLabel
+} from '../../../../api/push-api.service';
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
 
 const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types: []};
@@ -171,6 +177,10 @@ export class PushNotificationSettingsComponent {
 
   protected typeLabel(type: PushNotificationType): string {
     return pushNotificationTypeLabel[type];
+  }
+
+  protected typeDescription(type: PushNotificationType): string {
+    return pushNotificationTypeDescription[type];
   }
 
   async onMasterToggle(event: MatSlideToggleChange) {
