@@ -2,6 +2,7 @@ import type { MockedObject } from 'vitest';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthenticationService } from './authentication.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -15,7 +16,7 @@ describe('AuthenticationService', () => {
 
     beforeEach(() => {
         const routerSpy = {
-            navigate: vi.fn().mockName('Router.navigate')
+            navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true)
         };
 
         TestBed.configureTestingModule({
@@ -218,19 +219,37 @@ describe('AuthenticationService', () => {
         expect(hasAnyPermission).toBe(true);
     });
 
-    it('logout', () => {
+    it('logout', async () => {
         service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
 
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        service.logout().subscribe(response => {
-            expect(service.userInfo()).toBeNull();
-        });
+        const logout = firstValueFrom(service.logout());
 
         const mockReq = httpMock.expectOne('/users/logout');
         expect(mockReq.request.method).toBe('POST');
 
-        const mockErrorResponse = { status: 200, statusText: 'OK' };
-        mockReq.flush(null, mockErrorResponse);
+        // userInfo backs every permission check - dropping it while the request is still running
+        // would blank out the page the user is looking at until the redirect happens
+        expect(service.userInfo()).not.toBeNull();
+
+        mockReq.flush(null, { status: 200, statusText: 'OK' });
+        await logout;
+
+        expect(router.navigate).toHaveBeenCalledWith(['login']);
+        expect(service.userInfo()).toBeNull();
+        httpMock.verify();
+    });
+
+    it('logout - failed request still redirects and clears the session', async () => {
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
+
+        const logout = firstValueFrom(service.logout());
+
+        const mockReq = httpMock.expectOne('/users/logout');
+        mockReq.flush(null, { status: 500, statusText: 'Internal Server Error' });
+        await logout;
+
+        expect(router.navigate).toHaveBeenCalledWith(['login']);
+        expect(service.userInfo()).toBeNull();
         httpMock.verify();
     });
 
