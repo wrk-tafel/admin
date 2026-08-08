@@ -81,6 +81,28 @@ describe('API error responses', () => {
     });
   });
 
+  // A token is re-issued for every request that arrives without the cookie, and the SPA sends
+  // several of those in parallel while it boots. Re-issuing a *different* value each time is what
+  // made the cookie move underneath an already-sent request and produced sporadic 403s (#3101), so
+  // what matters is that two re-issues of the same session agree.
+  it('re-issues the same csrf token whenever the cookie is missing', () => {
+    cy.loginDefault();
+
+    cy.clearCookie('XSRF-TOKEN');
+    cy.request('GET', '/api/users/info');
+
+    cy.getCookie('XSRF-TOKEN').then((reissuedCookie) => {
+      expect(reissuedCookie?.value).to.be.a('string');
+
+      cy.clearCookie('XSRF-TOKEN');
+      cy.request('GET', '/api/users/info');
+
+      cy.getCookie('XSRF-TOKEN').should((cookieAfterSecondReissue) => {
+        expect(cookieAfterSecondReissue!.value).to.eq(reissuedCookie!.value);
+      });
+    });
+  });
+
   // The two below are answered by handlers inherited from Spring's ResponseEntityExceptionHandler,
   // not by anything this app wrote. They used to come back with the unresolved
   // "problemDetail.<exception class>" message *code* as detail (and as the problem type), which is
