@@ -16,8 +16,17 @@ enum class PushNotificationType {
     /** A distribution was never closed and is still open on a later day. */
     DISTRIBUTION_STILL_OPEN,
 
-    /** A distribution closed while not every enabled route had its food collection fully recorded. */
-    FOOD_COLLECTION_INCOMPLETE,
+    /** The first customer of the day checked in - the desk has opened. */
+    CHECKIN_STARTED,
+
+    /** The first ticket appeared on the ticket screen - food is being handed out. */
+    FOOD_HANDOUT_STARTED,
+
+    /** Every household that checked in has been served. */
+    ALL_TICKETS_PROCESSED,
+
+    /** Every enabled route has its food collection fully recorded. */
+    FOOD_COLLECTION_COMPLETED,
 
     /** An account was locked after too many consecutive failed logins. */
     USER_LOCKED_OUT,

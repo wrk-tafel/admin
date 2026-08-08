@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.database.model.distribution
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.LocalDateTime
 
 interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
 
@@ -12,6 +14,32 @@ interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
     fun getDistributionsForYear(@Param("year") year: Int): List<DistributionEntity>
 
     fun getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc(): List<DistributionEntity>
+
+    /**
+     * Each `mark*` below stamps a phase timestamp and answers whether *this* caller was the one that
+     * set it: the `is null` condition means only the first update matches, so a return of 1 is the
+     * one-and-only moment that phase was reached and 0 means someone got there first. Callers use
+     * that to publish a phase event exactly once, without needing a lock and without re-firing when
+     * a ticket is reopened or a check-in deleted and re-entered.
+     *
+     * These are bulk updates, so they bypass the persistence context - a [DistributionEntity]
+     * already loaded in the same transaction will not show the new value.
+     */
+    @Modifying
+    @Query("update Distribution d set d.checkinStartedAt = :timestamp where d.id = :id and d.checkinStartedAt is null")
+    fun markCheckinStarted(@Param("id") id: Long, @Param("timestamp") timestamp: LocalDateTime): Int
+
+    @Modifying
+    @Query("update Distribution d set d.foodHandoutStartedAt = :timestamp where d.id = :id and d.foodHandoutStartedAt is null")
+    fun markFoodHandoutStarted(@Param("id") id: Long, @Param("timestamp") timestamp: LocalDateTime): Int
+
+    @Modifying
+    @Query("update Distribution d set d.ticketsCompletedAt = :timestamp where d.id = :id and d.ticketsCompletedAt is null")
+    fun markTicketsCompleted(@Param("id") id: Long, @Param("timestamp") timestamp: LocalDateTime): Int
+
+    @Modifying
+    @Query("update Distribution d set d.foodCollectionCompletedAt = :timestamp where d.id = :id and d.foodCollectionCompletedAt is null")
+    fun markFoodCollectionCompleted(@Param("id") id: Long, @Param("timestamp") timestamp: LocalDateTime): Int
 }
 
 /**

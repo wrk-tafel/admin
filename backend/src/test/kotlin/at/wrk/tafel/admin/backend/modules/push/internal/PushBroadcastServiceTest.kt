@@ -81,7 +81,7 @@ internal class PushBroadcastServiceTest {
         every { pushSubscriptionRepository.findAll() } returns listOf(logistics, supervisor, unrelated)
         every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
 
-        service.broadcast(type = PushNotificationType.FOOD_COLLECTION_INCOMPLETE, title = "title", body = "body")
+        service.broadcast(type = PushNotificationType.FOOD_COLLECTION_COMPLETED, title = "title", body = "body")
 
         verify { webPushSenderService.send(logistics, "payload-json") }
         verify { webPushSenderService.send(supervisor, "payload-json") }

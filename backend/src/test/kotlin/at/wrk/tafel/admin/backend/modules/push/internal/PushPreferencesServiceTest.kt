@@ -71,8 +71,9 @@ internal class PushPreferencesServiceTest {
 
     /**
      * The test user holds CHECKIN and USER_MANAGEMENT, so it is an audience for the two unrestricted
-     * distribution types plus the lockout one - and for none of the rest. Offering a toggle for a
-     * type this user can never receive would be a setting with no effect whichever way it is set.
+     * distribution types, the check-in phase and the lockout - and for none of the rest. Offering a
+     * toggle for a type this user can never receive would be a setting with no effect whichever way
+     * it is set.
      */
     @Test
     fun `getPreferencesForCurrentUser lists only the types this user can actually receive`() {
@@ -81,6 +82,7 @@ internal class PushPreferencesServiceTest {
         assertThat(result.types.map { it.type }).containsExactlyInAnyOrder(
             PushNotificationTypeApi.DISTRIBUTION_STARTED,
             PushNotificationTypeApi.DISTRIBUTION_CLOSED,
+            PushNotificationTypeApi.CHECKIN_STARTED,
             PushNotificationTypeApi.USER_LOCKED_OUT,
         )
     }

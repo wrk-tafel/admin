@@ -22,7 +22,16 @@ object PushNotificationTypeTargeting {
 
     private val REQUIRED_PERMISSIONS: Map<PushNotificationType, Set<UserPermissions>> = mapOf(
         PushNotificationType.DISTRIBUTION_STILL_OPEN to setOf(UserPermissions.DISTRIBUTION_LCM, UserPermissions.SUPERVISOR),
-        PushNotificationType.FOOD_COLLECTION_INCOMPLETE to setOf(UserPermissions.LOGISTICS, UserPermissions.SUPERVISOR),
+        // Check-in is the one phase the desk staff themselves are an audience for - they are the
+        // ones who would be asked why nobody has been registered yet.
+        PushNotificationType.CHECKIN_STARTED to setOf(
+            UserPermissions.CHECKIN,
+            UserPermissions.DISTRIBUTION_LCM,
+            UserPermissions.SUPERVISOR,
+        ),
+        PushNotificationType.FOOD_HANDOUT_STARTED to setOf(UserPermissions.DISTRIBUTION_LCM, UserPermissions.SUPERVISOR),
+        PushNotificationType.ALL_TICKETS_PROCESSED to setOf(UserPermissions.DISTRIBUTION_LCM, UserPermissions.SUPERVISOR),
+        PushNotificationType.FOOD_COLLECTION_COMPLETED to setOf(UserPermissions.LOGISTICS, UserPermissions.SUPERVISOR),
         PushNotificationType.USER_LOCKED_OUT to setOf(UserPermissions.USER_MANAGEMENT, UserPermissions.SUPERVISOR),
         PushNotificationType.REPORT_MAIL_FAILED to setOf(UserPermissions.STATISTICS, UserPermissions.SUPERVISOR),
     )
@@ -38,7 +47,10 @@ object PushNotificationTypeTargeting {
         PushNotificationType.DISTRIBUTION_STARTED to "uebersicht",
         PushNotificationType.DISTRIBUTION_CLOSED to "uebersicht",
         PushNotificationType.DISTRIBUTION_STILL_OPEN to "uebersicht",
-        PushNotificationType.FOOD_COLLECTION_INCOMPLETE to "logistik/warenerfassung",
+        PushNotificationType.CHECKIN_STARTED to "uebersicht",
+        PushNotificationType.FOOD_HANDOUT_STARTED to "uebersicht",
+        PushNotificationType.ALL_TICKETS_PROCESSED to "uebersicht",
+        PushNotificationType.FOOD_COLLECTION_COMPLETED to "logistik/warenerfassung",
         PushNotificationType.USER_LOCKED_OUT to "benutzer/anmelde-versuche",
         PushNotificationType.REPORT_MAIL_FAILED to "einstellungen/email",
     )

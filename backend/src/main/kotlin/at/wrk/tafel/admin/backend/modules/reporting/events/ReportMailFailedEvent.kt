@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.reporting
+package at.wrk.tafel.admin.backend.modules.reporting.events
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 

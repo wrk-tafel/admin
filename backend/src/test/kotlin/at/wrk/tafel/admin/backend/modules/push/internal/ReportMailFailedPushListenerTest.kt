@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
-import at.wrk.tafel.admin.backend.modules.reporting.ReportMailFailedEvent
+import at.wrk.tafel.admin.backend.modules.reporting.events.ReportMailFailedEvent
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

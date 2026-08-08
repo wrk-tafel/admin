@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
-import at.wrk.tafel.admin.backend.modules.reporting.ReportMailFailedEvent
+import at.wrk.tafel.admin.backend.modules.reporting.events.ReportMailFailedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.scheduling.annotation.Async

@@ -40,7 +40,10 @@ export enum PushNotificationType {
   DISTRIBUTION_STARTED = 'DISTRIBUTION_STARTED',
   DISTRIBUTION_CLOSED = 'DISTRIBUTION_CLOSED',
   DISTRIBUTION_STILL_OPEN = 'DISTRIBUTION_STILL_OPEN',
-  FOOD_COLLECTION_INCOMPLETE = 'FOOD_COLLECTION_INCOMPLETE',
+  CHECKIN_STARTED = 'CHECKIN_STARTED',
+  FOOD_HANDOUT_STARTED = 'FOOD_HANDOUT_STARTED',
+  ALL_TICKETS_PROCESSED = 'ALL_TICKETS_PROCESSED',
+  FOOD_COLLECTION_COMPLETED = 'FOOD_COLLECTION_COMPLETED',
   USER_LOCKED_OUT = 'USER_LOCKED_OUT',
   REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED'
 }
@@ -49,7 +52,10 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.DISTRIBUTION_STARTED]: 'Ausgabe gestartet',
   [PushNotificationType.DISTRIBUTION_CLOSED]: 'Ausgabe beendet',
   [PushNotificationType.DISTRIBUTION_STILL_OPEN]: 'Ausgabe noch offen',
-  [PushNotificationType.FOOD_COLLECTION_INCOMPLETE]: 'Warenerfassung unvollständig',
+  [PushNotificationType.CHECKIN_STARTED]: 'Anmeldung gestartet',
+  [PushNotificationType.FOOD_HANDOUT_STARTED]: 'Warenausgabe gestartet',
+  [PushNotificationType.ALL_TICKETS_PROCESSED]: 'Alle Kunden abgearbeitet',
+  [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Warenerfassung abgeschlossen',
   [PushNotificationType.USER_LOCKED_OUT]: 'Benutzer gesperrt',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet'
 };
@@ -62,8 +68,10 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.DISTRIBUTION_STARTED]: 'Eine Ausgabe wurde gestartet.',
   [PushNotificationType.DISTRIBUTION_CLOSED]: 'Eine Ausgabe wurde beendet und die Statistiken sind bereit.',
   [PushNotificationType.DISTRIBUTION_STILL_OPEN]: 'Eine Ausgabe wurde an einem früheren Tag gestartet und noch nicht beendet.',
-  [PushNotificationType.FOOD_COLLECTION_INCOMPLETE]:
-    'Eine Ausgabe wurde beendet, obwohl noch nicht für alle Routen die Waren erfasst wurden.',
+  [PushNotificationType.CHECKIN_STARTED]: 'Der erste Kunde einer Ausgabe wurde angemeldet.',
+  [PushNotificationType.FOOD_HANDOUT_STARTED]: 'Das erste Ticket wurde abgearbeitet, die Warenausgabe läuft.',
+  [PushNotificationType.ALL_TICKETS_PROCESSED]: 'Alle angemeldeten Kunden einer Ausgabe wurden abgearbeitet.',
+  [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Für alle aktiven Routen wurden die Waren erfasst.',
   [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine Report-E-Mail konnte nach einer Ausgabe nicht versendet werden.'
 };

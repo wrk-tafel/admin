@@ -17,13 +17,13 @@ internal class PushNotificationTypeTargetingTest {
     fun `a restricted type is allowed for a holder of any one of its permissions`() {
         assertThat(
             PushNotificationTypeTargeting.isAllowedFor(
-                PushNotificationType.FOOD_COLLECTION_INCOMPLETE,
+                PushNotificationType.FOOD_COLLECTION_COMPLETED,
                 listOf(UserPermissions.LOGISTICS.key),
             ),
         ).isTrue()
         assertThat(
             PushNotificationTypeTargeting.isAllowedFor(
-                PushNotificationType.FOOD_COLLECTION_INCOMPLETE,
+                PushNotificationType.FOOD_COLLECTION_COMPLETED,
                 listOf(UserPermissions.SUPERVISOR.key),
             ),
         ).isTrue()

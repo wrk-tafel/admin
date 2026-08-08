@@ -49,14 +49,23 @@ Im Bereich **Benachrichtigungsarten** darunter lässt sich feiner steuern, welch
 
 Es werden nur jene Benachrichtigungsarten angezeigt, für die man auch berechtigt ist – wer z. B. keine Berechtigung für die Benutzerverwaltung hat, sieht die Art "Benutzer gesperrt" gar nicht erst in der Liste. Folgende Arten gibt es:
 
+Ein Teil davon begleitet den Ablauf eines Ausgabetags von Anfang bis Ende, sodass man auch ohne geöffnete Anwendung mitbekommt, wie weit der Tag ist:
+
 | Benachrichtigungsart | Wird ausgelöst, wenn … | Erforderliche Berechtigung |
 | --- | --- | --- |
 | Ausgabe gestartet | eine Ausgabe gestartet wurde | keine (alle Benutzer) |
+| Anmeldung gestartet | der erste Kunde des Tages angemeldet wurde | Anmeldung, Ausgabe-Ablauf oder Supervisor |
+| Warenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden | Transport/Logistik oder Supervisor |
+| Warenausgabe gestartet | das erste Ticket abgearbeitet wurde, die Warenausgabe also tatsächlich läuft | Ausgabe-Ablauf oder Supervisor |
+| Alle Kunden abgearbeitet | alle angemeldeten Kunden abgearbeitet wurden | Ausgabe-Ablauf oder Supervisor |
 | Ausgabe beendet | eine Ausgabe beendet wurde und die Statistiken bereitstehen | keine (alle Benutzer) |
 | Ausgabe noch offen | eine Ausgabe an einem früheren Tag gestartet und bis dahin nicht beendet wurde (Erinnerung jeweils in der Früh, bis die Ausgabe beendet ist) | Ausgabe-Ablauf oder Supervisor |
-| Warenerfassung unvollständig | eine Ausgabe beendet wurde, obwohl für aktive Routen noch keine vollständige Warenerfassung vorliegt (die betroffenen Routen werden in der Benachrichtigung genannt) | Transport/Logistik oder Supervisor |
-| Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Benutzerverwaltung oder Supervisor |
 | E-Mail nicht versendet | eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) auch nach mehreren Versuchen nicht versendet werden konnte | Statistiken oder Supervisor |
+| Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Benutzerverwaltung oder Supervisor |
+
+Jede dieser Benachrichtigungen wird pro Ausgabe nur ein einziges Mal verschickt. Wird z. B. ein bereits abgearbeitetes Ticket noch einmal geöffnet und erneut abgeschlossen, kommt "Alle Kunden abgearbeitet" trotzdem kein zweites Mal.
+
+Die "Startzeit", die auf dem Ticket-Monitor angezeigt werden kann, ist davon unabhängig: sie ist eine Ankündigung an die wartenden Kunden, während sich "Warenausgabe gestartet" nach dem tatsächlichen Beginn richtet.
 
 Die Berechtigungen sind unter [Benutzer](benutzer.md) beschrieben.
 

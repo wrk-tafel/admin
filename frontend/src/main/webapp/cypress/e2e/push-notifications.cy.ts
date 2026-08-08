@@ -104,7 +104,7 @@ describe('PushNotifications', () => {
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds SUPERVISOR, the one permission every notification type accepts, so every type
     // is listed here - the filtered case is the separate test below.
-    cy.byTestId('push-type-preference').should('have.length', 6);
+    cy.byTestId('push-type-preference').should('have.length', 9);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -133,7 +133,7 @@ describe('PushNotifications', () => {
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STARTED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_CLOSED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="USER_LOCKED_OUT"]').should('not.exist');
-    cy.get('[testid="push-type-preference"][data-type="FOOD_COLLECTION_INCOMPLETE"]').should('not.exist');
+    cy.get('[testid="push-type-preference"][data-type="ALL_TICKETS_PROCESSED"]').should('not.exist');
   });
 
   // Each toggle carries its own explanation, so the list says when a notification would actually

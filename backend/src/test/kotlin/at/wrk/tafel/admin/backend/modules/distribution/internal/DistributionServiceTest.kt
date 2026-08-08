@@ -14,8 +14,11 @@ import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.AllTicketsProcessedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.CheckinStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
@@ -618,6 +621,36 @@ internal class DistributionServiceTest {
         }
     }
 
+    /**
+     * The repository's conditional UPDATE is what decides whether this check-in was the first one -
+     * a returned 1 means this caller won the stamp, so it is the one that announces the phase.
+     */
+    @Test
+    fun `assign customer publishes CheckinStartedEvent when it is the first check-in`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
+        every { distributionRepository.markCheckinStarted(activeDistribution.id!!, any()) } returns 1
+
+        service.assignHouseholdToDistribution(householdId = 1L, ticketNumber = 200)
+
+        verify { eventPublisher.publishEvent(CheckinStartedEvent(activeDistribution.id!!)) }
+    }
+
+    @Test
+    fun `assign customer publishes no CheckinStartedEvent when the phase was already stamped`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
+        every { distributionRepository.markCheckinStarted(any(), any()) } returns 0
+
+        service.assignHouseholdToDistribution(householdId = 1L, ticketNumber = 200)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<CheckinStartedEvent>()) }
+    }
+
     @Test
     fun `assign customer with existing entry (update)`() {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
@@ -1054,6 +1087,88 @@ internal class DistributionServiceTest {
         val ticket = service.closeCurrentTicketAndGetNext(false)
 
         assertThat(ticket.ticketNumber).isNull()
+    }
+
+    /**
+     * A processed ticket is the trigger, not a displayed one: the ticket-screen control page issues
+     * `show-current` as it loads, so a displayed ticket would announce the hand-out as started the
+     * moment somebody merely opened that page.
+     */
+    @Test
+    fun `closing a ticket publishes FoodHandoutStartedEvent when it is the first processed one`() {
+        val distribution = distributionWithUnprocessedTickets()
+        every { distributionRepository.markFoodHandoutStarted(distribution.id!!, any()) } returns 1
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = false)
+
+        verify { eventPublisher.publishEvent(FoodHandoutStartedEvent(distribution.id!!)) }
+    }
+
+    @Test
+    fun `closing a ticket publishes no FoodHandoutStartedEvent once the phase was stamped`() {
+        distributionWithUnprocessedTickets()
+        every { distributionRepository.markFoodHandoutStarted(any(), any()) } returns 0
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = false)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<FoodHandoutStartedEvent>()) }
+    }
+
+    @Test
+    fun `closing the last open ticket publishes AllTicketsProcessedEvent with the number served`() {
+        val distribution = distributionWithUnprocessedTickets(count = 1)
+        every { distributionRepository.markTicketsCompleted(distribution.id!!, any()) } returns 1
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = false)
+
+        verify { eventPublisher.publishEvent(AllTicketsProcessedEvent(distributionId = distribution.id!!, ticketCount = 1)) }
+    }
+
+    @Test
+    fun `closing a ticket with others still open publishes no AllTicketsProcessedEvent`() {
+        distributionWithUnprocessedTickets(count = 2)
+        every { distributionRepository.markTicketsCompleted(any(), any()) } returns 1
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = false)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<AllTicketsProcessedEvent>()) }
+    }
+
+    /**
+     * Reopening the last ticket and closing it again must not announce the end a second time - the
+     * stamp has already been taken, so the conditional UPDATE matches nothing.
+     */
+    @Test
+    fun `closing the last ticket again publishes no second AllTicketsProcessedEvent`() {
+        distributionWithUnprocessedTickets(count = 1)
+        every { distributionRepository.markTicketsCompleted(any(), any()) } returns 0
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = false)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<AllTicketsProcessedEvent>()) }
+    }
+
+    private fun distributionWithUnprocessedTickets(count: Int = 1): DistributionEntity {
+        every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
+
+        val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        distribution.households = (1..count).map { number ->
+            DistributionHouseholdEntity(
+                distribution = distribution,
+                household = testHouseholdEntity1,
+                ticketNumber = number,
+                processed = false,
+                costContributionPaid = false,
+            ).apply {
+                id = number.toLong()
+                createdAt = LocalDateTime.now()
+            }
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        return distribution
     }
 
     @Test

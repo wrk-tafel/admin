@@ -7,7 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
@@ -15,9 +15,9 @@ import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Enti
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute4Entity
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
-import at.wrk.tafel.admin.backend.modules.reporting.ReportMailFailedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportFile
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
+import at.wrk.tafel.admin.backend.modules.reporting.events.ReportMailFailedEvent
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension

@@ -5,16 +5,20 @@
  * (permissions, see {@code internal.PushNotificationTypeTargeting}) and by what the user asked for
  * (a master switch plus a per-type opt-out, see {@code internal.PushPreferencesService}).
  * <p>
- * The events reacted to belong to the modules that own them, which is what the dependencies below
- * are for: a distribution starting ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent})
- * or closing ({@link at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent}, used
- * both for the closing notification itself and for reporting unrecorded food collections), and a
- * report mail that could not be sent ({@link at.wrk.tafel.admin.backend.modules.reporting.ReportMailFailedEvent}).
- * Two more triggers need no module dependency: an account lockout, published from {@code common.auth},
- * and a distribution left open, which is a scheduled check rather than an event since the point is
- * that nothing happened.
+ * This module only ever listens - it calls no other module's services, and no module knows it
+ * exists. The dependencies below are on the {@code ::events} named interfaces alone, which is as
+ * narrow as the declaration can be made: an event still has to be referenced as a type to be
+ * listened for, so publishing one does not decouple the listener from the class, only from the
+ * publisher. Reacted to are a distribution starting or closing, the phases the day passes through in
+ * between (see {@code distribution.events} and {@code logistics.events}), and a report mail that
+ * could not be sent ({@code reporting.events}).
+ * <p>
+ * Two more triggers need no module dependency at all: an account lockout, published from
+ * {@code common.auth}, and a distribution left open, which is a scheduled check rather than an event
+ * since the point is that nothing happened. {@code base::exception} is the one dependency here that
+ * is not an event - the exceptions this module's own controllers throw.
  */
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"distribution", "reporting", "base::exception"}
+        allowedDependencies = {"distribution::events", "logistics::events", "reporting::events", "base::exception"}
 )
 package at.wrk.tafel.admin.backend.modules.push;

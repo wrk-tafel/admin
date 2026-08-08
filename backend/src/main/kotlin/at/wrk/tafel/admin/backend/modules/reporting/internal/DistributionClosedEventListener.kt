@@ -8,10 +8,10 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
-import at.wrk.tafel.admin.backend.modules.reporting.ReportMailFailedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
+import at.wrk.tafel.admin.backend.modules.reporting.events.ReportMailFailedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
