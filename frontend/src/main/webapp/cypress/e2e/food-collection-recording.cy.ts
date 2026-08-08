@@ -55,6 +55,44 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  it('shows the saved driver and co-driver right away when the route is opened again', () => {
+    // The employee search matches substrings, so the driver's own personnel number ('0200') also
+    // finds '02000'. Resolving a stored driver through that search again would pop the employee
+    // selection dialog open the moment the route is picked.
+    cy.intercept('POST', '**/food-collections/routes/*').as('saveRouteData');
+    cy.intercept('POST', '**/food-collections/routes/*/km').as('saveKm');
+
+    enterRouteData();
+    selectAmbiguousDriver();
+    selectExistingCoDriver();
+
+    // the mileage is filled in as well so the route counts as fully recorded - an incomplete route
+    // blocks closing the distribution in afterEach
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+
+    saveAndConfirmKmDiff();
+    // waits on the two requests this test reopens the route for, rather than on the success toast,
+    // which only appears once every section of the screen has been sent
+    cy.wait('@saveRouteData').its('response.statusCode').should('eq', 200);
+    cy.wait('@saveKm').its('response.statusCode').should('eq', 200);
+
+    // reopening the route must not search for the stored employees again - that search is what
+    // used to open the dialog, so its absence is the actual fix and not just a symptom of it
+    cy.intercept({method: 'GET', url: /\/api\/employees(\?|$)/}).as('employeeSearchOnReopen');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 1').click();
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+
+    cy.byTestId('select-route-tab').click();
+    cy.byTestId('selectedDriverDescription').should('have.text', '0200 Test User');
+    cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
+    assertNoEmployeeModalsOpen();
+    cy.get('@employeeSearchOnReopen.all').should('have.length', 0);
+  });
+
   it('rejects a free-text return item repeating a return category', () => {
     cy.getAnyRandomNumber().then((randomNumber) => {
       enterRouteData();
@@ -314,6 +352,21 @@ describe('Food Collection Recording', () => {
     cy.byTestId('driver-employee-search-button').click();
     cy.byTestId('driverSearchInput').should('not.exist');
     cy.byTestId('selectedDriverDescription').should('have.text', '00000 E2E Test');
+  }
+
+  // testdata: '0200' is a personnel number of its own and at the same time part of '02000', so the
+  // search always returns both employees and the selection dialog has to be used
+  function selectAmbiguousDriver() {
+    cy.byTestId('driverSearchInput').type('0200');
+    cy.byTestId('driver-employee-search-button').click();
+
+    cy.byTestId('driver-select-employee-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('select-employee-row-0').should('contain.text', '0200 Test User');
+        cy.byTestId('select-employee-button-0').click();
+      });
+    cy.byTestId('selectedDriverDescription').should('have.text', '0200 Test User');
   }
 
   function createAndSelectCoDriver(randomNumber: number) {
