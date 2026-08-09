@@ -37,7 +37,15 @@ class DocumentStorageCleanupService(
         private const val MIN_AGE_MINUTES = 60L
     }
 
-    @Scheduled(cron = "0 0 23 * * *")
+    /**
+     * Shares 05:00 with `AuditRetentionService` - the quiet window between the last late-evening
+     * work and the first distribution-day activity. The two never contend for anything: this one
+     * only walks the documents folder, that one only deletes `audit_log` rows. They do share the
+     * single scheduled-task thread (`spring.task.scheduling.pool.size` is left at its default of 1),
+     * so they run one after the other rather than at once - which is fine, since neither is
+     * time-critical and both have hours of headroom.
+     */
+    @Scheduled(cron = "0 0 5 * * *")
     fun cleanupOrphanedFiles() {
         val documentsRoot = Paths.get(tafelAdminProperties.storage.documentsPath)
         if (!Files.isDirectory(documentsRoot)) {

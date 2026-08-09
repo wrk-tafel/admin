@@ -110,9 +110,10 @@ tafeladmin:
   # The audit trail (audit_log) - see ADR-0038. `enabled` and `retentionDays` are read per use and
   # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
   # its expression when the bean is created (same as configReload.interval below), so changing it
-  # needs a restart. 05:00 is after the nightly document cleanup (23:00) and before the first
+  # needs a restart. 05:00 is the quiet window between the last late-evening work and the first
   # distribution-day activity, so deleting a year's worth of rows never lands while anyone is
-  # working. A retentionDays of 0 or less keeps every entry instead of deleting them all.
+  # working; the orphaned-document cleanup runs in the same slot and contends for nothing with it.
+  # A retentionDays of 0 or less keeps every entry instead of deleting them all.
   audit:
     enabled: true
     retentionDays: 365

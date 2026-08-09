@@ -19,9 +19,11 @@ import java.time.LocalDateTime
  * request would defeat the point of recording it. Entries age out on this clock like every other.
  *
  * Runs once a night rather than hourly: unlike the outbox and scanner cleanups this competes with
- * nothing for freshness, and a year-old boundary does not move meaningfully within a day. 05:00 puts
- * it after the nightly document cleanup (23:00) and before the first distribution-day activity, so
- * a delete of a year's worth of rows never lands while anyone is working.
+ * nothing for freshness, and a year-old boundary does not move meaningfully within a day. 05:00 is
+ * the quiet window between the last late-evening work and the first distribution-day activity, so a
+ * delete of a year's worth of rows never lands while anyone is working. `DocumentStorageCleanupService`
+ * shares that slot; the two contend for nothing (rows here, files there) beyond the single
+ * scheduled-task thread they take turns on.
  */
 @Service
 class AuditRetentionService(
