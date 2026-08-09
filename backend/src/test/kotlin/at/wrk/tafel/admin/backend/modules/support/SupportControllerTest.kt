@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.support
 
 import at.wrk.tafel.admin.backend.modules.support.internal.SupportService
+import at.wrk.tafel.admin.backend.modules.support.model.SupportClientContext
 import at.wrk.tafel.admin.backend.modules.support.model.SupportRequest
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -20,10 +21,14 @@ class SupportControllerTest {
 
     @Test
     fun `create support request`() {
-        val request = SupportRequest(title = "Bug in login", text = "Something is broken")
+        val request = SupportRequest(
+            title = "Bug in login",
+            text = "Something is broken",
+            clientContext = SupportClientContext(page = "http://localhost/login"),
+        )
 
         supportController.createSupportRequest(request)
 
-        verify(exactly = 1) { supportService.createSupportIssue("Bug in login", "Something is broken") }
+        verify(exactly = 1) { supportService.sendSupportRequest(request) }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Support contact - creates GitHub issues from in-app support requests.
+ * Support contact - mails in-app support requests to the deployment's support address.
  */
 @org.springframework.modulith.ApplicationModule(
         allowedDependencies = {"base::exception"}

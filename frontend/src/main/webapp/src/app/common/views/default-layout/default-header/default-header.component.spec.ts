@@ -11,8 +11,19 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { SupportApiService } from '../../../../api/support-api.service';
+import { SupportApiService, SupportClientContext } from '../../../../api/support-api.service';
 import { TafelToastrService } from '../../../components/tafel-toastr/tafel-toastr.service';
+import { SupportContextService } from '../../../support/support-context.service';
+
+const clientContext: SupportClientContext = {
+    page: 'http://localhost/uebersicht',
+    userAgent: 'Mozilla/5.0',
+    viewport: '1280x800',
+    screen: '1920x1080',
+    language: 'de-AT',
+    timeZone: 'Europe/Vienna',
+    recentErrors: []
+};
 
 describe('DefaultHeaderComponent', () => {
     let authenticationService: MockedObject<AuthenticationService>;
@@ -58,6 +69,12 @@ describe('DefaultHeaderComponent', () => {
                     provide: MatDialog,
                     useValue: {
                         open: vi.fn().mockName('MatDialog.open')
+                    }
+                },
+                {
+                    provide: SupportContextService,
+                    useValue: {
+                        collect: vi.fn().mockName('SupportContextService.collect').mockReturnValue(clientContext)
                     }
                 }
             ]
@@ -117,7 +134,7 @@ describe('DefaultHeaderComponent', () => {
         expect(authenticationService.logout).toHaveBeenCalled();
     });
 
-    it('open support dialog and submit sends the support request', () => {
+    it('open support dialog and submit sends the support request with the technical context', () => {
         dialog.open.mockReturnValueOnce({afterClosed: () => of({title: 'Bug in login', text: 'Something is broken'})} as any);
         supportApiService.createSupportRequest.mockReturnValueOnce(of(undefined));
 
@@ -127,7 +144,8 @@ describe('DefaultHeaderComponent', () => {
         component.openSupportDialog();
 
         expect(dialog.open).toHaveBeenCalled();
-        expect(supportApiService.createSupportRequest).toHaveBeenCalledWith('Bug in login', 'Something is broken');
+        expect(supportApiService.createSupportRequest)
+          .toHaveBeenCalledWith('Bug in login', 'Something is broken', clientContext);
         expect(toastrService.success).toHaveBeenCalled();
     });
 

@@ -50,9 +50,10 @@ code being wrong — see [G4](#g4-nothing-keeps-special-category-data-out-of-not
   endpoint and ciphertext. Notification bodies mention staff usernames, never customers. The
   transfer that does happen is the *subscription* itself: a staff device identifier held by a
   third-country provider.
-- **The in-app support form** posts whatever was typed to `POST /repos/wrk-tafel/admin/issues`
-  (`SupportService`). That repository is public. See
-  [G3](#g3-the-support-form-publishes-free-text-to-a-public-github-repository).
+- **The in-app support form** mails whatever was typed to `tafeladmin.support.recipients`
+  (`SupportService`), together with the reporter's username and the browser context of the report.
+  It stays inside the organisation's own mail, but it is free text that can name a customer — see
+  [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer).
 - **Downloads and prints.** The Kundenliste PDF for a distribution is a full attendance list with
   names; the Stammdatenblatt is a household's complete master data. Once printed, the application
   has no further say in them.
@@ -135,23 +136,25 @@ currently records nothing.
 consent field if the operator settles on consent as the basis — a field nobody maintains is worse
 than none.
 
-### G3 The support form publishes free text to a public GitHub repository
+### G3 The support form mails free text that can name a customer
 
-**Art. 5(1)(f), Art. 28, Art. 44.**
+**Art. 5(1)(c), Art. 5(1)(f).**
 
-`SupportService.createSupportIssue` files whatever the user typed as an issue in
-`wrk-tafel/admin`, which is a public repository. The dialog
-(`support-dialog.component.html`) is a title and a free-text box labelled "Anliegen", with no hint of
-where the text ends up. The realistic failure is not malice but helpfulness: "Bei Kunde Nr. 1234,
-Maria Musterfrau, wird das Einkommen falsch gerechnet" is exactly what someone reporting a bug would
-write, and it becomes world-readable, mirrored and indexed within seconds. Deleting the issue
-afterwards does not undo that.
+The exposure this section was written for is gone: the form no longer files a public GitHub issue
+but mails the request to the deployment's own support addresses
+([ADR-0040](adr/0040-support-requests-sent-as-mail.md)), so a helpfully-worded "Bei Kunde Nr. 1234,
+Maria Musterfrau, wird das Einkommen falsch gerechnet" no longer becomes world-readable, mirrored
+and indexed within seconds.
 
-This is the one gap where a small change removes a large exposure.
+What is left is smaller and ordinary. The text is still free text that can name a customer, and it
+now lands in a mailbox — copied to whatever that mail server and its backups keep, outside anything
+this application can delete. The mail also carries the reporter's username and their browser context
+(page, user agent, last errors); the dialog says so, which is what makes that part fair processing
+rather than a surprise.
 
-**Smallest useful step:** put the warning in the dialog ("Der Text ist öffentlich sichtbar — keine
-Kundendaten eintragen"). Beyond that, either point `tafeladmin.support.githubRepository` at a private
-repository, or have the endpoint send a mail instead of filing an issue.
+**Smallest useful step:** a line at the note field's level of visibility in the dialog — report the
+household by its number rather than by name — plus a retention rule on the support mailbox, which is
+the operator's to set, not the application's.
 
 ### G4 Nothing keeps special-category data out of notes and documents
 
@@ -254,8 +257,9 @@ retention [G6](#g6-read-access-to-a-case-file-is-not-recorded) lands on if a rea
 **Art. 17(1), Art. 19.**
 
 Deleting a household is thorough in the database, but copies outlive it: `audit_log` entries for up
-to 30 days (deliberate, and documented in ADR-0039), `sse_outbox` payloads for 14, any Kundenliste
-PDF already printed or mailed, and every backup made before the deletion. Restoring a backup
+to 30 days (deliberate, and documented in ADR-0039), `sse_outbox` payloads for 14, `mail_outbox`
+rows — the composed mails, attachments included — for 14 after they were sent (ADR-0041), any
+Kundenliste PDF already printed or mailed, and every backup made before the deletion. Restoring a backup
 re-creates erased people, and nothing propagates the erasure into it.
 
 **Smallest useful step:** write down the actual erasure timeline — which store empties after how long
@@ -316,9 +320,9 @@ picture:
 
 | | Gap | Cost | First step |
 |---|---|---|---|
-| 1 | [G3](#g3-the-support-form-publishes-free-text-to-a-public-github-repository) support form → public repo | hours | warning in the dialog, then move the target |
-| 2 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | hours | rotation + retention in `application.yml` |
-| 3 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | hours | a visible rule at the note field, upload dialog and user guide |
+| 1 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | hours | rotation + retention in `application.yml` |
+| 2 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | hours | a visible rule at the note field, upload dialog and user guide |
+| 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | hours | a line in the dialog, plus retention on the support mailbox |
 | 4 | [G2](#g2-there-is-no-privacy-notice-and-no-record-of-a-legal-basis) no privacy notice | days, mostly the operator's | notice text on the Stammdatenblatt and in the shell |
 | 5 | [G1](#g1-nothing-about-a-customer-ever-expires) no retention for customer data | days, needs a decision first | agree the periods, then a nightly job modelled on `AuditRetentionService` |
 | 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | days | one endpoint returning the full household record + documents |

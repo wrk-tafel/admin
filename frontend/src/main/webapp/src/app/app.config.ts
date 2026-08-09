@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   DEFAULT_CURRENCY_CODE,
+  ErrorHandler,
   inject,
   isDevMode,
   LOCALE_ID,
@@ -32,6 +33,7 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 import {MAT_CARD_CONFIG} from '@angular/material/card';
 import {TafelTitleStrategy} from './common/util/tafel-title-strategy';
+import {TafelErrorHandler} from './common/support/tafel-error-handler';
 
 // `MatDialog` is `providedIn: 'root'` and reads its defaults from the root injector, so this one
 // has to stay app-wide even though no screen outside the shell opens a dialog. The Material
@@ -113,6 +115,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MAT_CARD_CONFIG,
       useValue: {appearance: 'outlined'}
+    },
+    {
+      // `useExisting`, so an uncaught error and a support request read the same instance's log.
+      provide: ErrorHandler,
+      useExisting: TafelErrorHandler
     }
   ]
 };

@@ -4,6 +4,11 @@ tafeladmin:
   environmentLabel: E2E
   testdata:
     enabled: true
+  support:
+    # Only makes the support endpoint answer "configured" - no mail server is set up for the e2e
+    # run, so the send itself is skipped (see MailSenderService) and nothing is delivered anywhere.
+    recipients:
+      - "support@e2e-test"
   storage:
     # Written to by the Cypress e2e run via a Node fs task (see cypress.config.ts) - java.io.tmpdir
     # and Node's os.tmpdir() resolve to the same OS temp directory on the runner both processes

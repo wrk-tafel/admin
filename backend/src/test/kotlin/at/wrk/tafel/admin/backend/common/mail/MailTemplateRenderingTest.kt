@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.common.mail
 import at.wrk.tafel.admin.backend.modules.reporting.internal.ReturnBoxesDataModel
 import at.wrk.tafel.admin.backend.modules.reporting.internal.ReturnBoxesRoute
 import at.wrk.tafel.admin.backend.modules.reporting.internal.ReturnBoxesShop
+import at.wrk.tafel.admin.backend.modules.support.internal.SupportDiagnostics
+import at.wrk.tafel.admin.backend.modules.support.internal.SupportDiagnosticsError
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.thymeleaf.context.Context
@@ -94,6 +96,86 @@ class MailTemplateRenderingTest {
 
         assertThat(rendered).isEqualTo(loadReference("return-boxes-mail-with-data.html"))
     }
+
+    @Test
+    fun `support-request-mail renders the request, diagnostics and browser errors`() {
+        val context = Context()
+        context.setVariable("supportTitle", "Login geht nicht")
+        context.setVariable("supportText", "Der Login bricht ab")
+        context.setVariable(
+            "diagnostics",
+            supportDiagnostics(
+                recentErrors = listOf(
+                    SupportDiagnosticsError(timestamp = "10:15:00", message = "HTTP 500 - GET /api/households"),
+                ),
+            ),
+        )
+
+        val rendered = render("mails/support-request-mail", context)
+
+        assertThat(rendered).isEqualTo(loadReference("support-request-mail-with-errors.html"))
+    }
+
+    // Not compared against a reference file on purpose: the newline is part of the *data* here, and
+    // a golden file would have it rewritten by git's line-ending normalization on checkout.
+    @Test
+    fun `support-request-mail keeps the line breaks the reporter typed`() {
+        val context = Context()
+        context.setVariable("supportTitle", "Login geht nicht")
+        context.setVariable("supportText", "Erste Zeile\nZweite Zeile")
+        context.setVariable("diagnostics", supportDiagnostics())
+
+        val rendered = render("mails/support-request-mail", context)
+
+        assertThat(rendered).contains("<p style=\"white-space: pre-wrap\">Erste Zeile\nZweite Zeile</p>")
+    }
+
+    @Test
+    fun `support-request-mail escapes what the reporter typed and renders a placeholder without errors`() {
+        val context = Context()
+        context.setVariable("supportTitle", "<b>kaputt</b>")
+        context.setVariable("supportText", "<script>alert(1)</script>")
+        context.setVariable(
+            "diagnostics",
+            supportDiagnostics(
+                environmentLabel = "PROD",
+                page = "unbekannt",
+                userAgent = "unbekannt",
+                viewport = "unbekannt",
+                screen = "unbekannt",
+                language = "unbekannt",
+                timeZone = "unbekannt",
+            ),
+        )
+
+        val rendered = render("mails/support-request-mail", context)
+
+        assertThat(rendered).isEqualTo(loadReference("support-request-mail-without-errors.html"))
+    }
+
+    private fun supportDiagnostics(
+        environmentLabel: String = "TEST",
+        page: String = "http://localhost/kunden/suchen",
+        userAgent: String = "Mozilla/5.0",
+        viewport: String = "1280x800",
+        screen: String = "1920x1080",
+        language: String = "de-AT",
+        timeZone: String = "Europe/Vienna",
+        recentErrors: List<SupportDiagnosticsError> = emptyList(),
+    ) = SupportDiagnostics(
+        username = "test-user",
+        reportedAt = "22.03.2026 10:15:30",
+        version = "1.2.3",
+        buildTime = "2026-03-20T10:00:00Z",
+        environmentLabel = environmentLabel,
+        page = page,
+        userAgent = userAgent,
+        viewport = viewport,
+        screen = screen,
+        language = language,
+        timeZone = timeZone,
+        recentErrors = recentErrors,
+    )
 
     @Test
     fun `return-boxes-mail renders placeholder when there are no routes`() {

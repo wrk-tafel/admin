@@ -204,14 +204,17 @@ class TafelAdminServerProperties {
 
 @ExcludeFromTestCoverage
 class TafelAdminSupportProperties {
-    // Personal access token (Issues: Read and write) for creating support-request issues via the
-    // GitHub REST API. Not set here on purpose - only mounted in prod via /app/config/config.yml.
-    var githubToken: String? = null
-
-    var githubRepository: String = ""
-
-    // Prepended to every issue title so it's obvious which environment a support request came from.
-    var titlePrefix: String = ""
+    /**
+     * Who an in-app support request is mailed to. Deployment-specific, so it stays empty here -
+     * with no recipient the endpoint fails with a clear "not configured" message instead of
+     * accepting a request nobody would ever read.
+     *
+     * The mail itself goes out through the same `spring.mail` server and `tafeladmin.mail.from`
+     * address as every other mail this application sends; only the recipients are configured here
+     * rather than in the UI, because support has to keep working when nobody can reach a screen to
+     * fix it.
+     */
+    var recipients: List<String> = emptyList()
 }
 
 @ExcludeFromTestCoverage
@@ -219,7 +222,7 @@ class TafelAdminStorageProperties {
     var documentsPath: String = "documents"
 
     // Mount point for a NAS share a physical scanner writes to. Not every environment has one, so
-    // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.githubToken).
+    // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.recipients).
     // Whether the feature is offered at all is TafelAdminProperties.scannerFolderAvailable.
     var scannerPath: String? = null
 }
@@ -240,8 +243,7 @@ class TafelAdminPushProperties {
     // -w 0 it also drops the trailing newline, so the trailing `; echo` just restores a clean
     // shell prompt on its own line afterward - it has no effect on the copied value itself.)
     //
-    // Not set here on purpose - only mounted in prod via /app/config/config.yml (same reasoning
-    // as TafelAdminSupportProperties.githubToken).
+    // Key material, so not set here on purpose - only mounted in prod via /app/config/config.yml.
     var vapidPublicKey: String? = null
     var vapidPrivateKey: String? = null
 
