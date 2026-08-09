@@ -131,11 +131,11 @@ describe('Änderungsprotokoll', () => {
       cy.visit('/aenderungsprotokoll');
 
       cy.byTestId('audit-filter-entityType').click();
-      cy.checkAccessibility();
+      cy.checkSelectAccessibility();
       cy.get('body').type('{esc}');
 
       cy.byTestId('audit-filter-operation').click();
-      cy.checkAccessibility();
+      cy.checkSelectAccessibility();
     });
 
     it('has no violations on the empty result', () => {

@@ -12,7 +12,9 @@
       <table class="w-full table-fixed divide-y divide-green-200" testid="items-table">
         <thead>
         <tr>
-          <th scope="col" class="w-40 pr-4"></th>
+          <!-- The matrix' corner cell heads nothing - it sits above the category names, which are
+               row headers. A `th` here would be an empty column header (axe empty-table-header). -->
+          <td class="w-40 pr-4"></td>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
             <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }
@@ -52,7 +54,7 @@
       <table class="w-full table-fixed divide-y divide-amber-200">
         <thead>
         <tr>
-          <th scope="col" class="w-40 pr-4"></th>
+          <td class="w-40 pr-4"></td>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
             <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }

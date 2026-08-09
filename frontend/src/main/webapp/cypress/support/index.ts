@@ -147,6 +147,12 @@ declare global {
       checkMenuAccessibility(options?: Options): void;
 
       /**
+       * Runs axe against the currently open select panel.
+       * @example cy.checkSelectAccessibility();
+       */
+      checkSelectAccessibility(options?: Options): void;
+
+      /**
        * Custom command to generate a random number in a given range.
        * @example cy.getRandomNumber(min, max);
        */
