@@ -166,22 +166,38 @@ class AuditLogWriter(
         // snapshotted: this query can itself trigger an auto-flush, and anything that flush adds to
         // the buffer belongs in this batch.
         val actorUsername = auditActorProvider.currentUsername()
-        val actorUserId = actorUsername?.let { userRepository.findByUsername(it)?.id }
+        val actorUser = actorUsername?.let { userRepository.findByUsername(it) }
+        val actor = Actor(
+            username = actorUsername,
+            userId = actorUser?.id,
+            firstname = actorUser?.employee?.firstname,
+            lastname = actorUser?.employee?.lastname,
+        )
 
         val entries = buffer.toList()
         buffer.clear()
 
         val occurredAt = LocalDateTime.now(clock)
         auditLogRepository.saveAll(
-            entries.map { entry -> toEntity(entry, occurredAt, actorUsername, actorUserId) },
+            entries.map { entry -> toEntity(entry, occurredAt, actor) },
         )
     }
+
+    /**
+     * Who a batch of entries is stamped with. Carried as one value because all four are resolved
+     * together, from the same account, and are meaningless apart from each other.
+     */
+    private data class Actor(
+        val username: String?,
+        val userId: Long?,
+        val firstname: String?,
+        val lastname: String?,
+    )
 
     private fun toEntity(
         entry: PendingEntry,
         occurredAt: LocalDateTime,
-        actorUsername: String?,
-        actorUserId: Long?,
+        actor: Actor,
     ): AuditLogEntity {
         val entity = AuditLogEntity(
             occurredAt = occurredAt,
@@ -190,8 +206,10 @@ class AuditLogWriter(
         )
         entity.entityId = entry.entityId
         entity.businessKey = entry.businessKey
-        entity.actorUsername = actorUsername
-        entity.actorUserId = actorUserId
+        entity.actorUsername = actor.username
+        entity.actorUserId = actor.userId
+        entity.actorFirstname = actor.firstname
+        entity.actorLastname = actor.lastname
         entity.changedFields = entry.changedFields.takeIf { it.isNotEmpty() }?.let { jsonMapper.writeValueAsString(it) }
         return entity
     }

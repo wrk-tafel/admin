@@ -98,6 +98,8 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
         val householdEntry = entries.first { it.entityType == "Household" && it.operation.name == "INSERT" }
         assertThat(householdEntry.actorUsername).isEqualTo(testUser.username)
         assertThat(householdEntry.actorUserId).isEqualTo(testUser.id)
+        assertThat(householdEntry.actorFirstname).isEqualTo(testUser.employee.firstname)
+        assertThat(householdEntry.actorLastname).isEqualTo(testUser.employee.lastname)
         assertThat(householdEntry.businessKey).isEqualTo(householdId.toString())
         assertThat(householdEntry.changedFields).contains("addressCity")
     }

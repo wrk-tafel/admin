@@ -194,3 +194,5 @@ Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlers
 Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. In diesem Fall über **Support-Anfrage** (siehe oben) melden.
 
 ![500 – Interner Server Fehler](images/fehlerseite-500.jpg)
+
+Diese beiden Fehlerseiten erscheinen nur, wenn die Anwendung direkt über einen Link, ein Lesezeichen oder ein Neuladen der Seite geöffnet wurde. Schlägt dagegen ein Seitenwechsel innerhalb der bereits geöffneten Anwendung fehl – etwa weil der Server für einen Moment nicht erreichbar ist –, bleibt die aktuelle Seite geöffnet und es erscheint nur eine Meldung. Der Menüpunkt kann dann einfach nochmal angeklickt werden. Verlangt die Meldung ein Neuladen der Anwendung, konnte ein Teil der Anwendung nicht nachgeladen werden – in diesem Fall die Seite im Browser neu laden (F5).

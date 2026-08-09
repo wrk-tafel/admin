@@ -354,8 +354,8 @@ Angular, ...); `docs/architecture/adr/README.md` is the index.
   `superseded by ADR-NNNN`, link both ways, and update the index.
 - A change that reverses or materially narrows a recorded decision needs a new ADR as part of the
   same task — the code and the record must not disagree.
-- Longer evaluations of a decision *not yet taken* (e.g. `docs/architecture/audit-trail.md`) are not
-  ADRs; they sit one level up in `docs/architecture/` and are listed at the bottom of the ADR index.
+- Longer evaluations of a decision *not yet taken* are not ADRs; they sit one level up in
+  `docs/architecture/` and are listed at the bottom of the ADR index.
 
 ## Handling Issues Found Outside the Current Task's Scope
 
