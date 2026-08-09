@@ -173,20 +173,26 @@ internal class DistributionStatisticServiceTest {
         }
         testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
 
-        fun household(singleParent: Boolean?) = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now()).apply {
+        fun household(singleParent: Boolean) = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now()).apply {
             this.singleParent = singleParent
         }
 
         val singleParentHousehold1 = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(true), ticketNumber = 1)
         val singleParentHousehold2 = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(true), ticketNumber = 2)
         val nonSingleParentHousehold = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(false), ticketNumber = 3)
-        val unknownHousehold = DistributionHouseholdEntity(distribution = testDistributionEntity, household = household(null), ticketNumber = 4)
+
+        // a household that never had the flag set explicitly - it defaults to false
+        val defaultedHousehold = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now()),
+            ticketNumber = 4,
+        )
 
         testDistributionEntity.households = listOf(
             singleParentHousehold1,
             singleParentHousehold2,
             nonSingleParentHousehold,
-            unknownHousehold,
+            defaultedHousehold,
         )
 
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()

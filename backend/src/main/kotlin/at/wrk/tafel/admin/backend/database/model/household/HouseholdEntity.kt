@@ -99,7 +99,7 @@ class HouseholdEntity(
     var pendingCostContribution: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "single_parent")
-    var singleParent: Boolean? = null
+    var singleParent: Boolean = false
 
     /**
      * Everything the single search box may match a household on - household number, the names of all
