@@ -1,4 +1,4 @@
-# ADR-0035: Page performance rated in the pipeline by Lighthouse, with thresholds that fail the build
+# ADR-0036: Page performance rated in the pipeline by Lighthouse, with thresholds that fail the build
 
 **Status:** accepted · **Recorded:** 2026-08-09
 

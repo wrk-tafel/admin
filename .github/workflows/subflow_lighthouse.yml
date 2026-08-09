@@ -3,7 +3,7 @@ name: Lighthouse
 # Rates the page performance of the built frontend bundle with Lighthouse and fails when a score or
 # a size crosses its threshold. Thresholds and the reasoning behind what is measured live in
 # frontend/src/main/webapp/lighthouserc.cjs and
-# docs/architecture/adr/0035-page-performance-index-in-the-pipeline.md.
+# docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md.
 #
 # The audited page is served by lhci's own static server from the same `frontend-dist` artifact the
 # image is built from, so this job needs neither the backend jar nor a database - see the ADR for why

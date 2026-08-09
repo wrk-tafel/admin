@@ -1,5 +1,5 @@
 // Lighthouse CI configuration for the `lighthouse` pipeline job (.github/workflows/subflow_lighthouse.yml).
-// See docs/architecture/adr/0035-page-performance-index-in-the-pipeline.md for why the measurement is
+// See docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md for why the measurement is
 // shaped this way - in particular why it audits the login page against a static server rather than a
 // logged-in screen against the real backend.
 //
