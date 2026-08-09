@@ -1007,7 +1007,7 @@ VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'Household', 132, '132'
        (204, NOW() - interval '4 days', 200, 'testuser', 'Document', 1322, '132', 'INSERT',
         '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'::jsonb),
        (205, NOW() - interval '6 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
-        '{"addressStreet": ["Erdberg", "Landstrasser Hauptstrasse"], "addressHousenumber": ["5", "12"]}'::jsonb),
+        '{"addressStreet": ["Erdberg", "Landstrasser Hauptstrasse"], "addressHouseNumber": ["5", "12"]}'::jsonb),
        (206, NOW() - interval '8 days', 100, 'e2etest', 'Person', 1323, '132', 'INSERT',
         '{"firstname": [null, "Lena"], "lastname": [null, "Musterkind"], "isMainPerson": [null, false]}'::jsonb),
        (207, NOW() - interval '11 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
