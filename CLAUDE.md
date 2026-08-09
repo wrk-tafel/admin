@@ -91,8 +91,12 @@ npm run lint
 # Type-check without emitting (app + spec + cypress configs)
 npm run typecheck
 
-# Rate page performance the way the pipeline does (after a build-prod; needs no backend)
+# Rate the shell's page performance the way the pipeline does (after a build-prod; needs no backend)
 npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
+
+# Sweep application routes the way the pipeline does (needs a running backend and a session)
+LHCI_URLS=/uebersicht,/kunden/suchen LHCI_FORM_FACTOR=mobile LHCI_JWT=<tafel-admin-jwt cookie> \
+  npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.pages.cjs
 
 # Run E2E tests (requires backend running on port 8080)
 npm run cy:run-ci
@@ -517,16 +521,29 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
   runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
-- **Page Performance Gate**: the `lighthouse` job (`subflow_lighthouse.yml`) audits the login page of
-  the built bundle with Lighthouse CI and **fails** when a category score or a transfer size crosses a
-  threshold. Thresholds, the audited page and the reasoning live in
-  `frontend/src/main/webapp/lighthouserc.cjs`; the decision behind them is
-  [ADR-0036](docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md). It serves the
-  bundle itself, so no backend or database is involved, and it only runs when the frontend changed.
-  Each run uploads the HTML/JSON reports as the `lighthouse-reports` artifact and writes the median
-  run's scores into the job summary. `angular.json`'s production `budgets` are the deterministic
-  second layer — note they bound only what the builder labels "initial", which is *not* the whole
-  eager payload (see [#3121](https://github.com/wrk-tafel/admin/issues/3121)).
+- **Page Performance Gate**: the `lighthouse` job (`subflow_lighthouse.yml`) runs Lighthouse CI over
+  the built frontend and **fails** when a threshold is crossed. It only runs when the frontend
+  changed, and it is not a dependency of the deploy jobs. The decision behind it is
+  [ADR-0036](docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md). Two jobs, two
+  questions:
+  - `shell` audits the login page served straight from the `frontend-dist` artifact by lhci's own
+    static server — no backend, no database. This is where the **performance score, metric ceilings
+    and transfer-size budget** are enforced, on the payload every route pays before rendering
+    anything. Thresholds and their measured baselines live in
+    `frontend/src/main/webapp/lighthouserc.cjs`.
+  - `pages` audits **every route, desktop and mobile**, against a real backend (`e2e` profile,
+    Postgres service, `e2etest` session injected as a `tafel-admin-jwt` request header), sharded
+    across parallel matrix jobs. **Accessibility is enforced at 100** here; performance is reported
+    rather than gated, because an authenticated screen renders whatever the e2e fixtures hold. Route
+    list, shards and form factors are the matrix in `subflow_lighthouse.yml`; assertions are in
+    `frontend/src/main/webapp/lighthouserc.pages.cjs`. **A new route has to be added to that matrix**
+    — nothing derives the list automatically.
+
+  Every job uploads its HTML/JSON reports (`lighthouse-reports-<shard>-<formFactor>`, and
+  `lighthouse-reports-shell`) and writes its scores into the job summary, on failure too.
+  `angular.json`'s production `budgets` are the deterministic second layer — note they bound only
+  what the builder labels "initial", which is *not* the whole eager payload (see
+  [#3121](https://github.com/wrk-tafel/admin/issues/3121)).
 - **Initial Administrator**: a deployment against an empty database has no way in — every account is
   created by an existing administrator. `InitialAdminUserService` (an `ApplicationRunner`) closes
   that by creating one `ADMINISTRATOR` account with `passwordChangeRequired` **while the `users`

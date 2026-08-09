@@ -29,63 +29,106 @@ Two properties of this application decide what a useful measurement can look lik
 
 ## Decision
 
-**A `lighthouse` pipeline job audits the login page of the built production bundle with Lighthouse
-CI, and fails when a category score or a transfer size crosses a threshold. Angular's build budgets
-are tightened to bound the build output as a second, deterministic layer.**
+**A `lighthouse` pipeline job rates the built frontend with Lighthouse CI and fails when a threshold
+is crossed, in two parts: the shell's performance is gated on the login page served statically, and
+every route of the application is swept for accessibility on desktop and mobile against a real
+backend. Angular's build budgets are tightened to bound the build output as a third, deterministic
+layer.**
 
-- `.github/workflows/subflow_lighthouse.yml` downloads the same `frontend-dist` artifact the image is
-  built from, and `lhci autorun` serves it from its own static server (gzip, SPA fallback). The job
-  needs no backend jar, no database and no `npm ci` — only Node and the runner's Chrome.
+The split follows from what each measurement can honestly answer. Load cost is a property of the
+shell and is measured where it can be measured cold and repeatably; accessibility is a property of
+each screen's markup and is measured on each screen.
+
+**`shell` — the gate on load cost.** `.github/workflows/subflow_lighthouse.yml` downloads the same
+`frontend-dist` artifact the image is built from, and `lhci autorun` serves it from its own static
+server (gzip, SPA fallback). The job needs no backend jar, no database and no `npm ci` — only Node
+and the runner's Chrome, and it finishes in about a minute.
+
 - Three runs per audit; the median run is what assertions and the report are taken from, so a busy
   runner does not decide the outcome and every number in a failure comes from one page load.
-- The **desktop** preset, because this is a desktop administration application; Lighthouse's default
-  mobile emulation (4× CPU throttling, slow 4G) would grade a device nobody uses it on.
+- The **desktop** preset: the payload this measures is identical on every device, and the desktop
+  environment is the one this application is actually used in. The mobile rendering of the app is
+  covered by the sweep below.
 - Thresholds in `frontend/src/main/webapp/lighthouserc.cjs`, each recorded next to the baseline it was
   derived from: performance ≥ 0.9 and accessibility = 1.0 as errors, best practices ≥ 0.9 as a
   warning, FCP ≤ 1.5s, LCP ≤ 2s, CLS ≤ 0.1, and transfer-size ceilings for script, font and total
   bytes.
-- Accessibility is held at the full score rather than given noise headroom: those audits grade the
-  markup, not the machine, so a drop is a real regression. Best practices is only a warning because
-  part of that category grades the *server* (cache headers, CSP, HTTPS) and the server in this job is
-  lhci's static one, not the container that serves the files in production.
+- Best practices is only a warning because part of that category grades the *server* (cache headers,
+  CSP, HTTPS) and the server in this job is lhci's static one, not the container that serves the
+  files in production.
+
+**`pages` — the sweep over every route.** A matrix job boots the same stack the e2e job does — a
+Postgres service and the jar under the `e2e` profile, which also serves the frontend bundle and its
+SPA fallback (`IndexHtmlController`) — and audits every route of the application, in both form
+factors, sharded so the sweep runs in parallel rather than end to end.
+
+- **The session is a request header, not a scripted login.** `POST /api/login` yields the
+  `tafel-admin-jwt` cookie for the `e2etest` fixture user, which holds every permission, and
+  Lighthouse sends it on every request via `extraHeaders`. The application loads its user info from
+  `GET /api/users/info` while bootstrapping, so that is all an authenticated route needs — and since
+  nothing is written to the browser's own storage, Lighthouse still resets it between runs and every
+  run measures a cold cache.
+- **The SSE streams are blocked** (`blockedUrlPatterns`), which is what lets a run reach network-idle
+  at all; see the context above for why that costs about ten seconds per page rather than nothing.
+  An active distribution is started before the sweep, so the dashboard and the check-in screens
+  render their real content instead of their "no distribution" placeholder.
+- **Desktop and mobile**, because the application is responsive — the settings and customer screens
+  fall back to card layouts below the table breakpoint, and audits like tap-target sizing only mean
+  anything under mobile emulation.
+- **Accessibility = 1.0 is the only error.** Those audits grade the markup, not the machine: they
+  give the same answer on a loaded runner as on a developer laptop, which is what makes them worth
+  enforcing on thirty-odd routes where a performance threshold would only produce noise.
+- **Performance and best practices are reported, not gated.** An authenticated screen renders
+  whatever the e2e fixtures hold, so its score moves when the test data moves. The numbers go into
+  the job summary as a trend; what blocks is the shell audit above, whose payload every one of these
+  routes also pays.
+- The route list is the workflow's matrix. Nothing derives it, so **a new route has to be added
+  there** — that is the maintenance cost this buys with.
 - The tool version is pinned in the workflow (`LHCI_VERSION`), which fixes the Lighthouse version with
   it (`@lhci/cli` 0.15.1 depends on exactly `lighthouse` 12.6.1), because a Lighthouse upgrade moves
   scores on unchanged code. The job installs that pinned version into a directory of its own with
   `--ignore-scripts` rather than letting `npx` resolve and execute a package on demand
   ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md)), so neither the application's
   `package.json` nor its `node_modules` are involved.
-- Both the HTML and the JSON report are uploaded as a `lighthouse-reports` artifact, and the median
-  run's scores, metrics and transfer sizes are written to the job summary — on failure too, which is
-  when they are wanted.
+- Every job uploads both its HTML and its JSON reports as a `lighthouse-reports-*` artifact and
+  writes its scores into the job summary — on failure too, which is when they are wanted.
 - Build budgets in `angular.json` are tightened to sit just above what the build actually produces:
   `initial` 480 kB / 600 kB (actual 424 kB), `anyScript` 600 kB / 800 kB (largest chunk 533 kB),
   `allScript` 3.2 MB / 4 MB (actual 2.7 MB).
-- The job is gated on the frontend having changed, not on the application as a whole: a backend-only
-  change ships a byte-identical bundle. It is not a dependency of the deployment jobs — a performance
-  threshold is a signal to act on, not a reason to withhold a merged change from the test environment.
+- Both jobs are gated on the frontend having changed, not on the application as a whole: a
+  backend-only change ships a byte-identical bundle. Neither is a dependency of the deployment jobs —
+  a page-performance threshold is a signal to act on, not a reason to withhold a merged change from
+  the test environment.
 
-Measuring the login page is a deliberate choice, not a limitation worked around. It is the one screen
-that is anonymous and SSE-free, so it can be measured cold, repeatably, without a database; and what
-it measures — the shell every other route also pays for — is the number that actually moves when
-someone adds a dependency.
+Gating load cost on the login page is a deliberate choice, not a limitation worked around. It is the
+one screen that is anonymous and SSE-free, so it can be measured cold, repeatably, without a
+database; and what it measures — the shell every other route also pays for — is the number that
+actually moves when someone adds a dependency.
 
 ## Consequences
 
 - First-load cost has a number attached, a report to open, and a threshold that blocks. A regression
   shows up in the pull request that caused it.
-- Accessibility and best-practices scores come along for free, on the one page every user sees.
-- **The measurement covers the shell, not each screen.** A lazily-loaded route chunk that doubles in
-  size is caught by the `anyScript` build budget, but its rendering cost is not measured. Auditing a
-  logged-in screen is a worthwhile follow-up and no more infrastructure than the e2e job already
-  stands up: a Postgres service, the jar started in the background under the `e2e` profile, a
-  `tafel-admin-jwt` cookie from `POST /api/login` passed in through Lighthouse's `extraHeaders` (or a
-  `collect.puppeteerScript` that logs in through the UI), plus `blockedUrlPatterns` and a
-  `maxWaitForLoad` cap for the SSE streams above. What makes it a decision rather than a chore is the
-  baseline: an authenticated screen's numbers depend on the test data it renders, so the threshold
-  moves whenever the `e2e` fixtures do.
-- **Absolute numbers from this job are not production numbers.** lhci's static server is not the
-  Spring Boot container behind its reverse proxy, and localhost is not the network. What the job can
-  compare honestly is one commit against the next, on the same setup.
+- **Accessibility is now enforced on every screen, in both form factors** — the first automated check
+  in this repository that grades the rendered markup of each route rather than the code behind it. A
+  screen that ships an unlabelled control or a broken heading order fails the pull request that
+  introduced it.
+- **A route that is not in the matrix is not audited, and nothing says so.** The list is maintained by
+  hand next to the shards; a new screen added without a line there is silently uncovered. The
+  alternative — deriving the routes from `app.routes.ts` at build time — needs the parameterised
+  routes (`detail/:id`) filled from fixtures anyway, which is the part that cannot be derived.
+- **The sweep's performance numbers are a trend, not a gate.** They depend on the `e2e` fixtures the
+  screens render, so a fixture change moves them without any application change. Turning one into a
+  threshold means accepting that coupling for that screen and writing down its baseline.
+- **Load cost is still only measured for the shell.** A lazily-loaded route chunk that doubles in size
+  is caught by the `anyScript` build budget and shows up in the sweep's reported numbers, but nothing
+  blocks on it.
+- The sweep costs a Postgres service and a backend boot per shard, in exchange for auditing every
+  route on every frontend pull request. It is the pipeline's widest job by runner count; the shard
+  layout is what keeps its wall clock next to the e2e job's rather than far beyond it.
+- **Absolute numbers from these jobs are not production numbers.** Neither lhci's static server nor a
+  locally started jar is the container behind its reverse proxy, and localhost is not the network.
+  What they can compare honestly is one commit against the next, on the same setup.
 - The Lighthouse version pin is maintained by hand. Dependabot does not see it, deliberately: as a
   frontend `devDependency`, `@lhci/cli` would drag its transitive tree (Express 4, yargs 15) into the
   application's lockfile and into every other job's `npm ci`, for a tool one job runs.
@@ -118,10 +161,19 @@ of the application's lockfile anyway.
 third-party action to pin and audit ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md))
 in exchange for hiding two lines of `npm install` and `lhci autorun`.
 
-**Unlighthouse** (crawls every route and rates each). Attractive on paper, and it is the natural answer
-to the "per screen" gap above. Rejected for now: crawling requires an authenticated session against a
-live backend, which brings back everything the login-page choice avoids, and it multiplies runtime by
-the number of routes for a first iteration whose baselines nobody trusts yet.
+**Unlighthouse** (crawls every route and rates each). The closest thing to an off-the-shelf version of
+the `pages` sweep, and it would have removed the hand-maintained route list. Rejected: it discovers
+routes by following links, so the parameterised screens (`/kunden/detail/:id`,
+`/kunden/zusammenfuehren/:id?quellen=…`) are reachable only if some rendered page happens to link to a
+fixture that exists — the coverage would be whatever the crawler stumbled into, which is exactly what
+an explicit list makes checkable. It is also a second tool with its own Lighthouse version to pin
+next to `@lhci/cli`, and its assertion model is per-route thresholds rather than the
+`aggregationMethod`/level split used here.
+
+**One shard, every route, no matrix.** Simpler workflow and one Postgres instead of eight. Rejected on
+wall clock: thirty-odd routes in two form factors, each needing about ten seconds of SSE backoff
+before Lighthouse can call the page loaded, is roughly half an hour on the critical path of every
+frontend pull request.
 
 **Web Vitals collected inside the existing Cypress e2e run.** Tempting because the e2e job already
 starts a real backend with a real database and logs in, so authenticated screens would be measurable
@@ -142,9 +194,12 @@ third-party host, when a per-run artifact and a job summary answer the question.
 
 ## References
 
-- `.github/workflows/subflow_lighthouse.yml` — the job
-- `frontend/src/main/webapp/lighthouserc.cjs` — audited page, settings and thresholds
+- `.github/workflows/subflow_lighthouse.yml` — both jobs, and the route list the sweep covers
+- `frontend/src/main/webapp/lighthouserc.cjs` — the shell audit's settings and thresholds
+- `frontend/src/main/webapp/lighthouserc.pages.cjs` — the sweep's session, SSE handling and assertions
 - `frontend/src/main/webapp/angular.json` — the production `budgets` block
+- `backend/src/main/resources/db-migration-testdata/testdata.sql` — the fixtures the swept screens
+  render, and the ids the parameterised routes use
 - `frontend/src/main/webapp/src/app/common/sse/sse.service.ts` — the reconnect behaviour behind the
   never-idle network on authenticated screens
 - [#3104](https://github.com/wrk-tafel/admin/issues/3104), [#3121](https://github.com/wrk-tafel/admin/issues/3121)
