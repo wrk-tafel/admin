@@ -2,7 +2,7 @@
   <mat-card-header class="mb-2">
     <mat-card-title>
       <div class="flex items-center gap-2">
-        <h5 class="mb-0 mt-1">Retour-Kategorien</h5>
+        <h2 class="tafel-h5 mb-0 mt-1">Retour-Kategorien</h2>
         <button matButton="filled" class="button-success" testid="addFoodReturnCategoryButton" matTooltip="Neue Retourkategorie anlegen"
                 (click)="addFoodReturnCategory()" aria-label="Neue Retourkategorie anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
@@ -22,8 +22,10 @@
         <ng-container matColumnDef="drag">
           <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
           <td mat-cell *matCellDef="let category; let i = index">
-            <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
-                     [attr.testid]="'dragFoodReturnCategoryHandle-' + i"></fa-icon>
+            <tafel-reorder-handle cdkDragHandle [label]="'Retour-Kategorie ' + category.name"
+                                  [position]="i + 1" [count]="foodReturnCategories().length"
+                                  [testId]="'dragFoodReturnCategoryHandle-' + i"
+                                  (move)="moveFoodReturnCategory(i, $event)"/>
           </td>
         </ng-container>
 
@@ -96,8 +98,10 @@
                     [attr.testid]="'food-return-categories-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
-                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
-                         [attr.testid]="'dragFoodReturnCategoryHandle-' + i"></fa-icon>
+                <tafel-reorder-handle cdkDragHandle [label]="'Retour-Kategorie ' + category.name"
+                                      [position]="i + 1" [count]="foodReturnCategories().length"
+                                      [testId]="'dragFoodReturnCategoryHandle-' + i"
+                                      (move)="moveFoodReturnCategory(i, $event)"/>
                 @if (editingId() === category.id) {
                   <mat-form-field subscriptSizing="dynamic" class="w-full">
                     <mat-label>Name</mat-label>

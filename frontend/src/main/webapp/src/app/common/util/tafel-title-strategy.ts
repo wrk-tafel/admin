@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Injectable, signal} from '@angular/core';
 import {Title} from '@angular/platform-browser';
 import {RouterStateSnapshot, TitleStrategy} from '@angular/router';
 
@@ -17,8 +17,18 @@ const APPLICATION_NAME = 'Tafel Admin';
 export class TafelTitleStrategy extends TitleStrategy {
   private readonly title = inject(Title);
 
+  private readonly _routeTitle = signal('');
+
+  /**
+   * The active route's own title, without the application name the document title appends. The
+   * shell renders it as the page's `h1`, so that every screen has exactly one - the screens
+   * themselves carry no page heading, only the headings of the cards they are built from.
+   */
+  readonly routeTitle = this._routeTitle.asReadonly();
+
   override updateTitle(snapshot: RouterStateSnapshot) {
     const routeTitle = this.buildTitle(snapshot);
+    this._routeTitle.set(routeTitle ?? '');
     this.title.setTitle(routeTitle ? `${routeTitle} - ${APPLICATION_NAME}` : APPLICATION_NAME);
   }
 }

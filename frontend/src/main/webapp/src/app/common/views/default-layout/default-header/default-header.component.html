@@ -13,13 +13,16 @@
 
   <div class="flex items-center gap-6">
     <!--
-      Colour is the only thing that told the two states apart, which says nothing to a screen
-      reader. The state now sits in the badge's own text as well, visually hidden; `role="status"`
-      makes the badge a live region, so a connection that drops is announced instead of silently
-      turning red.
+      Green against red was the only thing that told the two states apart, which is no difference at
+      all to someone who cannot tell those two colours apart, and none whatsoever to a screen
+      reader. The icon carries the state as a shape, the visually hidden text carries it as words,
+      and `role="status"` makes the badge a live region so a connection that drops is announced
+      rather than silently turning red.
     -->
-    <span class="badge" role="status" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">Live-Verbindung<span
-      class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span></span>
+    <span class="badge" role="status" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">
+      <fa-icon [icon]="sseConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
+      Live-Verbindung<span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
+    </span>
 
     <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
             class="w-9 h-9 rounded-md overflow-hidden">

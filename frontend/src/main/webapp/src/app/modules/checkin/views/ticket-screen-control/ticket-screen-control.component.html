@@ -1,7 +1,7 @@
 <mat-card>
   <mat-card-content>
     <div class="flex justify-between items-center mb-6">
-      <h3 class="text-xl font-semibold m-0">Ticket-Monitor - Steuerung</h3>
+      <h2 class="tafel-h3 text-xl font-semibold m-0">Ticket-Monitor - Steuerung</h2>
       <button testid="open-screen-button" mat-flat-button color="primary" class="ml-4" (click)="openScreenInNewTab()">Monitor öffnen</button>
     </div>
 
@@ -30,7 +30,7 @@
         </div>
 
         <div class="text-center mt-6">
-          <h4 class="text-lg">Aktuelles Ticket</h4>
+          <h3 class="tafel-h4 text-lg">Aktuelles Ticket</h3>
           <div class="mt-2">Unkostenbeitrag entrichtet ?</div>
           <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
             <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success" (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (bezahlt)</button>
@@ -42,7 +42,7 @@
           <mat-divider class="!my-6"></mat-divider>
 
           <div class="text-center">
-            <h4 class="text-lg">Unkostenbeitrag (bestehend)</h4>
+            <h3 class="tafel-h4 text-lg">Unkostenbeitrag (bestehend)</h3>
             <div class="mt-2" testid="pendingCostContributionText">{{ currentTicket()?.pendingCostContribution | currency }}</div>
             <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
               @if ((currentTicket()?.pendingCostContribution ?? 0) > 0) {
@@ -57,7 +57,7 @@
 
       <div>
         <div class="text-center">
-          <h3 class="text-xl font-semibold">Live-Ansicht</h3>
+          <h2 class="tafel-h3 text-xl font-semibold">Live-Ansicht</h2>
         </div>
         <div class="mt-4 flex justify-center">
           <div class="h-[30vh] w-[30vw] text-[2pt]">

@@ -14,6 +14,7 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {ConfigApiService} from '../../../api/config-api.service';
+import {TafelTitleStrategy} from '../../util/tafel-title-strategy';
 
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
@@ -56,6 +57,9 @@ export class DefaultLayoutComponent {
   readonly sidenavContainer = viewChild.required(MatSidenavContainer);
 
   readonly mainContent = viewChild.required<ElementRef<HTMLElement>>('mainContent');
+
+  /** The page's `h1`; see `TafelTitleStrategy.routeTitle`. */
+  readonly pageTitle = inject(TafelTitleStrategy).routeTitle;
 
   toggleCollapsed() {
     this.collapsed.update(value => !value);

@@ -21,8 +21,14 @@ import {ShelterApiService, ShelterItem, ShelterListResponse} from '../../../../a
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {faEye, faEyeSlash, faGripVertical, faMagnifyingGlass, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faEye, faEyeSlash, faMagnifyingGlass, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {
+  TafelReorderHandleComponent
+} from '../../../../common/components/tafel-reorder-handle/tafel-reorder-handle.component';
+import {
+  ReorderFeedbackService
+} from '../../../../common/components/tafel-reorder-handle/reorder-feedback.service';
 
 @Component({
   selector: 'tafel-settings-shelters',
@@ -49,12 +55,14 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
+    TafelReorderHandleComponent,
     MatTooltipModule
   ]
 })
 export class SettingsSheltersComponent {
   private readonly shelterApiService = inject(ShelterApiService);
   private readonly toastr = inject(TafelToastrService);
+  private readonly reorderFeedback = inject(ReorderFeedbackService);
   private readonly dialog = inject(MatDialog);
 
   private _shelters = signal<ShelterListResponse | null>(null);
@@ -136,17 +144,50 @@ export class SettingsSheltersComponent {
   }
 
   protected drop(event: CdkDragDrop<ShelterItem[]>) {
+    this.reorder(event.previousIndex, event.currentIndex, false);
+  }
+
+  /** The keyboard path of the same reordering - `offset` is -1 for one place up, 1 for one down. */
+  protected moveShelter(index: number, offset: number) {
+    const targetIndex = index + offset;
+    const moved = this.reorder(index, targetIndex, true);
+
+    if (moved) {
+      this.reorderFeedback.announce(`Notschlafstelle ${moved.name}`, targetIndex, (this.shelters()?.shelters ?? []).length);
+    }
+  }
+
+  /**
+   * `keepFocusOnHandle` only for the keyboard path: after a drag the pointer, not the keyboard, is
+   * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
+   */
+  private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): ShelterItem | undefined {
     const reordered = [...(this.shelters()?.shelters ?? [])];
-    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    if (toIndex < 0 || toIndex >= reordered.length) {
+      return undefined;
+    }
+
+    moveItemInArray(reordered, fromIndex, toIndex);
     this._shelters.set({shelters: reordered}); // optimistic, updates in the background
+    if (keepFocusOnHandle) {
+      this.reorderFeedback.refocusHandle(`dragShelterHandle-${toIndex}`);
+    }
 
     this.shelterApiService.reorderShelters(reordered.map(shelter => shelter.id)).subscribe({
-      next: data => this._shelters.set(data),
+      next: data => {
+        this._shelters.set(data);
+        // The response replaces every record, so the focused handle is a new element by now.
+        if (keepFocusOnHandle) {
+          this.reorderFeedback.refocusHandle(`dragShelterHandle-${toIndex}`);
+        }
+      },
       error: () => {
         this.toastr.error('Fehler beim Ändern der Reihenfolge', 'Fehler');
         this.loadShelters();
       }
     });
+
+    return reordered[toIndex];
   }
 
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
@@ -154,5 +195,4 @@ export class SettingsSheltersComponent {
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
-  protected readonly faGripVertical = faGripVertical;
 }

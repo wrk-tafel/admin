@@ -14,8 +14,8 @@
           }
         </mat-select>
       </mat-form-field>
-      <!-- Not a heading: it holds the scanner's state badge, and as an <h4> after the <h2> above it
-           skipped a level. text-2xl keeps the badge at the size it sizes itself from. -->
+      <!-- Not a heading: it holds the scanner's state badge, which names no section of the page.
+           text-2xl keeps the badge at the size it sizes itself from. -->
       <div class="text-2xl m-0 md:col-span-1">
         <div class="badge"
              [ngClass]="{'badge-success': scannerReadyState(), 'badge-danger': !scannerReadyState()}"
@@ -140,7 +140,7 @@
               <mat-card-content>
                 @if (customerNotes()?.length === 0) {
                   <div class="font-semibold">
-                    <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                    <h4 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h4>
                   </div>
                 }
                 @if (customerNotes() && customerNotes()?.length !== 0) {

@@ -67,8 +67,10 @@ export const appConfig: ApplicationConfig = {
       withNavigationErrorHandler(() => new RedirectCommand(inject(Router).parseUrl('/404')))
     ),
     {
+      // `useExisting`, not `useClass`: the shell reads the active route's title off the very same
+      // instance the router writes it to, and `useClass` would hand out a second one.
       provide: TitleStrategy,
-      useClass: TafelTitleStrategy
+      useExisting: TafelTitleStrategy
     },
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAppInitializer(() => inject(SwUpdateService).init()),

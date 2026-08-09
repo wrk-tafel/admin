@@ -137,6 +137,13 @@
       focus stays where it was and the next Tab would continue in the navigation.
     -->
     <main #mainContent id="hauptinhalt" tabindex="-1" class="grow px-6 pt-6 pb-6 focus:outline-none">
+      <!--
+        The page's one `h1`, from the same route title the document title uses. The screens
+        themselves show no page heading - the sidebar is what names the open page - so without this
+        a screen reader's heading navigation would start in the middle of the outline, and the
+        headings the cards do carry would have nothing to sit under.
+      -->
+      <h1 class="sr-only">{{ pageTitle() }}</h1>
       <router-outlet/>
     </main>
   </mat-sidenav-content>

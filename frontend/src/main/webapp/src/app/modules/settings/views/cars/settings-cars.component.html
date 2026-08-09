@@ -2,7 +2,7 @@
   <mat-card-header class="mb-2">
     <mat-card-title>
       <div class="flex items-center gap-2">
-        <h5 class="mb-0 mt-1">Fahrzeuge</h5>
+        <h2 class="tafel-h5 mb-0 mt-1">Fahrzeuge</h2>
         <button matButton="filled" class="button-success" testid="addCarButton" matTooltip="Neues Fahrzeug anlegen" (click)="addCar()" aria-label="Neues Fahrzeug anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
@@ -20,8 +20,10 @@
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
         <td mat-cell *matCellDef="let car; let i = index">
-          <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
-                   [attr.testid]="'dragCarHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
+          <tafel-reorder-handle cdkDragHandle [label]="'Fahrzeug ' + car.name"
+                                [position]="i + 1" [count]="(cars()?.cars ?? []).length"
+                                [testId]="'dragCarHandle-' + i"
+                                (move)="moveCar(i, $event)"/>
         </td>
       </ng-container>
 
@@ -104,7 +106,10 @@
           <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [class.tafel-inactive]="!car.enabled" [attr.testid]="'cars-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
-                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragCarHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
+                <tafel-reorder-handle cdkDragHandle [label]="'Fahrzeug ' + car.name"
+                                      [position]="i + 1" [count]="(cars()?.cars ?? []).length"
+                                      [testId]="'dragCarHandle-' + i"
+                                      (move)="moveCar(i, $event)"/>
                 @if (editingId() === car.id) {
                   <mat-form-field subscriptSizing="dynamic" class="w-full">
                     <mat-label>Name</mat-label>

@@ -6,9 +6,10 @@ import { GlobalStateService } from '../../state/global-state.service';
 import { DistributionItem } from '../../../api/distribution-api.service';
 import { ConfigApiService } from '../../../api/config-api.service';
 import { provideLocationMocks } from '@angular/common/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router, TitleStrategy } from '@angular/router';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
+import { TafelTitleStrategy } from '../../util/tafel-title-strategy';
 
 describe('DefaultLayoutComponent', () => {
     let authService: MockedObject<AuthenticationService>;
@@ -31,8 +32,9 @@ describe('DefaultLayoutComponent', () => {
 
         TestBed.configureTestingModule({
             providers: [
-                provideRouter([]),
+                provideRouter([{path: 'uebersicht', title: 'Übersicht', children: []}]),
                 provideLocationMocks(),
+                {provide: TitleStrategy, useExisting: TafelTitleStrategy},
                 {
                     provide: AuthenticationService,
                     useValue: authServiceSpy
@@ -366,6 +368,22 @@ return true;
 
         expect(main).toBeTruthy();
         expect(document.activeElement).toBe(main);
+    });
+
+    // Every screen behind the login shows no page heading of its own, so this is the only `h1` the
+    // document has - and a heading structure that starts at `h2` is one a screen reader cannot
+    // navigate from the top.
+    it('renders the active route title as the pages one visually hidden h1', async () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        await TestBed.inject(Router).navigate(['/uebersicht']);
+        fixture.detectChanges();
+
+        const headings = fixture.nativeElement.querySelectorAll('h1');
+        expect(headings.length).toBe(1);
+        expect(headings[0].textContent.trim()).toBe('Übersicht');
+        expect(headings[0].classList.contains('sr-only')).toBe(true);
     });
 
     // The whole point of the link is to come before what it skips - inside the sidenav content it
