@@ -3,7 +3,8 @@
 // shaped this way - in particular why it audits the login page against a static server rather than a
 // logged-in screen against the real backend.
 //
-// Run it locally the same way CI does (from this directory, after `npm run build-prod`):
+// Run it locally against the same config CI uses (from this directory, after `npm run build-prod`);
+// the job installs the same pinned version explicitly instead of resolving it on demand:
 //   npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
 module.exports = {
   ci: {

@@ -36,10 +36,22 @@ jobs:
           name: frontend-dist
           # Same layout lighthouserc.cjs expects as its staticDistDir.
           path: ./frontend/src/main/webapp/dist/browser
+      - name: Install Lighthouse CI
+        # Installed explicitly at the pinned version with lifecycle scripts disabled, rather than
+        # letting `npx` resolve and execute a package on demand. It goes into a directory of its own
+        # so that neither the application's package.json nor its node_modules are involved.
+        run: |
+          mkdir -p "${RUNNER_TEMP}/lhci"
+          npm install --no-save --ignore-scripts --prefix "${RUNNER_TEMP}/lhci" "@lhci/cli@${LHCI_VERSION}"
       - name: Run Lighthouse
         # No `npm ci`: the audit needs the built bundle and a Chrome (preinstalled on the runner),
         # not the project's dependencies.
-        run: npx --yes "@lhci/cli@${LHCI_VERSION}" autorun --config=lighthouserc.cjs
+        #
+        # lhci's healthcheck warns "GitHub token not set" here; that is expected, not a setup gap. A
+        # token would only make the upload step post an extra commit status per audited URL, next to
+        # this job's own result, linking to the localhost URL the static server served - the reports
+        # are kept as a build artifact instead of on a public report host.
+        run: "${RUNNER_TEMP}/lhci/node_modules/.bin/lhci autorun --config=lighthouserc.cjs"
         working-directory: frontend/src/main/webapp
       - name: Report the scores
         # Runs on failure too - a failed threshold is exactly when the numbers are wanted.

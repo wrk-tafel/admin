@@ -49,7 +49,10 @@ are tightened to bound the build output as a second, deterministic layer.**
   lhci's static one, not the container that serves the files in production.
 - The tool version is pinned in the workflow (`LHCI_VERSION`), which fixes the Lighthouse version with
   it (`@lhci/cli` 0.15.1 depends on exactly `lighthouse` 12.6.1), because a Lighthouse upgrade moves
-  scores on unchanged code.
+  scores on unchanged code. The job installs that pinned version into a directory of its own with
+  `--ignore-scripts` rather than letting `npx` resolve and execute a package on demand
+  ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md)), so neither the application's
+  `package.json` nor its `node_modules` are involved.
 - Both the HTML and the JSON report are uploaded as a `lighthouse-reports` artifact, and the median
   run's scores, metrics and transfer sizes are written to the job summary — on failure too, which is
   when they are wanted.
@@ -103,12 +106,12 @@ render or blocking time, it grades the labelled bundles rather than what the bro
 
 **Lighthouse CLI plus a hand-written assertion script.** Full control, one dependency, no Express 4 in
 the tree. Rejected: it re-implements median aggregation, assertion levels and report generation that
-`@lhci/cli` already has, and the pinned `npx` invocation keeps its dependency tree out of the
-application's lockfile anyway.
+`@lhci/cli` already has, and installing it into a directory of its own keeps its dependency tree out
+of the application's lockfile anyway.
 
 **`treosh/lighthouse-ci-action`.** The same `@lhci/cli` in a wrapper. Rejected for being one more
 third-party action to pin and audit ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md))
-in exchange for hiding a single `npx` line.
+in exchange for hiding two lines of `npm install` and `lhci autorun`.
 
 **Unlighthouse** (crawls every route and rates each). Attractive on paper, and it is the natural answer
 to the "per screen" gap above. Rejected for now: crawling requires an authenticated session against a
