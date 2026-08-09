@@ -126,6 +126,19 @@ tafeladmin:
   # without restarting the container.
   search:
     similarityThreshold: 0.5
+  # First-run bootstrap of a new installation: while the users table is completely empty, one
+  # administrator account is created at startup so the deployment can be logged into and configured
+  # from the UI. As soon as any user exists this does nothing, whatever is configured here. Leave
+  # the password unset and a random one is generated and printed to the log once; either way the
+  # account must change it at first login. See InitialAdminUserService.
+  setup:
+    initialAdmin:
+      enabled: true
+      username: admin
+      # password: <only for an unattended rollout that needs to know it up front>
+      personnelNumber: "00001"
+      firstname: Tafel
+      lastname: Administrator
   server:
     relativeBaseUrl: /
   support:

@@ -39,6 +39,7 @@ class TafelAdminProperties {
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
     var push: TafelAdminPushProperties? = null
     var search: TafelAdminSearchProperties = TafelAdminSearchProperties()
+    var setup: TafelAdminSetupProperties = TafelAdminSetupProperties()
     var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
 
     /**
@@ -92,6 +93,40 @@ class TafelAdminSearchProperties {
      * fuzzy one.
      */
     var similarityThreshold: Float = 0.5f
+}
+
+@ExcludeFromTestCoverage
+class TafelAdminSetupProperties {
+    var initialAdmin: TafelAdminInitialAdminProperties = TafelAdminInitialAdminProperties()
+}
+
+/**
+ * The administrator account a brand-new installation is bootstrapped with, so an empty database can
+ * be logged into and configured from the UI instead of needing a hand-written SQL insert. Only ever
+ * applied to a database with no users at all - see `InitialAdminUserService`.
+ *
+ * Read once during startup by definition, so unlike most of this configuration, reloading it has no
+ * meaning (same as [TafelAdminTestdataProperties.enabled]).
+ */
+@ExcludeFromTestCoverage
+class TafelAdminInitialAdminProperties {
+    var enabled: Boolean = true
+    var username: String = "admin"
+
+    /**
+     * Left unset in every environment's configuration on purpose: with no password given, a random
+     * one is generated and printed to the log once, which keeps this repository - and any config
+     * file copied from it - free of a credential that would otherwise be the same on every
+     * installation. Setting it is supported for an automated/unattended rollout that needs to know
+     * the password up front; it must satisfy the same rules as any other password
+     * (`WebSecurityConfig.passwordValidator`), and startup fails with those rules listed if it
+     * doesn't.
+     */
+    var password: String? = null
+
+    var personnelNumber: String = "00001"
+    var firstname: String = "Tafel"
+    var lastname: String = "Administrator"
 }
 
 @ExcludeFromTestCoverage

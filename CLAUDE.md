@@ -514,6 +514,13 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
   runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
+- **Initial Administrator**: a deployment against an empty database has no way in — every account is
+  created by an existing administrator. `InitialAdminUserService` (an `ApplicationRunner`) closes
+  that by creating one `ADMINISTRATOR` account with `passwordChangeRequired` **while the `users`
+  table is completely empty**, and doing nothing otherwise; the password comes from
+  `tafeladmin.setup.initialAdmin.password` or, unset, is generated per installation and logged once
+  at WARN. Disabled in integration tests (`src/test/resources/application.yml`) so they don't see a
+  user they didn't create. See ADR-0035 and the README's "New Installation".
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)

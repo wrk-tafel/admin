@@ -68,6 +68,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0026](0026-branch-based-promotion-through-environments.md) | Branch-based promotion through dev, test and prod | accepted |
 | [0013](0013-saturday-production-deploy-freeze.md) | Production deploys blocked all day Saturday | accepted |
 | [0019](0019-supply-chain-and-container-runtime-hardening.md) | Pinned supply chain and a container that fails loudly | accepted |
+| [0035](0035-first-run-bootstraps-an-administrator-account.md) | A first run against an empty database bootstraps one administrator | accepted |
 | [0014](0014-integration-tests-against-real-postgres.md) | Integration tests against real PostgreSQL via Testcontainers | accepted |
 | [0030](0030-conventions-enforced-by-archunit.md) | Structural conventions enforced by ArchUnit tests | accepted |
 | [0031](0031-sonarcloud-quality-gate-with-explicit-coverage-opt-out.md) | SonarCloud quality gate with an explicit coverage opt-out | accepted |
