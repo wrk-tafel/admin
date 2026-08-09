@@ -22,6 +22,7 @@ SELECT setval('shelters_contacts_seq', 10000, false);
 SELECT setval('distributions_statistics_shelters_seq', 10000, false);
 SELECT setval('mail_recipients_seq', 10000, false);
 SELECT setval('login_attempts_seq', 10000, false);
+SELECT setval('audit_log_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -934,3 +935,56 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW() + interval '2 years', NOW() + interval '2 years');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
 VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);
+
+
+-- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters
+-- something to filter. Written directly rather than by exercising the application, which is the
+-- only way to get a spread of dates out of a fixture that loads in one moment - and the reason
+-- these rows carry no matching change in the data itself: they describe edits that never happened.
+--
+-- Shaped so each filter has a visible effect: every entity type and operation occurs, the actors
+-- are three different users, the business keys are households that exist in this fixture, and the
+-- timestamps run from 2 hours to ~83 days old. The screen opens on customers of the last month, so
+-- roughly a third of these are visible at first and the rest appear once the date range is widened.
+--
+-- The newest is deliberately 2 hours old: an e2e test that creates a customer and then reads the
+-- log expects its own change first, which a fixture row stamped "now" could tie with.
+WITH shapes (idx, entity_type, entity_id, business_key, operation, changed_fields) AS (
+    VALUES (0, 'Household', 100, '100', 'UPDATE',
+            '{"addressCity": ["Wien", "Graz"], "addressPostalCode": ["1030", "8010"]}'),
+           (1, 'Household', 101, '101', 'UPDATE',
+            '{"telephoneNumber": ["00436645678953", "00436641112223"]}'),
+           (2, 'Household', 102, '102', 'INSERT',
+            '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2999-12-31"]}'),
+           (3, 'Household', 103, '103', 'DELETE',
+            '{"addressStreet": ["Erdberg", null], "addressCity": ["Wien", null], "email": ["geloescht@wrk.at", null]}'),
+           (4, 'Person', 104, '104', 'UPDATE',
+            '{"income": ["456.00", "512.00"], "incomeDue": ["2026-01-31", "2026-07-31"]}'),
+           (5, 'Person', 105, '105', 'INSERT',
+            '{"firstname": [null, "Neues"], "lastname": [null, "Haushaltsmitglied"], "isMainPerson": [null, false]}'),
+           (6, 'HouseholdNote', 110, '110', 'INSERT',
+            '{"note": [null, "Kunde hat Einkommensnachweis nachgereicht"]}'),
+           (7, 'Document', 111, '111', 'INSERT',
+            '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'),
+           (8, 'User', 200, 'testuser', 'UPDATE',
+            '{"enabled": [true, false], "passwordChangeRequired": [false, true]}'),
+           (9, 'UserAuthority', 200, 'testuser', 'INSERT',
+            '{"name": [null, "CUSTOMERS_OVERVIEW"]}'),
+           (10, 'StaticValue', 1, 'INCOME_LIMIT', 'UPDATE',
+            '{"amount": ["1200.00", "1250.00"]}'),
+           (11, 'MailRecipient', 1, 'DAILY_REPORT', 'UPDATE',
+            '{"address": ["alt@wrk.at", "neu@wrk.at"]}')
+)
+INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, entity_type, entity_id,
+                       business_key, operation, changed_fields)
+SELECT n,
+       NOW() - interval '2 hours' - (n * interval '20 hours'),
+       CASE n % 3 WHEN 0 THEN 100 WHEN 1 THEN 300 ELSE 200 END,
+       CASE n % 3 WHEN 0 THEN 'e2etest' WHEN 1 THEN 'admin' ELSE 'testuser' END,
+       shapes.entity_type,
+       shapes.entity_id,
+       shapes.business_key,
+       shapes.operation,
+       shapes.changed_fields::jsonb
+FROM generate_series(1, 100) AS n
+         JOIN shapes ON shapes.idx = n % 12;
