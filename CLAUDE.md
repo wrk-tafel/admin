@@ -130,8 +130,11 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 10 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 11 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
+- **audit**: read access to the audit trail — "who changed what, and what did it look like before".
+  Only reads: the listener that fills `audit_log` lives in `database/common/audit/` because it has to
+  see every module's writes. See ADR-0039 and the module README
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management
@@ -211,6 +214,9 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
 - **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
+- **audit**: the `aenderungsprotokoll` screen — the whole audit trail, filterable. The per-household
+  view of the same data is the customer detail screen's "Verlauf" tab; both render the shared
+  `common/components/audit-entry-list` component
 
 **Architecture Patterns:**
 - Standalone components with lazy-loaded feature modules
@@ -273,6 +279,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `food_categories`, `food_collections`, `food_collection_items`: Food recording
 - `shelters`, `shelter_contacts`: Shelter management
 - `cars`: Vehicle management
+- `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
 - `mail_addresses`: Email recipient configuration
 
@@ -517,6 +524,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/food-collections`: Food collection recording (nested under `/routes/{routeId}` and `/routes/{routeId}/shops/{shopId}`)
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
+- `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
 - `/api/settings`: Application settings
 - `/api/support`: Creates a GitHub issue from an in-app support request
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
@@ -562,7 +570,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
      interaction produced rather than the whole document — a failure then says which control it
      came from, and a defect in the initial render stays the sweep's to report. A new dialog,
      inline-edit state, non-default tab or expanded panel needs an assertion here; nothing derives
-     them automatically. See ADR-0038.
+     them automatically. See ADR-0039.
 
   Where a rule is a genuine false positive (a clickable card whose keyboard path is a button
   nested inside it), disable it on that line with a comment saying why — never by relaxing the rule
@@ -670,6 +678,23 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.
+- **Audit Trail**: every change to a household, person, note, document, user, user authority, static
+  value or mail recipient is recorded in `audit_log` — who, when, and the old/new values as a `jsonb`
+  diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
+  and writes them in `beforeCommit`, so a rolled-back transaction records nothing. Two things to keep
+  in mind when touching this area:
+  - **`AuditScope` is the whole allow-list.** Adding an entity there is all it takes to audit it —
+    and adding one that is written thousands of times per distribution day (which is why
+    `distributions_households` is excluded) is the mistake nothing catches.
+  - **Bulk `@Modifying` queries and native SQL never reach a Hibernate event.** Those callers must
+    report what they did via `AuditLogWriter.record` themselves, as `HouseholdMergeService` does for
+    its re-parenting; nothing fails if a new one doesn't. This is the known cost of not using
+    database triggers — see [ADR-0039](docs/architecture/adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md).
+
+  `created_by`/`updated_by` on `BaseChangeTrackingEntity` are the separate, cheaper half: filled by
+  Spring Data JPA auditing, they only ever answer "who last touched this row". `created_at`/
+  `updated_at` are *not* audit infrastructure and must not be repurposed — several user-visible
+  features read them as domain data (see the KDoc on `BaseChangeTrackingEntity`).
 - **Real-time Updates**: Dashboard and ticket screen use SSE for live updates without polling.
 
 ## Profiles and Configuration

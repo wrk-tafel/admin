@@ -47,7 +47,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |
 | [0009](0009-server-side-document-generation-with-xsl-fo.md) | Server-side documents — XSL-FO/FOP for PDF, Commons CSV | accepted |
-| [0039](0039-route-navigation-by-map-app-deep-link.md) | Navigation along a route is a deep link into the device's map app | accepted |
+| [0040](0040-route-navigation-by-map-app-deep-link.md) | Navigation along a route is a deep link into the device's map app | accepted |
 
 ### Domain rules
 
@@ -76,6 +76,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0036](0036-page-performance-index-in-the-pipeline.md) | Page performance rated by Lighthouse, with thresholds that fail the build | accepted |
 | [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted |
 | [0038](0038-axe-assertions-in-the-e2e-suite.md) | Post-interaction accessibility asserted by axe inside the e2e suite | accepted |
+| [0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) | Audit trail as one append-only `audit_log` table, written by the application | accepted |
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | accepted |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 
@@ -86,7 +87,7 @@ yet taken live one level up, in [`docs/architecture/`](../):
 
 | Document | Subject |
 |---|---|
-| [Audit trail](../audit-trail.md) | Whether to keep `created_at`/`updated_at` and what a real audit trail should look like ([#2871](https://github.com/wrk-tafel/admin/issues/2871)) |
+| [Audit trail](../audit-trail.md) | Whether to keep `created_at`/`updated_at` and what a real audit trail should look like ([#2871](https://github.com/wrk-tafel/admin/issues/2871)) — concluded by [ADR-0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) |
 
 ## Writing a new one
 

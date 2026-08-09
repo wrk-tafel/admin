@@ -1,4 +1,4 @@
-# ADR-0039: Navigation along a route is a deep link into the device's map app
+# ADR-0040: Navigation along a route is a deep link into the device's map app
 
 **Status:** accepted · **Recorded:** 2026-08-09
 

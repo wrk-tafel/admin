@@ -102,6 +102,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'aenderungsprotokoll',
+        loadChildren: () => import('./modules/audit/audit.routes').then(m => m.routes),
+        data: {
+          anyPermissionOf: ['AUDIT_LOG']
+        }
+      },
+      {
         path: 'statistiken',
         loadChildren: () => import('./modules/statistics/statistics.routes').then(m => m.routes),
         data: {

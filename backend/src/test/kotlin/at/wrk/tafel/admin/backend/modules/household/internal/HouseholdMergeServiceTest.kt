@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -49,6 +51,9 @@ class HouseholdMergeServiceTest {
 
     @RelaxedMockK
     private lateinit var householdService: HouseholdService
+
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
 
     @InjectMockKs
     private lateinit var service: HouseholdMergeService
@@ -156,6 +161,30 @@ class HouseholdMergeServiceTest {
         verify(exactly = 1) { householdService.deleteHouseholdByHouseholdId(2L) }
         verify(exactly = 1) { householdService.deleteHouseholdByHouseholdId(3L) }
         assertThat(response.deletedHouseholdIds).containsExactlyInAnyOrder(2L, 3L)
+    }
+
+    /**
+     * The re-parenting above happens entirely in bulk `@Modifying` queries, which Hibernate's
+     * flush-time events never see - so a merge is only in the audit trail because this service puts
+     * it there. Nothing else fails if it stops doing so, which is exactly why it is asserted here.
+     */
+    @Test
+    fun `merge reports to the audit trail what the bulk queries moved`() {
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns testHousehold(2L, 20L)
+        mockDefaultResponse()
+
+        service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L)))
+
+        val entries = mutableListOf<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entries)) }
+
+        val targetSummary = entries.single { it.entityType == "Household" && it.businessKey == "1" }
+        assertThat(targetSummary.operation).isEqualTo(AuditOperation.UPDATE)
+        assertThat(targetSummary.changedFields).containsKeys("mergedFromHouseholds", "movedPersons", "movedNotes")
+
+        val sourceEntry = entries.single { it.entityType == "Household" && it.businessKey == "2" }
+        assertThat(sourceEntry.changedFields["mergedIntoHousehold"]).containsExactly(2L, 1L)
     }
 
     @Test

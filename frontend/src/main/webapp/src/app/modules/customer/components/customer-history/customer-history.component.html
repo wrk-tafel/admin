@@ -1,0 +1,20 @@
+<div class="mt-4" testid="customer-history">
+  <p class="mb-4 text-sm text-slate-600">
+    Jede Änderung an diesem Kunden, seinen Personen, Notizen und Dokumenten — mit dem Benutzer, der
+    sie vorgenommen hat.
+  </p>
+
+  @if (history(); as historyResponse) {
+    @if (historyResponse.items.length === 0) {
+      <div class="mt-4 text-center" testid="customer-history-empty">Keine Änderungen erfasst.</div>
+    } @else {
+      <mat-paginator class="tafel-paginator-responsive mb-4" testid="customer-history-paginator"
+                     [length]="historyResponse.totalCount" [pageSize]="historyResponse.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"
+                     [pageIndex]="historyResponse.currentPage - 1" [showFirstLastButtons]="true"
+                     (page)="onPage($event.pageIndex, $event.pageSize)"></mat-paginator>
+
+      <tafel-audit-entry-list [entries]="historyResponse.items"></tafel-audit-entry-list>
+    }
+  }
+</div>

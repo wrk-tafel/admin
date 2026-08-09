@@ -8,6 +8,10 @@ create table if not exists routes_stops_completions
     id              bigint    primary key,
     created_at      timestamp not null,
     updated_at      timestamp not null,
+    -- the actor columns every BaseChangeTrackingEntity table carries (see R__00092), nullable for
+    -- the same reason: a write no user is behind leaves them empty
+    created_by      varchar(255),
+    updated_by      varchar(255),
     route_stop_id   bigint    not null references routes_stops (id) on delete cascade,
     completion_date date      not null,
     employee_id     bigint    null references employees (id) on delete set null,

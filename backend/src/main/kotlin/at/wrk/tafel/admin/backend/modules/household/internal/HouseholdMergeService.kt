@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -26,6 +28,7 @@ class HouseholdMergeService(
     private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val householdConverter: HouseholdConverter,
     private val householdService: HouseholdService,
+    private val auditLogWriter: AuditLogWriter,
 ) {
 
     companion object {
@@ -78,6 +81,14 @@ class HouseholdMergeService(
 
         validateFieldSelections(request, sourcesByHouseholdId)
 
+        // Captured while target/sources are still attached: the re-parenting below runs as
+        // `clearAutomatically = true` bulk updates, after which reading `source.persons` would go
+        // back to a detached entity. Needed by the audit entries at the end of this method.
+        val targetEntityId = target.id!!
+        val sourceHouseholdIdByPersonId = sources
+            .flatMap { source -> source.persons.mapNotNull { person -> person.id?.let { it to source.householdId } } }
+            .toMap()
+
         // 1) field selections, while target/sources are still the fresh entities from resolve()
         HouseholdMergeField.entries.forEach { field ->
             val winnerHouseholdId = request.fieldSelections.firstOrNull { it.field == field }?.sourceHouseholdId
@@ -126,6 +137,19 @@ class HouseholdMergeService(
         // 4) only now, with no children left to lose, delete each source shell
         sources.forEach { source -> householdService.deleteHouseholdByHouseholdId(source.householdId) }
 
+        // 5) the re-parenting in step 3 went through bulk queries, which Hibernate's flush-time
+        // events never see - so the audit trail is told about it explicitly. The source shells' own
+        // DELETE entries come from the listener via step 4 and need nothing here.
+        recordMergeAuditEntries(
+            targetHouseholdId = targetHouseholdId,
+            targetEntityId = targetEntityId,
+            sourceHouseholdIds = sources.map { it.householdId },
+            sourceHouseholdIdByPersonId = sourceHouseholdIdByPersonId,
+            plan = plan,
+            noteCount = noteCount,
+            documentCount = documentCount,
+        )
+
         val mergedTarget = householdRepository.findByHouseholdId(targetHouseholdId)!!
         log.info(
             "Merged households {} into {} (moved {} person(s), dropped {} duplicate person(s))",
@@ -144,6 +168,81 @@ class HouseholdMergeService(
             droppedDistributionCount = plan.distributionRowIdsToDrop.size,
             deletedHouseholdIds = sources.map { it.householdId },
         )
+    }
+
+    /**
+     * A merge is the one household operation that leaves no trace of its own: every row it touches
+     * either moves through a bulk `@Modifying` query - invisible to the Hibernate listener that
+     * feeds `audit_log` - or belongs to a household that is deleted a moment later.
+     *
+     * Three kinds of entry come out of it, all under the *target*'s business key so they land on the
+     * household that still exists:
+     *
+     * - one per moved person, so an individual person's move stays traceable;
+     * - one summarising the merge on the target;
+     * - one per source, recording where its data went. The source's own DELETE entry (with its last
+     *   field values) is written separately by the listener, under the source's own key.
+     *
+     * Notes and documents are recorded as counts rather than one entry each: unlike persons they
+     * are neither re-keyed nor deduplicated, they simply follow the household they hang off, and
+     * their own content is untouched.
+     */
+    private fun recordMergeAuditEntries(
+        targetHouseholdId: Long,
+        targetEntityId: Long,
+        sourceHouseholdIds: List<Long>,
+        sourceHouseholdIdByPersonId: Map<Long, Long>,
+        plan: HouseholdMergePlanner.HouseholdMergePlan,
+        noteCount: Int,
+        documentCount: Int,
+    ) {
+        val targetKey = targetHouseholdId.toString()
+
+        plan.personIdsToMove.forEach { personId ->
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = "Person",
+                    entityId = personId,
+                    businessKey = targetKey,
+                    operation = AuditOperation.UPDATE,
+                    changedFields = mapOf(
+                        "household" to listOf(sourceHouseholdIdByPersonId[personId], targetHouseholdId),
+                    ),
+                ),
+            )
+        }
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = "Household",
+                entityId = targetEntityId,
+                businessKey = targetKey,
+                operation = AuditOperation.UPDATE,
+                changedFields = mapOf(
+                    "mergedFromHouseholds" to listOf(null, sourceHouseholdIds.joinToString(", ")),
+                    "movedPersons" to listOf(null, plan.personIdsToMove.size),
+                    "droppedDuplicatePersons" to listOf(null, plan.duplicatePersonIdToMatchedTargetPersonId.size),
+                    "movedNotes" to listOf(null, noteCount),
+                    "movedDocuments" to listOf(null, documentCount),
+                    "movedDistributions" to listOf(null, plan.distributionRowIdsToMove.size),
+                    "droppedDistributions" to listOf(null, plan.distributionRowIdsToDrop.size),
+                ),
+            ),
+        )
+
+        sourceHouseholdIds.forEach { sourceHouseholdId ->
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = "Household",
+                    entityId = null,
+                    businessKey = sourceHouseholdId.toString(),
+                    operation = AuditOperation.UPDATE,
+                    changedFields = mapOf(
+                        "mergedIntoHousehold" to listOf(sourceHouseholdId, targetHouseholdId),
+                    ),
+                ),
+            )
+        }
     }
 
     private fun validateFieldSelections(request: HouseholdMergeRequest, sourcesByHouseholdId: Map<Long, HouseholdEntity>) {

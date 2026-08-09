@@ -14,6 +14,8 @@ Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
+Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein.
+
 Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Über die Aktionen kann der Kunde angesehen (Lupe) oder bearbeitet (Stift) werden. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
@@ -63,6 +65,14 @@ Der Scanner-Ordner ist optional: Ist er für die aktuelle Installation nicht ein
 Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden.
 
 ![Dokumente](images/kunden-detail-dokumente.jpg)
+
+### Verlauf
+
+Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
+
+Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Änderungsprotokoll](aenderungsprotokoll.md), dort zusätzlich filterbar.
+
+![Verlauf](images/kunden-verlauf.jpg)
 
 ## Kunden anlegen / bearbeiten
 

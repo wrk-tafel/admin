@@ -172,7 +172,8 @@ jobs:
               /logistik/routenbegleitung,
               /logistik/warenerfassung,
               /statistiken/allgemein,
-              /statistiken/schulstartpakete
+              /statistiken/schulstartpakete,
+              /aenderungsprotokoll
     services:
       postgres:
         image: postgres:18.4-bookworm

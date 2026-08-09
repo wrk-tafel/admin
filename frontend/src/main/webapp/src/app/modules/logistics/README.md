@@ -64,8 +64,8 @@ Three things about it are worth knowing before changing it:
   `https://www.google.com/maps/dir/?api=1&destination=<address>`, plus one link over the
   stops still open that adds the intermediate ones as `waypoints`. Google's directions
   URL takes at most nine waypoints, so that link covers the next ten stops and the
-  screen says so when it truncates. The reasoning is ADR-0039
-  (`docs/architecture/adr/0039-route-navigation-by-map-app-deep-link.md`).
+  screen says so when it truncates. The reasoning is ADR-0040
+  (`docs/architecture/adr/0040-route-navigation-by-map-app-deep-link.md`).
 - **Ticking a stop is a `PUT` per stop**, and the response replaces that one stop in the
   signal rather than triggering a reload — the list must not jump under a driver's thumb.
   `pendingStopId` disables the buttons while a request is out.

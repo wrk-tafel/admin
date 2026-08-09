@@ -22,6 +22,7 @@ SELECT setval('shelters_contacts_seq', 10000, false);
 SELECT setval('distributions_statistics_shelters_seq', 10000, false);
 SELECT setval('mail_recipients_seq', 10000, false);
 SELECT setval('login_attempts_seq', 10000, false);
+SELECT setval('audit_log_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -57,6 +58,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1012, NOW(), NOW(), 100, 'CUSTOMERS_OVERVIEW');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1013, NOW(), NOW(), 100, 'ADMINISTRATOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1014, NOW(), NOW(), 100, 'AUDIT_LOG');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -115,6 +118,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3012, NOW(), NOW(), 300, 'CUSTOMERS_OVERVIEW');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3013, NOW(), NOW(), 300, 'ADMINISTRATOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3014, NOW(), NOW(), 300, 'AUDIT_LOG');
 
 -- user: scanner1
 -- pwd: 12345
@@ -941,3 +946,90 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW() + interval '2 years', NOW() + interval '2 years');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
 VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);
+
+
+-- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters
+-- something to filter. Written directly rather than by exercising the application, which is the
+-- only way to get a spread of dates out of a fixture that loads in one moment - and the reason
+-- these rows carry no matching change in the data itself: they describe edits that never happened.
+--
+-- Shaped so each filter has a visible effect: every entity type and operation occurs, the actors
+-- are three different users, and the business keys are households that exist in this fixture. The
+-- timestamps run from 2 hours to ~29 days old - deliberately inside tafeladmin.audit.retentionDays,
+-- so the nightly cleanup never quietly removes half the fixture from a long-running environment.
+-- That also means the screen opens with all of them: narrowing the date range is what shows it
+-- working, which is what one actually does with it.
+--
+-- The newest is deliberately 2 hours old: an e2e test that creates a customer and then reads the
+-- log expects its own change first, which a fixture row stamped "now" could tie with.
+WITH shapes (idx, entity_type, entity_id, business_key, operation, changed_fields) AS (
+    VALUES (0, 'Household', 100, '100', 'UPDATE',
+            '{"addressCity": ["Wien", "Graz"], "addressPostalCode": ["1030", "8010"]}'),
+           (1, 'Household', 101, '101', 'UPDATE',
+            '{"telephoneNumber": ["00436645678953", "00436641112223"]}'),
+           (2, 'Household', 102, '102', 'INSERT',
+            '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2999-12-31"]}'),
+           (3, 'Household', 103, '103', 'DELETE',
+            '{"addressStreet": ["Erdberg", null], "addressCity": ["Wien", null], "email": ["geloescht@wrk.at", null]}'),
+           (4, 'Person', 104, '104', 'UPDATE',
+            '{"income": ["456.00", "512.00"], "incomeDue": ["2026-01-31", "2026-07-31"]}'),
+           (5, 'Person', 105, '105', 'INSERT',
+            '{"firstname": [null, "Neues"], "lastname": [null, "Haushaltsmitglied"], "isMainPerson": [null, false]}'),
+           (6, 'HouseholdNote', 110, '110', 'INSERT',
+            '{"note": [null, "Kunde hat Einkommensnachweis nachgereicht"]}'),
+           (7, 'Document', 111, '111', 'INSERT',
+            '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'),
+           (8, 'User', 200, 'testuser', 'UPDATE',
+            '{"enabled": [true, false], "passwordChangeRequired": [false, true]}'),
+           (9, 'UserAuthority', 200, 'testuser', 'INSERT',
+            '{"name": [null, "CUSTOMERS_OVERVIEW"]}'),
+           (10, 'StaticValue', 1, 'INCOME_LIMIT', 'UPDATE',
+            '{"amount": ["1200.00", "1250.00"]}'),
+           (11, 'MailRecipient', 1, 'DAILY_REPORT', 'UPDATE',
+            '{"address": ["alt@wrk.at", "neu@wrk.at"]}')
+)
+INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, entity_type, entity_id,
+                       business_key, operation, changed_fields)
+SELECT n,
+       NOW() - interval '2 hours' - (n * interval '7 hours'),
+       CASE n % 3 WHEN 0 THEN 100 WHEN 1 THEN 300 ELSE 200 END,
+       CASE n % 3 WHEN 0 THEN 'e2etest' WHEN 1 THEN 'admin' ELSE 'testuser' END,
+       shapes.entity_type,
+       shapes.entity_id,
+       shapes.business_key,
+       shapes.operation,
+       shapes.changed_fields::jsonb
+FROM generate_series(1, 100) AS n
+         JOIN shapes ON shapes.idx = n % 12;
+
+
+-- A single customer with a full history, so the "Verlauf" tab on the customer detail screen shows
+-- something without having to make changes by hand first. Kunde 132 is the one to open when testing
+-- it: every entity type that belongs to a household occurs, spread over the last three weeks and
+-- across three different users.
+INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, entity_type, entity_id,
+                       business_key, operation, changed_fields)
+VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'Household', 132, '132', 'UPDATE',
+        '{"telephoneNumber": ["00436641111111", "00436642222222"], "email": ["alt@wrk.at", "neu@wrk.at"]}'::jsonb),
+       (202, NOW() - interval '1 day', 300, 'admin', 'Person', 132, '132', 'UPDATE',
+        '{"income": ["1100.00", "1250.00"], "incomeDue": ["2026-06-30", "2026-12-31"]}'::jsonb),
+       (203, NOW() - interval '2 days', 100, 'e2etest', 'HouseholdNote', 1321, '132', 'INSERT',
+        '{"note": [null, "Einkommensnachweis nachgereicht und geprueft"]}'::jsonb),
+       (204, NOW() - interval '4 days', 200, 'testuser', 'Document', 1322, '132', 'INSERT',
+        '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'::jsonb),
+       (205, NOW() - interval '6 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
+        '{"addressStreet": ["Erdberg", "Landstrasser Hauptstrasse"], "addressHouseNumber": ["5", "12"]}'::jsonb),
+       (206, NOW() - interval '8 days', 100, 'e2etest', 'Person', 1323, '132', 'INSERT',
+        '{"firstname": [null, "Lena"], "lastname": [null, "Musterkind"], "isMainPerson": [null, false]}'::jsonb),
+       (207, NOW() - interval '11 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
+        '{"locked": [false, true], "lockReason": [null, "Unterlagen unvollstaendig"]}'::jsonb),
+       (208, NOW() - interval '13 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
+        '{"locked": [true, false], "lockReason": ["Unterlagen unvollstaendig", null]}'::jsonb),
+       (209, NOW() - interval '16 days', 200, 'testuser', 'Person', 1324, '132', 'DELETE',
+        '{"firstname": ["Ausgezogenes", null], "lastname": ["Haushaltsmitglied", null]}'::jsonb),
+       (210, NOW() - interval '19 days', 100, 'e2etest', 'HouseholdNote', 1325, '132', 'INSERT',
+        '{"note": [null, "Telefonisch nicht erreichbar"]}'::jsonb),
+       (211, NOW() - interval '22 days', 100, 'e2etest', 'Household', 132, '132', 'UPDATE',
+        '{"validUntil": ["2026-06-30", "2026-12-31"], "prolongedAt": [null, "2026-07-18T10:12:00"]}'::jsonb),
+       (212, NOW() - interval '26 days', 100, 'e2etest', 'Household', 132, '132', 'INSERT',
+        '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2026-06-30"]}'::jsonb);
