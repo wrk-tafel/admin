@@ -59,6 +59,13 @@ export class CustomerSearchComponent {
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
 
+  constructor() {
+    // Land on the first page of customers rather than an empty form. The unfiltered list is what
+    // most visits are after anyway, and showing it makes the screen explain itself instead of
+    // leaving the impression that there is nothing here until something is typed.
+    this.searchForDetails(undefined, undefined, false);
+  }
+
   searchForCustomerId() {
     const customerId = this.customerId.value!;
 
@@ -80,7 +87,12 @@ export class CustomerSearchComponent {
     return this.router.navigate(['/kunden/detail', customerId]);
   }
 
-  searchForDetails(page?: number, pageSize?: number) {
+  /**
+   * @param notifyWhenEmpty off for the initial load only - "Keine Kunden gefunden!" is an answer to
+   * a search, and greeting someone with it before they have searched for anything reads like a
+   * failure rather than an empty database.
+   */
+  searchForDetails(page?: number, pageSize?: number, notifyWhenEmpty = true) {
     this.customerApiService.searchCustomer(
       this.searchInput.value ?? undefined,
       this.postProcessing.value ?? undefined,
@@ -90,7 +102,9 @@ export class CustomerSearchComponent {
       pageSize)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
-          this.toastr.info('Keine Kunden gefunden!');
+          if (notifyWhenEmpty) {
+            this.toastr.info('Keine Kunden gefunden!');
+          }
           this.searchResult.set(undefined);
         } else {
           this.searchResult.set(response);

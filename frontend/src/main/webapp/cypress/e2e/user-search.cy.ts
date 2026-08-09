@@ -7,6 +7,12 @@ describe('User Search', () => {
     cy.visit('/benutzer/suchen');
   });
 
+  it('shows the first results without searching', () => {
+    // The testdata always contains active users, so an unfiltered first page has something in it.
+    cy.byTestId('searchresult-table').should('be.visible');
+    cy.byTestId('searchresult-row-0').should('exist');
+  });
+
   it('search by personnelNumber', () => {
     cy.createDummyUser().then(response => {
       const user = response.body;

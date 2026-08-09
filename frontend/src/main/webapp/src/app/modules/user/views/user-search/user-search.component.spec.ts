@@ -84,6 +84,28 @@ describe('UserSearchComponent', () => {
     apiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+
+    // The component searches once as it is constructed, before any test can arrange a response -
+    // without a default here every test would fail on the constructor rather than on its subject.
+    apiService.searchUser.mockReturnValue(EMPTY);
+  });
+
+  it('loads the first page of active users without being asked to', () => {
+    apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+
+    const fixture = TestBed.createComponent(UserSearchComponent);
+    const component = fixture.componentInstance;
+
+    expect(apiService.searchUser).toHaveBeenCalledWith('', true, undefined, undefined);
+    expect(component.searchResult()).toEqual(searchUserMockResponse);
+  });
+
+  it('stays silent when that initial load finds nothing', () => {
+    apiService.searchUser.mockReturnValue(of({items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 10}));
+
+    TestBed.createComponent(UserSearchComponent);
+
+    expect(toastr.info).not.toHaveBeenCalled();
   });
 
   it('component can be created', () => {

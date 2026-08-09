@@ -14,6 +14,8 @@ Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
+Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein.
+
 Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Über die Aktionen kann der Kunde angesehen (Lupe) oder bearbeitet (Stift) werden. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)

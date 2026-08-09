@@ -11,6 +11,12 @@ describe('Customer Search', () => {
     cy.visit('/kunden/suchen');
   });
 
+  it('shows the first results without searching', () => {
+    // The testdata always contains customers, so an unfiltered first page has something in it.
+    cy.byTestId('searchresult-table').should('be.visible');
+    cy.byTestId('searchresult-row').should('exist');
+  });
+
   it('search by customerId', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
