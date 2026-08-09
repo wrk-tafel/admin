@@ -516,13 +516,6 @@ Architecture decisions are recorded as ADRs under
 modular monolith, the database-only infrastructure, the migration and API conventions, the SSE
 outbox, the frontend generation, the release process and more.
 
-Longer evaluations of decisions not yet taken live one level up, in
-[`docs/architecture/`](docs/architecture/):
-
-| Document | Subject |
-|---|---|
-| [Audit trail](docs/architecture/audit-trail.md) | Evaluation of `created_at`/`updated_at` vs. a generic audit table (#2871) |
-
 ## License
 
 This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
