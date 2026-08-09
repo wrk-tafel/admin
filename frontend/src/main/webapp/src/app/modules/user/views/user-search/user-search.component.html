@@ -2,7 +2,7 @@
   <mat-card class="shadow-sm">
     <mat-card-content>
       <div class="mb-4">
-        <h5 class="text-lg font-semibold">Benutzer-Suche</h5>
+        <h2 class="tafel-h5 text-lg font-semibold">Benutzer-Suche</h2>
         <p class="mt-2 mb-0 text-sm text-slate-600">
           Suche direkt über die Personalnummer oder über das Suchfeld.
         </p>
@@ -45,11 +45,15 @@
         <button type="button" matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
       </div>
 
+      <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+           with its text is not reliably announced. -->
+      <div class="sr-only" role="status" testid="searchresult-announcement">{{ searchAnnouncement() }}</div>
+
       @if(searchResult()) {
         <mat-divider class="!my-6"></mat-divider>
         <div class="mt-6">
           <div class="mb-6">
-            <h5 class="mb-6">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h5>
+            <h2 class="tafel-h5 mb-6">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h2>
             <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
                            [pageSizeOptions]="pageSizeOptions"
                            [pageIndex]="searchResult()!.currentPage - 1" [showFirstLastButtons]="true"

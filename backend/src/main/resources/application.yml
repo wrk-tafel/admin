@@ -154,7 +154,7 @@ tafeladmin:
   version: dev
   buildTime: unknown
   environmentLabel: ""
-  # The audit trail (audit_log) - see ADR-0038. `enabled` and `retentionDays` are read per use and
+  # The audit trail (audit_log) - see ADR-0039. `enabled` and `retentionDays` are read per use and
   # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
   # its expression when the bean is created (same as configReload.interval below), so changing it
   # needs a restart. 05:00 is the quiet window between the last late-evening work and the first

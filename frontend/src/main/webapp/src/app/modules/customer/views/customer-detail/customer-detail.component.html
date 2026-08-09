@@ -68,7 +68,7 @@
                 [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
         </button>
         <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
-                aria-label="Toggle Dropdown">▾
+                aria-label="Weitere Aktionen für diesen Kunden">▾
         </button>
       </div>
       <mat-menu #editMenu="matMenu">
@@ -117,7 +117,7 @@
             <div>
               <mat-card>
                 <mat-card-header class="justify-center text-center w-full">
-                  <h5>Hauptbezieher</h5>
+                  <h2 class="tafel-h5">Hauptbezieher</h2>
                 </mat-card-header>
                 <mat-card-content>
                   <div class="flex justify-between">
@@ -214,7 +214,7 @@
               <mat-card>
                 <mat-card-header class="w-full">
                   <div class="flex justify-between items-center w-full">
-                    <h5 class="m-0">Aktuellste Notiz</h5>
+                    <h2 class="tafel-h5 m-0">Aktuellste Notiz</h2>
                     <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
                             matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
                       <fa-icon [icon]="faPlus"></fa-icon>
@@ -224,7 +224,7 @@
                 <mat-card-content>
                   @if (customerNotes()?.length === 0) {
                     <div class="font-bold" testid="latest-customer-note-none">
-                      <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                      <h3 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h3>
                     </div>
                   }
                   @if (customerNotes()?.length !== 0) {
@@ -260,7 +260,7 @@
         </ng-template>
         <div>
           @if (customerData()?.additionalPersons?.length === 0) {
-            <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
+            <h3 testid="nopersons-label" class="tafel-h6 mt-4">Keine Personen vorhanden</h3>
           }
           @if ((customerData()?.additionalPersons?.length ?? 0) > 0) {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
@@ -342,12 +342,14 @@
                           </div>
                         </div>
                         <div class="flex gap-2 shrink-0 justify-end">
+                          <!-- the file name belongs in the name: these are cards, so there is no row
+                               context that would tell one card's buttons from the next one's -->
                           <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
-                                  matTooltip="Dokument herunterladen" aria-label="Dokument herunterladen">
+                                  matTooltip="Dokument herunterladen" [attr.aria-label]="'Dokument ' + doc.fileName + ' herunterladen'">
                             <fa-icon [icon]="faDownload"></fa-icon>
                           </button>
                           <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
-                                  matTooltip="Dokument löschen" aria-label="Dokument löschen">
+                                  matTooltip="Dokument löschen" [attr.aria-label]="'Dokument ' + doc.fileName + ' löschen'">
                             <fa-icon [icon]="faTrashCan"></fa-icon>
                           </button>
                         </div>

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('Customer Overview', () => {
 
@@ -138,6 +139,27 @@ describe('Customer Overview', () => {
 
       cy.closeDistribution();
     });
+  });
+
+  // The card list is a different DOM from the table, and the Lighthouse `pages` sweep grades this
+  // route at the desktop and mobile form factors of the same markup only.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the card list', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.createDistribution();
+
+      cy.createDummyCustomer().then((response) => {
+        cy.visit('/kunden/uebersicht');
+        cy.contains('mat-card', response.body.data.lastname).scrollIntoView().should('be.visible');
+
+        cy.checkAccessibility(MAIN_CONTENT);
+
+        cy.closeDistribution();
+      });
+    });
+
   });
 
 });

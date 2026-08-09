@@ -274,6 +274,27 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     return this.returnItems.at(index) as FormGroup;
   }
 
+  /**
+   * Name for one cell of the Warenmenge matrix. Which category and which shop a cell belongs to is
+   * only in its row and column headers, and those name the cell rather than the input inside it -
+   * the table names both here so a cell is identifiable without reading the table structure. The
+   * table's own heading is part of it because the Retourware matrix below repeats every category
+   * and shop pair.
+   */
+  amountInputLabel(categoryIndex: number, shopIndex: number): string {
+    return `Warenmenge ${this.foodCategories()[categoryIndex]?.name}, ${this.shopName(shopIndex)}`;
+  }
+
+  /** Same as {@link amountInputLabel}, for one cell of the Retourware matrix. */
+  returnAmountInputLabel(categoryIndex: number, shopIndex: number): string {
+    return `Retourware ${this.foodReturnCategories()[categoryIndex]?.name}, ${this.shopName(shopIndex)}`;
+  }
+
+  private shopName(shopIndex: number): string {
+    const shop = this.selectedRouteData()?.shops?.[shopIndex];
+    return shop ? `${shop.name} ${shop.number}` : '';
+  }
+
   protected readonly isControlInvalid = isControlInvalid;
   protected readonly faPlus = faPlus;
   protected readonly faRemove = faRemove;

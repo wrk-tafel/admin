@@ -90,4 +90,27 @@ describe('Settings - Static Values', () => {
     cy.byTestId('static-values-cards').should('not.be.visible');
   });
 
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while a row is edited inline', () => {
+      cy.byTestId('editStaticValueButton-0').click();
+      cy.byTestId('staticValueAmountInput-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="static-values-table"]');
+    });
+
+    it('has no violations while a card is edited inline on phone', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.reload();
+
+      cy.byTestId('editStaticValueButtonMobile-0').click();
+      cy.byTestId('staticValueAmountInputMobile-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="static-values-cards"]');
+    });
+
+  });
+
 });

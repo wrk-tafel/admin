@@ -2,7 +2,13 @@
   <mat-card-content>
     <div class="text-sm">{{ data()?.subTitle }}</div>
     <div class="text-2xl font-bold">{{ data()?.title }}</div>
-    <canvas baseChart class="mt-4 mx-4" height="80"
+    <!--
+      A canvas has no content a screen reader can read, so without a name of its own the chart is
+      an unlabelled graphic. The value it plots is the one written out above it; what the name has
+      to add is that this is its course over the listed distributions.
+    -->
+    <canvas baseChart class="mt-4 mx-4" height="80" role="img"
+            [attr.aria-label]="'Verlauf: ' + (data()?.subTitle ?? '')"
             [type]="'line'" [data]="chartData()" [options]="optionsDefault"></canvas>
   </mat-card-content>
 </mat-card>

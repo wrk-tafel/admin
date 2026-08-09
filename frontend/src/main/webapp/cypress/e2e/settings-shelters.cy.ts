@@ -103,4 +103,68 @@ describe('Settings - Shelters', () => {
     cy.byTestId('addShelterButton').should('be.visible');
   });
 
+
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the details dialog is open', () => {
+      cy.byTestId('viewShelterButton').first().click();
+      cy.byTestId('shelter-details-dialog').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the edit dialog is open, including an added contact', () => {
+      cy.byTestId('addShelterButton').click();
+      cy.byTestId('shelter-edit-dialog').should('be.visible');
+
+      cy.checkDialogAccessibility();
+
+      // a contact's own controls are one interaction deeper again
+      cy.contains('Kontakt hinzufügen').click();
+      cy.get('input[formControlName="firstname"]').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+  });
+
+  // Angular CDK's drag-and-drop contributes no keyboard behaviour of its own, so without this the
+  // sort order could only be changed with a pointing device (see #3131).
+  //
+  // Every lookup goes through `cy.get` scoped to the table, and each move waits for its request to
+  // land: a reorder re-renders the rows optimistically and then again from the response, so a
+  // subject captured before that second render is gone by the time it is used. The table scope
+  // also picks the displayed one of the two responsive layouts, which share a testid.
+  it('reorders with the keyboard and keeps focus on the moved record', () => {
+    const handle = (index: number) =>
+      cy.get('[testid="shelters-table"] [testid="dragShelterHandle-' + index + '"]');
+
+    cy.intercept('POST', '/api/shelters/reorder').as('reorder');
+
+    handle(0).invoke('attr', 'aria-label').then((label) => {
+      const movedRecord = label!.split(', Position')[0];
+      expect(movedRecord).to.contain('Notschlafstelle');
+
+      handle(0).focus().trigger('keydown', {key: 'ArrowDown'});
+      cy.wait('@reorder');
+
+      handle(1).should(($handle) => {
+        const movedLabel = $handle.attr('aria-label')!;
+        expect(movedLabel).to.contain(movedRecord);
+        expect(movedLabel).to.contain('Position 2 von');
+      });
+      cy.focused().should('have.attr', 'testid', 'dragShelterHandle-1');
+
+      // back where it started, so the order the other cases rely on is unchanged
+      handle(1).focus().trigger('keydown', {key: 'ArrowUp'});
+      cy.wait('@reorder');
+
+      handle(0).should(($handle) => {
+        expect($handle.attr('aria-label')).to.contain(movedRecord);
+      });
+    });
+  });
+
 });

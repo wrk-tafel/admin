@@ -2,7 +2,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
     <mat-card>
       <mat-card-header>
-        <h5>Hauptbezieher</h5>
+        <h2 class="tafel-h5">Hauptbezieher</h2>
       </mat-card-header>
       <mat-card-content>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
@@ -187,14 +187,14 @@
       <mat-card>
         <mat-card-header class="w-full">
           <div class="flex justify-between items-center w-full">
-            <h5>Weitere Personen</h5>
+            <h2 class="tafel-h5">Weitere Personen</h2>
             <button type="button" matButton="filled" class="button-success" (click)="addNewPerson()">Hinzufügen</button>
           </div>
         </mat-card-header>
         <mat-card-content>
           @if (!customerForm.additionalPersons().value() || customerForm.additionalPersons().value()?.length === 0) {
             <div>
-              <h6 testid="nopersons-label" class="mb-4">Keine Personen vorhanden</h6>
+              <h3 testid="nopersons-label" class="tafel-h6 mb-4">Keine Personen vorhanden</h3>
             </div>
           }
           @for (person of customerForm.additionalPersons().value(); track person.key; let i = $index) {

@@ -1,11 +1,16 @@
 <mat-card class="h-full mat-card-primary">
   <mat-card-header>
     <mat-card-title>
-      <h4>Anmerkungen</h4>
+      <h2 class="tafel-h4">Anmerkungen</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
     <mat-form-field class="w-full" appearance="fill">
+      <!--
+        A placeholder was standing in for the label, and a placeholder is gone the moment the field
+        holds anything - which is exactly when a screen-reader user asks what field they are in.
+      -->
+      <mat-label>Notizen zur Ausgabe</mat-label>
       <textarea
         matInput
         testid="distribution-notes-textarea"

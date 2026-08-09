@@ -43,8 +43,12 @@ describe('Customer Edit', () => {
 
       cy.byTestId('validate-button').click();
 
+      cy.byTestId('validationresult-dialog').should('be.visible');
+      // the dialog exists only after the validation, so no other accessibility gate sees it -
+      // see cypress/support/accessibility.ts
+      cy.checkDialogAccessibility();
+
       cy.byTestId('validationresult-dialog')
-        .should('be.visible')
         .within(() => {
           cy.byTestId('ok-button').click();
         });

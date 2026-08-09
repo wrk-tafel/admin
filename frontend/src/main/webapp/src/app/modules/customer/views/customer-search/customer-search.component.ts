@@ -1,5 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
@@ -39,7 +39,8 @@ import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-inf
     TafelAutofocusDirective,
     FormatCustomerAddressPipe,
     MatTooltipModule,
-    TafelInfoTooltipComponent
+    TafelInfoTooltipComponent,
+    RouterLink
   ]
 })
 export class CustomerSearchComponent {
@@ -58,6 +59,11 @@ export class CustomerSearchComponent {
 
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
+
+  // What the role="status" region in the template says. A search replaces the whole result table,
+  // or clears it again, and neither is a change a screen reader notices on its own. It is its own
+  // signal rather than derived from searchResult(), because the empty result clears that signal.
+  searchAnnouncement = signal('');
 
   constructor() {
     // Land on the first page of customers rather than an empty form. The unfiltered list is what
@@ -88,11 +94,12 @@ export class CustomerSearchComponent {
   }
 
   /**
-   * @param notifyWhenEmpty off for the initial load only - "Keine Kunden gefunden!" is an answer to
-   * a search, and greeting someone with it before they have searched for anything reads like a
-   * failure rather than an empty database.
+   * @param announceOutcome off for the initial load only. Both the toast and the status region are
+   * answers to a search: greeting someone with "Keine Kunden gefunden!" before they have searched
+   * for anything reads like a failure rather than an empty database, and announcing a result count
+   * to a screen reader on arrival is noise about something nobody asked for.
    */
-  searchForDetails(page?: number, pageSize?: number, notifyWhenEmpty = true) {
+  searchForDetails(page?: number, pageSize?: number, announceOutcome = true) {
     this.customerApiService.searchCustomer(
       this.searchInput.value ?? undefined,
       this.postProcessing.value ?? undefined,
@@ -102,12 +109,18 @@ export class CustomerSearchComponent {
       pageSize)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
-          if (notifyWhenEmpty) {
-            this.toastr.info('Keine Kunden gefunden!');
-          }
           this.searchResult.set(undefined);
+          if (announceOutcome) {
+            this.toastr.info('Keine Kunden gefunden!');
+            this.searchAnnouncement.set('Keine Kunden gefunden');
+          }
         } else {
           this.searchResult.set(response);
+          if (announceOutcome) {
+            this.searchAnnouncement.set(
+              response.totalCount === 1 ? '1 Kunde gefunden' : `${response.totalCount} Kunden gefunden`
+            );
+          }
         }
       });
   }

@@ -28,7 +28,7 @@ import java.time.LocalDateTime
  * events) for anything written through the session, and from [record] for the write paths that go
  * around it - bulk `@Modifying` queries and native SQL never reach a Hibernate event, so those
  * callers have to say what they did. That gap is real and is the price of not using database
- * triggers; see ADR-0038.
+ * triggers; see ADR-0039.
  */
 @Component
 class AuditLogWriter(

@@ -30,7 +30,7 @@ describe('Settings - Shops', () => {
   }
 
   function shopPanel(name: string) {
-    return cy.byTestId('shops-list').contains('mat-expansion-panel', name);
+    return cy.byTestId('shops-list').contains('[testid^="shops-row-"]', name);
   }
 
   it('lists shops with their address and unit', () => {
@@ -42,7 +42,7 @@ describe('Settings - Shops', () => {
   it('shows the contact details of a shop only once it is expanded', () => {
     cy.byTestId('shop-details-0').should('not.be.visible');
 
-    cy.byTestId('shops-row-0').find('mat-expansion-panel-header').click();
+    cy.byTestId('shops-row-0').find('[testid^="shops-toggle-"]').click();
 
     cy.byTestId('shop-details-0').should('be.visible')
       .and('contain.text', 'Fr. Musterfrau')
@@ -129,11 +129,11 @@ describe('Settings - Shops', () => {
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
       cy.byTestId('shops-search-input').type(name);
-      cy.byTestId('shops-list').find('mat-expansion-panel').should('have.length', 1);
+      cy.byTestId('shops-list').find('[testid^="shops-row-"]').should('have.length', 1);
       cy.byTestId('shops-row-0').should('contain.text', name);
 
       cy.byTestId('shops-search-clear-button').click();
-      cy.byTestId('shops-list').find('mat-expansion-panel').should('have.length.greaterThan', 1);
+      cy.byTestId('shops-list').find('[testid^="shops-row-"]').should('have.length.greaterThan', 1);
     });
   });
 
@@ -149,8 +149,29 @@ describe('Settings - Shops', () => {
 
     cy.byTestId('addShopButton').should('be.visible');
     cy.byTestId('shops-search-input').should('be.visible');
-    cy.byTestId('shops-row-0').should('be.visible').find('mat-expansion-panel-header').click();
+    cy.byTestId('shops-row-0').should('be.visible').find('[testid^="shops-toggle-"]').click();
     cy.byTestId('shop-details-0').should('be.visible').and('contain.text', 'Fr. Musterfrau');
+  });
+
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the edit dialog is open', () => {
+      cy.byTestId('addShopButton').click();
+
+      cy.checkDialogAccessibility();
+    });
+
+    // Scoped to the whole record, header row included: the summary toggle and the two actions
+    // beside it are what #3137 restructured, so the assertion has to be able to see them.
+    it('has no violations while a panel is expanded', () => {
+      cy.byTestId('shops-row-0').find('[testid^="shops-toggle-"]').click();
+      cy.byTestId('shop-details-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="shops-row-0"]');
+    });
+
   });
 
 });

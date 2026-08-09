@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {Gender} from '../support/commands';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
 
@@ -201,5 +202,54 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-showcustomer-button-' + expectedCustomerId).filterDisplayed().click();
     cy.url().should('include', '/kunden/detail/' + expectedCustomerId);
   }
+
+  // The Lighthouse `pages` sweep only ever grades the empty search form - it types nothing, so it
+  // never sees a result list at all, in either responsive branch.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the search result, as a table and as a card list', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customer = response.body.data;
+
+        cy.byTestId('searchInputText').type(customer.lastname);
+        cy.byTestId('search-button').click();
+        cy.byTestId('searchresult-table').should('be.visible');
+
+        cy.checkAccessibility(MAIN_CONTENT);
+
+        cy.viewport(PHONE_VIEWPORT);
+        cy.byTestId('searchresult-table').should('not.be.visible');
+
+        cy.checkAccessibility(MAIN_CONTENT);
+      });
+    });
+
+    // A live region that exists but is never filled looks exactly like a working one in any static
+    // check, so what it actually says after a search is what has to be asserted.
+    it('announces the number of results through a live region', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customer = response.body.data;
+
+        cy.byTestId('searchresult-announcement').should('exist').and('have.text', '');
+
+        cy.byTestId('searchInputText').type(customer.lastname);
+        cy.byTestId('search-button').click();
+        cy.byTestId('searchresult-table').should('be.visible');
+
+        cy.byTestId('searchresult-announcement')
+          .should('have.attr', 'role', 'status')
+          .and('contain.text', 'gefunden');
+      });
+    });
+
+    it('announces an empty search result', () => {
+      cy.byTestId('searchInputText').type('Zzzz Kein Treffer Zzzz');
+      cy.byTestId('search-button').click();
+
+      cy.byTestId('searchresult-announcement').should('have.text', 'Keine Kunden gefunden');
+    });
+
+  });
 
 });

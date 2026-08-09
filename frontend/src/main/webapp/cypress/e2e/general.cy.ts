@@ -132,6 +132,95 @@ describe('API error responses', () => {
 
 });
 
+describe('Accessibility', () => {
+
+  it('titles every page after the route it shows', () => {
+    cy.visit('/login');
+    cy.title().should('eq', 'Anmeldung - Tafel Admin');
+
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+    cy.title().should('eq', 'Übersicht - Tafel Admin');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.url().should('include', '/kunden/suchen');
+    cy.title().should('eq', 'Kunden suchen - Tafel Admin');
+  });
+
+  it('offers a skip link that jumps past the navigation to the main content', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    // `sr-only` keeps the link at 1px until it has focus, so its width is what tells the two
+    // states apart - Cypress' own visibility rules ignore the clipping that hides it.
+    cy.byTestId('skip-to-content').then(($link) => {
+      expect($link[0].getBoundingClientRect().width).to.be.lessThan(5);
+    });
+
+    cy.byTestId('skip-to-content').focus().then(($link) => {
+      expect($link[0].getBoundingClientRect().width).to.be.greaterThan(50);
+    });
+
+    cy.byTestId('skip-to-content').click();
+    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+
+    // It only skips anything if it comes before what it skips.
+    cy.byTestId('skip-to-content').then(($link) => {
+      cy.get('nav').then(($nav) => {
+        // eslint-disable-next-line no-bitwise
+        expect($link[0].compareDocumentPosition($nav[0]) & Node.DOCUMENT_POSITION_FOLLOWING).to.be.greaterThan(0);
+      });
+    });
+  });
+
+  // A client-side navigation announces nothing on its own - the document title changing is not
+  // enough - so focus is what has to move into the page that just opened. Without it the next Tab
+  // would carry on through the navigation the user just left.
+  it('moves focus into the main content after an in-app navigation', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.url().should('include', '/kunden/suchen');
+
+    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+  });
+
+  // Everything the axe assertions below reach exists only after an interaction, which is what the
+  // other two gates are blind to - see cypress/support/accessibility.ts.
+  it('has no violations in the support dialog', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('supportButton').click();
+    cy.byTestId('support-dialog').should('be.visible');
+
+    cy.checkDialogAccessibility();
+  });
+
+  it('has no violations in the user menu', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+
+    cy.checkMenuAccessibility();
+  });
+
+  it('lets the keyboard reach and expand a collapsible nav group', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.contains('button', 'Sonstige').should('have.attr', 'aria-expanded', 'false').focus();
+
+    cy.focused().should('contain.text', 'Sonstige').click();
+
+    cy.contains('button', 'Sonstige').should('have.attr', 'aria-expanded', 'true');
+    cy.contains('a', 'Kunden über Limit').should('be.visible');
+  });
+
+});
+
 describe('Sidebar Tooltips', () => {
 
   it('names a nav item through a tooltip once the sidebar is collapsed', () => {
@@ -177,8 +266,8 @@ describe('Navigation Progress Bar', () => {
 
     cy.byTestId('nav-progress-bar').should('not.exist');
     // "Kunden über Limit" lives under the collapsible "Sonstige" nav group - expand it first
-    // (the `a` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
-    cy.contains('a', 'Sonstige').click();
+    // (the `button` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
+    cy.contains('button', 'Sonstige').click();
     cy.contains('Kunden über Limit').click();
 
     cy.byTestId('nav-progress-bar').should('be.visible');

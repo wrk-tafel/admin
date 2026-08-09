@@ -2,7 +2,7 @@
 
 Evaluation for [issue #2871](https://github.com/wrk-tafel/admin/issues/2871). This is the evaluation
 that weighed the options, not a description of shipped behaviour — read
-[ADR-0038](adr/0038-audit-trail-as-an-append-only-log-written-by-the-application.md) for what was
+[ADR-0039](adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md) for what was
 decided and built, and the `audit` module's README
 (`backend/src/main/kotlin/at/wrk/tafel/admin/backend/modules/audit/README.md`) for how it works. This
 page is kept for the reasoning behind that choice.
@@ -204,7 +204,7 @@ obligation nothing checks.
 ## 5. Decisions that had to be settled before code was written
 
 These were product/ops decisions rather than technical ones. How each was answered is recorded in
-[ADR-0038](adr/0038-audit-trail-as-an-append-only-log-written-by-the-application.md); the questions
+[ADR-0039](adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md); the questions
 are kept here because they are the ones to re-ask whenever the scope or the retention window is
 revisited:
 

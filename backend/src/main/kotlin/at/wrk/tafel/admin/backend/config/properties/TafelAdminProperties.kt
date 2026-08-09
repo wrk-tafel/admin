@@ -79,7 +79,7 @@ class TafelAdminFeaturesProperties {
 }
 
 /**
- * The audit trail (`audit_log`) - see ADR-0038.
+ * The audit trail (`audit_log`) - see ADR-0039.
  *
  * Both values are read per use, so an operator can widen the retention window or switch recording
  * off on a running deployment (`ConfigFileReloadService`) - the latter being the point of having a

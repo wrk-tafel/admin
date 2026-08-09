@@ -10,6 +10,7 @@ import {provideServiceWorker} from '@angular/service-worker';
 import {
   RedirectCommand,
   Router,
+  TitleStrategy,
   provideRouter,
   withComponentInputBinding,
   withInMemoryScrolling,
@@ -30,6 +31,7 @@ import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dia
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 import {MAT_CARD_CONFIG} from '@angular/material/card';
+import {TafelTitleStrategy} from './common/util/tafel-title-strategy';
 
 // `MatDialog` is `providedIn: 'root'` and reads its defaults from the root injector, so this one
 // has to stay app-wide even though no screen outside the shell opens a dialog. The Material
@@ -64,6 +66,12 @@ export const appConfig: ApplicationConfig = {
       // to fall back to on failure - without this handler the user is left on a blank shell.
       withNavigationErrorHandler(() => new RedirectCommand(inject(Router).parseUrl('/404')))
     ),
+    {
+      // `useExisting`, not `useClass`: the shell reads the active route's title off the very same
+      // instance the router writes it to, and `useClass` would hand out a second one.
+      provide: TitleStrategy,
+      useExisting: TafelTitleStrategy
+    },
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAppInitializer(() => inject(SwUpdateService).init()),
     provideServiceWorker('ngsw-worker.js', {

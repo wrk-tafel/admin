@@ -62,6 +62,11 @@ export class UserSearchComponent {
 
   searchResult = signal<UserSearchResult | undefined>(undefined);
 
+  // What the role="status" region in the template says. A search replaces the whole result table,
+  // or clears it again, and neither is a change a screen reader notices on its own. It is its own
+  // signal rather than derived from searchResult(), because the empty result clears that signal.
+  searchAnnouncement = signal('');
+
   constructor() {
     // Same reasoning as the customer search: show the first page of (active) users straight away
     // instead of an empty form.
@@ -92,21 +97,27 @@ export class UserSearchComponent {
   }
 
   /**
-   * @param notifyWhenEmpty off for the initial load only - see the note on the customer search.
+   * @param announceOutcome off for the initial load only - see the note on the customer search.
    */
-  searchForDetails(page?: number, pageSize?: number, notifyWhenEmpty = true) {
+  searchForDetails(page?: number, pageSize?: number, announceOutcome = true) {
     const searchInput = this.searchForm.searchInput().value();
     const enabled = this.searchForm.enabled().value();
 
     this.userApiService.searchUser(searchInput, enabled, page, pageSize)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
-          if (notifyWhenEmpty) {
-            this.toastr.info('Keine Benutzer gefunden!');
-          }
           this.searchResult.set(undefined);
+          if (announceOutcome) {
+            this.toastr.info('Keine Benutzer gefunden!');
+            this.searchAnnouncement.set('Keine Benutzer gefunden');
+          }
         } else {
           this.searchResult.set(response);
+          if (announceOutcome) {
+            this.searchAnnouncement.set(
+              response.totalCount === 1 ? '1 Benutzer gefunden' : `${response.totalCount} Benutzer gefunden`
+            );
+          }
         }
       });
   }

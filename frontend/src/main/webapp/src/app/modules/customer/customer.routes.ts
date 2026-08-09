@@ -19,10 +19,12 @@ import {CustomerOverviewDistributionsResolver} from './resolver/customer-overvie
 export const routes: Routes = [
   {
     path: 'anlegen',
+    title: 'Kunden anlegen',
     component: CustomerEditComponent
   },
   {
     path: 'detail/:id',
+    title: 'Kunden-Details',
     component: CustomerDetailComponent,
     resolve: {
       customerData: CustomerDataResolver,
@@ -32,6 +34,7 @@ export const routes: Routes = [
   },
   {
     path: 'bearbeiten/:id',
+    title: 'Kunden bearbeiten',
     component: CustomerEditComponent,
     resolve: {
       customerData: CustomerDataResolver
@@ -39,10 +42,12 @@ export const routes: Routes = [
   },
   {
     path: 'suchen',
+    title: 'Kunden suchen',
     component: CustomerSearchComponent
   },
   {
     path: 'duplikate',
+    title: 'Kunden-Duplikate',
     component: CustomerDuplicatesComponent,
     resolve: {
       customerDuplicatesData: CustomerDuplicatesDataResolver
@@ -50,6 +55,7 @@ export const routes: Routes = [
   },
   {
     path: 'ueber-limit',
+    title: 'Kunden über Limit',
     component: CustomerAboveLimitComponent,
     resolve: {
       customerAboveLimitData: CustomerAboveLimitDataResolver
@@ -57,6 +63,7 @@ export const routes: Routes = [
   },
   {
     path: 'uebersicht',
+    title: 'Kunden-Übersicht',
     component: CustomerOverviewComponent,
     resolve: {
       customerOverviewData: CustomerOverviewDataResolver,
@@ -65,6 +72,7 @@ export const routes: Routes = [
   },
   {
     path: 'zusammenfuehren/:id',
+    title: 'Kunden zusammenführen',
     component: CustomerMergeComponent,
     resolve: {
       customerMergePreviewData: CustomerMergePreviewResolver

@@ -2,14 +2,22 @@ import {Component, computed, inject, signal} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
-import {MatExpansionModule} from '@angular/material/expansion';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSlideToggleChange, MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
-import {faMagnifyingGlass, faNoteSticky, faPencil, faPlus, faRoute, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {
+  faChevronDown,
+  faChevronUp,
+  faMagnifyingGlass,
+  faNoteSticky,
+  faPencil,
+  faPlus,
+  faRoute,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {forkJoin} from 'rxjs';
@@ -46,7 +54,6 @@ interface RouteView {
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
-    MatExpansionModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonToggleModule,
@@ -81,6 +88,10 @@ export class SettingsRoutesComponent {
 
   private readonly shopsById = computed(() => new Map(this._shops().map(shop => [shop.id, shop])));
   private readonly routeViews = computed(() => this._routes().map(route => this.toRouteView(route)));
+
+  // which records are expanded, by route id rather than by index, so a search or a filter change
+  // does not carry the expanded state over to whichever record now sits at that position
+  private readonly expandedIds = signal<ReadonlySet<number>>(new Set());
 
   protected readonly visibleRoutes = computed(() => {
     const search = this.searchText().trim().toLowerCase();
@@ -168,6 +179,18 @@ export class SettingsRoutesComponent {
     });
   }
 
+  protected isExpanded(routeId: number): boolean {
+    return this.expandedIds().has(routeId);
+  }
+
+  protected toggleExpanded(routeId: number) {
+    const expanded = new Set(this.expandedIds());
+    if (!expanded.delete(routeId)) {
+      expanded.add(routeId);
+    }
+    this.expandedIds.set(expanded);
+  }
+
   protected onFilterChanged(event: MatButtonToggleChange) {
     this.enabledFilter.set(event.value as EnabledFilter);
   }
@@ -218,6 +241,8 @@ export class SettingsRoutesComponent {
   protected readonly faXmark = faXmark;
   protected readonly faNoteSticky = faNoteSticky;
   protected readonly faRoute = faRoute;
+  protected readonly faChevronDown = faChevronDown;
+  protected readonly faChevronUp = faChevronUp;
 }
 
 // the backend sends a LocalTime ("14:00:00"), of which only hours and minutes are ever maintained

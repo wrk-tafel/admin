@@ -55,6 +55,26 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('exist');
   });
 
+  // The toggle used to be a bare icon with a click handler: reachable by mouse only and nameless to
+  // a screen reader, which a unit spec asserting the component's own state cannot tell apart from a
+  // real button.
+  it('the password visibility toggle is reachable and operable with the keyboard', () => {
+    cy.byTestId('password').type('geheim');
+    cy.byTestId('password').should('have.attr', 'type', 'password');
+
+    cy.byTestId('passwordVisibilityToggle')
+      .should('have.attr', 'aria-label', 'Passwort anzeigen')
+      .should('have.attr', 'aria-pressed', 'false')
+      .focus();
+
+    cy.focused().should('have.attr', 'testid', 'passwordVisibilityToggle').click();
+
+    cy.byTestId('password').should('have.attr', 'type', 'text');
+    cy.byTestId('passwordVisibilityToggle')
+      .should('have.attr', 'aria-label', 'Passwort verbergen')
+      .should('have.attr', 'aria-pressed', 'true');
+  });
+
   it('login with required password change cannot access the dashboard', () => {
     createTestUserRequiringPasswordChange().then(({user, testUser}) => {
       cy.visit('/login');
@@ -141,8 +161,8 @@ describe('Login', () => {
     // Route resolvers (e.g. the above-limit list's data fetch) fire an authenticated request
     // before the target component even mounts - that's what's used here to trigger the 401.
     // "Kunden über Limit" lives under the collapsible "Sonstige" nav group - expand it first
-    // (the `a` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
-    cy.contains('a', 'Sonstige').click();
+    // (the `button` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
+    cy.contains('button', 'Sonstige').click();
     cy.contains('Kunden über Limit').click();
 
     cy.url().should('contain', '/login/abgelaufen');

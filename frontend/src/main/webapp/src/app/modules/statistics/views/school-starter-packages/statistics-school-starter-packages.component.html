@@ -1,7 +1,7 @@
 <mat-card class="w-full">
   <mat-card-header>
     <mat-card-title>
-      <h5 class="mb-0 mt-1">Schulstartpakete</h5>
+      <h2 class="tafel-h5 mb-0 mt-1">Schulstartpakete</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
@@ -34,7 +34,7 @@
 
     @if ((schoolStarterPackageData()?.items?.length ?? 0) > 0) {
       <div>
-        <h5 class="mb-4">{{ schoolStarterPackageData()!.totalCount }} Schulstartpakete benötigt</h5>
+        <h2 class="tafel-h5 mb-4">{{ schoolStarterPackageData()!.totalCount }} Schulstartpakete benötigt</h2>
         <mat-paginator class="tafel-paginator-responsive" [length]="schoolStarterPackageData()!.totalCount"
                        [pageSize]="schoolStarterPackageData()!.pageSize" [pageIndex]="schoolStarterPackageData()!.currentPage - 1"
                        [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>

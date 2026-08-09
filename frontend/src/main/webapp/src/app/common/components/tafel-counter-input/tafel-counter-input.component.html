@@ -1,11 +1,18 @@
+<!--
+  A screen reads one of these per category, so every control names the category it belongs to -
+  "Wert erhöhen" on its own is the same name a dozen times over, and the number field had no name
+  at all.
+-->
 <div class="flex items-center justify-center gap-2">
-  <button matButton="outlined" aria-label="Wert verringern" (click)="decrement()" [attr.testid]="testId() + '-decrement-button'">
+  <button matButton="outlined" [attr.aria-label]="label() + ' verringern'" (click)="decrement()"
+          [attr.testid]="testId() + '-decrement-button'">
     <fa-icon [icon]="faMinus"></fa-icon>
   </button>
-  <input [attr.testid]="testId() + '-input'" type="number" name="valueInput"
+  <input [attr.testid]="testId() + '-input'" type="number" name="valueInput" [attr.aria-label]="label()"
          class="w-16 text-center border border-gray-300 rounded-md py-1.5"
          [ngModel]="currentValue()" (ngModelChange)="onValueChange($event)" />
-  <button matButton="outlined" aria-label="Wert erhöhen" (click)="increment()" [attr.testid]="testId() + '-increment-button'">
+  <button matButton="outlined" [attr.aria-label]="label() + ' erhöhen'" (click)="increment()"
+          [attr.testid]="testId() + '-increment-button'">
     <fa-icon [icon]="faPlus"></fa-icon>
   </button>
 </div>

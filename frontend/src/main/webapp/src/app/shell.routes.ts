@@ -117,10 +117,12 @@ export const routes: Routes = [
       },
       {
         path: 'passwortaendern',
+        title: 'Passwort ändern',
         component: UserPasswordChangeComponent
       },
       {
         path: 'benachrichtigungen',
+        title: 'Benachrichtigungen',
         component: PushNotificationSettingsComponent
       }
     ]

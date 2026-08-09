@@ -1,4 +1,4 @@
-# ADR-0038: Audit trail as one append-only `audit_log` table, written by the application
+# ADR-0039: Audit trail as one append-only `audit_log` table, written by the application
 
 **Status:** accepted · **Recorded:** 2026-08-09
 

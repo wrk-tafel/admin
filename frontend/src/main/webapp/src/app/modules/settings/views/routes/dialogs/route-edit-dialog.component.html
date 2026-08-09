@@ -1,7 +1,7 @@
 <tafel-dialog [title]="title" testId="route-edit-dialog">
   <div tafel-dialog-content>
     <form [formGroup]="form">
-      <h6 class="mb-1 text-xs uppercase tracking-wide text-slate-500">Stammdaten</h6>
+      <h3 class="tafel-h6 mb-1 text-xs uppercase tracking-wide text-slate-500">Stammdaten</h3>
       <div class="flex flex-wrap gap-x-4">
         <mat-form-field class="w-32">
           <mat-label>Nummer</mat-label>
@@ -32,9 +32,9 @@
 
       <div class="mt-8">
         <div class="mb-1 flex flex-wrap items-center justify-between gap-3">
-          <h6 class="mb-0 text-xs uppercase tracking-wide text-slate-500">
+          <h3 class="tafel-h6 mb-0 text-xs uppercase tracking-wide text-slate-500">
             Stopps ({{ stops.length }})
-          </h6>
+          </h3>
           <button matButton="filled" type="button" testid="route-stop-add-button" (click)="addStop()">
             <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
             Stopp hinzufügen

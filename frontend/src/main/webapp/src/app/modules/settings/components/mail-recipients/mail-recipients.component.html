@@ -3,7 +3,7 @@
     <mat-card-title>
       <div class="flex items-center gap-2">
         <fa-icon [icon]="faEnvelope" />
-        <h5 class="mb-0 mt-1">E-Mail Empfänger</h5>
+        <h2 class="tafel-h5 mb-0 mt-1">E-Mail Empfänger</h2>
       </div>
     </mat-card-title>
   </mat-card-header>
@@ -17,8 +17,10 @@
         @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
           <mat-tab>
             <ng-template mat-tab-label>
+              <!-- red-700 rather than the red-600 used on white elsewhere: the tab header's own
+                   background is grey, where red-600 only reaches 3.75:1 -->
               <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
-                    [class.text-red-600]="isControlInvalid(recipientOfMailType)">
+                    [class.text-red-700]="isControlInvalid(recipientOfMailType)">
                 {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
               </span>
             </ng-template>

@@ -1,10 +1,13 @@
 import {Component, computed, inject, Signal, signal} from '@angular/core';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faLinkSlash} from '@fortawesome/free-solid-svg-icons';
 import {SseService} from '../../../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'tafel-ticket-screen',
-    templateUrl: 'ticket-screen.component.html'
+    templateUrl: 'ticket-screen.component.html',
+    imports: [FaIconComponent]
 })
 export class TicketScreenComponent {
   private readonly sseService = inject(SseService);
@@ -21,6 +24,8 @@ export class TicketScreenComponent {
 
   readonly text = computed(() => this.ticketScreenData()?.text ?? undefined);
   readonly value = computed(() => this.ticketScreenData()?.value ?? '-');
+
+  protected readonly faLinkSlash = faLinkSlash;
 
 }
 

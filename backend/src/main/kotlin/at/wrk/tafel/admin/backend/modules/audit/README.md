@@ -2,8 +2,8 @@
 
 Read access to the audit trail — "who changed what, and what did it look like before".
 
-The decision behind it, including the options that lost, is ADR-0038
-(`docs/architecture/adr/0038-audit-trail-as-an-append-only-log-written-by-the-application.md`).
+The decision behind it, including the options that lost, is ADR-0039
+(`docs/architecture/adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md`).
 
 ## Why the writing side isn't in here
 
@@ -59,7 +59,7 @@ the target, and one per source recording where its data went. The sources' own `
 with their last field values — come from the listener.
 
 Any new bulk write against an audited table has to do the same. This is the price of not using
-database triggers, and the reason it was still the better trade is in ADR-0038.
+database triggers, and the reason it was still the better trade is in ADR-0039.
 
 ## Values
 

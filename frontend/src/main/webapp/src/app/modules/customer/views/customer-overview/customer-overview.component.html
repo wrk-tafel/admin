@@ -23,6 +23,10 @@
         </mat-form-field>
       </div>
     </div>
+
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="overview-announcement">{{ overviewAnnouncement() }}</div>
   </mat-card-content>
 </mat-card>
 

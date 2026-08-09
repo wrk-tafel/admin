@@ -7,8 +7,12 @@
 
     <hr/>
 
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="above-limit-announcement">{{ aboveLimitAnnouncement() }}</div>
+
     @if ((customerAboveLimitData()?.items?.length ?? 0) === 0) {
-      <h4 class="font-bold mt-4">Keine Kunden über dem Limit gefunden!</h4>
+      <h2 class="tafel-h4 font-bold mt-4">Keine Kunden über dem Limit gefunden!</h2>
     }
 
     @if ((customerAboveLimitData()?.items?.length ?? 0) > 0) {

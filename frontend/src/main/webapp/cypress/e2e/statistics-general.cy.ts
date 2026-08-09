@@ -1,6 +1,7 @@
 import * as path from 'path';
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('Statistics General', () => {
 
@@ -111,6 +112,30 @@ describe('Statistics General', () => {
     cy.contains('CSV-Export').should('be.visible');
 
     cy.contains('Kunden und Personen').should('be.visible');
+  });
+
+  // Only the `year` controls exist on the initial render, which is all the Lighthouse `pages`
+  // sweep ever grades - the other three modes' controls are created by the toggle.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations in any of the date range modes', () => {
+      cy.byTestId('yearInput').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('dateRangeModeInput').contains('Aktuelles Monat').click();
+      cy.byTestId('yearInput').should('not.exist');
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('dateRangeModeInput').contains('Ausgabe').click();
+      cy.byTestId('distributionDateInput').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').click();
+      cy.byTestId('dataRangeFromInput').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
   });
 
 });
