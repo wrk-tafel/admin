@@ -6,6 +6,7 @@ import {Router} from '@angular/router';
 import {firstValueFrom, of} from 'rxjs';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {ConfigApiService} from '../../../api/config-api.service';
 
 describe('LoginPasswordChangeComponent', () => {
     let authServiceSpy: MockedObject<AuthenticationService>;
@@ -23,6 +24,12 @@ describe('LoginPasswordChangeComponent', () => {
                         getUsername: vi.fn().mockName('AuthenticationService.getUsername'),
                         logout: vi.fn().mockName('AuthenticationService.logout'),
                         redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
+                    }
+                },
+                {
+                    provide: ConfigApiService,
+                    useValue: {
+                        observeConfig: vi.fn().mockName('ConfigApiService.observeConfig').mockReturnValue(of(null))
                     }
                 },
                 {

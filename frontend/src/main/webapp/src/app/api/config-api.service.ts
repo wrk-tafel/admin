@@ -56,6 +56,20 @@ export interface AppConfig {
    * source must not be offered - it could never list anything.
    */
   scannerFolderEnabled: boolean;
+  /**
+   * What a password has to satisfy in this deployment (`tafeladmin.password`). The password-change
+   * form validates and describes the rules from here rather than from its own copy of them - the
+   * limits and the forbidden words differ per installation, and a form that stated its own would
+   * start contradicting the backend the moment one is changed.
+   */
+  passwordRules: PasswordRules;
+}
+
+export interface PasswordRules {
+  minLength: number;
+  maxLength: number;
+  /** Case-insensitively forbidden anywhere in the password. Empty means there is no such rule. */
+  forbiddenWords: string[];
 }
 
 export interface PublicAppConfig {

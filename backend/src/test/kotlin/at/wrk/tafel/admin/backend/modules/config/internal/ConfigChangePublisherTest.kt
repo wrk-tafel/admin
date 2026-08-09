@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.config.properties.ConfigurationReloadedEvent
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.config.ConfigResponse
+import at.wrk.tafel.admin.backend.modules.config.PasswordRules
 import io.mockk.confirmVerified
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -23,6 +24,8 @@ internal class ConfigChangePublisherTest {
         storage.scannerPath = "/mnt/scanner"
     }
 
+    private val defaultPasswordRules = PasswordRules(minLength = 8, maxLength = 50, forbiddenWords = emptyList())
+
     private val changedEvent = ConfigurationReloadedEvent(setOf("tafeladmin.features.scannerFolderEnabled"))
 
     @Test
@@ -35,7 +38,32 @@ internal class ConfigChangePublisherTest {
         verifySequence {
             sseOutboxService.saveOutboxEntry(
                 ConfigChangePublisher.NOTIFICATION_NAME,
-                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = false),
+                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = false, passwordRules = defaultPasswordRules),
+            )
+        }
+    }
+
+    /**
+     * The password-change screen validates against these and lists them, so an operator tightening
+     * the rules has to reach a page that is already open rather than only the next page load.
+     */
+    @Test
+    fun `publishes changed password rules`() {
+        val publisher = ConfigChangePublisher(properties, sseOutboxService)
+        properties.password.minLength = 12
+        properties.password.forbiddenWords = listOf("tafel")
+
+        publisher.onConfigurationReloaded(changedEvent)
+
+        verifySequence {
+            sseOutboxService.saveOutboxEntry(
+                ConfigChangePublisher.NOTIFICATION_NAME,
+                ConfigResponse(
+                    version = "1.2.3",
+                    buildTime = "2026-07-28T15:30:00Z",
+                    scannerFolderEnabled = true,
+                    passwordRules = PasswordRules(minLength = 12, maxLength = 50, forbiddenWords = listOf("tafel")),
+                ),
             )
         }
     }
@@ -67,11 +95,11 @@ internal class ConfigChangePublisherTest {
         verifySequence {
             sseOutboxService.saveOutboxEntry(
                 ConfigChangePublisher.NOTIFICATION_NAME,
-                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = false),
+                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = false, passwordRules = defaultPasswordRules),
             )
             sseOutboxService.saveOutboxEntry(
                 ConfigChangePublisher.NOTIFICATION_NAME,
-                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = true),
+                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = true, passwordRules = defaultPasswordRules),
             )
         }
     }

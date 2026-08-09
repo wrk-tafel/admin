@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 
 class ConfigControllerTest {
 
+    private val defaultPasswordRules = PasswordRules(minLength = 8, maxLength = 50, forbiddenWords = emptyList())
+
     @Test
     fun `get config`() {
         val controller = ConfigController(
@@ -19,7 +21,7 @@ class ConfigControllerTest {
         val response = controller.getConfig()
 
         assertThat(response).isEqualTo(
-            ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = true),
+            ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = true, passwordRules = defaultPasswordRules),
         )
     }
 
@@ -56,7 +58,22 @@ class ConfigControllerTest {
         properties.storage.scannerPath = "/mnt/scanner"
 
         assertThat(controller.getConfig()).isEqualTo(
-            ConfigResponse(version = "1.2.3", buildTime = "unknown", scannerFolderEnabled = true),
+            ConfigResponse(version = "1.2.3", buildTime = "unknown", scannerFolderEnabled = true, passwordRules = defaultPasswordRules),
+        )
+    }
+
+    @Test
+    fun `get config reports the configured password rules`() {
+        val controller = ConfigController(
+            TafelAdminProperties().apply {
+                password.minLength = 12
+                password.maxLength = 30
+                password.forbiddenWords = listOf("tafel", "wrk")
+            },
+        )
+
+        assertThat(controller.getConfig().passwordRules).isEqualTo(
+            PasswordRules(minLength = 12, maxLength = 30, forbiddenWords = listOf("tafel", "wrk")),
         )
     }
 

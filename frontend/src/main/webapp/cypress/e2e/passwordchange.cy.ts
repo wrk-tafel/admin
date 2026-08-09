@@ -44,6 +44,39 @@ describe('PasswordChange', () => {
     cy.byTestId('newRepeatedPasswordText-error').should('not.exist');
   });
 
+  /**
+   * The password rules are per-installation configuration (`tafeladmin.password`) that reaches the
+   * frontend through /api/config, so the screen has to state and validate against whatever this
+   * deployment is configured with - including after an operator edits it while the page is open,
+   * which is why nothing here is stubbed: the edit goes into the real config file the backend
+   * re-reads and pushes over SSE.
+   */
+  it('states and enforces the password rules the backend is configured with', () => {
+    cy.task('clearBackendConfig');
+
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-changepassword').click();
+
+    cy.byTestId('passwordRules-length').should('contain.text', 'Mindestens 8 Zeichen, maximal 50 Zeichen');
+    cy.byTestId('passwordRules-forbiddenWords').should('contain.text', 'tafel');
+
+    const tightenedRules = ['tafeladmin:', '  password:', '    minLength: 12', '    forbiddenWords: []'].join('\n');
+    cy.task('writeBackendConfig', tightenedRules);
+
+    cy.byTestId('passwordRules-length', {timeout: 20000}).should('contain.text', 'Mindestens 12 Zeichen, maximal 50 Zeichen');
+    // an installation with no forbidden words configured doesn't state that rule at all
+    cy.byTestId('passwordRules-forbiddenWords').should('not.exist');
+
+    // the form validates against the new minimum, not the one the page was loaded with
+    cy.byTestId('currentPasswordText').type('e2etest');
+    cy.byTestId('newPasswordText').type('TenChars12');
+    cy.byTestId('newPasswordText').find('input').blur();
+    cy.contains('Passwort zu kurz (Limit: 12)').should('be.visible');
+
+    cy.task('clearBackendConfig');
+    cy.byTestId('passwordRules-length', {timeout: 20000}).should('contain.text', 'Mindestens 8 Zeichen, maximal 50 Zeichen');
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);

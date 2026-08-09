@@ -527,6 +527,12 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
   silently won't be findable.
+- **Password Rules**: length limits and forbidden words are per-installation configuration
+  (`tafeladmin.password`), not constants. `TafelPasswordValidator` assembles the Passay rules per
+  validation, so an operator's edit takes effect without a restart, and `/api/config` serves the same
+  values to the frontend — the password-change screen lists and pre-validates against them rather
+  than carrying its own copy. Only length and forbidden words are configurable; that a password may
+  not contain the username or whitespace is unconditional.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.

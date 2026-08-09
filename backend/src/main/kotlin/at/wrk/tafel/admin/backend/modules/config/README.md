@@ -29,8 +29,8 @@ while this module is the read-only HTTP view of it for the frontend.
 - [`ConfigSseController`](ConfigSseController.kt): `GET /api/sse/config`, which pushes the config
   again whenever it changes in the backend. It emits nothing on subscribe — `GET /api/config` is
   what a page load reads, this carries only the deltas after it.
-- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled)`
-  and `PublicConfigResponse(environmentLabel)`, plus the one `TafelAdminProperties.toConfigResponse()`
+- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled,
+  passwordRules)` and `PublicConfigResponse(environmentLabel)`, plus the one `TafelAdminProperties.toConfigResponse()`
   mapping both the endpoint and the push side use, so the two can't report different things about
   the same deployment.
 - [`ConfigChangePublisher`](internal/ConfigChangePublisher.kt): listens for a reloaded configuration
@@ -70,6 +70,12 @@ computed at the moment the image is built in `.github/workflows/subflow_docker_i
 (`tafeladmin.storage.scannerPath` plus the `tafeladmin.features.scannerFolderEnabled` kill switch) — the
 same rule `household`'s `ScannerFileService` enforces server-side, so the UI can't offer a document
 source the backend would refuse to serve.
+
+`passwordRules` mirrors `tafeladmin.password` (length limits and forbidden words), the same values
+`TafelPasswordValidator` checks a password against. The password-change screen both lists them and
+validates against them before submitting, so they have to be served rather than hardcoded on either
+side: an installation configures its own, and a frontend stating its own copy would start
+contradicting the backend the moment one does.
 
 ## Adding a feature flag here
 

@@ -2,11 +2,11 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
+import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordValidator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
-import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
@@ -32,7 +32,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.passay.FailureValidationResult
 import org.passay.PasswordData
-import org.passay.PasswordValidator
 import org.passay.RuleResultDetail
 import org.passay.RuleResultMetadata
 import org.passay.SuccessValidationResult
@@ -60,8 +59,12 @@ class TafelUserDetailsManagerTest {
     private var passwordEncoder: PasswordEncoder =
         DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder(16, 32, 1, 16384, 2)))
 
+    // The rules the validator enforces are configuration (tafeladmin.password), so a test that wants
+    // a specific rule in play sets it here rather than relying on a default.
+    private val passwordRuleProperties = TafelAdminProperties()
+
     @SpyK
-    private var passwordValidator: PasswordValidator = WebSecurityConfig.passwordValidator
+    private var passwordValidator: TafelPasswordValidator = TafelPasswordValidator(passwordRuleProperties)
 
     @SpyK
     private var tafelAdminProperties: TafelAdminProperties = TafelAdminProperties()
@@ -340,6 +343,7 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains illegal words`() {
+        passwordRuleProperties.password.forbiddenWords = listOf("wrk", "tafel")
         val newPassword = "123wrk123tafel123"
 
         val exception = assertThrows<PasswordChangeException> {

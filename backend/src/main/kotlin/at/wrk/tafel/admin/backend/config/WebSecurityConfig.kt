@@ -7,13 +7,9 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import jakarta.servlet.DispatcherType
-import org.passay.DefaultPasswordValidator
 import org.passay.data.EnglishCharacterData
 import org.passay.data.GermanCharacterData
-import org.passay.dictionary.ArrayWordList
-import org.passay.dictionary.WordListDictionary
-import org.passay.dictionary.sort.ArraysSort
-import org.passay.rule.*
+import org.passay.rule.CharacterRule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -54,23 +50,6 @@ class WebSecurityConfig(
         // instead of letting it through unauthenticated.
         private val publicEndpoints = listOf("/api/login", "/api/logout", "/api/config/public")
 
-        val passwordLengthRule = LengthRule(8, 50)
-        val passwordValidator = DefaultPasswordValidator(
-            listOf(
-                passwordLengthRule,
-                UsernameRule(),
-                WhitespaceRule(),
-                DictionarySubstringRule(
-                    WordListDictionary(
-                        ArrayWordList(
-                            listOf("wrk", "örk", "oerk", "tafel", "roteskreuz", "toet", "töt", "1030").toTypedArray(),
-                            false,
-                            ArraysSort(),
-                        ),
-                    ),
-                ),
-            ),
-        )
         val generatedPasswordCharactersRules = listOf(
             CharacterRule(GermanCharacterData.LowerCase),
             CharacterRule(GermanCharacterData.UpperCase),
@@ -79,7 +58,10 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelPasswordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(passwordLengthRule.minimumLength + 2, generatedPasswordCharactersRules)
+    fun tafelPasswordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(tafelAdminProperties, generatedPasswordCharactersRules)
+
+    @Bean
+    fun tafelPasswordValidator(): TafelPasswordValidator = TafelPasswordValidator(tafelAdminProperties)
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -174,7 +156,7 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties)
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), tafelPasswordValidator(), tafelAdminProperties)
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())

@@ -1,6 +1,8 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {form, FormField, maxLength, minLength, required, validate} from '@angular/forms/signals';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
+import {ConfigApiService} from '../../../api/config-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
@@ -33,6 +35,19 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../http/suppress-error-toast.toke
 })
 export class PasswordChangeFormComponent {
   private readonly userApiService = inject(UserApiService);
+  private readonly configApiService = inject(ConfigApiService);
+
+  /**
+   * The rules this deployment enforces, followed rather than read once: an operator can edit them
+   * while this form is open (see ConfigApiService.observeConfig). Null until the config has arrived
+   * - and if it never does, the length validators simply don't apply and the backend, which is the
+   * one enforcing them, still rejects a password that breaks the rules.
+   */
+  readonly passwordRules = toSignal(
+    this.configApiService.observeConfig().pipe(map(config => config?.passwordRules ?? null)),
+    {initialValue: null}
+  );
+  readonly forbiddenWordsText = computed(() => this.passwordRules()?.forbiddenWords.join(', ') ?? '');
 
   // Form model as a signal
   private emptyPasswordModel = {
@@ -47,19 +62,19 @@ export class PasswordChangeFormComponent {
     required(schemaPath.currentPassword, {message: 'Pflichtfeld'});
 
     required(schemaPath.newPassword, {message: 'Pflichtfeld'});
-    minLength(schemaPath.newPassword, 8, {
-      message: 'Passwort zu kurz (Limit: 8)'
+    minLength(schemaPath.newPassword, () => this.passwordRules()?.minLength, {
+      message: () => `Passwort zu kurz (Limit: ${this.passwordRules()?.minLength})`
     });
-    maxLength(schemaPath.newPassword, 50, {
-      message: 'Passwort zu lang (Limit: 50)'
+    maxLength(schemaPath.newPassword, () => this.passwordRules()?.maxLength, {
+      message: () => `Passwort zu lang (Limit: ${this.passwordRules()?.maxLength})`
     });
 
     required(schemaPath.newRepeatedPassword, {message: 'Pflichtfeld'});
-    minLength(schemaPath.newRepeatedPassword, 8, {
-      message: 'Passwort zu kurz (Limit: 8)'
+    minLength(schemaPath.newRepeatedPassword, () => this.passwordRules()?.minLength, {
+      message: () => `Passwort zu kurz (Limit: ${this.passwordRules()?.minLength})`
     });
-    maxLength(schemaPath.newRepeatedPassword, 50, {
-      message: 'Passwort zu lang (Limit: 50)'
+    maxLength(schemaPath.newRepeatedPassword, () => this.passwordRules()?.maxLength, {
+      message: () => `Passwort zu lang (Limit: ${this.passwordRules()?.maxLength})`
     });
 
     // Cross-field validation for password matching

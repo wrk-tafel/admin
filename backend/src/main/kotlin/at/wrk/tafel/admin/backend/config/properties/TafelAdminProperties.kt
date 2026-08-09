@@ -34,6 +34,7 @@ class TafelAdminProperties {
 
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var mail: TafelAdminMailProperties? = null
+    var password: TafelAdminPasswordProperties = TafelAdminPasswordProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
@@ -74,6 +75,32 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+}
+
+/**
+ * What a user's password has to satisfy. Enforced by `TafelPasswordValidator` and served to the
+ * frontend through `/api/config`, so the password-change screen describes and pre-validates exactly
+ * the rules the backend applies rather than a hardcoded copy of them.
+ *
+ * Configuration rather than constants because the rules are an installation's own policy: how long a
+ * password has to be, and which words are too obvious for it, differ between the deployments running
+ * this application. Read per validation, so an operator's edit takes effect without a restart.
+ *
+ * Not everything is configurable: that a password may not contain the username and may not contain
+ * whitespace holds for every installation, so those two rules stay fixed in `TafelPasswordValidator`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordProperties {
+    var minLength: Int = 8
+    var maxLength: Int = 50
+
+    /**
+     * Words a password may not contain, matched case-insensitively anywhere in it (also reversed).
+     * Empty - the default here - means no such rule is applied at all; the list this deployment
+     * actually uses is in `application.yml`, since it names this organisation rather than anything
+     * inherent to the application.
+     */
+    var forbiddenWords: List<String> = emptyList()
 }
 
 @ExcludeFromTestCoverage

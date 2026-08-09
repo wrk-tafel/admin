@@ -86,7 +86,7 @@ Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login
 
 ![Passwort ändern nach erzwungenem Login](images/login-passwort-aendern.jpg)
 
-In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten.
+In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss eine Mindest- und Höchstlänge einhalten (standardmäßig mindestens 8 und maximal 50 Zeichen), darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (standardmäßig z. B. "wrk", "tafel", "roteskreuz") nicht enthalten. Die Längen und die verbotenen Wörter werden pro Installation konfiguriert; die tatsächlich gültigen Regeln stehen auf der Seite selbst unter "Passwortregeln".
 
 Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.", nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden." und bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!".
 

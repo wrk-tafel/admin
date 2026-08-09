@@ -3,17 +3,31 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {ChangePasswordResponse} from '../../../api/user-api.service';
+import {AppConfig, ConfigApiService} from '../../../api/config-api.service';
+import {BehaviorSubject} from 'rxjs';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<PasswordChangeFormComponent>;
   let component: PasswordChangeFormComponent;
+  let config: BehaviorSubject<AppConfig | null>;
 
   beforeEach(() => {
+    config = new BehaviorSubject<AppConfig | null>({
+      version: '1.0.0',
+      buildTime: 'unknown',
+      scannerFolderEnabled: false,
+      passwordRules: {minLength: 8, maxLength: 50, forbiddenWords: ['tafel']}
+    });
+    const configApiServiceSpy = {
+      observeConfig: vi.fn().mockName('ConfigApiService.observeConfig').mockReturnValue(config.asObservable())
+    };
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
+        {provide: ConfigApiService, useValue: configApiServiceSpy}
       ]
     }).compileComponents();
 
@@ -127,6 +141,75 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.successMessage()).toBe(null);
     expect(component.errorMessage()).toBe(null);
     expect(component.errorMessageDetails()).toEqual([]);
+  });
+
+  it('validates the length against the rules the deployment is configured with', () => {
+    config.next({
+      version: '1.0.0',
+      buildTime: 'unknown',
+      scannerFolderEnabled: false,
+      passwordRules: {minLength: 12, maxLength: 14, forbiddenWords: []}
+    });
+
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: '12345678',
+      newRepeatedPassword: '12345678'
+    });
+
+    const tooShortError = component.passwordForm.newPassword().errors().find(e => e.kind === 'minLength');
+    expect(tooShortError?.message).toBe('Passwort zu kurz (Limit: 12)');
+
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: '123456789012345',
+      newRepeatedPassword: '123456789012345'
+    });
+
+    const tooLongError = component.passwordForm.newPassword().errors().find(e => e.kind === 'maxLength');
+    expect(tooLongError?.message).toBe('Passwort zu lang (Limit: 14)');
+  });
+
+  it('leaves the length to the backend when the config is unavailable', () => {
+    config.next(null);
+
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: 'ab',
+      newRepeatedPassword: 'ab'
+    });
+
+    expect(component.passwordForm.newPassword().errors()).toEqual([]);
+    expect(component.passwordForm().valid()).toBe(true);
+  });
+
+  it('lists the configured rules and follows a config change', () => {
+    fixture.detectChanges();
+
+    const lengthRule = () => fixture.nativeElement.querySelector('[testid="passwordRules-length"]')?.textContent?.trim();
+    const forbiddenWords = () => fixture.nativeElement.querySelector('[testid="passwordRules-forbiddenWords"]')?.textContent;
+
+    expect(lengthRule()).toBe('Mindestens 8 Zeichen, maximal 50 Zeichen');
+    expect(forbiddenWords()).toContain('tafel');
+
+    config.next({
+      version: '1.0.0',
+      buildTime: 'unknown',
+      scannerFolderEnabled: false,
+      passwordRules: {minLength: 12, maxLength: 40, forbiddenWords: []}
+    });
+    fixture.detectChanges();
+
+    expect(lengthRule()).toBe('Mindestens 12 Zeichen, maximal 40 Zeichen');
+    // nothing forbidden means the rule isn't stated at all
+    expect(fixture.nativeElement.querySelector('[testid="passwordRules-forbiddenWords"]')).toBeNull();
+  });
+
+  it('states no rules while the config has not arrived', () => {
+    config.next(null);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[testid="passwordRules"]')).toBeNull();
   });
 
   it('passwordForm validity reflects required fields and password match state', () => {

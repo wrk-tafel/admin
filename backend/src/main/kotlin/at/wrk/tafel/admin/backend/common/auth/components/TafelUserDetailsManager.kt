@@ -16,7 +16,6 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import org.passay.PasswordData
-import org.passay.PasswordValidator
 import org.passay.ValidationResult
 import org.passay.rule.DictionarySubstringRule
 import org.passay.rule.LengthRule
@@ -36,7 +35,7 @@ class TafelUserDetailsManager(
     private val userRepository: UserRepository,
     private val employeeRepository: EmployeeRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val passwordValidator: PasswordValidator,
+    private val passwordValidator: TafelPasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
 ) : UserDetailsManager {
 

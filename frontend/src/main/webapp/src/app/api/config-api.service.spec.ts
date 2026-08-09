@@ -10,7 +10,7 @@ describe('ConfigApiService', () => {
   let apiService: ConfigApiService;
   let configChanges: Subject<AppConfig>;
 
-  const testConfig: AppConfig = {version: '1.2.3', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true};
+  const testConfig: AppConfig = {version: '1.2.3', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, passwordRules: {minLength: 8, maxLength: 50, forbiddenWords: []}};
   const testPublicConfig: PublicAppConfig = {environmentLabel: 'DEV'};
 
   beforeEach(() => {

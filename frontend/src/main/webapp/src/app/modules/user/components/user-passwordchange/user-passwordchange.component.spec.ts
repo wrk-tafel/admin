@@ -3,13 +3,20 @@ import { UserPasswordChangeComponent } from './user-passwordchange.component';
 import { of } from 'rxjs';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ConfigApiService } from '../../../../api/config-api.service';
 
 describe('UserPasswordChangeComponent', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
                 provideHttpClient(withXhr()),
-                provideHttpClientTesting()
+                provideHttpClientTesting(),
+                {
+                    provide: ConfigApiService,
+                    useValue: {
+                        observeConfig: vi.fn().mockName('ConfigApiService.observeConfig').mockReturnValue(of(null))
+                    }
+                }
             ]
         }).compileComponents();
     });
