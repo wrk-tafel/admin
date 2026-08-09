@@ -363,6 +363,16 @@
           </div>
         </div>
       </mat-tab>
+      <!-- Seeing a customer's current data and seeing every change ever made to it are separate
+           levels of access, so the tab only exists for whoever may read the audit trail. -->
+      @if (hasAuditPermission()) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span testid="history-tab-label">Verlauf</span>
+          </ng-template>
+          <tafel-customer-history [customerId]="customerData()!.id!"></tafel-customer-history>
+        </mat-tab>
+      }
     </mat-tab-group>
   </div>
 </div>

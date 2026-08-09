@@ -64,6 +64,14 @@ Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden.
 
 ![Dokumente](images/kunden-detail-dokumente.jpg)
 
+### Verlauf
+
+Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
+
+Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Änderungsprotokoll](aenderungsprotokoll.md), dort zusätzlich filterbar.
+
+![Verlauf](images/kunden-verlauf.jpg)
+
 ## Kunden anlegen / bearbeiten
 
 Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein, die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor.

@@ -1,7 +1,11 @@
 # Audit trail — evaluation
 
-Evaluation for [issue #2871](https://github.com/wrk-tafel/admin/issues/2871). This is a decision
-document, not a description of shipped behaviour: nothing here is implemented yet.
+Evaluation for [issue #2871](https://github.com/wrk-tafel/admin/issues/2871). This is the evaluation
+that weighed the options, not a description of shipped behaviour — read
+[ADR-0038](adr/0038-audit-trail-as-an-append-only-log-written-by-the-application.md) for what was
+decided and built, and the `audit` module's README
+(`backend/src/main/kotlin/at/wrk/tafel/admin/backend/modules/audit/README.md`) for how it works. This
+page is kept for the reasoning behind that choice.
 
 The ticket asks two things:
 
@@ -197,10 +201,12 @@ Envers (C) is the runner-up and would win under a different constraint set; the 
 that Flyway owns the schema, which turns "one mirror table per audited table" into a per-migration
 obligation nothing checks.
 
-## 5. Open decisions for the implementation ticket
+## 5. Decisions that had to be settled before code was written
 
-These are product/ops decisions, not technical ones, and they should be settled before code is
-written:
+These were product/ops decisions rather than technical ones. How each was answered is recorded in
+[ADR-0038](adr/0038-audit-trail-as-an-append-only-log-written-by-the-application.md); the questions
+are kept here because they are the ones to re-ask whenever the scope or the retention window is
+revisited:
 
 - **Scope.** Which entities are audited? Proposed starting set: `households`, `persons`,
   `household_notes`, `household_documents` (metadata only), `users` and `user_authorities`, plus the

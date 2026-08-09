@@ -739,4 +739,46 @@ describe('Customer Detail', () => {
 
   });
 
+  describe('Verlauf tab', () => {
+
+    it('shows the change history of the customer', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('history-tab-label').scrollIntoView().click();
+
+        cy.byTestId('customer-history').should('be.visible');
+        cy.byTestId('audit-entry-list').should('exist');
+        cy.byTestId('audit-entry-0-actor').should('contain.text', 'e2etest');
+      });
+    });
+
+    it('shows what an edit changed, with the previous value', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customer = response.body.data;
+
+        cy.updateCustomer({...customer, telephoneNumber: '0699333444'});
+
+        cy.visit('/kunden/detail/' + customer.id);
+        cy.byTestId('history-tab-label').scrollIntoView().click();
+
+        cy.byTestId('audit-entry-0-changes').should('contain.text', 'Telefon');
+        cy.byTestId('audit-entry-0-changes').should('contain.text', '0699333444');
+      });
+    });
+
+    it('pages through the history', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('history-tab-label').scrollIntoView().click();
+
+        cy.byTestId('customer-history-paginator').should('exist');
+      });
+    });
+
+  });
+
 });

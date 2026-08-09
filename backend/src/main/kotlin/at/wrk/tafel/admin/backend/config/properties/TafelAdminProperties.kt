@@ -32,6 +32,7 @@ class TafelAdminProperties {
     // title/manifest would look identical across all three (see #3027).
     var environmentLabel: String = ""
 
+    var audit: TafelAdminAuditProperties = TafelAdminAuditProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var mail: TafelAdminMailProperties? = null
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
@@ -75,6 +76,31 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+}
+
+/**
+ * The audit trail (`audit_log`) - see ADR-0038.
+ *
+ * Both values are read per use, so an operator can widen the retention window or switch recording
+ * off on a running deployment (`ConfigFileReloadService`) - the latter being the point of having a
+ * switch at all: if the listener ever misbehaves under load during a distribution, turning it off
+ * must not need a restart.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminAuditProperties {
+    var enabled: Boolean = true
+
+    /**
+     * How long a recorded change is kept. The log holds names, addresses and income figures of
+     * people whose household may since have been deleted, so it cannot be kept indefinitely; a year
+     * covers the full cycle of a household's validity period plus the season that follows it, which
+     * is the window a support question can realistically still reach back into.
+     *
+     * Deleting a household deliberately does *not* purge its entries early - the DELETE entry, with
+     * the last known values, is the single thing the old schema lost and this table exists for. They
+     * age out on this clock like everything else.
+     */
+    var retentionDays: Long = 365
 }
 
 @ExcludeFromTestCoverage
