@@ -178,12 +178,24 @@ describe('Accessibility', () => {
   // would carry on through the navigation the user just left.
   it('moves focus into the main content after an in-app navigation', () => {
     cy.loginDefault();
+    cy.visit('/kunden/suchen');
+
+    cy.contains('a', 'Übersicht').click();
+    cy.url().should('include', '/uebersicht');
+
+    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+  });
+
+  // The exception to the rule above: a screen that autofocuses a control keeps focus there, which
+  // is the whole point of a screen a scanner or a keyboard types straight into.
+  it('leaves focus on the control a screen autofocuses itself', () => {
+    cy.loginDefault();
     cy.visit('/uebersicht');
 
     cy.contains('a', 'Kunden suchen').click();
     cy.url().should('include', '/kunden/suchen');
 
-    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+    cy.focused().should('have.attr', 'testid', 'customerIdText');
   });
 
   // Everything the axe assertions below reach exists only after an interaction, which is what the
