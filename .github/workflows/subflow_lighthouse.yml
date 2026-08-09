@@ -129,6 +129,7 @@ jobs:
               /login,
               /login/passwortaendern,
               /404,
+              /500,
               /uebersicht,
               /passwortaendern,
               /benachrichtigungen,
