@@ -1,3 +1,20 @@
+# Defaults for every environment, and the reference for what can be configured at all.
+#
+# Anything an operator may set is listed here, whether or not it has a default: the settings that
+# depend on the deployment (database, mail server, JWT signing) or are secret (GitHub token, VAPID
+# keys) appear as commented-out entries with the explanation of what they do. Commented rather than
+# empty on purpose - this file is loaded for real, so a placeholder value would silently become the
+# configuration. Uncommenting one here configures every environment; to configure a single one,
+# copy the entry into that environment's own file instead.
+#
+# In production those per-deployment values come from an operator-managed config.yml bind-mounted
+# into the container (`-Dspring.config.additional-location`, see _build/Dockerfile), which overrides
+# what is set here. Locally they come from application-local.yml, and for the Cypress run from
+# application-e2e.yml.
+#
+# Editing the mounted config.yml takes effect without a restart for most of `tafeladmin.*` - see
+# tafeladmin.configReload below, and the per-setting notes for the ones that still need one.
+
 logging:
   level:
     root: INFO
@@ -41,6 +58,12 @@ spring:
       # this is where its static output is expected to be placed at runtime
       static-locations: file:${user.dir}/static/
   datasource:
+    # Required, and deployment-specific - the application does not start without them. Note that
+    # none of these three take effect on a config reload: the Hikari pool is built once at startup
+    # (see ConfigFileReloadService), so moving the database needs a restart.
+    # url: jdbc:postgresql://<host>:5432/tafeladmin
+    # username: tafeladmin
+    # password: <database password>
     driverClassName: org.postgresql.Driver
     hikari:
       # Sized for this application's real concurrency: a handful of simultaneous users plus the
@@ -67,6 +90,15 @@ spring:
     # flyway.clean() drops the whole schema - only the testdata/e2e profiles may re-enable it
     clean-disabled: true
   mail:
+    # Deployment-specific. With no host set, Spring Boot creates no JavaMailSender at all and every
+    # send is skipped silently (see MailSenderService) - which is exactly what a dev environment
+    # wants, and never what production does. The addresses the mails go to are not configured here
+    # but maintained in the UI under Einstellungen (mail_recipients); tafeladmin.mail below only
+    # sets who they come from.
+    # host: <smtp host>
+    # port: 587
+    # username: <smtp user>
+    # password: <smtp password>
     properties.mail.smtp:
       auth: true
       starttls.enable: true
@@ -85,11 +117,26 @@ spring:
       max-file-size: 30MB
       max-request-size: 30MB
 
+# None of this is reloadable, by design: ApplicationProperties is constructor-bound, so a config
+# reload leaves it exactly as it was bound at startup. Rotating a signing secret or a token lifetime
+# under a running application would invalidate sessions in flight at a moment nobody chose - and
+# constructor binding is also what makes the application refuse to start when a value is missing,
+# rather than fall back to a silent default. Every change here needs a restart.
 security:
   jwtToken:
+    # Required, and deployment-specific. issuer/audience identify this installation in the tokens it
+    # signs; the secret is the signing key and must be a long random string kept out of this
+    # repository (in production it comes from the mounted config.yml). Changing any of the three
+    # invalidates every session that is currently logged in.
+    # issuer: https://<public url of this installation>
+    # audience: wrk-tafel
+    # secret.value: <long random string>
     secret.algorithm: HMACSHA256
     expirationTimeInSeconds: 36000 # 10 hours
     expirationTimePwdChangeInSeconds: 300 # 5 minutes
+  # After maxFailures failed logins an account is locked for lockoutDurationInSeconds. Entries older
+  # than that window are cleaned up hourly, and an administrator can lift a lock early via
+  # Benutzer -> Anmelde-Versuche (see LoginAttemptService).
   loginAttempts:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
@@ -150,8 +197,46 @@ tafeladmin:
       personnelNumber: "00001"
       firstname: Tafel
       lastname: Administrator
+  # Where this installation is mounted below its origin. Dev/test/prod share one origin at different
+  # path prefixes, so this is also what the JWT cookie's path and the PWA manifest are built from.
+  # Baked into the security filter chain at startup - changing it needs a restart.
   server:
     relativeBaseUrl: /
+  # The in-app support form files a GitHub issue on the user's behalf. Without a token the endpoint
+  # fails with a clear error rather than pretending to have sent something. titlePrefix is prepended
+  # to every issue title so it is obvious which environment a request came from (e.g. "[TEST]").
   support:
+    # githubToken: <personal access token, Issues: Read and write>
     githubRepository: wrk-tafel/admin
     titlePrefix: ""
+  # Who the automated mails (daily report, statistics, return boxes) come from. The recipients are
+  # not configured here - they are maintained in the UI under Einstellungen. Only used when a mail
+  # server is configured above; `from` is required as soon as one is.
+  # mail:
+  #   from: no-reply@<domain>
+  #   subjectPrefix: "[TEST]"
+  #   defaultRecipientsBcc:
+  #     - archive@<domain>
+  # Web Push (VAPID). Without a keypair the application runs normally and push notifications are
+  # simply unavailable. Both keys must be the RAW key material, base64url-encoded - NOT the base64
+  # inside a PEM file, which wraps DER/ASN.1 structure around the raw bytes and fails to decode; see
+  # TafelAdminPushProperties for the exact openssl commands. vapidSubject is the contact address
+  # browser push services may use to reach the sender (RFC 8292), a mailto: URI or an https: URL.
+  # Read once when the push service is built, so changing any of them needs a restart.
+  # push:
+  #   vapidPublicKey: <65 raw bytes, base64url>
+  #   vapidPrivateKey: <32 raw bytes, base64url>
+  #   vapidSubject: mailto:<contact address>
+  storage:
+    # Where uploaded customer documents are kept. A relative path resolves against the process's
+    # working directory; in the container this is a mounted volume, since the files must outlive it.
+    documentsPath: documents
+    # Mount point of a NAS share a physical document scanner writes to, offered as a second document
+    # source on a customer's documents tab. Not every installation has one - left unset, the feature
+    # is off regardless of features.scannerFolderEnabled above. Polled once a second while on.
+    # scannerPath: /mnt/scanner-inbox
+  # Wipes and re-creates the schema on startup so the testdata migrations can seed it from scratch.
+  # Only ever true for local development and the Cypress run - it destroys all data. Read once at
+  # startup by definition, since Flyway has finished long before anyone could edit the config file.
+  testdata:
+    enabled: false
