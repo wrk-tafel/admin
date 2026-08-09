@@ -89,7 +89,30 @@ describe('CustomerSearchComponent', () => {
         apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+
+        // The component searches once as it is constructed, before any test can arrange a response -
+        // without a default here every test would fail on the constructor rather than on its subject.
+        apiService.searchCustomer.mockReturnValue(EMPTY);
     }));
+
+    it('loads the first page of customers without being asked to', () => {
+        apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        expect(apiService.searchCustomer)
+            .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined);
+        expect(component.searchResult()).toEqual(searchCustomerMockResponse);
+    });
+
+    it('stays silent when that initial load finds nothing', () => {
+        apiService.searchCustomer.mockReturnValue(of({items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 10}));
+
+        TestBed.createComponent(CustomerSearchComponent);
+
+        expect(toastr.info).not.toHaveBeenCalled();
+    });
 
     it('component can be created', () => {
         const fixture = TestBed.createComponent(CustomerSearchComponent);

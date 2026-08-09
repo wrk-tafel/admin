@@ -12,6 +12,13 @@ enum class PermissionCategory(val title: String) {
 
 @ExcludeFromTestCoverage
 enum class UserPermissions(val key: String, val title: String, val category: PermissionCategory) {
+    /**
+     * Reading the audit trail - the household "Verlauf" tab as well as the global log screen.
+     * Separate from `CUSTOMER` on purpose: seeing a household's current data and seeing every
+     * change ever made to it, by whom, are different levels of access, and the log spans users and
+     * settings too.
+     */
+    AUDIT_LOG("AUDIT_LOG", "Änderungsprotokoll", PermissionCategory.ADMINISTRATION),
     CHECKIN("CHECKIN", "Anmeldung", PermissionCategory.OPERATIONS),
     DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Ablauf", PermissionCategory.OPERATIONS),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung", PermissionCategory.LEADERSHIP),

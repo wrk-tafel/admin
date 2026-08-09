@@ -12,6 +12,8 @@ Unter **Benutzer → Suchen** durchsucht das Feld **Suche** Benutzername, Person
 
 Alternativ kann über das Feld "Personalnummer" (Button **Anzeigen**) direkt zur Detailansicht eines Benutzers gesprungen werden; ist die Personalnummer unbekannt, erscheint "Benutzer nicht gefunden!".
 
+Beim Öffnen der Seite werden bereits die ersten Benutzer angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff grenzt diese Liste dann ein.
+
 Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status (Aktiv). Über die Aktionen kann der Benutzer angesehen (Lupe) oder bearbeitet (Stift) werden. Liefert die Suche keine Treffer, erscheint "Keine Benutzer gefunden!"; bei vielen Treffern kann über die Seitennavigation geblättert werden.
 
 ![Suchergebnis](images/benutzer-suchen-ergebnis.jpg)
@@ -43,7 +45,9 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 | Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
-| Verwaltung | Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
+| Verwaltung | Änderungsprotokoll, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
+
+Die Berechtigung **Änderungsprotokoll** gibt Einsicht in den Verlauf aller Änderungen – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Änderungsprotokoll](aenderungsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
 
 Die Berechtigung **Administrator** ist eine Sonderrolle für jene Personen, die die Anwendung technisch betreuen: sie schließt automatisch **alle anderen Berechtigungen** mit ein, unabhängig davon, was sonst noch angehakt ist. In der Berechtigungsliste des Benutzers bleibt trotzdem nur "Administrator" markiert – die übrigen Berechtigungen ergeben sich erst bei der Anmeldung.
 
@@ -54,6 +58,8 @@ Zusätzlich erhalten Administratoren die technischen Push-Benachrichtigungen (si
 Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewählt und eine Passwort-Änderung beim ersten Login vorausgewählt.
 
 ![Benutzer erstellen](images/benutzer-erstellen.jpg)
+
+<a id="anmelde-versuche"></a>
 
 ## Anmelde-Versuche
 

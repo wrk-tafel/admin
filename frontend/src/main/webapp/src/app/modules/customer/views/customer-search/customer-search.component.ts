@@ -65,6 +65,13 @@ export class CustomerSearchComponent {
   // signal rather than derived from searchResult(), because the empty result clears that signal.
   searchAnnouncement = signal('');
 
+  constructor() {
+    // Land on the first page of customers rather than an empty form. The unfiltered list is what
+    // most visits are after anyway, and showing it makes the screen explain itself instead of
+    // leaving the impression that there is nothing here until something is typed.
+    this.searchForDetails(undefined, undefined, false);
+  }
+
   searchForCustomerId() {
     const customerId = this.customerId.value!;
 
@@ -86,7 +93,13 @@ export class CustomerSearchComponent {
     return this.router.navigate(['/kunden/detail', customerId]);
   }
 
-  searchForDetails(page?: number, pageSize?: number) {
+  /**
+   * @param announceOutcome off for the initial load only. Both the toast and the status region are
+   * answers to a search: greeting someone with "Keine Kunden gefunden!" before they have searched
+   * for anything reads like a failure rather than an empty database, and announcing a result count
+   * to a screen reader on arrival is noise about something nobody asked for.
+   */
+  searchForDetails(page?: number, pageSize?: number, announceOutcome = true) {
     this.customerApiService.searchCustomer(
       this.searchInput.value ?? undefined,
       this.postProcessing.value ?? undefined,
@@ -96,14 +109,18 @@ export class CustomerSearchComponent {
       pageSize)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
-          this.toastr.info('Keine Kunden gefunden!');
           this.searchResult.set(undefined);
-          this.searchAnnouncement.set('Keine Kunden gefunden');
+          if (announceOutcome) {
+            this.toastr.info('Keine Kunden gefunden!');
+            this.searchAnnouncement.set('Keine Kunden gefunden');
+          }
         } else {
           this.searchResult.set(response);
-          this.searchAnnouncement.set(
-            response.totalCount === 1 ? '1 Kunde gefunden' : `${response.totalCount} Kunden gefunden`
-          );
+          if (announceOutcome) {
+            this.searchAnnouncement.set(
+              response.totalCount === 1 ? '1 Kunde gefunden' : `${response.totalCount} Kunden gefunden`
+            );
+          }
         }
       });
   }

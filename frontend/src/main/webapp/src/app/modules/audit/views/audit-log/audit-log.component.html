@@ -1,0 +1,77 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <h2 class="tafel-h5 mb-0 mt-1">Änderungsprotokoll</h2>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Jede erfasste Änderung an Kunden, Benutzern und Einstellungen — mit dem Benutzer, der sie
+      vorgenommen hat, und den Werten davor. Einträge können nicht bearbeitet oder gelöscht werden;
+      sie werden nach Ablauf der Aufbewahrungsfrist automatisch entfernt.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4" testid="audit-filter">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Datensatz-Art</mat-label>
+        <mat-select testid="audit-filter-entityType" [ngModel]="entityType()" (ngModelChange)="entityType.set($event)">
+          <mat-option [value]="null">Alle</mat-option>
+          @for (type of entityTypes(); track type) {
+            <mat-option [value]="type">{{ entityTypeLabel(type) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Art der Änderung</mat-label>
+        <mat-select testid="audit-filter-operation" [ngModel]="operation()" (ngModelChange)="operation.set($event)">
+          <mat-option [value]="null">Alle</mat-option>
+          @for (op of operations(); track op) {
+            <mat-option [value]="op">{{ operationLabel(op) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Benutzer</mat-label>
+        <input matInput testid="audit-filter-actor" [ngModel]="actorUsername()" (ngModelChange)="actorUsername.set($event)">
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Kunden-/Benutzernummer</mat-label>
+        <input matInput testid="audit-filter-businessKey" [ngModel]="businessKey()" (ngModelChange)="businessKey.set($event)">
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Von</mat-label>
+        <input matInput type="date" testid="audit-filter-from" [ngModel]="from()" (ngModelChange)="from.set($event)">
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Bis</mat-label>
+        <input matInput type="date" testid="audit-filter-to" [ngModel]="to()" (ngModelChange)="to.set($event)">
+      </mat-form-field>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-2 mb-4">
+      <button matButton="filled" testid="audit-search-button" (click)="search()">Suchen</button>
+      <button matButton="filled" testid="audit-reset-button" (click)="resetFilter()">Filter zurücksetzen</button>
+    </div>
+
+    <p class="sr-only" role="status" testid="audit-search-announcement">{{ searchAnnouncement() }}</p>
+
+    @if (entries(); as entriesResponse) {
+      @if (entriesResponse.items.length === 0) {
+        <div class="mt-4 text-center" testid="audit-log-empty">Keine Einträge gefunden.</div>
+      } @else {
+        <mat-paginator class="tafel-paginator-responsive mb-4" testid="audit-log-paginator"
+                       [length]="entriesResponse.totalCount" [pageSize]="entriesResponse.pageSize"
+                       [pageSizeOptions]="pageSizeOptions"
+                       [pageIndex]="entriesResponse.currentPage - 1" [showFirstLastButtons]="true"
+                       (page)="search($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+
+        <tafel-audit-entry-list [entries]="entriesResponse.items" [showSubject]="true"></tafel-audit-entry-list>
+      }
+    }
+  </mat-card-content>
+</mat-card>
