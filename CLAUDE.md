@@ -91,6 +91,9 @@ npm run lint
 # Type-check without emitting (app + spec + cypress configs)
 npm run typecheck
 
+# Rate page performance the way the pipeline does (after a build-prod; needs no backend)
+npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
+
 # Run E2E tests (requires backend running on port 8080)
 npm run cy:run-ci
 
@@ -514,6 +517,16 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
   runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
+- **Page Performance Gate**: the `lighthouse` job (`subflow_lighthouse.yml`) audits the login page of
+  the built bundle with Lighthouse CI and **fails** when a category score or a transfer size crosses a
+  threshold. Thresholds, the audited page and the reasoning live in
+  `frontend/src/main/webapp/lighthouserc.cjs`; the decision behind them is
+  [ADR-0035](docs/architecture/adr/0035-page-performance-index-in-the-pipeline.md). It serves the
+  bundle itself, so no backend or database is involved, and it only runs when the frontend changed.
+  Each run uploads the HTML/JSON reports as the `lighthouse-reports` artifact and writes the median
+  run's scores into the job summary. `angular.json`'s production `budgets` are the deterministic
+  second layer — note they bound only what the builder labels "initial", which is *not* the whole
+  eager payload (see [#3121](https://github.com/wrk-tafel/admin/issues/3121)).
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)

@@ -58,6 +58,13 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
+  lighthouse:
+    # Same gate as on a pull request: only a frontend change can move these numbers. Deliberately not
+    # a dependency of deploy-test below - a page-performance threshold is a signal to act on, not a
+    # reason to hold a merged change back from the test environment.
+    uses: ./.github/workflows/subflow_lighthouse.yml
+    needs: [changes, build]
+    if: needs.changes.outputs.frontend == 'true'
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
     # main is the "must be green" pipeline: unlike PRs, deployment requires

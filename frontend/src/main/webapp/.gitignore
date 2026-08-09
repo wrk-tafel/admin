@@ -50,3 +50,6 @@ Thumbs.db
 /.vitest-attachments/
 /cypress/downloads/
 /**/__screenshots__/
+
+# lighthouse ci reports (see lighthouserc.cjs)
+/.lighthouseci/

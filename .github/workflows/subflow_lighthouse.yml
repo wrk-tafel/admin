@@ -1,0 +1,84 @@
+name: Lighthouse
+
+# Rates the page performance of the built frontend bundle with Lighthouse and fails when a score or
+# a size crosses its threshold. Thresholds and the reasoning behind what is measured live in
+# frontend/src/main/webapp/lighthouserc.cjs and
+# docs/architecture/adr/0035-page-performance-index-in-the-pipeline.md.
+#
+# The audited page is served by lhci's own static server from the same `frontend-dist` artifact the
+# image is built from, so this job needs neither the backend jar nor a database - see the ADR for why
+# a logged-in screen is deliberately not audited here.
+
+env:
+  # Pinned deliberately, and this pin is what fixes the Lighthouse version too (@lhci/cli 0.15.1
+  # depends on exactly lighthouse 12.6.1): a Lighthouse upgrade moves scores on unchanged code, which
+  # would show up as a regression nobody caused. Bumping this is a conscious step that comes with
+  # re-reading the baselines in lighthouserc.cjs. Dependabot does not see this pin - the tool is
+  # intentionally not a dependency of the frontend package, where it would pull its own transitive
+  # tree into the application's lockfile and into every other job's `npm ci` for a tool only this job
+  # runs.
+  LHCI_VERSION: '0.15.1'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: 'frontend/src/main/webapp/.nvmrc'
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: frontend-dist
+          # Same layout lighthouserc.cjs expects as its staticDistDir.
+          path: ./frontend/src/main/webapp/dist/browser
+      - name: Run Lighthouse
+        # No `npm ci`: the audit needs the built bundle and a Chrome (preinstalled on the runner),
+        # not the project's dependencies.
+        run: npx --yes "@lhci/cli@${LHCI_VERSION}" autorun --config=lighthouserc.cjs
+        working-directory: frontend/src/main/webapp
+      - name: Report the scores
+        # Runs on failure too - a failed threshold is exactly when the numbers are wanted.
+        if: always()
+        working-directory: frontend/src/main/webapp
+        run: |
+          manifest=.lighthouseci/reports/manifest.json
+          if [ ! -f "$manifest" ]; then
+            echo "No Lighthouse report was produced - see the step above." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          report=$(jq -r 'map(select(.isRepresentativeRun)) | .[0].jsonPath' "$manifest")
+          url=$(jq -r 'map(select(.isRepresentativeRun)) | .[0].url' "$manifest")
+
+          {
+            echo "### Page performance - $url"
+            echo ""
+            echo "Median of three runs, Lighthouse CI ${LHCI_VERSION}, desktop preset. Thresholds live in \`frontend/src/main/webapp/lighthouserc.cjs\`."
+            echo ""
+            jq -r '
+              "| Category | Score |", "| --- | --- |",
+              (.categories | to_entries[] | "| \(.value.title) | \((.value.score * 100) | round) |"),
+              "",
+              "| Metric | Value |", "| --- | --- |",
+              (. as $r
+                | ["first-contentful-paint", "largest-contentful-paint", "speed-index", "total-blocking-time", "cumulative-layout-shift"][]
+                | "| \($r.audits[.].title) | \($r.audits[.].displayValue) |"),
+              "",
+              "| Resource | Transfer size |", "| --- | --- |",
+              (.audits["resource-summary"].details.items[]
+                | select(.transferSize > 0)
+                | "| \(.resourceType) (\(.requestCount)) | \((.transferSize / 1024) | floor) KiB |")
+            ' "$report"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: ./frontend/src/main/webapp/.lighthouseci/reports/
+          if-no-files-found: warn
+          retention-days: 7
