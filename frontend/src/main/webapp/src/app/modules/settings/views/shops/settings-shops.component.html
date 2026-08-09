@@ -44,42 +44,44 @@
       </mat-button-toggle-group>
     </div>
 
-    <mat-accordion multi class="block" testid="shops-list">
+    <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
+         as the record's summary, and mat-expansion-panel-header is itself a role="button" that
+         cannot legally contain another control. The summary is its own button instead, so the two
+         actions are its siblings rather than controls nested inside a button (#3137). -->
+    <div class="block" testid="shops-list">
       @for (view of visibleShops(); track view.shop.id; let i = $index) {
-        <mat-expansion-panel class="mb-2" [attr.testid]="'shops-row-' + i">
-          <mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
-            <mat-panel-title>
-              <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 py-3 pe-2">
-                <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
-                  {{ view.shop.number }}
-                </span>
-                <span class="font-medium" [class.text-slate-400]="!view.shop.enabled">{{ view.shop.name }}</span>
-                <span class="text-sm text-slate-500">{{ view.address }}</span>
-                <span [class]="view.foodUnitClass">{{ view.foodUnitLabel }}</span>
-                @if (!view.shop.enabled) {
-                  <span class="badge badge-danger" testid="shops-inactive-badge">Inaktiv</span>
-                }
-                <!-- both actions stay reachable without expanding the shop first - the panel
-                     header would otherwise swallow the click and toggle the panel instead -->
-                <!-- This wrapper is not a control - it only keeps clicks and keys off the accordion header.
-                     The controls it wraps are focusable in their own right. -->
-                <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
-                <span class="ms-auto me-2 flex items-center gap-4" (click)="$event.stopPropagation()"
-                      (keydown)="$event.stopPropagation()">
-                  <mat-slide-toggle [checked]="view.shop.enabled" [attr.testid]="'shops-enabled-toggle-' + i"
-                                    (change)="onEnabledToggled(view.shop, $event)">
-                    Aktiv
-                  </mat-slide-toggle>
-                  <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
-                          [disabled]="!view.shop.enabled" aria-label="Filiale bearbeiten"
-                          (click)="editShop(view.shop)">
-                    <fa-icon [icon]="faPencil"></fa-icon>
-                  </button>
-                </span>
-              </div>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+        <div class="mb-2 rounded-xl bg-white shadow-sm" [attr.testid]="'shops-row-' + i">
+          <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
+            <button type="button" class="flex flex-1 cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 text-start"
+                    [id]="'shops-toggle-' + i" [attr.testid]="'shops-toggle-' + i"
+                    [attr.aria-expanded]="isExpanded(view.shop.id)"
+                    [attr.aria-controls]="'shops-panel-' + i"
+                    (click)="toggleExpanded(view.shop.id)">
+              <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
+                {{ view.shop.number }}
+              </span>
+              <span class="font-medium" [class.text-slate-400]="!view.shop.enabled">{{ view.shop.name }}</span>
+              <span class="text-sm text-slate-500">{{ view.address }}</span>
+              <span [class]="view.foodUnitClass">{{ view.foodUnitLabel }}</span>
+              @if (!view.shop.enabled) {
+                <span class="badge badge-danger" testid="shops-inactive-badge">Inaktiv</span>
+              }
+              <fa-icon class="ms-auto text-slate-500" [icon]="isExpanded(view.shop.id) ? faChevronUp : faChevronDown"></fa-icon>
+            </button>
+            <!-- both actions stay reachable without expanding the shop first -->
+            <mat-slide-toggle [checked]="view.shop.enabled" [attr.testid]="'shops-enabled-toggle-' + i"
+                              (change)="onEnabledToggled(view.shop, $event)">
+              Aktiv
+            </mat-slide-toggle>
+            <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
+                    [disabled]="!view.shop.enabled" [attr.aria-label]="'Filiale ' + view.shop.name + ' bearbeiten'"
+                    (click)="editShop(view.shop)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          </div>
 
+          <div class="px-6 pb-4" role="region" [id]="'shops-panel-' + i"
+               [attr.aria-labelledby]="'shops-toggle-' + i" [hidden]="!isExpanded(view.shop.id)">
           <dl class="grid gap-x-8 gap-y-3 sm:grid-cols-2" [attr.testid]="'shop-details-' + i">
             <div>
               <dt class="text-xs uppercase tracking-wide text-slate-500">Adresse</dt>
@@ -124,7 +126,8 @@
               Zum Bearbeiten zuerst aktivieren
             </p>
           }
-        </mat-expansion-panel>
+          </div>
+        </div>
       } @empty {
         @if (loaded()) {
           <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="shops-empty">
@@ -137,6 +140,6 @@
           </div>
         }
       }
-    </mat-accordion>
+    </div>
   </mat-card-content>
 </mat-card>

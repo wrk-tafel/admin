@@ -62,6 +62,11 @@ export class UserSearchComponent {
 
   searchResult = signal<UserSearchResult | undefined>(undefined);
 
+  // What the role="status" region in the template says. A search replaces the whole result table,
+  // or clears it again, and neither is a change a screen reader notices on its own. It is its own
+  // signal rather than derived from searchResult(), because the empty result clears that signal.
+  searchAnnouncement = signal('');
+
   // columns for mat-table
   displayedColumns = ['icon','id','name','personnelNumber','enabled','actions'];
 
@@ -94,8 +99,12 @@ export class UserSearchComponent {
         if (response.items.length === 0) {
           this.toastr.info('Keine Benutzer gefunden!');
           this.searchResult.set(undefined);
+          this.searchAnnouncement.set('Keine Benutzer gefunden');
         } else {
           this.searchResult.set(response);
+          this.searchAnnouncement.set(
+            response.totalCount === 1 ? '1 Benutzer gefunden' : `${response.totalCount} Benutzer gefunden`
+          );
         }
       });
   }

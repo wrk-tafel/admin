@@ -1,4 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('User Search', () => {
 
@@ -123,5 +124,43 @@ describe('User Search', () => {
 
     openFirstResult(expectedUserId);
   }
+
+  // The Lighthouse `pages` sweep only ever grades the empty search form - it types nothing, so it
+  // never sees a result list at all, in either responsive branch.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the search result, as a table and as a card list', () => {
+      cy.createDummyUser().then(response => {
+        cy.byTestId('searchInputText').type(response.body.lastname);
+        search();
+        cy.byTestId('searchresult-table').should('be.visible');
+
+        cy.checkAccessibility(MAIN_CONTENT);
+
+        cy.viewport(PHONE_VIEWPORT);
+        cy.byTestId('searchresult-table').should('not.be.visible');
+
+        cy.checkAccessibility(MAIN_CONTENT);
+      });
+    });
+
+    // A live region that exists but is never filled looks exactly like a working one in any static
+    // check, so what it actually says after a search is what has to be asserted.
+    it('announces the number of results through a live region', () => {
+      cy.createDummyUser().then(response => {
+        cy.byTestId('searchresult-announcement').should('exist').and('have.text', '');
+
+        cy.byTestId('searchInputText').type(response.body.lastname);
+        search();
+        cy.byTestId('searchresult-table').should('be.visible');
+
+        cy.byTestId('searchresult-announcement')
+          .should('have.attr', 'role', 'status')
+          .and('contain.text', 'gefunden');
+      });
+    });
+
+  });
 
 });

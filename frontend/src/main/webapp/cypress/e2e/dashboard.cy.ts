@@ -119,4 +119,36 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
+  // The dialogs below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    afterEach(() => {
+      cy.closeDistribution();
+    });
+
+    it('has no violations in the shelter selection dialog', () => {
+      cy.createDistribution();
+      cy.reload();
+
+      cy.byTestId('dashboard-select-shelters-button').click();
+      cy.byTestId('selectable-shelter-row-0').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations in the two dialogs that close the distribution', () => {
+      cy.createDistribution();
+      cy.reload();
+
+      cy.byTestId('distribution-close-button').click();
+      cy.checkDialogAccessibility();
+
+      cy.byTestId('distribution-close-dialog-ok-button').click();
+      cy.byTestId('distribution-close-validation-dialog-ok-button').should('be.visible');
+      cy.checkDialogAccessibility();
+    });
+
+  });
+
 });

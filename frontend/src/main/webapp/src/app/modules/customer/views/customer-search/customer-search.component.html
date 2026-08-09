@@ -63,6 +63,10 @@
         <button type="button" matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
       </div>
 
+      <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+           with its text is not reliably announced. -->
+      <div class="sr-only" role="status" testid="searchresult-announcement">{{ searchAnnouncement() }}</div>
+
       @if (searchResult()) {
         <mat-divider class="!my-6"></mat-divider>
         <div class="mt-6" testid="searchresult-table">

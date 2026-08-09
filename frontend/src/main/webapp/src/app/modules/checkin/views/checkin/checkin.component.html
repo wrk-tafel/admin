@@ -16,7 +16,9 @@
       </mat-form-field>
       <!-- Not a heading: it holds the scanner's state badge, which names no section of the page.
            text-2xl keeps the badge at the size it sizes itself from. -->
-      <div class="text-2xl m-0 md:col-span-1">
+      <!-- role="status": the badge flips on its own when a scanner connects or drops, with nothing
+           else on the screen changing to give that away -->
+      <div class="text-2xl m-0 md:col-span-1" role="status">
         <div class="badge"
              [ngClass]="{'badge-success': scannerReadyState(), 'badge-danger': !scannerReadyState()}"
              testid="state-camera">
@@ -44,7 +46,9 @@
   @if (customer() !== undefined) {
     <mat-card class="mt-6 md:m-4" testid="customerDetailPanel">
       <mat-card-header>
-        <h2 class="flex gap-2 text-xl font-semibold">
+        <!-- Not a heading: it holds the customer's state badges, which name no section of the page.
+             text-xl keeps the badges at the size they size themselves from. -->
+        <div class="flex gap-2 text-xl font-semibold">
           <div class="badge"
                [ngClass]="{'badge-danger': customerStateColor() === 'danger',
                                    'badge-warning': customerStateColor() === 'warning',
@@ -56,7 +60,7 @@
               Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
             </div>
           }
-        </h2>
+        </div>
       </mat-card-header>
       <mat-card-content>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

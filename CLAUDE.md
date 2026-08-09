@@ -209,7 +209,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
 - **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category as well as route/shop admin CRUD screens actually live under the **settings** module below, not here — this module only ever reads routes and shops, from within the food-collection-recording flow.
 - **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
-- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a `mat-accordion` with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded panel instead of a separate details dialog — see the settings module README before restyling them back into a table
+- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
 
 **Architecture Patterns:**
@@ -543,14 +543,28 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
   runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
-- **Accessibility is gated twice, statically and at runtime.** `eslint.config.js` extends
-  `angular.configs.templateAccessibility` for `**/*.html`, so `ng lint` (the `lint-frontend` CI job,
-  which already covers `src/**/*.html`) fails on a click handler that nothing can focus, an
-  unassociated `<label>`, a missing `alt`, an invalid `aria-*`, and so on — at authoring time, over
-  every template. The `lighthouse` job's `pages` sweep then enforces axe at score 1, but only over
-  what a route actually renders for the e2e fixtures: it never opens a dialog, never expands a
-  panel, and never sees a component no route in its matrix reaches. Neither gate replaces the
-  other. Where a rule is a genuine false positive (a clickable card whose keyboard path is a button
+- **Accessibility is gated three times, and no one of them replaces another.**
+  1. `eslint.config.js` extends `angular.configs.templateAccessibility` for `**/*.html`, so
+     `ng lint` (the `lint-frontend` CI job, which already covers `src/**/*.html`) fails on a click
+     handler that nothing can focus, an unassociated `<label>`, a missing `alt`, an invalid
+     `aria-*`, and so on — at authoring time, over every template of every component. What it does
+     not do is compute accessible names: an input with neither a label nor an `aria-label` is not
+     an error to it.
+  2. The `lighthouse` job's `pages` sweep enforces axe at score 1 against a real backend, so it
+     does compute real accessible names — but only over what a route renders for the e2e fixtures
+     on load: it never opens a dialog, never expands a panel, never switches a tab and never sees
+     a component no route in its matrix reaches.
+  3. `cypress/support/accessibility.ts` runs axe inside the e2e suite (`cypress-axe`), at the
+     states the specs navigate to — which is the only place a control that exists solely after an
+     interaction gets audited at all. `cy.checkDialogAccessibility()` /
+     `cy.checkMenuAccessibility()` cover an open overlay, `cy.checkAccessibility(context)` a page
+     region (`MAIN_CONTENT` for the route's own content). Scope a check to the fragment the
+     interaction produced rather than the whole document — a failure then says which control it
+     came from, and a defect in the initial render stays the sweep's to report. A new dialog,
+     inline-edit state, non-default tab or expanded panel needs an assertion here; nothing derives
+     them automatically. See ADR-0038.
+
+  Where a rule is a genuine false positive (a clickable card whose keyboard path is a button
   nested inside it), disable it on that line with a comment saying why — never by relaxing the rule
   for the whole project. Note the disable directive's rule names must sit on one line; prose after
   them is parsed as part of the rule name unless separated by `--`.

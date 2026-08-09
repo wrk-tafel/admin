@@ -173,6 +173,40 @@ describe('Accessibility', () => {
     });
   });
 
+  // A client-side navigation announces nothing on its own - the document title changing is not
+  // enough - so focus is what has to move into the page that just opened. Without it the next Tab
+  // would carry on through the navigation the user just left.
+  it('moves focus into the main content after an in-app navigation', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.url().should('include', '/kunden/suchen');
+
+    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+  });
+
+  // Everything the axe assertions below reach exists only after an interaction, which is what the
+  // other two gates are blind to - see cypress/support/accessibility.ts.
+  it('has no violations in the support dialog', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('supportButton').click();
+    cy.byTestId('support-dialog').should('be.visible');
+
+    cy.checkDialogAccessibility();
+  });
+
+  it('has no violations in the user menu', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+
+    cy.checkMenuAccessibility();
+  });
+
   it('lets the keyboard reach and expand a collapsible nav group', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');

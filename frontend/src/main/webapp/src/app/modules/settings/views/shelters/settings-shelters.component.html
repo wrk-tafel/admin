@@ -33,12 +33,12 @@
         <td mat-cell *matCellDef="let shelter; let i = index" [class.tafel-inactive]="!shelter.enabled">
           @if (shelter.enabled) {
             <button matButton="filled" class="button-success ms-2" testid="enableShelterButton" matTooltip="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl"
-                    (click)="toggleShelterVisibility(shelter, false)" aria-label="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl">
+                    (click)="toggleShelterVisibility(shelter, false)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl'">
               <fa-icon [icon]="faEye"></fa-icon>
             </button>
           } @else {
             <button matButton="filled" class="button-danger ms-2" testid="disableShelterButton" matTooltip="Notschlafstelle wieder aktivieren"
-                    (click)="toggleShelterVisibility(shelter, true)" aria-label="Notschlafstelle wieder aktivieren">
+                    (click)="toggleShelterVisibility(shelter, true)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' wieder aktivieren'">
               <fa-icon [icon]="faEyeSlash"></fa-icon>
             </button>
           }
@@ -67,11 +67,11 @@
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let shelter; let i = index">
           <button matButton="filled" class="button-secondary me-2" testid="viewShelterButton" matTooltip="Details und Kontakte anzeigen"
-                  (click)="viewShelterDetails(shelter)" aria-label="Details und Kontakte anzeigen">
+                  (click)="viewShelterDetails(shelter)" [attr.aria-label]="'Details und Kontakte von ' + shelter.name + ' anzeigen'">
             <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
           </button>
           <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                  [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" aria-label="Notschlafstelle bearbeiten">
+                  [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">
             <fa-icon [icon]="faPencil"></fa-icon>
           </button>
         </td>
@@ -110,21 +110,21 @@
             <mat-card-actions class="flex gap-2">
               @if (shelter.enabled) {
                 <button matButton="filled" class="button-success" testid="enableShelterButton" matTooltip="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl"
-                        (click)="toggleShelterVisibility(shelter, false)" aria-label="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl">
+                        (click)="toggleShelterVisibility(shelter, false)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl'">
                   <fa-icon [icon]="faEye"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" testid="disableShelterButton" matTooltip="Notschlafstelle wieder aktivieren"
-                        (click)="toggleShelterVisibility(shelter, true)" aria-label="Notschlafstelle wieder aktivieren">
+                        (click)="toggleShelterVisibility(shelter, true)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' wieder aktivieren'">
                   <fa-icon [icon]="faEyeSlash"></fa-icon>
                 </button>
               }
               <button matButton="filled" class="button-secondary" testid="viewShelterButton" matTooltip="Details und Kontakte anzeigen"
-                      (click)="viewShelterDetails(shelter)" aria-label="Details und Kontakte anzeigen">
+                      (click)="viewShelterDetails(shelter)" [attr.aria-label]="'Details und Kontakte von ' + shelter.name + ' anzeigen'">
                 <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
               </button>
               <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                      [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" aria-label="Notschlafstelle bearbeiten">
+                      [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">
                 <fa-icon [icon]="faPencil"></fa-icon>
               </button>
             </mat-card-actions>

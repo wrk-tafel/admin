@@ -44,6 +44,10 @@ describe('Benutzer - Anmelde-Versuche', () => {
       .find('[testid^="deleteLoginAttemptButton-"]').click();
 
     cy.byTestId('deleteloginattempt-dialog').should('be.visible');
+    // the dialog exists only after this click, so no other accessibility gate sees it -
+    // see cypress/support/accessibility.ts
+    cy.checkDialogAccessibility();
+
     cy.byTestId('cancelButton').click();
 
     cy.byTestId('login-attempts-table').should('contain.text', 'fehlversuch1');

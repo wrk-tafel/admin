@@ -68,7 +68,7 @@
                 [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
         </button>
         <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
-                aria-label="Toggle Dropdown">▾
+                aria-label="Weitere Aktionen für diesen Kunden">▾
         </button>
       </div>
       <mat-menu #editMenu="matMenu">
@@ -342,12 +342,14 @@
                           </div>
                         </div>
                         <div class="flex gap-2 shrink-0 justify-end">
+                          <!-- the file name belongs in the name: these are cards, so there is no row
+                               context that would tell one card's buttons from the next one's -->
                           <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
-                                  matTooltip="Dokument herunterladen" aria-label="Dokument herunterladen">
+                                  matTooltip="Dokument herunterladen" [attr.aria-label]="'Dokument ' + doc.fileName + ' herunterladen'">
                             <fa-icon [icon]="faDownload"></fa-icon>
                           </button>
                           <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
-                                  matTooltip="Dokument löschen" aria-label="Dokument löschen">
+                                  matTooltip="Dokument löschen" [attr.aria-label]="'Dokument ' + doc.fileName + ' löschen'">
                             <fa-icon [icon]="faTrashCan"></fa-icon>
                           </button>
                         </div>

@@ -49,6 +49,10 @@ describe('PushNotifications', () => {
       cy.byTestId('push-device-label').should('contain.text', 'Chrome');
 
       cy.byTestId('push-device-rename').click();
+      // the dialog exists only after this click, so no other accessibility gate sees it -
+      // see cypress/support/accessibility.ts
+      cy.checkDialogAccessibility();
+
       cy.byTestId('rename-device-label-input').type('E2E Testgerät');
       cy.byTestId('okButton').click();
 

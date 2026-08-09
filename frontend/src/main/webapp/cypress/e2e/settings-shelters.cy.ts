@@ -104,6 +104,32 @@ describe('Settings - Shelters', () => {
   });
 
 
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the details dialog is open', () => {
+      cy.byTestId('viewShelterButton').first().click();
+      cy.byTestId('shelter-details-dialog').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the edit dialog is open, including an added contact', () => {
+      cy.byTestId('addShelterButton').click();
+      cy.byTestId('shelter-edit-dialog').should('be.visible');
+
+      cy.checkDialogAccessibility();
+
+      // a contact's own controls are one interaction deeper again
+      cy.contains('Kontakt hinzufügen').click();
+      cy.get('input[formControlName="firstname"]').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+  });
+
   // Angular CDK's drag-and-drop contributes no keyboard behaviour of its own, so without this the
   // sort order could only be changed with a pointing device (see #3131).
   //

@@ -74,6 +74,24 @@ export class SettingsStaticValuesComponent {
     return staticValueTypeLabels[type];
   }
 
+  /**
+   * Names one row for the row actions' accessible names. The type alone does not identify a row -
+   * several rows share it and differ only in their household size or age.
+   */
+  protected rowLabel(staticValue: StaticValueItem): string {
+    const parts = [this.typeLabel(staticValue.type!)];
+    if (staticValue.countAdults != null) {
+      parts.push(`${staticValue.countAdults} Erwachsene`);
+    }
+    if (staticValue.countChildren != null) {
+      parts.push(`${staticValue.countChildren} Kinder`);
+    }
+    if (staticValue.age != null) {
+      parts.push(`Alter ${staticValue.age}`);
+    }
+    return parts.join(', ');
+  }
+
   constructor() {
     this.loadStaticValues();
 

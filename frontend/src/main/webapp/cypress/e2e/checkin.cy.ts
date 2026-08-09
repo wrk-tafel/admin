@@ -1,4 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('CheckIn', () => {
 
@@ -106,6 +107,20 @@ describe('CheckIn', () => {
     assertFormReset();
 
     assertDashboardCustomerCount(1);
+  });
+
+  // The customer panel - the whole point of this screen - only exists after a search, so the
+  // Lighthouse `pages` sweep grades the empty form and nothing else.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations once a customer has been looked up', () => {
+      searchCustomer(100);
+      cy.byTestId('customerDetailPanel').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
   });
 
 });

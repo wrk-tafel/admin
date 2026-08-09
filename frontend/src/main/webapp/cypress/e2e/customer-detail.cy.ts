@@ -2,6 +2,7 @@ import * as path from 'path';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 dayjs.extend(customParseFormat);
 
@@ -734,6 +735,103 @@ describe('Customer Detail', () => {
         // Should stay on edit page
         cy.url().should('contain', '/kunden/bearbeiten/' + customerId);
         cy.byTestId('confirm-customer-save-dialog').should('not.exist');
+      });
+    });
+
+  });
+
+  // Only the first tab and none of the dialogs exist on the initial render the Lighthouse `pages`
+  // sweep grades - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the tabs that are not selected by default', () => {
+      cy.visit('/kunden/detail/101');
+
+      cy.byTestId('additionalpersons-tab-label').click();
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('upload-document-panel').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations in the note dialogs', () => {
+      // 103 is the testdata customer with more than one note, so the "all notes" dialog exists
+      cy.visit('/kunden/detail/103');
+
+      cy.byTestId('addnote-button').click();
+      cy.checkDialogAccessibility();
+      cy.byTestId('cancelButton').click();
+
+      cy.byTestId('showall-notes-button').click();
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations in the overflow menu and its dialogs', () => {
+      cy.createDummyCustomer().then((response) => {
+        cy.visit('/kunden/detail/' + response.body.data.id);
+
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.checkMenuAccessibility();
+
+        cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lock-customer-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('cancelButton').click();
+        });
+
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.byTestId('deleteCustomerButton').click();
+        cy.byTestId('deletecustomer-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+      });
+    });
+
+    it('has no violations in the cost contribution dialogs', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id!;
+
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('costContributionButton').scrollIntoView().click();
+        cy.byTestId('editCostContributionButton').click();
+        cy.byTestId('edit-cost-contribution-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('edit-cost-contribution-dialog').within(() => {
+          cy.byTestId('amount-input').clear().type('75');
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('costContributionButton').scrollIntoView().click();
+        cy.byTestId('payCostContributionAmountButton').click();
+        cy.byTestId('pay-cost-contribution-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('pay-cost-contribution-dialog').within(() => {
+          cy.byTestId('cancelButton').click();
+        });
+
+        // other specs (e.g. customer-search.cy.ts's "search by cost contribution") count the
+        // customers carrying debt, so this one must not be left with any
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+      });
+    });
+
+    it('has no violations on the document delete dialog', () => {
+      cy.createDummyCustomer().then((response) => {
+        cy.visit('/kunden/detail/' + response.body.data.id);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-deleteButton').should('be.visible').click();
+        cy.byTestId('deletedocument-dialog').should('be.visible');
+
+        cy.checkDialogAccessibility();
       });
     });
 

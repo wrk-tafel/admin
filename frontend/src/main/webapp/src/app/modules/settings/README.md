@@ -219,10 +219,10 @@ that reflect the domain:
 ## `shops` (`SettingsShopsComponent`) and `routes` (`SettingsRoutesComponent`)
 
 The two logistics master-data screens. Unlike every other view in this module they are **not**
-Material tables with a mobile card fallback: both render a `mat-accordion` of expandable panels,
-because their records carry more detail than a row can hold (a shop's contact block, a route's
-whole list of stops). The collapsed header is the overview — number badge, name, one line of
-summary (`view.address` / `view.stopsSummary`) and an "Inaktiv" badge — the expanded body holds the
+Material tables with a mobile card fallback: both render a list of expandable cards, because their
+records carry more detail than a row can hold (a shop's contact block, a route's whole list of
+stops). The collapsed header row is the overview — number badge, name, one line of summary
+(`view.address` / `view.stopsSummary`) and an "Inaktiv" badge — the expanded body holds the
 details, so there is no separate read-only details dialog for either of them.
 
 Both follow the same shape, and a change to one usually belongs in the other:
@@ -238,11 +238,16 @@ Both follow the same shape, and a change to one usually belongs in the other:
   reloaded, because the toggle has already moved on its own and only fresh data puts it back.
 - **Editing** stays dialog-based (`shop-edit-dialog`, `route-edit-dialog`), and the edit button is
   disabled while the record is inactive, same convention as cars/food-categories.
-- **Both controls sit in the panel header**, not in the expanded body, so a record can be switched
-  or edited without expanding it first. That needs `(click)`/`(keydown)` `stopPropagation()` on
-  their wrapper, since the header treats both events as "toggle the panel" — anything else added
-  there needs the same. It is also a nested-interactive-element a11y compromise (controls inside
-  the header's `role="button"`), which is why it stays limited to these two actions.
+- **Both controls sit in the record's header row**, not in the expanded body, so a record can be
+  switched or edited without expanding it first. This is why neither screen uses `mat-accordion`:
+  `mat-expansion-panel-header` is itself a `role="button"`, and a control nested inside a button is
+  not reliably reachable — assistive technology exposes the header as one button and need not
+  convey the children's roles (axe reports it as `nested-interactive`, one node per record). Each
+  record is therefore a plain card whose summary is its own `<button>` carrying
+  `aria-expanded`/`aria-controls`, with the toggle and the edit button as its **siblings** and the
+  body a `role="region"` that `[hidden]` collapses. A new control in that row goes beside them, not
+  inside the summary button. Expanded state is held as a `Set` of record ids (not indices), so a
+  search or filter change cannot transfer it to whichever record moves into that position.
 - `route-edit-dialog` manages the stops as a nested `stops: FormArray` of
   `{ time, shopId, description }` with `addStop()`/`removeStop()` plus manual
   `ChangeDetectorRef.detectChanges()` calls, structurally the twin of `shelter-edit-dialog`'s

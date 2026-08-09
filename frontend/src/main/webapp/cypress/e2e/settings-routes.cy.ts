@@ -29,7 +29,7 @@ describe('Settings - Routes', () => {
   }
 
   function routePanel(name: string) {
-    return cy.byTestId('routes-list').contains('mat-expansion-panel', name);
+    return cy.byTestId('routes-list').contains('[testid^="routes-row-"]', name);
   }
 
   it('lists routes with their stop summary', () => {
@@ -41,7 +41,7 @@ describe('Settings - Routes', () => {
   it('shows the stops of a route only once it is expanded', () => {
     cy.byTestId('route-stops-0').should('not.be.visible');
 
-    cy.byTestId('routes-row-0').find('mat-expansion-panel-header').click();
+    cy.byTestId('routes-row-0').find('[testid^="routes-toggle-"]').click();
 
     cy.byTestId('route-stops-0').should('be.visible')
       .and('contain.text', '14:00')
@@ -128,11 +128,11 @@ describe('Settings - Routes', () => {
       cy.contains('.toast-message', 'erstellt').should('be.visible');
 
       cy.byTestId('routes-search-input').type(name);
-      cy.byTestId('routes-list').find('mat-expansion-panel').should('have.length', 1);
+      cy.byTestId('routes-list').find('[testid^="routes-row-"]').should('have.length', 1);
       cy.byTestId('routes-row-0').should('contain.text', name);
 
       cy.byTestId('routes-search-clear-button').click();
-      cy.byTestId('routes-list').find('mat-expansion-panel').should('have.length.greaterThan', 1);
+      cy.byTestId('routes-list').find('[testid^="routes-row-"]').should('have.length.greaterThan', 1);
     });
   });
 
@@ -148,8 +148,36 @@ describe('Settings - Routes', () => {
 
     cy.byTestId('addRouteButton').should('be.visible');
     cy.byTestId('routes-search-input').should('be.visible');
-    cy.byTestId('routes-row-0').should('be.visible').find('mat-expansion-panel-header').click();
+    cy.byTestId('routes-row-0').should('be.visible').find('[testid^="routes-toggle-"]').click();
     cy.byTestId('route-stops-0').should('be.visible').and('contain.text', '14:00');
+  });
+
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the edit dialog is open, including an added stop', () => {
+      cy.byTestId('addRouteButton').click();
+      cy.byTestId('route-number-input').should('be.visible');
+
+      cy.checkDialogAccessibility();
+
+      // a stop's own controls are one interaction deeper again
+      cy.byTestId('route-stop-add-button').click();
+      cy.byTestId('route-stop-time-input-0').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    // Scoped to the whole record, header row included: the summary toggle and the two actions
+    // beside it are what #3137 restructured, so the assertion has to be able to see them.
+    it('has no violations while a panel is expanded', () => {
+      cy.byTestId('routes-row-0').find('[testid^="routes-toggle-"]').click();
+      cy.byTestId('route-stops-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="routes-row-0"]');
+    });
+
   });
 
 });
