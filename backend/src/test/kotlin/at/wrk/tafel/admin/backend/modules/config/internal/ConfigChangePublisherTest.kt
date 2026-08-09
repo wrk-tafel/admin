@@ -24,7 +24,15 @@ internal class ConfigChangePublisherTest {
         storage.scannerPath = "/mnt/scanner"
     }
 
-    private val defaultPasswordRules = PasswordRules(minLength = 8, maxLength = 50, forbiddenWords = emptyList())
+    private val defaultPasswordRules = PasswordRules(
+        minLength = 8,
+        maxLength = 50,
+        descriptions = listOf(
+            "Mindestens 8 Zeichen, maximal 50 Zeichen",
+            "Der Benutzername darf nicht Teil des Passworts sein",
+            "Keine Leerzeichen",
+        ),
+    )
 
     private val changedEvent = ConfigurationReloadedEvent(setOf("tafeladmin.features.scannerFolderEnabled"))
 
@@ -51,7 +59,7 @@ internal class ConfigChangePublisherTest {
     fun `publishes changed password rules`() {
         val publisher = ConfigChangePublisher(properties, sseOutboxService)
         properties.password.minLength = 12
-        properties.password.forbiddenWords = listOf("tafel")
+        properties.password.dictionary.forbiddenWords = listOf("tafel")
 
         publisher.onConfigurationReloaded(changedEvent)
 
@@ -62,7 +70,16 @@ internal class ConfigChangePublisherTest {
                     version = "1.2.3",
                     buildTime = "2026-07-28T15:30:00Z",
                     scannerFolderEnabled = true,
-                    passwordRules = PasswordRules(minLength = 12, maxLength = 50, forbiddenWords = listOf("tafel")),
+                    passwordRules = PasswordRules(
+                        minLength = 12,
+                        maxLength = 50,
+                        descriptions = listOf(
+                            "Mindestens 12 Zeichen, maximal 50 Zeichen",
+                            "Folgende Wörter sind nicht erlaubt: tafel",
+                            "Der Benutzername darf nicht Teil des Passworts sein",
+                            "Keine Leerzeichen",
+                        ),
+                    ),
                 ),
             )
         }

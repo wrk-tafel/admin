@@ -125,21 +125,69 @@ tafeladmin:
   # frontend via /api/config, which is what the password-change screen lists and validates against -
   # so an installation that changes these here changes both sides at once. Read per validation, so a
   # change takes effect without restarting the container.
+  #
+  # Every Passay rule that can be decided from the password and the username is configurable; the
+  # settings this deployment doesn't use are listed below (commented out) with their defaults, so
+  # the full policy is visible in one place. See TafelAdminPasswordProperties for the two rules that
+  # are deliberately not offered (password history, and the length-complexity rule container).
   password:
     minLength: 8
     maxLength: 50
-    # Case-insensitive substrings a password may not contain - the words too obvious for a password
-    # in this organisation. Another installation replaces the list with its own, or empties it with
-    # `forbiddenWords: []`.
-    forbiddenWords:
-      - wrk
-      - örk
-      - oerk
-      - tafel
-      - roteskreuz
-      - toet
-      - töt
-      - "1030"
+    # Whose letters count as lower/upper case and as an alphabetical or keyboard run:
+    # ENGLISH, GERMAN, CZECH, POLISH, CYRILLIC, CYRILLIC_MODERN.
+    alphabet: GERMAN
+    dictionary:
+      # Substrings a password may not contain - the words too obvious for a password in this
+      # organisation. Another installation replaces the list with its own, or empties it with
+      # `forbiddenWords: []`.
+      forbiddenWords:
+        - wrk
+        - örk
+        - oerk
+        - tafel
+        - roteskreuz
+        - toet
+        - töt
+        - "1030"
+      # Whole passwords that may not be used at all, e.g. a list of the most common ones.
+      #forbiddenPasswords: []
+      #ignoreCase: true
+      #matchBackwards: false
+    # The username may not appear in the password. matchBehavior: CONTAINS, STARTS_WITH or ENDS_WITH.
+    #username:
+    #  enabled: true
+    #  ignoreCase: false
+    #  matchBackwards: false
+    #  matchBehavior: CONTAINS
+    #whitespace:
+    #  enabled: true
+    #  matchBehavior: CONTAINS
+    # Character classes. A minimum of 0 doesn't require that class at all; minTypes turns "all of
+    # the configured minimums" into "at least this many of them" (e.g. 3 of 4).
+    #characters:
+    #  minLowerCase: 0
+    #  minUpperCase: 0
+    #  minDigits: 0
+    #  minSpecial: 0
+    #  minAlphabetical: 0
+    #  specialCharacters: ANY   # ANY, ASCII, LATIN, UNICODE
+    #  minTypes: 0
+    # Runs of consecutive characters. `keyboard` needs a layout Passay ships, i.e. alphabet ENGLISH
+    # (QWERTY) or GERMAN (QWERTZ).
+    #sequences:
+    #  alphabetical: {enabled: false, length: 5, wrap: false}
+    #  numerical: {enabled: false, length: 5, wrap: false}
+    #  keyboard: {enabled: false, length: 5, wrap: false}
+    # `length` identical characters in a row, `sequenceCount` times, is already too many.
+    #repeatedCharacters: {enabled: false, length: 5, sequenceCount: 1}
+    #maxCharacterOccurrences: 0        # 0 switches the rule off
+    #allowedCharacters: ""             # if set, the password may use these characters only
+    #illegalCharacters: ""             # characters the password may not contain
+    #allowedPatterns: []               # regexes the password must match
+    #illegalPatterns: []               # regexes the password must not match
+    # Numbers that may not appear, e.g. birth years:
+    #illegalNumberRanges:
+    #  - {lower: 1900, upper: 2100, matchBehavior: CONTAINS}
   # Typo tolerance of the single search box on the customer and user search screens. See
   # TafelAdminSearchProperties - this is read per request, so it can be tuned against real data
   # without restarting the container.

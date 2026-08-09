@@ -71,11 +71,13 @@ computed at the moment the image is built in `.github/workflows/subflow_docker_i
 same rule `household`'s `ScannerFileService` enforces server-side, so the UI can't offer a document
 source the backend would refuse to serve.
 
-`passwordRules` mirrors `tafeladmin.password` (length limits and forbidden words), the same values
-`TafelPasswordValidator` checks a password against. The password-change screen both lists them and
-validates against them before submitting, so they have to be served rather than hardcoded on either
-side: an installation configures its own, and a frontend stating its own copy would start
-contradicting the backend the moment one does.
+`passwordRules` comes from `tafeladmin.password` — the policy `TafelPasswordValidator` checks a
+password against. It carries the length limits as numbers, which is what the password-change form
+validates against while the user types, plus `descriptions`: the whole configured policy as German
+sentences, written by `PasswordRuleDescriptions`. The wording is decided in the backend because the
+policy is open-ended (every Passay rule is configurable); a frontend phrasing it itself would need
+its own copy of what each setting means and would quietly stop mentioning the ones it hadn't been
+taught about.
 
 ## Adding a feature flag here
 

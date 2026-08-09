@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordRuleDescriptions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 
 /**
@@ -16,7 +17,7 @@ fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
     passwordRules = PasswordRules(
         minLength = password.minLength,
         maxLength = password.maxLength,
-        forbiddenWords = password.forbiddenWords,
+        descriptions = PasswordRuleDescriptions.of(password),
     ),
 )
 
@@ -42,13 +43,18 @@ data class ConfigResponse(
 
 @ExcludeFromTestCoverage
 data class PasswordRules(
+    /**
+     * The length limits on their own, because they are the two rules the form can usefully check
+     * itself while the user types. Everything else is left to the backend, which is the only side
+     * that enforces any of it.
+     */
     val minLength: Int,
     val maxLength: Int,
     /**
-     * Words a password may not contain, matched case-insensitively. Empty means the rule isn't
-     * applied at all, and the frontend then lists nothing about forbidden words.
+     * The whole configured policy as German sentences, ready to list - see
+     * `PasswordRuleDescriptions` for why the wording is decided here rather than in the frontend.
      */
-    val forbiddenWords: List<String>,
+    val descriptions: List<String>,
 )
 
 /**

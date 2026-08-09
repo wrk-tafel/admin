@@ -17,7 +17,7 @@ describe('PasswordChangeFormComponent', () => {
       version: '1.0.0',
       buildTime: 'unknown',
       scannerFolderEnabled: false,
-      passwordRules: {minLength: 8, maxLength: 50, forbiddenWords: ['tafel']}
+      passwordRules: {minLength: 8, maxLength: 50, descriptions: ['Mindestens 8 Zeichen, maximal 50 Zeichen', 'Keine Leerzeichen']}
     });
     const configApiServiceSpy = {
       observeConfig: vi.fn().mockName('ConfigApiService.observeConfig').mockReturnValue(config.asObservable())
@@ -148,7 +148,7 @@ describe('PasswordChangeFormComponent', () => {
       version: '1.0.0',
       buildTime: 'unknown',
       scannerFolderEnabled: false,
-      passwordRules: {minLength: 12, maxLength: 14, forbiddenWords: []}
+      passwordRules: {minLength: 12, maxLength: 14, descriptions: ['Mindestens 12 Zeichen, maximal 14 Zeichen']}
     });
 
     component.passwordFormModel.set({
@@ -183,26 +183,28 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.passwordForm().valid()).toBe(true);
   });
 
-  it('lists the configured rules and follows a config change', () => {
+  it('lists the rules the backend describes and follows a config change', () => {
     fixture.detectChanges();
 
-    const lengthRule = () => fixture.nativeElement.querySelector('[testid="passwordRules-length"]')?.textContent?.trim();
-    const forbiddenWords = () => fixture.nativeElement.querySelector('[testid="passwordRules-forbiddenWords"]')?.textContent;
+    const listedRules = () => Array.from(
+      fixture.nativeElement.querySelectorAll('[testid="passwordRules-description"]') as NodeListOf<HTMLElement>
+    ).map(element => element.textContent?.trim());
 
-    expect(lengthRule()).toBe('Mindestens 8 Zeichen, maximal 50 Zeichen');
-    expect(forbiddenWords()).toContain('tafel');
+    expect(listedRules()).toEqual(['Mindestens 8 Zeichen, maximal 50 Zeichen', 'Keine Leerzeichen']);
 
     config.next({
       version: '1.0.0',
       buildTime: 'unknown',
       scannerFolderEnabled: false,
-      passwordRules: {minLength: 12, maxLength: 40, forbiddenWords: []}
+      passwordRules: {
+        minLength: 12,
+        maxLength: 40,
+        descriptions: ['Mindestens 12 Zeichen, maximal 40 Zeichen', 'Mindestens 1 Ziffer']
+      }
     });
     fixture.detectChanges();
 
-    expect(lengthRule()).toBe('Mindestens 12 Zeichen, maximal 40 Zeichen');
-    // nothing forbidden means the rule isn't stated at all
-    expect(fixture.nativeElement.querySelector('[testid="passwordRules-forbiddenWords"]')).toBeNull();
+    expect(listedRules()).toEqual(['Mindestens 12 Zeichen, maximal 40 Zeichen', 'Mindestens 1 Ziffer']);
   });
 
   it('states no rules while the config has not arrived', () => {

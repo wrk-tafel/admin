@@ -6,7 +6,15 @@ import org.junit.jupiter.api.Test
 
 class ConfigControllerTest {
 
-    private val defaultPasswordRules = PasswordRules(minLength = 8, maxLength = 50, forbiddenWords = emptyList())
+    private val defaultPasswordRules = PasswordRules(
+        minLength = 8,
+        maxLength = 50,
+        descriptions = listOf(
+            "Mindestens 8 Zeichen, maximal 50 Zeichen",
+            "Der Benutzername darf nicht Teil des Passworts sein",
+            "Keine Leerzeichen",
+        ),
+    )
 
     @Test
     fun `get config`() {
@@ -62,18 +70,33 @@ class ConfigControllerTest {
         )
     }
 
+    /**
+     * The length limits are what the form validates against itself; the descriptions are the whole
+     * configured policy in the wording the screen lists (see `PasswordRuleDescriptions`).
+     */
     @Test
     fun `get config reports the configured password rules`() {
         val controller = ConfigController(
             TafelAdminProperties().apply {
                 password.minLength = 12
                 password.maxLength = 30
-                password.forbiddenWords = listOf("tafel", "wrk")
+                password.dictionary.forbiddenWords = listOf("tafel", "wrk")
+                password.characters.minDigits = 1
             },
         )
 
         assertThat(controller.getConfig().passwordRules).isEqualTo(
-            PasswordRules(minLength = 12, maxLength = 30, forbiddenWords = listOf("tafel", "wrk")),
+            PasswordRules(
+                minLength = 12,
+                maxLength = 30,
+                descriptions = listOf(
+                    "Mindestens 12 Zeichen, maximal 30 Zeichen",
+                    "Mindestens 1 Ziffer",
+                    "Folgende Wörter sind nicht erlaubt: tafel, wrk",
+                    "Der Benutzername darf nicht Teil des Passworts sein",
+                    "Keine Leerzeichen",
+                ),
+            ),
         )
     }
 

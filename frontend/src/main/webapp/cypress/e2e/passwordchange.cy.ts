@@ -57,15 +57,26 @@ describe('PasswordChange', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-changepassword').click();
 
-    cy.byTestId('passwordRules-length').should('contain.text', 'Mindestens 8 Zeichen, maximal 50 Zeichen');
-    cy.byTestId('passwordRules-forbiddenWords').should('contain.text', 'tafel');
+    cy.byTestId('passwordRules').should('contain.text', 'Mindestens 8 Zeichen, maximal 50 Zeichen');
+    cy.byTestId('passwordRules').should('contain.text', 'Folgende Wörter sind nicht erlaubt: wrk');
+    cy.byTestId('passwordRules').should('not.contain.text', 'Ziffer');
 
-    const tightenedRules = ['tafeladmin:', '  password:', '    minLength: 12', '    forbiddenWords: []'].join('\n');
+    const tightenedRules = [
+      'tafeladmin:',
+      '  password:',
+      '    minLength: 12',
+      '    characters:',
+      '      minDigits: 2',
+      '    dictionary:',
+      '      forbiddenWords: []'
+    ].join('\n');
     cy.task('writeBackendConfig', tightenedRules);
 
-    cy.byTestId('passwordRules-length', {timeout: 20000}).should('contain.text', 'Mindestens 12 Zeichen, maximal 50 Zeichen');
+    cy.byTestId('passwordRules', {timeout: 20000}).should('contain.text', 'Mindestens 12 Zeichen, maximal 50 Zeichen');
+    // a rule switched on in the config appears in the list without the frontend knowing it exists
+    cy.byTestId('passwordRules').should('contain.text', 'Mindestens 2 Ziffern');
     // an installation with no forbidden words configured doesn't state that rule at all
-    cy.byTestId('passwordRules-forbiddenWords').should('not.exist');
+    cy.byTestId('passwordRules').should('not.contain.text', 'Folgende Wörter sind nicht erlaubt');
 
     // the form validates against the new minimum, not the one the page was loaded with
     cy.byTestId('currentPasswordText').type('e2etest');
@@ -74,7 +85,7 @@ describe('PasswordChange', () => {
     cy.contains('Passwort zu kurz (Limit: 12)').should('be.visible');
 
     cy.task('clearBackendConfig');
-    cy.byTestId('passwordRules-length', {timeout: 20000}).should('contain.text', 'Mindestens 8 Zeichen, maximal 50 Zeichen');
+    cy.byTestId('passwordRules', {timeout: 20000}).should('contain.text', 'Mindestens 8 Zeichen, maximal 50 Zeichen');
   });
 
   it('remains usable on mobile viewports', () => {

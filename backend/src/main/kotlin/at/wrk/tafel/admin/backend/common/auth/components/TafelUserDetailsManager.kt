@@ -16,11 +16,6 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import org.passay.PasswordData
-import org.passay.ValidationResult
-import org.passay.rule.DictionarySubstringRule
-import org.passay.rule.LengthRule
-import org.passay.rule.UsernameRule
-import org.passay.rule.WhitespaceRule
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
@@ -139,24 +134,19 @@ class TafelUserDetailsManager(
         }
     }
 
+    /**
+     * Every violation is reported, not just the first: the rules are configurable
+     * (`TafelAdminPasswordProperties`), so a user can break several at once and fixing them one
+     * rejection at a time would be needlessly tedious. The messages are already German - see
+     * `TafelPasswordValidator.MESSAGE_RESOLVER`.
+     */
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
         val data = PasswordData(username, newPassword)
         val result = passwordValidator.validate(data)
         if (!result.isValid) {
-            throw PasswordChangeException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
+            throw PasswordChangeException("Das neue Passwort ist ungültig!", result.messages)
         }
         return true
-    }
-
-    private fun translateViolationsToMessages(result: ValidationResult): List<String> = result.details.mapNotNull {
-        when (it.errorCode) {
-            LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
-            LengthRule.ERROR_CODE_MAX -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
-            WhitespaceRule.ERROR_CODE -> """Leerzeichen sind nicht erlaubt"""
-            UsernameRule.ERROR_CODE, UsernameRule.ERROR_CODE_REVERSED -> "Der Benutzername darf nicht Teil des Passworts sein"
-            DictionarySubstringRule.ERROR_CODE, DictionarySubstringRule.ERROR_CODE_REVERSED -> "Folgende Wörter dürfen nicht enhalten sein: ${it.parameters["matchingWord"]}"
-            else -> null
-        }
     }
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)

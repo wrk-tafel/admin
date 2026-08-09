@@ -78,29 +78,185 @@ class TafelAdminFeaturesProperties {
 }
 
 /**
- * What a user's password has to satisfy. Enforced by `TafelPasswordValidator` and served to the
- * frontend through `/api/config`, so the password-change screen describes and pre-validates exactly
- * the rules the backend applies rather than a hardcoded copy of them.
+ * What a user's password has to satisfy - the installation's own policy, expressed as configuration
+ * rather than constants, since the deployments running this application don't agree on how long a
+ * password has to be or what may not appear in it. Enforced by `TafelPasswordValidator` and
+ * described to the frontend through `/api/config`, so the password-change screen states exactly the
+ * rules the backend applies. Read per validation, so an operator's edit takes effect without a
+ * restart.
  *
- * Configuration rather than constants because the rules are an installation's own policy: how long a
- * password has to be, and which words are too obvious for it, differ between the deployments running
- * this application. Read per validation, so an operator's edit takes effect without a restart.
+ * Every Passay rule that can be decided from the password and the username alone is configurable
+ * here. Two of Passay's rules are deliberately absent because there is nothing to configure them
+ * against:
+ * - `HistoryRule`/`SourceRule` (and their digest variants) compare against a user's previous or
+ *   other-system passwords, which this application does not store - only the current Argon2 hash.
+ * - `LengthComplexityRule` is not a rule of its own but a container that applies *other* rules per
+ *   password-length interval; configuring it would mean nesting this whole class once per interval.
  *
- * Not everything is configurable: that a password may not contain the username and may not contain
- * whitespace holds for every installation, so those two rules stay fixed in `TafelPasswordValidator`.
+ * Defaults here reproduce what the application enforced before any of this was configurable: a
+ * length range, no username, no whitespace, and whatever `dictionary.forbiddenWords` names.
  */
 @ExcludeFromTestCoverage
 class TafelAdminPasswordProperties {
+    /** `LengthRule`. */
     var minLength: Int = 8
     var maxLength: Int = 50
 
     /**
-     * Words a password may not contain, matched case-insensitively anywhere in it (also reversed).
-     * Empty - the default here - means no such rule is applied at all; the list this deployment
-     * actually uses is in `application.yml`, since it names this organisation rather than anything
-     * inherent to the application.
+     * Which language's letters count as lower/upper case and as an alphabetical run - Passay ships a
+     * character and sequence set per language, and the German one is what matches the users of this
+     * application (ä/ö/ü/ß are letters, and the keyboard is a QWERTZ one).
      */
+    var alphabet: PasswordAlphabet = PasswordAlphabet.GERMAN
+
+    var characters: TafelAdminPasswordCharactersProperties = TafelAdminPasswordCharactersProperties()
+    var username: TafelAdminPasswordUsernameProperties = TafelAdminPasswordUsernameProperties()
+    var whitespace: TafelAdminPasswordWhitespaceProperties = TafelAdminPasswordWhitespaceProperties()
+    var dictionary: TafelAdminPasswordDictionaryProperties = TafelAdminPasswordDictionaryProperties()
+    var sequences: TafelAdminPasswordSequencesProperties = TafelAdminPasswordSequencesProperties()
+    var repeatedCharacters: TafelAdminPasswordRepeatedCharactersProperties = TafelAdminPasswordRepeatedCharactersProperties()
+
+    /** `CharacterOccurrencesRule`: how often the same character may appear. 0 switches it off. */
+    var maxCharacterOccurrences: Int = 0
+
+    /** `AllowedCharacterRule`: if set, the password may consist of these characters only. */
+    var allowedCharacters: String? = null
+
+    /** `IllegalCharacterRule`: characters the password may not contain at all. */
+    var illegalCharacters: String? = null
+
+    /** `AllowedRegexRule`: every pattern here must match the password. */
+    var allowedPatterns: List<String> = emptyList()
+
+    /** `IllegalRegexRule`: no pattern here may match the password. */
+    var illegalPatterns: List<String> = emptyList()
+
+    /**
+     * `NumberRangeRule`: numbers the password may not contain, e.g. `1900`-`2100` to keep birth
+     * years out of it.
+     */
+    var illegalNumberRanges: List<TafelAdminPasswordNumberRangeProperties> = emptyList()
+}
+
+/**
+ * `CharacterRule` per character class, and `CharacterCharacteristicsRule` on top of them via
+ * [minTypes]. A minimum of 0 means that class isn't required at all.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordCharactersProperties {
+    var minLowerCase: Int = 0
+    var minUpperCase: Int = 0
+    var minDigits: Int = 0
+    var minSpecial: Int = 0
+    var minAlphabetical: Int = 0
+
+    /** Which characters count as special - see Passay's `EnglishCharacterData`. */
+    var specialCharacters: PasswordSpecialCharacters = PasswordSpecialCharacters.ANY
+
+    /**
+     * How many of the classes configured above have to be satisfied, rather than all of them: the
+     * usual "at least 3 of lower case / upper case / digits / special" policy. 0 - the default -
+     * requires every configured minimum to be met. A value above the number of configured classes
+     * would make every password fail, so it is capped at that number.
+     */
+    var minTypes: Int = 0
+}
+
+/** `UsernameRule`. Defaults match Passay's own: case-sensitive, forwards only, anywhere in the password. */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordUsernameProperties {
+    var enabled: Boolean = true
+    var ignoreCase: Boolean = false
+    var matchBackwards: Boolean = false
+    var matchBehavior: PasswordMatchBehavior = PasswordMatchBehavior.CONTAINS
+}
+
+/** `WhitespaceRule` - tab, line feed, vertical tab, form feed, carriage return and space. */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordWhitespaceProperties {
+    var enabled: Boolean = true
+    var matchBehavior: PasswordMatchBehavior = PasswordMatchBehavior.CONTAINS
+}
+
+/**
+ * The two dictionary rules: [forbiddenWords] is `DictionarySubstringRule` (the word may not appear
+ * anywhere in the password), [forbiddenPasswords] is `DictionaryRule` (the password may not *be* one
+ * of these). Both empty - the default here - means neither rule is applied at all; the list this
+ * deployment actually uses is in `application.yml`, since it names this organisation rather than
+ * anything inherent to the application.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordDictionaryProperties {
     var forbiddenWords: List<String> = emptyList()
+    var forbiddenPasswords: List<String> = emptyList()
+    var ignoreCase: Boolean = true
+    var matchBackwards: Boolean = false
+}
+
+/**
+ * `IllegalSequenceRule` per kind of run. The alphabetical and keyboard sequences follow
+ * [TafelAdminPasswordProperties.alphabet]; note that Passay only ships keyboard data for English
+ * (QWERTY) and German (QWERTZ), so [keyboard] has no effect under the other alphabets.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordSequencesProperties {
+    var alphabetical: TafelAdminPasswordSequenceProperties = TafelAdminPasswordSequenceProperties()
+    var numerical: TafelAdminPasswordSequenceProperties = TafelAdminPasswordSequenceProperties()
+    var keyboard: TafelAdminPasswordSequenceProperties = TafelAdminPasswordSequenceProperties()
+}
+
+@ExcludeFromTestCoverage
+class TafelAdminPasswordSequenceProperties {
+    var enabled: Boolean = false
+
+    /** How many characters in a row make a sequence. Passay refuses anything below 3. */
+    var length: Int = 5
+
+    /** Whether a sequence may wrap around the end of the alphabet, e.g. `xyzab`. */
+    var wrap: Boolean = false
+}
+
+/** `RepeatCharactersRule`: [sequenceCount] runs of [length] identical characters are already too many. */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordRepeatedCharactersProperties {
+    var enabled: Boolean = false
+    var length: Int = 5
+    var sequenceCount: Int = 1
+}
+
+@ExcludeFromTestCoverage
+class TafelAdminPasswordNumberRangeProperties {
+    var lower: Int = 0
+    var upper: Int = 0
+    var matchBehavior: PasswordMatchBehavior = PasswordMatchBehavior.CONTAINS
+}
+
+/**
+ * Where in the password a match counts. Mirrors Passay's `MatchBehavior`, declared here so the
+ * configuration binds to names in this application's own casing rather than to a library enum.
+ */
+enum class PasswordMatchBehavior {
+    CONTAINS,
+    STARTS_WITH,
+    ENDS_WITH,
+}
+
+/** The language whose character and sequence data Passay should use. */
+enum class PasswordAlphabet {
+    ENGLISH,
+    GERMAN,
+    CZECH,
+    POLISH,
+    CYRILLIC,
+    CYRILLIC_MODERN,
+}
+
+/** Which set of special characters `characters.minSpecial` counts. */
+enum class PasswordSpecialCharacters {
+    ANY,
+    ASCII,
+    LATIN,
+    UNICODE,
 }
 
 @ExcludeFromTestCoverage

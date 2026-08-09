@@ -222,11 +222,16 @@ class TafelUserDetailsManagerTest {
         verify(exactly = 0) { userRepository.save(any()) }
     }
 
+    /**
+     * Every violation is passed on, not just the first: with the rules configurable, a password can
+     * break several at once and the user should see all of them rather than one per attempt.
+     */
     @Test
-    fun `changePassword - new password invalid with unrecognized error code produces no detail message`() {
+    fun `changePassword - new password invalid reports every violation`() {
         every { passwordValidator.validate(any()) } returns FailureValidationResult(
             RuleResultMetadata(),
-            listOf(RuleResultDetail("SOME_UNRECOGNIZED_ERROR_CODE", emptyMap())),
+            listOf(RuleResultDetail("TOO_SHORT", emptyMap()), RuleResultDetail("ILLEGAL_WHITESPACE", emptyMap())),
+            listOf("Erster Verstoß", "Zweiter Verstoß"),
         )
 
         val currentPassword = "12345"
@@ -236,7 +241,7 @@ class TafelUserDetailsManagerTest {
             manager.changePassword(currentPassword, newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
-        assertThat(exception.validationDetails).isEmpty()
+        assertThat(exception.validationDetails).containsExactly("Erster Verstoß", "Zweiter Verstoß")
     }
 
     @Test
@@ -291,7 +296,7 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Mindestlänge: 8, Maximale Länge: 50",
+                "Das Passwort muss mindestens 8 Zeichen lang sein.",
             ),
         )
     }
@@ -306,7 +311,7 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Mindestlänge: 8, Maximale Länge: 50",
+                "Das Passwort darf höchstens 50 Zeichen lang sein.",
             ),
         )
     }
@@ -321,7 +326,7 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Der Benutzername darf nicht Teil des Passworts sein",
+                "Der Benutzername darf nicht Teil des Passworts sein.",
             ),
         )
     }
@@ -336,14 +341,14 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Leerzeichen sind nicht erlaubt",
+                "Leerzeichen sind nicht erlaubt.",
             ),
         )
     }
 
     @Test
     fun `changePassword - contains illegal words`() {
-        passwordRuleProperties.password.forbiddenWords = listOf("wrk", "tafel")
+        passwordRuleProperties.password.dictionary.forbiddenWords = listOf("wrk", "tafel")
         val newPassword = "123wrk123tafel123"
 
         val exception = assertThrows<PasswordChangeException> {
@@ -352,7 +357,7 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
-                "Folgende Wörter dürfen nicht enhalten sein: wrk",
+                "Folgendes Wort darf nicht enthalten sein: wrk",
             ),
         )
     }

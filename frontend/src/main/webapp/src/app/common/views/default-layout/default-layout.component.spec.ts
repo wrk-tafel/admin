@@ -26,7 +26,7 @@ describe('DefaultLayoutComponent', () => {
         };
         const configApiServiceSpy = {
             observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
-                .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, passwordRules: {minLength: 8, maxLength: 50, forbiddenWords: []}}))
+                .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, passwordRules: {minLength: 8, maxLength: 50, descriptions: []}}))
         };
 
         TestBed.configureTestingModule({
@@ -68,7 +68,7 @@ describe('DefaultLayoutComponent', () => {
         const component = fixture.componentInstance;
         fixture.detectChanges();
 
-        expect(component.appConfig()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, passwordRules: {minLength: 8, maxLength: 50, forbiddenWords: []}});
+        expect(component.appConfig()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, passwordRules: {minLength: 8, maxLength: 50, descriptions: []}});
     });
 
     it('shows the version footer without a "v" prefix when expanded', () => {

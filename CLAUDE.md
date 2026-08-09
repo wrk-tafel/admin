@@ -527,12 +527,18 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
   silently won't be findable.
-- **Password Rules**: length limits and forbidden words are per-installation configuration
-  (`tafeladmin.password`), not constants. `TafelPasswordValidator` assembles the Passay rules per
-  validation, so an operator's edit takes effect without a restart, and `/api/config` serves the same
-  values to the frontend — the password-change screen lists and pre-validates against them rather
-  than carrying its own copy. Only length and forbidden words are configurable; that a password may
-  not contain the username or whitespace is unconditional.
+- **Password Rules**: the whole password policy is per-installation configuration
+  (`tafeladmin.password`), not constants — every Passay rule that can be decided from the password
+  and the username, from length and forbidden words to character classes, sequences, repeats,
+  character/regex/number restrictions. `TafelPasswordValidator` assembles the Passay rules per
+  validation, so an operator's edit takes effect without a restart, and violations come back as
+  German sentences from `passay-messages_de.properties` via Passay's own `MessageResolver` (not a
+  hand-written mapping — a rule that gets switched on must not reject a password without saying
+  why). `PasswordRuleDescriptions` turns the same configuration into the German bullet list the
+  password-change screen shows, served with the length limits through `/api/config`; the frontend
+  deliberately holds no copy of what any rule means. Adding a rule means touching all three: the
+  validator, the descriptions and the message bundle. Passay's history/source rules aren't offered
+  (no stored password history) and neither is `LengthComplexityRule` (a container for other rules).
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.

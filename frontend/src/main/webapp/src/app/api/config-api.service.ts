@@ -66,10 +66,16 @@ export interface AppConfig {
 }
 
 export interface PasswordRules {
+  /** The two rules the form can usefully check itself while the user types. */
   minLength: number;
   maxLength: number;
-  /** Case-insensitively forbidden anywhere in the password. Empty means there is no such rule. */
-  forbiddenWords: string[];
+  /**
+   * The whole configured policy as German sentences, ready to list. Written by the backend
+   * (`PasswordRuleDescriptions`) because the policy is open-ended - every Passay rule is
+   * configurable, and a frontend wording them itself would quietly stop mentioning the ones it
+   * hadn't been taught about.
+   */
+  descriptions: string[];
 }
 
 export interface PublicAppConfig {
