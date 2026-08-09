@@ -30,6 +30,18 @@ module, and named interfaces gate service/DTO access only (see
   (in [`HouseholdResponseModel.kt`](HouseholdResponseModel.kt)) expose `persons: List<Person>` with
   `mainPerson()`/`additionalPersons()` helper methods, mirroring
   `HouseholdEntity.additionalPersons()` on the entity side.
+- **A household or person may be incomplete on purpose.** Of the fields the customer form marks
+  required, only `single_parent` is enforced by the schema (`not null` with a `false` default, see
+  `R__00091_household_single_parent_not_null.sql`) — a checkbox has no "unknown" state. The address
+  parts and a person's name, birth date and gender stay nullable: that incompleteness is exactly
+  what `HouseholdEntity.Specs.postProcessingNecessary()` searches for and what the "Daten
+  unvollständig" filter in the customer search exists to surface. The 2023 import left rows in that
+  shape that cannot be reconstructed, `testdata.sql` seeds household 106 the same way to exercise
+  the filter, and `HouseholdEntitySpecsIT` persists incomplete persons — a column constraint would
+  make all of those impossible to write. Presence is enforced one layer up instead, by `@NotBlank`
+  /`@NotNull` on `HouseholdAddress` and `Person`. `HouseholdRequiredFieldsIT` locks the decision
+  down. `telephone_number` is not enforced anywhere on the backend — only the frontend form treats
+  it as mandatory.
 - Legacy: the old `customers` / `customers_addpersons` tables (see
   `R__00067_household_person_refactor.sql`) were superseded by `households`/`persons`. They are kept
   read-only for a production observation window before a separate cleanup migration

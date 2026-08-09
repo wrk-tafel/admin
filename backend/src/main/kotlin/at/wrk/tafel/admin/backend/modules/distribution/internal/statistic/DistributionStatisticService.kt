@@ -113,7 +113,7 @@ class DistributionStatisticService(
         statistic.countCustomersUpdated = countHouseholdsUpdated - countHouseholdsNew - countHouseholdsProlonged
 
         statistic.countSingleParentHouseholds =
-            distribution.households.count { it.household.singleParent == true }
+            distribution.households.count { it.household.singleParent }
     }
 
     private fun fillLogisticsStatistics(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {

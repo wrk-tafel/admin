@@ -56,7 +56,9 @@ class HouseholdConverter(
         householdEntity.addressCity = householdUpdate.address.city?.trim()
         householdEntity.telephoneNumber = householdUpdate.telephoneNumber
         householdEntity.email = householdUpdate.email?.takeIf { it.isNotBlank() }?.trim()
-        householdEntity.singleParent = householdUpdate.singleParent
+        // The form's checkbox always sends a value; a request that omits it means "not a single
+        // parent" rather than "unknown", and `households.single_parent` is not nullable.
+        householdEntity.singleParent = householdUpdate.singleParent == true
 
         // Only stamped when this save actually pushes `validUntil` further out; any other update
         // leaves the stored value untouched. `HouseholdService.getHouseholdsOverview` ("Verlängert")

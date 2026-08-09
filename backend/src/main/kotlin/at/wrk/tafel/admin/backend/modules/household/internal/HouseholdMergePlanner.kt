@@ -108,7 +108,7 @@ internal object HouseholdMergePlanner {
         HouseholdMergeField.VALID_UNTIL -> a.validUntil == b.validUntil
         HouseholdMergeField.LOCK_STATE -> lockTuple(a) == lockTuple(b)
         HouseholdMergeField.PENDING_COST_CONTRIBUTION -> a.pendingCostContribution.compareTo(b.pendingCostContribution) == 0
-        HouseholdMergeField.SINGLE_PARENT -> (a.singleParent ?: false) == (b.singleParent ?: false)
+        HouseholdMergeField.SINGLE_PARENT -> a.singleParent == b.singleParent
         HouseholdMergeField.MAIN_PERSON_FIRSTNAME -> normalizedString(a.mainPerson?.firstname) == normalizedString(b.mainPerson?.firstname)
         HouseholdMergeField.MAIN_PERSON_LASTNAME -> normalizedString(a.mainPerson?.lastname) == normalizedString(b.mainPerson?.lastname)
         HouseholdMergeField.MAIN_PERSON_BIRTHDATE -> a.mainPerson?.birthDate == b.mainPerson?.birthDate
