@@ -1,7 +1,7 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
     <mat-card-title>
-      <h5 class="mb-0 mt-1">Änderungsprotokoll</h5>
+      <h2 class="tafel-h5 mb-0 mt-1">Änderungsprotokoll</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
@@ -57,6 +57,8 @@
       <button matButton="filled" testid="audit-search-button" (click)="search()">Suchen</button>
       <button matButton="filled" testid="audit-reset-button" (click)="resetFilter()">Filter zurücksetzen</button>
     </div>
+
+    <p class="sr-only" role="status" testid="audit-search-announcement">{{ searchAnnouncement() }}</p>
 
     @if (entries(); as entriesResponse) {
       @if (entriesResponse.items.length === 0) {

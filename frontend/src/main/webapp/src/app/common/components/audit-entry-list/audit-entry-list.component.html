@@ -20,13 +20,17 @@
         @if (entry.changes.length === 0) {
           <div class="text-slate-600" [attr.testid]="'audit-entry-' + i + '-nochanges'">Keine Feldänderungen erfasst</div>
         } @else {
-          <div class="overflow-x-auto">
+          <!-- tabindex: the table scrolls sideways on a narrow screen, and a region that can only
+               be scrolled by dragging is unreachable by keyboard (axe scrollable-region-focusable).
+               It carries no focusable content of its own that would satisfy the rule. -->
+          <div class="overflow-x-auto" tabindex="0" role="group"
+               [attr.aria-label]="'Feldänderungen: ' + entityTypeLabel(entry.entityType) + ' ' + operationLabel(entry.operation)">
             <table class="w-full text-left" [attr.testid]="'audit-entry-' + i + '-changes'">
               <thead>
               <tr>
-                <th class="py-1 pr-4 font-bold">Feld</th>
-                <th class="py-1 pr-4 font-bold">Vorher</th>
-                <th class="py-1 font-bold">Nachher</th>
+                <th scope="col" class="py-1 pr-4 font-bold">Feld</th>
+                <th scope="col" class="py-1 pr-4 font-bold">Vorher</th>
+                <th scope="col" class="py-1 font-bold">Nachher</th>
               </tr>
               </thead>
               <tbody>

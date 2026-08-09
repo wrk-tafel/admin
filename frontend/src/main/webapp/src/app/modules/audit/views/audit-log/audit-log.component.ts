@@ -55,6 +55,10 @@ const isoDate = (date: dayjs.Dayjs): string => date.format('YYYY-MM-DD');
 })
 export class AuditLogComponent {
   protected readonly entries = signal<AuditEntriesResponse | null>(null);
+
+  // What the role="status" region in the template says. Pressing "Suchen" replaces the whole list
+  // below the filters, which is not a change a screen reader notices on its own.
+  protected readonly searchAnnouncement = signal('');
   protected readonly entityTypes = signal<string[]>([]);
   protected readonly operations = signal<AuditOperation[]>([]);
 
@@ -91,7 +95,12 @@ export class AuditLogComponent {
     };
 
     this.auditApiService.searchAuditEntries(filter, page, pageSize ?? this.entries()?.pageSize).subscribe({
-      next: data => this.entries.set(data),
+      next: data => {
+        this.entries.set(data);
+        this.searchAnnouncement.set(
+          data.totalCount === 1 ? '1 Eintrag gefunden' : `${data.totalCount} Einträge gefunden`
+        );
+      },
       error: () => this.toastr.error('Fehler beim Laden des Änderungsprotokolls', 'Fehler')
     });
   }

@@ -4,6 +4,7 @@ import {AuditLogComponent} from './views/audit-log/audit-log.component';
 export const routes: Routes = [
   {
     path: '',
-    component: AuditLogComponent
+    component: AuditLogComponent,
+    title: 'Änderungsprotokoll'
   }
 ];

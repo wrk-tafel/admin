@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 const isoToday = () => dayjs().format('YYYY-MM-DD');
 const isoLastMonth = () => dayjs().subtract(1, 'month').format('YYYY-MM-DD');
@@ -111,6 +112,52 @@ describe('Änderungsprotokoll', () => {
 
       cy.byTestId('audit-entry-0-operation').should('be.visible');
     });
+  });
+
+  // The Lighthouse `pages` sweep grades this route's initial render; what it cannot reach is the
+  // state after a filter has been applied, or an open select - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations once entries are listed', () => {
+      cy.createDummyCustomer().then(() => {
+        cy.visit('/aenderungsprotokoll');
+
+        cy.byTestId('audit-entry-list').should('exist');
+        cy.checkAccessibility(MAIN_CONTENT);
+      });
+    });
+
+    it('has no violations with the filter selects open', () => {
+      cy.visit('/aenderungsprotokoll');
+
+      cy.byTestId('audit-filter-entityType').click();
+      cy.checkAccessibility();
+      cy.get('body').type('{esc}');
+
+      cy.byTestId('audit-filter-operation').click();
+      cy.checkAccessibility();
+    });
+
+    it('has no violations on the empty result', () => {
+      cy.visit('/aenderungsprotokoll');
+
+      cy.byTestId('audit-filter-businessKey').type('999999999');
+      cy.byTestId('audit-search-button').click();
+
+      cy.byTestId('audit-log-empty').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations on a phone, where the change tables scroll sideways', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.createDummyCustomer().then(() => {
+        cy.visit('/aenderungsprotokoll');
+
+        cy.byTestId('audit-entry-list').should('exist');
+        cy.checkAccessibility(MAIN_CONTENT);
+      });
+    });
+
   });
 
   it('is reachable from the navigation menu', () => {

@@ -811,6 +811,16 @@ describe('Customer Detail', () => {
       cy.checkAccessibility(MAIN_CONTENT);
     });
 
+    // 132 is the testdata customer with a full history, so the tab renders entries of every
+    // household-scoped type rather than an empty state.
+    it('has no violations on the Verlauf tab', () => {
+      cy.visit('/kunden/detail/132');
+
+      cy.byTestId('history-tab-label').scrollIntoView().click();
+      cy.byTestId('audit-entry-list').should('exist');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
     it('has no violations in the note dialogs', () => {
       // 103 is the testdata customer with more than one note, so the "all notes" dialog exists
       cy.visit('/kunden/detail/103');
