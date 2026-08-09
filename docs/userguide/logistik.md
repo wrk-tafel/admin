@@ -2,7 +2,23 @@
 
 # Logistik
 
-Der Bereich "Logistik" dient der Erfassung der von den Routen-Teams eingesammelten Warenmengen. Der Menüpunkt ist nur aktiv, solange ein Ausgabetag gestartet ist.
+Der Bereich "Logistik" begleitet die Routen-Teams: die **Routenbegleitung** unterwegs auf der Route, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; die Routenbegleitung ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
+
+## Routenbegleitung
+
+Unter **Logistik → Routenbegleitung** wird über das Dropdown **Route auswählen** eine der aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen) gewählt. Anschließend werden alle Stopps der Route in der Reihenfolge angezeigt, in der sie angefahren werden (nach der bei der Route hinterlegten Uhrzeit).
+
+Je Stopp werden angezeigt: Uhrzeit, Filialnummer und Name der Filiale, Adresse, Telefonnummer (per Klick direkt wählbar), Ansprechperson, die Einheit der Filiale (Kisten oder Kilogramm) sowie eine allfällige Notiz zur Filiale. Stopps ohne Filiale — etwa eine Pause — bleiben in der Liste stehen und werden mit ihrer Beschreibung angezeigt. Der erste noch offene Stopp ist mit **Nächster Stopp** gekennzeichnet.
+
+![Routenbegleitung](images/logistik-routenbegleitung.jpg)
+
+Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb der Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware abgeben** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"). Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
+
+**Navigation starten** öffnet die Navigation zur jeweiligen Filiale in der Karten-App des Geräts (am Handy die installierte Karten-App, am Computer die Karte im Browser). **Restliche Route in Karte öffnen** übergibt gleich mehrere noch offene Stopps als eine Fahrt; enthalten sind dabei die nächsten zehn Stopps, bei längeren Routen weist ein Hinweis darauf hin, dass die weiteren Stopps einzeln zu navigieren sind.
+
+Mit **Erledigt** wird ein abgearbeiteter Stopp abgehakt; **Rückgängig** macht das wieder rückgängig. Neben dem Stopp werden danach Uhrzeit und Name der Person angezeigt, die ihn abgehakt hat. Der Zähler oben rechts zeigt den Fortschritt ("2 von 7 Stopps erledigt").
+
+Abgehakte Stopps gelten für den **jeweiligen Tag** und sind auch auf anderen Geräten sichtbar — ein zweites Handy oder die Zentrale sehen denselben Stand. Am nächsten Tag beginnt die Route wieder mit lauter offenen Stopps. Wird eine Route zwischenzeitlich unter [Einstellungen → Routen](einstellungen.md#routen) bearbeitet, geht der Fortschritt des Tages für diese Route verloren, da die Stopps dabei neu angelegt werden.
 
 ## Warenerfassung
 

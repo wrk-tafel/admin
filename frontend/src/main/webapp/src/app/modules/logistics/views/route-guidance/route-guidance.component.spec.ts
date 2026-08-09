@@ -1,0 +1,293 @@
+import {TestBed} from '@angular/core/testing';
+import {provideHttpClient, withXhr} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {of, throwError} from 'rxjs';
+import {RouteGuidanceComponent} from './route-guidance.component';
+import {
+  RouteApiService,
+  RouteData,
+  RouteGuidanceData,
+  RouteGuidanceStop,
+  RouteList
+} from '../../../../api/route-api.service';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+
+describe('RouteGuidanceComponent', () => {
+  const testRoute: RouteData = {id: 2, number: 2, name: 'Route 2', enabled: true, stops: []};
+  const routeList: RouteList = {routes: [testRoute]};
+
+  const shopStop: RouteGuidanceStop = {
+    stopId: 200,
+    time: '12:00:00',
+    shop: {
+      id: 20,
+      number: 2000,
+      name: 'Lidl',
+      address: 'Hauptstraße 5, 1010 Wien',
+      phone: '01 234567',
+      contactPerson: 'Frau Huber',
+      foodUnit: 'BOX',
+      enabled: true
+    },
+    completed: false,
+    returnItems: [{shopName: 'Lidl', description: 'Graue Kisten', amount: 4}]
+  };
+  const pauseStop: RouteGuidanceStop = {
+    stopId: 210,
+    time: '12:30:00',
+    description: 'Extra stop at home',
+    completed: false,
+    returnItems: []
+  };
+  const secondShopStop: RouteGuidanceStop = {
+    stopId: 220,
+    time: '13:00:00',
+    shop: {
+      id: 21,
+      number: 2100,
+      name: 'Denns BioMarkt',
+      address: 'Nebengasse 2, 1020 Wien',
+      foodUnit: 'KG',
+      enabled: true
+    },
+    completed: false,
+    returnItems: []
+  };
+
+  const guidance: RouteGuidanceData = {
+    routeId: 2,
+    routeNumber: 2,
+    routeName: 'Route 2',
+    date: '2026-08-09',
+    returnItemsFrom: '2026-08-02',
+    stops: [shopStop, pauseStop, secondShopStop],
+    unassignedReturnItems: [{shopName: 'Hofer Alt', description: 'Klappkisten schwarz', amount: 5}]
+  };
+
+  let routeApiMock: Partial<RouteApiService>;
+  let toastrMock: Partial<TafelToastrService>;
+
+  beforeEach(() => {
+    routeApiMock = {
+      getRouteGuidance: vi.fn(() => of<RouteGuidanceData>(guidance)),
+      setStopCompletion: vi.fn(() => of<RouteGuidanceStop>({
+        ...shopStop,
+        completed: true,
+        completedAt: '2026-08-09T08:15:00',
+        completedBy: 'E2E Test'
+      }))
+    };
+    toastrMock = {success: vi.fn(), error: vi.fn()};
+
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule],
+      providers: [
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
+        {provide: RouteApiService, useValue: routeApiMock},
+        {provide: TafelToastrService, useValue: toastrMock}
+      ]
+    }).compileComponents();
+  });
+
+  function createComponent() {
+    const fixture = TestBed.createComponent(RouteGuidanceComponent);
+    fixture.componentRef.setInput('routeList', routeList);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('loads the guidance once a route is selected', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(routeApiMock.getRouteGuidance).toHaveBeenCalledWith(2);
+    expect(component['stops']().length).toBe(3);
+    expect(component['completedCount']()).toBe(0);
+  });
+
+  it('clears the guidance when the selection is reset', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['onSelectedRouteChange'](undefined);
+    fixture.detectChanges();
+
+    expect(component['guidance']()).toBeUndefined();
+    expect(routeApiMock.getRouteGuidance).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a toast when the guidance cannot be loaded', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => throwError(() => new Error('failed')));
+    const fixture = createComponent();
+
+    fixture.componentInstance['onSelectedRouteChange'](testRoute);
+
+    expect(toastrMock.error).toHaveBeenCalled();
+    expect(fixture.componentInstance['guidance']()).toBeUndefined();
+  });
+
+  it('marks the first open stop as the next one', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      stops: [{...shopStop, completed: true}, pauseStop, secondShopStop]
+    }));
+
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    const views = component['stopViews']();
+    expect(views[0].isNext).toBe(false);
+    expect(views[1].isNext).toBe(true);
+    expect(views[2].isNext).toBe(false);
+    expect(component['completedCount']()).toBe(1);
+  });
+
+  it('builds a stop view with the labels the template renders', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    const [firstStop, secondStop] = component['stopViews']();
+    expect(firstStop.timeLabel).toBe('12:00');
+    expect(firstStop.title).toBe('Lidl');
+    expect(firstStop.navigationUrl)
+      .toBe('https://www.google.com/maps/dir/?api=1&destination=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving');
+    expect(firstStop.toggleLabel).toBe('Stopp 12:00 Lidl als erledigt markieren');
+    expect(secondStop.title).toBe('Stopp ohne Filiale');
+    expect(secondStop.navigationUrl).toBeUndefined();
+  });
+
+  it('builds a directions link over the stops that are still open', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['remainingRouteUrl']()).toBe(
+      'https://www.google.com/maps/dir/?api=1&destination=Nebengasse%202%2C%201020%20Wien' +
+      '&waypoints=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving'
+    );
+    expect(component['remainingRouteTruncated']()).toBe(false);
+  });
+
+  it('leaves out the directions link when every stop is done', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      stops: guidance.stops.map(stop => ({...stop, completed: true}))
+    }));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['remainingRouteUrl']()).toBeUndefined();
+  });
+
+  it('caps the directions link at ten stops and says so', () => {
+    const manyStops: RouteGuidanceStop[] = Array.from({length: 12}, (_, index) => ({
+      stopId: 300 + index,
+      time: `1${index < 10 ? '0' : '1'}:00:00`,
+      shop: {
+        id: 300 + index,
+        number: 3000 + index,
+        name: `Shop ${index}`,
+        address: `Gasse ${index}, 1010 Wien`,
+        foodUnit: 'BOX',
+        enabled: true
+      },
+      completed: false,
+      returnItems: []
+    }));
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, stops: manyStops}));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+
+    component['onSelectedRouteChange'](testRoute);
+
+    const url = component['remainingRouteUrl']()!;
+    expect(url).toContain('destination=Gasse%209%2C%201010%20Wien');
+    expect(url.match(/%7C/g)?.length).toBe(8);
+    expect(component['remainingRouteTruncated']()).toBe(true);
+  });
+
+  it('reports the return boxes the last trip left behind', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['returnItemsFrom']()).toBe('02.08.2026');
+    // 4 at the first stop plus 5 with no stop on this route any more
+    expect(component['returnItemsTotal']()).toBe(9);
+    expect(component['unassignedReturnItems']()[0].shopName).toBe('Hofer Alt');
+  });
+
+  it('reports no return date when the last trip brought nothing back', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      returnItemsFrom: undefined,
+      stops: guidance.stops.map(stop => ({...stop, returnItems: []})),
+      unassignedReturnItems: []
+    }));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['returnItemsFrom']()).toBeUndefined();
+    expect(component['returnItemsTotal']()).toBe(0);
+  });
+
+  it('ticks a stop off and keeps the answer from the backend', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['toggleStop'](component['stops']()[0]);
+    fixture.detectChanges();
+
+    expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 200, true);
+    const [firstStopView] = component['stopViews']();
+    expect(firstStopView.stop.completed).toBe(true);
+    expect(firstStopView.completedLabel).toBe('Erledigt um 08:15 von E2E Test');
+    expect(component['completedCount']()).toBe(1);
+    expect(component['pendingStopId']()).toBeUndefined();
+  });
+
+  it('undoes a completed stop', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      stops: [{...shopStop, completed: true, completedBy: 'E2E Test'}, pauseStop, secondShopStop]
+    }));
+    routeApiMock.setStopCompletion = vi.fn(() => of<RouteGuidanceStop>({...shopStop, completed: false}));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['toggleStop'](component['stops']()[0]);
+    fixture.detectChanges();
+
+    expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 200, false);
+    expect(component['stopViews']()[0].stop.completed).toBe(false);
+    expect(component['stopViews']()[0].completedLabel).toBeUndefined();
+  });
+
+  it('shows a toast when a stop cannot be saved', () => {
+    routeApiMock.setStopCompletion = vi.fn(() => throwError(() => new Error('failed')));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['toggleStop'](component['stops']()[0]);
+
+    expect(toastrMock.error).toHaveBeenCalled();
+    expect(component['stopViews']()[0].stop.completed).toBe(false);
+    expect(component['pendingStopId']()).toBeUndefined();
+  });
+});

@@ -8,7 +8,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 |---|---|
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
 | [Kunden](kunden.md) | Kunden suchen, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
-| [Logistik](logistik.md) | Warenerfassung pro Route |
+| [Logistik](logistik.md) | Routenbegleitung auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Schulstartpakete |
@@ -100,7 +100,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
 - **Kunden**: Kunden suchen, Kunden anlegen, sowie unter der aufklappbaren Gruppe "Sonstige": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
-- **Logistik**: Waren-Eingabe
+- **Logistik**: Routenbegleitung, Waren-Eingabe
 - **Sonstige**: Benutzer, Statistiken, Einstellungen
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
@@ -127,7 +127,7 @@ Der Titel im Browser-Tab nennt immer die gerade geöffnete Seite (z. B. "Kunden 
 
 ## Darstellung auf schmalen Bildschirmen
 
-Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei der Kunden-Annahme (siehe [Anmeldung](anmeldung.md)) oder für die Warenerfassung unterwegs im Fahrzeug (siehe [Logistik](logistik.md)). Dafür gibt es keine eigene App und keine eigene Adresse: Es ist dieselbe Anwendung im Browser, die sich lediglich automatisch an die verfügbare Bildschirmbreite anpasst. Wird am PC das Browserfenster schmal gezogen, passiert dasselbe.
+Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei der Kunden-Annahme (siehe [Anmeldung](anmeldung.md)) oder für Routenbegleitung und Warenerfassung unterwegs im Fahrzeug (siehe [Logistik](logistik.md)). Dafür gibt es keine eigene App und keine eigene Adresse: Es ist dieselbe Anwendung im Browser, die sich lediglich automatisch an die verfügbare Bildschirmbreite anpasst. Wird am PC das Browserfenster schmal gezogen, passiert dasselbe.
 
 Umgestellt wird in zwei Stufen:
 

@@ -47,6 +47,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |
 | [0009](0009-server-side-document-generation-with-xsl-fo.md) | Server-side documents — XSL-FO/FOP for PDF, Commons CSV | accepted |
+| [0039](0039-route-navigation-by-map-app-deep-link.md) | Navigation along a route is a deep link into the device's map app | accepted |
 
 ### Domain rules
 

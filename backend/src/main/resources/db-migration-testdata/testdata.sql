@@ -847,6 +847,17 @@ SELECT 2,         -- fixed collection 2
        0  -- a zero amount weighs nothing whatever the unit is
 FROM ShopCategories sc;
 
+-- return boxes route 2 brought back last time - the route guidance screen sends them out again
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 20, 'Graue Kisten', 4);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 20, 'Bananenkartons', 2);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 21, 'Klappkisten schwarz', 3);
+-- a zero is "nothing came back", not an empty crate to carry - guidance must not list it
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 21, 'Ströck Kisten', 0);
+
 -- food collection for route 3 (empty)
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
                               driver_employee_id, co_driver_employee_id, km_start, km_end)
