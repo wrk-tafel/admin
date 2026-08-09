@@ -73,7 +73,7 @@ npm run dev
 # Build for local testing
 npm run build-local
 
-# Build for production
+# Build for production (builds, then checks the eager bundle - see below)
 npm run build-prod
 
 # Run unit tests
@@ -106,6 +106,15 @@ npm run cy:run-ci
 # Open Cypress UI for E2E tests
 npm run cy:open-local
 ```
+
+**Eager bundle check:** `build-prod` runs `check-eager-bundle.cjs` after the build and fails on the
+JavaScript a first visit downloads before anything renders — everything statically imported by
+`main.js`. `angular.json`'s `initial` budget cannot cover that: the builder's chunk optimizer drops
+the entry point's transitively imported chunks from its "initial" set, so it bounds `main.js` plus
+the stylesheet and calls the rest "lazy". Read `initial` as exactly that, not as first-load cost.
+Only the login page and the two error screens are eager; everything behind the login is lazy-loaded
+via `shell.routes.ts`, which is also where Material defaults that can be provided per route live.
+See [ADR-0037](docs/architecture/adr/0037-eager-bundle-bounded-by-its-own-build-check.md).
 
 ### Dependency Verification
 
@@ -681,7 +690,8 @@ You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/proces
 4. Add reusable components in `components/` subfolder
 5. Create API service in `app/api/<module>-api.service.ts`
 6. Add resolvers if needed in `resolver/` subfolder
-7. Update main routes in `app.routes.ts`
+7. Register the module as a `loadChildren` child in `shell.routes.ts`
+   (`app.routes.ts` only holds the screens reachable without a session)
 
 ### Creating a New Database Migration
 1. Create file `backend/src/main/resources/db-migration/R__XXXXX_<description>.sql`

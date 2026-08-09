@@ -87,6 +87,22 @@ describe('User Search', () => {
     });
   });
 
+  it('paginator of the search result is labelled in german', () => {
+    // The german `MatPaginatorIntl` is provided by the shell route rather than app-wide, so that
+    // `@angular/material/paginator` stays out of the bundle the login page loads. This checks that
+    // the override really reaches a paginator rendered inside the shell.
+    cy.createDummyUser().then(() => {
+      cy.byTestId('searchInputText').type('lastname-');
+      search();
+
+      cy.get('mat-paginator').first().within(() => {
+        cy.contains('Elemente pro Seite:').should('be.visible');
+        cy.contains(/\d+ - \d+ von \d+/).should('be.visible');
+        cy.get('button[aria-label="Nächste Seite"]').should('exist');
+      });
+    });
+  });
+
   function search() {
     cy.byTestId('search-button').click();
   }
