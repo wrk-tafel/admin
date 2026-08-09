@@ -2,7 +2,7 @@
 --
 -- One row per audited entity per write, produced from Hibernate's post-insert/update/delete events
 -- (see AuditLogWriter) rather than from database triggers. The trade-off that decision buys and
--- costs is recorded in ADR-0038; the short version is that the acting user is only known to the
+-- costs is recorded in ADR-0039; the short version is that the acting user is only known to the
 -- application, and a trigger that has to be handed the actor per transaction logs an anonymous
 -- change whenever a write path forgets to hand it over.
 --
