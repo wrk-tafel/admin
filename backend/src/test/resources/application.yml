@@ -12,6 +12,15 @@ spring:
   jpa:
     open-in-view: false
 
+tafeladmin:
+  setup:
+    initialAdmin:
+      # Integration tests share one schema across classes and start it empty, so the first-run
+      # bootstrap would insert a user and change what the user-search tests see. Its behaviour is
+      # covered by InitialAdminUserServiceTest and InitialAdminUserServiceIT, which brings a
+      # container and a context of its own for exactly that empty state.
+      enabled: false
+
 security:
   jwtToken:
     issuer: test-issuer
