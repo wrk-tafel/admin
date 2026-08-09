@@ -144,8 +144,11 @@ describe('Dashboard', () => {
       cy.byTestId('distribution-close-button').click();
       cy.checkDialogAccessibility();
 
+      // No statistics were entered for this distribution, so the close is refused with an error
+      // rather than a warning - and "Trotzdem beenden", which only an overridable warning offers,
+      // is not rendered. Cancel is the button this dialog always has.
       cy.byTestId('distribution-close-dialog-ok-button').click();
-      cy.byTestId('distribution-close-validation-dialog-ok-button').should('be.visible');
+      cy.byTestId('distribution-close-validation-dialog-cancel-button').should('be.visible');
       cy.checkDialogAccessibility();
     });
 
