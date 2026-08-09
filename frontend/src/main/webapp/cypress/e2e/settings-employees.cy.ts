@@ -170,4 +170,33 @@ describe('Settings - Employees', () => {
     cy.byTestId('addEmployeeButton').should('be.visible');
   });
 
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the create dialog is open', () => {
+      cy.byTestId('addEmployeeButton').click();
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while a row is edited inline', () => {
+      cy.byTestId('editEmployeeButton-0').click();
+      cy.byTestId('employeePersonnelNumberInput-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="employees-table"]');
+    });
+
+    it('has no violations while a card is edited inline on phone', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.reload();
+
+      cy.byTestId('editEmployeeButtonMobile-0').click();
+      cy.byTestId('employeeLastnameInputMobile-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="employees-cards"]');
+    });
+
+  });
+
 });

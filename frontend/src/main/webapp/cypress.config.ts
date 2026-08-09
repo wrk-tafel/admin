@@ -47,6 +47,13 @@ export default defineConfig({
       });
 
       on('task', {
+        // Anything a spec needs to end up in the run's terminal output rather than only in the
+        // Cypress command log, which in CI is recorded into the video and nothing else - used by
+        // the axe assertions (cypress/support/accessibility.ts) to make a failure readable.
+        log(message: string) {
+          console.log(message);
+          return null;
+        },
         writeScannerFile({fileName, content}: { fileName: string; content: string }) {
           fs.mkdirSync(scannerInboxDir, {recursive: true});
           fs.writeFileSync(path.join(scannerInboxDir, fileName), content);

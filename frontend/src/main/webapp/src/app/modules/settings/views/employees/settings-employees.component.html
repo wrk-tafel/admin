@@ -39,8 +39,10 @@
         <td mat-cell *matCellDef="let employee; let i = index">
           @if (editingId() === employee.id) {
             <mat-form-field subscriptSizing="dynamic">
+              <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
+                   inside it, and a visible label here would repeat the column header in every row -->
               <input #personnelNumberInput matInput [formControl]="personnelNumberControl"
-                     [attr.testid]="'employeePersonnelNumberInput-' + i"
+                     [attr.testid]="'employeePersonnelNumberInput-' + i" aria-label="Personalnummer"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
           } @else {
@@ -55,6 +57,7 @@
           @if (editingId() === employee.id) {
             <mat-form-field subscriptSizing="dynamic">
               <input matInput [formControl]="firstnameControl" [attr.testid]="'employeeFirstnameInput-' + i"
+                     aria-label="Vorname"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
           } @else {
@@ -69,6 +72,7 @@
           @if (editingId() === employee.id) {
             <mat-form-field subscriptSizing="dynamic">
               <input matInput [formControl]="lastnameControl" [attr.testid]="'employeeLastnameInput-' + i"
+                     aria-label="Nachname"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
           } @else {

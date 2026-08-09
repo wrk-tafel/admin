@@ -1,4 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('Dashboard', () => {
 
@@ -106,5 +107,19 @@ describe('Dashboard', () => {
       cy.byTestId('save-button').click();
     });
   }
+
+  // A tab other than the first, and a recipient row that only exists after "hinzufügen", are both
+  // states the Lighthouse `pages` sweep never reaches - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on a tab other than the first, with an added recipient', () => {
+      cy.byTestId('mailtype-tab-STATISTICS').click();
+      cy.byTestId('add-recipient-button-STATISTICS-CC').click();
+      cy.byTestId('email-input-STATISTICS-CC-0').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+  });
 
 });

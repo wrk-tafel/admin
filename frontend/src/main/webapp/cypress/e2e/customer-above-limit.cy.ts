@@ -1,4 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('Customer Above Limit', () => {
 
@@ -74,6 +75,24 @@ describe('Customer Above Limit', () => {
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
     });
+  });
+
+  // The card list is a different DOM from the table, and the Lighthouse `pages` sweep grades this
+  // route at the desktop and mobile form factors of the same markup only.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the card list', () => {
+      cy.viewport(PHONE_VIEWPORT);
+
+      cy.createDummyCustomer(50000, true).then((response) => {
+        cy.visit('/kunden/ueber-limit');
+        cy.contains('mat-card', response.body.data.lastname).should('be.visible');
+
+        cy.checkAccessibility(MAIN_CONTENT);
+      });
+    });
+
   });
 
 });

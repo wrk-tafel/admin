@@ -1,5 +1,6 @@
 import {recurse} from 'cypress-recurse';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('Food Collection Recording', () => {
   beforeEach(() => {
@@ -295,6 +296,64 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  // Nothing below exists on the route the Lighthouse `pages` sweep loads: with no route selected
+  // `formReady()` is false, so the whole item matrix - a core screen during a distribution - is
+  // audited by no gate at all. See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the item matrix once a route is selected', () => {
+      enterRouteData();
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('items-table').should('be.visible');
+      addFreetextReturnItem(20, 'Bananenkartons grün', 3);
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations on the item screen of the responsive layout', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.byTestId('routeInput').should('be.visible');
+
+      enterRouteData();
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('items-section').should('be.visible');
+      addFreetextReturnItem(undefined, 'Bananenkartons grün', 3);
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations in the employee dialogs', () => {
+      cy.getAnyRandomNumber().then((randomNumber) => {
+        enterRouteData();
+
+        cy.byTestId('coDriverSearchInput').type(String(randomNumber));
+        cy.byTestId('codriver-employee-search-button').click();
+        cy.byTestId('codriver-search-create-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('codriver-search-create-dialog').within(() => {
+          cy.byTestId('cancel-button').click();
+        });
+
+        cy.byTestId('coDriverSearchInput').clear().type('scan');
+        cy.byTestId('codriver-employee-search-button').click();
+        cy.byTestId('codriver-select-employee-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+      });
+    });
+
+    it('has no violations on the mileage confirmation dialog', () => {
+      enterRouteData();
+      cy.byTestId('select-items-tab').click();
+      enterKmData();
+
+      cy.byTestId('save-button').click();
+      cy.byTestId('km-diff-dialog').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+  });
+
   function enterRouteData() {
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();
@@ -449,8 +508,7 @@ describe('Food Collection Recording', () => {
   function returnCategoryName(categoryId: number) {
     return cy.byTestId(`return-category-${categoryId}-shop-20-input`)
       .closest('tr')
-      .find('td')
-      .first()
+      .find('th[scope="row"]')
       .invoke('text')
       .then((text) => text.trim());
   }

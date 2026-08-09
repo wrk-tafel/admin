@@ -17,8 +17,10 @@
         @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
           <mat-tab>
             <ng-template mat-tab-label>
+              <!-- red-700 rather than the red-600 used on white elsewhere: the tab header's own
+                   background is grey, where red-600 only reaches 3.75:1 -->
               <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
-                    [class.text-red-600]="isControlInvalid(recipientOfMailType)">
+                    [class.text-red-700]="isControlInvalid(recipientOfMailType)">
                 {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
               </span>
             </ng-template>

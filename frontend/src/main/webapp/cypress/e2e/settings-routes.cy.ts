@@ -152,4 +152,32 @@ describe('Settings - Routes', () => {
     cy.byTestId('route-stops-0').should('be.visible').and('contain.text', '14:00');
   });
 
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the edit dialog is open, including an added stop', () => {
+      cy.byTestId('addRouteButton').click();
+      cy.byTestId('route-number-input').should('be.visible');
+
+      cy.checkDialogAccessibility();
+
+      // a stop's own controls are one interaction deeper again
+      cy.byTestId('route-stop-add-button').click();
+      cy.byTestId('route-stop-time-input-0').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    // Scoped to the panel body, which is what only exists once expanded - the collapsed headers
+    // around it are part of the initial render and belong to the Lighthouse sweep's scope.
+    it('has no violations while a panel is expanded', () => {
+      cy.byTestId('routes-row-0').find('mat-expansion-panel-header').click();
+      cy.byTestId('route-stops-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="route-stops-0"]');
+    });
+
+  });
+
 });

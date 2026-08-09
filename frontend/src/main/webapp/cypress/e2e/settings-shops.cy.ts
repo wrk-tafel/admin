@@ -153,4 +153,25 @@ describe('Settings - Shops', () => {
     cy.byTestId('shop-details-0').should('be.visible').and('contain.text', 'Fr. Musterfrau');
   });
 
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the edit dialog is open', () => {
+      cy.byTestId('addShopButton').click();
+
+      cy.checkDialogAccessibility();
+    });
+
+    // Scoped to the panel body, which is what only exists once expanded - the collapsed headers
+    // around it are part of the initial render and belong to the Lighthouse sweep's scope.
+    it('has no violations while a panel is expanded', () => {
+      cy.byTestId('shops-row-0').find('mat-expansion-panel-header').click();
+      cy.byTestId('shop-details-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="shop-details-0"]');
+    });
+
+  });
+
 });

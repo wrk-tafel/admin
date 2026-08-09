@@ -17,8 +17,13 @@ describe('Customer Creation', () => {
       .within(() => {
         cy.byTestId('title').contains('Anspruch vorhanden');
         cy.byTestId('header').should('have.class', 'dialog-header-success');
-        cy.byTestId('ok-button').click();
       });
+    // the dialog exists only after the validation, so no other accessibility gate sees it -
+    // see cypress/support/accessibility.ts
+    cy.checkDialogAccessibility();
+    cy.byTestId('validationresult-dialog').within(() => {
+      cy.byTestId('ok-button').click();
+    });
 
     cy.byTestId('save-button').click();
 
@@ -116,6 +121,10 @@ describe('Customer Creation', () => {
           cy.byTestId('title').contains('Kunde speichern');
           cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
           cy.byTestId('header').should('have.class', 'dialog-header-warning');
+        });
+      cy.checkDialogAccessibility();
+      cy.byTestId('confirm-customer-save-dialog')
+        .within(() => {
           cy.byTestId('ok-button').click();
         });
 

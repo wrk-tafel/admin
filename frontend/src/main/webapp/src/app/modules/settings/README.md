@@ -242,7 +242,9 @@ Both follow the same shape, and a change to one usually belongs in the other:
   or edited without expanding it first. That needs `(click)`/`(keydown)` `stopPropagation()` on
   their wrapper, since the header treats both events as "toggle the panel" — anything else added
   there needs the same. It is also a nested-interactive-element a11y compromise (controls inside
-  the header's `role="button"`), which is why it stays limited to these two actions.
+  the header's `role="button"`), which is why it stays limited to these two actions — axe reports
+  it as one `nested-interactive` violation per record, so the e2e accessibility assertion for these
+  two screens is scoped to the expanded panel body ([#3137](https://github.com/wrk-tafel/admin/issues/3137)).
 - `route-edit-dialog` manages the stops as a nested `stops: FormArray` of
   `{ time, shopId, description }` with `addStop()`/`removeStop()` plus manual
   `ChangeDetectorRef.detectChanges()` calls, structurally the twin of `shelter-edit-dialog`'s

@@ -127,6 +127,35 @@ describe('Settings - Food Return Categories', () => {
   });
 
 
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the create dialog is open', () => {
+      cy.byTestId('addFoodReturnCategoryButton').click();
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while a row is edited inline', () => {
+      cy.byTestId('editFoodReturnCategoryButton-0').click();
+      cy.byTestId('foodReturnCategoryNameInput-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="food-return-categories-table"]');
+    });
+
+    it('has no violations while a card is edited inline on phone', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.reload();
+
+      cy.byTestId('editFoodReturnCategoryButtonMobile-0').click();
+      cy.byTestId('foodReturnCategoryNameInputMobile-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="food-return-categories-cards"]');
+    });
+
+  });
+
   // Angular CDK's drag-and-drop contributes no keyboard behaviour of its own, so without this the
   // sort order could only be changed with a pointing device (see #3131).
   //

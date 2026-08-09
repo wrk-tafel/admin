@@ -74,6 +74,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0031](0031-sonarcloud-quality-gate-with-explicit-coverage-opt-out.md) | SonarCloud quality gate with an explicit coverage opt-out | accepted |
 | [0036](0036-page-performance-index-in-the-pipeline.md) | Page performance rated by Lighthouse, with thresholds that fail the build | accepted |
 | [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted |
+| [0038](0038-axe-assertions-in-the-e2e-suite.md) | Post-interaction accessibility asserted by axe inside the e2e suite | accepted |
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | accepted |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 

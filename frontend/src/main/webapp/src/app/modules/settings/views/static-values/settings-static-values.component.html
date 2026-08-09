@@ -37,8 +37,10 @@
         <td mat-cell *matCellDef="let staticValue; let i = index">
           @if (editingId() === staticValue.id) {
             <mat-form-field subscriptSizing="dynamic">
+              <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
+                   inside it, and a visible label here would repeat the column header in every row -->
               <input #amountInput matInput type="number" step="0.01" [formControl]="amountControl"
-                     [attr.testid]="'staticValueAmountInput-' + i"
+                     [attr.testid]="'staticValueAmountInput-' + i" aria-label="Betrag"
                      (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
               <span matTextSuffix>&nbsp;€</span>
             </mat-form-field>
@@ -92,8 +94,9 @@
                 <div>
                   @if (editingId() === staticValue.id) {
                     <mat-form-field subscriptSizing="dynamic">
+                      <!-- the card's own "Betrag:" text sits in a sibling cell and names nothing -->
                       <input #amountInputMobile matInput type="number" step="0.01" [formControl]="amountControl"
-                             [attr.testid]="'staticValueAmountInputMobile-' + i"
+                             [attr.testid]="'staticValueAmountInputMobile-' + i" aria-label="Betrag"
                              (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
                       <span matTextSuffix>&nbsp;€</span>
                     </mat-form-field>

@@ -173,6 +173,27 @@ describe('Accessibility', () => {
     });
   });
 
+  // Everything the axe assertions below reach exists only after an interaction, which is what the
+  // other two gates are blind to - see cypress/support/accessibility.ts.
+  it('has no violations in the support dialog', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('supportButton').click();
+    cy.byTestId('support-dialog').should('be.visible');
+
+    cy.checkDialogAccessibility();
+  });
+
+  it('has no violations in the user menu', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+
+    cy.checkMenuAccessibility();
+  });
+
   it('lets the keyboard reach and expand a collapsible nav group', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
