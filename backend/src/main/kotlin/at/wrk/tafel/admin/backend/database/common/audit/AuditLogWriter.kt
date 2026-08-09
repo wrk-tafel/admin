@@ -85,6 +85,21 @@ class AuditLogWriter(
         buffer(entry)
     }
 
+    /**
+     * Binds an empty buffer and registers the flush synchronization for the transaction that is just
+     * starting, so `beforeCommit` is guaranteed to run for it. Called by [AuditTransactionInterceptor];
+     * see the note there for why arming on the first recorded change instead is not good enough.
+     */
+    fun armForCurrentTransaction() {
+        if (!properties.audit.enabled || !TransactionSynchronizationManager.isSynchronizationActive()) {
+            return
+        }
+        if (currentBuffer() == null) {
+            TransactionSynchronizationManager.bindResource(BUFFER_RESOURCE_KEY, mutableListOf<PendingEntry>())
+            TransactionSynchronizationManager.registerSynchronization(AuditFlushSynchronization())
+        }
+    }
+
     private fun buffer(entry: PendingEntry) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             // Nothing to hang the write off: without a transaction there is no commit to write at,
@@ -132,14 +147,20 @@ class AuditLogWriter(
      * no-op default instead of this method - and every entry would be collected and then dropped.
      */
     private fun writeBufferedEntries() {
-        val buffer = currentBuffer()?.takeIf { it.isNotEmpty() } ?: return
+        val buffer = currentBuffer() ?: return
 
-        // Flush the session first: `beforeCommit` runs *before* Hibernate's own commit-time flush,
-        // so an entity modified in this transaction but not yet written would raise its
-        // post-update event after this method had already finished, and its change would be lost.
-        // Forcing the flush here is what makes the buffer complete rather than "complete so far".
+        // Flush the session *before* looking at what was collected. `beforeCommit` runs ahead of
+        // Hibernate's own commit-time flush, so anything written through the session but not yet
+        // flushed - which, without a `saveAndFlush` or an intervening query, is everything - would
+        // raise its event only after this method had finished, and would be lost. Forcing the flush
+        // here is what makes the buffer complete rather than "complete so far", and it is why the
+        // emptiness check below comes after it rather than before.
         runCatching { entityManager.flush() }
             .onFailure { logger.debug("Could not flush the persistence context before writing audit entries", it) }
+
+        if (buffer.isEmpty()) {
+            return
+        }
 
         // Resolved once per transaction rather than per entry. Deliberately before the buffer is
         // snapshotted: this query can itself trigger an auto-flush, and anything that flush adds to

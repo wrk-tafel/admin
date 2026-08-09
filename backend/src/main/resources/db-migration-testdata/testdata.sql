@@ -990,3 +990,35 @@ SELECT n,
        shapes.changed_fields::jsonb
 FROM generate_series(1, 100) AS n
          JOIN shapes ON shapes.idx = n % 12;
+
+
+-- A single customer with a full history, so the "Verlauf" tab on the customer detail screen shows
+-- something without having to make changes by hand first. Kunde 132 is the one to open when testing
+-- it: every entity type that belongs to a household occurs, spread over the last three weeks and
+-- across three different users.
+INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, entity_type, entity_id,
+                       business_key, operation, changed_fields)
+VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'Household', 132, '132', 'UPDATE',
+        '{"telephoneNumber": ["00436641111111", "00436642222222"], "email": ["alt@wrk.at", "neu@wrk.at"]}'::jsonb),
+       (202, NOW() - interval '1 day', 300, 'admin', 'Person', 132, '132', 'UPDATE',
+        '{"income": ["1100.00", "1250.00"], "incomeDue": ["2026-06-30", "2026-12-31"]}'::jsonb),
+       (203, NOW() - interval '2 days', 100, 'e2etest', 'HouseholdNote', 1321, '132', 'INSERT',
+        '{"note": [null, "Einkommensnachweis nachgereicht und geprueft"]}'::jsonb),
+       (204, NOW() - interval '4 days', 200, 'testuser', 'Document', 1322, '132', 'INSERT',
+        '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'::jsonb),
+       (205, NOW() - interval '6 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
+        '{"addressStreet": ["Erdberg", "Landstrasser Hauptstrasse"], "addressHousenumber": ["5", "12"]}'::jsonb),
+       (206, NOW() - interval '8 days', 100, 'e2etest', 'Person', 1323, '132', 'INSERT',
+        '{"firstname": [null, "Lena"], "lastname": [null, "Musterkind"], "isMainPerson": [null, false]}'::jsonb),
+       (207, NOW() - interval '11 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
+        '{"locked": [false, true], "lockReason": [null, "Unterlagen unvollstaendig"]}'::jsonb),
+       (208, NOW() - interval '13 days', 300, 'admin', 'Household', 132, '132', 'UPDATE',
+        '{"locked": [true, false], "lockReason": ["Unterlagen unvollstaendig", null]}'::jsonb),
+       (209, NOW() - interval '16 days', 200, 'testuser', 'Person', 1324, '132', 'DELETE',
+        '{"firstname": ["Ausgezogenes", null], "lastname": ["Haushaltsmitglied", null]}'::jsonb),
+       (210, NOW() - interval '19 days', 100, 'e2etest', 'HouseholdNote', 1325, '132', 'INSERT',
+        '{"note": [null, "Telefonisch nicht erreichbar"]}'::jsonb),
+       (211, NOW() - interval '22 days', 100, 'e2etest', 'Household', 132, '132', 'UPDATE',
+        '{"validUntil": ["2026-06-30", "2026-12-31"], "prolongedAt": [null, "2026-07-18T10:12:00"]}'::jsonb),
+       (212, NOW() - interval '26 days', 100, 'e2etest', 'Household', 132, '132', 'INSERT',
+        '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2026-06-30"]}'::jsonb);

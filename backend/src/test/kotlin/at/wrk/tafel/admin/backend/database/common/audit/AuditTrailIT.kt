@@ -9,6 +9,8 @@ import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
@@ -38,6 +40,9 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var householdRepository: HouseholdRepository
+
+    @Autowired
+    private lateinit var householdNoteRepository: HouseholdNoteRepository
 
     @Autowired
     private lateinit var userRepository: UserRepository
@@ -152,6 +157,33 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
         }
 
         assertThat(transactionTemplate.execute { entriesForHousehold() }).isEmpty()
+    }
+
+    /**
+     * The regression that shipped and was caught only by looking at a real screen: entries are
+     * written from a `beforeCommit` synchronization, which Spring runs *before* Hibernate's
+     * commit-time flush. A write that never flushes early - a plain `save` whose only transaction is
+     * the repository's own, exactly what `HouseholdNoteService.createNewNote` does - therefore
+     * raised its post-insert event too late for a synchronization that armed itself on the first
+     * event, and the change was buffered into something nothing ever drained.
+     *
+     * Every other test here happens to use `saveAndFlush`, which is why they all passed while this
+     * did not work at all.
+     */
+    @Test
+    fun `a plain save with no explicit flush is still recorded`() {
+        createTestHousehold()
+        val household = transactionTemplate.execute { householdRepository.findByHouseholdId(householdId) }!!
+
+        // deliberately no transactionTemplate and no flush: the repository's own transaction is the
+        // only one, and nothing in it forces a flush before the commit
+        householdNoteRepository.save(HouseholdNoteEntity(household = household, note = "Nachweis nachgereicht"))
+
+        val entries = transactionTemplate.execute { entriesForHousehold() }
+        val noteEntry = entries.single { it.entityType == "HouseholdNote" }
+        assertThat(noteEntry.operation.name).isEqualTo("INSERT")
+        assertThat(noteEntry.businessKey).isEqualTo(householdId.toString())
+        assertThat(noteEntry.changedFields).contains("Nachweis nachgereicht")
     }
 
     @Test
