@@ -91,6 +91,11 @@ module.exports = {
         'categories:performance': ['warn', {minScore: 0.8}],
         // Part of this category grades the server (cache headers, CSP, HTTPS), and this runs
         // against a plain-HTTP localhost rather than the container behind its reverse proxy.
+        //
+        // It also sits at 0.96 on every authenticated screen for a reason that is this harness's
+        // doing rather than the application's: blocking the SSE streams above makes `SseService`
+        // log "SSE connection error", and `errors-in-console` counts it. A real browser connects
+        // those streams. Don't quiet that logging to move this number.
         'categories:best-practices': ['warn', {minScore: 0.9}]
       }
     },

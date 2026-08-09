@@ -131,7 +131,12 @@ actually moves when someone adds a dependency.
   routes (`detail/:id`) filled from fixtures anyway, which is the part that cannot be derived.
 - **The sweep's performance numbers are a trend, not a gate.** They depend on the `e2e` fixtures the
   screens render, so a fixture change moves them without any application change. Turning one into a
-  threshold means accepting that coupling for that screen and writing down its baseline.
+  threshold means accepting that coupling for that screen and writing down its baseline. The mobile
+  numbers are the ones worth watching: under Lighthouse's mobile emulation the heavier screens land
+  well below the desktop scores, `/einstellungen/email` lowest of them.
+- **Best practices sits at 0.96 across the sweep and that is the harness, not the application.**
+  Blocking the SSE streams makes `SseService` log a connection error, and `errors-in-console` counts
+  it. The number is worth reading only for a *new* console error appearing next to that one.
 - **Load cost is still only measured for the shell.** A lazily-loaded route chunk that doubles in size
   is caught by the `anyScript` build budget and shows up in the sweep's reported numbers, but nothing
   blocks on it.
