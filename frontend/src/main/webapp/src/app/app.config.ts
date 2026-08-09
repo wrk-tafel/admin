@@ -9,8 +9,6 @@ import {
 } from '@angular/core';
 import {provideServiceWorker} from '@angular/service-worker';
 import {
-  RedirectCommand,
-  Router,
   TitleStrategy,
   provideRouter,
   withComponentInputBinding,
@@ -33,6 +31,7 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 import {MAT_CARD_CONFIG} from '@angular/material/card';
 import {TafelTitleStrategy} from './common/util/tafel-title-strategy';
+import {handleNavigationError} from './common/util/navigation-error-handler';
 import {TafelErrorHandler} from './common/support/tafel-error-handler';
 
 // `MatDialog` is `providedIn: 'root'` and reads its defaults from the root injector, so this one
@@ -62,11 +61,9 @@ export const appConfig: ApplicationConfig = {
       }),
       withViewTransitions(),
       withComponentInputBinding(),
-      // A resolver failing (e.g. a bookmarked/direct-linked detail page whose entity was since
-      // deleted) needs an explicit fallback here: with real paths, that request is a genuine
-      // full-page load rather than an in-app navigation, so there's no previous in-app route left
-      // to fall back to on failure - without this handler the user is left on a blank shell.
-      withNavigationErrorHandler(() => new RedirectCommand(inject(Router).parseUrl('/404')))
+      // A navigation can fail for reasons that have nothing to do with the URL being wrong, and
+      // they are handled apart from each other - see `handleNavigationError`.
+      withNavigationErrorHandler(handleNavigationError)
     ),
     {
       // `useExisting`, not `useClass`: the shell reads the active route's title off the very same

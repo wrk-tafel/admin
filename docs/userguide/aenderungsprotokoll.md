@@ -28,7 +28,7 @@ Jeder Eintrag besteht aus:
 - **Art der Änderung**: *Angelegt* (grün), *Geändert* (grau) oder *Gelöscht* (rot)
 - **Datensatz-Art**: Kunde, Person, Notiz, Dokument, Benutzer, Berechtigung, Grenzwert oder E-Mail-Empfänger
 - **Nummer**: die Kunden- bzw. Benutzernummer, zu der der Datensatz gehört. Sie bleibt auch dann aussagekräftig, wenn der Datensatz selbst nicht mehr existiert – etwa nach einer Löschung oder einer Zusammenführung.
-- **Zeitpunkt und Benutzer**: wann die Änderung passiert ist und wer sie vorgenommen hat. Steht dort *System*, war kein angemeldeter Benutzer beteiligt (z. B. bei automatischen Abläufen).
+- **Zeitpunkt und Benutzer**: wann die Änderung passiert ist und wer sie vorgenommen hat – der Benutzername und in Klammern der Vor- und Nachname dazu, z. B. `e2etest (E2E Test)`. Bei sehr alten Einträgen steht nur der Benutzername, weil der Name damals noch nicht mitprotokolliert wurde. Steht dort *System*, war kein angemeldeter Benutzer beteiligt (z. B. bei automatischen Abläufen).
 - **Feldänderungen**: eine Tabelle mit dem geänderten Feld sowie dem Wert davor und danach. Ein Strich (–) bedeutet, dass das Feld leer war.
 
 Aus Sicherheitsgründen wird das Passwort eines Benutzers zwar als geändert protokolliert, jedoch niemals mit einem Wert – dort steht in beiden Spalten `***`.

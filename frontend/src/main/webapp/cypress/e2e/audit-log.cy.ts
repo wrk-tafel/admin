@@ -46,7 +46,8 @@ describe('Änderungsprotokoll', () => {
       cy.byTestId('audit-entry-0-operation').should('contain.text', 'Angelegt');
       cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
       cy.byTestId('audit-entry-0-businessKey').should('contain.text', String(customerId));
-      cy.byTestId('audit-entry-0-actor').should('contain.text', 'e2etest');
+      // the account that made the change, plus the name behind it
+      cy.byTestId('audit-entry-0-actor').should('have.text', 'e2etest (E2E Test)');
     });
   });
 

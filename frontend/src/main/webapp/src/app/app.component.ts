@@ -107,8 +107,15 @@ export class AppComponent {
     }
 
     // A screen that autofocuses a control of its own (`tafelAutofocus`, e.g. the check-in customer
-    // number the scanner types into) has already put focus where it belongs - taking it back to
-    // the landmark would break exactly the flow that autofocus exists for.
+    // number the scanner types into) claims focus for that control - taking it to the landmark
+    // would break exactly the flow that autofocus exists for. The control has to be looked for
+    // rather than read off `activeElement`: the directive applies the focus a tick after this
+    // runs, so at this point focus is still wherever the navigation left it.
+    if (main.querySelector('[tafelAutofocus]')) {
+      return;
+    }
+
+    // Something else on the screen already took focus during activation.
     const active = document.activeElement;
     if (active && active !== document.body && main.contains(active)) {
       return;

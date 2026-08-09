@@ -84,5 +84,5 @@ application that deliberately runs as one container with one database
 
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/database/common/mailoutbox/`
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/common/mail/MailSenderService.kt`
-- `backend/src/main/resources/db-migration/R__00094_mail_outbox.sql`
+- `backend/src/main/resources/db-migration/R__00095_mail_outbox.sql`
 - `SseOutboxService` — the same pattern for the opposite direction
