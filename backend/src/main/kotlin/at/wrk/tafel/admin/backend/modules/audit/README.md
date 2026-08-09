@@ -80,10 +80,15 @@ cannot turn up in a household's history.
 ## Retention
 
 `AuditRetentionService` removes entries older than `tafeladmin.audit.retentionDays` (default 365)
-nightly, and is the only thing that ever deletes one. Deleting a household does **not** purge its
-entries early: the `DELETE` entry with the last known values is precisely what the old schema lost on
-every merge. Both that window and `tafeladmin.audit.enabled` are re-read per use, so an operator can
-widen the window or switch recording off on a running deployment.
+every day at 05:00, and is the only thing that ever deletes one. Deleting a household does **not**
+purge its entries early: the `DELETE` entry with the last known values is precisely what the old
+schema lost on every merge.
+
+Both that window and `tafeladmin.audit.enabled` are re-read per use, so an operator can widen the
+window or switch recording off on a running deployment. The schedule itself
+(`tafeladmin.audit.cleanupCron`) is the exception: `@Scheduled` fixes its expression when the bean is
+created, so changing it needs a restart — which is why it is a plain placeholder in
+`application.yml` rather than a field on `TafelAdminAuditProperties`.
 
 ## API
 

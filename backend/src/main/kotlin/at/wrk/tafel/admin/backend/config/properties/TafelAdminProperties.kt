@@ -85,6 +85,11 @@ class TafelAdminFeaturesProperties {
  * off on a running deployment (`ConfigFileReloadService`) - the latter being the point of having a
  * switch at all: if the listener ever misbehaves under load during a distribution, turning it off
  * must not need a restart.
+ *
+ * `tafeladmin.audit.cleanupCron` - when the retention job runs, default 05:00 daily - is deliberately
+ * *not* a field here: `@Scheduled` fixes its expression at bean creation, so it is startup-only. It
+ * lives in `application.yml` as a plain placeholder, same as `tafeladmin.configReload.interval`. See
+ * `AuditRetentionService`.
  */
 @ExcludeFromTestCoverage
 class TafelAdminAuditProperties {

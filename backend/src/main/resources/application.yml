@@ -107,6 +107,16 @@ tafeladmin:
   version: dev
   buildTime: unknown
   environmentLabel: ""
+  # The audit trail (audit_log) - see ADR-0038. `enabled` and `retentionDays` are read per use and
+  # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
+  # its expression when the bean is created (same as configReload.interval below), so changing it
+  # needs a restart. 05:00 is after the nightly document cleanup (23:00) and before the first
+  # distribution-day activity, so deleting a year's worth of rows never lands while anyone is
+  # working. A retentionDays of 0 or less keeps every entry instead of deleting them all.
+  audit:
+    enabled: true
+    retentionDays: 365
+    cleanupCron: "0 0 5 * * *"
   # Switches for optional features. Each one is a plain on/off an operator flips; how the feature is
   # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
   features:

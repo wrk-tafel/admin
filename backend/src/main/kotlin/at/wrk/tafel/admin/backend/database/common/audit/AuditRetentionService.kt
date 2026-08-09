@@ -18,8 +18,10 @@ import java.time.LocalDateTime
  * last known values is the one thing the schema used to lose on every merge, and dropping it on
  * request would defeat the point of recording it. Entries age out on this clock like every other.
  *
- * Runs nightly rather than hourly: unlike the outbox and scanner cleanups this competes with nothing
- * for freshness, and a year-old boundary does not move meaningfully within a day.
+ * Runs once a night rather than hourly: unlike the outbox and scanner cleanups this competes with
+ * nothing for freshness, and a year-old boundary does not move meaningfully within a day. 05:00 puts
+ * it after the nightly document cleanup (23:00) and before the first distribution-day activity, so
+ * a delete of a year's worth of rows never lands while anyone is working.
  */
 @Service
 class AuditRetentionService(
@@ -32,7 +34,14 @@ class AuditRetentionService(
         private val logger = LoggerFactory.getLogger(AuditRetentionService::class.java)
     }
 
-    @Scheduled(cron = "0 30 3 * * *")
+    /**
+     * The schedule is a plain placeholder rather than a [TafelAdminProperties] field, for the same
+     * reason as `tafeladmin.configReload.interval` (see `ConfigFileReloadService`): `@Scheduled`
+     * fixes the expression when the bean is created, so a reloaded value could never take effect,
+     * and listing it beside the reloadable `retentionDays` would advertise a liveness it doesn't
+     * have. Changing it needs a restart.
+     */
+    @Scheduled(cron = "\${tafeladmin.audit.cleanupCron:0 0 5 * * *}")
     @Transactional
     fun cleanupExpiredEntries() {
         val retentionDays = properties.audit.retentionDays

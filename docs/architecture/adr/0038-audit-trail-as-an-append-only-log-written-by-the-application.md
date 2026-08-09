@@ -61,7 +61,8 @@ is behind the request.
   on the `/aenderungsprotokoll` administration screen. There is no endpoint that writes, edits or
   deletes an entry.
 - **Entries expire.** `AuditRetentionService` removes entries older than
-  `tafeladmin.audit.retentionDays` (default 365) nightly. Deleting a household does *not* purge its
+  `tafeladmin.audit.retentionDays` (default 365) daily at 05:00
+  (`tafeladmin.audit.cleanupCron`). Deleting a household does *not* purge its
   entries early — the DELETE entry with the last known values is the thing the old schema lost on
   every merge, and dropping it on request would defeat the point of recording it.
 
