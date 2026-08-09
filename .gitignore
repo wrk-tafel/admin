@@ -25,3 +25,7 @@ build/
 /backend/documents/
 /scanner-inbox/
 /backend/scanner-inbox/
+
+### production data pulled out of the live database for a one-off cleanup - never commit these
+/households.txt
+/households_updated.sql

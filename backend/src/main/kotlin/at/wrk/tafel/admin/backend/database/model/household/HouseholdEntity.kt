@@ -48,8 +48,6 @@ class HouseholdEntity(
     var validUntil: LocalDate,
     @Column(name = "locked")
     var locked: Boolean = false,
-    @Column(name = "migrated")
-    var migrated: Boolean = false,
 ) : BaseChangeTrackingEntity() {
 
     @ManyToOne

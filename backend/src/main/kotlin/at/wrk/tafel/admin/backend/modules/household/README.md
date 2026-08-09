@@ -141,9 +141,6 @@ Bidirectional mapping between the API-facing `Household`/`Person` models and
   "Verlängert" list and `DistributionStatisticService.countCustomersProlonged` both select on
   `prolongedAt` falling inside a distribution's window, so clearing it on an unrelated later edit
   would drop the household out of that distribution's numbers.
-- Force-clears `migrated = false` whenever a household is saved through the app (there's a
-  `// TODO revisit on 01.01.2026` comment - this flag exists only to track post-refactor
-  data-quality fixups and can likely be removed after that date).
 
 **Never use `mapHouseholdToEntity` for merge re-parenting**: it does
 `householdEntity.persons.clear(); householdEntity.persons.addAll(mappedPersons)`, relying on
