@@ -156,6 +156,51 @@ describe('AppComponent', () => {
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0);
   });
 
+  // The counterpart of the e2e cases in general.cy.ts - here to pin the rule itself, which is
+  // easy to get backwards: the landmark is focused so the new screen announces itself, unless the
+  // screen autofocuses a control, in which case that control is where the user has to end up.
+  describe('focus after an in-app navigation', () => {
+    function renderMainContent(innerHTML = '') {
+      const main = document.createElement('main');
+      main.id = 'hauptinhalt';
+      main.tabIndex = -1;
+      main.innerHTML = innerHTML;
+      document.body.appendChild(main);
+      return main;
+    }
+
+    function navigateTwice() {
+      vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+
+      // the first NavigationEnd belongs to the document load, which announces itself
+      routerEventsSubject.next(new NavigationEnd(1, '/first', '/first'));
+      routerEventsSubject.next(new NavigationEnd(2, '/second', '/second'));
+      fixture.detectChanges();
+    }
+
+    afterEach(() => {
+      document.getElementById('hauptinhalt')?.remove();
+    });
+
+    it('moves focus to the main landmark', () => {
+      const main = renderMainContent();
+
+      navigateTwice();
+
+      expect(document.activeElement).toBe(main);
+    });
+
+    it('leaves focus alone on a screen that autofocuses a control of its own', () => {
+      const main = renderMainContent('<input tafelAutofocus>');
+
+      navigateTwice();
+
+      expect(document.activeElement).not.toBe(main);
+    });
+  });
+
   describe('push subscription sync', () => {
     it('does not sync while nobody is logged in', () => {
       const fixture = TestBed.createComponent(AppComponent);

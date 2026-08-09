@@ -11,12 +11,18 @@ import java.time.LocalDateTime
  * [changes] is the `changed_fields` document expanded into a list so the UI can lay it out as a
  * table without knowing the JSON shape; [oldValue]/[newValue] are already strings because a value's
  * original type says nothing useful once it is being displayed next to a different one.
+ *
+ * [actorFirstname]/[actorLastname] are served next to the username rather than merged into it: the
+ * username is what identifies the account and what the filter matches on, the name is who that is.
+ * Either can be absent - see `AuditLogEntity`.
  */
 @ExcludeFromTestCoverage
 data class AuditEntryItem(
     val id: Long,
     val occurredAt: LocalDateTime,
     val actorUsername: String?,
+    val actorFirstname: String?,
+    val actorLastname: String?,
     val entityType: String,
     val entityId: Long?,
     val businessKey: String?,

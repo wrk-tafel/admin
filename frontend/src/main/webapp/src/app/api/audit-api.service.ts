@@ -75,6 +75,9 @@ export interface AuditEntryItem {
   id: number;
   occurredAt: Date;
   actorUsername?: string;
+  /** The acting user's employee name, stamped alongside the username - absent on older entries and on entries no user is behind. */
+  actorFirstname?: string;
+  actorLastname?: string;
   entityType: string;
   entityId?: number;
   businessKey?: string;

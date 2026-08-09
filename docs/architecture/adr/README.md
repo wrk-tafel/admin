@@ -79,15 +79,6 @@ instead, so a number's position in a group says nothing about its age.
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | accepted |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 
-## Related decision documents
-
-Not every architecture document is an ADR. Longer evaluations that weigh options for a decision not
-yet taken live one level up, in [`docs/architecture/`](../):
-
-| Document | Subject |
-|---|---|
-| [Audit trail](../audit-trail.md) | Whether to keep `created_at`/`updated_at` and what a real audit trail should look like ([#2871](https://github.com/wrk-tafel/admin/issues/2871)) — concluded by [ADR-0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) |
-
 ## Writing a new one
 
 Copy [`template.md`](template.md), take the next free number, and name the file

@@ -178,12 +178,24 @@ describe('Accessibility', () => {
   // would carry on through the navigation the user just left.
   it('moves focus into the main content after an in-app navigation', () => {
     cy.loginDefault();
+    cy.visit('/kunden/suchen');
+
+    cy.contains('a', 'Übersicht').click();
+    cy.url().should('include', '/uebersicht');
+
+    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+  });
+
+  // The exception to the rule above: a screen that autofocuses a control keeps focus there, which
+  // is the whole point of a screen a scanner or a keyboard types straight into.
+  it('leaves focus on the control a screen autofocuses itself', () => {
+    cy.loginDefault();
     cy.visit('/uebersicht');
 
     cy.contains('a', 'Kunden suchen').click();
     cy.url().should('include', '/kunden/suchen');
 
-    cy.focused().should('have.attr', 'id', 'hauptinhalt');
+    cy.focused().should('have.attr', 'testid', 'customerIdText');
   });
 
   // Everything the axe assertions below reach exists only after an interaction, which is what the
@@ -276,6 +288,53 @@ describe('Navigation Progress Bar', () => {
 
     cy.byTestId('nav-progress-bar').should('not.exist');
     cy.url().should('include', '/kunden/ueber-limit');
+  });
+
+});
+
+// A navigation can fail without the URL being wrong at all - see `navigation-error-handler.ts`.
+// Which of the three outcomes below applies is decided by whether there is a page to stay on and
+// by whether the failure means "not there" or "not right now".
+describe('Navigation Errors', () => {
+
+  it('keeps the current page open when a sidebar navigation cannot load its data', () => {
+    cy.loginDefault();
+    cy.visit('/kunden/suchen');
+
+    cy.intercept('GET', '/api/shelters/active', {statusCode: 503, body: {}}).as('shelters');
+
+    cy.contains('a', 'Übersicht').click();
+    cy.wait('@shelters');
+
+    cy.contains('.toast-message', 'Die Daten für diese Seite konnten nicht geladen werden')
+      .should('be.visible');
+    // still on the screen the click started from, and not on an error page
+    cy.url().should('include', '/kunden/suchen');
+    cy.byTestId('searchInputText').should('be.visible');
+  });
+
+  it('shows the 404 page when a directly opened page addresses a record that is not there', () => {
+    cy.loginDefault();
+
+    cy.intercept('GET', '/api/households/999999', {statusCode: 404, body: {}}).as('household');
+
+    cy.visit('/kunden/detail/999999');
+    cy.wait('@household');
+
+    cy.byTestId('status').should('have.text', '404');
+    cy.byTestId('title').should('have.text', 'Seite nicht gefunden');
+  });
+
+  it('shows the 500 page when a directly opened page fails for a technical reason', () => {
+    cy.loginDefault();
+
+    cy.intercept('GET', '/api/shelters/active', {statusCode: 503, body: {}}).as('shelters');
+
+    cy.visit('/uebersicht');
+    cy.wait('@shelters');
+
+    cy.byTestId('status').should('have.text', '500');
+    cy.byTestId('title').should('have.text', 'Houston, wir haben ein Problem!');
   });
 
 });

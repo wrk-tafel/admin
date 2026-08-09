@@ -83,6 +83,8 @@ class AuditService(
         id = entity.id!!,
         occurredAt = entity.occurredAt,
         actorUsername = entity.actorUsername,
+        actorFirstname = entity.actorFirstname,
+        actorLastname = entity.actorLastname,
         entityType = entity.entityType,
         entityId = entity.entityId,
         businessKey = entity.businessKey,
