@@ -372,7 +372,13 @@
           <ng-template mat-tab-label>
             <span testid="history-tab-label">Verlauf</span>
           </ng-template>
-          <tafel-customer-history [customerId]="customerData()!.id!"></tafel-customer-history>
+          <!-- matTabContent, unlike every other tab here: a tab's content is otherwise created with
+               the screen even while it is not shown, and this is the only tab that fetches on its
+               own rather than reading what the resolver already loaded. Without it, every visit to a
+               customer would query the audit trail nobody asked to see. -->
+          <ng-template matTabContent>
+            <tafel-customer-history [customerId]="customerData()!.id!"></tafel-customer-history>
+          </ng-template>
         </mat-tab>
       }
     </mat-tab-group>
