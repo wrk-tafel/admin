@@ -30,7 +30,8 @@ Three properties follow from writing in `beforeCommit` rather than as each chang
 - **A rolled-back transaction records nothing.** `beforeCommit` never runs, so the log cannot claim
   a change the database does not hold.
 - **The actor is resolved once**, from the `SecurityContext` of the thread that made the changes, not
-  once per row.
+  once per row — username, user id and the linked employee's name, all stamped onto the row so an
+  entry keeps naming who made the change even after that account is renamed, relinked or deleted.
 - **The buffer has to be completed first.** `beforeCommit` runs *before* Hibernate's own commit-time
   flush, so `AuditLogWriter` flushes the persistence context itself before draining — otherwise an
   entity modified but not yet written would raise its event too late and its change would be lost.

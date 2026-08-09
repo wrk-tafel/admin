@@ -47,6 +47,9 @@ class AuditServiceTest {
         val entry = result.items.single()
         assertThat(entry.entityType).isEqualTo("Household")
         assertThat(entry.operation).isEqualTo(AuditOperation.UPDATE)
+        assertThat(entry.actorUsername).isEqualTo("test-user")
+        assertThat(entry.actorFirstname).isEqualTo("Max")
+        assertThat(entry.actorLastname).isEqualTo("Mustermann")
         assertThat(entry.changes).hasSize(2)
         assertThat(entry.changes.map { it.field }).containsExactly("addressCity", "email")
         assertThat(entry.changes.first().oldValue).isEqualTo("Wien")
@@ -135,6 +138,8 @@ class AuditServiceTest {
         entityId = 99
         businessKey = "1234"
         actorUsername = "test-user"
+        actorFirstname = "Max"
+        actorLastname = "Mustermann"
         this.changedFields = changedFields
     }
 }

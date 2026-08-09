@@ -4,7 +4,7 @@
 
 ## Context
 
-[The audit-trail evaluation](../audit-trail.md) answered two questions
+Two questions were on the table
 ([#2871](https://github.com/wrk-tafel/admin/issues/2871)): whether the per-table
 `created_at`/`updated_at` columns should be kept, and whether a real audit feature was worth
 building. The columns turned out to be domain data — the "Ausgestellt am" date on the customer PDFs,
@@ -36,8 +36,9 @@ is behind the request.
 
 **One append-only table, `audit_log`, written from Hibernate's flush-time events by the application.**
 
-- The table (`R__00093_audit_log.sql`) holds when, who (`actor_user_id`/`actor_username`, both
-  denormalized with no foreign key so the row survives the account being renamed or deleted), what
+- The table (`R__00093_audit_log.sql`) holds when, who (`actor_user_id`/`actor_username` plus the
+  acting employee's `actor_firstname`/`actor_lastname`, all denormalized with no foreign key so the
+  row survives the account being renamed, relinked or deleted), what
   (`entity_type`, `entity_id`, and a `business_key` that stays meaningful once the referenced row is
   gone), the kind of change, and a `jsonb` `changed_fields` document of the shape
   `{"addressCity": ["Wien", "Graz"]}`.
@@ -123,7 +124,6 @@ of "bulk queries log explicitly" was preferred to a silent one.
 
 ## References
 
-- [Audit trail — evaluation](../audit-trail.md), the decision document this record concludes
 - [#2871](https://github.com/wrk-tafel/admin/issues/2871) — the originating issue
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/database/common/audit/` — listener, writer,
   scope, diff, retention

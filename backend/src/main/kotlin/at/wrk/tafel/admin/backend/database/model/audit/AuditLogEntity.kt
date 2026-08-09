@@ -37,14 +37,25 @@ class AuditLogEntity(
     /**
      * Denormalized on purpose - no foreign key to `users`, so a deleted or renamed account leaves
      * the trail readable. [actorUserId] is therefore a plain number that may point at nothing, and
-     * both are null for writes no user is behind (scheduled jobs, testdata, the initial-admin
+     * all four are null for writes no user is behind (scheduled jobs, testdata, the initial-admin
      * bootstrap).
+     *
+     * [actorFirstname]/[actorLastname] come from the acting user's employee record and are stamped
+     * once, for the same reason: the name that made a change is part of what the entry says, not
+     * something to re-read from an account that may since have been relinked or removed. They are
+     * additionally null on every entry written before the columns existed.
      */
     @Column(name = "actor_user_id")
     var actorUserId: Long? = null
 
     @Column(name = "actor_username")
     var actorUsername: String? = null
+
+    @Column(name = "actor_firstname")
+    var actorFirstname: String? = null
+
+    @Column(name = "actor_lastname")
+    var actorLastname: String? = null
 
     @Column(name = "entity_id")
     var entityId: Long? = null

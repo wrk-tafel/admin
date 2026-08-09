@@ -7,6 +7,8 @@ describe('AuditEntryListComponent', () => {
     id: 1,
     occurredAt: new Date('2026-08-09T12:00:00'),
     actorUsername: 'test-user',
+    actorFirstname: 'Max',
+    actorLastname: 'Mustermann',
     entityType: 'Household',
     entityId: 5,
     businessKey: '1234',
@@ -34,7 +36,7 @@ describe('AuditEntryListComponent', () => {
 
     expect(element.querySelector('[testid="audit-entry-0-entityType"]')?.textContent?.trim()).toBe('Kunde');
     expect(element.querySelector('[testid="audit-entry-0-operation"]')?.textContent?.trim()).toBe('Geändert');
-    expect(element.querySelector('[testid="audit-entry-0-actor"]')?.textContent?.trim()).toBe('test-user');
+    expect(element.querySelector('[testid="audit-entry-0-actor"]')?.textContent?.trim()).toBe('test-user (Max Mustermann)');
     expect(element.querySelector('[testid="audit-entry-0-change-0-field"]')?.textContent?.trim()).toBe('Ort');
     expect(element.querySelector('[testid="audit-entry-0-change-0-oldValue"]')?.textContent?.trim()).toBe('Wien');
     expect(element.querySelector('[testid="audit-entry-0-change-0-newValue"]')?.textContent?.trim()).toBe('Graz');
@@ -56,6 +58,17 @@ describe('AuditEntryListComponent', () => {
     const element: HTMLElement = createComponent([{...entry, actorUsername: undefined}]).nativeElement;
 
     expect(element.querySelector('[testid="audit-entry-0-actor"]')?.textContent?.trim()).toBe('System');
+  });
+
+  // Entries written before the name was recorded still have to name who made the change.
+  it('shows the username alone when the entry carries no name for it', () => {
+    const element: HTMLElement = createComponent([{
+      ...entry,
+      actorFirstname: undefined,
+      actorLastname: undefined
+    }]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-actor"]')?.textContent?.trim()).toBe('test-user');
   });
 
   it('says so when an entry carries no field changes', () => {

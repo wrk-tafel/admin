@@ -13,7 +13,7 @@
           </div>
           <div class="flex flex-col md:flex-row md:gap-2 text-sm text-slate-600">
             <span [attr.testid]="'audit-entry-' + i + '-occurredAt'">{{ entry.occurredAt | date : 'dd.MM.yyyy HH:mm:ss' }}</span>
-            <span [attr.testid]="'audit-entry-' + i + '-actor'">{{ entry.actorUsername ?? 'System' }}</span>
+            <span [attr.testid]="'audit-entry-' + i + '-actor'">{{ actorLabel(entry) }}</span>
           </div>
         </div>
 
