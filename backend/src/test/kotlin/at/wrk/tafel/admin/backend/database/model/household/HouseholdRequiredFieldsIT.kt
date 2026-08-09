@@ -4,25 +4,27 @@ import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
-import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.generateRandomLong
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 /**
- * The address columns the customer form marks required are enforced by the schema (R__00091):
- * `address_street` and `single_parent` outright, house number / postal code / city through
- * `NOT VALID` check constraints that tolerate the leftover rows from the 2023 import but reject
- * anything written from now on.
+ * Which of the fields the customer form marks required are enforced by the schema, and - more
+ * importantly - which are deliberately not.
+ *
+ * `single_parent` is (R__00091): a checkbox has no "unknown" state. The address parts and a
+ * person's name, birth date and gender are not, because an incomplete household or person is a
+ * state the application supports on purpose - see `HouseholdEntity.Specs.postProcessingNecessary()`
+ * and the "Daten unvollständig" filter in the customer search. Constraining those columns would
+ * make the rows the 2023 import left behind, and the `testdata` fixtures that mimic them,
+ * impossible to write.
  */
 @Transactional
 class HouseholdRequiredFieldsIT : TafelBaseIntegrationTest() {
@@ -43,14 +45,6 @@ class HouseholdRequiredFieldsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `a household with a complete address is accepted`() {
-        assertThatCode {
-            persistHousehold()
-            testEntityManager.flush()
-        }.doesNotThrowAnyException()
-    }
-
-    @Test
     fun `single parent defaults to false when it is never set`() {
         val household = persistHousehold()
         testEntityManager.flush()
@@ -62,55 +56,32 @@ class HouseholdRequiredFieldsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `a household without a house number is rejected`() {
-        persistHousehold { addressHouseNumber = null }
+    fun `a household without an address is still accepted`() {
+        persistHousehold {
+            addressStreet = null
+            addressHouseNumber = null
+            addressStairway = null
+            addressDoor = null
+            addressPostalCode = null
+            addressCity = null
+        }
 
-        assertThatThrownBy { testEntityManager.flush() }
-            .hasStackTraceContaining("households_address_housenumber_present")
+        assertThatCode { testEntityManager.flush() }.doesNotThrowAnyException()
     }
 
     @Test
-    fun `a household with a blank house number is rejected`() {
-        persistHousehold { addressHouseNumber = "   " }
+    fun `a household without a telephone number is still accepted`() {
+        persistHousehold { telephoneNumber = null }
 
-        assertThatThrownBy { testEntityManager.flush() }
-            .hasStackTraceContaining("households_address_housenumber_present")
+        assertThatCode { testEntityManager.flush() }.doesNotThrowAnyException()
     }
 
     @Test
-    fun `a household without a postal code is rejected`() {
-        persistHousehold { addressPostalCode = null }
-
-        assertThatThrownBy { testEntityManager.flush() }
-            .hasStackTraceContaining("households_address_postalcode_present")
-    }
-
-    @Test
-    fun `a household without a city is rejected`() {
-        persistHousehold { addressCity = null }
-
-        assertThatThrownBy { testEntityManager.flush() }
-            .hasStackTraceContaining("households_address_city_present")
-    }
-
-    @Test
-    fun `a household without a street is rejected`() {
-        persistHousehold { addressStreet = null }
-
-        assertThatThrownBy { testEntityManager.flush() }
-            .hasStackTraceContaining("address_street")
-    }
-
-    /**
-     * An incomplete *person* stays writable on purpose - that is the state the "Daten
-     * unvollständig" filter exists to surface, see `HouseholdEntitySpecsIT`.
-     */
-    @Test
-    fun `a person without a birth date or gender is still accepted`() {
+    fun `a person without a name, birth date or gender is still accepted`() {
         val household = persistHousehold()
         val incomplete = PersonEntity(household = household, country = testCountry, isMainPerson = false).apply {
-            firstname = "child-${generateRandomLong()}"
-            lastname = "child-${generateRandomLong()}"
+            firstname = null
+            lastname = null
             birthDate = null
             gender = null
         }
@@ -128,7 +99,6 @@ class HouseholdRequiredFieldsIT : TafelBaseIntegrationTest() {
         testEntityManager.persist(household)
 
         mainPerson.household = household
-        mainPerson.birthDate = mainPerson.birthDate ?: LocalDate.now().minusYears(30)
         testEntityManager.persist(mainPerson)
         household.persons.add(mainPerson)
         household.mainPerson = mainPerson
