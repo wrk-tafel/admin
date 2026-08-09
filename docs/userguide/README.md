@@ -11,6 +11,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Logistik](logistik.md) | Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
+| [Änderungsprotokoll](aenderungsprotokoll.md) | Wer hat wann was geändert, und wie war der Wert davor |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Schulstartpakete |
 
 ## Anmeldung
@@ -101,7 +102,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
 - **Kunden**: Kunden suchen, Kunden anlegen, sowie unter der aufklappbaren Gruppe "Sonstige": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
 - **Logistik**: Waren-Eingabe
-- **Sonstige**: Benutzer, Statistiken, Einstellungen
+- **Sonstige**: Benutzer, Statistiken, Änderungsprotokoll, Einstellungen
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 

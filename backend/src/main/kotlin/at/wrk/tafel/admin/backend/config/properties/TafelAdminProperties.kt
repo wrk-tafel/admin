@@ -32,6 +32,7 @@ class TafelAdminProperties {
     // title/manifest would look identical across all three (see #3027).
     var environmentLabel: String = ""
 
+    var audit: TafelAdminAuditProperties = TafelAdminAuditProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var mail: TafelAdminMailProperties? = null
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
@@ -75,6 +76,42 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+}
+
+/**
+ * The audit trail (`audit_log`) - see ADR-0039.
+ *
+ * Both values are read per use, so an operator can widen the retention window or switch recording
+ * off on a running deployment (`ConfigFileReloadService`) - the latter being the point of having a
+ * switch at all: if the listener ever misbehaves under load during a distribution, turning it off
+ * must not need a restart.
+ *
+ * `tafeladmin.audit.cleanupCron` - when the retention job runs, default 05:00 daily - is deliberately
+ * *not* a field here: `@Scheduled` fixes its expression at bean creation, so it is startup-only. It
+ * lives in `application.yml` as a plain placeholder, same as `tafeladmin.configReload.interval`. See
+ * `AuditRetentionService`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminAuditProperties {
+    var enabled: Boolean = true
+
+    /**
+     * How long a recorded change is kept. The log holds names, addresses and income figures of
+     * people whose household may since have been deleted - precisely the data a deletion is meant to
+     * remove - so the window is kept to what the trail is actually used for: answering "who changed
+     * this, and what was it before" while the change is still being questioned. That is a matter of
+     * days or weeks, not years, and a shorter window is the cheaper answer to the DSGVO question
+     * than any amount of pseudonymisation.
+     *
+     * Raise it per deployment if a longer trail is genuinely needed; it is re-read per use, so a
+     * change takes effect without a restart. Note that raising it does not bring back what has
+     * already been deleted.
+     *
+     * Deleting a household deliberately does *not* purge its entries early - the DELETE entry, with
+     * the last known values, is the single thing the old schema lost and this table exists for. They
+     * age out on this clock like everything else.
+     */
+    var retentionDays: Long = 30
 }
 
 @ExcludeFromTestCoverage

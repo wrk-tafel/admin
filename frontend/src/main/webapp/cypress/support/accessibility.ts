@@ -96,3 +96,12 @@ Cypress.Commands.add('checkMenuAccessibility', (options?: Options) => {
   cy.get('.mat-mdc-menu-panel').should('be.visible').and('not.have.class', 'mat-menu-panel-animating');
   cy.checkAccessibility('.mat-mdc-menu-panel', options);
 });
+
+Cypress.Commands.add('checkSelectAccessibility', (options?: Options) => {
+  // Same reason as the dialog above, but a select panel keeps its animation class for as long as it
+  // is open, so there is none to wait on - the opacity the fade-in animates is what says it is done.
+  cy.get('.mat-mdc-select-panel')
+    .should('be.visible')
+    .and(($panel) => expect(Number(getComputedStyle($panel[0]).opacity)).to.equal(1));
+  cy.checkAccessibility('.mat-mdc-select-panel', options);
+});

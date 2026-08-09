@@ -3,6 +3,7 @@ import {
   faBarcode,
   faChartLine,
   faCheck,
+  faClockRotateLeft,
   faCopy,
   faDesktop,
   faEllipsis,
@@ -150,6 +151,12 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/statistiken/schulstartpakete'
       }
     ]
+  },
+  {
+    name: 'Änderungsprotokoll',
+    url: '/aenderungsprotokoll',
+    icon: faClockRotateLeft,
+    permissions: ['AUDIT_LOG']
   },
   {
     name: 'Einstellungen',
