@@ -52,15 +52,15 @@
         <th mat-header-cell *matHeaderCellDef>Aktionen</th>
         <td mat-cell *matCellDef="let staticValue; let i = index">
           @if (editingId() === staticValue.id) {
-            <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)">
+            <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)" aria-label="Änderungen speichern">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" aria-label="Bearbeiten abbrechen">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
             <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + i" matTooltip="Betrag bearbeiten"
-                    (click)="startEdit(staticValue)">
+                    (click)="startEdit(staticValue)" aria-label="Betrag bearbeiten">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
           }
@@ -105,15 +105,15 @@
             </mat-card-content>
             <mat-card-actions class="flex gap-2">
               @if (editingId() === staticValue.id) {
-                <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)">
+                <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)" aria-label="Änderungen speichern">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
-                <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()">
+                <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" aria-label="Bearbeiten abbrechen">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButtonMobile-' + i" matTooltip="Betrag bearbeiten"
-                        (click)="startEdit(staticValue)">
+                        (click)="startEdit(staticValue)" aria-label="Betrag bearbeiten">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
               }

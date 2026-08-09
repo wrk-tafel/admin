@@ -83,7 +83,7 @@
                 <mat-error>Mindestens 1</mat-error>
               }
             </mat-form-field>
-            <button type="button" matButton="filled" class="button-danger"
+            <button type="button" matButton="filled" class="button-danger" aria-label="Retourposition entfernen"
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
                     (click)="removeReturnItem(returnItemIndex)">
               <fa-icon [icon]="faRemove"></fa-icon>

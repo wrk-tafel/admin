@@ -1,0 +1,335 @@
+name: Lighthouse
+
+# Rates the built frontend with Lighthouse and fails when a threshold is crossed. What is measured
+# where, and why, lives in frontend/src/main/webapp/lighthouserc.cjs,
+# frontend/src/main/webapp/lighthouserc.pages.cjs and
+# docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md.
+#
+# Two jobs, because the two questions have different answers:
+#
+#   shell  the login page served straight from the `frontend-dist` artifact by lhci's own static
+#          server - no backend, no database, ~1 minute. This is where the performance score, the
+#          metric ceilings and the transfer-size budget are enforced, on the payload every route of
+#          the application pays before it renders anything.
+#
+#   pages  every route, desktop and mobile, against a real backend and database with a real session.
+#          Sharded so the sweep stays inside a few minutes of wall clock. Accessibility is enforced
+#          here; performance is reported rather than gated, because an authenticated screen renders
+#          whatever the e2e fixtures hold.
+
+env:
+  # Pinned deliberately, and this pin is what fixes the Lighthouse version too (@lhci/cli 0.15.1
+  # depends on exactly lighthouse 12.6.1): a Lighthouse upgrade moves scores on unchanged code, which
+  # would show up as a regression nobody caused. Bumping this is a conscious step that comes with
+  # re-reading the baselines in lighthouserc.cjs. Dependabot does not see this pin - the tool is
+  # intentionally not a dependency of the frontend package, where it would pull its own transitive
+  # tree into the application's lockfile and into every other job's `npm ci` for a tool only this job
+  # runs.
+  LHCI_VERSION: '0.15.1'
+  # Drives the browser for the `pages` sweep only, so that the session can be put into the browser's
+  # own cookie jar (see lighthouse-session.cjs). puppeteer-core rather than puppeteer: it is the same
+  # API without the bundled Chromium download, and the runner already has a Chrome to point it at.
+  PUPPETEER_VERSION: '25.5.0'
+  JAVA_VERSION: '26'
+  JAVA_DISTRIBUTION: 'corretto'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: 'frontend/src/main/webapp/.nvmrc'
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: frontend-dist
+          # Same layout lighthouserc.cjs expects as its staticDistDir.
+          path: ./frontend/src/main/webapp/dist/browser
+      - name: Install Lighthouse CI
+        # Installed explicitly at the pinned version with lifecycle scripts disabled, rather than
+        # letting `npx` resolve and execute a package on demand. It goes into a directory of its own
+        # so that neither the application's package.json nor its node_modules are involved.
+        run: |
+          mkdir -p "${RUNNER_TEMP}/lhci"
+          npm install --no-save --ignore-scripts --prefix "${RUNNER_TEMP}/lhci" "@lhci/cli@${LHCI_VERSION}"
+      - name: Run Lighthouse
+        # No `npm ci`: the audit needs the built bundle and a Chrome (preinstalled on the runner),
+        # not the project's dependencies.
+        #
+        # lhci's healthcheck warns "GitHub token not set" here; that is expected, not a setup gap. A
+        # token would only make the upload step post an extra commit status per audited URL, next to
+        # this job's own result, linking to the localhost URL the static server served - the reports
+        # are kept as a build artifact instead of on a public report host.
+        run: "${RUNNER_TEMP}/lhci/node_modules/.bin/lhci autorun --config=lighthouserc.cjs"
+        working-directory: frontend/src/main/webapp
+      - name: Report the scores
+        # Runs on failure too - a failed threshold is exactly when the numbers are wanted.
+        if: always()
+        working-directory: frontend/src/main/webapp
+        run: |
+          manifest=.lighthouseci/reports/manifest.json
+          if [ ! -f "$manifest" ]; then
+            echo "No Lighthouse report was produced - see the step above." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          report=$(jq -r 'map(select(.isRepresentativeRun)) | .[0].jsonPath' "$manifest")
+          url=$(jq -r 'map(select(.isRepresentativeRun)) | .[0].url' "$manifest")
+
+          {
+            echo "### Page performance - $url"
+            echo ""
+            echo "Median of three runs, Lighthouse CI ${LHCI_VERSION}, desktop preset. Thresholds live in \`frontend/src/main/webapp/lighthouserc.cjs\`."
+            echo ""
+            jq -r '
+              "| Category | Score |", "| --- | --- |",
+              (.categories | to_entries[] | "| \(.value.title) | \((.value.score * 100) | round) |"),
+              "",
+              "| Metric | Value |", "| --- | --- |",
+              (. as $r
+                | ["first-contentful-paint", "largest-contentful-paint", "speed-index", "total-blocking-time", "cumulative-layout-shift"][]
+                | "| \($r.audits[.].title) | \($r.audits[.].displayValue) |"),
+              "",
+              "| Resource | Transfer size |", "| --- | --- |",
+              (.audits["resource-summary"].details.items[]
+                | select(.transferSize > 0)
+                | "| \(.resourceType) (\(.requestCount)) | \((.transferSize / 1024) | floor) KiB |")
+            ' "$report"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: lighthouse-reports-shell
+          path: ./frontend/src/main/webapp/.lighthouseci/reports/
+          if-no-files-found: warn
+          retention-days: 7
+
+  pages:
+    name: pages (${{ matrix.shard.name }}, ${{ matrix.formFactor }})
+    runs-on: ubuntu-latest
+    strategy:
+      # One shard failing its accessibility threshold says nothing about the others, and a sweep
+      # that stops at the first red page reports a fraction of what it measured.
+      fail-fast: false
+      matrix:
+        # Both form factors, because the application is responsive: the settings and customer
+        # screens fall back to card layouts below the table breakpoint, and audits like tap-target
+        # sizing only mean anything under mobile emulation.
+        formFactor: [desktop, mobile]
+        # The route list of the application, split into shards of roughly equal size so the sweep
+        # runs in parallel rather than end to end. Adding a route to the application means adding it
+        # here - this list is what "every page" means, and nothing derives it automatically.
+        #
+        # The ids are the e2e fixtures' (see db-migration-testdata/testdata.sql): household 100 and
+        # 101, user 100 (`e2etest`, which holds every permission).
+        shard:
+          - name: allgemein
+            urls: >-
+              /login,
+              /login/passwortaendern,
+              /404,
+              /500,
+              /uebersicht,
+              /passwortaendern,
+              /benachrichtigungen,
+              /anmeldung/scanner,
+              /anmeldung/annahme,
+              /anmeldung/ticketmonitor-steuerung,
+              /anmeldung/ticketmonitor
+          - name: kunden
+            urls: >-
+              /kunden/suchen,
+              /kunden/anlegen,
+              /kunden/detail/100,
+              /kunden/bearbeiten/100,
+              /kunden/duplikate,
+              /kunden/ueber-limit,
+              /kunden/uebersicht,
+              /kunden/zusammenfuehren/100?quellen=101
+          - name: einstellungen
+            urls: >-
+              /einstellungen/email,
+              /einstellungen/notschlafstellen,
+              /einstellungen/statische-werte,
+              /einstellungen/lebensmittelkategorien,
+              /einstellungen/retourkategorien,
+              /einstellungen/fahrzeuge,
+              /einstellungen/mitarbeiter,
+              /einstellungen/routen,
+              /einstellungen/filialen
+          - name: benutzer-logistik-statistik
+            urls: >-
+              /benutzer/suchen,
+              /benutzer/erstellen,
+              /benutzer/detail/100,
+              /benutzer/bearbeiten/100,
+              /benutzer/anmelde-versuche,
+              /logistik/warenerfassung,
+              /statistiken/allgemein,
+              /statistiken/schulstartpakete
+    services:
+      postgres:
+        image: postgres:18.4-bookworm
+        env:
+          POSTGRES_USER: tafeladmin
+          POSTGRES_PASSWORD: tafeladmin
+          POSTGRES_DB: tafeladmin
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: 'frontend/src/main/webapp/.nvmrc'
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: admin-jarfile
+          path: ./artifact
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: frontend-dist
+          # spring.web.resources.static-locations is file:${user.dir}/static/, so this is where the
+          # backend serves the application from - including IndexHtmlController's SPA fallback,
+          # which is what makes a direct navigation to a client-side route resolvable at all.
+          path: ./static
+      - name: Install Lighthouse CI
+        # puppeteer-core lands next to @lhci/cli so that lhci's own `require('puppeteer-core')`
+        # resolves it; nothing here touches the application's package.json or node_modules.
+        run: |
+          mkdir -p "${RUNNER_TEMP}/lhci"
+          npm install --no-save --ignore-scripts --prefix "${RUNNER_TEMP}/lhci" \
+            "@lhci/cli@${LHCI_VERSION}" "puppeteer-core@${PUPPETEER_VERSION}"
+      - name: Locate Chrome
+        # puppeteer-core ships no browser, so the executable has to be named explicitly - the
+        # `shell` job needs none of this because chrome-launcher finds Chrome by itself.
+        run: |
+          chrome=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || true)
+          if [ -z "$chrome" ]; then
+            echo "::error title=No Chrome::Found no Chrome executable to drive."
+            exit 1
+          fi
+          echo "CHROME_PATH=$chrome" >> "$GITHUB_ENV"
+          "$chrome" --version
+      - name: Start the backend
+        # The same profile and testdata the e2e job runs against, so the audited screens render the
+        # same fixtures - and so a page's numbers move only when the application or those fixtures
+        # move.
+        run: |
+          nohup java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar > "${RUNNER_TEMP}/backend.log" 2>&1 &
+          echo "Waiting for the backend to answer..."
+          for _ in $(seq 1 90); do
+            if curl -sf http://localhost:8080/api/config/public > /dev/null; then
+              echo "Backend is up."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error title=Backend did not start::No answer from /api/config/public within 180s."
+          tail -n 100 "${RUNNER_TEMP}/backend.log"
+          exit 1
+      - name: Open a session
+        # A JWT cookie for `e2etest` (every permission), handed to Lighthouse as a request header -
+        # see lighthouserc.pages.cjs for why a header is enough and no UI login is scripted.
+        #
+        # An active distribution is started as well: without one, the dashboard and the whole
+        # check-in area render their "no distribution" placeholder, and a sweep that only ever sees
+        # the empty state is not auditing those screens. The CSRF token is derived from the JWT
+        # (SessionBoundCsrfTokenRepository), so it only appears once a request has carried the JWT -
+        # hence the /api/users/info call in between.
+        run: |
+          jar="${RUNNER_TEMP}/cookies.txt"
+
+          curl -sSf -X POST -u e2etest:e2etest --cookie-jar "$jar" -o /dev/null \
+            http://localhost:8080/api/login
+          curl -sSf -b "$jar" --cookie-jar "$jar" -o /dev/null \
+            http://localhost:8080/api/users/info
+
+          jwt=$(awk '$6 == "tafel-admin-jwt" {print $7}' "$jar")
+          xsrf=$(awk '$6 == "XSRF-TOKEN" {print $7}' "$jar")
+          if [ -z "$jwt" ]; then
+            echo "::error title=No session::POST /api/login returned no tafel-admin-jwt cookie."
+            exit 1
+          fi
+          echo "::add-mask::$jwt"
+          echo "LHCI_JWT=$jwt" >> "$GITHUB_ENV"
+
+          curl -sSf -X POST -b "$jar" -H "X-XSRF-TOKEN: $xsrf" -o /dev/null \
+            http://localhost:8080/api/distributions/new
+      - name: Run Lighthouse
+        run: "${RUNNER_TEMP}/lhci/node_modules/.bin/lhci autorun --config=lighthouserc.pages.cjs"
+        working-directory: frontend/src/main/webapp
+        env:
+          LHCI_URLS: ${{ matrix.shard.urls }}
+          LHCI_FORM_FACTOR: ${{ matrix.formFactor }}
+      - name: Verify the sweep was authenticated
+        # Without a session the application bootstraps, gets a 401 from GET /api/users/info and
+        # redirects, so every route would be graded as the login page - passing every threshold while
+        # measuring nothing it claims to. The assertions cannot see that, so it is checked here: a
+        # page that ended up somewhere other than where it was sent fails the job.
+        if: always()
+        working-directory: frontend/src/main/webapp
+        run: |
+          manifest=.lighthouseci/reports/manifest.json
+          if [ ! -f "$manifest" ]; then
+            echo "No Lighthouse report was produced - see the step above."
+            exit 0
+          fi
+
+          status=0
+          while IFS=$'\t' read -r url report; do
+            final=$(jq -r '.finalDisplayedUrl' "$report")
+            if [ "${final%%\?*}" != "${url%%\?*}" ]; then
+              echo "::error title=Unauthenticated audit::$url was graded as $final, not as itself."
+              status=1
+            fi
+          done < <(jq -r 'map(select(.isRepresentativeRun))[] | [.url, .jsonPath] | @tsv' "$manifest")
+          exit $status
+      - name: Report the scores
+        # Runs on failure too - a failed threshold is exactly when the numbers are wanted.
+        if: always()
+        working-directory: frontend/src/main/webapp
+        run: |
+          manifest=.lighthouseci/reports/manifest.json
+          if [ ! -f "$manifest" ]; then
+            echo "No Lighthouse report was produced - see the step above." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          {
+            echo "### ${{ matrix.shard.name }} (${{ matrix.formFactor }})"
+            echo ""
+            echo "Median of two runs, Lighthouse CI ${LHCI_VERSION}. Accessibility is enforced at 100; the other scores are reported only - see \`frontend/src/main/webapp/lighthouserc.pages.cjs\`."
+            echo ""
+            jq -r '
+              "| Page | Performance | Accessibility | Best practices |",
+              "| --- | ---: | ---: | ---: |",
+              (map(select(.isRepresentativeRun))[]
+                | "| \(.url | sub("^https?://[^/]+"; "")) "
+                  + "| \((.summary.performance * 100) | round) "
+                  + "| \((.summary.accessibility * 100) | round) "
+                  + "| \((.summary["best-practices"] * 100) | round) |")
+            ' "$manifest"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Report the backend log
+        # Only on failure, and only the tail: a page that redirected to the login page or 500ed is
+        # explained here rather than in the Lighthouse report, which just shows a rendered shell.
+        if: failure()
+        run: tail -n 100 "${RUNNER_TEMP}/backend.log"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: lighthouse-reports-${{ matrix.shard.name }}-${{ matrix.formFactor }}
+          path: ./frontend/src/main/webapp/.lighthouseci/reports/
+          if-no-files-found: warn
+          retention-days: 7

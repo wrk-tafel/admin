@@ -187,14 +187,14 @@
                   <div class="flex justify-between">
                     <span class="font-bold flex items-center">
                       <span class="text-white px-2"
-                            [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
+                            [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
                         Gültig bis:
                       </span>
                       <tafel-info-tooltip [testId]="'valid-until-info-tooltip'"
                                           text="Ende der Bezugsberechtigung. Grün bedeutet aufrecht, rot abgelaufen - über 'Bezug verlängern' kann das Datum verlängert werden."></tafel-info-tooltip>
                     </span>
                     <span testid="validUntilText" class="text-white px-2"
-                          [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
+                          [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold flex items-center">
@@ -216,7 +216,7 @@
                   <div class="flex justify-between items-center w-full">
                     <h5 class="m-0">Aktuellste Notiz</h5>
                     <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
-                            matTooltip="Neue Notiz zu diesem Kunden erfassen">
+                            matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
                       <fa-icon [icon]="faPlus"></fa-icon>
                     </button>
                   </div>
@@ -343,11 +343,11 @@
                         </div>
                         <div class="flex gap-2 shrink-0 justify-end">
                           <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
-                                  matTooltip="Dokument herunterladen">
+                                  matTooltip="Dokument herunterladen" aria-label="Dokument herunterladen">
                             <fa-icon [icon]="faDownload"></fa-icon>
                           </button>
                           <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
-                                  matTooltip="Dokument löschen">
+                                  matTooltip="Dokument löschen" aria-label="Dokument löschen">
                             <fa-icon [icon]="faTrashCan"></fa-icon>
                           </button>
                         </div>

@@ -39,15 +39,16 @@
 
 .mat-card-warning {
   @extend .mat-card-colored;
-  background-color: #f9b115 !important;
+  background-color: var(--tafel-severity-warning) !important;
+  color: var(--tafel-severity-on-warning) !important;
 }
 
 .mat-card-danger {
   @extend .mat-card-colored;
-  background-color: #e55353 !important;
+  background-color: var(--tafel-severity-danger) !important;
 }
 
 .mat-card-success {
   @extend .mat-card-colored;
-  background-color: #1b9e3e !important;
+  background-color: var(--tafel-severity-success) !important;
 }

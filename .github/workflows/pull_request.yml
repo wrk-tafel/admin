@@ -94,6 +94,13 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
+  lighthouse:
+    # Rates the built frontend bundle and enforces the thresholds in lighthouserc.cjs. Gated on the
+    # frontend rather than on the application as a whole: a backend-only change ships the identical
+    # bundle, so re-measuring it can only produce runner noise.
+    uses: ./.github/workflows/subflow_lighthouse.yml
+    needs: [changes, build]
+    if: needs.changes.outputs.frontend == 'true'
   deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [build-push-image, version]

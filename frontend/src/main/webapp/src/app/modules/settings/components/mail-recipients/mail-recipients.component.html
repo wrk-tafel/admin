@@ -35,6 +35,7 @@
                                 class="button-success"
                                 [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
                                 (click)="addAddress(i, j)"
+                                [attr.aria-label]="'Weitere E-Mail Adresse hinzufügen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
                                 matTooltip="Weitere E-Mail Adresse hinzufügen"
                                 matTooltipPosition="above">
                           <fa-icon [icon]="faPlus"></fa-icon>
@@ -49,6 +50,7 @@
                             <input
                               [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                               type="email"
+                              [attr.aria-label]="getRecipientTypeLabel(recipient.get('recipientType')!.value) + ' - E-Mail Adresse ' + (k + 1)"
                               [formControlName]="k"
                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               [class.border-red-500]="isControlInvalid(address)"
@@ -65,6 +67,7 @@
                                     class="button-danger"
                                     [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                                     (click)="removeAddress(i, j, k)"
+                                    [attr.aria-label]="'E-Mail Adresse ' + (k + 1) + ' entfernen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
                                     matTooltip="E-Mail Adresse entfernen">
                               <fa-icon [icon]="faTrashCan"></fa-icon>
                             </button>
