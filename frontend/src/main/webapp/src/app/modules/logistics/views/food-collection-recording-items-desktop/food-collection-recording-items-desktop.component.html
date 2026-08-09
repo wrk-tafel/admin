@@ -113,7 +113,7 @@
             <button type="button" matButton="filled" class="button-danger"
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
                     (click)="removeReturnItem(returnItemIndex)"
-                    matTooltip="Retour-Position entfernen">
+                    matTooltip="Retour-Position entfernen" aria-label="Retour-Position entfernen">
               <fa-icon [icon]="faRemove"></fa-icon>
             </button>
           </div>

@@ -3,7 +3,7 @@
     <mat-card-title>
       <div class="flex items-center gap-2">
         <h5 class="mb-0 mt-1">Waren-Kategorien</h5>
-        <button matButton="filled" class="button-success" testid="addFoodCategoryButton" matTooltip="Neue Lebensmittelkategorie anlegen" (click)="addFoodCategory()">
+        <button matButton="filled" class="button-success" testid="addFoodCategoryButton" matTooltip="Neue Lebensmittelkategorie anlegen" (click)="addFoodCategory()" aria-label="Neue Lebensmittelkategorie anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
       </div>
@@ -19,7 +19,7 @@
     <table mat-table [dataSource]="foodCategories()" testid="food-categories-table"
            cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
-        <th mat-header-cell *matHeaderCellDef></th>
+        <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
         <td mat-cell *matCellDef="let category; let i = index">
           <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
                    [attr.testid]="'dragFoodCategoryHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
@@ -31,12 +31,12 @@
         <td mat-cell *matCellDef="let category; let i = index">
           @if (category.enabled) {
             <button matButton="filled" class="button-success ms-2" testid="enableFoodCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                    (click)="toggleFoodCategoryVisibility(category, false)">
+                    (click)="toggleFoodCategoryVisibility(category, false)" aria-label="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl">
               <fa-icon [icon]="faEye"></fa-icon>
             </button>
           } @else {
             <button matButton="filled" class="button-danger ms-2" testid="disableFoodCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                    (click)="toggleFoodCategoryVisibility(category, true)">
+                    (click)="toggleFoodCategoryVisibility(category, true)" aria-label="Kategorie wieder aktivieren">
               <fa-icon [icon]="faEyeSlash"></fa-icon>
             </button>
           }
@@ -77,15 +77,15 @@
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let category; let i = index">
           @if (editingId() === category.id) {
-            <button matButton="filled" [attr.testid]="'saveFoodCategoryButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(category)">
+            <button matButton="filled" [attr.testid]="'saveFoodCategoryButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(category)" aria-label="Änderungen speichern">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelFoodCategoryButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelFoodCategoryButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" aria-label="Bearbeiten abbrechen">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
             <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
-                    [disabled]="!category.enabled" (click)="startEdit(category)">
+                    [disabled]="!category.enabled" (click)="startEdit(category)" aria-label="Kategorie bearbeiten">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
           }
@@ -95,7 +95,7 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
           cdkDrag [cdkDragData]="row"
-          [class.opacity-50]="!row.enabled"
+          [class.tafel-inactive]="!row.enabled"
           [attr.testid]="'food-categories-row-' + i"></tr>
     </table>
     </div>
@@ -104,7 +104,7 @@
       <div class="flex flex-col gap-4" testid="food-categories-cards"
            cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
         @for (category of foodCategories(); track category.id; let i = $index) {
-          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="category" [class.opacity-50]="!category.enabled"
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="category" [class.tafel-inactive]="!category.enabled"
                     [attr.testid]="'food-categories-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
@@ -140,25 +140,25 @@
             <mat-card-actions class="flex gap-2">
               @if (category.enabled) {
                 <button matButton="filled" class="button-success" testid="enableFoodCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                        (click)="toggleFoodCategoryVisibility(category, false)">
+                        (click)="toggleFoodCategoryVisibility(category, false)" aria-label="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl">
                   <fa-icon [icon]="faEye"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" testid="disableFoodCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                        (click)="toggleFoodCategoryVisibility(category, true)">
+                        (click)="toggleFoodCategoryVisibility(category, true)" aria-label="Kategorie wieder aktivieren">
                   <fa-icon [icon]="faEyeSlash"></fa-icon>
                 </button>
               }
               @if (editingId() === category.id) {
-                <button matButton="filled" [attr.testid]="'saveFoodCategoryButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(category)">
+                <button matButton="filled" [attr.testid]="'saveFoodCategoryButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(category)" aria-label="Änderungen speichern">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
-                <button matButton="outlined" [attr.testid]="'cancelFoodCategoryButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()">
+                <button matButton="outlined" [attr.testid]="'cancelFoodCategoryButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" aria-label="Bearbeiten abbrechen">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
-                        [disabled]="!category.enabled" (click)="startEdit(category)">
+                        [disabled]="!category.enabled" (click)="startEdit(category)" aria-label="Kategorie bearbeiten">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
               }

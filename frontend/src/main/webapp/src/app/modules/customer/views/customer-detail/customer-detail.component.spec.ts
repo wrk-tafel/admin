@@ -442,7 +442,7 @@ describe('CustomerDetailComponent', () => {
     expect(valid).toBeFalsy();
     const validUntilText = fixture.debugElement.query(By.css('[testid="validUntilText"]'));
     expect(validUntilText.nativeElement.classList).toContain('bg-red-600');
-    expect(validUntilText.nativeElement.classList).not.toContain('bg-green-600');
+    expect(validUntilText.nativeElement.classList).not.toContain('bg-green-700');
   });
 
   it('isValid with date of today results in true', () => {
@@ -460,7 +460,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(valid).toBe(true);
     const validUntilText = fixture.debugElement.query(By.css('[testid="validUntilText"]'));
-    expect(validUntilText.nativeElement.classList).toContain('bg-green-600');
+    expect(validUntilText.nativeElement.classList).toContain('bg-green-700');
     expect(validUntilText.nativeElement.classList).not.toContain('bg-red-600');
   });
 
@@ -478,7 +478,7 @@ describe('CustomerDetailComponent', () => {
     const valid = component.isValid();
     expect(valid).toBe(true);
     const validUntilText = fixture.debugElement.query(By.css('[testid="validUntilText"]'));
-    expect(validUntilText.nativeElement.classList).toContain('bg-green-600');
+    expect(validUntilText.nativeElement.classList).toContain('bg-green-700');
     expect(validUntilText.nativeElement.classList).not.toContain('bg-red-600');
   });
 

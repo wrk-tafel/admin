@@ -13,19 +13,20 @@
   }
 
   .badge-success {
-    background-color: #1b9e3e;
+    background-color: var(--tafel-severity-success);
   }
 
   .badge-warning {
-    background-color: #f9b115;
+    background-color: var(--tafel-severity-warning);
+    color: var(--tafel-severity-on-warning);
   }
 
   .badge-danger {
-    background-color: #e55353;
+    background-color: var(--tafel-severity-danger);
   }
 
   .badge-info {
-    background-color: #39f;
+    background-color: var(--tafel-severity-info);
   }
 
 }

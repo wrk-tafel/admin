@@ -1,11 +1,11 @@
 <div class="flex items-center justify-center gap-2">
-  <button matButton="outlined" (click)="decrement()" [attr.testid]="testId() + '-decrement-button'">
+  <button matButton="outlined" aria-label="Wert verringern" (click)="decrement()" [attr.testid]="testId() + '-decrement-button'">
     <fa-icon [icon]="faMinus"></fa-icon>
   </button>
   <input [attr.testid]="testId() + '-input'" type="number" name="valueInput"
          class="w-16 text-center border border-gray-300 rounded-md py-1.5"
          [ngModel]="currentValue()" (ngModelChange)="onValueChange($event)" />
-  <button matButton="outlined" (click)="increment()" [attr.testid]="testId() + '-increment-button'">
+  <button matButton="outlined" aria-label="Wert erhöhen" (click)="increment()" [attr.testid]="testId() + '-increment-button'">
     <fa-icon [icon]="faPlus"></fa-icon>
   </button>
 </div>

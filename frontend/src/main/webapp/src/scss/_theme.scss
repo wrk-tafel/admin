@@ -6,6 +6,17 @@
   :root {
     --tafel-border-color: #080A0C2D;
     --tafel-background-secondary: #212631;
+
+    // The severity palette shared by badges, buttons, cards and dialog headers. Each colour carries
+    // its own foreground because that pairing is what has to clear WCAG AA (4.5:1) - the `lighthouse`
+    // job's accessibility gate fails on anything below it, on every screen the colour appears on.
+    // Amber is the odd one out: no amber light enough to read as a warning carries white text, so it
+    // takes dark text instead of being darkened into a brown.
+    --tafel-severity-danger: #c62828; // 5.6:1 with white
+    --tafel-severity-success: #15803d; // 5.0:1 with white
+    --tafel-severity-warning: #f9b115; // 8.2:1 with --tafel-severity-on-warning
+    --tafel-severity-info: #1565c0; // 5.7:1 with white
+    --tafel-severity-on-warning: #212631;
   }
 
   body {

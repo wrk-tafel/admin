@@ -59,7 +59,7 @@
           <div class="hidden md:block">
             <table mat-table [dataSource]="searchResult()?.items ?? []" class="min-w-full divide-y divide-gray-200 mt-4" aria-label="Liste der gefundenen Benutzer" testid="searchresult-table">
               <ng-container matColumnDef="icon">
-                <th mat-header-cell *matHeaderCellDef></th>
+                <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
                 <td mat-cell *matCellDef="let user; let i = index"> <fa-icon [icon]="faUser"></fa-icon></td>
               </ng-container>
 
@@ -95,11 +95,11 @@
                 <td mat-cell *matCellDef="let user; let i = index" class="px-4 py-2">
                   <div class="flex gap-2">
                     <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
-                            matTooltip="Benutzerdetails anzeigen">
+                            matTooltip="Benutzerdetails anzeigen" aria-label="Benutzerdetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
                     <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
-                            matTooltip="Benutzer bearbeiten">
+                            matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </div>
@@ -133,11 +133,11 @@
                   </mat-card-content>
                   <mat-card-actions class="flex gap-2 mt-2">
                     <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
-                            matTooltip="Benutzerdetails anzeigen">
+                            matTooltip="Benutzerdetails anzeigen" aria-label="Benutzerdetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
                     <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
-                            matTooltip="Benutzer bearbeiten">
+                            matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </mat-card-actions>

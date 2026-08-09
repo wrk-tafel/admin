@@ -3,7 +3,7 @@
     <mat-card-title>
       <div class="flex items-center gap-2">
         <h5 class="mb-0 mt-1">Notschlafstellen</h5>
-        <button matButton="filled" class="button-success" testid="addShelterButton" matTooltip="Neue Notschlafstelle anlegen" (click)="addShelter()">
+        <button matButton="filled" class="button-success" testid="addShelterButton" matTooltip="Neue Notschlafstelle anlegen" (click)="addShelter()" aria-label="Neue Notschlafstelle anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
       </div>
@@ -19,8 +19,8 @@
     <table mat-table [dataSource]="shelters()?.shelters ?? []" testid="shelters-table"
            cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let shelter; let i = index" [class.opacity-50]="!shelter.enabled">
+        <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
+        <td mat-cell *matCellDef="let shelter; let i = index" [class.tafel-inactive]="!shelter.enabled">
           <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
                    [attr.testid]="'dragShelterHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
         </td>
@@ -28,15 +28,15 @@
 
       <ng-container matColumnDef="active">
         <th mat-header-cell *matHeaderCellDef>Aktiv</th>
-        <td mat-cell *matCellDef="let shelter; let i = index" [class.opacity-50]="!shelter.enabled">
+        <td mat-cell *matCellDef="let shelter; let i = index" [class.tafel-inactive]="!shelter.enabled">
           @if (shelter.enabled) {
             <button matButton="filled" class="button-success ms-2" testid="enableShelterButton" matTooltip="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl"
-                    (click)="toggleShelterVisibility(shelter, false)">
+                    (click)="toggleShelterVisibility(shelter, false)" aria-label="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl">
               <fa-icon [icon]="faEye"></fa-icon>
             </button>
           } @else {
             <button matButton="filled" class="button-danger ms-2" testid="disableShelterButton" matTooltip="Notschlafstelle wieder aktivieren"
-                    (click)="toggleShelterVisibility(shelter, true)">
+                    (click)="toggleShelterVisibility(shelter, true)" aria-label="Notschlafstelle wieder aktivieren">
               <fa-icon [icon]="faEyeSlash"></fa-icon>
             </button>
           }
@@ -46,30 +46,30 @@
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef>Name</th>
         <td mat-cell *matCellDef="let shelter; let i = index"
-            [class.opacity-50]="!shelter.enabled">{{ shelter.name }}</td>
+            [class.tafel-inactive]="!shelter.enabled">{{ shelter.name }}</td>
       </ng-container>
 
       <ng-container matColumnDef="address">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Addresse</th>
         <td mat-cell *matCellDef="let shelter; let i = index"
-            [class.opacity-50]="!shelter.enabled">{{ shelter | formatShelterAddress }}</td>
+            [class.tafel-inactive]="!shelter.enabled">{{ shelter | formatShelterAddress }}</td>
       </ng-container>
 
       <ng-container matColumnDef="persons">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Anz. Personen</th>
         <td mat-cell *matCellDef="let shelter; let i = index"
-            [class.opacity-50]="!shelter.enabled">{{ shelter.personsCount }}</td>
+            [class.tafel-inactive]="!shelter.enabled">{{ shelter.personsCount }}</td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let shelter; let i = index">
           <button matButton="filled" class="button-secondary me-2" testid="viewShelterButton" matTooltip="Details und Kontakte anzeigen"
-                  (click)="viewShelterDetails(shelter)">
+                  (click)="viewShelterDetails(shelter)" aria-label="Details und Kontakte anzeigen">
             <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
           </button>
           <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                  [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten">
+                  [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" aria-label="Notschlafstelle bearbeiten">
             <fa-icon [icon]="faPencil"></fa-icon>
           </button>
         </td>
@@ -86,7 +86,7 @@
       <div class="flex flex-col gap-4" testid="shelters-cards"
            cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
         @for (shelter of shelters()?.shelters ?? []; track shelter.id; let i = $index) {
-          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="shelter" [class.opacity-50]="!shelter.enabled"
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="shelter" [class.tafel-inactive]="!shelter.enabled"
                     [attr.testid]="'shelters-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
@@ -105,21 +105,21 @@
             <mat-card-actions class="flex gap-2">
               @if (shelter.enabled) {
                 <button matButton="filled" class="button-success" testid="enableShelterButton" matTooltip="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl"
-                        (click)="toggleShelterVisibility(shelter, false)">
+                        (click)="toggleShelterVisibility(shelter, false)" aria-label="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl">
                   <fa-icon [icon]="faEye"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" testid="disableShelterButton" matTooltip="Notschlafstelle wieder aktivieren"
-                        (click)="toggleShelterVisibility(shelter, true)">
+                        (click)="toggleShelterVisibility(shelter, true)" aria-label="Notschlafstelle wieder aktivieren">
                   <fa-icon [icon]="faEyeSlash"></fa-icon>
                 </button>
               }
               <button matButton="filled" class="button-secondary" testid="viewShelterButton" matTooltip="Details und Kontakte anzeigen"
-                      (click)="viewShelterDetails(shelter)">
+                      (click)="viewShelterDetails(shelter)" aria-label="Details und Kontakte anzeigen">
                 <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
               </button>
               <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                      [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten">
+                      [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" aria-label="Notschlafstelle bearbeiten">
                 <fa-icon [icon]="faPencil"></fa-icon>
               </button>
             </mat-card-actions>
