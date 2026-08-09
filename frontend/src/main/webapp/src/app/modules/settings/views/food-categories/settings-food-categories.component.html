@@ -2,7 +2,7 @@
   <mat-card-header class="mb-2">
     <mat-card-title>
       <div class="flex items-center gap-2">
-        <h5 class="mb-0 mt-1">Waren-Kategorien</h5>
+        <h2 class="tafel-h5 mb-0 mt-1">Waren-Kategorien</h2>
         <button matButton="filled" class="button-success" testid="addFoodCategoryButton" matTooltip="Neue Lebensmittelkategorie anlegen" (click)="addFoodCategory()" aria-label="Neue Lebensmittelkategorie anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
@@ -16,13 +16,15 @@
     </p>
 
     <div class="hidden md:block">
-    <table mat-table [dataSource]="foodCategories()" testid="food-categories-table"
+    <table mat-table [dataSource]="foodCategories()" testid="food-categories-table" [trackBy]="trackById"
            cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
         <td mat-cell *matCellDef="let category; let i = index">
-          <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move"
-                   [attr.testid]="'dragFoodCategoryHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
+          <tafel-reorder-handle cdkDragHandle [label]="'Waren-Kategorie ' + category.name"
+                                [position]="i + 1" [count]="foodCategories().length"
+                                [testId]="'dragFoodCategoryHandle-' + i"
+                                (move)="moveFoodCategory(i, $event)"/>
         </td>
       </ng-container>
 
@@ -108,7 +110,10 @@
                     [attr.testid]="'food-categories-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
-                <fa-icon [icon]="faGripVertical" cdkDragHandle class="cursor-move" [attr.testid]="'dragFoodCategoryHandle-' + i" matTooltip="Zum Ändern der Reihenfolge ziehen"></fa-icon>
+                <tafel-reorder-handle cdkDragHandle [label]="'Waren-Kategorie ' + category.name"
+                                      [position]="i + 1" [count]="foodCategories().length"
+                                      [testId]="'dragFoodCategoryHandle-' + i"
+                                      (move)="moveFoodCategory(i, $event)"/>
                 @if (editingId() === category.id) {
                   <mat-form-field subscriptSizing="dynamic" class="w-full">
                     <mat-label>Name</mat-label>

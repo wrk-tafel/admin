@@ -3,7 +3,7 @@
     <mat-card-title class="w-full">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-baseline gap-3">
-          <h5 class="mb-0 mt-1">Routen</h5>
+          <h2 class="tafel-h5 mb-0 mt-1">Routen</h2>
           <span class="text-sm font-normal text-slate-500" testid="routes-summary">
             {{ enabledCount() }} von {{ totalCount() }} aktiv
           </span>
@@ -62,6 +62,9 @@
                 }
                 <!-- both actions stay reachable without expanding the route first - the panel
                      header would otherwise swallow the click and toggle the panel instead -->
+                <!-- This wrapper is not a control - it only keeps clicks and keys off the accordion header.
+                     The controls it wraps are focusable in their own right. -->
+                <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
                 <span class="ms-auto me-2 flex items-center gap-4" (click)="$event.stopPropagation()"
                       (keydown)="$event.stopPropagation()">
                   <mat-slide-toggle [checked]="view.route.enabled" [attr.testid]="'routes-enabled-toggle-' + i"

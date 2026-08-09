@@ -1,5 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
@@ -39,7 +39,8 @@ import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-inf
     TafelAutofocusDirective,
     FormatCustomerAddressPipe,
     MatTooltipModule,
-    TafelInfoTooltipComponent
+    TafelInfoTooltipComponent,
+    RouterLink
   ]
 })
 export class CustomerSearchComponent {

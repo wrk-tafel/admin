@@ -58,7 +58,7 @@ describe('TafelDialogComponent', () => {
         });
 
         it('renders the title in the dialog header', () => {
-            const title = fixture.debugElement.query(By.css('h4[mat-dialog-title]'));
+            const title = fixture.debugElement.query(By.css('h2[mat-dialog-title]'));
             expect(title).toBeTruthy();
             expect(title.nativeElement.textContent).toBe('Info Dialog');
         });
@@ -96,7 +96,7 @@ describe('TafelDialogComponent', () => {
         it('applies the dialog-header-warning class', () => {
             const header = fixture.debugElement.query(By.css('.dialog-header-warning'));
             expect(header).toBeTruthy();
-            const headerTitle = fixture.debugElement.query(By.css('.dialog-header-warning h4'));
+            const headerTitle = fixture.debugElement.query(By.css('.dialog-header-warning h2'));
             expect(headerTitle.nativeElement.textContent).toBe('Warning Dialog');
         });
     });

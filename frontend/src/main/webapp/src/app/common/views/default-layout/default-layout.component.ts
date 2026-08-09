@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
@@ -14,6 +14,7 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {ConfigApiService} from '../../../api/config-api.service';
+import {TafelTitleStrategy} from '../../util/tafel-title-strategy';
 
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
@@ -55,9 +56,19 @@ export class DefaultLayoutComponent {
   // it manually once Angular has applied the new width class to the DOM.
   readonly sidenavContainer = viewChild.required(MatSidenavContainer);
 
+  readonly mainContent = viewChild.required<ElementRef<HTMLElement>>('mainContent');
+
+  /** The page's `h1`; see `TafelTitleStrategy.routeTitle`. */
+  readonly pageTitle = inject(TafelTitleStrategy).routeTitle;
+
   toggleCollapsed() {
     this.collapsed.update(value => !value);
     setTimeout(() => this.sidenavContainer().updateContentMargins());
+  }
+
+  skipToContent(event: Event) {
+    event.preventDefault();
+    this.mainContent().nativeElement.focus();
   }
 
   // Compute the initial value synchronously (rather than defaulting to "desktop" for one render

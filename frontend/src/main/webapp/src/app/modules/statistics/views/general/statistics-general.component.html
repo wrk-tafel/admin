@@ -2,7 +2,7 @@
   <div class="md:col-span-3">
     <mat-card>
       <mat-card-header>
-        <h5>Statistik</h5>
+        <h2 class="tafel-h5">Statistik</h2>
       </mat-card-header>
       <mat-card-content>
         <p class="mb-4 text-sm text-slate-600">
@@ -80,7 +80,7 @@
   <div class="mt-4 md:mt-0">
     <mat-card class="h-full">
       <mat-card-header>
-        <h5>Export</h5>
+        <h2 class="tafel-h5">Export</h2>
       </mat-card-header>
       <mat-card-content>
         <button matButton="filled" (click)="generateCsv()">
@@ -93,11 +93,11 @@
 @if (statisticsData()) {
   <mat-card class="mt-4">
     <mat-card-header>
-      <h5>Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h5>
+      <h2 class="tafel-h5">Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h2>
     </mat-card-header>
     <mat-card-content>
       <div>
-        <h5>Kunden und Personen</h5>
+        <h3 class="tafel-h5">Kunden und Personen</h3>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
@@ -115,7 +115,7 @@
         </div>
       </div>
       <div class="mt-4">
-        <h5>Notschlafstellen</h5>
+        <h3 class="tafel-h5">Notschlafstellen</h3>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
@@ -129,7 +129,7 @@
         </div>
       </div>
       <div class="mt-4">
-        <h5>Transport- / Logistik</h5>
+        <h3 class="tafel-h5">Transport- / Logistik</h3>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>

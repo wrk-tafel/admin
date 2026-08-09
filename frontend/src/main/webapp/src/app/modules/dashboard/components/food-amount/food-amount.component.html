@@ -1,14 +1,14 @@
 <mat-card class="h-full mat-card-primary">
   <mat-card-header>
     <mat-card-title>
-      <h4 class="text-white">Erfasste Warenmenge</h4>
+      <h2 class="tafel-h4">Erfasste Warenmenge</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content class="text-right mb-4">
     @if (amount() !== null) {
-      <div testid="food-amount-total" class="text-white text-5xl">{{ (amount() | number: '1.2-2') }} kg</div>
+      <div testid="food-amount-total" class="text-5xl">{{ (amount() | number: '1.2-2') }} kg</div>
     } @else {
-      <div testid="food-amount-total" class="text-white text-5xl">-</div>
+      <div testid="food-amount-total" class="text-5xl">-</div>
     }
   </mat-card-content>
 </mat-card>

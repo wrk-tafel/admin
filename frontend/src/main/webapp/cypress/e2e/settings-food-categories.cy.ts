@@ -130,4 +130,42 @@ describe('Settings - Food Categories', () => {
     cy.byTestId('addFoodCategoryButton').should('be.visible');
   });
 
+
+  // Angular CDK's drag-and-drop contributes no keyboard behaviour of its own, so without this the
+  // sort order could only be changed with a pointing device (see #3131).
+  //
+  // Every lookup goes through `cy.get` scoped to the table, and each move waits for its request to
+  // land: a reorder re-renders the rows optimistically and then again from the response, so a
+  // subject captured before that second render is gone by the time it is used. The table scope
+  // also picks the displayed one of the two responsive layouts, which share a testid.
+  it('reorders with the keyboard and keeps focus on the moved record', () => {
+    const handle = (index: number) =>
+      cy.get('[testid="food-categories-table"] [testid="dragFoodCategoryHandle-' + index + '"]');
+
+    cy.intercept('POST', '/api/food-categories/reorder').as('reorder');
+
+    handle(0).invoke('attr', 'aria-label').then((label) => {
+      const movedRecord = label!.split(', Position')[0];
+      expect(movedRecord).to.contain('Waren-Kategorie');
+
+      handle(0).focus().trigger('keydown', {key: 'ArrowDown'});
+      cy.wait('@reorder');
+
+      handle(1).should(($handle) => {
+        const movedLabel = $handle.attr('aria-label')!;
+        expect(movedLabel).to.contain(movedRecord);
+        expect(movedLabel).to.contain('Position 2 von');
+      });
+      cy.focused().should('have.attr', 'testid', 'dragFoodCategoryHandle-1');
+
+      // back where it started, so the order the other cases rely on is unchanged
+      handle(1).focus().trigger('keydown', {key: 'ArrowUp'});
+      cy.wait('@reorder');
+
+      handle(0).should(($handle) => {
+        expect($handle.attr('aria-label')).to.contain(movedRecord);
+      });
+    });
+  });
+
 });
