@@ -89,23 +89,47 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
   });
 
-  it('lists the return boxes the last trip brought back', () => {
-    selectRoute2();
+  describe('return boxes', () => {
+    beforeEach(() => {
+      // The screen shows the boxes of route 2's newest collection outside the running distribution,
+      // so this spec records that trip itself instead of relying on the seeded one: any earlier
+      // spec recording route 2 (food-collection-recording does) leaves a newer collection behind.
+      cy.createDistribution();
+      cy.request('POST', `/api/food-collections/routes/${ROUTE_ID}/return-items`, {
+        returnItems: [
+          {shopId: 20, description: 'Graue Kisten', amount: 4},
+          {shopId: 20, description: 'Bananenkartons', amount: 2},
+          {shopId: 21, description: 'Klappkisten schwarz', amount: 3},
+          {shopId: 21, description: 'Ströck Kisten', amount: 0}
+        ]
+      });
+      cy.closeDistribution();
+      cy.visit('/logistik/routenbegleitung');
+    });
 
-    // seeded on the previous distribution's collection for route 2
-    cy.byTestId('guidance-return-summary').should('contain.text', 'Retourware mitnehmen');
-    cy.byTestId('guidance-stop-return-items')
-      .should('contain.text', '2 × Bananenkartons')
-      .should('contain.text', '4 × Graue Kisten');
+    afterEach(() => {
+      // a test that fails before the close above would leave the distribution open for every
+      // later spec, so close it again - tolerating the "nothing is running" answer
+      cy.request({method: 'POST', url: '/api/distributions/close?forceClose=true', failOnStatusCode: false});
+    });
 
-    // the pause stop has no shop and therefore nothing to hand back
-    cy.byTestId('guidance-next-button').click();
-    cy.byTestId('guidance-stop-return-items').should('not.exist');
+    it('lists the return boxes the last trip brought back', () => {
+      selectRoute2();
 
-    cy.byTestId('guidance-next-button').click();
-    cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
-    // a zero amount means nothing came back - it must not be listed
-    cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
+      cy.byTestId('guidance-return-summary').should('contain.text', 'Retourware mitnehmen');
+      cy.byTestId('guidance-stop-return-items')
+        .should('contain.text', '2 × Bananenkartons')
+        .should('contain.text', '4 × Graue Kisten');
+
+      // the pause stop has no shop and therefore nothing to hand back
+      cy.byTestId('guidance-next-button').click();
+      cy.byTestId('guidance-stop-return-items').should('not.exist');
+
+      cy.byTestId('guidance-next-button').click();
+      cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
+      // a zero amount means nothing came back - it must not be listed
+      cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
+    });
   });
 
   it('offers a map link per stop and one for the rest of the route', () => {
