@@ -10,6 +10,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {
   faBoxesStacked,
   faCheck,
+  faChevronLeft,
+  faChevronRight,
   faDiamondTurnRight,
   faLocationDot,
   faNoteSticky,
@@ -101,6 +103,23 @@ export class RouteGuidanceComponent {
     return this.stops().map(stop => this.toStopView(stop, stop.stopId === nextStopId));
   });
 
+  // Only one stop is on screen at a time: this is read at the wheel, on a phone, and a scrollable
+  // list of fifteen stops is the wrong shape for that. The driver pages through with the two
+  // buttons below.
+  private readonly _currentIndex = signal(0);
+  protected readonly currentIndex = this._currentIndex.asReadonly();
+  protected readonly currentStop = computed<StopView | undefined>(() => this.stopViews()[this._currentIndex()]);
+  protected readonly hasPreviousStop = computed(() => this._currentIndex() > 0);
+  protected readonly hasNextStop = computed(() => this._currentIndex() < this.stops().length - 1);
+
+  protected goToPreviousStop() {
+    this._currentIndex.update(index => Math.max(0, index - 1));
+  }
+
+  protected goToNextStop() {
+    this._currentIndex.update(index => Math.min(this.stops().length - 1, index + 1));
+  }
+
   // every stop still to be driven that has an address to navigate to
   private readonly remainingShopStops = computed(
     () => this.stops().filter(stop => !stop.completed && stop.shop).map(stop => stop.shop as RouteGuidanceShop)
@@ -131,6 +150,10 @@ export class RouteGuidanceComponent {
     this.routeApiService.getRouteGuidance(route.id).subscribe({
       next: guidance => {
         this._guidance.set(guidance);
+        // open where the driver actually is - the first stop not done yet, or the last one when the
+        // whole route is finished
+        const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);
+        this._currentIndex.set(firstOpenIndex >= 0 ? firstOpenIndex : Math.max(0, guidance.stops.length - 1));
         this.loading.set(false);
       },
       error: (error: HttpErrorResponse) => {
@@ -140,14 +163,29 @@ export class RouteGuidanceComponent {
     });
   }
 
+  /**
+   * Starting the navigation is the confirmation - a driver who is on the way to a stop has dealt
+   * with it, and asking for a second tap on a phone in a moving van is one tap too many. The link
+   * opens the map app either way; only the marking is done here, and only once.
+   */
+  protected onNavigationStarted(stop: RouteGuidanceStop) {
+    if (!stop.completed) {
+      this.setCompletion(stop, true);
+    }
+  }
+
   protected toggleStop(stop: RouteGuidanceStop) {
+    this.setCompletion(stop, !stop.completed);
+  }
+
+  private setCompletion(stop: RouteGuidanceStop, completed: boolean) {
     const guidance = this._guidance();
     if (!guidance) {
       return;
     }
 
     this.pendingStopId.set(stop.stopId);
-    this.routeApiService.setStopCompletion(guidance.routeId, stop.stopId, !stop.completed).subscribe({
+    this.routeApiService.setStopCompletion(guidance.routeId, stop.stopId, completed).subscribe({
       next: updatedStop => {
         this._guidance.set({
           ...guidance,
@@ -196,6 +234,8 @@ export class RouteGuidanceComponent {
 
   protected readonly faBoxesStacked = faBoxesStacked;
   protected readonly faCheck = faCheck;
+  protected readonly faChevronLeft = faChevronLeft;
+  protected readonly faChevronRight = faChevronRight;
   protected readonly faDiamondTurnRight = faDiamondTurnRight;
   protected readonly faLocationDot = faLocationDot;
   protected readonly faNoteSticky = faNoteSticky;

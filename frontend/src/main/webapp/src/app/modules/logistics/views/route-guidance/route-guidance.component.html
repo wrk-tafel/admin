@@ -13,10 +13,9 @@
   </mat-card-header>
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
-      Die Stopps einer Route in der Reihenfolge, in der sie angefahren werden - mit Adresse,
-      Ansprechperson und Telefonnummer der Filiale. Die Navigation wird in der Karten-App des Geräts
-      geöffnet. Erledigte Stopps gelten für den heutigen Tag und sind auch auf anderen Geräten
-      sichtbar.
+      Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren
+      werden. Mit <strong>Navigation starten</strong> wird der Stopp gleichzeitig als erledigt
+      vermerkt - für den heutigen Tag und auch auf anderen Geräten sichtbar.
     </p>
 
     <mat-form-field class="w-full max-w-md">
@@ -37,23 +36,6 @@
         <div class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="guidance-route-note">
           <fa-icon [icon]="faNoteSticky" class="mt-0.5"></fa-icon>
           <span class="whitespace-pre-line">{{ routeGuidance.routeNote }}</span>
-        </div>
-      }
-
-      @if (remainingRouteUrl(); as remainingUrl) {
-        <div class="mb-4">
-          <a matButton="filled" testid="guidance-whole-route-button" [href]="remainingUrl"
-             target="_blank" rel="noopener"
-             aria-label="Restliche Route in Karte öffnen (in neuem Tab)">
-            <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
-            Restliche Route in Karte öffnen
-          </a>
-          @if (remainingRouteTruncated()) {
-            <p class="mt-2 text-sm text-amber-900" testid="guidance-whole-route-truncated">
-              Die Karte enthält nur die nächsten 10 Stopps. Die weiteren Stopps bitte einzeln
-              navigieren.
-            </p>
-          }
         </div>
       }
 
@@ -81,112 +63,159 @@
         </div>
       }
 
-      <ol class="ms-2 border-s border-slate-300 ps-6" testid="guidance-stops">
-        @for (view of stopViews(); track view.stop.stopId; let i = $index) {
-          <li class="relative pb-6 last:pb-0" [attr.testid]="'guidance-stop-' + i"
-              [attr.aria-current]="view.isNext ? 'step' : null">
-            <span class="absolute -start-[30px] top-1.5 h-3 w-3 rounded-full ring-4 ring-white"
-                  [class]="view.stop.completed ? 'bg-green-600' : (view.isNext ? 'bg-blue-600' : 'bg-slate-400')"></span>
+      @if (remainingRouteUrl(); as remainingUrl) {
+        <div class="mb-4">
+          <a matButton="outlined" testid="guidance-whole-route-button" [href]="remainingUrl"
+             target="_blank" rel="noopener"
+             aria-label="Restliche Route in Karte öffnen (in neuem Tab)">
+            <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
+            Restliche Route in Karte öffnen
+          </a>
+          @if (remainingRouteTruncated()) {
+            <p class="mt-2 text-sm text-amber-900" testid="guidance-whole-route-truncated">
+              Die Karte enthält nur die nächsten 10 Stopps. Die weiteren Stopps bitte einzeln
+              navigieren.
+            </p>
+          }
+        </div>
+      }
 
-            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span class="font-semibold tabular-nums">{{ view.timeLabel }}</span>
-              @if (view.stop.shop) {
-                <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
-                  {{ view.stop.shop.number }}
-                </span>
-              }
-              <!-- a done stop is struck through rather than greyed out: text-slate-400 on white is
-                   2.63:1 and fails the axe assertion in route-guidance.cy.ts -->
-              <span class="font-medium" [class.line-through]="view.stop.completed"
-                    [class.text-slate-600]="view.stop.completed">{{ view.title }}</span>
+      @if (currentStop(); as view) {
+        <!-- one stop at a time, paged with the two buttons below - see the component's comment -->
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" testid="guidance-stop"
+             role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-slate-500" testid="guidance-stop-position">
+              Stopp {{ currentIndex() + 1 }} von {{ stops().length }}
+            </span>
+            <div class="flex items-center gap-2">
               @if (view.isNext) {
-                <span class="badge badge-info" testid="guidance-next-badge">Nächster Stopp</span>
+                <span class="badge badge-info" testid="guidance-next-badge">Nächster offener Stopp</span>
               }
-              @if (view.stop.shop && !view.stop.shop.enabled) {
-                <span class="badge badge-danger" [attr.testid]="'guidance-stop-inactive-' + i">Filiale inaktiv</span>
+              @if (view.stop.completed) {
+                <span class="badge badge-success" testid="guidance-done-badge">Erledigt</span>
               }
             </div>
+          </div>
 
-            @if (view.stop.shop; as shop) {
-              <div class="mt-1 text-sm text-slate-600" [attr.testid]="'guidance-stop-address-' + i">
-                <fa-icon [icon]="faLocationDot" class="me-2 text-slate-400"></fa-icon>{{ shop.address }}
-              </div>
-              @if (shop.phone) {
-                <div class="mt-1 text-sm">
-                  <fa-icon [icon]="faPhone" class="me-2 text-slate-400"></fa-icon>
-                  <a class="text-blue-700 underline" [attr.testid]="'guidance-stop-phone-' + i"
-                     [href]="'tel:' + shop.phone">{{ shop.phone }}</a>
-                </div>
-              }
-              @if (shop.contactPerson) {
-                <div class="mt-1 text-sm text-slate-600" [attr.testid]="'guidance-stop-contact-' + i">
-                  <fa-icon [icon]="faUser" class="me-2 text-slate-400"></fa-icon>{{ shop.contactPerson }}
-                </div>
-              }
-              <div class="mt-1 text-sm text-slate-500">
-                Einheit: {{ shop.foodUnit === 'KG' ? 'Kilogramm' : 'Kisten' }}
-              </div>
-              @if (shop.note) {
-                <div class="mt-2 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
-                     [attr.testid]="'guidance-stop-shop-note-' + i">
-                  <fa-icon [icon]="faNoteSticky" class="mt-0.5"></fa-icon>
-                  <span class="whitespace-pre-line">{{ shop.note }}</span>
-                </div>
-              }
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span class="tafel-h4 mb-0 font-semibold tabular-nums">{{ view.timeLabel }}</span>
+            @if (view.stop.shop) {
+              <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
+                {{ view.stop.shop.number }}
+              </span>
             }
+            <span class="tafel-h5 mb-0 font-medium">{{ view.title }}</span>
+            @if (view.stop.shop && !view.stop.shop.enabled) {
+              <span class="badge badge-danger" testid="guidance-stop-inactive">Filiale inaktiv</span>
+            }
+          </div>
 
-            @if (view.stop.description) {
-              <div class="mt-1 text-sm italic text-slate-500" [attr.testid]="'guidance-stop-description-' + i">
-                {{ view.stop.description }}
+          @if (view.stop.shop; as shop) {
+            <div class="mt-2 text-slate-700" testid="guidance-stop-address">
+              <fa-icon [icon]="faLocationDot" class="me-2 text-slate-400"></fa-icon>{{ shop.address }}
+            </div>
+            @if (shop.phone) {
+              <div class="mt-1">
+                <fa-icon [icon]="faPhone" class="me-2 text-slate-400"></fa-icon>
+                <a class="text-blue-700 underline" testid="guidance-stop-phone"
+                   [href]="'tel:' + shop.phone">{{ shop.phone }}</a>
               </div>
             }
-
-            @if (view.stop.returnItems.length > 0) {
-              <div class="mt-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900"
-                   [attr.testid]="'guidance-stop-return-items-' + i">
-                <div class="flex items-center gap-2 font-semibold">
-                  <fa-icon [icon]="faBoxesStacked"></fa-icon>
-                  Retourware abgeben
-                </div>
-                <ul class="ms-5 mt-1 list-disc">
-                  @for (item of view.stop.returnItems; track item.description) {
-                    <li>{{ item.amount }} × {{ item.description }}</li>
-                  }
-                </ul>
+            @if (shop.contactPerson) {
+              <div class="mt-1 text-slate-700" testid="guidance-stop-contact">
+                <fa-icon [icon]="faUser" class="me-2 text-slate-400"></fa-icon>{{ shop.contactPerson }}
               </div>
             }
+            <div class="mt-1 text-sm text-slate-500">
+              Einheit: {{ shop.foodUnit === 'KG' ? 'Kilogramm' : 'Kisten' }}
+            </div>
+            @if (shop.note) {
+              <div class="mt-3 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
+                   testid="guidance-stop-shop-note">
+                <fa-icon [icon]="faNoteSticky" class="mt-0.5"></fa-icon>
+                <span class="whitespace-pre-line">{{ shop.note }}</span>
+              </div>
+            }
+          }
 
-            <div class="mt-3 flex flex-wrap items-center gap-3">
-              @if (view.navigationUrl) {
-                <a matButton="filled" [attr.testid]="'guidance-navigate-button-' + i" [href]="view.navigationUrl"
-                   target="_blank" rel="noopener" [attr.aria-label]="view.navigationLabel">
-                  <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
-                  Navigation starten
-                </a>
-              }
-              <button matButton="filled" type="button"
-                      [class]="view.stop.completed ? 'button-danger' : 'button-success'"
-                      [attr.testid]="'guidance-toggle-button-' + i"
+          @if (view.stop.description) {
+            <div class="mt-2 italic text-slate-500" testid="guidance-stop-description">
+              {{ view.stop.description }}
+            </div>
+          }
+
+          @if (view.stop.returnItems.length > 0) {
+            <div class="mt-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-blue-900"
+                 testid="guidance-stop-return-items">
+              <div class="flex items-center gap-2 font-semibold">
+                <fa-icon [icon]="faBoxesStacked"></fa-icon>
+                Retourware abgeben
+              </div>
+              <ul class="ms-5 mt-1 list-disc">
+                @for (item of view.stop.returnItems; track item.description) {
+                  <li>{{ item.amount }} × {{ item.description }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <div class="mt-4 flex flex-wrap items-center gap-3">
+            @if (view.navigationUrl) {
+              <!-- the link opens the map app; the click handler only records that the stop was
+                   dealt with, so there is no second confirmation to tap -->
+              <a matButton="filled" class="w-full sm:w-auto" testid="guidance-navigate-button"
+                 [href]="view.navigationUrl" target="_blank" rel="noopener"
+                 [attr.aria-label]="view.navigationLabel"
+                 (click)="onNavigationStarted(view.stop)">
+                <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
+                Navigation starten
+              </a>
+            } @else {
+              <!-- a stop without a shop has nowhere to navigate to, so it needs a way of its own -->
+              <button matButton="filled" type="button" class="button-success w-full sm:w-auto"
+                      testid="guidance-done-button" [attr.aria-label]="view.toggleLabel"
+                      [disabled]="pendingStopId() !== undefined || view.stop.completed"
+                      (click)="toggleStop(view.stop)">
+                <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
+                Erledigt
+              </button>
+            }
+            @if (view.completedLabel) {
+              <span class="text-sm text-green-700" testid="guidance-completed-label">
+                {{ view.completedLabel }}
+              </span>
+            }
+            @if (view.stop.completed) {
+              <button matButton type="button" testid="guidance-undo-button"
                       [attr.aria-label]="view.toggleLabel"
                       [disabled]="pendingStopId() !== undefined"
                       (click)="toggleStop(view.stop)">
-                <fa-icon [icon]="view.stop.completed ? faRotateLeft : faCheck" class="me-2"></fa-icon>
-                {{ view.stop.completed ? 'Rückgängig' : 'Erledigt' }}
+                <fa-icon [icon]="faRotateLeft" class="me-2"></fa-icon>
+                Rückgängig
               </button>
-              @if (view.completedLabel) {
-                <span class="text-sm text-green-700" [attr.testid]="'guidance-completed-label-' + i">
-                  {{ view.completedLabel }}
-                </span>
-              }
-            </div>
-          </li>
-        } @empty {
-          <li class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="guidance-empty">
-            <fa-icon [icon]="faRoute" size="2x"></fa-icon>
-            <span>Für diese Route sind keine Stopps hinterlegt.</span>
-          </li>
-        }
-      </ol>
+            }
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <button matButton="outlined" type="button" testid="guidance-previous-button"
+                  [disabled]="!hasPreviousStop()" (click)="goToPreviousStop()">
+            <fa-icon [icon]="faChevronLeft" class="me-2"></fa-icon>
+            Vorheriger
+          </button>
+          <button matButton="outlined" type="button" testid="guidance-next-button"
+                  [disabled]="!hasNextStop()" (click)="goToNextStop()">
+            Nächster
+            <fa-icon [icon]="faChevronRight" class="ms-2"></fa-icon>
+          </button>
+        </div>
+      } @else {
+        <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="guidance-empty">
+          <fa-icon [icon]="faRoute" size="2x"></fa-icon>
+          <span>Für diese Route sind keine Stopps hinterlegt.</span>
+        </div>
+      }
     }
   </mat-card-content>
 </mat-card>
