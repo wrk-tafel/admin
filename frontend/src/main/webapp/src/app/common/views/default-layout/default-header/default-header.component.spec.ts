@@ -14,8 +14,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { SupportApiService, SupportClientContext } from '../../../../api/support-api.service';
 import { TafelToastrService } from '../../../components/tafel-toastr/tafel-toastr.service';
 import { SupportContextService } from '../../../support/support-context.service';
+import { ScreenshotService } from '../../../support/screenshot.service';
+
+const screenshot = 'data:image/jpeg;base64,AAAA';
 
 const clientContext: SupportClientContext = {
+    screenshot,
     page: 'http://localhost/uebersicht',
     userAgent: 'Mozilla/5.0',
     viewport: '1280x800',
@@ -31,6 +35,8 @@ describe('DefaultHeaderComponent', () => {
     let supportApiService: MockedObject<SupportApiService>;
     let toastrService: MockedObject<TafelToastrService>;
     let dialog: MockedObject<MatDialog>;
+    let supportContextService: MockedObject<SupportContextService>;
+    let screenshotService: MockedObject<ScreenshotService>;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
@@ -76,6 +82,12 @@ describe('DefaultHeaderComponent', () => {
                     useValue: {
                         collect: vi.fn().mockName('SupportContextService.collect').mockReturnValue(clientContext)
                     }
+                },
+                {
+                    provide: ScreenshotService,
+                    useValue: {
+                        capture: vi.fn().mockName('ScreenshotService.capture').mockResolvedValue(screenshot)
+                    }
                 }
             ]
         })
@@ -86,6 +98,8 @@ describe('DefaultHeaderComponent', () => {
         supportApiService = TestBed.inject(SupportApiService) as MockedObject<SupportApiService>;
         toastrService = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
         dialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+        supportContextService = TestBed.inject(SupportContextService) as MockedObject<SupportContextService>;
+        screenshotService = TestBed.inject(ScreenshotService) as MockedObject<ScreenshotService>;
     });
 
     it('should create', () => {
@@ -134,28 +148,47 @@ describe('DefaultHeaderComponent', () => {
         expect(authenticationService.logout).toHaveBeenCalled();
     });
 
-    it('open support dialog and submit sends the support request with the technical context', () => {
-        dialog.open.mockReturnValueOnce({afterClosed: () => of({title: 'Bug in login', text: 'Something is broken'})} as any);
+    it('open support dialog and submit sends the support request with the technical context', async () => {
+        dialog.open.mockReturnValueOnce({
+            afterClosed: () => of({title: 'Bug in login', text: 'Something is broken', includeScreenshot: true})
+        } as any);
         supportApiService.createSupportRequest.mockReturnValueOnce(of(undefined));
 
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         const component = fixture.componentInstance;
 
-        component.openSupportDialog();
+        await component.openSupportDialog();
 
-        expect(dialog.open).toHaveBeenCalled();
+        // the screenshot is taken before the dialog opens, so the dialog is never in the picture
+        expect(screenshotService.capture).toHaveBeenCalled();
+        expect(dialog.open).toHaveBeenCalledWith(expect.anything(), {data: {screenshot}});
+        expect(supportContextService.collect).toHaveBeenCalledWith(screenshot);
         expect(supportApiService.createSupportRequest)
           .toHaveBeenCalledWith('Bug in login', 'Something is broken', clientContext);
         expect(toastrService.success).toHaveBeenCalled();
     });
 
-    it('open support dialog and cancel does not send anything', () => {
+    it('leaves the screenshot out when the reporter unchecked it', async () => {
+        dialog.open.mockReturnValueOnce({
+            afterClosed: () => of({title: 'Bug in login', text: 'Something is broken', includeScreenshot: false})
+        } as any);
+        supportApiService.createSupportRequest.mockReturnValueOnce(of(undefined));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        await component.openSupportDialog();
+
+        expect(supportContextService.collect).toHaveBeenCalledWith(null);
+    });
+
+    it('open support dialog and cancel does not send anything', async () => {
         dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)} as any);
 
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         const component = fixture.componentInstance;
 
-        component.openSupportDialog();
+        await component.openSupportDialog();
 
         expect(dialog.open).toHaveBeenCalled();
         expect(supportApiService.createSupportRequest).not.toHaveBeenCalled();

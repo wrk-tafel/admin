@@ -22,6 +22,7 @@ describe('SupportApiService', () => {
 
   it('create support request', () => {
     const clientContext: SupportClientContext = {
+      screenshot: 'data:image/jpeg;base64,AAAA',
       page: 'http://localhost/uebersicht',
       userAgent: 'Mozilla/5.0',
       viewport: '1280x800',

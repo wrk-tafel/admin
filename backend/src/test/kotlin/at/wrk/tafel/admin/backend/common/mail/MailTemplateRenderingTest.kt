@@ -138,6 +138,7 @@ class MailTemplateRenderingTest {
         context.setVariable(
             "diagnostics",
             supportDiagnostics(
+                screenshotAttached = false,
                 environmentLabel = "PROD",
                 page = "unbekannt",
                 userAgent = "unbekannt",
@@ -154,6 +155,7 @@ class MailTemplateRenderingTest {
     }
 
     private fun supportDiagnostics(
+        screenshotAttached: Boolean = true,
         environmentLabel: String = "TEST",
         page: String = "http://localhost/kunden/suchen",
         userAgent: String = "Mozilla/5.0",
@@ -163,6 +165,7 @@ class MailTemplateRenderingTest {
         timeZone: String = "Europe/Vienna",
         recentErrors: List<SupportDiagnosticsError> = emptyList(),
     ) = SupportDiagnostics(
+        screenshotAttached = screenshotAttached,
         username = "test-user",
         reportedAt = "22.03.2026 10:15:30",
         version = "1.2.3",

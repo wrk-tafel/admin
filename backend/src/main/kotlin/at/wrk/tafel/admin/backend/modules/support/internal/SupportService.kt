@@ -1,19 +1,26 @@
 package at.wrk.tafel.admin.backend.modules.support.internal
 
+import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.support.model.SupportClientContext
 import at.wrk.tafel.admin.backend.modules.support.model.SupportRequest
+import org.slf4j.LoggerFactory
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Base64
 
 private val REPORTED_AT_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
+private const val SCREENSHOT_DATA_URL_PREFIX = "data:image/jpeg;base64,"
+private val logger = LoggerFactory.getLogger(SupportService::class.java)
 
 @Service
 class SupportService(
@@ -32,16 +39,44 @@ class SupportService(
             throw TafelApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Support-Kontakt ist nicht konfiguriert")
         }
 
+        val screenshot = decodeScreenshot(request.clientContext?.screenshot)
+
         val context = Context()
         context.setVariable("supportTitle", request.title)
         context.setVariable("supportText", request.text)
-        context.setVariable("diagnostics", collectDiagnostics(request.clientContext))
+        context.setVariable("diagnostics", collectDiagnostics(request.clientContext, screenshot != null))
 
         mailSenderService.sendHtmlMailTo(
             recipients = recipients,
             subject = "Support-Anfrage: ${request.title}",
+            attachments = listOfNotNull(screenshot),
             templateName = "mails/support-request-mail",
             context = context,
+        )
+    }
+
+    /**
+     * The screenshot the browser took of the page the report is about, as a mail attachment.
+     *
+     * A screenshot that cannot be decoded costs the report its picture, never the report itself -
+     * so anything unexpected here is dropped rather than thrown: it is the one part of the request
+     * that is a best-effort extra.
+     */
+    private fun decodeScreenshot(dataUrl: String?): MailAttachment? {
+        val base64 = dataUrl?.removePrefix(SCREENSHOT_DATA_URL_PREFIX)?.takeIf { it != dataUrl }
+            ?: return null
+
+        val bytes = try {
+            Base64.getDecoder().decode(base64)
+        } catch (e: IllegalArgumentException) {
+            logger.warn("Screenshot of a support request could not be decoded and was left out", e)
+            return null
+        }
+
+        return MailAttachment(
+            filename = "screenshot.jpg",
+            inputStreamSource = ByteArrayResource(bytes),
+            contentType = MediaType.IMAGE_JPEG_VALUE,
         )
     }
 
@@ -52,7 +87,8 @@ class SupportService(
      * the client - the reporter, the time and the running version are facts the server holds, and
      * only the browser-side half comes from the request.
      */
-    private fun collectDiagnostics(clientContext: SupportClientContext?) = SupportDiagnostics(
+    private fun collectDiagnostics(clientContext: SupportClientContext?, screenshotAttached: Boolean) = SupportDiagnostics(
+        screenshotAttached = screenshotAttached,
         username = SecurityContextHolder.getContext().authentication?.name ?: "unbekannt",
         reportedAt = LocalDateTime.now(clock).format(REPORTED_AT_FORMATTER),
         version = tafelAdminProperties.version,
@@ -75,6 +111,7 @@ class SupportService(
 }
 
 data class SupportDiagnostics(
+    val screenshotAttached: Boolean,
     val username: String,
     val reportedAt: String,
     val version: String,

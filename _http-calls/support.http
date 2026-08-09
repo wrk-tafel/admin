@@ -6,6 +6,7 @@ Content-Type: application/json
   "title": "Login geht nicht",
   "text": "Nach dem Anmelden bleibt die Seite leer.",
   "clientContext": {
+    "screenshot": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
     "page": "http://localhost:4200/uebersicht",
     "userAgent": "Mozilla/5.0 Chrome/128",
     "viewport": "1280x800",

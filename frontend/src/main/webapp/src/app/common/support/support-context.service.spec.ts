@@ -32,9 +32,10 @@ describe('SupportContextService', () => {
     clientLogService.record('HTTP 500 - GET /api/households');
     vi.useRealTimers();
 
-    const context = service.collect();
+    const context = service.collect('data:image/jpeg;base64,AAAA');
 
     expect(context).toEqual({
+      screenshot: 'data:image/jpeg;base64,AAAA',
       page: 'http://localhost/kunden/suchen',
       userAgent: 'Mozilla/5.0',
       viewport: '1280x800',
@@ -47,6 +48,10 @@ describe('SupportContextService', () => {
 
   it('collects an empty error list when nothing went wrong', () => {
     expect(service.collect().recentErrors).toEqual([]);
+  });
+
+  it('carries no screenshot when none was taken or the reporter left it out', () => {
+    expect(service.collect().screenshot).toBeNull();
   });
 
 });

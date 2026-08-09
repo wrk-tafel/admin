@@ -7,14 +7,27 @@
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Anliegen</mat-label>
-      <textarea matInput rows="9" testid="supportText"
+      <textarea matInput rows="6" testid="supportText"
                 [ngModel]="supportText()" (ngModelChange)="supportText.set($event)"></textarea>
     </mat-form-field>
     <p class="text-sm" testid="supportHint">
-      Die Anfrage wird per E-Mail an das Betreuungsteam geschickt. Mitgesendet werden automatisch
-      technische Infos zur Fehlersuche: Benutzername, aktuelle Seite, Browser und die letzten
-      Fehlermeldungen dieser Sitzung.
+      Die Anfrage wird per E-Mail versandt. Mitgesendet werden automatisch technische Infos zur
+      Fehlersuche: Benutzername, aktuelle Seite, Browser und die letzten Fehlermeldungen dieser
+      Sitzung.
     </p>
+    @if (data?.screenshot) {
+      <div class="mt-2 flex items-center gap-3">
+        <!-- Thumbnail-sized and beside the checkbox on purpose: it has to be visible without
+             scrolling, or the decision it exists for is not an informed one. -->
+        <img class="h-16 w-28 shrink-0 border border-gray-300 object-cover object-left-top"
+             testid="screenshotPreview" [src]="data!.screenshot"
+             alt="Vorschau des mitgesendeten Screenshots der aktuellen Seite"/>
+        <mat-checkbox testid="includeScreenshot"
+                      [ngModel]="includeScreenshot()" (ngModelChange)="includeScreenshot.set($event)">
+          Screenshot der aktuellen Seite mitschicken
+        </mat-checkbox>
+      </div>
+    }
   </div>
   <div tafel-dialog-actions>
     <button testid="okButton" matButton="filled" (click)="save()"

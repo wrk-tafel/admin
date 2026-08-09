@@ -18,6 +18,7 @@
     <p><strong>Browser:</strong>&nbsp;[[ ${diagnostics.userAgent} ]]</p>
     <p><strong>Fenster/Bildschirm:</strong>&nbsp;[[ ${diagnostics.viewport} ]]&nbsp;/&nbsp;[[ ${diagnostics.screen} ]]</p>
     <p><strong>Sprache/Zeitzone:</strong>&nbsp;[[ ${diagnostics.language} ]]&nbsp;/&nbsp;[[ ${diagnostics.timeZone} ]]</p>
+    <p><strong>Screenshot:</strong>&nbsp;<span th:if="${diagnostics.screenshotAttached}">siehe Anhang screenshot.jpg</span><span th:unless="${diagnostics.screenshotAttached}">nicht mitgesendet</span></p>
     <br/>
     <p><strong>Letzte Fehler im Browser:</strong></p>
     <div th:if="${!#lists.isEmpty(diagnostics.recentErrors)}">

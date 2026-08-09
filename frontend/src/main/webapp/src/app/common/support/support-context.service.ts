@@ -15,8 +15,13 @@ export class SupportContextService {
   private readonly clientLogService = inject(ClientLogService);
   private readonly window = inject(Window);
 
-  collect(): SupportClientContext {
+  /**
+   * @param screenshot the page as a JPEG data URL, or null when none was taken or the reporter
+   * chose not to send it - see `ScreenshotService`.
+   */
+  collect(screenshot: string | null = null): SupportClientContext {
     return {
+      screenshot,
       page: this.window.location.href,
       userAgent: this.window.navigator.userAgent,
       viewport: `${this.window.innerWidth}x${this.window.innerHeight}`,

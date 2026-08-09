@@ -24,6 +24,13 @@ data class SupportRequest(
  * an oversized payload, not business rules - the values are free-form browser strings.
  */
 data class SupportClientContext(
+    /**
+     * The page as a JPEG data URL (`data:image/jpeg;base64,...`), attached to the mail as an image.
+     * Null when the browser could not take one or the reporter chose not to send it. The cap is
+     * roughly 2 MB of image data - anything larger is dropped by the browser before it is sent.
+     */
+    @field:Size(max = 3_000_000)
+    val screenshot: String? = null,
     @field:Size(max = 500)
     val page: String? = null,
     @field:Size(max = 500)

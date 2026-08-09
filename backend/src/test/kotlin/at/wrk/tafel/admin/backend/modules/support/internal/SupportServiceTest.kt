@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.support.internal
 
+import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminSupportProperties
@@ -18,12 +19,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.thymeleaf.context.Context
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
+import java.util.Base64
 
 @ExtendWith(MockKExtension::class)
 class SupportServiceTest {
@@ -102,6 +105,7 @@ class SupportServiceTest {
         val diagnostics = contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics
         assertThat(diagnostics).isEqualTo(
             SupportDiagnostics(
+                screenshotAttached = false,
                 username = "test-user",
                 reportedAt = "22.03.2026 10:15:30",
                 version = "1.2.3",
@@ -151,6 +155,65 @@ class SupportServiceTest {
 
         assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).username)
             .isEqualTo("unbekannt")
+    }
+
+    @Test
+    fun `attaches the screenshot the browser sent`() {
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+        val imageBytes = byteArrayOf(1, 2, 3, 4)
+
+        service.sendSupportRequest(
+            SupportRequest(
+                title = "Something is broken",
+                text = "more details",
+                clientContext = SupportClientContext(
+                    screenshot = "data:image/jpeg;base64,${Base64.getEncoder().encodeToString(imageBytes)}",
+                ),
+            ),
+        )
+
+        val attachmentsSlot = slot<List<MailAttachment>>()
+        val contextSlot = slot<Context>()
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), capture(attachmentsSlot), any(), capture(contextSlot)) }
+
+        val attachment = attachmentsSlot.captured.single()
+        assertThat(attachment.filename).isEqualTo("screenshot.jpg")
+        assertThat(attachment.contentType).isEqualTo(MediaType.IMAGE_JPEG_VALUE)
+        assertThat(attachment.inputStreamSource.inputStream.readBytes()).isEqualTo(imageBytes)
+        assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).screenshotAttached).isTrue()
+    }
+
+    @Test
+    fun `sends the request without an attachment when no screenshot was sent`() {
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+
+        service.sendSupportRequest(SupportRequest(title = "title", text = "text"))
+
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), emptyList(), any(), any()) }
+    }
+
+    @Test
+    fun `still sends the request when the screenshot cannot be used`() {
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+
+        // a data URL of a type this doesn't handle, and one whose base64 is broken
+        listOf("data:image/png;base64,AAAA", "data:image/jpeg;base64,not-base64!!").forEach { screenshot ->
+            service.sendSupportRequest(
+                SupportRequest(
+                    title = "title",
+                    text = "text",
+                    clientContext = SupportClientContext(screenshot = screenshot),
+                ),
+            )
+        }
+
+        val contextSlot = mutableListOf<Context>()
+        verify(exactly = 2) {
+            mailSenderService.sendHtmlMailTo(any(), any(), emptyList(), any(), capture(contextSlot))
+        }
+        assertThat(contextSlot).allSatisfy { context ->
+            assertThat((context.getVariable("diagnostics") as SupportDiagnostics).screenshotAttached).isFalse()
+        }
     }
 
     @Test

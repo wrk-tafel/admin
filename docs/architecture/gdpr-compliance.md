@@ -51,8 +51,9 @@ code being wrong — see [G4](#g4-nothing-keeps-special-category-data-out-of-not
   transfer that does happen is the *subscription* itself: a staff device identifier held by a
   third-country provider.
 - **The in-app support form** mails whatever was typed to `tafeladmin.support.recipients`
-  (`SupportService`), together with the reporter's username and the browser context of the report.
-  It stays inside the organisation's own mail, but it is free text that can name a customer — see
+  (`SupportService`), together with the reporter's username, the browser context of the report and a
+  screenshot of the page it was written on. It stays inside the organisation's own mail, but both
+  the free text and the picture can carry a customer's data — see
   [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer).
 - **Downloads and prints.** The Kundenliste PDF for a distribution is a full attendance list with
   names; the Stammdatenblatt is a household's complete master data. Once printed, the application
@@ -146,11 +147,16 @@ but mails the request to the deployment's own support addresses
 Maria Musterfrau, wird das Einkommen falsch gerechnet" no longer becomes world-readable, mirrored
 and indexed within seconds.
 
-What is left is smaller and ordinary. The text is still free text that can name a customer, and it
-now lands in a mailbox — copied to whatever that mail server and its backups keep, outside anything
-this application can delete. The mail also carries the reporter's username and their browser context
-(page, user agent, last errors); the dialog says so, which is what makes that part fair processing
-rather than a surprise.
+What is left is ordinary but not nothing. The text is still free text that can name a customer, and
+it now lands in a mailbox — copied to whatever that mail server and its backups keep, outside
+anything this application can delete. The mail also carries the reporter's username, their browser
+context (page, user agent, last errors) and **a screenshot of the page the request was written on**,
+which on a customer detail screen is that household's name, address and income figures as a picture.
+
+What makes that defensible rather than a surprise: the destination is the organisation's own
+mailbox, the dialog states what is attached, and the screenshot is shown as a preview with a
+checkbox to leave it out (ADR-0040). It is still the largest single disclosure the feature makes,
+and it is one a user has to actively notice.
 
 **Smallest useful step:** a line at the note field's level of visibility in the dialog — report the
 household by its number rather than by name — plus a retention rule on the support mailbox, which is

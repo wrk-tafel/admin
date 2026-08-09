@@ -17,6 +17,8 @@ export class SupportApiService {
  * optional on the wire so a request still goes out when the browser can't tell us something.
  */
 export interface SupportClientContext {
+  /** The current page as a JPEG data URL, null when none was taken or the reporter opted out. */
+  screenshot: string | null;
   page: string;
   userAgent: string;
   viewport: string;
