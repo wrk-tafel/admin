@@ -15,7 +15,7 @@
     </p>
 
     <div class="hidden md:block">
-    <table mat-table [dataSource]="cars()?.cars ?? []" testid="cars-table"
+    <table mat-table [dataSource]="cars()?.cars ?? []" testid="cars-table" [trackBy]="trackById"
            cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>

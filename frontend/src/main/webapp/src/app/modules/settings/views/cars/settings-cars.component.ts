@@ -157,6 +157,16 @@ export class SettingsCarsComponent {
     });
   }
 
+  /**
+   * Without this the table rebuilds every row whenever the list is replaced - which a reorder does
+   * twice, optimistically and again from the response - and the rebuild throws away the row that
+   * currently has focus. Keyed by id, the existing rows are moved instead, so the handle the
+   * keyboard is on survives its own reorder.
+   */
+  protected trackById(index: number, item: {id: number}): number {
+    return item.id;
+  }
+
   protected drop(event: CdkDragDrop<CarData[]>) {
     this.reorder(event.previousIndex, event.currentIndex, false);
   }
