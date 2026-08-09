@@ -60,6 +60,11 @@ export class CustomerSearchComponent {
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
 
+  // What the role="status" region in the template says. A search replaces the whole result table,
+  // or clears it again, and neither is a change a screen reader notices on its own. It is its own
+  // signal rather than derived from searchResult(), because the empty result clears that signal.
+  searchAnnouncement = signal('');
+
   searchForCustomerId() {
     const customerId = this.customerId.value!;
 
@@ -93,8 +98,12 @@ export class CustomerSearchComponent {
         if (response.items.length === 0) {
           this.toastr.info('Keine Kunden gefunden!');
           this.searchResult.set(undefined);
+          this.searchAnnouncement.set('Keine Kunden gefunden');
         } else {
           this.searchResult.set(response);
+          this.searchAnnouncement.set(
+            response.totalCount === 1 ? '1 Kunde gefunden' : `${response.totalCount} Kunden gefunden`
+          );
         }
       });
   }

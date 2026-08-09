@@ -219,6 +219,31 @@ describe('Customer Search', () => {
       });
     });
 
+    // A live region that exists but is never filled looks exactly like a working one in any static
+    // check, so what it actually says after a search is what has to be asserted.
+    it('announces the number of results through a live region', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customer = response.body.data;
+
+        cy.byTestId('searchresult-announcement').should('exist').and('have.text', '');
+
+        cy.byTestId('searchInputText').type(customer.lastname);
+        cy.byTestId('search-button').click();
+        cy.byTestId('searchresult-table').should('be.visible');
+
+        cy.byTestId('searchresult-announcement')
+          .should('have.attr', 'role', 'status')
+          .and('contain.text', 'gefunden');
+      });
+    });
+
+    it('announces an empty search result', () => {
+      cy.byTestId('searchInputText').type('Zzzz Kein Treffer Zzzz');
+      cy.byTestId('search-button').click();
+
+      cy.byTestId('searchresult-announcement').should('have.text', 'Keine Kunden gefunden');
+    });
+
   });
 
 });

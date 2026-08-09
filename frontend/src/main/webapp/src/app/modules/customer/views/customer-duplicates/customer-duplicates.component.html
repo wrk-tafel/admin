@@ -26,6 +26,10 @@
 
     <hr/>
 
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="duplicates-announcement">{{ duplicatesAnnouncement() }}</div>
+
     @if (customerDuplicatesData()?.items?.length === 0) {
       <h2 class="tafel-h4 font-bold" testid="no-duplicates-message">Keine Duplikate gefunden!</h2>
     }

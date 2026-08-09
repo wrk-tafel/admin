@@ -1,4 +1,4 @@
-import {Component, inject, input, linkedSignal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal} from '@angular/core';
 import {CustomerApiService, CustomerData, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
@@ -37,6 +37,18 @@ export class CustomerDuplicatesComponent {
 
   // Writable signal linked to input - resets when input changes, locally writable for pagination/updates
   readonly customerDuplicatesData = linkedSignal(() => this.customerDuplicatesDataInput());
+
+  // What the role="status" region in the template says: paging, and merging or deleting a
+  // candidate, replace the whole list without announcing what is left.
+  protected readonly duplicatesAnnouncement = computed(() => {
+    const data = this.customerDuplicatesData();
+    if (!data) {
+      return '';
+    }
+    return data.totalCount === 0
+      ? 'Keine Duplikate gefunden'
+      : `${data.totalCount} mögliche Duplikate gefunden, Seite ${data.currentPage}`;
+  });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);

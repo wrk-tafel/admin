@@ -145,6 +145,22 @@ describe('User Search', () => {
       });
     });
 
+    // A live region that exists but is never filled looks exactly like a working one in any static
+    // check, so what it actually says after a search is what has to be asserted.
+    it('announces the number of results through a live region', () => {
+      cy.createDummyUser().then(response => {
+        cy.byTestId('searchresult-announcement').should('exist').and('have.text', '');
+
+        cy.byTestId('searchInputText').type(response.body.lastname);
+        search();
+        cy.byTestId('searchresult-table').should('be.visible');
+
+        cy.byTestId('searchresult-announcement')
+          .should('have.attr', 'role', 'status')
+          .and('contain.text', 'gefunden');
+      });
+    });
+
   });
 
 });

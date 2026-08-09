@@ -34,12 +34,12 @@
           <td mat-cell *matCellDef="let category; let i = index">
             @if (category.enabled) {
               <button matButton="filled" class="button-success ms-2" testid="enableFoodReturnCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                      (click)="toggleFoodReturnCategoryVisibility(category, false)" aria-label="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl">
+                      (click)="toggleFoodReturnCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl'">
                 <fa-icon [icon]="faEye"></fa-icon>
               </button>
             } @else {
               <button matButton="filled" class="button-danger ms-2" testid="disableFoodReturnCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                      (click)="toggleFoodReturnCategoryVisibility(category, true)" aria-label="Kategorie wieder aktivieren">
+                      (click)="toggleFoodReturnCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
                 <fa-icon [icon]="faEyeSlash"></fa-icon>
               </button>
             }
@@ -68,16 +68,16 @@
           <td mat-cell *matCellDef="let category; let i = index">
             @if (editingId() === category.id) {
               <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButton-' + i" matTooltip="Änderungen speichern"
-                      (click)="saveEdit(category)" aria-label="Änderungen speichern">
+                      (click)="saveEdit(category)" [attr.aria-label]="'Änderungen an Kategorie ' + category.name + ' speichern'">
                 <fa-icon [icon]="faCheck"></fa-icon>
               </button>
               <button matButton="outlined" class="ml-2" [attr.testid]="'cancelFoodReturnCategoryButton-' + i" matTooltip="Bearbeiten abbrechen"
-                      (click)="cancelEdit()" aria-label="Bearbeiten abbrechen">
+                      (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Kategorie ' + category.name + ' abbrechen'">
                 <fa-icon [icon]="faXmark"></fa-icon>
               </button>
             } @else {
               <button matButton="filled" class="button-danger" [attr.testid]="'editFoodReturnCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
-                      [disabled]="!category.enabled" (click)="startEdit(category)" aria-label="Kategorie bearbeiten">
+                      [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                 <fa-icon [icon]="faPencil"></fa-icon>
               </button>
             }
@@ -119,28 +119,28 @@
             <mat-card-actions class="flex gap-2">
               @if (category.enabled) {
                 <button matButton="filled" class="button-success" testid="enableFoodReturnCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                        (click)="toggleFoodReturnCategoryVisibility(category, false)" aria-label="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl">
+                        (click)="toggleFoodReturnCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl'">
                   <fa-icon [icon]="faEye"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" testid="disableFoodReturnCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                        (click)="toggleFoodReturnCategoryVisibility(category, true)" aria-label="Kategorie wieder aktivieren">
+                        (click)="toggleFoodReturnCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
                   <fa-icon [icon]="faEyeSlash"></fa-icon>
                 </button>
               }
               @if (editingId() === category.id) {
                 <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButtonMobile-' + i" matTooltip="Änderungen speichern"
-                        (click)="saveEdit(category)" aria-label="Änderungen speichern">
+                        (click)="saveEdit(category)" [attr.aria-label]="'Änderungen an Kategorie ' + category.name + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
                 <button matButton="outlined" [attr.testid]="'cancelFoodReturnCategoryButtonMobile-' + i" matTooltip="Bearbeiten abbrechen"
-                        (click)="cancelEdit()" aria-label="Bearbeiten abbrechen">
+                        (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Kategorie ' + category.name + ' abbrechen'">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger"
                         [attr.testid]="'editFoodReturnCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
-                        [disabled]="!category.enabled" (click)="startEdit(category)" aria-label="Kategorie bearbeiten">
+                        [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
               }

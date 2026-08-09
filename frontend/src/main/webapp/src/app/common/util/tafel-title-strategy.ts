@@ -8,10 +8,13 @@ const APPLICATION_NAME = 'Tafel Admin';
  * Puts the active route's `title` in front of the application name, so that every screen has a
  * document title of its own instead of all of them sharing the one from `index.html`.
  *
- * That title is what a screen reader announces after an in-app navigation - a single-page
- * application performs no document load the user agent could announce on its own - and what the
- * browser's tab, history and bookmarks show. Routes without a `title` keep the bare application
- * name rather than a dangling separator.
+ * The title is what the browser's tab, history and bookmarks show. It is **not** what announces
+ * the screen change: a `document.title` written during a client-side navigation is not announced
+ * by NVDA, JAWS or VoiceOver, because no document load happened for the user agent to report.
+ * Moving focus is what does that here - `AppComponent` focuses the shell's `main` on
+ * `NavigationEnd`, where the same title is rendered as the page's `h1`.
+ *
+ * Routes without a `title` keep the bare application name rather than a dangling separator.
  */
 @Injectable({providedIn: 'root'})
 export class TafelTitleStrategy extends TitleStrategy {

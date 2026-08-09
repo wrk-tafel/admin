@@ -2,14 +2,22 @@ import {Component, computed, inject, signal} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
-import {MatExpansionModule} from '@angular/material/expansion';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSlideToggleChange, MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
-import {faMagnifyingGlass, faNoteSticky, faPencil, faPlus, faShop, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {
+  faChevronDown,
+  faChevronUp,
+  faMagnifyingGlass,
+  faNoteSticky,
+  faPencil,
+  faPlus,
+  faShop,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {ShopApiService, ShopItem} from '../../../../api/shop-api.service';
@@ -37,7 +45,6 @@ const FOOD_UNIT_BADGE_BASE = 'rounded-md border px-2 py-0.5 text-xs font-medium'
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
-    MatExpansionModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonToggleModule,
@@ -67,6 +74,10 @@ export class SettingsShopsComponent {
   protected readonly filtered = computed(() => this.searchText().trim().length > 0 || this.enabledFilter() !== 'ALL');
 
   private readonly shopViews = computed(() => this._shops().map(shop => toShopView(shop)));
+
+  // which records are expanded, by shop id rather than by index, so a search or a filter change
+  // does not carry the expanded state over to whichever record now sits at that position
+  private readonly expandedIds = signal<ReadonlySet<number>>(new Set());
 
   protected readonly visibleShops = computed(() => {
     const search = this.searchText().trim().toLowerCase();
@@ -150,6 +161,18 @@ export class SettingsShopsComponent {
     });
   }
 
+  protected isExpanded(shopId: number): boolean {
+    return this.expandedIds().has(shopId);
+  }
+
+  protected toggleExpanded(shopId: number) {
+    const expanded = new Set(this.expandedIds());
+    if (!expanded.delete(shopId)) {
+      expanded.add(shopId);
+    }
+    this.expandedIds.set(expanded);
+  }
+
   protected onFilterChanged(event: MatButtonToggleChange) {
     this.enabledFilter.set(event.value as EnabledFilter);
   }
@@ -164,6 +187,8 @@ export class SettingsShopsComponent {
   protected readonly faXmark = faXmark;
   protected readonly faNoteSticky = faNoteSticky;
   protected readonly faShop = faShop;
+  protected readonly faChevronDown = faChevronDown;
+  protected readonly faChevronUp = faChevronUp;
 }
 
 function toShopView(shop: ShopItem): ShopView {

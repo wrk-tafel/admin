@@ -1,4 +1,20 @@
 // Here you can add other styles
 
+// A user who has asked their system for reduced motion gets no animation from us or from
+// Material/CDK: everything animated here is decoration (panel expansion, toast entry, ripples),
+// so cutting it to a near-zero duration costs nothing. Not `0s` - a handful of Material components
+// wait for a transition/animation event before they clean up, and never firing one leaves them
+// mid-state. WCAG 2.3.3.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 // custom tweaks for scrollbar styling (wip)
 @import "scrollbar";
