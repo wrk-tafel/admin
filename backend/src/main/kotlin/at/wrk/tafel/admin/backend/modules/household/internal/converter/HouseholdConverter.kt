@@ -86,12 +86,6 @@ class HouseholdConverter(
             householdEntity.lockReason = null
         }
 
-        // `migrated` flags a household that came in through the 2023 data import and whose required
-        // fields the import could not supply. Saving it through this form is what fills those in, so
-        // the flag is cleared here. No application code reads it; it stays accurate for ad-hoc
-        // queries asking which households still hold untouched imported data.
-        householdEntity.migrated = false
-
         // The main person row is always updated in place (never removed and re-created), so that
         // households.main_person_id never points at a row scheduled for orphan removal.
         val storedMainPerson = householdEntity.persons.firstOrNull { it.isMainPerson }
