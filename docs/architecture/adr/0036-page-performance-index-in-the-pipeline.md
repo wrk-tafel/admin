@@ -22,9 +22,10 @@ Two properties of this application decide what a useful measurement can look lik
   `/sse/distributions` from the layout, plus `/sse/dashboard` on the dashboard
   ([ADR-0005](0005-server-sent-events-with-a-transactional-outbox.md)). Lighthouse ends a page load
   when the network goes quiet, and a stream that never closes means it never does; the run then runs
-  to its `maxWaitForLoad` cap instead. Blocking the SSE URLs does not fix it either, because
-  `SseService` reconnects with a 1s-doubling backoff, turning one idle connection into a drip of
-  retries.
+  to its `maxWaitForLoad` cap instead. Blocking the SSE URLs lets a run settle again, but not for
+  free: `SseService` retries a blocked stream with a delay doubling from 1s to a 30s ceiling, so
+  quiet only arrives once the gap between two retries exceeds Lighthouse's quiet window — around
+  fifteen seconds into every run.
 
 ## Decision
 
@@ -75,9 +76,13 @@ someone adds a dependency.
 - Accessibility and best-practices scores come along for free, on the one page every user sees.
 - **The measurement covers the shell, not each screen.** A lazily-loaded route chunk that doubles in
   size is caught by the `anyScript` build budget, but its rendering cost is not measured. Auditing a
-  logged-in screen needs the backend jar, a database, a login cookie fed in through Lighthouse's
-  `extraHeaders`, and a `maxWaitForLoad` cap to deal with the never-idle SSE streams above — a
-  worthwhile follow-up, and roughly the same amount of machinery as the e2e job.
+  logged-in screen is a worthwhile follow-up and no more infrastructure than the e2e job already
+  stands up: a Postgres service, the jar started in the background under the `e2e` profile, a
+  `tafel-admin-jwt` cookie from `POST /api/login` passed in through Lighthouse's `extraHeaders` (or a
+  `collect.puppeteerScript` that logs in through the UI), plus `blockedUrlPatterns` and a
+  `maxWaitForLoad` cap for the SSE streams above. What makes it a decision rather than a chore is the
+  baseline: an authenticated screen's numbers depend on the test data it renders, so the threshold
+  moves whenever the `e2e` fixtures do.
 - **Absolute numbers from this job are not production numbers.** lhci's static server is not the
   Spring Boot container behind its reverse proxy, and localhost is not the network. What the job can
   compare honestly is one commit against the next, on the same setup.
