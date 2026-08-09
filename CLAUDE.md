@@ -359,6 +359,13 @@ work** (pre-existing, unrelated to the change you're making):
 - **Bigger or unrelated**: don't fix it inline — file a GitHub issue (`gh issue create`) so it can
   be tackled separately, and mention it to the user rather than silently expanding the task's scope.
 
+**GitHub issues are written entirely in English — title and body both.** The application's UI,
+routes and user guide are German, and some older issues carry German titles, so it is easy to
+follow the wrong example: don't. Quoting German UI strings, route paths or identifiers inside an
+English issue is fine and expected (e.g. the "Keine Duplikate gefunden!" empty state) — it's the
+prose that stays English. The same goes for PR titles and descriptions, which additionally follow
+[Commit Conventions](#commit-conventions).
+
 ## Code Conventions
 
 **Documentation describes current state, not history:** CLAUDE.md, module `README.md` files, and
