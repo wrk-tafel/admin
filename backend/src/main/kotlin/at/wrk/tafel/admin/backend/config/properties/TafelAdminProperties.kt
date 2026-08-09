@@ -97,15 +97,21 @@ class TafelAdminAuditProperties {
 
     /**
      * How long a recorded change is kept. The log holds names, addresses and income figures of
-     * people whose household may since have been deleted, so it cannot be kept indefinitely; a year
-     * covers the full cycle of a household's validity period plus the season that follows it, which
-     * is the window a support question can realistically still reach back into.
+     * people whose household may since have been deleted - precisely the data a deletion is meant to
+     * remove - so the window is kept to what the trail is actually used for: answering "who changed
+     * this, and what was it before" while the change is still being questioned. That is a matter of
+     * days or weeks, not years, and a shorter window is the cheaper answer to the DSGVO question
+     * than any amount of pseudonymisation.
+     *
+     * Raise it per deployment if a longer trail is genuinely needed; it is re-read per use, so a
+     * change takes effect without a restart. Note that raising it does not bring back what has
+     * already been deleted.
      *
      * Deleting a household deliberately does *not* purge its entries early - the DELETE entry, with
      * the last known values, is the single thing the old schema lost and this table exists for. They
      * age out on this clock like everything else.
      */
-    var retentionDays: Long = 365
+    var retentionDays: Long = 30
 }
 
 @ExcludeFromTestCoverage

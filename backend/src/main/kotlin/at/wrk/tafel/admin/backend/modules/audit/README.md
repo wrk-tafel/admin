@@ -79,10 +79,14 @@ cannot turn up in a household's history.
 
 ## Retention
 
-`AuditRetentionService` removes entries older than `tafeladmin.audit.retentionDays` (default 365)
-every day at 05:00, and is the only thing that ever deletes one. Deleting a household does **not**
-purge its entries early: the `DELETE` entry with the last known values is precisely what the old
-schema lost on every merge.
+`AuditRetentionService` removes entries older than `tafeladmin.audit.retentionDays` (default 30)
+every day at 05:00, and is the only thing that ever deletes one. The window is short on purpose: the
+log holds names, addresses and income figures of people whose household may since have been deleted,
+so it is bounded by what the trail is used for - questioning a recent change - rather than by how
+long it might conceivably be interesting.
+
+Deleting a household does **not** purge its entries early: the `DELETE` entry with the last known
+values is precisely what the old schema lost on every merge.
 
 Both that window and `tafeladmin.audit.enabled` are re-read per use, so an operator can widen the
 window or switch recording off on a running deployment. The schedule itself

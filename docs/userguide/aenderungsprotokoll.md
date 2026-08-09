@@ -8,7 +8,7 @@ Erfasst werden Änderungen an Kunden (inklusive weiterer Personen, Notizen und D
 
 Bewusst **nicht** erfasst werden die Anmeldungen zu den einzelnen Ausgabetagen: diese sind ohnehin bereits ein Verlauf und stehen in den [Statistiken](statistiken.md) zur Verfügung. Auch die [Anmelde-Versuche](benutzer.md#anmelde-versuche) haben eine eigene Liste unter [Benutzer](benutzer.md).
 
-Das Änderungsprotokoll ist ein reines Nachschlagewerk: Einträge können weder bearbeitet noch gelöscht werden. Sie entstehen automatisch mit der Änderung, die sie beschreiben, und werden nach Ablauf der Aufbewahrungsfrist (standardmäßig ein Jahr) automatisch entfernt.
+Das Änderungsprotokoll ist ein reines Nachschlagewerk: Einträge können weder bearbeitet noch gelöscht werden. Sie entstehen automatisch mit der Änderung, die sie beschreiben, und werden nach Ablauf der Aufbewahrungsfrist automatisch entfernt – standardmäßig nach 30 Tagen. Das Protokoll ist damit dazu gedacht, eine kürzlich erfolgte Änderung nachzuvollziehen, und nicht als Langzeitarchiv: Wer eine Änderung klären will, sollte das zeitnah tun.
 
 > [!IMPORTANT]
 > Für das Änderungsprotokoll ist die Berechtigung **Änderungsprotokoll** erforderlich (siehe [Benutzer](benutzer.md)). Sie ist absichtlich von der Kundenverwaltung getrennt: Die aktuellen Daten eines Kunden zu sehen und jede jemals daran vorgenommene Änderung samt Vorgängerwerten zu sehen, sind zwei unterschiedliche Zugriffsstufen.
@@ -19,7 +19,7 @@ Das Änderungsprotokoll ist ein reines Nachschlagewerk: Einträge können weder 
 
 Der Menüpunkt **Änderungsprotokoll** zeigt die erfassten Änderungen, die neueste zuerst.
 
-Beim Öffnen ist die Ansicht bereits auf die häufigste Frage eingestellt: **Datensatz-Art "Kunde"** und als Zeitraum **das letzte Monat bis heute**. Ohne diese Vorauswahl müsste man sich – sobald das Protokoll ein Jahr Verlauf enthält – erst durch Monate von Benutzer- und Einstellungs-Einträgen blättern. Beide Vorgaben sind nur ein Ausgangspunkt und lassen sich jederzeit ändern: Über "Alle" bei der Datensatz-Art bzw. durch Leeren der Datumsfelder sieht man wieder das gesamte Protokoll.
+Beim Öffnen ist die Ansicht bereits auf die häufigste Frage eingestellt: **Datensatz-Art "Kunde"** und als Zeitraum **das letzte Monat bis heute**. Ohne diese Vorauswahl müsste man sich erst durch Benutzer- und Einstellungs-Einträge blättern, um zu den Kunden zu kommen. Beide Vorgaben sind nur ein Ausgangspunkt und lassen sich jederzeit ändern: Über "Alle" bei der Datensatz-Art bzw. durch Leeren der Datumsfelder sieht man wieder das gesamte Protokoll.
 
 ![Änderungsprotokoll](images/aenderungsprotokoll.jpg)
 

@@ -22,7 +22,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 /**
  * The screen opens on the question it is almost always opened for: what changed on customers
  * recently. Landing on the unfiltered log would mean paging through user and settings entries to
- * get there, and - once the log has a year of history in it - through months of them.
+ * get there first.
  *
  * Both defaults are a starting point, not a restriction: the record type has an "Alle" option and
  * the dates can be cleared, which is why "Filter zurücksetzen" returns here rather than to empty.

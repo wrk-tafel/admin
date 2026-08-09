@@ -25,8 +25,9 @@ class AuditRetentionServiceTest {
     private lateinit var properties: TafelAdminProperties
     private lateinit var service: AuditRetentionService
 
+    /** The moment the job actually fires, so the cutoffs below read like real ones. */
     private val clock = Clock.fixed(
-        ZonedDateTime.of(2026, 8, 9, 3, 30, 0, 0, ZoneId.systemDefault()).toInstant(),
+        ZonedDateTime.of(2026, 8, 9, 5, 0, 0, 0, ZoneId.systemDefault()).toInstant(),
         ZoneId.systemDefault(),
     )
 
@@ -38,14 +39,29 @@ class AuditRetentionServiceTest {
 
     @Test
     fun `removes entries older than the configured retention window`() {
-        properties.audit.retentionDays = 365
+        properties.audit.retentionDays = 90
         every { auditLogRepository.deleteAllByOccurredAtBefore(any()) } returns 7
 
         service.cleanupExpiredEntries()
 
         val cutoff = slot<LocalDateTime>()
         verify { auditLogRepository.deleteAllByOccurredAtBefore(capture(cutoff)) }
-        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2025, 8, 9, 3, 30, 0))
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2026, 5, 11, 5, 0, 0))
+    }
+
+    /**
+     * The default is what every deployment that doesn't say otherwise runs with, and it is a DSGVO
+     * decision rather than a tuning knob - worth failing a test if it is changed by accident.
+     */
+    @Test
+    fun `keeps a month by default`() {
+        every { auditLogRepository.deleteAllByOccurredAtBefore(any()) } returns 0
+
+        service.cleanupExpiredEntries()
+
+        val cutoff = slot<LocalDateTime>()
+        verify { auditLogRepository.deleteAllByOccurredAtBefore(capture(cutoff)) }
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2026, 7, 10, 5, 0, 0))
     }
 
     @Test

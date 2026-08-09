@@ -943,9 +943,11 @@ VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);
 -- these rows carry no matching change in the data itself: they describe edits that never happened.
 --
 -- Shaped so each filter has a visible effect: every entity type and operation occurs, the actors
--- are three different users, the business keys are households that exist in this fixture, and the
--- timestamps run from 2 hours to ~83 days old. The screen opens on customers of the last month, so
--- roughly a third of these are visible at first and the rest appear once the date range is widened.
+-- are three different users, and the business keys are households that exist in this fixture. The
+-- timestamps run from 2 hours to ~29 days old - deliberately inside tafeladmin.audit.retentionDays,
+-- so the nightly cleanup never quietly removes half the fixture from a long-running environment.
+-- That also means the screen opens with all of them: narrowing the date range is what shows it
+-- working, which is what one actually does with it.
 --
 -- The newest is deliberately 2 hours old: an e2e test that creates a customer and then reads the
 -- log expects its own change first, which a fixture row stamped "now" could tie with.
@@ -978,7 +980,7 @@ WITH shapes (idx, entity_type, entity_id, business_key, operation, changed_field
 INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, entity_type, entity_id,
                        business_key, operation, changed_fields)
 SELECT n,
-       NOW() - interval '2 hours' - (n * interval '20 hours'),
+       NOW() - interval '2 hours' - (n * interval '7 hours'),
        CASE n % 3 WHEN 0 THEN 100 WHEN 1 THEN 300 ELSE 200 END,
        CASE n % 3 WHEN 0 THEN 'e2etest' WHEN 1 THEN 'admin' ELSE 'testuser' END,
        shapes.entity_type,

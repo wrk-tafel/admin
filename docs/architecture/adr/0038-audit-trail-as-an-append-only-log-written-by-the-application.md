@@ -61,7 +61,7 @@ is behind the request.
   on the `/aenderungsprotokoll` administration screen. There is no endpoint that writes, edits or
   deletes an entry.
 - **Entries expire.** `AuditRetentionService` removes entries older than
-  `tafeladmin.audit.retentionDays` (default 365) daily at 05:00
+  `tafeladmin.audit.retentionDays` (default 30) daily at 05:00
   (`tafeladmin.audit.cleanupCron`). Deleting a household does *not* purge its
   entries early — the DELETE entry with the last known values is the thing the old schema lost on
   every merge, and dropping it on request would defeat the point of recording it.
@@ -84,9 +84,11 @@ is behind the request.
   runs *before* Hibernate's own commit-time flush. Without that, an entity modified but not yet
   written would raise its event too late and its change would be lost.
 - **The log holds personal data with a retention clock on it.** Names, addresses and income figures
-  of people whose household may since have been deleted are kept for a year. That is a deliberate
-  DSGVO trade-off, not an oversight, and it is why the window is configuration rather than a
-  constant.
+  of people whose household may since have been deleted are kept for 30 days. Bounding the window by
+  what the trail is actually used for - questioning a recent change - is the cheaper answer to the
+  DSGVO question than pseudonymisation would have been, and it is why the window is configuration
+  rather than a constant. The cost is that a question asked two months later can no longer be
+  answered.
 - Password values are never written, only the fact that the field changed (`AuditScope`'s
   `redactedFields`). The stored value is an Argon2 hash, but an audit trail is read by more people and
   kept longer than the `users` table.
