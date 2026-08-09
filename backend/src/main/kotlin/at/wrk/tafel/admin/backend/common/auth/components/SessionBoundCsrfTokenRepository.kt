@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.web.csrf.CsrfTokenRepository
@@ -34,7 +33,7 @@ import javax.crypto.spec.SecretKeySpec
 class SessionBoundCsrfTokenRepository(
     private val delegate: CookieCsrfTokenRepository,
     private val secret: String,
-) : CsrfTokenRepository {
+) : CsrfTokenRepository by delegate {
 
     companion object {
         private const val HMAC_ALGORITHM = "HmacSHA256"
@@ -48,10 +47,6 @@ class SessionBoundCsrfTokenRepository(
         }
         return DefaultCsrfToken(generatedToken.headerName, generatedToken.parameterName, deriveTokenValue(jwt))
     }
-
-    override fun saveToken(token: CsrfToken?, request: HttpServletRequest, response: HttpServletResponse) = delegate.saveToken(token, request, response)
-
-    override fun loadToken(request: HttpServletRequest): CsrfToken? = delegate.loadToken(request)
 
     private fun deriveTokenValue(jwt: String): String {
         val mac = Mac.getInstance(HMAC_ALGORITHM)

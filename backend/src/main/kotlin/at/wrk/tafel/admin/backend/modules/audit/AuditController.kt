@@ -36,12 +36,14 @@ class AuditController(
         @RequestParam("page") page: Int?,
         @RequestParam("pageSize") pageSize: Int?,
     ): PagedResponse<AuditEntryItem> = auditService.search(
-        entityType = entityType?.takeIf { it.isNotBlank() },
-        operation = operation,
-        actorUsername = actorUsername?.takeIf { it.isNotBlank() },
-        businessKey = businessKey?.takeIf { it.isNotBlank() },
-        from = from,
-        to = to,
+        filter = AuditSearchFilter(
+            entityType = entityType?.takeIf { it.isNotBlank() },
+            operation = operation,
+            actorUsername = actorUsername?.takeIf { it.isNotBlank() },
+            businessKey = businessKey?.takeIf { it.isNotBlank() },
+            from = from,
+            to = to,
+        ),
         page = page,
         pageSize = pageSize,
     )

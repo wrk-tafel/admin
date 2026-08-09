@@ -2,12 +2,12 @@ package at.wrk.tafel.admin.backend.modules.audit.internal
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.modules.audit.AuditEntryItem
 import at.wrk.tafel.admin.backend.modules.audit.AuditFieldChangeItem
+import at.wrk.tafel.admin.backend.modules.audit.AuditSearchFilter
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -16,7 +16,6 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
-import java.time.LocalDate
 
 @Service
 class AuditService(
@@ -49,16 +48,7 @@ class AuditService(
      * log, newest first.
      */
     @Transactional(readOnly = true)
-    fun search(
-        entityType: String?,
-        operation: AuditOperation?,
-        actorUsername: String?,
-        businessKey: String?,
-        from: LocalDate?,
-        to: LocalDate?,
-        page: Int?,
-        pageSize: Int?,
-    ): PagedResponse<AuditEntryItem> {
+    fun search(filter: AuditSearchFilter, page: Int?, pageSize: Int?): PagedResponse<AuditEntryItem> {
         val pageRequest = PageRequest.of(
             page?.minus(1) ?: 0,
             PaginationDefaults.resolvePageSize(pageSize),
@@ -69,12 +59,12 @@ class AuditService(
 
         val specification = Specification.allOf(
             listOfNotNull(
-                entityType?.let { AuditLogEntity.Specs.entityTypeEquals(it) },
-                operation?.let { AuditLogEntity.Specs.operationEquals(it) },
-                actorUsername?.let { AuditLogEntity.Specs.actorUsernameEquals(it) },
-                businessKey?.let { AuditLogEntity.Specs.businessKeyEquals(it) },
-                from?.let { AuditLogEntity.Specs.occurredAtFrom(it.atStartOfDay()) },
-                to?.let { AuditLogEntity.Specs.occurredAtUntil(it.plusDays(1).atStartOfDay()) },
+                filter.entityType?.let { AuditLogEntity.Specs.entityTypeEquals(it) },
+                filter.operation?.let { AuditLogEntity.Specs.operationEquals(it) },
+                filter.actorUsername?.let { AuditLogEntity.Specs.actorUsernameEquals(it) },
+                filter.businessKey?.let { AuditLogEntity.Specs.businessKeyEquals(it) },
+                filter.from?.let { AuditLogEntity.Specs.occurredAtFrom(it.atStartOfDay()) },
+                filter.to?.let { AuditLogEntity.Specs.occurredAtUntil(it.plusDays(1).atStartOfDay()) },
             ),
         )
 

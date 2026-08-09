@@ -19,11 +19,11 @@ import org.springframework.beans.factory.ObjectProvider
  * Registering up front means `beforeCommit` always runs, and it is what forces the flush that makes
  * the buffer complete before it is written.
  *
- * The hooks below are the earliest ones that are reliably inside a Spring-managed transaction.
- * `afterTransactionBegin` is *not* usable for this: `JpaTransactionManager` begins the Hibernate
- * transaction before it activates synchronization, so arming there always finds none active and
- * does nothing. `onLoad` covers read-then-modify, `onPersist`/`onSave` a new entity, `onRemove`/
- * `onDelete` a removal - between them, anything that could produce an audited change.
+ * These two hooks are the earliest ones reliably inside a Spring-managed transaction, and between
+ * them they cover every audited change: [onLoad] catches read-then-modify and read-then-delete,
+ * [onPersist] a brand-new entity. `afterTransactionBegin` is *not* usable - `JpaTransactionManager`
+ * begins the Hibernate transaction before it activates synchronization, so arming there always
+ * finds none active and does nothing.
  *
  * The writer is resolved per call through an [ObjectProvider]: this interceptor is handed to
  * Hibernate while the `EntityManagerFactory` is still being built, and the writer needs a repository
@@ -37,31 +37,20 @@ class AuditTransactionInterceptor(
         private val logger = LoggerFactory.getLogger(AuditTransactionInterceptor::class.java)
     }
 
-    override fun onLoad(entity: Any?, id: Any?, state: Array<Any?>?, propertyNames: Array<String>?, types: Array<Type>?): Boolean {
-        arm()
-        return false
-    }
+    override fun onLoad(entity: Any?, id: Any?, state: Array<Any?>?, propertyNames: Array<String>?, types: Array<Type>?): Boolean = armOn("load")
 
-    override fun onPersist(entity: Any?, id: Any?, state: Array<Any?>?, propertyNames: Array<String>?, types: Array<Type>?): Boolean {
-        arm()
-        return false
-    }
-
-    override fun onSave(entity: Any?, id: Any?, state: Array<Any?>?, propertyNames: Array<String>?, types: Array<Type>?): Boolean {
-        arm()
-        return false
-    }
-
-    override fun onRemove(entity: Any?, id: Any?, state: Array<Any?>?, propertyNames: Array<String>?, types: Array<Type>?) {
-        arm()
-    }
+    override fun onPersist(entity: Any?, id: Any?, state: Array<Any?>?, propertyNames: Array<String>?, types: Array<Type>?): Boolean = armOn("persist")
 
     /**
      * Never allowed to throw: this runs inside Hibernate's own callbacks, where an exception would
-     * take down the business transaction that triggered it.
+     * take down the business transaction that triggered it. [trigger] names the hook so a failure
+     * says which one it came from - the two differ in nothing else.
+     *
+     * @return false - the entity's state is left exactly as Hibernate handed it over.
      */
-    private fun arm() {
+    private fun armOn(trigger: String): Boolean {
         runCatching { auditLogWriter.getObject().armForCurrentTransaction() }
-            .onFailure { logger.error("Could not arm the audit trail for this transaction", it) }
+            .onFailure { logger.error("Could not arm the audit trail for this transaction (on {})", trigger, it) }
+        return false
     }
 }

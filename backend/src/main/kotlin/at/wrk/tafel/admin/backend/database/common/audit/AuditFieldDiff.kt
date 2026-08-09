@@ -54,8 +54,8 @@ object AuditFieldDiff {
                 // on identity rather than equality, so an equal-but-not-same value has to be
                 // filtered out here - and comparing the redacted forms instead would make every
                 // password change look like no change at all, since both sides read "***".
-                val oldValue = renderValue(name, oldState?.getOrNull(index))
-                val newValue = renderValue(name, state?.getOrNull(index))
+                val oldValue = renderValue(oldState?.getOrNull(index))
+                val newValue = renderValue(state?.getOrNull(index))
                 if (oldValue == newValue) {
                     null
                 } else {
@@ -73,7 +73,7 @@ object AuditFieldDiff {
      */
     private fun isLoggable(propertyName: String, value: Any?): Boolean = propertyName !in AuditScope.ignoredFields && value !is Collection<*> && value !is Map<*, *>
 
-    internal fun renderValue(propertyName: String, value: Any?, redactedFields: Set<String>): Any? = redactIfNeeded(propertyName, renderValue(propertyName, value), redactedFields)
+    internal fun renderValue(propertyName: String, value: Any?, redactedFields: Set<String>): Any? = redactIfNeeded(propertyName, renderValue(value), redactedFields)
 
     private fun redactIfNeeded(propertyName: String, renderedValue: Any?, redactedFields: Set<String>): Any? = if (renderedValue != null && propertyName in redactedFields) REDACTED else renderedValue
 
@@ -82,7 +82,7 @@ object AuditFieldDiff {
      * `toString()` is not stable, and reading through to its fields would drag half the object graph
      * into the log. A lazy proxy's id is taken without initializing it.
      */
-    private fun renderValue(propertyName: String, value: Any?): Any? = when (value) {
+    private fun renderValue(value: Any?): Any? = when (value) {
         null -> null
         is HibernateProxy -> value.hibernateLazyInitializer.identifier
         is BaseEntity -> value.id

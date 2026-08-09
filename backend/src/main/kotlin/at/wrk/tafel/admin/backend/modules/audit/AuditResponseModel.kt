@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.audit
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -28,6 +29,23 @@ data class AuditFieldChangeItem(
     val field: String,
     val oldValue: String?,
     val newValue: String?,
+)
+
+/**
+ * What the administration screen narrows the log by. One value rather than six parameters: they are
+ * only ever passed together, straight from the query string to the specification that reads them.
+ *
+ * Not a `Request` despite naming a controller parameter list - it is bound from query parameters,
+ * never from a request body, so the suffix convention in CLAUDE.md does not apply.
+ */
+@ExcludeFromTestCoverage
+data class AuditSearchFilter(
+    val entityType: String? = null,
+    val operation: AuditOperation? = null,
+    val actorUsername: String? = null,
+    val businessKey: String? = null,
+    val from: LocalDate? = null,
+    val to: LocalDate? = null,
 )
 
 /**

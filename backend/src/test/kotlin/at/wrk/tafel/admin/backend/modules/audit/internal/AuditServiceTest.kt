@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.modules.audit.AuditSearchFilter
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -94,16 +95,7 @@ class AuditServiceTest {
     fun `search pages newest first and tie-breaks on the id`() {
         every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns PageImpl(emptyList())
 
-        service.search(
-            entityType = null,
-            operation = null,
-            actorUsername = null,
-            businessKey = null,
-            from = null,
-            to = null,
-            page = null,
-            pageSize = null,
-        )
+        service.search(AuditSearchFilter(), page = null, pageSize = null)
 
         val pageable = slot<Pageable>()
         verify { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), capture(pageable)) }
@@ -117,12 +109,14 @@ class AuditServiceTest {
             PageImpl(listOf(auditEntry(null)), PageRequest.of(0, 10), 1)
 
         val result = service.search(
-            entityType = "Household",
-            operation = AuditOperation.UPDATE,
-            actorUsername = "test-user",
-            businessKey = "1234",
-            from = LocalDate.of(2026, 1, 1),
-            to = LocalDate.of(2026, 1, 31),
+            AuditSearchFilter(
+                entityType = "Household",
+                operation = AuditOperation.UPDATE,
+                actorUsername = "test-user",
+                businessKey = "1234",
+                from = LocalDate.of(2026, 1, 1),
+                to = LocalDate.of(2026, 1, 31),
+            ),
             page = 1,
             pageSize = 10,
         )
