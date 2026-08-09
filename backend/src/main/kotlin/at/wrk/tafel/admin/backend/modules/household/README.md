@@ -30,6 +30,16 @@ module, and named interfaces gate service/DTO access only (see
   (in [`HouseholdResponseModel.kt`](HouseholdResponseModel.kt)) expose `persons: List<Person>` with
   `mainPerson()`/`additionalPersons()` helper methods, mirroring
   `HouseholdEntity.additionalPersons()` on the entity side.
+- The address fields the customer form marks required are also enforced by the schema
+  (`R__00091_household_required_fields.sql`, locked down by `HouseholdRequiredFieldsIT`):
+  `address_street` and `single_parent` are `not null`, while house number, postal code and city are
+  `check (...) not valid` constraints — enforced on every insert and update, but tolerating the
+  handful of households the 2023 import left without a reconstructable address. Run
+  `validate constraint` on them once those are filled in by hand.
+  **A person may still be incomplete on purpose**: missing first/last name, birth date or gender is
+  exactly what `HouseholdEntity.Specs.postProcessingNecessary()` and the "Daten unvollständig"
+  search filter exist to surface, so `persons` carries no such constraints. `telephone_number` is
+  not enforced either — only the frontend treats it as mandatory, `HouseholdRequest` does not.
 - Legacy: the old `customers` / `customers_addpersons` tables (see
   `R__00067_household_person_refactor.sql`) were superseded by `households`/`persons`. They are kept
   read-only for a production observation window before a separate cleanup migration
