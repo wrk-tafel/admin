@@ -368,6 +368,19 @@ return true;
         expect(document.activeElement).toBe(main);
     });
 
+    // The whole point of the link is to come before what it skips - inside the sidenav content it
+    // would render behind the navigation and be reached only after tabbing through all of it.
+    it('the skip link comes before the navigation in the document', () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        const skipLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[testid="skip-to-content"]');
+        const nav: HTMLElement = fixture.nativeElement.querySelector('nav');
+
+        // eslint-disable-next-line no-bitwise
+        expect(skipLink.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
     it('an expandable nav group is a button that reports its expanded state', () => {
         authService.hasPermission.mockReturnValue(true);
         authService.hasAnyPermission.mockReturnValue(true);

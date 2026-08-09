@@ -163,6 +163,14 @@ describe('Accessibility', () => {
 
     cy.byTestId('skip-to-content').click();
     cy.focused().should('have.attr', 'id', 'hauptinhalt');
+
+    // It only skips anything if it comes before what it skips.
+    cy.byTestId('skip-to-content').then(($link) => {
+      cy.get('nav').then(($nav) => {
+        // eslint-disable-next-line no-bitwise
+        expect($link[0].compareDocumentPosition($nav[0]) & Node.DOCUMENT_POSITION_FOLLOWING).to.be.greaterThan(0);
+      });
+    });
   });
 
   it('lets the keyboard reach and expand a collapsible nav group', () => {

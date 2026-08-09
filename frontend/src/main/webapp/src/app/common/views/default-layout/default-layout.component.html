@@ -1,3 +1,14 @@
+<!--
+  Ahead of the sidenav container, because that is what makes it the first thing the tab order
+  reaches - inside `mat-sidenav-content` it would sit behind the whole navigation it exists to skip.
+  Hidden until it has focus. The click is handled here instead of letting the browser follow the
+  fragment, because `anchorScrolling` is enabled in `appConfig` and the router would turn it into a
+  navigation of its own.
+-->
+<a href="#hauptinhalt" (click)="skipToContent($event)" testid="skip-to-content" class="tafel-skip-link">
+  Zum Hauptinhalt springen
+</a>
+
 <mat-sidenav-container class="h-screen print:hidden">
   <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
                class="!border-r-0 transition-all duration-200"
@@ -34,9 +45,14 @@
                 nowhere. An `<a>` without an `href` is not focusable and not activatable by keyboard,
                 which left the whole submenu unreachable without a mouse.
               -->
+              <!--
+                Both attributes drop away while the sidebar is collapsed: the submenu is not
+                rendered at all in that state, so there is nothing for the button to control and
+                nothing its expanded state could describe.
+              -->
               <button type="button" (click)="toggleExpanded(item.name)"
-                      [attr.aria-expanded]="expandedItems().has(item.name)"
-                      [attr.aria-controls]="'nav-group-' + $index"
+                      [attr.aria-expanded]="collapsed() ? null : expandedItems().has(item.name)"
+                      [attr.aria-controls]="collapsed() ? null : 'nav-group-' + $index"
                       [disabled]="!!item.attributes?.disabled"
                       class="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                       [class.justify-center]="collapsed()"
@@ -115,15 +131,6 @@
   </mat-sidenav>
 
   <mat-sidenav-content class="flex flex-col min-h-screen">
-    <!--
-      The first thing the tab order reaches, hidden until it has focus: without it every keyboard
-      and screen-reader user tabs through the entire navigation again on every page. The click is
-      handled here instead of letting the browser follow the fragment, because `anchorScrolling` is
-      enabled in `appConfig` and the router would turn it into a navigation of its own.
-    -->
-    <a href="#hauptinhalt" (click)="skipToContent($event)" testid="skip-to-content" class="tafel-skip-link">
-      Zum Hauptinhalt springen
-    </a>
     <tafel-default-header class="block sticky top-0 z-10 bg-white shadow-sm" (toggleSidebar)="sidenav.toggle()"/>
     <!--
       `tabindex="-1"` makes the landmark itself a focus target for the skip link - without it the
