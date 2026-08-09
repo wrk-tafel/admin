@@ -536,6 +536,21 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
   runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
+- **Accessibility is gated twice, statically and at runtime.** `eslint.config.js` extends
+  `angular.configs.templateAccessibility` for `**/*.html`, so `ng lint` (the `lint-frontend` CI job,
+  which already covers `src/**/*.html`) fails on a click handler that nothing can focus, an
+  unassociated `<label>`, a missing `alt`, an invalid `aria-*`, and so on — at authoring time, over
+  every template. The `lighthouse` job's `pages` sweep then enforces axe at score 1, but only over
+  what a route actually renders for the e2e fixtures: it never opens a dialog, never expands a
+  panel, and never sees a component no route in its matrix reaches. Neither gate replaces the
+  other. Where a rule is a genuine false positive (a clickable card whose keyboard path is a button
+  nested inside it), disable it on that line with a comment saying why — never by relaxing the rule
+  for the whole project. Note the disable directive's rule names must sit on one line; prose after
+  them is parsed as part of the rule name unless separated by `--`.
+  A heading's level is chosen for where it sits in the document outline, never for how big it
+  renders — `tafel-h1`..`tafel-h6` in `_theme.scss` carry the sizes, so `<h2 class="tafel-h5">` is
+  the page's second level at an `h5`'s size. Screens behind the login have no page heading of their
+  own; the shell renders the route title as the one `h1`.
 - **Page Performance Gate**: the `lighthouse` job (`subflow_lighthouse.yml`) runs Lighthouse CI over
   the built frontend and **fails** when a threshold is crossed. It only runs when the frontend
   changed, and it is not a dependency of the deploy jobs. The decision behind it is

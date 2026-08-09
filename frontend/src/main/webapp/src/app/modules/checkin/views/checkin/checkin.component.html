@@ -4,7 +4,7 @@
   </mat-card-header>
   <mat-card-content>
     <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
-      <label class="md:col-span-1">Scanner</label>
+      <div class="md:col-span-1">Scanner</div>
       <mat-form-field class="md:col-span-2" subscriptSizing="dynamic">
         <mat-label>Scanner auswählen</mat-label>
         <mat-select testid="scannerIdInput" [(ngModel)]="selectedScannerId">
@@ -28,7 +28,7 @@
     <mat-divider class="!my-6"></mat-divider>
 
     <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
-      <label class="md:col-span-1">Kundennummer</label>
+      <div class="md:col-span-1">Kundennummer</div>
       <mat-form-field class="md:col-span-2" subscriptSizing="dynamic">
         <mat-label>Kundennummer</mat-label>
         <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"

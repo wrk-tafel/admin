@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {EMPTY, of} from 'rxjs';
@@ -62,8 +62,17 @@ describe('CustomerSearchComponent', () => {
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName('Router.navigate')
+                        navigate: vi.fn().mockName('Router.navigate'),
+                        // the result table's name column is a real link now, and RouterLink builds
+                        // its href from these two
+                        createUrlTree: vi.fn().mockName('Router.createUrlTree').mockReturnValue({}),
+                        serializeUrl: vi.fn().mockName('Router.serializeUrl').mockReturnValue('/kunden/detail/1'),
+                        events: EMPTY
                     }
+                },
+                {
+                    provide: ActivatedRoute,
+                    useValue: {}
                 },
                 {
                     provide: TafelToastrService,
