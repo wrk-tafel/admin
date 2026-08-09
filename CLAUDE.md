@@ -216,6 +216,10 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - Standalone components with lazy-loaded feature modules
 - Resolver pattern for data pre-fetching before route activation
 - Route guards for authentication and permission-based access control
+- Every route carries a `title`, which `TafelTitleStrategy` (`common/util/`) renders as
+  `<route title> - Tafel Admin`. It is what a screen reader announces after an in-app navigation
+  and what the browser tab shows, so a new route needs one — a route without a `title` silently
+  falls back to the bare application name
 - Global state service using RxJS BehaviorSubjects
 - SSE service for real-time updates from backend
 - Custom directives (`tafelIfPermission`, `tafelAutofocus`, `tafelIfDistributionActive`)
@@ -685,7 +689,7 @@ You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/proces
 
 ### Adding a New Feature Module (Frontend)
 1. Create folder under `modules/<module-name>/`
-2. Create `<module>.routes.ts` with route configuration
+2. Create `<module>.routes.ts` with route configuration, giving every route a `title`
 3. Add views in `views/` subfolder
 4. Add reusable components in `components/` subfolder
 5. Create API service in `app/api/<module>-api.service.ts`

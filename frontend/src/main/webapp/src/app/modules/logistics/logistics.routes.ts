@@ -8,6 +8,7 @@ import {FoodCollectionRecordingComponent} from './views/food-collection-recordin
 export const routes: Routes = [
   {
     path: 'warenerfassung',
+    title: 'Waren-Eingabe',
     component: FoodCollectionRecordingComponent,
     resolve: {
       routeList: RouteDataResolver,

@@ -23,29 +23,35 @@ export const routes: Routes = [
   },
   {
     path: '404',
+    title: 'Seite nicht gefunden',
     component: P404Component
   },
   {
     path: 'anmeldung/ticketmonitor',
+    title: 'Ticket-Monitor',
     loadComponent: () => import('./modules/checkin/views/ticket-screen-fullscreen/ticket-screen-fullscreen.component')
       .then(m => m.TicketScreenFullscreenComponent),
     canActivate: [authGuard]
   },
   {
     path: '500',
+    title: 'Fehler',
     component: P500Component
   },
   {
     path: 'login/passwortaendern',
+    title: 'Passwort ändern',
     loadComponent: () => import('./common/views/login-passwordchange/login-passwordchange.component')
       .then(m => m.LoginPasswordChangeComponent)
   },
   {
     path: 'login',
+    title: 'Anmeldung',
     component: LoginComponent
   },
   {
     path: 'login/:errorType',
+    title: 'Anmeldung',
     component: LoginComponent
   },
   {
@@ -54,6 +60,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
+    title: 'Seite nicht gefunden',
     component: P404Component
   }
 ];

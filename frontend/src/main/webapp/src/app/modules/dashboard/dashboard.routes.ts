@@ -6,6 +6,7 @@ import {DashboardSheltersDataResolver} from './resolver/dashboard-shelters-resol
 export const routes: Routes = [
   {
     path: '',
+    title: 'Übersicht',
     component: DashboardComponent,
     resolve: {
       sheltersData: DashboardSheltersDataResolver

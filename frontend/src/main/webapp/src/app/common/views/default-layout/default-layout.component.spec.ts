@@ -355,4 +355,54 @@ return true;
         expect(editedItems).toEqual([testMenuItem1, testMenuItem2Resetted, testMenuItem3]);
     });
 
+    it('the skip link moves focus to the main landmark', () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        const skipLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[testid="skip-to-content"]');
+        const main: HTMLElement = fixture.nativeElement.querySelector('main#hauptinhalt');
+
+        skipLink.click();
+
+        expect(main).toBeTruthy();
+        expect(document.activeElement).toBe(main);
+    });
+
+    it('an expandable nav group is a button that reports its expanded state', () => {
+        authService.hasPermission.mockReturnValue(true);
+        authService.hasAnyPermission.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const groupName = component.navItems().find(item => item.children)!.name;
+        const toggle: HTMLButtonElement = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('nav button'))
+            .find(button => button.textContent!.includes(groupName))!;
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+        toggle.click();
+        fixture.detectChanges();
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect(fixture.nativeElement.querySelector('#' + toggle.getAttribute('aria-controls'))).toBeTruthy();
+    });
+
+    it('a nav entry disabled by the distribution state leaves the tab order', () => {
+        authService.hasPermission.mockReturnValue(true);
+        authService.hasAnyPermission.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const disabledName = component.navItems().find(item => item.attributes?.disabled)!.name;
+        const link: HTMLAnchorElement = Array.from<HTMLAnchorElement>(fixture.nativeElement.querySelectorAll('nav a'))
+            .find(anchor => anchor.textContent!.includes(disabledName))!;
+
+        expect(link.getAttribute('tabindex')).toBe('-1');
+        expect(link.getAttribute('aria-disabled')).toBe('true');
+    });
+
 });

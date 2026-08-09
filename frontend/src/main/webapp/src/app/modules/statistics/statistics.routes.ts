@@ -14,6 +14,7 @@ export const routes: Routes = [
   },
   {
     path: 'allgemein',
+    title: 'Statistik - Allgemein',
     component: StatisticsGeneralComponent,
     providers: [
       provideCharts(withDefaultRegisterables())
@@ -24,6 +25,7 @@ export const routes: Routes = [
   },
   {
     path: 'schulstartpakete',
+    title: 'Statistik - Schulstartpakete',
     component: StatisticsSchoolStarterPackagesComponent,
   },
 ];

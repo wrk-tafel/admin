@@ -36,6 +36,7 @@
           <div class="text-center">{{ category.name }}</div>
           <div class="mb-4">
             <tafel-counter-input [testId]="'category-' + category.id"
+                                 [label]="'Warenmenge ' + category.name"
                                  [key]="category.id"
                                  [value]="categoryValues()[category.id]"
                                  (valueChanged)="onValueChange($event)"></tafel-counter-input>
@@ -51,6 +52,7 @@
           <div class="text-center">{{ category.name }}</div>
           <div class="mb-4">
             <tafel-counter-input [testId]="'return-category-' + category.id"
+                                 [label]="'Retourware ' + category.name"
                                  [key]="category.name"
                                  [value]="returnCategoryValues()[category.name]"
                                  (valueChanged)="onReturnCategoryValueChange($event)"></tafel-counter-input>

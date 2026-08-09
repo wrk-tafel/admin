@@ -89,6 +89,23 @@ describe('DefaultHeaderComponent', () => {
         expect(globalStateService.getConnectionState).toHaveBeenCalled();
     });
 
+    it('states the connection state in the badge text, not only in its colour', () => {
+        globalStateService.getConnectionState.mockReturnValue(signal(false).asReadonly());
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const badge: HTMLElement = fixture.nativeElement.querySelector('[role="status"]');
+        expect(badge.textContent!.trim()).toBe('Live-Verbindung unterbrochen');
+
+        globalStateService.getConnectionState.mockReturnValue(signal(true).asReadonly());
+        const connectedFixture = TestBed.createComponent(DefaultHeaderComponent);
+        connectedFixture.detectChanges();
+
+        const connectedBadge: HTMLElement = connectedFixture.nativeElement.querySelector('[role="status"]');
+        expect(connectedBadge.textContent!.trim()).toBe('Live-Verbindung besteht');
+    });
+
     it('logout', () => {
         authenticationService.logout.mockReturnValueOnce(of(undefined));
 

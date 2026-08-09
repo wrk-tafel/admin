@@ -26,3 +26,28 @@ mat-sidenav {
 mat-sidenav-container {
   --mat-sidenav-content-background-color: #f5f5f5;
 }
+
+// Written out rather than composed from `sr-only` / `focus:not-sr-only`: those two set the same
+// properties (position above all) from different Tailwind utility groups, so which of them wins
+// while the link has focus depends on the order Tailwind happens to emit them in.
+.tafel-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+
+  &:focus {
+    top: .5rem;
+    left: .5rem;
+    z-index: 50;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    padding: .5rem 1rem;
+    border-radius: .375rem;
+    background-color: #fff;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+  }
+}
