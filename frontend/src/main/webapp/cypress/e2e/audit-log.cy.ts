@@ -1,4 +1,8 @@
+import dayjs from 'dayjs';
 import {PHONE_VIEWPORT} from '../support/viewports';
+
+const isoToday = () => dayjs().format('YYYY-MM-DD');
+const isoLastMonth = () => dayjs().subtract(1, 'month').format('YYYY-MM-DD');
 
 /**
  * The testdata is loaded as plain SQL and therefore leaves no audit entries behind - every test
@@ -11,6 +15,19 @@ describe('Änderungsprotokoll', () => {
     cy.loginDefault();
   });
 
+  it('opens preselected on customers over the last month', () => {
+    cy.createDummyCustomer().then(() => {
+      cy.visit('/aenderungsprotokoll');
+
+      cy.byTestId('audit-filter-entityType').should('contain.text', 'Kunde');
+      cy.byTestId('audit-filter-to').should('have.value', isoToday());
+      cy.byTestId('audit-filter-from').should('have.value', isoLastMonth());
+
+      cy.byTestId('audit-entry-list').should('exist');
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
+    });
+  });
+
   it('records a newly created customer and shows it in the log', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
@@ -18,6 +35,10 @@ describe('Änderungsprotokoll', () => {
       cy.visit('/aenderungsprotokoll');
 
       cy.byTestId('audit-filter-businessKey').type(String(customerId));
+      // Creating a customer writes an insert and then an update (the main-person pointer can only
+      // be set once both rows exist), so the newest entry is the update - filter to pin the assertion.
+      cy.byTestId('audit-filter-operation').click();
+      cy.get('mat-option').contains('Angelegt').click();
       cy.byTestId('audit-search-button').click();
 
       cy.byTestId('audit-entry-list').should('exist');
@@ -46,7 +67,7 @@ describe('Änderungsprotokoll', () => {
     });
   });
 
-  it('filters by record type and can be reset again', () => {
+  it('filters by record type, and resetting returns to the preselected defaults', () => {
     cy.createDummyCustomer().then(() => {
       cy.visit('/aenderungsprotokoll');
 
@@ -56,7 +77,9 @@ describe('Änderungsprotokoll', () => {
       cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Person');
 
       cy.byTestId('audit-reset-button').click();
-      cy.byTestId('audit-entry-list').should('exist');
+      cy.byTestId('audit-filter-entityType').should('contain.text', 'Kunde');
+      cy.byTestId('audit-filter-from').should('have.value', isoLastMonth());
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
     });
   });
 

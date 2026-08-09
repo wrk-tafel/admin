@@ -779,6 +779,20 @@ describe('Customer Detail', () => {
       });
     });
 
+    it('hides the tab from a user without the audit permission', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        // e2etest2 holds CUSTOMER and nothing else, so it can open the customer but must not see
+        // every change ever made to them - those are separate levels of access.
+        cy.loginE2ETest2();
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('customerIdText').should('have.text', String(customerId));
+        cy.byTestId('history-tab-label').should('not.exist');
+      });
+    });
+
   });
 
 });

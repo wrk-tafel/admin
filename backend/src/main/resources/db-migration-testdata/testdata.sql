@@ -57,6 +57,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1012, NOW(), NOW(), 100, 'CUSTOMERS_OVERVIEW');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1013, NOW(), NOW(), 100, 'ADMINISTRATOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1014, NOW(), NOW(), 100, 'AUDIT_LOG');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -115,6 +117,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3012, NOW(), NOW(), 300, 'CUSTOMERS_OVERVIEW');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3013, NOW(), NOW(), 300, 'ADMINISTRATOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3014, NOW(), NOW(), 300, 'AUDIT_LOG');
 
 -- user: scanner1
 -- pwd: 12345

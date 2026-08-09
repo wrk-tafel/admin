@@ -10,6 +10,7 @@ import {
   AuditFilterOptionsResponse
 } from '../../../../api/audit-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import dayjs from 'dayjs';
 
 describe('AuditLogComponent', () => {
   const entry: AuditEntryItem = {
@@ -63,7 +64,7 @@ describe('AuditLogComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('loads the filter options and the unfiltered log on init', () => {
+  it('opens on customers over the last month, rather than on the whole log', () => {
     const fixture = TestBed.createComponent(AuditLogComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
@@ -72,7 +73,14 @@ describe('AuditLogComponent', () => {
     expect(component['operations']()).toEqual(filterOptions.operations);
     expect(component['entries']()?.items.length).toBe(1);
     expect(auditApiMock.searchAuditEntries).toHaveBeenCalledWith(
-      {entityType: null, operation: null, actorUsername: null, businessKey: null, from: null, to: null},
+      {
+        entityType: 'Household',
+        operation: null,
+        actorUsername: null,
+        businessKey: null,
+        from: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+        to: dayjs().format('YYYY-MM-DD')
+      },
       undefined,
       undefined
     );
@@ -115,19 +123,29 @@ describe('AuditLogComponent', () => {
     expect(auditApiMock.searchAuditEntries).toHaveBeenLastCalledWith(expect.anything(), 3, pagedResponse.pageSize);
   });
 
-  it('resetFilter() clears every filter and searches again', () => {
+  it('resetFilter() returns to the defaults the screen opens on, not to an empty filter', () => {
     const fixture = TestBed.createComponent(AuditLogComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['entityType'].set('Household');
+    component['entityType'].set('User');
     component['actorUsername'].set('test-user');
+    component['from'].set('2020-01-01');
     component['resetFilter']();
 
-    expect(component['entityType']()).toBeNull();
+    expect(component['entityType']()).toBe('Household');
     expect(component['actorUsername']()).toBeNull();
+    expect(component['from']()).toBe(dayjs().subtract(1, 'month').format('YYYY-MM-DD'));
+    expect(component['to']()).toBe(dayjs().format('YYYY-MM-DD'));
     expect(auditApiMock.searchAuditEntries).toHaveBeenLastCalledWith(
-      {entityType: null, operation: null, actorUsername: null, businessKey: null, from: null, to: null},
+      {
+        entityType: 'Household',
+        operation: null,
+        actorUsername: null,
+        businessKey: null,
+        from: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+        to: dayjs().format('YYYY-MM-DD')
+      },
       undefined,
       pagedResponse.pageSize
     );

@@ -17,7 +17,9 @@ Das Änderungsprotokoll ist ein reines Nachschlagewerk: Einträge können weder 
 
 ## Gesamtes Protokoll
 
-Der Menüpunkt **Änderungsprotokoll** zeigt alle erfassten Änderungen, die neueste zuerst.
+Der Menüpunkt **Änderungsprotokoll** zeigt die erfassten Änderungen, die neueste zuerst.
+
+Beim Öffnen ist die Ansicht bereits auf die häufigste Frage eingestellt: **Datensatz-Art "Kunde"** und als Zeitraum **das letzte Monat bis heute**. Ohne diese Vorauswahl müsste man sich – sobald das Protokoll ein Jahr Verlauf enthält – erst durch Monate von Benutzer- und Einstellungs-Einträgen blättern. Beide Vorgaben sind nur ein Ausgangspunkt und lassen sich jederzeit ändern: Über "Alle" bei der Datensatz-Art bzw. durch Leeren der Datumsfelder sieht man wieder das gesamte Protokoll.
 
 ![Änderungsprotokoll](images/aenderungsprotokoll.jpg)
 
@@ -33,7 +35,7 @@ Aus Sicherheitsgründen wird das Passwort eines Benutzers zwar als geändert pro
 
 ## Filtern
 
-Über die Filter oberhalb der Liste lässt sich das Protokoll eingrenzen. Alle Filter lassen sich beliebig kombinieren; mit **Suchen** wird die Liste aktualisiert, mit **Filter zurücksetzen** werden alle Einschränkungen wieder aufgehoben.
+Über die Filter oberhalb der Liste lässt sich das Protokoll eingrenzen. Alle Filter lassen sich beliebig kombinieren; mit **Suchen** wird die Liste aktualisiert, mit **Filter zurücksetzen** kehrt man zur oben beschriebenen Vorauswahl (Kunden, letztes Monat) zurück – nicht zu einem leeren Filter.
 
 | Filter | Bedeutung |
 | --- | --- |
