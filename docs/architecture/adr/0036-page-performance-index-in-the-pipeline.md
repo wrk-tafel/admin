@@ -62,12 +62,21 @@ Postgres service and the jar under the `e2e` profile, which also serves the fron
 SPA fallback (`IndexHtmlController`) — and audits every route of the application, in both form
 factors, sharded so the sweep runs in parallel rather than end to end.
 
-- **The session is a request header, not a scripted login.** `POST /api/login` yields the
-  `tafel-admin-jwt` cookie for the `e2etest` fixture user, which holds every permission, and
-  Lighthouse sends it on every request via `extraHeaders`. The application loads its user info from
-  `GET /api/users/info` while bootstrapping, so that is all an authenticated route needs — and since
-  nothing is written to the browser's own storage, Lighthouse still resets it between runs and every
-  run measures a cold cache.
+- **The session is a cookie in the browser's jar, not a scripted login and not a request header.**
+  `POST /api/login` yields the `tafel-admin-jwt` cookie for the `e2etest` fixture user, which holds
+  every permission, and `lighthouse-session.cjs` — lhci's `puppeteerScript` hook, run once per
+  audited URL — writes it into the browser before Lighthouse navigates. The application loads its
+  user info from `GET /api/users/info` while bootstrapping, so that is all an authenticated route
+  needs. A header cannot do this job: Chrome rebuilds the `Cookie` header of every request from its
+  own jar, so a cookie set through Lighthouse's `extraHeaders` never reaches the server. That is
+  also why `disableStorageReset` is on — Lighthouse would otherwise clear the origin's data, and the
+  session with it, before each run. It does not warm the cache; Lighthouse disables the HTTP cache
+  for the measured navigation either way.
+- **The sweep verifies that it was actually authenticated.** Every failure above is silent by
+  construction: an unauthenticated sweep redirects each route to the login page and then passes
+  every threshold, having graded one screen thirty times. The job therefore compares each report's
+  final URL against the URL it requested and fails on any difference, which is the one check that
+  distinguishes "these routes are clean" from "these routes were never opened".
 - **The SSE streams are blocked** (`blockedUrlPatterns`), which is what lets a run reach network-idle
   at all; see the context above for why that costs about ten seconds per page rather than nothing.
   An active distribution is started before the sweep, so the dashboard and the check-in screens
@@ -89,7 +98,10 @@ factors, sharded so the sweep runs in parallel rather than end to end.
   scores on unchanged code. The job installs that pinned version into a directory of its own with
   `--ignore-scripts` rather than letting `npx` resolve and execute a package on demand
   ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md)), so neither the application's
-  `package.json` nor its `node_modules` are involved.
+  `package.json` nor its `node_modules` are involved. The sweep adds a pinned `puppeteer-core`
+  (`PUPPETEER_VERSION`) in the same directory, for the cookie above — `puppeteer-core` and not
+  `puppeteer` because it is the same API without a bundled Chromium download, and the runner already
+  has a Chrome for it to drive.
 - Every job uploads both its HTML and its JSON reports as a `lighthouse-reports-*` artifact and
   writes its scores into the job summary — on failure too, which is when they are wanted.
 - Build budgets in `angular.json` are tightened to sit just above what the build actually produces:
@@ -129,9 +141,11 @@ actually moves when someone adds a dependency.
 - **Absolute numbers from these jobs are not production numbers.** Neither lhci's static server nor a
   locally started jar is the container behind its reverse proxy, and localhost is not the network.
   What they can compare honestly is one commit against the next, on the same setup.
-- The Lighthouse version pin is maintained by hand. Dependabot does not see it, deliberately: as a
-  frontend `devDependency`, `@lhci/cli` would drag its transitive tree (Express 4, yargs 15) into the
-  application's lockfile and into every other job's `npm ci`, for a tool one job runs.
+- The Lighthouse and puppeteer pins are maintained by hand. Dependabot does not see them,
+  deliberately: as frontend `devDependencies`, `@lhci/cli` would drag its transitive tree (Express 4,
+  yargs 15) into the application's lockfile and into every other job's `npm ci`, for tools one job
+  runs. The cost is that a Chrome on the runner far newer than the pinned `puppeteer-core` is a
+  breakage this repository finds out about from a red `pages` job rather than from a pull request.
 - Runner variance stays a risk, mitigated rather than eliminated. Three runs plus median aggregation
   plus headroom over measured baselines means a threshold that trips is worth investigating; if one
   turns out to trip on runner load alone, the fix is to move that threshold and record why, not to
@@ -197,6 +211,7 @@ third-party host, when a per-run artifact and a job summary answer the question.
 - `.github/workflows/subflow_lighthouse.yml` — both jobs, and the route list the sweep covers
 - `frontend/src/main/webapp/lighthouserc.cjs` — the shell audit's settings and thresholds
 - `frontend/src/main/webapp/lighthouserc.pages.cjs` — the sweep's session, SSE handling and assertions
+- `frontend/src/main/webapp/lighthouse-session.cjs` — the cookie that makes the swept routes render
 - `frontend/src/main/webapp/angular.json` — the production `budgets` block
 - `backend/src/main/resources/db-migration-testdata/testdata.sql` — the fixtures the swept screens
   render, and the ids the parameterised routes use

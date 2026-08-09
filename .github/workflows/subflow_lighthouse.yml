@@ -26,6 +26,10 @@ env:
   # tree into the application's lockfile and into every other job's `npm ci` for a tool only this job
   # runs.
   LHCI_VERSION: '0.15.1'
+  # Drives the browser for the `pages` sweep only, so that the session can be put into the browser's
+  # own cookie jar (see lighthouse-session.cjs). puppeteer-core rather than puppeteer: it is the same
+  # API without the bundled Chromium download, and the runner already has a Chrome to point it at.
+  PUPPETEER_VERSION: '25.5.0'
   JAVA_VERSION: '26'
   JAVA_DISTRIBUTION: 'corretto'
 
@@ -200,9 +204,23 @@ jobs:
           # which is what makes a direct navigation to a client-side route resolvable at all.
           path: ./static
       - name: Install Lighthouse CI
+        # puppeteer-core lands next to @lhci/cli so that lhci's own `require('puppeteer-core')`
+        # resolves it; nothing here touches the application's package.json or node_modules.
         run: |
           mkdir -p "${RUNNER_TEMP}/lhci"
-          npm install --no-save --ignore-scripts --prefix "${RUNNER_TEMP}/lhci" "@lhci/cli@${LHCI_VERSION}"
+          npm install --no-save --ignore-scripts --prefix "${RUNNER_TEMP}/lhci" \
+            "@lhci/cli@${LHCI_VERSION}" "puppeteer-core@${PUPPETEER_VERSION}"
+      - name: Locate Chrome
+        # puppeteer-core ships no browser, so the executable has to be named explicitly - the
+        # `shell` job needs none of this because chrome-launcher finds Chrome by itself.
+        run: |
+          chrome=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || true)
+          if [ -z "$chrome" ]; then
+            echo "::error title=No Chrome::Found no Chrome executable to drive."
+            exit 1
+          fi
+          echo "CHROME_PATH=$chrome" >> "$GITHUB_ENV"
+          "$chrome" --version
       - name: Start the backend
         # The same profile and testdata the e2e job runs against, so the audited screens render the
         # same fixtures - and so a page's numbers move only when the application or those fixtures
@@ -254,6 +272,29 @@ jobs:
         env:
           LHCI_URLS: ${{ matrix.shard.urls }}
           LHCI_FORM_FACTOR: ${{ matrix.formFactor }}
+      - name: Verify the sweep was authenticated
+        # Without a session the application bootstraps, gets a 401 from GET /api/users/info and
+        # redirects, so every route would be graded as the login page - passing every threshold while
+        # measuring nothing it claims to. The assertions cannot see that, so it is checked here: a
+        # page that ended up somewhere other than where it was sent fails the job.
+        if: always()
+        working-directory: frontend/src/main/webapp
+        run: |
+          manifest=.lighthouseci/reports/manifest.json
+          if [ ! -f "$manifest" ]; then
+            echo "No Lighthouse report was produced - see the step above."
+            exit 0
+          fi
+
+          status=0
+          while IFS=$'\t' read -r url report; do
+            final=$(jq -r '.finalDisplayedUrl' "$report")
+            if [ "${final%%\?*}" != "${url%%\?*}" ]; then
+              echo "::error title=Unauthenticated audit::$url was graded as $final, not as itself."
+              status=1
+            fi
+          done < <(jq -r 'map(select(.isRepresentativeRun))[] | [.url, .jsonPath] | @tsv' "$manifest")
+          exit $status
       - name: Report the scores
         # Runs on failure too - a failed threshold is exactly when the numbers are wanted.
         if: always()

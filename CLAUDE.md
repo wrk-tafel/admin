@@ -96,7 +96,9 @@ npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
 
 # Sweep application routes the way the pipeline does (needs a running backend and a session)
 LHCI_URLS=/uebersicht,/kunden/suchen LHCI_FORM_FACTOR=mobile LHCI_JWT=<tafel-admin-jwt cookie> \
-  npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.pages.cjs
+  CHROME_PATH=$(command -v google-chrome) \
+  npx --yes --package @lhci/cli@0.15.1 --package puppeteer-core@25.5.0 \
+  lhci autorun --config=lighthouserc.pages.cjs
 
 # Run E2E tests (requires backend running on port 8080)
 npm run cy:run-ci
@@ -532,12 +534,20 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     anything. Thresholds and their measured baselines live in
     `frontend/src/main/webapp/lighthouserc.cjs`.
   - `pages` audits **every route, desktop and mobile**, against a real backend (`e2e` profile,
-    Postgres service, `e2etest` session injected as a `tafel-admin-jwt` request header), sharded
-    across parallel matrix jobs. **Accessibility is enforced at 100** here; performance is reported
-    rather than gated, because an authenticated screen renders whatever the e2e fixtures hold. Route
-    list, shards and form factors are the matrix in `subflow_lighthouse.yml`; assertions are in
+    Postgres service), sharded across parallel matrix jobs. **Accessibility is enforced at 100**
+    here; performance is reported rather than gated, because an authenticated screen renders
+    whatever the e2e fixtures hold. Route list, shards and form factors are the matrix in
+    `subflow_lighthouse.yml`; assertions are in
     `frontend/src/main/webapp/lighthouserc.pages.cjs`. **A new route has to be added to that matrix**
     — nothing derives the list automatically.
+
+    The `e2etest` session is written into the **browser's cookie jar** by `lighthouse-session.cjs`
+    (lhci's `puppeteerScript` hook), not sent as a header: Chrome rebuilds every request's `Cookie`
+    header from that jar, so a cookie set through Lighthouse's `extraHeaders` never arrives and the
+    application would redirect every route to the login page — passing every threshold while
+    grading the login page over and over. `disableStorageReset` keeps Lighthouse from clearing the
+    cookie again, and the job's "Verify the sweep was authenticated" step fails when a page ends up
+    at a URL other than the one it was sent to, so that failure mode cannot come back silently.
 
   Every job uploads its HTML/JSON reports (`lighthouse-reports-<shard>-<formFactor>`, and
   `lighthouse-reports-shell`) and writes its scores into the job summary, on failure too.

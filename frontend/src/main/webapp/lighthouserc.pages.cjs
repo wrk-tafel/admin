@@ -11,9 +11,9 @@
 //   LHCI_FORM_FACTOR  "desktop" or "mobile"
 //   LHCI_JWT          value of the tafel-admin-jwt cookie from POST /api/login
 //   LHCI_BASE_URL     origin the backend serves the application on (default http://localhost:8080)
+//   CHROME_PATH       the Chrome executable puppeteer drives (it ships no browser of its own)
 const BASE_URL = process.env.LHCI_BASE_URL || 'http://localhost:8080';
 const FORM_FACTOR = process.env.LHCI_FORM_FACTOR || 'desktop';
-const JWT_COOKIE_NAME = 'tafel-admin-jwt';
 
 const paths = (process.env.LHCI_URLS || '')
   .split(',')
@@ -31,6 +31,11 @@ if (!process.env.LHCI_JWT) {
 if (FORM_FACTOR !== 'desktop' && FORM_FACTOR !== 'mobile') {
   throw new Error(`LHCI_FORM_FACTOR must be "desktop" or "mobile", was "${FORM_FACTOR}".`);
 }
+// `puppeteerScript` below makes lhci launch Chrome through puppeteer instead of chrome-launcher, and
+// puppeteer-core - unlike puppeteer - bundles no browser to fall back on, so the path is required.
+if (!process.env.CHROME_PATH) {
+  throw new Error('CHROME_PATH is empty - puppeteer-core has no browser of its own to launch.');
+}
 
 module.exports = {
   ci: {
@@ -39,6 +44,13 @@ module.exports = {
       // Two runs, median below - enough to keep a busy runner from deciding a score, without
       // doubling a sweep that already covers every route twice over (desktop and mobile).
       numberOfRuns: 2,
+      // Runs once per audited URL, before that URL's runs, and puts the session into the browser's
+      // own cookie jar - the only place the application's cookie-only authentication can read it
+      // from. See lighthouse-session.cjs for why a request header cannot do this.
+      puppeteerScript: './lighthouse-session.cjs',
+      // With a puppeteerScript, lhci launches the browser through puppeteer and hands Lighthouse its
+      // port, so this is the executable both end up driving.
+      chromePath: process.env.CHROME_PATH,
       settings: {
         // Lighthouse's own default is the mobile emulation (4x CPU throttling, slow 4G), so the
         // mobile half of the matrix is the absence of a preset rather than a setting of its own.
@@ -46,12 +58,12 @@ module.exports = {
         // SEO is meaningless for an application that is entirely behind a login and deliberately
         // not indexable; skipping the category keeps the run shorter and the report focused.
         onlyCategories: ['performance', 'accessibility', 'best-practices'],
-        // The session, as a request header rather than a scripted UI login. The application loads
-        // its user info from GET /api/users/info while bootstrapping (provideAppInitializer in
-        // app.config.ts), so a JWT on every request is all an authenticated route needs - and
-        // because nothing is written to the browser's own storage, Lighthouse can keep resetting
-        // it between runs and every run still measures a cold cache.
-        extraHeaders: {Cookie: `${JWT_COOKIE_NAME}=${process.env.LHCI_JWT}`},
+        // Keep the cookie the puppeteer script just set. Lighthouse otherwise clears the origin's
+        // data before each run, which would take the session with it and leave every authenticated
+        // route redirecting to the login page. It does not warm the cache: Lighthouse disables the
+        // HTTP cache for the measured navigation regardless of this setting, so each run still
+        // loads cold.
+        disableStorageReset: true,
         // Lighthouse ends a page load when the network goes quiet, and every authenticated screen
         // holds SSE streams open, which means it never would. Blocking them lets a run settle;
         // SseService then retries the blocked stream with a delay doubling from 1s to a 30s
