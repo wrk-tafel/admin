@@ -1,26 +1,20 @@
 import {inject} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Routes} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivateFn, Routes} from '@angular/router';
 
-import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
 import {P404Component} from './common/views/error/404.component';
 import {P500Component} from './common/views/error/500.component';
 import {LoginComponent} from './common/views/login/login.component';
 
 import {AuthGuardService} from './common/security/authguard.service';
-import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
-import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
-import {
-  TicketScreenFullscreenComponent
-} from './modules/checkin/views/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
-import {UserPasswordChangeComponent} from './modules/user/components/user-passwordchange/user-passwordchange.component';
-import {
-  PushNotificationSettingsComponent
-} from './modules/user/components/push-notification-settings/push-notification-settings.component';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
-const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
-
+/**
+ * Only the screens a browser can reach without a session stay eager here - the login page itself and
+ * the two error pages, which have to render even when nothing else can be fetched. Everything else
+ * is behind a `loadComponent`/`loadChildren` boundary so that it is not part of the bundle the login
+ * page pulls in; `check-eager-bundle.cjs` guards what is left.
+ */
 export const routes: Routes = [
   {
     path: '',
@@ -33,7 +27,8 @@ export const routes: Routes = [
   },
   {
     path: 'anmeldung/ticketmonitor',
-    component: TicketScreenFullscreenComponent,
+    loadComponent: () => import('./modules/checkin/views/ticket-screen-fullscreen/ticket-screen-fullscreen.component')
+      .then(m => m.TicketScreenFullscreenComponent),
     canActivate: [authGuard]
   },
   {
@@ -42,7 +37,8 @@ export const routes: Routes = [
   },
   {
     path: 'login/passwortaendern',
-    component: LoginPasswordChangeComponent
+    loadComponent: () => import('./common/views/login-passwordchange/login-passwordchange.component')
+      .then(m => m.LoginPasswordChangeComponent)
   },
   {
     path: 'login',
@@ -54,70 +50,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: DefaultLayoutComponent,
-    canActivateChild: [authGuardChild],
-    resolve: {
-      initialStates: DefaultLayoutResolver
-    },
-    children: [
-      {
-        path: 'uebersicht',
-        loadChildren: () => import('./modules/dashboard/dashboard.routes').then(m => m.routes),
-        data: {
-          anyPermission: true
-        }
-      },
-      {
-        path: 'anmeldung',
-        loadChildren: () => import('./modules/checkin/checkin.routes').then(m => m.routes),
-        data: {
-          anyPermissionOf: ['SCANNER', 'CHECKIN']
-        }
-      },
-      {
-        path: 'kunden',
-        loadChildren: () => import('./modules/customer/customer.routes').then(m => m.routes),
-        data: {
-          anyPermissionOf: ['CUSTOMER']
-        }
-      },
-      {
-        path: 'logistik',
-        loadChildren: () => import('./modules/logistics/logistics.routes').then(m => m.routes),
-        data: {
-          anyPermissionOf: ['LOGISTICS']
-        }
-      },
-      {
-        path: 'benutzer',
-        loadChildren: () => import('./modules/user/user.routes').then(m => m.routes),
-        data: {
-          anyPermissionOf: ['USER_MANAGEMENT']
-        }
-      },
-      {
-        path: 'einstellungen',
-        loadChildren: () => import('./modules/settings/settings.routes').then(m => m.routes),
-        data: {
-          anyPermissionOf: ['SETTINGS']
-        }
-      },
-      {
-        path: 'statistiken',
-        loadChildren: () => import('./modules/./statistics/statistics.routes').then(m => m.routes),
-        data: {
-          anyPermissionOf: ['STATISTICS']
-        }
-      },
-      {
-        path: 'passwortaendern',
-        component: UserPasswordChangeComponent
-      },
-      {
-        path: 'benachrichtigungen',
-        component: PushNotificationSettingsComponent
-      }
-    ]
+    loadChildren: () => import('./shell.routes').then(m => m.routes)
   },
   {
     path: '**',

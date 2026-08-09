@@ -12,7 +12,7 @@
     "ng": "ng",
     "dev": "ng serve --host=0.0.0.0 --configuration=development",
     "build-local": "ng build --progress",
-    "build-prod": "ng build --configuration=production --progress",
+    "build-prod": "ng build --configuration=production --progress --stats-json && node check-eager-bundle.cjs",
     "test": "ng test",
     "test-ci": "ng test --watch=false",
     "lint": "ng lint",

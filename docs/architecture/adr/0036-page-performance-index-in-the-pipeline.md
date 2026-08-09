@@ -162,7 +162,9 @@ actually moves when someone adds a dependency.
   JavaScript (284 kB gzipped, three requests) while the `initial` budget only sees 424 kB of it. The
   Lighthouse transfer-size assertions are what actually bound the eager payload, which is a reason to
   keep both layers rather than treat the budgets as sufficient. Recorded as
-  [#3121](https://github.com/wrk-tafel/admin/issues/3121).
+  [#3121](https://github.com/wrk-tafel/admin/issues/3121) and addressed by
+  [ADR-0037](0037-eager-bundle-bounded-by-its-own-build-check.md), which adds a build-time check for
+  the payload the budgets cannot see.
 
 ## Alternatives considered
 

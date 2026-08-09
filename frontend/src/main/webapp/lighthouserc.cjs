@@ -59,15 +59,19 @@ module.exports = {
         'cumulative-layout-shift': ['error', {maxNumericValue: 0.1}],
 
         // Transfer-size ceilings in bytes, gzip applied, for what a first visit actually pulls in.
-        // Baselines: 284 kB of script over 3 requests, 44 kB of fonts, 348 kB in total.
+        // Fonts measured at 44 kB. The script ceiling is derived rather than measured here: the
+        // build's own `check-eager-bundle.cjs` reports 235 kB gzipped over 6 eager files, against
+        // the 276 kB it measured for the payload Lighthouse rated 284 kB over 3 files - so roughly
+        // 240 kB of script and 305 kB in total, and the ceilings below keep the same headroom the
+        // previous ones had. The job summary prints what was really measured; tighten these to it.
         //
-        // This is the layer angular.json's `initial` budget cannot cover: the builder reports the
-        // shared chunks that `main.js` statically imports as "lazy", so they count towards no build
-        // budget at all, while the browser fetches them before the login form appears. What
-        // Lighthouse measures here is what was really downloaded, whatever the chunk is labelled.
-        'resource-summary:script:size': ['error', {maxNumericValue: 330000}],
+        // This is the layer angular.json's `initial` budget cannot cover - see the header of
+        // `check-eager-bundle.cjs` for why the builder cannot see the eager payload at all. That
+        // check bounds the raw bytes deterministically at build time; what Lighthouse adds here is
+        // what the browser really downloaded, compression and request count included.
+        'resource-summary:script:size': ['error', {maxNumericValue: 300000}],
         'resource-summary:font:size': ['error', {maxNumericValue: 60000}],
-        'resource-summary:total:size': ['error', {maxNumericValue: 400000}]
+        'resource-summary:total:size': ['error', {maxNumericValue: 370000}]
 
         // Nothing else is asserted. No `preset` is set on purpose, so the individual audits
         // Lighthouse reports on (unused JavaScript, cache lifetimes, source maps, ...) show up in the
