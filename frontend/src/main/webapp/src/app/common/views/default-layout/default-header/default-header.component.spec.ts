@@ -150,7 +150,7 @@ describe('DefaultHeaderComponent', () => {
 
     it('open support dialog and submit sends the support request with the technical context', async () => {
         dialog.open.mockReturnValueOnce({
-            afterClosed: () => of({title: 'Bug in login', text: 'Something is broken', includeScreenshot: true})
+            afterClosed: () => of({title: 'Bug in login', text: 'Something is broken'})
         } as any);
         supportApiService.createSupportRequest.mockReturnValueOnce(of(undefined));
 
@@ -168,9 +168,10 @@ describe('DefaultHeaderComponent', () => {
         expect(toastrService.success).toHaveBeenCalled();
     });
 
-    it('leaves the screenshot out when the reporter unchecked it', async () => {
+    it('sends the request without a screenshot when none could be taken', async () => {
+        screenshotService.capture.mockResolvedValueOnce(null);
         dialog.open.mockReturnValueOnce({
-            afterClosed: () => of({title: 'Bug in login', text: 'Something is broken', includeScreenshot: false})
+            afterClosed: () => of({title: 'Bug in login', text: 'Something is broken'})
         } as any);
         supportApiService.createSupportRequest.mockReturnValueOnce(of(undefined));
 
@@ -179,7 +180,9 @@ describe('DefaultHeaderComponent', () => {
 
         await component.openSupportDialog();
 
+        expect(dialog.open).toHaveBeenCalledWith(expect.anything(), {data: {screenshot: null}});
         expect(supportContextService.collect).toHaveBeenCalledWith(null);
+        expect(supportApiService.createSupportRequest).toHaveBeenCalled();
     });
 
     it('open support dialog and cancel does not send anything', async () => {

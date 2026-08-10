@@ -17,11 +17,11 @@ describe('Support request', () => {
 
     cy.byTestId('supportHint').should('contain.text', 'technische Infos');
 
-    // the screenshot is of the page behind the dialog, and the reporter can see what they send
+    // the screenshot is of the page behind the dialog, and the reporter can see what goes along
     cy.byTestId('screenshotPreview').should('be.visible')
       .and('have.attr', 'src')
       .and('match', /^data:image\/jpeg;base64,/);
-    cy.byTestId('includeScreenshot').find('input').should('be.checked');
+    cy.byTestId('screenshotHint').should('contain.text', 'mitgeschickt');
 
     cy.byTestId('okButton').should('be.disabled');
 
@@ -45,25 +45,6 @@ describe('Support request', () => {
 
     cy.contains('Support-Anfrage wurde übermittelt!');
     cy.byTestId('support-dialog').should('not.exist');
-  });
-
-  it('leaves the screenshot out when the reporter unchecks it', () => {
-    cy.intercept('POST', '/api/support').as('createSupportRequest');
-
-    cy.byTestId('supportButton').click();
-    cy.byTestId('includeScreenshot').click();
-    cy.byTestId('includeScreenshot').find('input').should('not.be.checked');
-
-    cy.byTestId('supportTitle').type('Login geht nicht');
-    cy.byTestId('supportText').type('Ohne Screenshot.');
-    cy.byTestId('okButton').click();
-
-    cy.wait('@createSupportRequest').then(({request, response}) => {
-      expect(response!.statusCode).to.eq(201);
-      expect(request.body.clientContext.screenshot).to.eq(null);
-      // everything else still goes along
-      expect(request.body.clientContext.page).to.contain('/uebersicht');
-    });
   });
 
   it('sends nothing when the dialog is cancelled', () => {

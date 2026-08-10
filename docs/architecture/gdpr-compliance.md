@@ -154,13 +154,15 @@ context (page, user agent, last errors) and **a screenshot of the page the reque
 which on a customer detail screen is that household's name, address and income figures as a picture.
 
 What makes that defensible rather than a surprise: the destination is the organisation's own
-mailbox, the dialog states what is attached, and the screenshot is shown as a preview with a
-checkbox to leave it out (ADR-0040). It is still the largest single disclosure the feature makes,
-and it is one a user has to actively notice.
+mailbox, the dialog states what is attached, and the screenshot is shown as a preview before the
+request is sent (ADR-0040). It is always attached — there is deliberately no opt-out — so the
+control that remains is *where the reporter is standing* when they open support, which is what the
+user guide tells them.
 
 **Smallest useful step:** a line at the note field's level of visibility in the dialog — report the
-household by its number rather than by name — plus a retention rule on the support mailbox, which is
-the operator's to set, not the application's.
+household by its number rather than by name, and leave a customer screen before reporting if what is
+on it should not travel — plus a retention rule on the support mailbox, which is the operator's to
+set, not the application's.
 
 ### G4 Nothing keeps special-category data out of notes and documents
 

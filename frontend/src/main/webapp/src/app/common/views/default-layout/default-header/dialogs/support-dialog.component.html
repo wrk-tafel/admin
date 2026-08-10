@@ -12,20 +12,17 @@
     </mat-form-field>
     <p class="text-sm" testid="supportHint">
       Die Anfrage wird per E-Mail versandt. Mitgesendet werden automatisch technische Infos zur
-      Fehlersuche: Benutzername, aktuelle Seite, Browser und die letzten Fehlermeldungen dieser
-      Sitzung.
+      Fehlersuche: Benutzername, aktuelle Seite, Browser, die letzten Fehlermeldungen dieser Sitzung
+      und ein Screenshot der Seite.
     </p>
     @if (data?.screenshot) {
       <div class="mt-2 flex items-center gap-3">
-        <!-- Thumbnail-sized and beside the checkbox on purpose: it has to be visible without
-             scrolling, or the decision it exists for is not an informed one. -->
+        <!-- Thumbnail-sized so it stays visible without scrolling: the screenshot always goes
+             along, and this is what makes that visible rather than a surprise. -->
         <img class="h-16 w-28 shrink-0 border border-gray-300 object-cover object-left-top"
              testid="screenshotPreview" [src]="data!.screenshot"
              alt="Vorschau des mitgesendeten Screenshots der aktuellen Seite"/>
-        <mat-checkbox testid="includeScreenshot"
-                      [ngModel]="includeScreenshot()" (ngModelChange)="includeScreenshot.set($event)">
-          Screenshot der aktuellen Seite mitschicken
-        </mat-checkbox>
+        <span class="text-sm" testid="screenshotHint">Dieser Screenshot wird mitgeschickt.</span>
       </div>
     }
   </div>

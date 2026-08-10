@@ -40,16 +40,17 @@ the technical context of the report.**
   URL, the user agent, the viewport and screen size, the language and the time zone, plus the last
   20 errors of the session — HTTP failures seen by the error interceptor and uncaught errors seen by
   `TafelErrorHandler`, kept in memory by `ClientLogService`.
-- **A screenshot of the page is attached as `screenshot.jpg`**, captured by `ScreenshotService`
-  (`html-to-image`, loaded on demand) **before the dialog opens**, so what the mail shows is the
-  screen being reported rather than the dialog reporting it. It is scaled to at most 1280px wide and
-  retried at a lower quality once if it exceeds ~2MB; if it is still too large, or the capture fails
-  for any reason, the request goes out without it — the picture is a best-effort extra, never a
-  precondition. The server treats it the same way: a screenshot it cannot decode costs the mail its
-  attachment, not the report.
-- The dialog says what is attached, in the dialog itself, **shows the screenshot** and offers a
-  checkbox to leave it out. Sending diagnostics about a person to a mailbox is only acceptable if
-  the person sending it can see what they are sending and can decide against it.
+- **A screenshot of the page is always attached as `screenshot.jpg`**, captured by
+  `ScreenshotService` (`html-to-image`, code-split into its own chunk and loaded on first use)
+  **before the dialog opens**, so what the mail shows is the screen being reported rather than the
+  dialog reporting it. It is scaled to at most 1280px wide and retried at a lower quality once if it
+  exceeds ~2MB; if it is still too large, or the capture fails for any reason, the request goes out
+  without it — the picture is a best-effort extra, never a precondition. The server treats it the
+  same way: a screenshot it cannot decode costs the mail its attachment, not the report.
+- The dialog says what is attached, in the dialog itself, and **shows the screenshot as a
+  thumbnail** — visible without scrolling. There is no opt-out: the report is worth having with the
+  picture, the destination is the organisation's own mailbox, and a checkbox clicked past under
+  distribution-day pressure protects nobody. Transparency is the safeguard, not a switch.
 
 ## Consequences
 
@@ -67,10 +68,10 @@ the technical context of the report.**
   entries, and it leaves the browser only when a user chooses to send a request.
 - **The screenshot is the largest disclosure this feature makes.** A report written on a customer
   detail screen mails that customer's name, address and income figures as a picture, to a mailbox
-  with its own retention nobody here controls. That is exactly why it is previewed and switchable in
-  the dialog, why it goes only to the organisation's own addresses, and why it is called out in the
-  user guide — and it is the reason this decision was only possible once the destination stopped
-  being a public issue tracker.
+  with its own retention nobody here controls. What makes that acceptable is the destination — the
+  organisation's own addresses, which is why this decision was only possible once support stopped
+  going to a public issue tracker — plus the preview, and the user guide telling people to leave a
+  customer screen before reporting if what is on it should not travel.
 - A mail carrying a screenshot is up to ~2MB, stored in `mail_outbox` until the cleanup window
   passes ([ADR-0041](0041-mails-sent-through-an-outbox.md)).
 - One more frontend dependency (`html-to-image`), dynamically imported so it stays out of every
@@ -84,9 +85,15 @@ the technical context of the report.**
 account with access, and "private" still means a third party holds household names. The mailbox is
 where the operators already are.
 
-**Attach the screenshot without asking, and without showing it.** Rejected: it is the one attached
-asset that can carry a customer's whole record, and a reporter who cannot see it cannot judge
-whether to send it. The preview plus the checkbox costs one component and settles that.
+**A checkbox to leave the screenshot out.** Rejected: it makes the most useful part of a report
+optional at the exact moment nobody has attention to spare, so it would either be clicked past
+(protecting nobody) or occasionally turned off by someone being careful (costing the picture on the
+reports that most needed it). The preview stays, because being able to see what is sent is what
+transparency actually requires; the decision it supports is "finish here first", not a toggle.
+
+**Attach the screenshot without showing it.** Rejected: it is the one attached asset that can carry
+a customer's whole record, and a picture that leaves the browser unseen is a surprise waiting to
+happen. The thumbnail costs three lines of template.
 
 **Capture the screenshot when the request is submitted rather than when the dialog opens.**
 Rejected: by then the dialog is on top of the page and would be most of the picture. Capturing on

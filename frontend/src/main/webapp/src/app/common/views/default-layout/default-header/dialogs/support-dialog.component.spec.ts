@@ -20,7 +20,7 @@ describe('SupportDialogComponent', () => {
     dialogRef = TestBed.inject(MatDialogRef) as MockedObject<MatDialogRef<SupportDialogComponent>>;
   };
 
-  it('closes with the typed request and the screenshot included by default', async () => {
+  it('closes with the typed request', async () => {
     await configureWith({screenshot: 'data:image/jpeg;base64,AAAA'});
     const fixture = TestBed.createComponent(SupportDialogComponent);
     const component = fixture.componentInstance;
@@ -31,29 +31,11 @@ describe('SupportDialogComponent', () => {
 
     expect(dialogRef.close).toHaveBeenCalledWith({
       title: 'Login geht nicht',
-      text: 'Seite bleibt leer',
-      includeScreenshot: true
+      text: 'Seite bleibt leer'
     });
   });
 
-  it('closes without the screenshot once it is unchecked', async () => {
-    await configureWith({screenshot: 'data:image/jpeg;base64,AAAA'});
-    const fixture = TestBed.createComponent(SupportDialogComponent);
-    const component = fixture.componentInstance;
-
-    component.supportTitle.set('Login geht nicht');
-    component.supportText.set('Seite bleibt leer');
-    component.includeScreenshot.set(false);
-    component.save();
-
-    expect(dialogRef.close).toHaveBeenCalledWith({
-      title: 'Login geht nicht',
-      text: 'Seite bleibt leer',
-      includeScreenshot: false
-    });
-  });
-
-  it('shows the screenshot that will be sent, so leaving it out is an informed decision', async () => {
+  it('shows the screenshot that goes along, so it is not a surprise', async () => {
     await configureWith({screenshot: 'data:image/jpeg;base64,AAAA'});
     const fixture = TestBed.createComponent(SupportDialogComponent);
     fixture.detectChanges();
@@ -61,16 +43,27 @@ describe('SupportDialogComponent', () => {
     const preview: HTMLImageElement = fixture.nativeElement.querySelector('[testid="screenshotPreview"]');
     expect(preview.src).toBe('data:image/jpeg;base64,AAAA');
     expect(preview.alt).not.toBe('');
-    expect(fixture.nativeElement.querySelector('[testid="includeScreenshot"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[testid="screenshotHint"]').textContent)
+      .toContain('mitgeschickt');
   });
 
-  it('offers neither preview nor checkbox when no screenshot could be taken', async () => {
+  it('says what else is attached', async () => {
+    await configureWith({screenshot: null});
+    const fixture = TestBed.createComponent(SupportDialogComponent);
+    fixture.detectChanges();
+
+    const hint: HTMLElement = fixture.nativeElement.querySelector('[testid="supportHint"]');
+    expect(hint.textContent).toContain('Benutzername');
+    expect(hint.textContent).toContain('Screenshot');
+  });
+
+  it('shows no preview when no screenshot could be taken', async () => {
     await configureWith({screenshot: null});
     const fixture = TestBed.createComponent(SupportDialogComponent);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[testid="screenshotPreview"]')).toBeNull();
-    expect(fixture.nativeElement.querySelector('[testid="includeScreenshot"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[testid="screenshotHint"]')).toBeNull();
   });
 
 });

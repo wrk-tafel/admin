@@ -3,7 +3,6 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatCheckboxModule} from '@angular/material/checkbox';
 import {FormsModule} from '@angular/forms';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 
@@ -15,33 +14,26 @@ export interface SupportDialogData {
 export interface SupportDialogResult {
   title: string;
   text: string;
-  includeScreenshot: boolean;
 }
 
 @Component({
   selector: 'tafel-support-dialog',
-  imports: [TafelDialogComponent, MatButtonModule, MatFormFieldModule, MatInputModule, MatCheckboxModule, FormsModule],
+  imports: [TafelDialogComponent, MatButtonModule, MatFormFieldModule, MatInputModule, FormsModule],
   templateUrl: 'support-dialog.component.html',
 })
 export class SupportDialogComponent {
   readonly dialogRef = inject(MatDialogRef<SupportDialogComponent>);
+
+  /**
+   * The screenshot that will be sent, shown here as a preview: it always goes along, so the least
+   * it can do is not be a surprise - what is on the screen is what lands in the mail.
+   */
   readonly data = inject<SupportDialogData | null>(MAT_DIALOG_DATA, {optional: true});
 
   supportTitle = signal<string | null>(null);
   supportText = signal<string | null>(null);
 
-  /**
-   * Attached by default - it is the most useful part of the report. Shown as a preview right here
-   * so the decision to leave it out is an informed one: a screenshot of a customer screen carries
-   * that customer's data into a mailbox.
-   */
-  includeScreenshot = signal(true);
-
   save() {
-    this.dialogRef.close({
-      title: this.supportTitle(),
-      text: this.supportText(),
-      includeScreenshot: this.includeScreenshot()
-    });
+    this.dialogRef.close({title: this.supportTitle(), text: this.supportText()});
   }
 }

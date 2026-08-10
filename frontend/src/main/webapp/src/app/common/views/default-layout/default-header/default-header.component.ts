@@ -55,9 +55,7 @@ export class DefaultHeaderComponent {
     this.dialog.open(SupportDialogComponent, {data: {screenshot}}).afterClosed()
       .subscribe((result: SupportDialogResult) => {
         if (result) {
-          const clientContext = this.supportContextService.collect(
-            result.includeScreenshot ? screenshot : null
-          );
+          const clientContext = this.supportContextService.collect(screenshot);
           this.supportApiService.createSupportRequest(result.title, result.text, clientContext).subscribe(() => {
             this.toastr.success('Support-Anfrage wurde übermittelt!');
           });
