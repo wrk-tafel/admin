@@ -286,6 +286,29 @@ class SseOutboxListenerServiceTest {
         assertThat(service.callbacks[notificationName]).isEmpty()
     }
 
+    /**
+     * A callback writes to somebody's `SseEmitter`, and writing to one whose browser has gone away
+     * throws - a closed tab is only noticed on the next write, so a dead emitter stays registered
+     * until then. If that escaped the dispatch loop, every subscriber registered after it would be
+     * skipped: one stale connection would silently stop the dashboard updating for everyone who
+     * opened it later, and the longer the application runs the likelier that gets.
+     */
+    @Test
+    fun `a subscriber that throws does not stop the rest from being notified`() {
+        val receivedPayloads = CopyOnWriteArrayList<String?>()
+        every { mockPGConnection.getNotifications(NOTIFICATIONS_POLL_TIMEOUT) } returns
+            arrayOf(notification(testNotificationEventString)) andThenAnswer { idlePoll() }
+
+        service.registerCallback(
+            notificationName = notificationName,
+            eventCallback = { throw IllegalStateException("ResponseBodyEmitter has already completed") },
+        )
+        service.registerCallback(notificationName = notificationName, eventCallback = { receivedPayloads.add(it) })
+        startListener()
+
+        awaitUntil { assertThat(receivedPayloads).containsExactly(testNotificationEvent.payload) }
+    }
+
     @Test
     fun `unregister callback with multiple callbacks registered`() {
         val eventCallback1: (String?) -> Unit = {}

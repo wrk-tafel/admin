@@ -6,28 +6,40 @@ import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxService
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
-import org.springframework.beans.factory.annotation.Autowired
+import jakarta.mail.Session
+import jakarta.mail.internet.MimeMessage
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.InputStreamSource
-import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
+import java.util.Properties
 
 /**
  * Composes the application's mails. Sending them is [MailOutboxService]'s job - see its class
  * comment for why an SMTP call has no business inside a transaction that just changed something.
+ *
+ * It holds no [org.springframework.mail.javamail.JavaMailSender]: composing a message needs a
+ * `Session` only as the object a [MimeMessage] hangs off, and the session that matters is the
+ * configured one the outbox re-reads the stored bytes with when it actually sends. Whether a mail
+ * server exists at all is one question, asked in one place - [MailOutboxService.enqueue].
  */
 @Service
 class MailSenderService(
-    @param:Autowired(required = false)
-    private val mailSender: JavaMailSender?,
     private val tafelAdminProperties: TafelAdminProperties,
     private val mailRecipientRepository: MailRecipientRepository,
     private val templateEngine: TemplateEngine,
     private val mailOutboxService: MailOutboxService,
 ) {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(MailSenderService::class.java)
+
+        // Only ever the container for a message being built - never used to talk to a server.
+        private val COMPOSE_SESSION: Session = Session.getInstance(Properties())
+    }
 
     fun sendTextMail(
         mailType: MailType,
@@ -73,10 +85,12 @@ class MailSenderService(
      * Composes the mail and hands it to the outbox - it leaves the building later, from
      * [MailOutboxService], not from the transaction that asked for it.
      *
-     * `mailSender` is `@Autowired(required = false)` - when no mail server is configured (e.g.
-     * dev/test profiles), this silently no-ops instead of failing, so callers don't need to guard
-     * every mail-sending call site against a missing mail configuration. Nothing is queued in that
-     * case either: with no server to send it to, a queued mail would only pile up.
+     * Read once so one mail is composed from one consistent set of settings - the properties are
+     * re-bound in place when the config file changes (see `ConfigFileReloadService`), and re-reading
+     * per line could straddle a reload. `tafeladmin.mail` unset means there is nobody to send *from*,
+     * which is the normal state of a dev environment; the mail is skipped rather than failing, so
+     * callers don't have to guard every call site against a missing mail configuration. A deployment
+     * that configures a mail server is required to set it (see `application.yml`).
      */
     private fun sendMail(
         recipients: List<MailRecipient>,
@@ -85,36 +99,35 @@ class MailSenderService(
         attachments: List<MailAttachment>,
         isHtmlMail: Boolean = false,
     ) {
-        if (mailSender != null) {
-            val messageHelper = MimeMessageHelper(mailSender.createMimeMessage(), true)
-
-            // Read once so one mail is composed from one consistent set of settings - the
-            // properties are re-bound in place when the config file changes (see
-            // ConfigFileReloadService), and re-reading per line could straddle a reload.
-            val mailProperties = tafelAdminProperties.mail
-
-            val configuredPrefix = mailProperties?.subjectPrefix
-            val subjectPrefix = if (configuredPrefix.isNullOrBlank()) "" else "$configuredPrefix "
-            val fullSubject = subjectPrefix + subject
-            messageHelper.setSubject(fullSubject)
-            messageHelper.setText(content, isHtmlMail)
-
-            messageHelper.setFrom(mailProperties!!.from)
-            addRecipientAddresses(recipients, messageHelper)
-            mailProperties.defaultRecipientsBcc?.forEach { messageHelper.addBcc(it) }
-
-            attachments.forEach {
-                messageHelper.addAttachment(it.filename, it.inputStreamSource, it.contentType)
-            }
-
-            messageHelper.addInline("logo", ClassPathResource("/assets/logo.png"))
-
-            mailOutboxService.enqueue(
-                mimeMessage = messageHelper.mimeMessage,
-                subject = fullSubject,
-                recipients = recipients.map { it.address },
-            )
+        val mailProperties = tafelAdminProperties.mail
+        if (mailProperties == null) {
+            logger.debug("Mail '{}' skipped - tafeladmin.mail is not configured", subject)
+            return
         }
+
+        val messageHelper = MimeMessageHelper(MimeMessage(COMPOSE_SESSION), true)
+
+        val configuredPrefix = mailProperties.subjectPrefix
+        val subjectPrefix = if (configuredPrefix.isNullOrBlank()) "" else "$configuredPrefix "
+        val fullSubject = subjectPrefix + subject
+        messageHelper.setSubject(fullSubject)
+        messageHelper.setText(content, isHtmlMail)
+
+        messageHelper.setFrom(mailProperties.from)
+        addRecipientAddresses(recipients, messageHelper)
+        mailProperties.defaultRecipientsBcc?.forEach { messageHelper.addBcc(it) }
+
+        attachments.forEach {
+            messageHelper.addAttachment(it.filename, it.inputStreamSource, it.contentType)
+        }
+
+        messageHelper.addInline("logo", ClassPathResource("/assets/logo.png"))
+
+        mailOutboxService.enqueue(
+            mimeMessage = messageHelper.mimeMessage,
+            subject = fullSubject,
+            recipients = recipients.map { it.address },
+        )
     }
 
     private fun resolveRecipients(mailType: MailType): List<MailRecipient> = mailRecipientRepository.findAllByMailType(mailType)

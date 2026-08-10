@@ -491,7 +491,15 @@ class DistributionService(
         distributionRepository.save(currentDistribution)
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Deliberately *not* `@Transactional`: `reporting`'s listener runs synchronously on this thread and
+     * opens a read-write transaction per mail to queue it (see `DistributionClosedEventListener`). A
+     * transaction here would be the one those participate in - and a read-only one, as this method only
+     * reads its own data, would make every mail fail on `mail_outbox`'s sequence. Nothing here needs a
+     * transaction of its own anyway: the fetch below is an existence check whose result is discarded,
+     * and no lazy association is touched. Same shape as the automatic path, where
+     * `DistributionEndedEventListener` publishes the event after its transaction has committed.
+     */
     fun sendMails(distributionId: Long) {
         distributionRepository.findByIdOrNull(distributionId)
             ?: throw NotFoundException("Ausgabe nicht gefunden!")

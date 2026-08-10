@@ -23,16 +23,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.mail.javamail.JavaMailSender
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
-import java.io.ByteArrayInputStream
 
 @ExtendWith(MockKExtension::class)
 internal class MailSenderServiceTest {
-
-    @RelaxedMockK
-    private lateinit var mailSender: JavaMailSender
 
     @RelaxedMockK
     private lateinit var properties: TafelAdminProperties
@@ -49,10 +44,13 @@ internal class MailSenderServiceTest {
     @InjectMockKs
     private lateinit var service: MailSenderService
 
+    /**
+     * `tafeladmin.mail` unset is the normal state of a dev environment - there is nobody to send
+     * from, so the mail is skipped instead of failing on a missing `from` address.
+     */
     @Test
-    fun `sendTextMail - mailing disabled`() {
-        val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine, mailOutboxService)
-        every { properties.mail!!.from } returns "from-address"
+    fun `sendTextMail - no mail configuration`() {
+        every { properties.mail } returns null
 
         service.sendTextMail(MailType.DAILY_REPORT, "subject", "text", emptyList())
 
@@ -83,7 +81,6 @@ internal class MailSenderServiceTest {
             inputStreamSource = ByteArrayResource(ByteArray(10)),
             contentType = "application/pdf",
         )
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         service.sendTextMail(MailType.DAILY_REPORT, subject, text, listOf(attachment))
 
@@ -122,7 +119,6 @@ internal class MailSenderServiceTest {
         every { properties.mail!!.subjectPrefix } returns null
 
         every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         val subject = "subj"
         service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
@@ -135,9 +131,8 @@ internal class MailSenderServiceTest {
     }
 
     @Test
-    fun `sendHtmlMail - mailing disabled`() {
-        val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine, mailOutboxService)
-        every { properties.mail!!.from } returns "from-address"
+    fun `sendHtmlMail - no mail configuration`() {
+        every { properties.mail } returns null
 
         service.sendHtmlMail(
             mailType = MailType.DAILY_REPORT,
@@ -179,7 +174,6 @@ internal class MailSenderServiceTest {
             inputStreamSource = ByteArrayResource(ByteArray(10)),
             contentType = "application/pdf",
         )
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         service.sendHtmlMail(MailType.DAILY_REPORT, subject, listOf(attachment), subTemplateName, context)
 
@@ -215,7 +209,7 @@ internal class MailSenderServiceTest {
 
         // Content-Type headers on the in-memory part tree are only populated from the
         // DataHandler once updateHeaders() runs (normally triggered by writeTo() when the
-        // message is actually transmitted, which doesn't happen here since mailSender is mocked).
+        // message is actually transmitted, which doesn't happen here since the message is only queued).
         mailMessage.saveChanges()
 
         val textPart = findPartByMimeType(mailMessage, "text/html")
@@ -234,7 +228,6 @@ internal class MailSenderServiceTest {
         every { properties.mail!!.subjectPrefix } returns "[PREFIX]"
         every { properties.mail?.defaultRecipientsBcc } returns listOf("archive@localhost")
         every { templateEngine.process(any<String>(), any<Context>()) } returns "rendered content"
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         val context = Context()
         service.sendHtmlMailTo(
@@ -286,7 +279,6 @@ internal class MailSenderServiceTest {
             testMailRecipient_DR_TO1,
             testMailRecipient_DR_TO2,
         )
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         service.sendTextMail(MailType.DAILY_REPORT, "", "")
 

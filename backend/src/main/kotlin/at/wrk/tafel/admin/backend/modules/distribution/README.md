@@ -112,15 +112,18 @@ used specifically when a mail failed to deliver) return success before actually 
 resend worked. A synchronous listener keeps `sendMails()`'s existing behavior — it still runs inline
 and still throws back to the controller if mail generation/sending fails.
 
-Within `DistributionClosedEventListener`, all three mails are isolated from each other and each is
-retried up to 3 times (via a `RetryTemplate`) before being given up on - one failing/retrying never
-blocks another from being attempted, mirroring the independence they used to have as separate
-`DistributionPostProcessor` beans (the return-boxes mail specifically didn't gain anything
-module-dependency-wise from the move - it's here purely to share this isolation/retry handling with the
-other two). If any still fail after all retries, the first failure is rethrown once all three have been
-attempted (with the others attached as suppressed exceptions), so `sendMails()` still surfaces a real
-error to the caller; the automatic post-close flow just logs it via `DistributionEndedEventListener`'s own
-try/catch and moves on.
+Within `DistributionClosedEventListener`, all three mails are isolated from each other, each composed in
+a transaction of its own - one failing never blocks another from being attempted, mirroring the
+independence they used to have as separate `DistributionPostProcessor` beans (the return-boxes mail
+specifically didn't gain anything module-dependency-wise from the move - it's here purely to share this
+isolation handling with the other two). If any fail, the first failure is rethrown once all three have
+been attempted (with the others attached as suppressed exceptions), so `sendMails()` still surfaces a
+real error to the caller; the automatic post-close flow just logs it via `DistributionEndedEventListener`'s
+own try/catch and moves on.
+
+`sendMails()` is deliberately **not** `@Transactional`: the listener runs synchronously on its thread and
+opens the read-write transaction per mail that queuing one needs, so a transaction here would be the one
+those participate in - and a read-only one would make every mail fail on `mail_outbox`'s sequence.
 
 The household-list PDF (`generateHouseholdListPdf()`) uses the generic `common.pdf.PDFService` instead,
 not `reporting`.
