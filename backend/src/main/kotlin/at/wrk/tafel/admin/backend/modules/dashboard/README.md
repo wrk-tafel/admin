@@ -81,7 +81,7 @@ module — or anywhere in application code — ever calls `saveOutboxEntry("dash
    `insert_dashboard_update_to_sse_outbox()` and attaches it as an `AFTER INSERT OR UPDATE OR DELETE` trigger
    on `distributions`, `distributions_households`, `distributions_statistics`,
    `distributions_statistics_shelters`, `food_collections`, and `food_collections_items`;
-   `R__00096_dashboard_route_progress_trigger.sql` attaches the same function to
+   `R__00097_dashboard_route_progress_trigger.sql` attaches the same function to
    `routes_stops_completions`, which is what makes the route progress panel follow the drivers. Any
    write to any of those tables (by any module, through any code path — even a raw SQL migration)
    inserts a row into `sse_outbox` with `notification_name = 'dashboard_update'` and `payload = NULL`.
