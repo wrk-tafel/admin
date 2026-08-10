@@ -274,8 +274,23 @@ class SseOutboxListenerService(
         }
     }
 
+    /**
+     * Every subscriber of a notification gets it, whatever the one before it did. A callback here
+     * writes to somebody's [org.springframework.web.servlet.mvc.method.annotation.SseEmitter], and
+     * writing to a stream whose browser has gone away throws - which is normal, not exceptional: a
+     * closed tab is only noticed on the next write, so a dead emitter stays registered until then.
+     * Letting that escape would end the loop and starve every subscriber that registered after it,
+     * so one stale connection would silently stop the dashboard updating for everyone who opened it
+     * later. The failing write is what makes the emitter report its own error and unregister, so the
+     * dead entry clears itself on the next notification.
+     */
     private fun dispatchToCallbacks(notificationName: String?, payload: String?) {
-        notificationName?.let { name -> callbacks[name]?.forEach { it.invoke(payload) } }
+        notificationName?.let { name ->
+            callbacks[name]?.forEach { callback ->
+                runCatching { callback.invoke(payload) }
+                    .onFailure { logger.debug("Delivering '{}' to a subscriber failed: {}", name, it.message) }
+            }
+        }
     }
 
     /**

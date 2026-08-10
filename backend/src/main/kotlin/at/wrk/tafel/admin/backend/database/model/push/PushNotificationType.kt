@@ -31,6 +31,11 @@ enum class PushNotificationType {
     /** An account was locked after too many consecutive failed logins. */
     USER_LOCKED_OUT,
 
-    /** One of the after-close report mails could not be sent, even after retrying. */
+    /**
+     * A mail could not be sent, even after retrying - either one the application failed to build
+     * (the after-close report mails) or one the outbox gave up on delivering. Named for the
+     * after-close reports it was introduced for; kept under that name because the value is persisted
+     * in `push_type_preferences`, so renaming it would silently opt every subscriber back out.
+     */
     REPORT_MAIL_FAILED,
 }

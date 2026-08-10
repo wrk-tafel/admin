@@ -70,7 +70,7 @@ Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung vorau
 | Benachrichtigungsart | Wird ausgelöst, wenn … | Erforderliche Berechtigung |
 | --- | --- | --- |
 | Ausgabe noch offen | eine Ausgabe an einem früheren Tag gestartet und bis dahin nicht beendet wurde (Erinnerung jeweils in der Früh, bis die Ausgabe beendet ist) | Ausgabe-Ablauf oder Supervisor |
-| E-Mail nicht versendet | eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) auch nach mehreren Versuchen nicht versendet werden konnte | Administrator |
+| E-Mail nicht versendet | eine E-Mail auch nach mehreren Versuchen nicht versendet werden konnte – etwa eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) oder eine Support-Anfrage. Die Benachrichtigung nennt den Betreff der E-Mail | Administrator |
 | Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Administrator |
 
 Die beiden letzten sind technische Meldungen: sie richten sich an jene Personen, die die Anwendung selbst betreuen, und nicht an die Ausgabe-Leitung. Da die Berechtigung "Administrator" alle anderen Berechtigungen einschließt, sehen Administratoren sämtliche Benachrichtigungsarten.

@@ -173,9 +173,15 @@ describe('Route Guidance', () => {
 
     it('has no violations on a stop that is done', () => {
       selectRoute2();
-      // the navigation ticks the stop off without paging on, so the done state is the one on screen
-      cy.byTestId('guidance-navigate-button').then($link => $link.on('click', e => e.preventDefault()));
-      cy.byTestId('guidance-navigate-button').click();
+      // Forward ticks the stop off and pages on, so a done stop is normally already off screen by
+      // the time it is done. The last stop is the exception - there is nowhere to move on to, so it
+      // ticks off and stays, which is the only place this state can be looked at.
+      cy.byTestId('guidance-done-button').click();
+      cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
+      cy.byTestId('guidance-done-button').click();
+      cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
+      cy.byTestId('guidance-done-button').click();
+
       cy.byTestId('guidance-done-badge').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);
     });

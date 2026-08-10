@@ -18,9 +18,10 @@ import tools.jackson.databind.json.JsonMapper
  * ([PushNotificationTypeTargeting], the user's permissions) and by what the user asked for
  * ([PushPreferencesService], master switch plus per-type opt-out). Deliberately no
  * `@Transactional`: each subscription send/prune below runs as its own auto-transactional
- * repository call - fine at this volume, and avoids the read-only-transaction-vs-delete conflict a
- * single wrapping `@Transactional(readOnly = true)` (as `reporting`'s listener uses) would create
- * once expired subscriptions need deleting.
+ * repository call - fine at this volume, and avoids the read-only-transaction-vs-write conflict a
+ * single wrapping `@Transactional(readOnly = true)` would create once expired subscriptions need
+ * deleting. Postgres refuses the write outright in that case, which is how the after-close report
+ * mails silently stopped being queued (see `MailOutboxService.enqueue`).
  */
 @Service
 class PushBroadcastService(

@@ -201,9 +201,23 @@ choice on its own merits).
 - Outbox pattern for reliable SSE event publishing (`sse_outbox` table)
 - Outbox pattern for mails too (`mail_outbox` table, ADR-0041): `MailSenderService` only *composes*
   a mail and queues the finished MIME message inside the caller's transaction; `MailOutboxService`
-  polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts.
-  So a mail is never sent from a transaction that rolls back, and never lost when SMTP is down —
-  and nothing outside `common/mail` should call `JavaMailSender` directly
+  polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts —
+  publishing `MailDeliveryFailedEvent`, which `push` turns into a notification to administrators, so
+  a mail that was given up on is not just a row nobody reads. So a mail is never sent from a
+  transaction that rolls back, and never lost when SMTP is down. `MailOutboxService` is the only
+  class that holds a `JavaMailSender` — it is what "is a mail server configured?" means, which is
+  why `enqueue` is also where a mail is dropped when none is (nothing to deliver to, so a queued row
+  would only pile up). `MailSenderService` composes either way and needs no sender: a `Session` is
+  just what a `MimeMessage` hangs off, and the outbox re-reads the stored bytes with the configured
+  session when it sends.
+  **Queuing a mail is a write**, which is what joining the caller's transaction costs: a caller whose
+  transaction is `readOnly = true` cannot send mail, and `enqueue` rejects it with a message saying
+  so rather than letting Postgres refuse `mail_outbox_seq`'s `nextval()` several frames deeper. Don't
+  reach for `REQUIRES_NEW` to dodge that — committing the row independently is exactly the "a mail
+  about work that did not happen" failure ADR-0041 exists to prevent. Note a *unit* test with a
+  mocked repository cannot see any of this, and neither can a `@Transactional` integration test: the
+  test's own read-write transaction is what the code under test would join, and the rows it queues
+  are rolled back before the poller could ever see them (see `DistributionSendMailsIT`)
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
@@ -288,7 +302,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `cars`: Vehicle management
 - `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
-- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`
+- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept — it is the record of a mail nobody received
 - `mail_addresses`: Email recipient configuration
 
 ## Testing
