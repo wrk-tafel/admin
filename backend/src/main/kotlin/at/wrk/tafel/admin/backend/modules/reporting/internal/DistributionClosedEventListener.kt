@@ -144,7 +144,7 @@ class DistributionClosedEventListener(
             "mails/daily-report-mail",
             ctx,
         )
-        logger.info("Mail with daily report '$mailSubject' - file: '$filename' sent!")
+        logger.info("Mail with daily report '$mailSubject' - file: '$filename' queued!")
     }
 
     private fun sendStatisticMail(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
@@ -172,7 +172,7 @@ class DistributionClosedEventListener(
             context = ctx,
         )
 
-        logger.info("Mail with statistic files '$mailSubject' sent!")
+        logger.info("Mail with statistic files '$mailSubject' queued!")
     }
 
     private fun sendReturnBoxesMail(distribution: DistributionEntity) {
@@ -194,7 +194,7 @@ class DistributionClosedEventListener(
             context = ctx,
         )
 
-        logger.info("Mail for return boxes '$mailSubject' sent!")
+        logger.info("Mail for return boxes '$mailSubject' queued!")
     }
 
     /**

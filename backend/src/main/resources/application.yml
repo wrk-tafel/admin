@@ -207,21 +207,34 @@ tafeladmin:
   # Baked into the security filter chain at startup - changing it needs a restart.
   server:
     relativeBaseUrl: /
-  # The in-app support form files a GitHub issue on the user's behalf. Without a token the endpoint
-  # fails with a clear error rather than pretending to have sent something. titlePrefix is prepended
-  # to every issue title so it is obvious which environment a request came from (e.g. "[TEST]").
+  # The in-app support form mails the request, together with the technical context the browser
+  # reports, to these addresses. Deployment-specific, so unset here - with no recipient the endpoint
+  # fails with a clear error rather than pretending to have sent something. The mail goes out over
+  # the spring.mail server above, from tafeladmin.mail.from, and carries tafeladmin.mail.subjectPrefix
+  # so it is obvious which environment a request came from (e.g. "[TEST]"). subjectPrefix below goes
+  # in front of the title the user typed and marks the mail as a support request rather than one of
+  # the automated ones - a subject then reads "[TEST] Support: Scanner reagiert nicht".
   support:
-    # githubToken: <personal access token, Issues: Read and write>
-    githubRepository: wrk-tafel/admin
-    titlePrefix: ""
+    subjectPrefix: "Support:"
+    # recipients:
+    #   - support@<domain>
   # Who the automated mails (daily report, statistics, return boxes) come from. The recipients are
   # not configured here - they are maintained in the UI under Einstellungen. Only used when a mail
   # server is configured above; `from` is required as soon as one is.
+  #
+  # A mail is written to the mail_outbox table inside the transaction that produced it and handed to
+  # the mail server by a poller afterwards (MailOutboxService). How often that poller looks is
+  # tafeladmin.mailOutbox.interval below - read at startup only, for the same reason as
+  # tafeladmin.configReload.interval.
   # mail:
   #   from: no-reply@<domain>
   #   subjectPrefix: "[TEST]"
   #   defaultRecipientsBcc:
   #     - archive@<domain>
+  # Kept out of tafeladmin.mail above on purpose: that section is bound to a properties object, and
+  # a key underneath it would make the section exist in every environment (see TafelAdminProperties).
+  mailOutbox:
+    interval: 10s
   # Web Push (VAPID). Without a keypair the application runs normally and push notifications are
   # simply unavailable. Both keys must be the RAW key material, base64url-encoded - NOT the base64
   # inside a PEM file, which wraps DER/ASN.1 structure around the raw bytes and fails to decode; see

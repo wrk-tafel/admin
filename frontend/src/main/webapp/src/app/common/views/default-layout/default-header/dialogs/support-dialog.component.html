@@ -7,9 +7,14 @@
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Anliegen</mat-label>
-      <textarea matInput rows="9" testid="supportText"
+      <textarea matInput rows="6" testid="supportText"
                 [ngModel]="supportText()" (ngModelChange)="supportText.set($event)"></textarea>
     </mat-form-field>
+    <p class="text-sm" testid="supportHint">
+      Die Anfrage wird per E-Mail versandt. Mitgesendet werden automatisch technische Infos zur
+      Fehlersuche: Benutzername, aktuelle Seite, Browser, die letzten Fehlermeldungen dieser Sitzung
+      und ein Screenshot der Seite.
+    </p>
   </div>
   <div tafel-dialog-actions>
     <button testid="okButton" matButton="filled" (click)="save()"

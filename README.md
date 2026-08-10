@@ -134,7 +134,7 @@ spring:
     url: jdbc:postgresql://<database-host>:5432/tafeladmin
     username: tafeladmin
     password: <database-password>
-  # Optional, but nothing can be mailed out without it (daily reports, statistics).
+  # Optional, but nothing can be mailed out without it (daily reports, statistics, support requests).
   mail:
     host: <smtp-host>
     port: 587
@@ -156,6 +156,10 @@ tafeladmin:
     relativeBaseUrl: /          # must match the reverse proxy, see below
   mail:
     from: tafel-admin@example.com
+  support:
+    # Where the in-app support form sends to. Without a recipient the form fails with a clear error.
+    recipients:
+      - support@example.com
 ```
 
 ### 2. Start it against the empty database
@@ -296,7 +300,7 @@ admin/
 │       │   ├── logistics/          #   Routes, food collections, shelters
 │       │   ├── reporting/          #   CSV/PDF reports, statistics exports
 │       │   ├── settings/           #   App configuration, mail recipients
-│       │   └── support/            #   In-app support form, files a GitHub issue
+│       │   └── support/            #   In-app support form, mailed with the browser's context
 │       └── resources/
 │           ├── db-migration/       #   Flyway SQL migrations
 │           ├── pdf-templates/      #   XSL-FO templates for PDF generation

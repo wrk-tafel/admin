@@ -18,6 +18,7 @@ export interface SupportDialogResult {
 })
 export class SupportDialogComponent {
   readonly dialogRef = inject(MatDialogRef<SupportDialogComponent>);
+
   supportTitle = signal<string | null>(null);
   supportText = signal<string | null>(null);
 

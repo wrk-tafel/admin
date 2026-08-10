@@ -1,6 +1,6 @@
 # ADR-0033: In-app support requests are filed as GitHub issues
 
-**Status:** accepted · **Recorded:** 2026-08-09
+**Status:** superseded by [ADR-0040](0040-support-requests-sent-as-mail.md) · **Recorded:** 2026-08-09
 
 ## Context
 

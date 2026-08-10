@@ -142,7 +142,9 @@ The backend uses **Spring Modulith** architecture with 11 core feature modules (
 - **dashboard**: Overview page with real-time updates, registered customers, and distribution state
 - **reporting**: Statistics exports (CSV), daily reports (PDF), age/country/household distributions
 - **settings**: Application configuration and mail recipient management
-- **support**: In-app support contact form that files a GitHub issue on the user's behalf
+- **support**: In-app support contact form that mails the request — plus the technical context of
+  the report (reporter, version, page, browser, the session's last errors) and a screenshot of the
+  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0040
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
@@ -197,6 +199,11 @@ choice on its own merits).
 
 **Notable Patterns:**
 - Outbox pattern for reliable SSE event publishing (`sse_outbox` table)
+- Outbox pattern for mails too (`mail_outbox` table, ADR-0041): `MailSenderService` only *composes*
+  a mail and queues the finished MIME message inside the caller's transaction; `MailOutboxService`
+  polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts.
+  So a mail is never sent from a transaction that rolls back, and never lost when SMTP is down —
+  and nothing outside `common/mail` should call `JavaMailSender` directly
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
@@ -281,6 +288,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `cars`: Vehicle management
 - `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
+- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`
 - `mail_addresses`: Email recipient configuration
 
 ## Testing
@@ -526,7 +534,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/shelters`: Shelter management
 - `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
 - `/api/settings`: Application settings
-- `/api/support`: Creates a GitHub issue from an in-app support request
+- `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
@@ -633,7 +641,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   silently won't be findable.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
-- **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.
+- **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`. Golden
+  reference files in `src/test/resources/mail-references/` are compared byte-for-byte by
+  `MailTemplateRenderingTest`, so a new/changed template needs its reference regenerated — and keep
+  data with newlines out of those comparisons, git's line-ending normalization rewrites them.
 - **Ticket System**: Customers receive ticket numbers during distributions for organized food collection.
 - **Scanner Integration**: Supports handheld scanners for customer check-in via QR codes.
 - **Scanner Folder**: Optional per deployment — a NAS share a physical document scanner writes to,

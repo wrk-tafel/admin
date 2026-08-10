@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   DEFAULT_CURRENCY_CODE,
+  ErrorHandler,
   inject,
   isDevMode,
   LOCALE_ID,
@@ -31,6 +32,8 @@ import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 import {MAT_CARD_CONFIG} from '@angular/material/card';
 import {TafelTitleStrategy} from './common/util/tafel-title-strategy';
 import {handleNavigationError} from './common/util/navigation-error-handler';
+import {TafelErrorHandler} from './common/support/tafel-error-handler';
+import {ClientLogService} from './common/support/client-log.service';
 
 // `MatDialog` is `providedIn: 'root'` and reads its defaults from the root injector, so this one
 // has to stay app-wide even though no screen outside the shell opens a dialog. The Material
@@ -71,6 +74,9 @@ export const appConfig: ApplicationConfig = {
     },
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAppInitializer(() => inject(SwUpdateService).init()),
+    // As early as possible: what a support request is worth is decided by whether the error it is
+    // about was still around to be attached.
+    provideAppInitializer(() => inject(ClientLogService).captureGlobalErrors()),
     provideServiceWorker('ngsw-worker.js', {
       // An active service worker serves navigations from its own cache, bypassing Cypress's
       // network layer - this made cy.visit() unreliable (e.g. a fresh navigation's onBeforeLoad
@@ -110,6 +116,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MAT_CARD_CONFIG,
       useValue: {appearance: 'outlined'}
+    },
+    {
+      // `useExisting`, so an uncaught error and a support request read the same instance's log.
+      provide: ErrorHandler,
+      useExisting: TafelErrorHandler
     }
   ]
 };
