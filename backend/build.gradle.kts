@@ -143,6 +143,14 @@ tasks.withType<Test> {
     useJUnitPlatform()
     include("**/*Test.class", "**/*IT.class")
 
+    // Gradle forks the test JVM with its own default heap of 512m - `org.gradle.jvmargs` in
+    // gradle.properties sizes the Gradle daemon, not this process. Spring's TestContext framework
+    // caches one application context per distinct configuration and keeps them all alive for the
+    // whole run, so the integration tests' footprint grows with every IT that brings its own
+    // properties (@DynamicPropertySource), each holding a context and its connection pool. At 512m
+    // the suite died with "Java heap space" rather than a failing assertion.
+    maxHeapSize = "2g"
+
     // Use German (Germany) locale for tests in CI so CSV/date/number formatting matches local dev
     systemProperty("user.language", "de")
     systemProperty("user.country", "DE")

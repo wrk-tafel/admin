@@ -77,8 +77,10 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
             registry.add("tafeladmin.mail.from") { "test@example.com" }
             registry.add("tafeladmin.mail.defaultRecipientsBcc[0]") { TEST_RECIPIENT_ADDRESS }
             // The outbox poller is what actually delivers; at its 10s default this test would spend
-            // most of its time waiting for the next tick.
-            registry.add("tafeladmin.mailOutbox.interval") { "200ms" }
+            // most of its time waiting for the next tick. Not lower than this: the context is cached
+            // and its poller keeps running for the rest of the suite, against the database every
+            // other IT is using.
+            registry.add("tafeladmin.mailOutbox.interval") { "500ms" }
         }
     }
 
@@ -118,9 +120,11 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
     @BeforeEach
     fun beforeEach() {
         // The database container is shared by every IT class, so a mail another class queued and
-        // never sent is still PENDING - and this class is the one that configures a mail server and
-        // a fast poller, so it would deliver that mail and count it as one of its own. Drained
-        // before the mail server is emptied, so nothing can arrive in between.
+        // never sent is still PENDING - and this class has both a reachable mail server and a fast
+        // poller, so it is the one that ends up delivering it. Draining first keeps the noise down,
+        // but it cannot rule the case out: a poll already in flight holds its rows in memory and can
+        // deliver them after both of these lines have run. That is why the assertions below count
+        // this test's own three subjects instead of what Mailpit holds in total.
         transactionTemplate.executeWithoutResult { mailOutboxRepository.deleteAll() }
         mailpitClient.delete().uri("/api/v1/messages").retrieve().toBodilessEntity()
 
@@ -188,11 +192,25 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
                 .retrieve()
                 .body(MailpitMessagesResponse::class.java)!!
 
-            assertThat(response.total).isEqualTo(3)
-            assertThat(response.messages.map { it.subject }).containsExactlyInAnyOrderElementsOf(expectedSubjects)
-            response.messages.forEach { message ->
-                assertThat(message.bcc.map { it.address }).contains(TEST_RECIPIENT_ADDRESS)
+            val subjects = response.messages.map { it.subject }
+            // Each of the three exactly once, rather than a count of everything Mailpit holds: the
+            // outbox is one shared queue and this is not the only IT context with a mail sender, so
+            // a total would couple this assertion to what else the suite happens to have queued.
+            // Counting per subject still catches the failure that matters - the same mail delivered
+            // twice, which is what two pollers on one queue would do.
+            assertThat(subjects)
+                .describedAs("mails delivered to Mailpit")
+                .containsAll(expectedSubjects)
+            expectedSubjects.forEach { expected ->
+                assertThat(subjects.count { it == expected })
+                    .describedAs("deliveries of '%s' (all: %s)", expected, subjects)
+                    .isEqualTo(1)
             }
+            response.messages
+                .filter { it.subject in expectedSubjects }
+                .forEach { message ->
+                    assertThat(message.bcc.map { it.address }).contains(TEST_RECIPIENT_ADDRESS)
+                }
         }
     }
 }
