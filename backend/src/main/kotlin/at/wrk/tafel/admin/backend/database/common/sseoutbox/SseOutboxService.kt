@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,16 +31,16 @@ class SseOutboxService(
     private val jsonMapper: JsonMapper,
     private val sseOutboxRepository: SseOutboxRepository,
     private val sseOutboxListenerService: SseOutboxListenerService,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(SseOutboxService::class.java)
-        private const val NOTIFICATIONS_CLEANUP_KEEP_DAYS = 14L
     }
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupOutbox() {
-        val date = LocalDateTime.now().minusDays(NOTIFICATIONS_CLEANUP_KEEP_DAYS)
+        val date = LocalDateTime.now().minus(tafelAdminProperties.sse.outboxRetention)
         sseOutboxRepository.deleteAllByEventTimeBefore(date)
     }
 

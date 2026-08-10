@@ -1,21 +1,24 @@
 package at.wrk.tafel.admin.backend.modules.checkin.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationRepository
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifySequence
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.Duration
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @ExtendWith(MockKExtension::class)
 internal class ScannerServiceTest {
@@ -26,11 +29,14 @@ internal class ScannerServiceTest {
     @RelaxedMockK
     private lateinit var advisoryLockService: AdvisoryLockService
 
-    @InjectMockKs
     private lateinit var service: ScannerService
+
+    private val tafelAdminProperties = TafelAdminProperties()
 
     @BeforeEach
     fun setUp() {
+        service = ScannerService(scannerRegisteredRepository, advisoryLockService, tafelAdminProperties)
+
         every { advisoryLockService.withLock(any(), any<() -> Any?>()) } answers {
             secondArg<() -> Any?>().invoke()
         }
@@ -109,5 +115,21 @@ internal class ScannerServiceTest {
         verify {
             scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(any())
         }
+    }
+
+    /**
+     * The retention is configuration, not a constant - reclaiming scanner ids while a distribution
+     * is running hands the scanners still in use new ones, so widening the window must not wait for
+     * a restart.
+     */
+    @Test
+    fun `cleanup removes registrations older than the configured retention`() {
+        tafelAdminProperties.checkin.scannerRegistrationRetention = Duration.ofDays(7)
+
+        service.cleanupScannerRegistrations()
+
+        val cutoffSlot = slot<LocalDateTime>()
+        verify { scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(capture(cutoffSlot)) }
+        assertThat(cutoffSlot.captured).isCloseTo(LocalDateTime.now().minusDays(7), within(1, ChronoUnit.MINUTES))
     }
 }

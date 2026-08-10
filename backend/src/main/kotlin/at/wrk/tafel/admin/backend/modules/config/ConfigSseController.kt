@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.config
 
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.config.internal.ConfigChangePublisher
 import org.springframework.security.access.prepost.PreAuthorize
@@ -23,11 +23,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 @PreAuthorize("isAuthenticated()")
 class ConfigSseController(
     private val sseOutboxService: SseOutboxService,
+    private val sseEmitterFactory: SseEmitterFactory,
 ) {
 
     @GetMapping
     fun listenForConfigChanges(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
+        val sseEmitter = sseEmitterFactory.createSseEmitter()
         sseOutboxService.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = ConfigChangePublisher.NOTIFICATION_NAME,

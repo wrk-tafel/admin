@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import io.mockk.every
 import io.mockk.mockk
@@ -19,6 +20,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.web.client.RestClient
 import java.net.URI
+import java.time.Duration
 
 /**
  * Covers how a push service's answer is turned into a [PushSendResult]. The signing and encryption
@@ -39,9 +41,11 @@ internal class WebPushSenderServiceTest {
     private val vapidSigner = mockk<VapidSigner>()
     private val encryptionService = mockk<WebPushEncryptionService>()
 
+    private val tafelAdminProperties = TafelAdminProperties()
+
     private val restClientBuilder = RestClient.builder()
     private val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
-    private val service = WebPushSenderService(vapidSigner, encryptionService, restClientBuilder.build())
+    private val service = WebPushSenderService(vapidSigner, encryptionService, tafelAdminProperties, restClientBuilder.build())
 
     private fun configuredSigner() {
         every { vapidSigner.isConfigured } returns true
@@ -102,6 +106,26 @@ internal class WebPushSenderServiceTest {
         configuredSigner()
         mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
             .andExpect(header("TTL", "43200"))
+            .andRespond(withStatus(HttpStatus.CREATED))
+
+        service.send(testSubscription, "{}")
+
+        mockServer.verify()
+    }
+
+    /**
+     * Both are configuration, not constants: how long a message may wait and how hard it pushes
+     * against the device's battery is the kind of thing that gets re-tuned while a distribution is
+     * running, when notifications are turning out to arrive late.
+     */
+    @Test
+    fun `the configured lifetime and urgency are what is sent`() {
+        tafelAdminProperties.pushDelivery.ttl = Duration.ofMinutes(30)
+        tafelAdminProperties.pushDelivery.urgency = "normal"
+        configuredSigner()
+        mockServer.expect(ExpectedCount.once(), requestTo(pushEndpoint))
+            .andExpect(header("TTL", "1800"))
+            .andExpect(header("Urgency", "normal"))
             .andRespond(withStatus(HttpStatus.CREATED))
 
         service.send(testSubscription, "{}")

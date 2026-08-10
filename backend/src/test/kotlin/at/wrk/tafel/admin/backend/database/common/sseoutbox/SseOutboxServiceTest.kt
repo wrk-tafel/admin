@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -21,6 +22,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder
 import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.function.Consumer
 
 @ExtendWith(MockKExtension::class)
@@ -35,11 +39,12 @@ class SseOutboxServiceTest {
     @RelaxedMockK
     private lateinit var sseOutboxListenerService: SseOutboxListenerService
 
-    @InjectMockKs
-    private lateinit var service: SseOutboxService
-
     @RelaxedMockK
     private lateinit var sseEmitter: SseEmitter
+
+    private lateinit var service: SseOutboxService
+
+    private val tafelAdminProperties = TafelAdminProperties()
 
     private val testPayload = TestJsonPayload(123)
     private val testPayloadString = "{\"value\":123}"
@@ -47,6 +52,8 @@ class SseOutboxServiceTest {
 
     @BeforeEach
     fun beforeEach() {
+        service = SseOutboxService(jsonMapper, sseOutboxRepository, sseOutboxListenerService, tafelAdminProperties)
+
         every { jsonMapper.readValue(testPayloadString, TestJsonPayload::class.java) } returns testPayload
         every { jsonMapper.writeValueAsString(testPayload) } returns testPayloadString
     }
@@ -56,6 +63,21 @@ class SseOutboxServiceTest {
         service.cleanupOutbox()
 
         verify { sseOutboxRepository.deleteAllByEventTimeBefore(any()) }
+    }
+
+    /**
+     * The retention is configuration, not a constant - a deployment whose outbox is growing faster
+     * than it is read has to be able to shorten it without a restart.
+     */
+    @Test
+    fun `cleanup deletes everything older than the configured retention`() {
+        tafelAdminProperties.sse.outboxRetention = Duration.ofDays(3)
+
+        service.cleanupOutbox()
+
+        val cutoffSlot = slot<LocalDateTime>()
+        verify { sseOutboxRepository.deleteAllByEventTimeBefore(capture(cutoffSlot)) }
+        assertThat(cutoffSlot.captured).isCloseTo(LocalDateTime.now().minusDays(3), within(1, ChronoUnit.MINUTES))
     }
 
     @Test

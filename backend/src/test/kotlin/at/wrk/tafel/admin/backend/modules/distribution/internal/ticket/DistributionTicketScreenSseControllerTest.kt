@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
@@ -20,6 +21,9 @@ internal class DistributionTicketScreenSseControllerTest {
 
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
+
+    @RelaxedMockK
+    private lateinit var sseEmitterFactory: SseEmitterFactory
 
     @InjectMockKs
     private lateinit var controller: DistributionTicketScreenSseController

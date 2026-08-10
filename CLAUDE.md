@@ -696,7 +696,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     A value that has already been baked into another bean keeps what it was built with and still
     needs a restart — that's why `spring.datasource.url`, the Tomcat connector settings, the
     security filter chain and `tafeladmin.push.vapid*` don't change on a reload, while
-    `tafeladmin.features.scannerFolderEnabled` does.
+    `tafeladmin.features.scannerFolderEnabled` does. A value can also be *half* live:
+    `tafeladmin.storage.maxDocumentSize` is re-read per upload, but the servlet container's
+    multipart ceiling derived from it (`MultipartConfig`) is fixed at startup, so lowering the limit
+    takes effect at once and raising it past that ceiling does not.
   - `@Value` is **not** refreshed — it is resolved once when the bean is constructed. The one place
     that uses it (`FlywayImportTestdataCallback`'s `tafeladmin.testdata.enabled`) is a startup-only
     concern and correct as it is, but don't reach for `@Value` for anything meant to be reloadable;

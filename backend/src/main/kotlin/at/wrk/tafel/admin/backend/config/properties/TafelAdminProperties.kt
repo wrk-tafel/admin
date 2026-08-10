@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.config.properties
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.util.unit.DataSize
 import java.time.Duration
 
 /**
@@ -34,13 +35,17 @@ class TafelAdminProperties {
     var environmentLabel: String = ""
 
     var audit: TafelAdminAuditProperties = TafelAdminAuditProperties()
+    var checkin: TafelAdminCheckinProperties = TafelAdminCheckinProperties()
+    var distribution: TafelAdminDistributionProperties = TafelAdminDistributionProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var mail: TafelAdminMailProperties? = null
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
+    var sse: TafelAdminSseProperties = TafelAdminSseProperties()
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
     var push: TafelAdminPushProperties? = null
+    var pushDelivery: TafelAdminPushDeliveryProperties = TafelAdminPushDeliveryProperties()
     var search: TafelAdminSearchProperties = TafelAdminSearchProperties()
     var setup: TafelAdminSetupProperties = TafelAdminSetupProperties()
     var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
@@ -114,6 +119,85 @@ class TafelAdminAuditProperties {
      * age out on this clock like everything else.
      */
     var retentionDays: Long = 30
+}
+
+/**
+ * Check-in via handheld scanners - see `ScannerService`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminCheckinProperties {
+    /**
+     * How long a scanner registration survives without being refreshed. A scanner heartbeats while
+     * it is in use, so this only has to outlast the gaps within a distribution day - long enough
+     * that a scanner switched off over lunch keeps its id, short enough that ids freed by devices
+     * put away for good are handed out again rather than pushing every new scanner to a higher
+     * number.
+     *
+     * Read per use, so it can be widened on a running deployment: a cleanup that starts reclaiming
+     * ids mid-distribution hands the scanners new ones (see `ScannerService.registerScanner`), and
+     * waiting for a restart to stop that is not an option during an ongoing distribution.
+     */
+    var scannerRegistrationRetention: Duration = Duration.ofDays(2)
+}
+
+/**
+ * The distribution module's operational tuning - see `DistributionEndedEventListener`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminDistributionProperties {
+    var closeRetry: TafelAdminDistributionCloseRetryProperties = TafelAdminDistributionCloseRetryProperties()
+}
+
+/**
+ * How often the work that runs right after a distribution closes - the statistics snapshot and the
+ * missing cost contributions, in one transaction - is retried before it is given up on.
+ *
+ * Both values are read per use (a fresh `RetryTemplate` is built for each event), so an operator can
+ * give the retry more room while a distribution is being closed against a database that is
+ * struggling - which is exactly the moment a restart is not available.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminDistributionCloseRetryProperties {
+    /** Total attempts, including the first one. */
+    var maxAttempts: Int = 3
+
+    /** Waited between attempts, unchanged from one attempt to the next. */
+    var backoff: Duration = Duration.ofSeconds(2)
+}
+
+/**
+ * The server-sent-event streams the frontend keeps open (see `SseEmitterFactory`) and the outbox
+ * rows behind them (`SseOutboxService`).
+ *
+ * All three are read per use, so a stream opened after a change carries the new settings without a
+ * restart - streams already open keep what they were created with, since a timeout is fixed when the
+ * emitter is built.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminSseProperties {
+    /**
+     * How long a stream is held open before the server ends it and the browser reconnects. Long
+     * enough to span a whole distribution day without a reconnect, since every reconnect costs a
+     * fresh request and a re-registration of the callback; not unlimited, so a stream nobody is on
+     * the other end of is eventually released.
+     */
+    var timeout: Duration = Duration.ofHours(12)
+
+    /**
+     * Handed to the browser as the SSE `retry:` field - how long it waits before reconnecting after
+     * the stream ends. Deliberately short: a dashboard that reconnects a second after a deploy is
+     * what makes a restart invisible to whoever is looking at it.
+     */
+    var reconnectTime: Duration = Duration.ofSeconds(1)
+
+    /**
+     * How long a published event's `sse_outbox` row is kept. Only the first few minutes of that
+     * window are read by anything - a reconnect replays at most
+     * [SseOutboxListenerService.REPLAY_MAX_AGE] of it - so the rest is what a published event can
+     * still be looked up in afterwards, at the cost of a table that grows with every dashboard
+     * update. That trade is what this value sets.
+     */
+    var outboxRetention: Duration = Duration.ofDays(14)
 }
 
 @ExcludeFromTestCoverage
@@ -275,6 +359,28 @@ class TafelAdminStorageProperties {
     // this stays null unless explicitly set (same reasoning as TafelAdminSupportProperties.recipients).
     // Whether the feature is offered at all is TafelAdminProperties.scannerFolderAvailable.
     var scannerPath: String? = null
+
+    /**
+     * The largest document that may be attached to a household, and the *only* place that size is
+     * configured: the servlet container's own multipart ceiling is derived from it with a fixed
+     * headroom (`MultipartConfig`), so the request is never refused by the container before
+     * `HouseholdDocumentService` can turn it into a readable error.
+     *
+     * The check itself re-reads this per upload, so lowering the limit takes effect on a running
+     * deployment. Raising it takes effect up to the ceiling the container was built with at startup;
+     * beyond that the upload is refused by the container instead, so a raise past the previous
+     * headroom needs a restart to be fully effective.
+     */
+    var maxDocumentSize: DataSize = DataSize.ofMegabytes(25)
+
+    /**
+     * How long an unreferenced file in the documents folder is left alone before the cleanup deletes
+     * it. A file is written to disk before its database row is committed, so anything younger than
+     * this may still belong to an upload in flight - the window is what keeps the cleanup from
+     * deleting a document out from under the request creating it, not a grace period for anything
+     * else.
+     */
+    var orphanedFileMinAge: Duration = Duration.ofMinutes(60)
 }
 
 @ExcludeFromTestCoverage
@@ -300,4 +406,36 @@ class TafelAdminPushProperties {
     // Contact address browser push services may use to reach the sender, per RFC 8292 - a mailto:
     // URI or an https: URL. Not defaulted since it must be a real, reachable contact.
     var vapidSubject: String? = null
+}
+
+/**
+ * How a Web Push message asks the browser's push service to deliver it - see `WebPushSenderService`.
+ *
+ * Kept out of [TafelAdminPushProperties] on purpose, for the same reason `mailOutbox` sits next to
+ * `mail` rather than inside it: that section holds key material and is absent unless a deployment
+ * configures it, and giving these two defaults underneath it would make it exist everywhere.
+ *
+ * Both are read per send, so a delivery that is arriving late or not at all can be re-tuned while
+ * the distribution it is about is still running.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPushDeliveryProperties {
+    /**
+     * How long the push service may hold a message for a device that is currently offline. Roughly
+     * the span of a distribution day (about 12:00-24:00, with the "started"/"closed" alerts at
+     * either end): long enough that a phone merely asleep or out of signal for a few hours still
+     * gets told about the distribution the notification is actually about, short enough that it
+     * can't resurface the next day when it means nothing.
+     */
+    var ttl: Duration = Duration.ofHours(12)
+
+    /**
+     * The RFC 8030 `Urgency` of every message this application sends. Without one the push service
+     * applies `normal`, and FCM defers normal-urgency messages to the next maintenance window while
+     * the device is in Doze - so they only surface once something else wakes the device (typically
+     * the user opening the app). `high` is what tells FCM to deliver immediately, which is the whole
+     * point of an "Ausgabe gestartet" alert; lowering it is the knob for a deployment whose users
+     * would rather have the battery.
+     */
+    var urgency: String = "high"
 }

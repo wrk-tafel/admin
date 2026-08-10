@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -66,6 +67,29 @@ internal class DocumentStorageCleanupServiceTest {
     @Test
     fun `keeps an unreferenced file that was written too recently`() {
         val recentFile = writeFile("100/uuid_proof.pdf", ageInHours = 0)
+        every { documentRepository.findAllStoragePaths() } returns emptyList()
+
+        service.cleanupOrphanedFiles()
+
+        assertThat(recentFile).exists()
+    }
+
+    /**
+     * The minimum age is configuration, not a constant: how long an upload can still be in flight
+     * depends on the connection the files come in over, and getting that wrong deletes a document
+     * out from under the request creating it.
+     */
+    @Test
+    fun `keeps an unreferenced file younger than the configured minimum age`() {
+        service = DocumentStorageCleanupService(
+            documentRepository = documentRepository,
+            tafelAdminProperties = TafelAdminProperties().apply {
+                storage.documentsPath = tempDir.toString()
+                storage.orphanedFileMinAge = Duration.ofHours(3)
+            },
+        )
+        // Older than the default hour, younger than the three configured here
+        val recentFile = writeFile("100/uuid_proof.pdf", ageInHours = 2)
         every { documentRepository.findAllStoragePaths() } returns emptyList()
 
         service.cleanupOrphanedFiles()

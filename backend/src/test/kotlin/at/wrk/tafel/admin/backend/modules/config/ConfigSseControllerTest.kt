@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.config
 
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.config.internal.ConfigChangePublisher
 import io.mockk.impl.annotations.InjectMockKs
@@ -15,6 +16,9 @@ internal class ConfigSseControllerTest {
 
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
+
+    @RelaxedMockK
+    private lateinit var sseEmitterFactory: SseEmitterFactory
 
     @InjectMockKs
     private lateinit var controller: ConfigSseController

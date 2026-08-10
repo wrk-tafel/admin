@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import org.springframework.security.access.prepost.PreAuthorize
@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 class DashboardController(
     private val dashboardService: DashboardService,
     private val sseOutboxService: SseOutboxService,
+    private val sseEmitterFactory: SseEmitterFactory,
 ) {
 
     companion object {
@@ -23,7 +24,7 @@ class DashboardController(
 
     @GetMapping
     fun listenForDashboardData(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
+        val sseEmitter = sseEmitterFactory.createSseEmitter()
 
         // Initial data
         val data = dashboardService.getData()
