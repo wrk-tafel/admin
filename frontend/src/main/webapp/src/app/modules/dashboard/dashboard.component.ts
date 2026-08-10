@@ -23,6 +23,10 @@ import {MatDivider} from '@angular/material/list';
 @Component({
   selector: 'tafel-dashboard',
   templateUrl: 'dashboard.component.html',
+  // A column filling the height `<main>` was given (it is a flex column for this), so the last row
+  // can take whatever the rows above it left over and the screen ends exactly at the fold - with
+  // or without "Routen unterwegs". See the template.
+  host: {class: 'flex min-h-0 flex-1 flex-col'},
   imports: [
     DistributionStateComponent,
     RegisteredCustomersComponent,

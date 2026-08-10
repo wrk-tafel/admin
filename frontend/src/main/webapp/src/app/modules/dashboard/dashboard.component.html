@@ -31,7 +31,11 @@
   </div>
 }
 <mat-divider class="!my-3"></mat-divider>
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-y-2 lg:gap-x-2">
+<!-- The last row takes whatever the rows above it left over, so the screen is exactly full whether
+     or not "Routen unterwegs" is there. Only from lg: up: below that breakpoint the panels are
+     stacked in one column and there is more of them than a phone screen holds, so squeezing them
+     into it would leave every field unusably short. -->
+<div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
   <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
                                        [employeeCountInput]="data()?.statistics?.employeeCount"
                                        [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">

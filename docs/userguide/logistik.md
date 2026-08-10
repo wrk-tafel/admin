@@ -14,7 +14,9 @@ Bedient wird die Seite mit **zwei Knöpfen**, und genau diese beiden halten auch
 
 Je Stopp werden angezeigt: Uhrzeit, Filialnummer und Name der Filiale, Adresse, Telefonnummer (per Klick direkt wählbar), Ansprechperson sowie eine allfällige Notiz zur Filiale. Stopps ohne Filiale — etwa eine Pause — bleiben erhalten und werden mit ihrer Beschreibung angezeigt. Der erste noch offene Stopp ist mit **Nächster offener Stopp** gekennzeichnet, ein bereits abgehakter mit **Erledigt**. Eine Filiale, die inzwischen auf inaktiv gesetzt wurde, bleibt in der Route und wird mit **Filiale inaktiv** gekennzeichnet. Das **i-Symbol** neben der Überschrift blendet eine Kurzanleitung ein.
 
-![Routen-Navi](images/logistik-routen-navi.jpg)
+Die Abbildung zeigt die Seite so, wie sie unterwegs tatsächlich verwendet wird: am Handy (siehe auch [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)). Am Computer ist es dieselbe Seite, nur breiter.
+
+![Routen-Navi am Handy](images/logistik-routen-navi.jpg)
 
 Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware abgeben** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"). Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
 
