@@ -890,6 +890,19 @@ SELECT 3,         -- fixed collection 3
        CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END
 FROM ShopCategories sc;
 
+-- return boxes route 3 brought back last time. Route 3 is the only route no e2e spec ever records a
+-- food collection for, so this stays the newest collection it has - which is what makes the route
+-- guidance screen's return boxes assertable without depending on the order the specs ran in.
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 30, 'Graue Kisten', 4);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 30, 'Bananenkartons', 2);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 31, 'Klappkisten schwarz', 3);
+-- a zero is "nothing came back", not an empty crate to carry - guidance must not list it
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 31, 'Ströck Kisten', 0);
+
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count, enabled)

@@ -2,24 +2,30 @@ import {PHONE_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
 
 // Route 2 from the testdata: a shop stop, a stop without a shop, and a second shop stop.
-const ROUTE_ID = 2;
-const STOP_IDS = [200, 210, 220];
+// Route 3: two shop stops, and the seeded return boxes the screen hands back.
+const STOP_IDS_BY_ROUTE: Record<number, number[]> = {2: [200, 210, 220], 3: [300, 310]};
 
 describe('Route Guidance', () => {
   beforeEach(() => {
     cy.loginDefault();
     // completions live per calendar day, so they survive between specs of the same run
-    STOP_IDS.forEach(stopId =>
-      cy.request('PUT', `/api/routes/${ROUTE_ID}/guidance/stops/${stopId}`, {completed: false})
+    Object.entries(STOP_IDS_BY_ROUTE).forEach(([routeId, stopIds]) =>
+      stopIds.forEach(stopId =>
+        cy.request('PUT', `/api/routes/${routeId}/guidance/stops/${stopId}`, {completed: false})
+      )
     );
     // deliberately no cy.createDistribution() - the screen has to work outside a distribution
     cy.visit('/logistik/routenbegleitung');
   });
 
-  function selectRoute2() {
+  function selectRoute(name: string) {
     cy.byTestId('routeInput').click();
-    cy.get('mat-option').contains('Route 2').click();
+    cy.get('mat-option').contains(name).click();
     cy.byTestId('guidance-stop').should('be.visible');
+  }
+
+  function selectRoute2() {
+    selectRoute('Route 2');
   }
 
   it('shows one stop at a time and pages through the route', () => {
@@ -122,47 +128,30 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
   });
 
-  describe('return boxes', () => {
-    beforeEach(() => {
-      // The screen shows the boxes of route 2's newest collection outside the running distribution,
-      // so this spec records that trip itself instead of relying on the seeded one: any earlier
-      // spec recording route 2 (food-collection-recording does) leaves a newer collection behind.
-      cy.createDistribution();
-      cy.request('POST', `/api/food-collections/routes/${ROUTE_ID}/return-items`, {
-        returnItems: [
-          {shopId: 20, description: 'Graue Kisten', amount: 4},
-          {shopId: 20, description: 'Bananenkartons', amount: 2},
-          {shopId: 21, description: 'Klappkisten schwarz', amount: 3},
-          {shopId: 21, description: 'Ströck Kisten', amount: 0}
-        ]
-      });
-      cy.closeDistribution();
-      cy.visit('/logistik/routenbegleitung');
-    });
+  // Route 3, not route 2: the screen shows the boxes of a route's newest collection, and route 3 is
+  // the only route no spec ever records one for - so the seeded trip stays the newest whatever else
+  // has run. That the running distribution is skipped is pinned by RouteGuidanceServiceIT, which
+  // needs no distribution left open behind it.
+  it('lists the return boxes the last trip brought back', () => {
+    selectRoute('Route 3');
 
-    afterEach(() => {
-      // a test that fails before the close above would leave the distribution open for every
-      // later spec, so close it again - tolerating the "nothing is running" answer
-      cy.request({method: 'POST', url: '/api/distributions/close?forceClose=true', failOnStatusCode: false});
-    });
+    cy.byTestId('guidance-return-summary').should('contain.text', 'Retourware mitnehmen');
+    cy.byTestId('guidance-stop-return-items')
+      .should('contain.text', '2 × Bananenkartons')
+      .should('contain.text', '4 × Graue Kisten');
 
-    it('lists the return boxes the last trip brought back', () => {
-      selectRoute2();
+    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
+    // a zero amount means nothing came back - it must not be listed
+    cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
+  });
 
-      cy.byTestId('guidance-return-summary').should('contain.text', 'Retourware mitnehmen');
-      cy.byTestId('guidance-stop-return-items')
-        .should('contain.text', '2 × Bananenkartons')
-        .should('contain.text', '4 × Graue Kisten');
+  it('leaves a stop without a shop out of the return boxes', () => {
+    selectRoute2();
 
-      // the pause stop has no shop and therefore nothing to hand back
-      cy.byTestId('guidance-next-button').click();
-      cy.byTestId('guidance-stop-return-items').should('not.exist');
-
-      cy.byTestId('guidance-next-button').click();
-      cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
-      // a zero amount means nothing came back - it must not be listed
-      cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
-    });
+    // the pause stop has no shop and therefore nothing to hand back
+    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-stop-return-items').should('not.exist');
   });
 
   it('offers a map link per stop and one for the rest of the route', () => {
