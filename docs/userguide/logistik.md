@@ -4,6 +4,8 @@
 
 Der Bereich "Logistik" begleitet die Routen-Teams: die **Routenbegleitung** unterwegs auf der Route, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; die Routenbegleitung ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
 
+<a id="routenbegleitung"></a>
+
 ## Routenbegleitung
 
 Unter **Logistik → Routenbegleitung** wird über das Dropdown **Route auswählen** eine der aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen) gewählt. Anschließend wird immer **ein Stopp** der Route angezeigt — die Seite wird am Steuer auf dem Handy gelesen, eine lange Liste wäre dort die falsche Darstellung. Die Reihenfolge ist die, in der die Stopps angefahren werden (nach der bei der Route hinterlegten Uhrzeit); beim Öffnen steht die Seite gleich beim ersten noch offenen Stopp. Über dem Stopp steht, der wievielte von wie vielen gerade angezeigt wird.

@@ -71,6 +71,28 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
+  it('shows how far each route has got, and follows the drivers along', () => {
+    // route 2 from the testdata, with its three stops - completions live per calendar day, so they
+    // survive between specs of the same run and have to be cleared first
+    [200, 210, 220].forEach(stopId =>
+      cy.request('PUT', `/api/routes/2/guidance/stops/${stopId}`, {completed: false})
+    );
+    cy.createDistribution();
+    cy.visit('/');
+
+    cy.byTestId('route-progress-entry-2').should('contain.text', 'Route 2');
+    cy.byTestId('route-progress-count-2').invoke('text').invoke('trim').should('equal', '0 / 3');
+
+    // a driver ticks the first stop off out on the road
+    cy.request('PUT', '/api/routes/2/guidance/stops/200', {completed: true});
+
+    // the dashboard follows without a reload - the completion wakes its SSE stream
+    cy.byTestId('route-progress-count-2').invoke('text').invoke('trim').should('equal', '1 / 3');
+
+    cy.request('PUT', '/api/routes/2/guidance/stops/200', {completed: false});
+    cy.closeDistribution();
+  });
+
   it('dashboard content and actions usable on phone', () => {
     // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
     // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.

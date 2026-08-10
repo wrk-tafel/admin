@@ -9,6 +9,8 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
@@ -34,6 +36,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -47,6 +50,9 @@ internal class DashboardServiceTest {
 
     @RelaxedMockK
     private lateinit var routeRepository: RouteRepository
+
+    @RelaxedMockK
+    private lateinit var routeStopCompletionRepository: RouteStopCompletionRepository
 
     @InjectMockKs
     private lateinit var service: DashboardService
@@ -233,6 +239,53 @@ internal class DashboardServiceTest {
         assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
         assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
         assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(140))
+        // routes 2-4 have no stops at all, so there is no progress to report for them
+        assertThat(data.logistics.routeProgress).singleElement()
+            .satisfies({
+                assertThat(it.routeName).isEqualTo("Route 1")
+                assertThat(it.completedStops).isEqualTo(0)
+                assertThat(it.totalStops).isEqualTo(3)
+            })
+    }
+
+    @Test
+    fun `route progress counts the stops ticked off today`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
+        every {
+            routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now())
+        } returns listOf(
+            RouteStopCompletionEntity(routeStop = testRoute1.stops.first { it.id == 11L }, completionDate = LocalDate.now()),
+            RouteStopCompletionEntity(routeStop = testRoute1.stops.first { it.id == 22L }, completionDate = LocalDate.now()),
+        )
+
+        val data = service.getData()
+
+        val routeProgress = data.logistics!!.routeProgress.single()
+        assertThat(routeProgress.routeId).isEqualTo(1)
+        assertThat(routeProgress.routeNumber).isEqualTo(1.0)
+        assertThat(routeProgress.routeName).isEqualTo("Route 1")
+        assertThat(routeProgress.completedStops).isEqualTo(2)
+        assertThat(routeProgress.totalStops).isEqualTo(3)
+    }
+
+    @Test
+    fun `route progress asks for nothing when no route has stops`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute2, testRoute3)
+
+        val data = service.getData()
+
+        assertThat(data.logistics!!.routeProgress).isEmpty()
+        verify(exactly = 0) { routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), any()) }
     }
 
     // Base data is otherwise complete (car/driver/co-driver/mileage) and one food item is present -
