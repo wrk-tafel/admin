@@ -22,18 +22,34 @@ describe('Logout', () => {
     // The cached user info backs every permission check on screen, so it must not be dropped
     // while the logout request is still running - the page the user is looking at would visibly
     // lose its permission-gated panels and menu entries first, and only then navigate away.
-    cy.intercept('POST', '/api/users/logout', req => {
-      req.on('response', res => {
-        res.setDelay(1000);
-      });
-    }).as('logoutRequest');
+    // The request is held open until this test lets it go, rather than delayed by a fixed amount:
+    // what has to happen while it is in flight is a Cypress assertion, and a click costs more time
+    // than it looks (actionability checks, the menu overlay). A delay long enough today is a race
+    // lost on a slower machine - the response lands first, the redirect follows, and the assertion
+    // then times out on the login page looking exactly like the regression this test guards.
+    let releaseLogout: (() => void) | undefined;
+    const logoutHeld = new Cypress.Promise<void>(resolve => {
+      releaseLogout = resolve;
+    });
+    cy.intercept('POST', '/api/users/logout', () => logoutHeld).as('logoutRequest');
+
+    // The panel has to be on screen *before* logging out, or "still rendered afterwards" asserts
+    // nothing: the dashboard fills itself from an SSE stream, so it arrives a moment after the
+    // shell around it.
+    cy.byTestId('distribution-state-text').should('be.visible');
 
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-logout').click();
 
-    cy.byTestId('distribution-state-text').should('be.visible');
+    // `exist`, not `be.visible`: what would go wrong here is `tafelIfPermission` dropping the panel
+    // out of the DOM once the cached user info is cleared, so being in the document is exactly the
+    // property under test. Visibility would additionally depend on where the scrollable content
+    // area happens to be scrolled to - going through the user menu moves it - which says nothing
+    // about whether the panel survived.
+    cy.byTestId('distribution-state-text').should('exist');
     cy.url().should('not.include', '/login');
 
+    cy.then(() => releaseLogout?.());
     cy.wait('@logoutRequest');
     cy.url().should('include', '/login');
   });
