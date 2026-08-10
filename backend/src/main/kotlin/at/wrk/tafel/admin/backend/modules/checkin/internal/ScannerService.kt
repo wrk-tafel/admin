@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.checkin.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
@@ -16,11 +17,11 @@ import java.util.concurrent.TimeUnit
 class ScannerService(
     private val scannerRegisteredRepository: ScannerRegistrationRepository,
     private val advisoryLockService: AdvisoryLockService,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(ScannerService::class.java)
-        private const val SCANNER_REGISTRATIONS_KEEP_DAYS = 2L
         const val SCANNER_RESULT_NOTIFICATION_NAME = "scanner_results"
     }
 
@@ -70,7 +71,7 @@ class ScannerService(
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupScannerRegistrations() {
-        val date = LocalDateTime.now().minusDays(SCANNER_REGISTRATIONS_KEEP_DAYS)
+        val date = LocalDateTime.now().minus(tafelAdminProperties.checkin.scannerRegistrationRetention)
         scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(date)
     }
 }

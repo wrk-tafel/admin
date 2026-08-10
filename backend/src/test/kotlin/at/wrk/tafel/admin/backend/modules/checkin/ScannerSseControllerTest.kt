@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.checkin
 
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService.Companion.SCANNER_RESULT_NOTIFICATION_NAME
 import io.mockk.impl.annotations.InjectMockKs
@@ -16,6 +17,9 @@ internal class ScannerSseControllerTest {
 
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
+
+    @RelaxedMockK
+    private lateinit var sseEmitterFactory: SseEmitterFactory
 
     @InjectMockKs
     private lateinit var controller: ScannerSseController

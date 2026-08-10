@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
@@ -23,6 +24,9 @@ internal class DistributionSseControllerTest {
 
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
+
+    @RelaxedMockK
+    private lateinit var sseEmitterFactory: SseEmitterFactory
 
     @InjectMockKs
     private lateinit var controller: DistributionSseController

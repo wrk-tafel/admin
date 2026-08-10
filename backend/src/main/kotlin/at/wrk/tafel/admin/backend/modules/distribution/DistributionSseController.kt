@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
@@ -15,11 +15,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 class DistributionSseController(
     private val service: DistributionService,
     private val sseOutboxService: SseOutboxService,
+    private val sseEmitterFactory: SseEmitterFactory,
 ) {
 
     @GetMapping
     fun listenForDistributionUpdates(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
+        val sseEmitter = sseEmitterFactory.createSseEmitter()
 
         // initial data
         sseOutboxService.sendEvent(

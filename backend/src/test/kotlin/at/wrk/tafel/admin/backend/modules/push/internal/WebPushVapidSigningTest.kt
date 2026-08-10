@@ -62,7 +62,7 @@ internal class WebPushVapidSigningTest {
 
     private val restClientBuilder = RestClient.builder()
     private val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
-    private val service = WebPushSenderService(vapidSigner, WebPushEncryptionService(), restClientBuilder.build())
+    private val service = WebPushSenderService(vapidSigner, WebPushEncryptionService(), TafelAdminProperties(), restClientBuilder.build())
 
     @Test
     fun `sends a VAPID-signed, aes128gcm-encrypted notification the subscriber can read`() {

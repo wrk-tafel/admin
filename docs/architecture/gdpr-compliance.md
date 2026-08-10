@@ -29,7 +29,7 @@ Two things to be clear about before reading on:
 | `users`, `user_authorities`, `employees` | staff | username, Argon2 password hash, permissions, personnel number, name | until the account is deleted |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
-| `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | 14 days (`SseOutboxService.cleanupOutbox`) |
+| `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | until a user imports or deletes them |
 | `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
@@ -169,7 +169,7 @@ set, not the application's.
 **Art. 9, Art. 5(1)(c).**
 
 `household_notes.note` is unrestricted free text, and the document upload accepts any file under
-25 MB. A note reading "kann wegen Chemotherapie nicht selbst kommen" is health data, and an uploaded
+`tafeladmin.storage.maxDocumentSize` (25 MB by default). A note reading "kann wegen Physiotherapie nicht selbst kommen" is health data, and an uploaded
 Meldezettel or asylum decision carries more than income. Both then sit in the household file with no
 special handling, no separate permission, and — because `HouseholdNoteEntity` is in `AuditScope` —
 a copy of the previous text in `audit_log` for 30 days.

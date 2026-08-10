@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
@@ -12,7 +13,6 @@ import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.util.unit.DataSize
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -49,14 +50,25 @@ internal class HouseholdDocumentServiceTest {
     @RelaxedMockK
     private lateinit var documentScannerWatcherService: DocumentScannerWatcherService
 
-    @InjectMockKs
     private lateinit var service: HouseholdDocumentService
+
+    private val tafelAdminProperties = TafelAdminProperties()
 
     private lateinit var testHousehold: HouseholdEntity
     private lateinit var testAdditionalPerson: PersonEntity
 
     @BeforeEach
     fun beforeEach() {
+        service = HouseholdDocumentService(
+            documentRepository,
+            householdRepository,
+            userRepository,
+            documentStorageService,
+            scannerFileService,
+            documentScannerWatcherService,
+            tafelAdminProperties,
+        )
+
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
@@ -145,9 +157,26 @@ internal class HouseholdDocumentServiceTest {
     fun `upload document - too large rejected`() {
         val file = MockMultipartFile("file", "proof.pdf", "application/pdf", ByteArray(26 * 1024 * 1024))
 
-        assertThrows<BusinessRuleException> {
+        val exception = assertThrows<BusinessRuleException> {
             service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
         }
+        assertThat(exception.message).contains("Datei ist zu groß (max. 25 MB)!")
+    }
+
+    /**
+     * The limit is configuration, not a constant - it is what an installation whose scans come out
+     * larger than expected has to be able to raise, and the message has to name the limit that was
+     * actually applied.
+     */
+    @Test
+    fun `upload document - the configured limit is what is enforced`() {
+        tafelAdminProperties.storage.maxDocumentSize = DataSize.ofMegabytes(1)
+        val file = MockMultipartFile("file", "proof.pdf", "application/pdf", ByteArray(2 * 1024 * 1024))
+
+        val exception = assertThrows<BusinessRuleException> {
+            service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
+        }
+        assertThat(exception.message).contains("Datei ist zu groß (max. 1 MB)!")
     }
 
     @Test
