@@ -6,6 +6,7 @@ import jakarta.mail.Session
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -43,6 +44,16 @@ class MailOutboxServiceIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var mailOutboxRepository: MailOutboxRepository
+
+    /**
+     * The queue is one table shared by every IT class, and a row left PENDING here is one another
+     * class's poller will happily deliver to *its* mail server and count as its own (see
+     * `DistributionSendMailsIT`). Nothing sends it from within this class, so it has to go.
+     */
+    @AfterEach
+    fun afterEach() {
+        mailOutboxRepository.deleteAll()
+    }
 
     @Test
     fun `a queued mail is stored as pending and comes back byte-for-byte`() {

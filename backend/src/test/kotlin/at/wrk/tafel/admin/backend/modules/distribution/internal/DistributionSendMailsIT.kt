@@ -192,7 +192,8 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
                 .retrieve()
                 .body(MailpitMessagesResponse::class.java)!!
 
-            val subjects = response.messages.map { it.subject }
+            val messages = response.messages.orEmpty()
+            val subjects = messages.mapNotNull { it.subject }
             // Each of the three exactly once, rather than a count of everything Mailpit holds: the
             // outbox is one shared queue and this is not the only IT context with a mail sender, so
             // a total would couple this assertion to what else the suite happens to have queued.
@@ -206,31 +207,39 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
                     .describedAs("deliveries of '%s' (all: %s)", expected, subjects)
                     .isEqualTo(1)
             }
-            response.messages
+            messages
                 .filter { it.subject in expectedSubjects }
                 .forEach { message ->
-                    assertThat(message.bcc.map { it.address }).contains(TEST_RECIPIENT_ADDRESS)
+                    assertThat(message.bcc.orEmpty().mapNotNull { it.address })
+                        .describedAs("bcc of '%s'", message.subject)
+                        .contains(TEST_RECIPIENT_ADDRESS)
                 }
         }
     }
 }
 
+/**
+ * Every field is nullable because Mailpit sends an explicit `null` where a mail simply has nothing -
+ * `"Bcc": null` for a message with no blind copies, which is what a mail queued by another IT looks
+ * like. A default value does not cover that: Jackson's Kotlin module rejects an explicit null for a
+ * non-nullable property rather than falling back to the default, so the whole response fails to
+ * parse before a single assertion runs.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 private data class MailpitMessagesResponse(
-    val messages: List<MailpitMessageSummary> = emptyList(),
-    val total: Int = 0,
+    val messages: List<MailpitMessageSummary>? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 private data class MailpitMessageSummary(
     @param:JsonProperty("Subject")
-    val subject: String = "",
+    val subject: String? = null,
     @param:JsonProperty("Bcc")
-    val bcc: List<MailpitAddress> = emptyList(),
+    val bcc: List<MailpitAddress>? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 private data class MailpitAddress(
     @param:JsonProperty("Address")
-    val address: String = "",
+    val address: String? = null,
 )
