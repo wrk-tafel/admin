@@ -84,6 +84,16 @@ instead, so a number's position in a group says nothing about its age.
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | superseded by [0040](0040-support-requests-sent-as-mail.md) |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 
+## Analyses
+
+Longer evaluations of a decision that has **not** been taken are not ADRs — nothing in them is
+decided. They live one level up, in `docs/architecture/`:
+
+| Document | Subject |
+|---|---|
+| [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
+| [`push-outbox-evaluation.md`](../push-outbox-evaluation.md) | Whether push notifications should be sent through an outbox like mails and SSE events ([#3155](https://github.com/wrk-tafel/admin/issues/3155)) |
+
 ## Writing a new one
 
 Copy [`template.md`](template.md), take the next free number, and name the file
