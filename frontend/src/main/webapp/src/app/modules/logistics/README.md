@@ -63,10 +63,15 @@ A few things about it are worth knowing before changing it:
 - **One stop is on screen at a time**, paged with the two buttons below the card; the screen opens
   on the first stop still to do. It is read at the wheel on a phone, where a scrollable list of
   fifteen stops is the wrong shape.
-- **Every stop can be ticked off without the map app.** Starting the navigation marks a stop as
-  done on the way out, but the `Erledigt` button is always there next to it — a stop without a shop
-  has nothing to navigate to, and a stop that was just undone would otherwise only be markable by
-  opening Google Maps again.
+- **`Erledigt & weiter` is the one button a driver presses at a stop**: it ticks the stop off and
+  pages on, so arriving at the next stop costs no second tap. It reads `Erledigt` on the last stop,
+  which has nowhere to page on to. Starting the navigation ticks the stop off as well but stays put,
+  since the map app opens in its own window and the driver comes back to the same screen.
+- **Which control ticks off is deliberate.** `Vorheriger` re-opens the stop it lands on (paging back
+  is how a driver takes back a press of `Erledigt & weiter`), while `Nächster` only pages — the
+  screen is reachable without an active distribution so a route can be looked through beforehand,
+  and paging forward must not finish it. The tick is applied after the server confirms it, so a
+  driver is never moved past a stop that was not recorded.
 - **Navigation is a link, not a map.** Each stop renders an `<a href>` to
   `https://www.google.com/maps/dir/?api=1&destination=<address>`, plus one link over the
   stops still open that adds the intermediate ones as `waypoints`. Google's directions

@@ -28,6 +28,7 @@ import {
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 
@@ -38,6 +39,14 @@ const MAX_MAP_STOPS = 10;
 
 const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
 
+// What the screen would otherwise have to explain in a paragraph above the stop. It sits in a
+// tooltip instead: on a phone in a van the stop itself has to be the first thing on the screen.
+const INFO_TEXT =
+  'Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren werden. '
+  + '"Navigation starten" und "Erledigt & weiter" vermerken den Stopp als erledigt - für den heutigen '
+  + 'Tag und auch auf anderen Geräten sichtbar. "Vorheriger" macht das für den Stopp, zu dem '
+  + 'zurückgegangen wird, wieder rückgängig.';
+
 interface StopView {
   stop: RouteGuidanceStop;
   timeLabel: string;
@@ -46,7 +55,7 @@ interface StopView {
   navigationLabel?: string;
   completedLabel?: string;
   isNext: boolean;
-  toggleLabel: string;
+  undoLabel?: string;
 }
 
 @Component({
@@ -59,7 +68,8 @@ interface StopView {
     MatFormFieldModule,
     MatSelectModule,
     MatIcon,
-    FaIconComponent
+    FaIconComponent,
+    TafelInfoTooltipComponent
   ]
 })
 export class RouteGuidanceComponent {
@@ -111,13 +121,38 @@ export class RouteGuidanceComponent {
   protected readonly hasPreviousStop = computed(() => this._currentIndex() > 0);
   protected readonly hasNextStop = computed(() => this._currentIndex() < this.stops().length - 1);
 
+  /**
+   * Paging back is a correction, not a look around: the stop it lands on is open again. A driver who
+   * pressed "Erledigt & weiter" one stop too early takes it back the same way they moved on.
+   */
   protected goToPreviousStop() {
-    this._currentIndex.update(index => Math.max(0, index - 1));
+    const targetIndex = Math.max(0, this._currentIndex() - 1);
+    this._currentIndex.set(targetIndex);
+
+    const target = this.stops()[targetIndex];
+    if (target?.completed) {
+      this.setCompletion(target, false);
+    }
   }
 
+  // Forward is plain paging - it must not tick anything off, or looking through a route before the
+  // day starts (which this screen is reachable for) would finish it.
   protected goToNextStop() {
     this._currentIndex.update(index => Math.min(this.stops().length - 1, index + 1));
   }
+
+  protected readonly doneButtonText = computed(() => this.hasNextStop() ? 'Erledigt & weiter' : 'Erledigt');
+
+  // the accessible name starts with the button's own visible text, so a screen reader user hears
+  // the same label the sighted one reads
+  protected readonly doneButtonLabel = computed(() => {
+    const view = this.currentStop();
+    if (!view) {
+      return undefined;
+    }
+    const stop = `Stopp ${view.timeLabel} ${view.title} als erledigt markieren`;
+    return this.hasNextStop() ? `${stop} und zum nächsten Stopp` : stop;
+  });
 
   // every stop still to be driven that has an address to navigate to
   private readonly remainingShopStops = computed(
@@ -170,11 +205,19 @@ export class RouteGuidanceComponent {
     }
   }
 
-  protected toggleStop(stop: RouteGuidanceStop) {
-    this.setCompletion(stop, !stop.completed);
+  /**
+   * The one button a driver presses at a stop: it ticks the stop off and moves on, so arriving at
+   * the next one costs no second tap. The last stop has nowhere to move on to and only ticks off.
+   */
+  protected completeAndAdvance(stop: RouteGuidanceStop) {
+    this.setCompletion(stop, true, true);
   }
 
-  private setCompletion(stop: RouteGuidanceStop, completed: boolean) {
+  protected undoStop(stop: RouteGuidanceStop) {
+    this.setCompletion(stop, false);
+  }
+
+  private setCompletion(stop: RouteGuidanceStop, completed: boolean, advanceOnSuccess = false) {
     const guidance = this._guidance();
     if (!guidance) {
       return;
@@ -191,6 +234,11 @@ export class RouteGuidanceComponent {
             ...current,
             stops: current.stops.map(stop => stop.stopId === updatedStop.stopId ? updatedStop : stop)
           });
+          // only once the tick is stored - a driver must never be moved on past a stop the server
+          // refused to record
+          if (advanceOnSuccess) {
+            this.goToNextStop();
+          }
         }
         this.pendingStopId.set(undefined);
       },
@@ -223,9 +271,9 @@ export class RouteGuidanceComponent {
           .join(' ')
         : undefined,
       isNext,
-      toggleLabel: stop.completed
+      undoLabel: stop.completed
         ? `Rückgängig: Stopp ${timeLabel} ${title} wieder als offen markieren`
-        : `Stopp ${timeLabel} ${title} als erledigt markieren`
+        : undefined
     };
   }
 
@@ -244,4 +292,5 @@ export class RouteGuidanceComponent {
   protected readonly faRotateLeft = faRotateLeft;
   protected readonly faRoute = faRoute;
   protected readonly faUser = faUser;
+  protected readonly infoText = INFO_TEXT;
 }

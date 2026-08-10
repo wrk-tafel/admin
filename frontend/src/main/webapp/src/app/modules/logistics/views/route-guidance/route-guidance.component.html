@@ -2,7 +2,10 @@
   <mat-card-header class="mb-2">
     <mat-card-title class="w-full">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="tafel-h5 mb-0 mt-1">Routenbegleitung</h2>
+        <h2 class="tafel-h5 mb-0 mt-1">
+          Routenbegleitung
+          <tafel-info-tooltip [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
+        </h2>
         @if (guidance()) {
           <span class="text-sm font-normal text-slate-500" testid="guidance-summary">
             {{ completedCount() }} von {{ stops().length }} Stopps erledigt
@@ -12,12 +15,6 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <p class="mb-4 text-sm text-slate-600">
-      Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren
-      werden. Mit <strong>Navigation starten</strong> wird der Stopp gleichzeitig als erledigt
-      vermerkt - für den heutigen Tag und auch auf anderen Geräten sichtbar.
-    </p>
-
     <mat-form-field class="w-full max-w-md">
       <mat-label>Route auswählen</mat-label>
       <mat-select testid="routeInput" [ngModel]="selectedRoute" (ngModelChange)="onSelectedRouteChange($event)">
@@ -59,23 +56,6 @@
                 }
               </ul>
             </div>
-          }
-        </div>
-      }
-
-      @if (remainingRouteUrl(); as remainingUrl) {
-        <div class="mb-4">
-          <a matButton="outlined" testid="guidance-whole-route-button" [href]="remainingUrl"
-             target="_blank" rel="noopener"
-             aria-label="Restliche Route in Karte öffnen (in neuem Tab)">
-            <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
-            Restliche Route in Karte öffnen
-          </a>
-          @if (remainingRouteTruncated()) {
-            <p class="mt-2 text-sm text-amber-900" testid="guidance-whole-route-truncated">
-              Die Karte enthält nur die nächsten 10 Stopps. Die weiteren Stopps bitte einzeln
-              navigieren.
-            </p>
           }
         </div>
       }
@@ -127,9 +107,6 @@
                 <fa-icon [icon]="faUser" class="me-2 text-slate-400"></fa-icon>{{ shop.contactPerson }}
               </div>
             }
-            <div class="mt-1 text-sm text-slate-500">
-              Einheit: {{ shop.foodUnit === 'KG' ? 'Kilogramm' : 'Kisten' }}
-            </div>
             @if (shop.note) {
               <div class="mt-3 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
                    testid="guidance-stop-shop-note">
@@ -173,15 +150,15 @@
               </a>
             }
             @if (!view.stop.completed) {
-              <!-- ticking off never depends on the map app: a stop without a shop has nowhere to
-                   navigate to, and a driver who knows the way - or who has just pressed Rückgängig -
-                   must not be sent through the navigation to get the stop marked again -->
+              <!-- the one button a driver presses at a stop: ticking off and moving on are the same
+                   press, and it never depends on the map app - a stop without a shop has nowhere to
+                   navigate to, and a driver who knows the way must not be sent through Google Maps -->
               <button matButton="filled" type="button" class="button-success w-full sm:w-auto"
-                      testid="guidance-done-button" [attr.aria-label]="view.toggleLabel"
+                      testid="guidance-done-button" [attr.aria-label]="doneButtonLabel()"
                       [disabled]="pendingStopId() !== undefined"
-                      (click)="toggleStop(view.stop)">
+                      (click)="completeAndAdvance(view.stop)">
                 <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
-                Erledigt
+                {{ doneButtonText() }}
               </button>
             }
             @if (view.completedLabel) {
@@ -189,11 +166,11 @@
                 {{ view.completedLabel }}
               </span>
             }
-            @if (view.stop.completed) {
+            @if (view.undoLabel; as undoLabel) {
               <button matButton type="button" testid="guidance-undo-button"
-                      [attr.aria-label]="view.toggleLabel"
+                      [attr.aria-label]="undoLabel"
                       [disabled]="pendingStopId() !== undefined"
-                      (click)="toggleStop(view.stop)">
+                      (click)="undoStop(view.stop)">
                 <fa-icon [icon]="faRotateLeft" class="me-2"></fa-icon>
                 Rückgängig
               </button>
@@ -202,8 +179,10 @@
         </div>
 
         <div class="mt-4 grid grid-cols-2 gap-3">
+          <!-- back is a correction, not a look around: it re-opens the stop it lands on -->
           <button matButton="outlined" type="button" testid="guidance-previous-button"
-                  [disabled]="!hasPreviousStop()" (click)="goToPreviousStop()">
+                  [disabled]="!hasPreviousStop() || pendingStopId() !== undefined"
+                  (click)="goToPreviousStop()">
             <fa-icon [icon]="faChevronLeft" class="me-2"></fa-icon>
             Vorheriger
           </button>
@@ -217,6 +196,25 @@
         <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="guidance-empty">
           <fa-icon [icon]="faRoute" size="2x"></fa-icon>
           <span>Für diese Route sind keine Stopps hinterlegt.</span>
+        </div>
+      }
+
+      <!-- below the stop on purpose: it plans the rest of the drive, which is not what the driver
+           standing at this stop needs first -->
+      @if (remainingRouteUrl(); as remainingUrl) {
+        <div class="mt-6 border-t border-slate-200 pt-4">
+          <a matButton="outlined" testid="guidance-whole-route-button" [href]="remainingUrl"
+             target="_blank" rel="noopener"
+             aria-label="Restliche Route in Karte öffnen (in neuem Tab)">
+            <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
+            Restliche Route in Karte öffnen
+          </a>
+          @if (remainingRouteTruncated()) {
+            <p class="mt-2 text-sm text-amber-900" testid="guidance-whole-route-truncated">
+              Die Karte enthält nur die nächsten 10 Stopps. Die weiteren Stopps bitte einzeln
+              navigieren.
+            </p>
+          }
         </div>
       }
     }

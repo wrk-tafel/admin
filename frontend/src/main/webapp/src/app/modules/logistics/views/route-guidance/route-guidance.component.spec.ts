@@ -160,9 +160,24 @@ describe('RouteGuidanceComponent', () => {
     expect(firstStop.title).toBe('Lidl');
     expect(firstStop.navigationUrl)
       .toBe('https://www.google.com/maps/dir/?api=1&destination=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving');
-    expect(firstStop.toggleLabel).toBe('Stopp 12:00 Lidl als erledigt markieren');
+    expect(firstStop.undoLabel).toBeUndefined();
     expect(secondStop.title).toBe('Stopp ohne Filiale');
     expect(secondStop.navigationUrl).toBeUndefined();
+  });
+
+  it('names the done button after what pressing it does', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['doneButtonText']()).toBe('Erledigt & weiter');
+    expect(component['doneButtonLabel']()).toBe('Stopp 12:00 Lidl als erledigt markieren und zum nächsten Stopp');
+
+    // the last stop has nowhere to move on to
+    component['goToNextStop']();
+    component['goToNextStop']();
+    expect(component['doneButtonText']()).toBe('Erledigt');
+    expect(component['doneButtonLabel']()).toBe('Stopp 13:00 Denns BioMarkt als erledigt markieren');
   });
 
   it('builds a directions link over the stops that are still open', () => {
@@ -320,12 +335,12 @@ describe('RouteGuidanceComponent', () => {
     expect(component['returnItemsTotal']()).toBe(0);
   });
 
-  it('ticks a stop off and keeps the answer from the backend', () => {
+  it('ticks a stop off, keeps the answer from the backend and moves on', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    component['toggleStop'](component['stops']()[0]);
+    component['completeAndAdvance'](component['stops']()[0]);
     fixture.detectChanges();
 
     expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 200, true);
@@ -334,6 +349,62 @@ describe('RouteGuidanceComponent', () => {
     expect(firstStopView.completedLabel).toBe('Erledigt um 08:15 von E2E Test');
     expect(component['completedCount']()).toBe(1);
     expect(component['pendingStopId']()).toBeUndefined();
+    expect(component['currentIndex']()).toBe(1);
+  });
+
+  it('stays on the last stop when it is ticked off', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    component['goToNextStop']();
+    component['goToNextStop']();
+
+    component['completeAndAdvance'](component['stops']()[2]);
+
+    expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 220, true);
+    expect(component['currentIndex']()).toBe(2);
+  });
+
+  it('does not move on when the tick could not be stored', () => {
+    routeApiMock.setStopCompletion = vi.fn(() => throwError(() => new Error('failed')));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['completeAndAdvance'](component['stops']()[0]);
+
+    expect(component['currentIndex']()).toBe(0);
+  });
+
+  it('re-opens the stop it pages back to', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      stops: [{...shopStop, completed: true}, pauseStop, secondShopStop]
+    }));
+    routeApiMock.setStopCompletion = vi.fn(() => of<RouteGuidanceStop>({...shopStop, completed: false}));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    expect(component['currentIndex']()).toBe(1);
+
+    component['goToPreviousStop']();
+    fixture.detectChanges();
+
+    expect(component['currentIndex']()).toBe(0);
+    expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 200, false);
+    expect(component['stopViews']()[0].stop.completed).toBe(false);
+  });
+
+  it('leaves an open stop alone when paging back to it', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    component['goToNextStop']();
+
+    component['goToPreviousStop']();
+
+    expect(component['currentIndex']()).toBe(0);
+    expect(routeApiMock.setStopCompletion).not.toHaveBeenCalled();
   });
 
   it('undoes a completed stop', () => {
@@ -346,7 +417,7 @@ describe('RouteGuidanceComponent', () => {
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    component['toggleStop'](component['stops']()[0]);
+    component['undoStop'](component['stops']()[0]);
     fixture.detectChanges();
 
     expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 200, false);
@@ -361,7 +432,7 @@ describe('RouteGuidanceComponent', () => {
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    component['toggleStop'](component['stops']()[0]);
+    component['undoStop'](component['stops']()[0]);
     // the driver picks a different route while the tick is still on its way
     routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
       ...guidance,
@@ -382,7 +453,7 @@ describe('RouteGuidanceComponent', () => {
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    component['toggleStop'](component['stops']()[0]);
+    component['undoStop'](component['stops']()[0]);
 
     expect(toastrMock.error).toHaveBeenCalled();
     expect(component['stopViews']()[0].stop.completed).toBe(false);
