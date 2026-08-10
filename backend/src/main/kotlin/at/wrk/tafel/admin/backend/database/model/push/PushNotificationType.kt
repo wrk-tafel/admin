@@ -25,6 +25,9 @@ enum class PushNotificationType {
     /** Every household that checked in has been served. */
     ALL_TICKETS_PROCESSED,
 
+    /** A route's driver has reached the last stop of the day and is about to head back. */
+    ROUTE_AT_LAST_STOP,
+
     /** Every enabled route has its food collection fully recorded. */
     FOOD_COLLECTION_COMPLETED,
 

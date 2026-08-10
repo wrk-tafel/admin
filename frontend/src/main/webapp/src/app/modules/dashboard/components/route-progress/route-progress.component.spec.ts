@@ -59,20 +59,35 @@ describe('RouteProgressComponent', () => {
     expect(second.done).toBe(true);
   });
 
+  it('draws one segment per stop and fills the ones already done', () => {
+    const fixture = createComponent([route1]);
+
+    const segments = fixture.debugElement
+      .query(By.css('[testid="route-progress-segments-1"]'))
+      .queryAll(By.css('span'));
+    expect(segments.length).toBe(4);
+    expect(segments.map(segment => segment.nativeElement.classList.contains('bg-green-700')))
+      .toEqual([true, true, true, false]);
+  });
+
   it('names the progress bar so it is readable without seeing it', () => {
     const fixture = createComponent([route1]);
 
     expect(fixture.componentInstance['routes']()[0].label)
       .toBe('Route 1: 3 von 4 Stopps erledigt');
-    expect(fixture.debugElement.query(By.css('mat-progress-bar')).attributes['aria-label'])
-      .toBe('Route 1: 3 von 4 Stopps erledigt');
+
+    const bar = fixture.debugElement.query(By.css('[testid="route-progress-segments-1"]'));
+    expect(bar.attributes['role']).toBe('progressbar');
+    expect(bar.attributes['aria-label']).toBe('Route 1: 3 von 4 Stopps erledigt');
+    expect(bar.attributes['aria-valuenow']).toBe('3');
+    expect(bar.attributes['aria-valuemax']).toBe('4');
   });
 
-  it('shows a placeholder when no route is under way', () => {
+  // The dashboard leaves the panel out entirely while nothing has been ticked off today, so this
+  // component never has to render an empty state of its own.
+  it('renders no entries without route progress', () => {
     const fixture = createComponent(null);
 
     expect(fixture.debugElement.query(By.css('[testid^="route-progress-entry-"]'))).toBeNull();
-    expect(fixture.debugElement.query(By.css('[testid="route-progress-empty"]')).nativeElement.textContent.trim())
-      .toBe('-');
   });
 });

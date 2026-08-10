@@ -45,6 +45,9 @@ object PushNotificationTypeTargeting {
         PushNotificationType.CHECKIN_STARTED to "uebersicht",
         PushNotificationType.FOOD_HANDOUT_STARTED to "uebersicht",
         PushNotificationType.ALL_TICKETS_PROCESSED to "uebersicht",
+        // the dashboard, not the driver's own screen: this one is read by whoever is waiting for the
+        // van, and "Routen unterwegs" is where the rest of the routes' progress is
+        PushNotificationType.ROUTE_AT_LAST_STOP to "uebersicht",
         PushNotificationType.FOOD_COLLECTION_COMPLETED to "logistik/warenerfassung",
         PushNotificationType.USER_LOCKED_OUT to "benutzer/anmelde-versuche",
         PushNotificationType.REPORT_MAIL_FAILED to "einstellungen/email",

@@ -5,7 +5,7 @@ import {
   DistributionItem
 } from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardContent, MatCardFooter} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {CloseDistributionDialogComponent} from './dialogs/close-distribution-dialog.component';
@@ -16,8 +16,6 @@ import {CloseDistributionValidationDialogComponent} from './dialogs/close-distri
   templateUrl: 'distribution-state.component.html',
   imports: [
     MatCard,
-    MatCardHeader,
-    MatCardTitle,
     MatCardContent,
     MatCardFooter,
     MatButton

@@ -1,13 +1,11 @@
 import {Component, computed, input} from '@angular/core';
-import {MatCard, MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
+import {MatCard, MatCardContent} from '@angular/material/card';
 
 @Component({
   selector: 'tafel-tickets-processed',
   templateUrl: 'tickets-processed.component.html',
   imports: [
     MatCard,
-    MatCardHeader,
-    MatCardTitle,
     MatCardContent
   ]
 })

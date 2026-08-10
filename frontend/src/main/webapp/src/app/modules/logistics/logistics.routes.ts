@@ -8,8 +8,8 @@ import {RouteGuidanceComponent} from './views/route-guidance/route-guidance.comp
 
 export const routes: Routes = [
   {
-    path: 'routenbegleitung',
-    title: 'Routenbegleitung',
+    path: 'routen-navi',
+    title: 'Routen-Navi',
     component: RouteGuidanceComponent,
     resolve: {
       routeList: RouteDataResolver

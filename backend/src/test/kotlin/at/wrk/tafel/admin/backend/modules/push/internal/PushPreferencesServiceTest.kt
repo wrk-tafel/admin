@@ -82,6 +82,7 @@ internal class PushPreferencesServiceTest {
         assertThat(result.types.map { it.type }).containsExactlyInAnyOrder(
             PushNotificationTypeApi.DISTRIBUTION_STARTED,
             PushNotificationTypeApi.CHECKIN_STARTED,
+            PushNotificationTypeApi.ROUTE_AT_LAST_STOP,
             PushNotificationTypeApi.FOOD_COLLECTION_COMPLETED,
             PushNotificationTypeApi.FOOD_HANDOUT_STARTED,
             PushNotificationTypeApi.ALL_TICKETS_PROCESSED,

@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -63,6 +64,7 @@ interface StopView {
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
+    MatProgressBar,
     MatSelectModule,
     MatIcon,
     FaIconComponent,
@@ -85,6 +87,16 @@ export class RouteGuidanceComponent {
   protected readonly stops = computed(() => this._guidance()?.stops ?? []);
   protected readonly completedCount = computed(() => this.stops().filter(stop => stop.completed).length);
   protected readonly unassignedReturnItems = computed(() => this._guidance()?.unassignedReturnItems ?? []);
+
+  protected readonly completedPercent = computed(() => {
+    const total = this.stops().length;
+    return total === 0 ? 0 : Math.round((this.completedCount() / total) * 100);
+  });
+
+  // one sentence for both the counter and the bar's accessible name, so the two cannot drift apart
+  protected readonly progressLabel = computed(
+    () => `${this.completedCount()} von ${this.stops().length} Stopps erledigt`
+  );
 
   // the day the boxes now going back were collected, formatted the way the rest of the app writes a
   // date; undefined when the last trip brought nothing back

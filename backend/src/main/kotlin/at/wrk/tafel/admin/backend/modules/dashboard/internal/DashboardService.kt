@@ -88,6 +88,12 @@ class DashboardService(
      * The stop counts behind the route guidance screen, for every route that is still driven.
      * Routes without stops are left out - "0 von 0" says nothing, and a route only gets its stops
      * once someone has set them up.
+     *
+     * Empty until somebody has actually ticked a stop off today. The route guidance screen is
+     * optional - a deployment whose drivers don't use it would otherwise get a panel of permanent
+     * zeroes taking up room on a dashboard that has to fit on one screen. As soon as the first stop
+     * of the day is ticked off, *every* route appears, including the ones still at zero: from then
+     * on "Route 3: 0 / 15" is news rather than noise.
      */
     private fun getRouteProgress(enabledRoutes: List<RouteEntity>): List<DashboardRouteProgressItem> {
         val routesWithStops = enabledRoutes.filter { it.stops.isNotEmpty() }
@@ -101,6 +107,9 @@ class DashboardService(
             .findAllByRouteStopIdInAndCompletionDate(stopIds, LocalDate.now())
             .mapNotNull { it.routeStop.id }
             .toSet()
+        if (completedStopIds.isEmpty()) {
+            return emptyList()
+        }
 
         return routesWithStops
             .sortedWith(compareBy({ it.number }, { it.name }))

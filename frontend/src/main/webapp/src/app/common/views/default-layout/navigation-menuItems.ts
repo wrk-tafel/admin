@@ -105,8 +105,8 @@ export const navigationMenuItems: ITafelNavData[] = [
     title: true
   },
   {
-    name: 'Routenbegleitung',
-    url: '/logistik/routenbegleitung',
+    name: 'Routen-Navi',
+    url: '/logistik/routen-navi',
     icon: faRoute,
     permissions: ['LOGISTICS']
   },
