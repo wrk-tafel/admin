@@ -223,7 +223,16 @@ describe('Accessibility', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
 
-    cy.contains('button', 'Sonstige').should('have.attr', 'aria-expanded', 'false').focus();
+    // `be.visible` is load-bearing here, not decoration. Angular Material renders the sidenav's
+    // content before it marks the drawer opened, so for a moment after the shell appears the whole
+    // sidebar is still `visibility: hidden` and translated off-screen. `cy.contains()` matches on
+    // existence alone and `.focus()` is one of the few commands that performs no actionability
+    // check, so a run landing in that window asks the browser to focus an element it refuses to
+    // focus - silently, leaving focus on `body` and failing the assertion below instead.
+    cy.contains('button', 'Sonstige')
+      .should('be.visible')
+      .and('have.attr', 'aria-expanded', 'false')
+      .focus();
 
     cy.focused().should('contain.text', 'Sonstige').click();
 
