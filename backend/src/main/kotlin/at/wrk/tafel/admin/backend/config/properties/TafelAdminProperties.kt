@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.config.properties
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.context.properties.ConfigurationProperties
+import java.time.Duration
 
 /**
  * Mutable, JavaBean-bound on purpose - that is what makes this application's configuration
@@ -35,6 +36,7 @@ class TafelAdminProperties {
     var audit: TafelAdminAuditProperties = TafelAdminAuditProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var mail: TafelAdminMailProperties? = null
+    var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
@@ -182,6 +184,44 @@ class TafelAdminMailProperties {
     var from: String = ""
     var subjectPrefix: String? = null
     var defaultRecipientsBcc: List<String>? = emptyList()
+}
+
+/**
+ * How the mail outbox delivers what `MailSenderService` queued - see ADR-0041 and `MailOutboxService`.
+ *
+ * All of these are read per use, so an operator can slow the retries down or drain a backlog faster
+ * on a running deployment (`ConfigFileReloadService`). They are also the knobs worth having during an
+ * incident: a mail server that is refusing connections is exactly when the defaults are wrong.
+ *
+ * `tafeladmin.mailOutbox.interval` - how often the poller looks, default 10s - is deliberately *not*
+ * a field here: `@Scheduled` fixes its delay at bean creation, so it is startup-only. It lives in
+ * `application.yml` as a plain placeholder, same as `tafeladmin.audit.cleanupCron`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminMailOutboxProperties {
+    /**
+     * How many times delivery is attempted before the mail is parked as `FAILED` and reported. Not a
+     * deadline: with the backoff below, five attempts span roughly half an hour, which covers a
+     * restart of the mail server but not an outage somebody has to be told about.
+     */
+    var maxAttempts: Int = 5
+
+    /** How many mails one poll takes on, oldest first. The rest wait for the next tick. */
+    var batchSize: Int = 20
+
+    /** Waited after the first failed attempt, and multiplied by the attempt count after that. */
+    var retryBackoff: Duration = Duration.ofMinutes(5)
+
+    /** Ceiling for the growing backoff, so a long outage still gets a regular retry. */
+    var maxRetryBackoff: Duration = Duration.ofMinutes(30)
+
+    /**
+     * How long a sent mail's row is kept before the cleanup job deletes it. It is the record of what
+     * this installation mailed out, including personal data in the attachments, so the window is the
+     * span in which somebody still asks "did the report go out on Saturday?" - not an archive.
+     * `FAILED` rows are never deleted by that job; they are the mails nobody received.
+     */
+    var sentRetention: Duration = Duration.ofDays(14)
 }
 
 @ExcludeFromTestCoverage

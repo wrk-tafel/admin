@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.database.common.mailoutbox
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailOutboxProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -20,6 +22,7 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.io.ByteArrayInputStream
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -199,6 +202,20 @@ class MailOutboxServiceTest {
         assertThat(succeeding.status).isEqualTo(MailOutboxStatus.SENT)
     }
 
+    /**
+     * With nothing to deliver to, a queued mail would only pile up - so it is not queued at all.
+     * This is the one place that asks whether a mail server exists; `MailSenderService` composes
+     * either way.
+     */
+    @Test
+    fun `nothing is queued when no mail server is configured`() {
+        val service = service(mailSender = null)
+
+        service.enqueue(mimeMessage("subject"), "subject", listOf("to@localhost"))
+
+        verify(exactly = 0) { mailOutboxRepository.save(any<MailOutboxEntity>()) }
+    }
+
     @Test
     fun `nothing is polled when no mail server is configured`() {
         val service = service(mailSender = null)
@@ -208,6 +225,73 @@ class MailOutboxServiceTest {
         verify(exactly = 0) {
             mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
         }
+    }
+
+    /**
+     * The tuning is configuration, not constants - an operator raising the backoff during a mail
+     * server incident has to actually take effect.
+     */
+    @Test
+    fun `configured attempt limit and backoff are what is applied`() {
+        val service = service(
+            properties = TafelAdminMailOutboxProperties().apply {
+                maxAttempts = 2
+                retryBackoff = Duration.ofSeconds(30)
+                maxRetryBackoff = Duration.ofMinutes(2)
+            },
+        )
+        val firstFailure = pendingMail()
+        val lastAttempt = pendingMail().apply { attempts = 1 }
+        every {
+            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
+        } returns listOf(firstFailure, lastAttempt)
+        every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
+        every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
+
+        service.sendPendingMails()
+
+        assertThat(firstFailure.status).isEqualTo(MailOutboxStatus.PENDING)
+        assertThat(firstFailure.nextAttemptAt).isEqualTo(now.plusSeconds(30))
+        // second attempt of two - given up on, where the default of five would still be retrying
+        assertThat(lastAttempt.status).isEqualTo(MailOutboxStatus.FAILED)
+    }
+
+    @Test
+    fun `the growing backoff is capped`() {
+        val service = service(
+            properties = TafelAdminMailOutboxProperties().apply {
+                maxAttempts = 10
+                retryBackoff = Duration.ofMinutes(5)
+                maxRetryBackoff = Duration.ofMinutes(12)
+            },
+        )
+        val mail = pendingMail().apply { attempts = 5 }
+        every {
+            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
+        } returns listOf(mail)
+        every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
+        every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
+
+        service.sendPendingMails()
+
+        // 6 x 5min would be 30, the cap is 12
+        assertThat(mail.nextAttemptAt).isEqualTo(now.plusMinutes(12))
+    }
+
+    @Test
+    fun `the batch size limits what one poll takes on`() {
+        val service = service(properties = TafelAdminMailOutboxProperties().apply { batchSize = 3 })
+        every {
+            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
+        } returns emptyList()
+
+        service.sendPendingMails()
+
+        val limitSlot = slot<Limit>()
+        verify {
+            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), capture(limitSlot))
+        }
+        assertThat(limitSlot.captured.max()).isEqualTo(3)
     }
 
     @Test
@@ -221,7 +305,16 @@ class MailOutboxServiceTest {
         }
     }
 
-    private fun service(mailSender: JavaMailSender? = this.mailSender) = MailOutboxService(mailOutboxRepository, mailSender, clock, eventPublisher)
+    private fun service(
+        mailSender: JavaMailSender? = this.mailSender,
+        properties: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties(),
+    ) = MailOutboxService(
+        mailOutboxRepository,
+        mailSender,
+        clock,
+        eventPublisher,
+        TafelAdminProperties().apply { mailOutbox = properties },
+    )
 
     private fun pendingMail() = MailOutboxEntity().apply {
         createdAt = now

@@ -204,8 +204,12 @@ choice on its own merits).
   polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts —
   publishing `MailDeliveryFailedEvent`, which `push` turns into a notification to administrators, so
   a mail that was given up on is not just a row nobody reads. So a mail is never sent from a
-  transaction that rolls back, and never lost when SMTP is down — and nothing outside `common/mail`
-  should call `JavaMailSender` directly.
+  transaction that rolls back, and never lost when SMTP is down. `MailOutboxService` is the only
+  class that holds a `JavaMailSender` — it is what "is a mail server configured?" means, which is
+  why `enqueue` is also where a mail is dropped when none is (nothing to deliver to, so a queued row
+  would only pile up). `MailSenderService` composes either way and needs no sender: a `Session` is
+  just what a `MimeMessage` hangs off, and the outbox re-reads the stored bytes with the configured
+  session when it sends.
   **Queuing a mail is a write**, which is what joining the caller's transaction costs: a caller whose
   transaction is `readOnly = true` cannot send mail, and `enqueue` rejects it with a message saying
   so rather than letting Postgres refuse `mail_outbox_seq`'s `nextval()` several frames deeper. Don't

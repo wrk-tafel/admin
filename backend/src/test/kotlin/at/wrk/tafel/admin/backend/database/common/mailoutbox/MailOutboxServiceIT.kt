@@ -8,6 +8,8 @@ import jakarta.mail.internet.MimeMessage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import java.util.Properties
 
 /**
@@ -21,6 +23,20 @@ import java.util.Properties
  * one that was written.
  */
 class MailOutboxServiceIT : TafelBaseIntegrationTest() {
+
+    companion object {
+        @DynamicPropertySource
+        @JvmStatic
+        fun dynamicMailProperties(registry: DynamicPropertyRegistry) {
+            // A mail server has to exist for anything to be queued at all - with none configured,
+            // enqueue skips the row rather than piling up mail nobody can send. Nothing here ever
+            // connects to it: this covers the queuing half only.
+            registry.add("spring.mail.host") { "localhost" }
+            // ...which is also why the poller must not run during this test. It would fail against
+            // that address and could move the row this test is asserting on out of PENDING.
+            registry.add("tafeladmin.mailOutbox.interval") { "1h" }
+        }
+    }
 
     @Autowired
     private lateinit var mailOutboxService: MailOutboxService

@@ -91,10 +91,10 @@ spring:
     clean-disabled: true
   mail:
     # Deployment-specific. With no host set, Spring Boot creates no JavaMailSender at all and every
-    # send is skipped silently (see MailSenderService) - which is exactly what a dev environment
-    # wants, and never what production does. The addresses the mails go to are not configured here
-    # but maintained in the UI under Einstellungen (mail_recipients); tafeladmin.mail below only
-    # sets who they come from.
+    # mail is dropped rather than queued (see MailOutboxService.enqueue) - which is exactly what a
+    # dev environment wants, and never what production does. The addresses the mails go to are not
+    # configured here but maintained in the UI under Einstellungen (mail_recipients);
+    # tafeladmin.mail below only sets who they come from.
     # host: <smtp host>
     # port: 587
     # username: <smtp user>
@@ -234,7 +234,24 @@ tafeladmin:
   # Kept out of tafeladmin.mail above on purpose: that section is bound to a properties object, and
   # a key underneath it would make the section exist in every environment (see TafelAdminProperties).
   mailOutbox:
+    # How often the poller looks for mails to send. Read at startup only, for the same reason as
+    # tafeladmin.configReload.interval. Everything below it is re-read per use, so retries can be
+    # slowed down or a backlog drained faster on a running deployment - which is what you want during
+    # a mail server incident, not a restart.
     interval: 10s
+    # Delivery attempts before a mail is parked as FAILED and reported as a push notification to
+    # administrators. With the backoff below, five attempts span roughly half an hour.
+    maxAttempts: 5
+    # Mails one poll takes on, oldest first; the rest wait for the next tick.
+    batchSize: 20
+    # Waited after the first failed attempt, multiplied by the attempt count after that, capped at
+    # maxRetryBackoff so a long outage still gets a regular retry.
+    retryBackoff: 5m
+    maxRetryBackoff: 30m
+    # How long a sent mail's row is kept before it is deleted. It holds the finished message,
+    # attachments and all, so this is the span in which somebody still asks "did the report go out on
+    # Saturday?" - not an archive. FAILED rows are never deleted; they are the mails nobody received.
+    sentRetention: 14d
   # Web Push (VAPID). Without a keypair the application runs normally and push notifications are
   # simply unavailable. Both keys must be the RAW key material, base64url-encoded - NOT the base64
   # inside a PEM file, which wraps DER/ASN.1 structure around the raw bytes and fails to decode; see
