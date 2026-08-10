@@ -1,0 +1,37 @@
+<div th:fragment="content">
+    <p>Es wurde eine Support-Anfrage aus der Anwendung gesendet.</p>
+    <br/>
+    <!--/* [[...]] escapes, unlike the [(...)] the other mails use: everything below is either typed
+           by the reporter or reported by their browser, so it must not be able to bring markup with
+           it. white-space keeps the typed line breaks without turning them into <br/>.
+           The gap between a label and its value is a non-breaking space: a plain one is
+           insignificant whitespace at the start of a text node, and a mail client that re-serializes
+           the HTML through its own sanitizer drops it - the value then reads as "Seite:https://...".
+           Numeric &#160; rather than named &nbsp;, which is undefined outside HTML and can be
+           dropped by a parser reading the mail as XHTML. */-->
+    <p><strong>Titel:</strong>&#160;[[ ${supportTitle} ]]</p>
+    <br/>
+    <p><strong>Anliegen:</strong></p>
+    <p style="white-space: pre-wrap">[[ ${supportText} ]]</p>
+    <br/>
+    <p><h3>Technische Infos</h3></p>
+    <p><strong>Gemeldet von:</strong>&#160;[[ ${diagnostics.reportedBy} ]]</p>
+    <p><strong>Zeitpunkt:</strong>&#160;[[ ${diagnostics.reportedAt} ]]</p>
+    <p><strong>Umgebung:</strong>&#160;[[ ${diagnostics.environmentLabel} ]]</p>
+    <p><strong>Version:</strong>&#160;[[ ${diagnostics.version} ]] (Build [[ ${diagnostics.buildTime} ]])</p>
+    <p><strong>Seite:</strong>&#160;[[ ${diagnostics.page} ]]</p>
+    <p><strong>Browser:</strong>&#160;[[ ${diagnostics.userAgent} ]]</p>
+    <p><strong>Fenster/Bildschirm:</strong>&#160;[[ ${diagnostics.viewport} ]] / [[ ${diagnostics.screen} ]]</p>
+    <p><strong>Sprache/Zeitzone:</strong>&#160;[[ ${diagnostics.language} ]] / [[ ${diagnostics.timeZone} ]]</p>
+    <p><strong>Screenshot:</strong>&#160;<span th:if="${diagnostics.screenshotAttached}">siehe Anhang screenshot.jpg</span><span th:unless="${diagnostics.screenshotAttached}">nicht mitgesendet</span></p>
+    <br/>
+    <p><strong>Letzte Fehler im Browser:</strong></p>
+    <div th:if="${!#lists.isEmpty(diagnostics.recentErrors)}">
+        <div th:each="error : ${diagnostics.recentErrors}">
+            <p>- [[ ${error.timestamp} ]] [[ ${error.message} ]]</p>
+        </div>
+    </div>
+    <div th:if="${#lists.isEmpty(diagnostics.recentErrors)}">
+        <p>Keine</p>
+    </div>
+</div>

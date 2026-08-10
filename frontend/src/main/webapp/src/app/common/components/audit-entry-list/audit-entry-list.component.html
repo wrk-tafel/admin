@@ -1,0 +1,51 @@
+<div class="flex flex-col gap-3" testid="audit-entry-list">
+  @for (entry of entries(); track entry.id; let i = $index) {
+    <mat-card class="shadow-sm" [attr.testid]="'audit-entry-' + i">
+      <mat-card-content>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-1 mb-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 font-bold" [class]="operationClasses(entry.operation)"
+                  [attr.testid]="'audit-entry-' + i + '-operation'">{{ operationLabel(entry.operation) }}</span>
+            <span class="font-bold" [attr.testid]="'audit-entry-' + i + '-entityType'">{{ entityTypeLabel(entry.entityType) }}</span>
+            @if (showSubject() && entry.businessKey) {
+              <span [attr.testid]="'audit-entry-' + i + '-businessKey'">Nr. {{ entry.businessKey }}</span>
+            }
+          </div>
+          <div class="flex flex-col md:flex-row md:gap-2 text-sm text-slate-600">
+            <span [attr.testid]="'audit-entry-' + i + '-occurredAt'">{{ entry.occurredAt | date : 'dd.MM.yyyy HH:mm:ss' }}</span>
+            <span [attr.testid]="'audit-entry-' + i + '-actor'">{{ actorLabel(entry) }}</span>
+          </div>
+        </div>
+
+        @if (entry.changes.length === 0) {
+          <div class="text-slate-600" [attr.testid]="'audit-entry-' + i + '-nochanges'">Keine Feldänderungen erfasst</div>
+        } @else {
+          <!-- tabindex: the table scrolls sideways on a narrow screen, and a region that can only
+               be scrolled by dragging is unreachable by keyboard (axe scrollable-region-focusable).
+               It carries no focusable content of its own that would satisfy the rule. -->
+          <div class="overflow-x-auto" tabindex="0" role="group"
+               [attr.aria-label]="'Feldänderungen: ' + entityTypeLabel(entry.entityType) + ' ' + operationLabel(entry.operation)">
+            <table class="w-full text-left" [attr.testid]="'audit-entry-' + i + '-changes'">
+              <thead>
+              <tr>
+                <th scope="col" class="py-1 pr-4 font-bold">Feld</th>
+                <th scope="col" class="py-1 pr-4 font-bold">Vorher</th>
+                <th scope="col" class="py-1 font-bold">Nachher</th>
+              </tr>
+              </thead>
+              <tbody>
+                @for (change of entry.changes; track change.field; let c = $index) {
+                  <tr class="border-t border-slate-200">
+                    <td class="py-1 pr-4" [attr.testid]="'audit-entry-' + i + '-change-' + c + '-field'">{{ fieldLabel(change.field) }}</td>
+                    <td class="py-1 pr-4 break-all" [attr.testid]="'audit-entry-' + i + '-change-' + c + '-oldValue'">{{ displayValue(change.oldValue) }}</td>
+                    <td class="py-1 break-all" [attr.testid]="'audit-entry-' + i + '-change-' + c + '-newValue'">{{ displayValue(change.newValue) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

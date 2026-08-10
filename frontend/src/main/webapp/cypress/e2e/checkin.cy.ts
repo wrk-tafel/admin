@@ -1,4 +1,5 @@
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('CheckIn', () => {
 
@@ -63,6 +64,10 @@ describe('CheckIn', () => {
     searchCustomer(100);
     cy.byTestId('ticketNumberInput').should('have.value', '10');
     cy.byTestId('deleteTicketButton').click();
+    // The delete button is gone once the response has been handled - and that handler is also what
+    // moves the focus to the ticket field. Waiting for it here keeps that focus jump from landing
+    // in the middle of the next search's typing (see clearCustomerId).
+    cy.byTestId('deleteTicketButton').should('not.exist');
 
     // verify ticket is empty
     searchCustomer(100);
@@ -108,16 +113,47 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(1);
   });
 
+  // The customer panel - the whole point of this screen - only exists after a search, so the
+  // Lighthouse `pages` sweep grades the empty form and nothing else.
+  // See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations once a customer has been looked up', () => {
+      searchCustomer(100);
+      cy.byTestId('customerDetailPanel').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+  });
+
 });
 
 function searchCustomer(customerId: number) {
-  cy.byTestId('customerIdInput').clear();
-  // guard against a race where the form's async reset (after the previous search) overwrites
-  // the field right after clear() - retry until it's genuinely empty before typing into it
-  cy.byTestId('customerIdInput').should('have.value', '');
+  clearCustomerId();
   cy.byTestId('customerIdInput').type(customerId.toString());
   cy.byTestId('showCustomerButton').click();
   cy.byTestId('customerDetailPanel').should('be.visible');
+}
+
+/**
+ * Empties the customer number field, and makes sure it stayed empty.
+ *
+ * Cypress sends every keystroke to whatever is focused at that moment rather than to the element
+ * the command started on, and two of this screen's responses move the focus to another field when
+ * they arrive (assigning a ticket, deleting one). One landing between `clear()`'s select-all and
+ * its delete leaves the old number sitting in the field - which is what the "expected '' but was
+ * '100'" failures were - and nothing clears it again afterwards, so asserting emptiness only
+ * reports the problem. Re-clearing is what recovers from it.
+ */
+function clearCustomerId(attemptsLeft = 3) {
+  cy.byTestId('customerIdInput').clear();
+  cy.byTestId('customerIdInput').then($input => {
+    if ($input.val() !== '' && attemptsLeft > 1) {
+      clearCustomerId(attemptsLeft - 1);
+    }
+  });
+  cy.byTestId('customerIdInput').should('have.value', '');
 }
 
 function assignTicket(ticketNumber: number) {

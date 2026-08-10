@@ -9,7 +9,7 @@
         <mat-card-content>
           <div [attr.testid]="'select-employee-row-' + i" class="flex justify-between items-center">
             <span>{{ employee.personnelNumber }} {{ employee.firstname }} {{ employee.lastname }}</span>
-            <button matButton="outlined" (click)="selectEmployee(employee)"
+            <button matButton="outlined" aria-label="Mitarbeiter auswählen" (click)="selectEmployee(employee)"
                     [attr.testid]="'select-employee-button-' + i">
               <fa-icon [icon]="faHandPointer"></fa-icon>
             </button>

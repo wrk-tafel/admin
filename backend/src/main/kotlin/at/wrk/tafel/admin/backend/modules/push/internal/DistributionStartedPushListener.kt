@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStartedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.scheduling.annotation.Async
@@ -40,7 +40,7 @@ class DistributionStartedPushListener(
     @EventListener
     fun onDistributionStarted(event: DistributionStartedEvent) {
         val distribution = distributionRepository.findByIdOrNull(event.distributionId) ?: return
-        val dateFormatted = distribution.startedAt!!.format(DATE_FORMATTER)
+        val dateFormatted = distribution.startedAt.format(DATE_FORMATTER)
 
         pushBroadcastService.broadcast(
             type = PushNotificationType.DISTRIBUTION_STARTED,

@@ -54,6 +54,7 @@
                 [disabled]="testedDeviceId() === device.id"
                 (click)="sendTestNotification(device)"
                 [attr.aria-label]="'Test-Benachrichtigung senden'"
+                matTooltip="Test-Benachrichtigung an dieses Gerät senden"
               >
                 <fa-icon [icon]="faPaperPlane"></fa-icon>
               </button>
@@ -64,6 +65,7 @@
                 class="button-danger"
                 (click)="renameDevice(device)"
                 [attr.aria-label]="'Gerät benennen'"
+                matTooltip="Gerät umbenennen"
               >
                 <fa-icon [icon]="faPen"></fa-icon>
               </button>
@@ -74,6 +76,7 @@
                 class="button-danger"
                 (click)="removeDevice(device)"
                 [attr.aria-label]="'Gerät entfernen'"
+                matTooltip="Gerät entfernen - es erhält danach keine Benachrichtigungen mehr"
               >
                 <fa-icon [icon]="faTrashCan"></fa-icon>
               </button>
@@ -108,16 +111,35 @@
     @if (preferences().masterEnabled) {
       <div class="mt-6">
         <div class="font-bold mb-2">Welche Benachrichtigungen möchtest du erhalten?</div>
-        @for (typePreference of preferences().types; track typePreference.type) {
-          <div testid="push-type-preference" class="py-2 border-t border-gray-200">
-            <mat-slide-toggle
-              testid="push-type-preference-toggle"
-              [checked]="typePreference.enabled"
-              [disabled]="preferencesLoading()"
-              (change)="onTypeToggle(typePreference.type, $event)"
-            >
-              {{ typeLabel(typePreference.type) }}
-            </mat-slide-toggle>
+        @for (group of typeGroups(); track group.title) {
+          <div testid="push-type-group" [attr.data-group]="group.title" class="mt-4 first:mt-2">
+            <div testid="push-type-group-title" class="font-semibold text-sm text-gray-500 uppercase tracking-wide">
+              {{ group.title }}
+            </div>
+            <!--
+              Three columns on wide screens so the whole card fits on a laptop screen without
+              scrolling - two made it tall enough to push the last group below the fold, which costs
+              more than the trailing empty cells the small groups leave. Widens in steps because each
+              entry carries a sentence of explanation: one column on phones, two from medium, three
+              only once there is desktop width to keep those sentences from wrapping raggedly.
+            -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-x-8">
+              @for (typePreference of group.items; track typePreference.type) {
+                <div testid="push-type-preference" [attr.data-type]="typePreference.type" class="py-2 border-t border-gray-200">
+                  <mat-slide-toggle
+                    testid="push-type-preference-toggle"
+                    [checked]="typePreference.enabled"
+                    [disabled]="preferencesLoading()"
+                    (change)="onTypeToggle(typePreference.type, $event)"
+                  >
+                    {{ typeLabel(typePreference.type) }}
+                  </mat-slide-toggle>
+                  <p testid="push-type-preference-description" class="text-sm text-gray-500 mt-1">
+                    {{ typeDescription(typePreference.type) }}
+                  </p>
+                </div>
+              }
+            </div>
           </div>
         }
       </div>

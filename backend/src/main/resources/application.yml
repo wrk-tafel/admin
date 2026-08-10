@@ -1,3 +1,20 @@
+# Defaults for every environment, and the reference for what can be configured at all.
+#
+# Anything an operator may set is listed here, whether or not it has a default: the settings that
+# depend on the deployment (database, mail server, JWT signing) or are secret (GitHub token, VAPID
+# keys) appear as commented-out entries with the explanation of what they do. Commented rather than
+# empty on purpose - this file is loaded for real, so a placeholder value would silently become the
+# configuration. Uncommenting one here configures every environment; to configure a single one,
+# copy the entry into that environment's own file instead.
+#
+# In production those per-deployment values come from an operator-managed config.yml bind-mounted
+# into the container (`-Dspring.config.additional-location`, see _build/Dockerfile), which overrides
+# what is set here. Locally they come from application-local.yml, and for the Cypress run from
+# application-e2e.yml.
+#
+# Editing the mounted config.yml takes effect without a restart for most of `tafeladmin.*` - see
+# tafeladmin.configReload below, and the per-setting notes for the ones that still need one.
+
 logging:
   level:
     root: INFO
@@ -41,12 +58,30 @@ spring:
       # this is where its static output is expected to be placed at runtime
       static-locations: file:${user.dir}/static/
   datasource:
+    # Required, and deployment-specific - the application does not start without them. Note that
+    # none of these three take effect on a config reload: the Hikari pool is built once at startup
+    # (see ConfigFileReloadService), so moving the database needs a restart.
+    # url: jdbc:postgresql://<host>:5432/tafeladmin
+    # username: tafeladmin
+    # password: <database password>
     driverClassName: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 50
+      # Sized for this application's real concurrency: a handful of simultaneous users plus the
+      # @Async executor's 10 threads (see AsyncConfig). Postgres' default max_connections is 100,
+      # so a pool much larger than this claims connections nobody uses - and every pool-wide event
+      # (see keepalive-time below) costs one log line per connection.
+      maximum-pool-size: 20
       # logs a warning with a stack trace for any connection held longer than this, so a leak
       # (e.g. a missed transaction boundary) surfaces well before the pool is exhausted
       leak-detection-threshold: 60000
+      # A database restart invalidates every pooled connection at once. Without keepalive-time
+      # nothing notices until the next real request, which then works its way through the whole
+      # pool and logs a WARN per dead connection before it is served. With it, the housekeeper
+      # probes idle connections in the background and evicts the dead ones at DEBUG instead.
+      keepalive-time: 120000 # 2 minutes, must stay below max-lifetime
+      # Retires pooled connections well before any infrastructure-side idle timeout can drop them
+      # underneath us (HikariCP's own default is 30 minutes).
+      max-lifetime: 600000 # 10 minutes
   flyway:
     locations: classpath:/db-migration
     group: true
@@ -55,6 +90,15 @@ spring:
     # flyway.clean() drops the whole schema - only the testdata/e2e profiles may re-enable it
     clean-disabled: true
   mail:
+    # Deployment-specific. With no host set, Spring Boot creates no JavaMailSender at all and every
+    # mail is dropped rather than queued (see MailOutboxService.enqueue) - which is exactly what a
+    # dev environment wants, and never what production does. The addresses the mails go to are not
+    # configured here but maintained in the UI under Einstellungen (mail_recipients);
+    # tafeladmin.mail below only sets who they come from.
+    # host: <smtp host>
+    # port: 587
+    # username: <smtp user>
+    # password: <smtp password>
     properties.mail.smtp:
       auth: true
       starttls.enable: true
@@ -65,19 +109,30 @@ spring:
   mvc:
     async:
       request-timeout: 3600000 # 1 hour
-  servlet:
-    multipart:
-      # Safety net only - the real 25MB per-file business limit is enforced explicitly in
-      # HouseholdDocumentService, so a too-large upload comes back as a clean 400 instead of
-      # Spring's MaxUploadSizeExceededException.
-      max-file-size: 30MB
-      max-request-size: 30MB
+  # No spring.servlet.multipart limits here on purpose: they are derived from
+  # tafeladmin.storage.maxDocumentSize below, with headroom, so the document limit is one number
+  # rather than two that have to be kept in step (see MultipartConfig).
 
+# None of this is reloadable, by design: ApplicationProperties is constructor-bound, so a config
+# reload leaves it exactly as it was bound at startup. Rotating a signing secret or a token lifetime
+# under a running application would invalidate sessions in flight at a moment nobody chose - and
+# constructor binding is also what makes the application refuse to start when a value is missing,
+# rather than fall back to a silent default. Every change here needs a restart.
 security:
   jwtToken:
+    # Required, and deployment-specific. issuer/audience identify this installation in the tokens it
+    # signs; the secret is the signing key and must be a long random string kept out of this
+    # repository (in production it comes from the mounted config.yml). Changing any of the three
+    # invalidates every session that is currently logged in.
+    # issuer: https://<public url of this installation>
+    # audience: wrk-tafel
+    # secret.value: <long random string>
     secret.algorithm: HMACSHA256
     expirationTimeInSeconds: 36000 # 10 hours
     expirationTimePwdChangeInSeconds: 300 # 5 minutes
+  # After maxFailures failed logins an account is locked for lockoutDurationInSeconds. Entries older
+  # than that window are cleaned up hourly, and an administrator can lift a lock early via
+  # Benutzer -> Anmelde-Versuche (see LoginAttemptService).
   loginAttempts:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
@@ -95,6 +150,37 @@ tafeladmin:
   version: dev
   buildTime: unknown
   environmentLabel: ""
+  # The audit trail (audit_log) - see ADR-0039. `enabled` and `retentionDays` are read per use and
+  # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
+  # its expression when the bean is created (same as configReload.interval below), so changing it
+  # needs a restart. 05:00 is the quiet window between the last late-evening work and the first
+  # distribution-day activity, so the delete never lands while anyone is working; the
+  # orphaned-document cleanup runs in the same slot and contends for nothing with it.
+  #
+  # retentionDays is kept short on purpose: the log holds names, addresses and income figures of
+  # people whose household may since have been deleted, so it is bounded by what the trail is
+  # actually used for - questioning a recent change - rather than by how long it might conceivably
+  # be interesting. Raise it per deployment if a longer trail is genuinely needed; a value of 0 or
+  # less keeps every entry instead of deleting them all.
+  audit:
+    enabled: true
+    retentionDays: 30
+    cleanupCron: "0 0 5 * * *"
+  # Check-in via handheld scanners. A scanner refreshes its registration while it is in use, so this
+  # only has to outlast the gaps within a distribution day: long enough that a scanner switched off
+  # over lunch keeps its id, short enough that ids of devices put away for good are handed out again.
+  # Read per use, so it can be widened while a distribution is running - a cleanup reclaiming ids
+  # mid-distribution hands the scanners still in use new ones.
+  checkin:
+    scannerRegistrationRetention: 2d
+  # The work that runs right after a distribution is closed - the statistics snapshot and the missing
+  # cost contributions, in one transaction - is retried this often before it is given up on. Both
+  # values are read per use, so an operator can give a close that is failing against a struggling
+  # database more room without a restart.
+  distribution:
+    closeRetry:
+      maxAttempts: 3
+      backoff: 2s
   # Switches for optional features. Each one is a plain on/off an operator flips; how the feature is
   # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
   features:
@@ -109,8 +195,131 @@ tafeladmin:
   configReload:
     enabled: true
     interval: 5s
+  # Typo tolerance of the single search box on the customer and user search screens. See
+  # TafelAdminSearchProperties - this is read per request, so it can be tuned against real data
+  # without restarting the container.
+  search:
+    similarityThreshold: 0.5
+  # First-run bootstrap of a new installation: while the users table is completely empty, one
+  # administrator account is created at startup so the deployment can be logged into and configured
+  # from the UI. As soon as any user exists this does nothing, whatever is configured here. Leave
+  # the password unset and a random one is generated and printed to the log once; either way the
+  # account must change it at first login. See InitialAdminUserService.
+  setup:
+    initialAdmin:
+      enabled: true
+      username: admin
+      # password: <only for an unattended rollout that needs to know it up front>
+      personnelNumber: "00001"
+      firstname: Tafel
+      lastname: Administrator
+  # Where this installation is mounted below its origin. Dev/test/prod share one origin at different
+  # path prefixes, so this is also what the JWT cookie's path and the PWA manifest are built from.
+  # Baked into the security filter chain at startup - changing it needs a restart.
   server:
     relativeBaseUrl: /
+  # The in-app support form mails the request, together with the technical context the browser
+  # reports, to these addresses. Deployment-specific, so unset here - with no recipient the endpoint
+  # fails with a clear error rather than pretending to have sent something. The mail goes out over
+  # the spring.mail server above, from tafeladmin.mail.from, and carries tafeladmin.mail.subjectPrefix
+  # so it is obvious which environment a request came from (e.g. "[TEST]"). subjectPrefix below goes
+  # in front of the title the user typed and marks the mail as a support request rather than one of
+  # the automated ones - a subject then reads "[TEST] Support: Scanner reagiert nicht".
   support:
-    githubRepository: wrk-tafel/admin
-    titlePrefix: ""
+    subjectPrefix: "Support:"
+    # recipients:
+    #   - support@<domain>
+  # Who the automated mails (daily report, statistics, return boxes) come from. The recipients are
+  # not configured here - they are maintained in the UI under Einstellungen. Only used when a mail
+  # server is configured above; `from` is required as soon as one is.
+  #
+  # A mail is written to the mail_outbox table inside the transaction that produced it and handed to
+  # the mail server by a poller afterwards (MailOutboxService). How often that poller looks is
+  # tafeladmin.mailOutbox.interval below - read at startup only, for the same reason as
+  # tafeladmin.configReload.interval.
+  # mail:
+  #   from: no-reply@<domain>
+  #   subjectPrefix: "[TEST]"
+  #   defaultRecipientsBcc:
+  #     - archive@<domain>
+  # Kept out of tafeladmin.mail above on purpose: that section is bound to a properties object, and
+  # a key underneath it would make the section exist in every environment (see TafelAdminProperties).
+  mailOutbox:
+    # How often the poller looks for mails to send. Read at startup only, for the same reason as
+    # tafeladmin.configReload.interval. Everything below it is re-read per use, so retries can be
+    # slowed down or a backlog drained faster on a running deployment - which is what you want during
+    # a mail server incident, not a restart.
+    interval: 10s
+    # Delivery attempts before a mail is parked as FAILED and reported as a push notification to
+    # administrators. With the backoff below, five attempts span roughly half an hour.
+    maxAttempts: 5
+    # Mails one poll takes on, oldest first; the rest wait for the next tick.
+    batchSize: 20
+    # Waited after the first failed attempt, multiplied by the attempt count after that, capped at
+    # maxRetryBackoff so a long outage still gets a regular retry.
+    retryBackoff: 5m
+    maxRetryBackoff: 30m
+    # How long a sent mail's row is kept before it is deleted. It holds the finished message,
+    # attachments and all, so this is the span in which somebody still asks "did the report go out on
+    # Saturday?" - not an archive. FAILED rows are never deleted; they are the mails nobody received.
+    sentRetention: 14d
+  # Web Push (VAPID). Without a keypair the application runs normally and push notifications are
+  # simply unavailable. Both keys must be the RAW key material, base64url-encoded - NOT the base64
+  # inside a PEM file, which wraps DER/ASN.1 structure around the raw bytes and fails to decode; see
+  # TafelAdminPushProperties for the exact openssl commands. vapidSubject is the contact address
+  # browser push services may use to reach the sender (RFC 8292), a mailto: URI or an https: URL.
+  # Read once when the push service is built, so changing any of them needs a restart.
+  # push:
+  #   vapidPublicKey: <65 raw bytes, base64url>
+  #   vapidPrivateKey: <32 raw bytes, base64url>
+  #   vapidSubject: mailto:<contact address>
+  # How a push message asks the browser's push service to deliver it. Kept out of tafeladmin.push
+  # above for the same reason mailOutbox sits next to mail: that section holds key material and is
+  # absent unless a deployment configures it, and a default underneath it would make it exist
+  # everywhere. Both are read per send.
+  #
+  # ttl is how long the push service may hold a message for a device that is currently offline -
+  # roughly a distribution day, so a phone out of signal for a few hours still hears about the
+  # distribution the notification is about, without it resurfacing the next day. urgency is the
+  # RFC 8030 header: at anything below "high" FCM defers the message to the next maintenance window
+  # while the device is in Doze, which for an "Ausgabe gestartet" alert means it arrives too late to
+  # matter.
+  pushDelivery:
+    ttl: 12h
+    urgency: high
+  # The event streams the frontend keeps open, and the sse_outbox rows behind them. All three are
+  # read per use, so a stream opened afterwards picks the new values up without a restart - streams
+  # already open keep what they were created with. timeout spans a whole distribution day so a
+  # dashboard doesn't reconnect during it; reconnectTime is what the browser waits before coming
+  # back, kept short so a deploy is invisible to whoever is looking at the screen. Only the first few
+  # minutes of outboxRetention are ever read (a reconnect replays at most that much, see
+  # SseOutboxListenerService.REPLAY_MAX_AGE) - the rest is how long a published event can still be
+  # looked up, against a table that grows with every dashboard update.
+  sse:
+    timeout: 12h
+    reconnectTime: 1s
+    outboxRetention: 14d
+  storage:
+    # Where uploaded customer documents are kept. A relative path resolves against the process's
+    # working directory; in the container this is a mounted volume, since the files must outlive it.
+    documentsPath: documents
+    # Mount point of a NAS share a physical document scanner writes to, offered as a second document
+    # source on a customer's documents tab. Not every installation has one - left unset, the feature
+    # is off regardless of features.scannerFolderEnabled above. Polled once a second while on.
+    # scannerPath: /mnt/scanner-inbox
+    # The largest document that may be attached to a household, and the only place that size is set:
+    # the servlet container's own multipart ceiling is derived from it with a fixed headroom (see
+    # MultipartConfig), so an oversized upload is answered by HouseholdDocumentService with a
+    # readable message instead of being refused while the request is still being parsed. The check
+    # re-reads this per upload, so lowering the limit needs no restart; raising it past the ceiling
+    # the container was built with does.
+    maxDocumentSize: 25MB
+    # How long a file in the documents folder that no database row points at is left alone before the
+    # nightly cleanup deletes it. A file is written to disk before its row is committed, so this is
+    # what keeps the cleanup from deleting a document out from under the request creating it.
+    orphanedFileMinAge: 60m
+  # Wipes and re-creates the schema on startup so the testdata migrations can seed it from scratch.
+  # Only ever true for local development and the Cypress run - it destroys all data. Read once at
+  # startup by definition, since Flyway has finished long before anyone could edit the config file.
+  testdata:
+    enabled: false

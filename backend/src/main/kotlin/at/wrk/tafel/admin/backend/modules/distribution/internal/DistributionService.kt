@@ -13,8 +13,11 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.AllTicketsProcessedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.CheckinStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStartedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
@@ -100,19 +103,21 @@ class DistributionService(
             throw ConflictException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
 
+        val createdDistribution = checkNotNull(result) { "Ausgabe konnte nicht gestartet werden!" }
+
         // Published outside the locked block on purpose: the lock is transaction-level, so anything
         // running inside that block extends the lock, its transaction and its pooled connection for as
         // long as it takes. Listeners are free to do slow work (the push fan-out in `push` does blocking
         // HTTPS sends per device), and none of it needs the CREATE_DISTRIBUTION lock - that lock only
         // guards the "no distribution running yet" check plus the insert above.
         try {
-            eventPublisher.publishEvent(DistributionStartedEvent(result!!.id!!))
+            eventPublisher.publishEvent(DistributionStartedEvent(createdDistribution.id!!))
         } catch (e: Exception) {
             logger.error("Publishing DistributionStartedEvent failed", e)
             throw e
         }
 
-        return result!!
+        return createdDistribution
     }
 
     fun createNewDistributionItem(): DistributionItem = mapDistribution(createNewDistribution())
@@ -153,6 +158,11 @@ class DistributionService(
         entry.processed = false
 
         distributionHouseholdRepository.save(entry)
+
+        // The first check-in of the day is the moment the desk opens - see DistributionPhaseEvents.
+        if (distributionRepository.markCheckinStarted(distribution.id!!, LocalDateTime.now()) == 1) {
+            eventPublisher.publishEvent(CheckinStartedEvent(distribution.id!!))
+        }
     }
 
     @Transactional(readOnly = true)
@@ -178,7 +188,7 @@ class DistributionService(
             halftimeTicketNumber = halftimeTicketNumber,
             countHouseholdsOverall = countHouseholds,
             countPersonsOverall = countAddPersons + countHouseholds,
-            households = mapHouseholdsForPdf(sortedHouseholds),
+            households = mapHouseholdsForPdf(sortedHouseholds, currentDistribution.startedAt.toLocalDate()),
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -190,9 +200,7 @@ class DistributionService(
     fun getCurrentTicketNumber(householdId: Long? = null): DistributionHouseholdEntity? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
-        logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionHouseholdEntity?.ticketNumber}")
-        return distributionHouseholdEntity
+        return getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
     }
 
     @Transactional(readOnly = true)
@@ -221,7 +229,10 @@ class DistributionService(
         if (distributionHouseholdEntity != null) {
             distributionHouseholdEntity.processed = false
             distributionHouseholdRepository.save(distributionHouseholdEntity)
-            logger.info("Ticket-Log - Reopened ticket-number: ${distributionHouseholdEntity.ticketNumber}")
+            logger.info(
+                "Reopened ticket ${distributionHouseholdEntity.ticketNumber} " +
+                    "(household: ${distributionHouseholdEntity.household.householdId}, distribution: ID ${distribution.id})",
+            )
         }
 
         return mapToTicketScreenTicket(getCurrentTicketNumber())
@@ -239,7 +250,35 @@ class DistributionService(
             distributionHouseholdRepository.save(distributionHouseholdEntity)
 
             val nextTicket = getCurrentTicketNumber()
-            logger.info("Ticket-Log - Processed ticket-number: ${distributionHouseholdEntity.ticketNumber}, next one: ${nextTicket?.ticketNumber}")
+            logger.info(
+                "Processed ticket ${distributionHouseholdEntity.ticketNumber} " +
+                    "(household: ${distributionHouseholdEntity.household.householdId}, distribution: ID ${distribution.id}), " +
+                    "next one: ${nextTicket?.ticketNumber}",
+            )
+
+            // A ticket having been *processed* is the first point at which food has demonstrably
+            // been handed to someone. Deliberately not "a ticket was shown on the screen": the
+            // ticket-screen control page calls show-current on load (see
+            // `ticket-screen-control.component.ts`), so merely opening it - possibly hours early,
+            // with the monitor still switched off - would otherwise announce the hand-out as
+            // started. See DistributionPhaseEvents.
+            if (distributionRepository.markFoodHandoutStarted(distribution.id!!, LocalDateTime.now()) == 1) {
+                eventPublisher.publishEvent(FoodHandoutStartedEvent(distribution.id!!))
+            }
+
+            // Nothing left to call means every household that checked in has been served - see
+            // DistributionPhaseEvents.
+            if (nextTicket == null &&
+                distributionRepository.markTicketsCompleted(distribution.id!!, LocalDateTime.now()) == 1
+            ) {
+                eventPublisher.publishEvent(
+                    AllTicketsProcessedEvent(
+                        distributionId = distribution.id!!,
+                        ticketCount = distribution.households.size,
+                    ),
+                )
+            }
+
             return mapToTicketScreenTicket(nextTicket)
         }
         return mapToTicketScreenTicket(null)
@@ -256,10 +295,13 @@ class DistributionService(
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
-        logger.info("Ticket-Log - Deleted ticket-number: ${distributionHouseholdEntity?.ticketNumber}, household ${distributionHouseholdEntity?.household?.householdId}")
 
         return distributionHouseholdEntity?.let {
             distributionHouseholdRepository.delete(it)
+            logger.info(
+                "Deleted ticket ${it.ticketNumber} " +
+                    "(household: ${it.household.householdId}, distribution: ID ${distribution.id})",
+            )
             true
         } ?: false
     }
@@ -281,7 +323,7 @@ class DistributionService(
                 it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items == null || it.items!!.isEmpty()
             }
             if (incompleteRoutes.isNotEmpty()) {
-                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.number.toString() }} sind unvollständig!")
+                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.name }} sind unvollständig!")
             }
 
             return if (errors.isNotEmpty()) {
@@ -291,11 +333,12 @@ class DistributionService(
                 )
             } else {
                 // Warnings
-                val routes: List<RouteEntity> = routeRepository.findAll()
-                val missingRoutes =
-                    routes.map { it.number } - currentDistribution.foodCollections.map { it.route.number }
+                // a disabled route isn't driven anymore, so not recording it is not a problem
+                val routes: List<RouteEntity> = routeRepository.findByEnabledIsTrue()
+                val recordedRouteIds = currentDistribution.foodCollections.map { it.route.id }
+                val missingRoutes = routes.filterNot { recordedRouteIds.contains(it.id) }
                 if (missingRoutes.isNotEmpty()) {
-                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
+                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ") { it.name }} wurden nicht erfasst!")
                 }
 
                 DistributionCloseResponse(
@@ -380,14 +423,21 @@ class DistributionService(
         .sortedBy { it.ticketNumber }
         .firstOrNull()
 
-    private fun mapHouseholdsForPdf(households: List<DistributionHouseholdEntity>): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
+    /**
+     * [referenceDate] is the distribution's own day rather than today, so a list regenerated for a
+     * past distribution still counts the infants it had on the day.
+     */
+    private fun mapHouseholdsForPdf(
+        households: List<DistributionHouseholdEntity>,
+        referenceDate: LocalDate,
+    ): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
         val household = distributionHouseholdEntity.household
         val countPersons = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
             .size + 1
         val countInfants = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+            .count { Period.between(it.birthDate, referenceDate).years < 3 }
 
         HouseholdListItem(
             ticketNumber = distributionHouseholdEntity.ticketNumber,
@@ -441,7 +491,15 @@ class DistributionService(
         distributionRepository.save(currentDistribution)
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Deliberately *not* `@Transactional`: `reporting`'s listener runs synchronously on this thread and
+     * opens a read-write transaction per mail to queue it (see `DistributionClosedEventListener`). A
+     * transaction here would be the one those participate in - and a read-only one, as this method only
+     * reads its own data, would make every mail fail on `mail_outbox`'s sequence. Nothing here needs a
+     * transaction of its own anyway: the fetch below is an existence check whose result is discarded,
+     * and no lazy association is touched. Same shape as the automatic path, where
+     * `DistributionEndedEventListener` publishes the event after its transaction has committed.
+     */
     fun sendMails(distributionId: Long) {
         distributionRepository.findByIdOrNull(distributionId)
             ?: throw NotFoundException("Ausgabe nicht gefunden!")

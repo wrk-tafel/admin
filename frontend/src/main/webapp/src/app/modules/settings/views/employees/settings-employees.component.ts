@@ -24,6 +24,7 @@ import {faCheck, faMagnifyingGlass, faPencil, faPlus, faXmark} from '@fortawesom
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'tafel-settings-employees',
@@ -50,6 +51,7 @@ import {MatInputModule} from '@angular/material/input';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatTooltipModule
   ]
 })
 export class SettingsEmployeesComponent {

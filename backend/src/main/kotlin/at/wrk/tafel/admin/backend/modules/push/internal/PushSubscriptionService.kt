@@ -31,6 +31,12 @@ class PushSubscriptionService(
     companion object {
         private const val TEST_NOTIFICATION_TITLE = "Test-Benachrichtigung"
         private const val TEST_NOTIFICATION_BODY = "Wenn du das hier siehst, funktionieren Push-Benachrichtigungen auf diesem Gerät."
+
+        // Tapping the test notification returns to the screen the test was triggered from, rather
+        // than to the app's start page - the point of the test is to end up back where the result
+        // is being judged.
+        private const val TEST_NOTIFICATION_TARGET_PATH = "benachrichtigungen"
+        private const val SUBSCRIPTION_NOT_FOUND_MESSAGE = "Push-Subscription wurde nicht gefunden"
     }
 
     fun getPublicKey(): PushPublicKeyResponse {
@@ -94,7 +100,7 @@ class PushSubscriptionService(
     fun updateLabel(id: Long, request: PushSubscriptionLabelRequest): PushSubscriptionItem {
         val user = requireCurrentUser()
         val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
-            ?: throw NotFoundException("Push-Subscription wurde nicht gefunden")
+            ?: throw NotFoundException(SUBSCRIPTION_NOT_FOUND_MESSAGE)
 
         entity.label = request.label?.trim()?.ifBlank { null }
 
@@ -113,9 +119,9 @@ class PushSubscriptionService(
     fun sendTestNotification(id: Long): PushTestResponse {
         val user = requireCurrentUser()
         val entity = pushSubscriptionRepository.findByIdAndUserId(id, user.id!!)
-            ?: throw NotFoundException("Push-Subscription wurde nicht gefunden")
+            ?: throw NotFoundException(SUBSCRIPTION_NOT_FOUND_MESSAGE)
 
-        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY)
+        val result = pushBroadcastService.sendTo(entity, TEST_NOTIFICATION_TITLE, TEST_NOTIFICATION_BODY, TEST_NOTIFICATION_TARGET_PATH)
         return PushTestResponse(
             result = when (result) {
                 PushSendResult.SENT -> PushTestResult.SENT
@@ -131,7 +137,7 @@ class PushSubscriptionService(
         val user = requireCurrentUser()
         val deletedCount = pushSubscriptionRepository.deleteByIdAndUserId(id, user.id!!)
         if (deletedCount == 0L) {
-            throw NotFoundException("Push-Subscription wurde nicht gefunden")
+            throw NotFoundException(SUBSCRIPTION_NOT_FOUND_MESSAGE)
         }
     }
 

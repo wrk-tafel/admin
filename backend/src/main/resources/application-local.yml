@@ -35,10 +35,10 @@ tafeladmin:
     defaultRecipientsBcc:
       - "bcc1@localhost"
   support:
-    # Set a GitHub personal access token (Issues: Read and write) here locally to test the support
-    # contact feature end-to-end; leave unset otherwise (the endpoint fails with a clear error).
-    githubToken: ~
-    titlePrefix: "[LOCAL]"
+    # Where the in-app support form sends to. Locally that is Mailpit (docker-compose.yml), so the
+    # mail can be read at http://localhost:8025 without anything leaving the machine.
+    recipients:
+      - "support@localhost"
   features:
     # Set to false to switch the scanner folder off without unsetting scannerPath below - the
     # "Scanner" document source then disappears from the UI and the folder is no longer polled.

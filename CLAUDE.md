@@ -73,7 +73,7 @@ npm run dev
 # Build for local testing
 npm run build-local
 
-# Build for production
+# Build for production (builds, then checks the eager bundle - see below)
 npm run build-prod
 
 # Run unit tests
@@ -91,12 +91,30 @@ npm run lint
 # Type-check without emitting (app + spec + cypress configs)
 npm run typecheck
 
+# Rate the shell's page performance the way the pipeline does (after a build-prod; needs no backend)
+npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
+
+# Sweep application routes the way the pipeline does (needs a running backend and a session)
+LHCI_URLS=/uebersicht,/kunden/suchen LHCI_FORM_FACTOR=mobile LHCI_JWT=<tafel-admin-jwt cookie> \
+  CHROME_PATH=$(command -v google-chrome) \
+  npx --yes --package @lhci/cli@0.15.1 --package puppeteer-core@25.5.0 \
+  lhci autorun --config=lighthouserc.pages.cjs
+
 # Run E2E tests (requires backend running on port 8080)
 npm run cy:run-ci
 
 # Open Cypress UI for E2E tests
 npm run cy:open-local
 ```
+
+**Eager bundle check:** `build-prod` runs `check-eager-bundle.cjs` after the build and fails on the
+JavaScript a first visit downloads before anything renders — everything statically imported by
+`main.js`. `angular.json`'s `initial` budget cannot cover that: the builder's chunk optimizer drops
+the entry point's transitively imported chunks from its "initial" set, so it bounds `main.js` plus
+the stylesheet and calls the rest "lazy". Read `initial` as exactly that, not as first-load cost.
+Only the login page and the two error screens are eager; everything behind the login is lazy-loaded
+via `shell.routes.ts`, which is also where Material defaults that can be provided per route live.
+See [ADR-0037](docs/architecture/adr/0037-eager-bundle-bounded-by-its-own-build-check.md).
 
 ### Dependency Verification
 
@@ -112,8 +130,11 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 10 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 11 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
+- **audit**: read access to the audit trail — "who changed what, and what did it look like before".
+  Only reads: the listener that fills `audit_log` lives in `database/common/audit/` because it has to
+  see every module's writes. See ADR-0039 and the module README
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management
@@ -121,7 +142,9 @@ The backend uses **Spring Modulith** architecture with 10 core feature modules (
 - **dashboard**: Overview page with real-time updates, registered customers, and distribution state
 - **reporting**: Statistics exports (CSV), daily reports (PDF), age/country/household distributions
 - **settings**: Application configuration and mail recipient management
-- **support**: In-app support contact form that files a GitHub issue on the user's behalf
+- **support**: In-app support contact form that mails the request — plus the technical context of
+  the report (reporter, version, page, browser, the session's last errors) and a screenshot of the
+  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0044
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
@@ -154,6 +177,15 @@ an accepted pattern, not a bypass to be tidied up. The one hard rule is directio
 must never depend on `modules/*`, enforced by an ArchUnit rule in `architecture/ProjectSpecificRulesTest`.
 Don't read a module's `allowedDependencies` as the full list of what it touches at the DB level.
 
+**Spring Modulith is a build-time concern here.** Only `spring-modulith-api` — the
+`@ApplicationModule`/`@NamedInterface` annotations — is on the production classpath; the Modulith
+runtime and the ArchUnit classpath scan it performs at startup are `testImplementation` only, via
+`spring-modulith-starter-test`. `ModularityTest` is what verifies the module structure. So nothing
+reads the module metadata while the application runs: the Modulith actuator endpoint isn't exposed,
+and `@ApplicationModuleListener` is not available — plain `@EventListener` is what cross-module
+events use (see the `distribution`/`reporting` module READMEs for why that's also the preferred
+choice on its own merits).
+
 **Key Technologies:**
 - Java with Kotlin (coroutines support) — see `backend/build.gradle.kts`'s toolchain block and
   `gradle/libs.versions.toml` for exact versions
@@ -167,6 +199,25 @@ Don't read a module's `allowedDependencies` as the full list of what it touches 
 
 **Notable Patterns:**
 - Outbox pattern for reliable SSE event publishing (`sse_outbox` table)
+- Outbox pattern for mails too (`mail_outbox` table, ADR-0041): `MailSenderService` only *composes*
+  a mail and queues the finished MIME message inside the caller's transaction; `MailOutboxService`
+  polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts —
+  publishing `MailDeliveryFailedEvent`, which `push` turns into a notification to administrators, so
+  a mail that was given up on is not just a row nobody reads. So a mail is never sent from a
+  transaction that rolls back, and never lost when SMTP is down. `MailOutboxService` is the only
+  class that holds a `JavaMailSender` — it is what "is a mail server configured?" means, which is
+  why `enqueue` is also where a mail is dropped when none is (nothing to deliver to, so a queued row
+  would only pile up). `MailSenderService` composes either way and needs no sender: a `Session` is
+  just what a `MimeMessage` hangs off, and the outbox re-reads the stored bytes with the configured
+  session when it sends.
+  **Queuing a mail is a write**, which is what joining the caller's transaction costs: a caller whose
+  transaction is `readOnly = true` cannot send mail, and `enqueue` rejects it with a message saying
+  so rather than letting Postgres refuse `mail_outbox_seq`'s `nextval()` several frames deeper. Don't
+  reach for `REQUIRES_NEW` to dodge that — committing the row independently is exactly the "a mail
+  about work that did not happen" failure ADR-0041 exists to prevent. Note a *unit* test with a
+  mocked repository cannot see any of this, and neither can a `@Transactional` integration test: the
+  test's own read-write transaction is what the code under test would join, and the rows it queues
+  are rolled back before the poller could ever see them (see `DistributionSendMailsIT`)
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
@@ -180,15 +231,22 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
 - **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
-- **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category admin CRUD screens actually live under the **settings** module below, not here. Routes and shops have no frontend admin UI at all despite backend `/api/routes`/shop support — they're only ever read (never managed) from within the food-collection-recording flow.
+- **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category as well as route/shop admin CRUD screens actually live under the **settings** module below, not here — this module only ever reads routes and shops, from within the food-collection-recording flow.
 - **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
-- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`) and static values/limits (`statische-werte`)
+- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
+- **audit**: the `aenderungsprotokoll` screen — the whole audit trail, filterable. The per-household
+  view of the same data is the customer detail screen's "Verlauf" tab; both render the shared
+  `common/components/audit-entry-list` component
 
 **Architecture Patterns:**
 - Standalone components with lazy-loaded feature modules
 - Resolver pattern for data pre-fetching before route activation
 - Route guards for authentication and permission-based access control
+- Every route carries a `title`, which `TafelTitleStrategy` (`common/util/`) renders as
+  `<route title> - Tafel Admin`. It is what a screen reader announces after an in-app navigation
+  and what the browser tab shows, so a new route needs one — a route without a `title` silently
+  falls back to the bare application name
 - Global state service using RxJS BehaviorSubjects
 - SSE service for real-time updates from backend
 - Custom directives (`tafelIfPermission`, `tafelAutofocus`, `tafelIfDistributionActive`)
@@ -242,7 +300,9 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `food_categories`, `food_collections`, `food_collection_items`: Food recording
 - `shelters`, `shelter_contacts`: Shelter management
 - `cars`: Vehicle management
+- `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
+- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept — it is the record of a mail nobody received
 - `mail_addresses`: Email recipient configuration
 
 ## Testing
@@ -305,6 +365,20 @@ since it lives outside the code you're editing. On every update or regeneration,
   filename list in the `sed` rewrite rules in the `userguide-pdf` job of
   `.github/workflows/release.yml`.
 
+## Architecture Decision Records
+
+`docs/architecture/adr/` holds the ADRs — one record per architectural decision, with the context
+that forced it, its cost, and the alternatives that lost. They are the fastest way to find out *why*
+something is the way it is (modular monolith, repeatable-only migrations, SSE outbox, zoneless
+Angular, ...); `docs/architecture/adr/README.md` is the index.
+
+- An accepted ADR is **not edited** when a decision changes. Write a new one, mark the old one
+  `superseded by ADR-NNNN`, link both ways, and update the index.
+- A change that reverses or materially narrows a recorded decision needs a new ADR as part of the
+  same task — the code and the record must not disagree.
+- Longer evaluations of a decision *not yet taken* are not ADRs; they sit one level up in
+  `docs/architecture/` and are listed at the bottom of the ADR index.
+
 ## Handling Issues Found Outside the Current Task's Scope
 
 If you notice a bug or problem while working on a task that is **not caused by your current
@@ -313,6 +387,13 @@ work** (pre-existing, unrelated to the change you're making):
   glitch touched by your change): fix it inline as part of the same task.
 - **Bigger or unrelated**: don't fix it inline — file a GitHub issue (`gh issue create`) so it can
   be tackled separately, and mention it to the user rather than silently expanding the task's scope.
+
+**GitHub issues are written entirely in English — title and body both.** The application's UI,
+routes and user guide are German, and some older issues carry German titles, so it is easy to
+follow the wrong example: don't. Quoting German UI strings, route paths or identifiers inside an
+English issue is fine and expected (e.g. the "Keine Duplikate gefunden!" empty state) — it's the
+prose that stays English. The same goes for PR titles and descriptions, which additionally follow
+[Commit Conventions](#commit-conventions).
 
 ## Code Conventions
 
@@ -465,8 +546,9 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/food-collections`: Food collection recording (nested under `/routes/{routeId}` and `/routes/{routeId}/shops/{shopId}`)
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
+- `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
 - `/api/settings`: Application settings
-- `/api/support`: Creates a GitHub issue from an in-app support request
+- `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
@@ -481,11 +563,114 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   including `deploy-test` still succeeds, and prod is deployed by re-running the failed jobs once it
   is no longer Saturday. A red release run whose only failure is `check-deploy-window` means the
   freeze, not a broken build.
+- **Deploys run in GitHub Environments**: `subflow_deploy.yml`'s job declares
+  `environment: ${{ inputs.environment }}` — one name for both the folder on the server and the
+  GitHub environment the deployment is recorded against. `dev`/`test`/`prod` are the only three, all
+  without protection rules: **every deploy is automatic**, none waits for an approval, and there is
+  no supported way to deploy a chosen build to a chosen environment by hand (re-running a run's
+  deploy job redeploys that run's image, which covers "put this build back"). A pull request deploys
+  to dev, `main` to dev and test, `release` to dev, test and prod — so dev is last-writer-wins, and
+  its resting state between pull requests is what `main` holds. Each deploy job carries its
+  environment's `concurrency` group (`dev-environment`/`test-environment`/`prod-environment`), so two
+  runs can't deploy the same environment at once. A new deploy target needs its environment created
+  in the repository settings too; an `environment` naming one that doesn't exist is auto-created
+  *without* protection rather than failing. See ADR-0043.
+- **Path-Aware Pipeline**: `pull_request.yml` and `main_push.yml` gate every job on what the change
+  actually touches. `subflow_changes.yml` classifies the changed files into backend / frontend /
+  docker image (a change under `.github/workflows/` counts as all three, since only running the
+  pipeline proves a pipeline change), and the callers skip the jobs that can say nothing about it.
+  So a docs-only change — or a PR title/description edit, which re-triggers the workflow with
+  unchanged commits — runs nothing but `commitlint`/`pr-title-lint`, and a run showing build, test,
+  e2e and deploy as *skipped* is the intended outcome, not a broken pipeline. The one job not gated
+  on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
+  runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
+  every release produces a new version tag, image and userguide PDF regardless of what changed.
+- **Accessibility is gated three times, and no one of them replaces another.**
+  1. `eslint.config.js` extends `angular.configs.templateAccessibility` for `**/*.html`, so
+     `ng lint` (the `lint-frontend` CI job, which already covers `src/**/*.html`) fails on a click
+     handler that nothing can focus, an unassociated `<label>`, a missing `alt`, an invalid
+     `aria-*`, and so on — at authoring time, over every template of every component. What it does
+     not do is compute accessible names: an input with neither a label nor an `aria-label` is not
+     an error to it.
+  2. The `lighthouse` job's `pages` sweep enforces axe at score 1 against a real backend, so it
+     does compute real accessible names — but only over what a route renders for the e2e fixtures
+     on load: it never opens a dialog, never expands a panel, never switches a tab and never sees
+     a component no route in its matrix reaches.
+  3. `cypress/support/accessibility.ts` runs axe inside the e2e suite (`cypress-axe`), at the
+     states the specs navigate to — which is the only place a control that exists solely after an
+     interaction gets audited at all. `cy.checkDialogAccessibility()` /
+     `cy.checkMenuAccessibility()` cover an open overlay, `cy.checkAccessibility(context)` a page
+     region (`MAIN_CONTENT` for the route's own content). Scope a check to the fragment the
+     interaction produced rather than the whole document — a failure then says which control it
+     came from, and a defect in the initial render stays the sweep's to report. A new dialog,
+     inline-edit state, non-default tab or expanded panel needs an assertion here; nothing derives
+     them automatically. See ADR-0039.
+
+  Where a rule is a genuine false positive (a clickable card whose keyboard path is a button
+  nested inside it), disable it on that line with a comment saying why — never by relaxing the rule
+  for the whole project. Note the disable directive's rule names must sit on one line; prose after
+  them is parsed as part of the rule name unless separated by `--`.
+  A heading's level is chosen for where it sits in the document outline, never for how big it
+  renders — `tafel-h1`..`tafel-h6` in `_theme.scss` carry the sizes, so `<h2 class="tafel-h5">` is
+  the page's second level at an `h5`'s size. Screens behind the login have no page heading of their
+  own; the shell renders the route title as the one `h1`.
+- **Page Performance Gate**: the `lighthouse` job (`subflow_lighthouse.yml`) runs Lighthouse CI over
+  the built frontend and **fails** when a threshold is crossed. It only runs when the frontend
+  changed, and it is not a dependency of the deploy jobs. The decision behind it is
+  [ADR-0036](docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md). Two jobs, two
+  questions:
+  - `shell` audits the login page served straight from the `frontend-dist` artifact by lhci's own
+    static server — no backend, no database. This is where the **performance score, metric ceilings
+    and transfer-size budget** are enforced, on the payload every route pays before rendering
+    anything. Thresholds and their measured baselines live in
+    `frontend/src/main/webapp/lighthouserc.cjs`.
+  - `pages` audits **every route, desktop and mobile**, against a real backend (`e2e` profile,
+    Postgres service), sharded across parallel matrix jobs. **Accessibility is enforced at 100**
+    here; performance is reported rather than gated, because an authenticated screen renders
+    whatever the e2e fixtures hold. Route list, shards and form factors are the matrix in
+    `subflow_lighthouse.yml`; assertions are in
+    `frontend/src/main/webapp/lighthouserc.pages.cjs`. **A new route has to be added to that matrix**
+    — nothing derives the list automatically.
+
+    The `e2etest` session is written into the **browser's cookie jar** by `lighthouse-session.cjs`
+    (lhci's `puppeteerScript` hook), not sent as a header: Chrome rebuilds every request's `Cookie`
+    header from that jar, so a cookie set through Lighthouse's `extraHeaders` never arrives and the
+    application would redirect every route to the login page — passing every threshold while
+    grading the login page over and over. `disableStorageReset` keeps Lighthouse from clearing the
+    cookie again, and the job's "Verify the sweep was authenticated" step fails when a page ends up
+    at a URL other than the one it was sent to, so that failure mode cannot come back silently.
+
+  Every job uploads its HTML/JSON reports (`lighthouse-reports-<shard>-<formFactor>`, and
+  `lighthouse-reports-shell`) and writes its scores into the job summary, on failure too.
+  `angular.json`'s production `budgets` are the deterministic second layer — note they bound only
+  what the builder labels "initial", which is *not* the whole eager payload (see
+  [#3121](https://github.com/wrk-tafel/admin/issues/3121)).
+- **Initial Administrator**: a deployment against an empty database has no way in — every account is
+  created by an existing administrator. `InitialAdminUserService` (an `ApplicationRunner`) closes
+  that by creating one `ADMINISTRATOR` account with `passwordChangeRequired` **while the `users`
+  table is completely empty**, and doing nothing otherwise; the password comes from
+  `tafeladmin.setup.initialAdmin.password` or, unset, is generated per installation and logged once
+  at WARN. Disabled in integration tests (`src/test/resources/application.yml`) so they don't see a
+  user they didn't create. See ADR-0035 and the README's "New Installation".
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
+- **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)
+  rather than per-field inputs. Both match against a denormalized, lower-cased `search_text` column
+  that a database trigger keeps in sync (`R__00088_fulltext_search.sql`) — for a household that
+  covers its number, the names of *all* its persons, address, phone and e-mail; for a user, username
+  plus the linked employee's personnel number and name. Two modes are OR'd: `like '%term%'` for the
+  verbatim hit and `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results
+  ranked verbatim-first — see `SearchTextSpecs`. The cutoff is
+  `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart.
+  Note the trigger is the only thing maintaining `search_text`: a new searchable column on
+  `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
+  silently won't be findable.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
-- **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`.
+- **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`. Golden
+  reference files in `src/test/resources/mail-references/` are compared byte-for-byte by
+  `MailTemplateRenderingTest`, so a new/changed template needs its reference regenerated — and keep
+  data with newlines out of those comparisons, git's line-ending normalization rewrites them.
 - **Ticket System**: Customers receive ticket numbers during distributions for organized food collection.
 - **Scanner Integration**: Supports handheld scanners for customer check-in via QR codes.
 - **Scanner Folder**: Optional per deployment — a NAS share a physical document scanner writes to,
@@ -511,7 +696,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     A value that has already been baked into another bean keeps what it was built with and still
     needs a restart — that's why `spring.datasource.url`, the Tomcat connector settings, the
     security filter chain and `tafeladmin.push.vapid*` don't change on a reload, while
-    `tafeladmin.features.scannerFolderEnabled` does.
+    `tafeladmin.features.scannerFolderEnabled` does. A value can also be *half* live:
+    `tafeladmin.storage.maxDocumentSize` is re-read per upload, but the servlet container's
+    multipart ceiling derived from it (`MultipartConfig`) is fixed at startup, so lowering the limit
+    takes effect at once and raising it past that ceiling does not.
   - `@Value` is **not** refreshed — it is resolved once when the bean is constructed. The one place
     that uses it (`FlywayImportTestdataCallback`'s `tafeladmin.testdata.enabled`) is a startup-only
     concern and correct as it is, but don't reach for `@Value` for anything meant to be reloadable;
@@ -530,6 +718,23 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.
+- **Audit Trail**: every change to a household, person, note, document, user, user authority, static
+  value or mail recipient is recorded in `audit_log` — who, when, and the old/new values as a `jsonb`
+  diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
+  and writes them in `beforeCommit`, so a rolled-back transaction records nothing. Two things to keep
+  in mind when touching this area:
+  - **`AuditScope` is the whole allow-list.** Adding an entity there is all it takes to audit it —
+    and adding one that is written thousands of times per distribution day (which is why
+    `distributions_households` is excluded) is the mistake nothing catches.
+  - **Bulk `@Modifying` queries and native SQL never reach a Hibernate event.** Those callers must
+    report what they did via `AuditLogWriter.record` themselves, as `HouseholdMergeService` does for
+    its re-parenting; nothing fails if a new one doesn't. This is the known cost of not using
+    database triggers — see [ADR-0039](docs/architecture/adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md).
+
+  `created_by`/`updated_by` on `BaseChangeTrackingEntity` are the separate, cheaper half: filled by
+  Spring Data JPA auditing, they only ever answer "who last touched this row". `created_at`/
+  `updated_at` are *not* audit infrastructure and must not be repurposed — several user-visible
+  features read them as domain data (see the KDoc on `BaseChangeTrackingEntity`).
 - **Real-time Updates**: Dashboard and ticket screen use SSE for live updates without polling.
 
 ## Profiles and Configuration
@@ -585,12 +790,13 @@ You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/proces
 
 ### Adding a New Feature Module (Frontend)
 1. Create folder under `modules/<module-name>/`
-2. Create `<module>.routes.ts` with route configuration
+2. Create `<module>.routes.ts` with route configuration, giving every route a `title`
 3. Add views in `views/` subfolder
 4. Add reusable components in `components/` subfolder
 5. Create API service in `app/api/<module>-api.service.ts`
 6. Add resolvers if needed in `resolver/` subfolder
-7. Update main routes in `app.routes.ts`
+7. Register the module as a `loadChildren` child in `shell.routes.ts`
+   (`app.routes.ts` only holds the screens reachable without a session)
 
 ### Creating a New Database Migration
 1. Create file `backend/src/main/resources/db-migration/R__XXXXX_<description>.sql`
@@ -604,6 +810,16 @@ You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/proces
    `<table>_seq` — without it, inserts fail at runtime with `relation "<table>_seq" does not exist`.
    A MockK-based unit test with a mocked repository will not catch this; only a real Postgres run
    (an `*IT.kt` test via `TafelBaseIntegrationTest`, or manual testing) will.
+6. **Never edit a migration that is already released to production — always add a new one.** Every
+   script here is a Flyway *repeatable* migration, so changing one changes its checksum and Flyway
+   re-runs it against databases where it long since ran; against a schema that has moved on, those
+   statements fail and the application does not boot. This holds even when the edit looks purely
+   cosmetic or like a tidy-up (removing an `add column` for a column that is being dropped again,
+   reformatting, fixing a comment). To undo something an old migration did, write a new
+   `R__XXXXX_<description>.sql` that does the undoing (e.g.
+   `R__00087_drop_persons_in_shelter_count.sql` dropping a column `R__00044` added) and leave the
+   old file byte-for-byte alone. The one exception is a migration added on the current branch and
+   not yet merged/released — that one is still yours to edit.
 
 ### Adding a New Permission
 1. Add permission to `UserPermissions` enum in backend

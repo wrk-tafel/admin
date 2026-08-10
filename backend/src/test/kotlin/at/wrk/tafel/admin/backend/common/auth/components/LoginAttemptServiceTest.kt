@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.UserLockedOutEvent
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.Clock
@@ -53,12 +55,14 @@ internal class LoginAttemptServiceTest {
 
     private lateinit var loginAttemptRepository: LoginAttemptRepository
     private lateinit var advisoryLockService: AdvisoryLockService
+    private lateinit var eventPublisher: ApplicationEventPublisher
     private lateinit var service: LoginAttemptService
 
     @BeforeEach
     fun setUp() {
         entries.clear()
 
+        eventPublisher = mockk(relaxed = true)
         loginAttemptRepository = mockk()
         every { loginAttemptRepository.findByUsername(any()) } answers { entries[firstArg()] }
         every { loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(any()) } answers {
@@ -109,7 +113,7 @@ internal class LoginAttemptServiceTest {
             ),
         )
 
-        service = LoginAttemptService(loginAttemptRepository, advisoryLockService, applicationProperties, clock)
+        service = LoginAttemptService(loginAttemptRepository, advisoryLockService, applicationProperties, clock, eventPublisher)
     }
 
     private lateinit var logAppender: ListAppender<ILoggingEvent>
@@ -158,6 +162,28 @@ internal class LoginAttemptServiceTest {
         assertThat(logAppender.list.single().formattedMessage)
             .contains("user")
             .contains(MAX_FAILURES.toString())
+    }
+
+    @Test
+    fun `publishes a UserLockedOutEvent once the lockout is triggered, but not before`() {
+        repeat(MAX_FAILURES - 1) { service.recordFailure("user") }
+        verify(exactly = 0) { eventPublisher.publishEvent(any<UserLockedOutEvent>()) }
+
+        service.recordFailure("user")
+
+        verify(exactly = 1) { eventPublisher.publishEvent(UserLockedOutEvent(username = "user", failureCount = MAX_FAILURES)) }
+    }
+
+    /**
+     * The event carries the normalized username, not what was typed - anything consuming it (a push
+     * notification naming the account, say) would otherwise report the same lockout under a
+     * different spelling each time.
+     */
+    @Test
+    fun `the published event carries the normalized username`() {
+        repeat(MAX_FAILURES) { service.recordFailure("  USER ") }
+
+        verify(exactly = 1) { eventPublisher.publishEvent(UserLockedOutEvent(username = "user", failureCount = MAX_FAILURES)) }
     }
 
     @Test

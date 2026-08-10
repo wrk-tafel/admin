@@ -252,7 +252,12 @@ describe('TicketScreen', () => {
         });
 
         cy.byTestId('editCostContributionButton').click();
-        cy.byTestId('edit-cost-contribution-dialog').should('be.visible').within(() => {
+        cy.byTestId('edit-cost-contribution-dialog').should('be.visible');
+        // the dialog exists only after this click, so no other accessibility gate sees it -
+        // see cypress/support/accessibility.ts
+        cy.checkDialogAccessibility();
+
+        cy.byTestId('edit-cost-contribution-dialog').within(() => {
           cy.byTestId('amount-input').clear().type('75');
           cy.byTestId('okButton').click();
         });

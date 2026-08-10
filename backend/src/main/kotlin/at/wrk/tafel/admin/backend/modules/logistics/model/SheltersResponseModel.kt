@@ -32,8 +32,7 @@ data class ShelterRequest(
     val personsCount: Int,
     val enabled: Boolean,
     val sortOrder: Int,
-    @field:Valid
-    val contacts: List<ShelterContactItem>,
+    val contacts: List<@Valid ShelterContactItem>,
 )
 
 @ExcludeFromTestCoverage

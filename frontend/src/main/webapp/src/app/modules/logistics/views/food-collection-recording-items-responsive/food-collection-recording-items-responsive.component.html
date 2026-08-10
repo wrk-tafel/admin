@@ -30,12 +30,13 @@
       </div>
     </div>
     <div class="mt-6 rounded-lg border border-green-200 bg-green-50 p-4" testid="items-section">
-      <h6 class="font-bold text-green-900 text-center mb-4">Warenmenge</h6>
+      <h3 class="tafel-h6 font-bold text-green-900 text-center mb-4">Warenmenge</h3>
       @for (category of foodCategories(); track category?.id) {
         <div class="flex flex-col">
           <div class="text-center">{{ category.name }}</div>
           <div class="mb-4">
             <tafel-counter-input [testId]="'category-' + category.id"
+                                 [label]="'Warenmenge ' + category.name"
                                  [key]="category.id"
                                  [value]="categoryValues()[category.id]"
                                  (valueChanged)="onValueChange($event)"></tafel-counter-input>
@@ -45,12 +46,13 @@
     </div>
 
     <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4" testid="return-items-section">
-      <h6 class="font-bold text-amber-900 text-center mb-4">Retourware</h6>
+      <h3 class="tafel-h6 font-bold text-amber-900 text-center mb-4">Retourware</h3>
       @for (category of foodReturnCategories(); track category?.id) {
         <div class="flex flex-col">
           <div class="text-center">{{ category.name }}</div>
           <div class="mb-4">
             <tafel-counter-input [testId]="'return-category-' + category.id"
+                                 [label]="'Retourware ' + category.name"
                                  [key]="category.name"
                                  [value]="returnCategoryValues()[category.name]"
                                  (valueChanged)="onReturnCategoryValueChange($event)"></tafel-counter-input>
@@ -83,7 +85,7 @@
                 <mat-error>Mindestens 1</mat-error>
               }
             </mat-form-field>
-            <button type="button" matButton="filled" class="button-danger"
+            <button type="button" matButton="filled" class="button-danger" aria-label="Retourposition entfernen"
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
                     (click)="removeReturnItem(returnItemIndex)">
               <fa-icon [icon]="faRemove"></fa-icon>

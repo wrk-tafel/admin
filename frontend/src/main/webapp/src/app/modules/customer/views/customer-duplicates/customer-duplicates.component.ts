@@ -1,4 +1,4 @@
-import {Component, inject, input, linkedSignal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal} from '@angular/core';
 import {CustomerApiService, CustomerData, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
@@ -6,6 +6,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatDialog} from '@angular/material/dialog';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -24,7 +25,8 @@ import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-c
     NgClass,
     MatButtonModule,
     FaIconComponent,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule
   ]
 })
 export class CustomerDuplicatesComponent {
@@ -35,6 +37,18 @@ export class CustomerDuplicatesComponent {
 
   // Writable signal linked to input - resets when input changes, locally writable for pagination/updates
   readonly customerDuplicatesData = linkedSignal(() => this.customerDuplicatesDataInput());
+
+  // What the role="status" region in the template says: paging, and merging or deleting a
+  // candidate, replace the whole list without announcing what is left.
+  protected readonly duplicatesAnnouncement = computed(() => {
+    const data = this.customerDuplicatesData();
+    if (!data) {
+      return '';
+    }
+    return data.totalCount === 0
+      ? 'Keine Duplikate gefunden'
+      : `${data.totalCount} mögliche Duplikate gefunden, Seite ${data.currentPage}`;
+  });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);

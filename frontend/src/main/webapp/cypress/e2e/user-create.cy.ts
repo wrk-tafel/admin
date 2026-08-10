@@ -57,6 +57,34 @@ describe('User Create', () => {
     });
   });
 
+  it('create new user with a password the backend rejects', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.intercept('POST', '/api/users').as('createUserRequest');
+    cy.once('uncaught:exception', (err) => !err.message.includes('400'));
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      cy.byTestId('usernameInput').type('test-username-' + userRandomId);
+      cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
+      cy.byTestId('lastnameInput').type('test-lastname');
+      cy.byTestId('firstnameInput').type('test-firstname');
+
+      // "tafel" is one of the words the backend's password validator rejects outright (and it is
+      // below the minimum length too) - the rejection has to come back as a 400 carrying its
+      // message, not as a generic server error
+      cy.byTestId('passwordInput').type('tafel');
+      cy.byTestId('passwordRepeatInput').type('tafel');
+
+      cy.byTestId('save-button').click();
+
+      cy.wait('@createUserRequest').its('response.statusCode').should('eq', 400);
+
+      cy.get('.toast-message')
+        .should('be.visible')
+        .should('contain.text', 'Das neue Passwort ist ungültig!');
+    });
+  });
+
   it('permissions are grouped by category with a working select-all toggle', () => {
     cy.visit('/benutzer/erstellen');
 
@@ -65,20 +93,20 @@ describe('User Create', () => {
       const personnelNumber = 'test-personnelNumber-' + userRandomId;
       fillUserForm(username, personnelNumber);
 
-      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 12 ausgewählt');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 14 ausgewählt');
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').should('contain.text', 'Alle auswählen').click();
 
       cy.byTestId('permission-checkbox-CHECKIN').find('input').should('be.checked');
       cy.byTestId('permission-checkbox-DISTRIBUTION_LCM').find('input').should('be.checked');
       cy.byTestId('permission-checkbox-CUSTOMER').find('input').should('be.checked');
       cy.byTestId('permission-checkbox-SCANNER').find('input').should('be.checked');
-      cy.byTestId('permissionsSelectedCount').should('contain.text', '4 von 12 ausgewählt');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '4 von 14 ausgewählt');
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').should('contain.text', 'Alle abwählen');
 
       // toggling again deselects the whole group
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').click();
       cy.byTestId('permission-checkbox-CHECKIN').find('input').should('not.be.checked');
-      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 12 ausgewählt');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 14 ausgewählt');
 
       // re-select the group so the created user has permissions to verify on the detail page
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').click();

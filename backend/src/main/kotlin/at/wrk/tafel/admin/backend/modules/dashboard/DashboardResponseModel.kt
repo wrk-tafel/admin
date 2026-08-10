@@ -30,4 +30,19 @@ data class DashboardLogisticsData(
     val foodCollectionsTotalCount: Int?,
     val recordedRouteNames: List<String>,
     val foodAmountTotal: BigDecimal?,
+    val routeProgress: List<DashboardRouteProgressItem>,
+)
+
+/**
+ * How far one route has got today, as the drivers tick their stops off in the route guidance screen
+ * - the office's view of the same progress. Counted per calendar day, like the completions
+ * themselves, so it says nothing about a route driven on another day.
+ */
+@ExcludeFromTestCoverage
+data class DashboardRouteProgressItem(
+    val routeId: Long,
+    val routeNumber: Double,
+    val routeName: String,
+    val completedStops: Int,
+    val totalStops: Int,
 )

@@ -114,6 +114,118 @@ docker build -t wrk-tafel-admin:local -f _build/Dockerfile .
 
 The Docker image runs on Amazon Corretto 26 Alpine with timezone set to `Europe/Vienna`.
 
+## New Installation
+
+A new installation needs nothing but the image and an **empty PostgreSQL database**. Flyway creates
+the whole schema on first start and the migrations bring the reference data the application needs to
+run with it (countries, income limits and the other static values). Everything else — employees,
+users, food categories, shelters, cars, routes and shops, mail recipients — is created from the UI
+afterwards.
+
+### 1. Provide a configuration file
+
+The image reads `/app/config/config.yml` (bind-mounted, see [Configuration](#configuration)). The
+minimum a deployment has to supply is the database connection and the JWT settings — the application
+refuses to start without them:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://<database-host>:5432/tafeladmin
+    username: tafeladmin
+    password: <database-password>
+  # Optional, but nothing can be mailed out without it (daily reports, statistics, support requests).
+  mail:
+    host: <smtp-host>
+    port: 587
+    username: <smtp-user>
+    password: <smtp-password>
+
+security:
+  jwtToken:
+    issuer: https://tafel-admin.example.com
+    audience: wrk-tafel
+    secret:
+      # Any sufficiently long random string, e.g. `openssl rand -hex 64`. Keep it stable - changing
+      # it invalidates every session.
+      value: <random-secret>
+
+tafeladmin:
+  environmentLabel: ""          # e.g. "TEST"; shown in the UI and the PWA title
+  server:
+    relativeBaseUrl: /          # must match the reverse proxy, see below
+  mail:
+    from: tafel-admin@example.com
+  support:
+    # Where the in-app support form sends to. Without a recipient the form fails with a clear error.
+    recipients:
+      - support@example.com
+```
+
+### 2. Start it against the empty database
+
+```yaml
+services:
+  database:
+    image: "postgres:18.4-bookworm"
+    environment:
+      POSTGRES_USER: tafeladmin
+      POSTGRES_PASSWORD: <database-password>
+      POSTGRES_DB: tafeladmin
+    volumes:
+      - database-data:/var/lib/postgresql
+
+  admin:
+    image: ikt01toet1030/wrk-tafel-admin:latest
+    restart: unless-stopped
+    depends_on:
+      - database
+    ports:
+      - "8080:8080"   # application
+      - "8081:8081"   # management endpoints (health, metrics)
+    volumes:
+      - ./config.yml:/app/config/config.yml
+      - admin-logs:/app/logs
+      - admin-documents:/app/documents
+
+volumes:
+  database-data:
+  admin-logs:
+  admin-documents:
+```
+
+### 3. Log in with the initial administrator
+
+While the `users` table is completely empty, the application creates one administrator account at
+startup so the installation can be logged into and configured — otherwise a brand-new database would
+come up with no way in at all. The generated password is printed to the log exactly once:
+
+```bash
+docker compose logs admin | grep "initial administrator"
+```
+
+```
+... Created initial administrator 'admin' with the generated password 'aB3xY7qm' - log in with it now and change it, this is the only time it is shown.
+```
+
+Log in as `admin` with that password; the application forces a password change before anything else
+can be done. Then create the real employees and user accounts under *Einstellungen* and *Benutzer*.
+
+Things worth knowing about this bootstrap:
+
+- It only ever fires while there is **no user at all**. An installation that already has users is
+  never touched, whatever is configured — including on every subsequent restart of a new one.
+- To pick the password up front instead of reading it from the log (unattended rollouts), set
+  `tafeladmin.setup.initialAdmin.password`. It has to satisfy the same rules as any other password,
+  and startup fails with those rules listed if it doesn't. The account still has to change it at
+  first login.
+- Username, personnel number and name of the account can be set via
+  `tafeladmin.setup.initialAdmin.{username,personnelNumber,firstname,lastname}`, and the whole
+  mechanism switched off with `tafeladmin.setup.initialAdmin.enabled: false`.
+
+See [ADR-0035](docs/architecture/adr/0035-first-run-bootstraps-an-administrator-account.md) for why
+it works this way rather than shipping a seeded account in a migration.
+
 ## Testing
 
 ### Backend
@@ -188,7 +300,7 @@ admin/
 │       │   ├── logistics/          #   Routes, food collections, shelters
 │       │   ├── reporting/          #   CSV/PDF reports, statistics exports
 │       │   ├── settings/           #   App configuration, mail recipients
-│       │   └── support/            #   In-app support form, files a GitHub issue
+│       │   └── support/            #   In-app support form, mailed with the browser's context
 │       └── resources/
 │           ├── db-migration/       #   Flyway SQL migrations
 │           ├── pdf-templates/      #   XSL-FO templates for PDF generation
@@ -262,9 +374,18 @@ The project uses GitHub Actions with the following pipelines:
 
 | Workflow | Trigger | Actions |
 |---|---|---|
-| Pull Request | PR opened/updated | Build, test, Docker image (`dev`), E2E tests, deploy to dev |
-| Main Push | Push to `main` | Build, test, Docker image (`test`), E2E tests, deploy to test |
-| Release | Push to `release` | Build, test, Docker images (`test` + `latest`), deploy to test + prod |
+| Pull Request | PR opened/updated | Build, test, E2E tests, Docker image (tagged with the PR head's short commit SHA), deploy to dev |
+| Main Push | Push to `main` | Build, test, E2E tests, Docker image (tagged with the short commit SHA), deploy to dev + test |
+| Release | Push to `release` | Build, test, E2E tests, Docker image (`<version>` + `latest`), user guide PDF, GitHub release, deploy to dev + test + prod |
+
+Each of those deploys is recorded against a GitHub environment (`dev`, `test`, `prod`), so the
+repository's **Deployments** page is the record of what runs where. Every deploy is automatic —
+nothing waits for an approval, and there is no way to deploy a chosen build to a chosen environment
+by hand. Dev is written by all three pipelines and is last-writer-wins: a pull request puts its own
+build there to be looked at, and the next merge to `main` puts the merged state back.
+
+See [ADR-0043](docs/architecture/adr/0043-every-environment-deploys-automatically.md) for why
+promotion works this way and which of these deploys is actually gated on a green pipeline.
 
 Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 
@@ -399,6 +520,11 @@ Both examples were verified end-to-end (path stripping, forwarded headers, and t
 A German-language user guide (Benutzerhandbuch) covering every feature is available as Markdown under [`docs/userguide/`](docs/userguide/README.md), with a PDF version attached to every GitHub release. This link always resolves to the PDF from the latest release:
 
 [📄 Benutzerhandbuch (PDF, latest release)](https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf)
+
+Architecture decisions are recorded as ADRs under
+[`docs/architecture/adr/`](docs/architecture/adr/README.md) — one record per decision, covering the
+modular monolith, the database-only infrastructure, the migration and API conventions, the SSE
+outbox, the frontend generation, the release process and more.
 
 ## License
 

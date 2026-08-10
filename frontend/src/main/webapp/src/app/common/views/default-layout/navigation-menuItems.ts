@@ -3,6 +3,7 @@ import {
   faBarcode,
   faChartLine,
   faCheck,
+  faClockRotateLeft,
   faCopy,
   faDesktop,
   faEllipsis,
@@ -11,6 +12,7 @@ import {
   faListCheck,
   faMagnifyingGlass,
   faPlus,
+  faRoute,
   faTriangleExclamation,
   faTruck,
   faUser,
@@ -103,6 +105,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     title: true
   },
   {
+    name: 'Routen-Navi',
+    url: '/logistik/routen-navi',
+    icon: faRoute,
+    permissions: ['LOGISTICS']
+  },
+  {
     name: 'Waren-Eingabe',
     url: '/logistik/warenerfassung',
     icon: faTruck,
@@ -152,6 +160,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     ]
   },
   {
+    name: 'Änderungsprotokoll',
+    url: '/aenderungsprotokoll',
+    icon: faClockRotateLeft,
+    permissions: ['AUDIT_LOG']
+  },
+  {
     name: 'Einstellungen',
     icon: faGear,
     url: '/einstellungen',
@@ -166,6 +180,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/fahrzeuge'
       },
       {
+        name: 'Filialen',
+        url: '/einstellungen/filialen'
+      },
+      {
         name: 'Grenzwerte',
         url: '/einstellungen/statische-werte'
       },
@@ -176,6 +194,10 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen'
+      },
+      {
+        name: 'Routen',
+        url: '/einstellungen/routen'
       },
       {
         name: 'Waren-Kategorien',

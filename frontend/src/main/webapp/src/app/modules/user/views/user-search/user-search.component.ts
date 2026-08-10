@@ -17,9 +17,11 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {form, FormField} from '@angular/forms/signals';
 import {MatDividerModule} from '@angular/material/divider';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-user-search',
@@ -39,7 +41,9 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
     MatDividerModule,
     FormsModule,
     MatTableModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule,
+    TafelInfoTooltipComponent
   ]
 })
 // Note: Material modules are added via standalone imports below to keep the decorator concise.
@@ -50,15 +54,24 @@ export class UserSearchComponent {
 
   private searchModel = {
     personnelNumber: '',
-    username: '',
-    lastname: '',
-    firstname: '',
+    searchInput: '',
     enabled: true,
   };
   searchFormModel = signal(this.searchModel);
   searchForm = form(this.searchFormModel);
 
   searchResult = signal<UserSearchResult | undefined>(undefined);
+
+  // What the role="status" region in the template says. A search replaces the whole result table,
+  // or clears it again, and neither is a change a screen reader notices on its own. It is its own
+  // signal rather than derived from searchResult(), because the empty result clears that signal.
+  searchAnnouncement = signal('');
+
+  constructor() {
+    // Same reasoning as the customer search: show the first page of (active) users straight away
+    // instead of an empty form.
+    this.searchForDetails(undefined, undefined, false);
+  }
 
   // columns for mat-table
   displayedColumns = ['icon','id','name','personnelNumber','enabled','actions'];
@@ -83,19 +96,28 @@ export class UserSearchComponent {
     return this.router.navigate(['/benutzer/detail', userId]);
   }
 
-  searchForDetails(page?: number, pageSize?: number) {
-    const username = this.searchForm.username().value();
+  /**
+   * @param announceOutcome off for the initial load only - see the note on the customer search.
+   */
+  searchForDetails(page?: number, pageSize?: number, announceOutcome = true) {
+    const searchInput = this.searchForm.searchInput().value();
     const enabled = this.searchForm.enabled().value();
-    const lastname = this.searchForm.lastname().value();
-    const firstname = this.searchForm.firstname().value();
 
-    this.userApiService.searchUser(username, enabled, lastname, firstname, page, pageSize)
+    this.userApiService.searchUser(searchInput, enabled, page, pageSize)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
-          this.toastr.info('Keine Benutzer gefunden!');
           this.searchResult.set(undefined);
+          if (announceOutcome) {
+            this.toastr.info('Keine Benutzer gefunden!');
+            this.searchAnnouncement.set('Keine Benutzer gefunden');
+          }
         } else {
           this.searchResult.set(response);
+          if (announceOutcome) {
+            this.searchAnnouncement.set(
+              response.totalCount === 1 ? '1 Benutzer gefunden' : `${response.totalCount} Benutzer gefunden`
+            );
+          }
         }
       });
   }

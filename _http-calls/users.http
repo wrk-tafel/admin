@@ -26,11 +26,11 @@ POST {{baseApiPath}}/users/logout
 ### Get info of the currently authenticated user
 GET {{baseApiPath}}/users/info
 
-### Search for users (personnelNumber)
-GET {{baseApiPath}}/users?personnelnumber=x
+### Search for users (username, name or personnel number - fuzzy)
+GET {{baseApiPath}}/users?searchInput=muster
 
-### Search for users (all other parameters)
-GET {{baseApiPath}}/users?firstname=x&lastname=x&username=x&enabled=true
+### Search for users (fuzzy search combined with the filter)
+GET {{baseApiPath}}/users?searchInput=muster&enabled=true
 
 ### Search for users (enabled)
 GET {{baseApiPath}}/users?enabled=true

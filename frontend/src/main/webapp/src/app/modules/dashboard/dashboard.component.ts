@@ -1,4 +1,4 @@
-import {Component, inject, input, Signal} from '@angular/core';
+import {Component, computed, inject, input, Signal} from '@angular/core';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
@@ -10,6 +10,7 @@ import {
 } from './components/recorded-food-collections/recorded-food-collections.component';
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
 import {RecordedRouteNamesComponent} from './components/recorded-route-names/recorded-route-names.component';
+import {RouteProgressComponent} from './components/route-progress/route-progress.component';
 import {ShelterListResponse} from '../../api/shelter-api.service';
 import {
   DistributionNotesInputComponent
@@ -22,6 +23,10 @@ import {MatDivider} from '@angular/material/list';
 @Component({
   selector: 'tafel-dashboard',
   templateUrl: 'dashboard.component.html',
+  // A column filling the height `<main>` was given (it is a flex column for this), so the last row
+  // can take whatever the rows above it left over and the screen ends exactly at the fold - with
+  // or without "Routen unterwegs". See the template.
+  host: {class: 'flex min-h-0 flex-1 flex-col'},
   imports: [
     DistributionStateComponent,
     RegisteredCustomersComponent,
@@ -29,6 +34,7 @@ import {MatDivider} from '@angular/material/list';
     DistributionStatisticsInputComponent,
     RecordedFoodCollectionsComponent,
     RecordedRouteNamesComponent,
+    RouteProgressComponent,
     FoodAmountComponent,
     DistributionNotesInputComponent,
     TicketsProcessedComponent,
@@ -44,6 +50,15 @@ export class DashboardComponent {
   readonly data: Signal<DashboardData | undefined> = toSignal(
     this.sseService.listen<DashboardData>('/sse/dashboard')
   );
+
+  /**
+   * The route progress, or `undefined` while nothing has been ticked off today - the template
+   * leaves the panel out entirely in that case, see the comment there.
+   */
+  readonly routeProgress = computed(() => {
+    const progress = this.data()?.logistics?.routeProgress;
+    return progress?.length ? progress : undefined;
+  });
 
 }
 
@@ -70,4 +85,13 @@ export interface DashboardLogisticsData {
   foodCollectionsTotalCount?: number;
   recordedRouteNames?: string[];
   foodAmountTotal?: number;
+  routeProgress?: DashboardRouteProgressData[];
+}
+
+export interface DashboardRouteProgressData {
+  routeId: number;
+  routeNumber: number;
+  routeName: string;
+  completedStops: number;
+  totalStops: number;
 }

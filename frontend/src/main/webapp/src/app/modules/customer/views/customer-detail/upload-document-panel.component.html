@@ -1,7 +1,7 @@
 <mat-card testid="upload-document-panel">
   <mat-card-header>
     <mat-card-title>
-      <h5 class="m-0">Dokument hochladen</h5>
+      <h2 class="tafel-h5 m-0">Dokument hochladen</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
@@ -23,6 +23,10 @@
     }
 
     @if (source() === 'upload') {
+      <!-- The click here is a mouse convenience on top of the "Datei auswählen" button inside the
+           zone, which is what the keyboard uses. Making the zone focusable as well would put a
+           second tab stop in front of that button for the very same action. -->
+      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
       <div testid="documentDropzone"
            class="border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors"
            [class.border-blue-500]="isDragOver()" [class.bg-blue-50]="isDragOver()" [class.border-gray-300]="!isDragOver()"
@@ -44,7 +48,7 @@
 
     @if (source() === 'scanner') {
       <div class="flex justify-between items-center mb-2">
-        <span class="font-bold">Dateien im Scanner</span>
+        <span class="font-bold" id="scannerFilesLabel">Dateien im Scanner</span>
         <button type="button" testid="refreshScannerFilesButton" matButton="outlined" (click)="refreshScannerFiles()">
           Aktualisieren
         </button>
@@ -52,25 +56,32 @@
       @if (scannerFiles().length === 0) {
         <div testid="noScannerFiles">Keine Dateien vorhanden</div>
       }
-      @for (file of scannerFiles(); track file.fileName) {
-        <div class="flex items-center gap-2 mb-1">
-          <input type="radio" name="scannerFile" [id]="'scannerFile-' + file.fileName"
-                 [attr.testid]="'scannerFile-' + file.fileName"
-                 [checked]="selectedScannerFileName() === file.fileName"
-                 (change)="selectedScannerFileName.set(file.fileName)">
-          <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
-             target="_blank" rel="noopener" matButton="filled" class="shrink-0 !inline-flex !items-center !justify-center"
-             (click)="$event.stopPropagation()" title="Vorschau öffnen">
-            <fa-icon [icon]="faEye" class="block"></fa-icon>
-          </a>
-          <label [for]="'scannerFile-' + file.fileName" class="min-w-0">
-            <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>
-            <div class="text-sm text-gray-500 truncate" [title]="file.fileName">
-              {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB
-            </div>
-          </label>
-        </div>
-      }
+      <!-- the radios only carry their own file name; the group needs the heading above it as its
+           name, which is a plain <span> and labels nothing on its own -->
+      <div role="radiogroup" aria-labelledby="scannerFilesLabel">
+        @for (file of scannerFiles(); track file.fileName) {
+          <div class="flex items-center gap-2 mb-1">
+            <input type="radio" name="scannerFile" [id]="'scannerFile-' + file.fileName"
+                   [attr.testid]="'scannerFile-' + file.fileName"
+                   [checked]="selectedScannerFileName() === file.fileName"
+                   (change)="selectedScannerFileName.set(file.fileName)">
+            <!-- title is a last-resort name source and is not surfaced on keyboard focus, and the
+                 same one on every row would not say which file it previews either -->
+            <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
+               target="_blank" rel="noopener" matButton="filled" class="shrink-0 !inline-flex !items-center !justify-center"
+               (click)="$event.stopPropagation()"
+               [attr.aria-label]="'Vorschau von ' + file.displayName + ' öffnen (in neuem Tab)'">
+              <fa-icon [icon]="faEye" class="block"></fa-icon>
+            </a>
+            <label [for]="'scannerFile-' + file.fileName" class="min-w-0">
+              <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>
+              <div class="text-sm text-gray-500 truncate" [title]="file.fileName">
+                {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB
+              </div>
+            </label>
+          </div>
+        }
+      </div>
     }
   </mat-card-content>
   <mat-card-actions>

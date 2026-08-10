@@ -11,15 +11,17 @@ import tools.jackson.databind.json.JsonMapper
 
 /**
  * Sends a push notification of a given [PushNotificationType] to every existing subscription
- * whose owner currently allows it - shared by the various distribution-lifecycle push listeners
- * so the send/prune-expired-subscription logic lives in exactly one place. Subscribing is itself
- * the opt-in (any logged-in user can enable push notifications for their device, see
- * `PushController`/`PushSubscriptionService`); [PushPreferencesService] then further gates
- * delivery per subscription owner (master switch plus per-type opt-out). Deliberately no
+ * whose owner currently allows it - shared by the various push listeners so the send/prune-expired-
+ * subscription logic lives in exactly one place. Subscribing is itself the opt-in (any logged-in
+ * user can enable push notifications for their device, see `PushController`/`PushSubscriptionService`),
+ * and delivery is then gated twice per subscription owner: by what the type is *for*
+ * ([PushNotificationTypeTargeting], the user's permissions) and by what the user asked for
+ * ([PushPreferencesService], master switch plus per-type opt-out). Deliberately no
  * `@Transactional`: each subscription send/prune below runs as its own auto-transactional
- * repository call - fine at this volume, and avoids the read-only-transaction-vs-delete conflict a
- * single wrapping `@Transactional(readOnly = true)` (as `reporting`'s listener uses) would create
- * once expired subscriptions need deleting.
+ * repository call - fine at this volume, and avoids the read-only-transaction-vs-write conflict a
+ * single wrapping `@Transactional(readOnly = true)` would create once expired subscriptions need
+ * deleting. Postgres refuses the write outright in that case, which is how the after-close report
+ * mails silently stopped being queued (see `MailOutboxService.enqueue`).
  */
 @Service
 class PushBroadcastService(
@@ -35,17 +37,25 @@ class PushBroadcastService(
 
     fun broadcast(type: PushNotificationType, title: String, body: String) {
         // Memoized per user within this one broadcast call - a user with several devices would
-        // otherwise trigger the same preference lookup once per device.
-        val preferenceCache = mutableMapOf<Long, Boolean>()
+        // otherwise trigger the same permission and preference lookup once per device.
+        val recipientCache = mutableMapOf<Long, Boolean>()
+        val targetPath = PushNotificationTypeTargeting.targetPathOf(type) ?: ""
 
         pushSubscriptionRepository.findAll().forEach { subscription ->
-            val userId = subscription.user?.id ?: return@forEach
-            val allowed = preferenceCache.getOrPut(userId) { pushPreferencesService.isEnabled(userId, type) }
+            val user = subscription.user ?: return@forEach
+            val userId = user.id ?: return@forEach
+
+            val allowed = recipientCache.getOrPut(userId) {
+                // Permissions first: an in-memory check on the eagerly loaded authorities, so a
+                // user who isn't an audience for this type at all costs no preference query.
+                PushNotificationTypeTargeting.isAllowedFor(type, user.authorities.map { it.name }) &&
+                    pushPreferencesService.isEnabled(userId, type)
+            }
             if (!allowed) {
                 return@forEach
             }
 
-            sendTo(subscription, title, body)
+            sendTo(subscription, title, body, targetPath)
         }
     }
 
@@ -56,15 +66,26 @@ class PushBroadcastService(
      * [PushPreferencesService]: it's triggered by an explicit click on that device's own "test"
      * button, so it has to reach the device even while a preference toggle is off - otherwise the
      * one button meant to answer "does push work on this device at all?" would silently do nothing.
+     *
+     * [targetPath] is the screen tapping the notification opens, relative to the app's base path;
+     * an empty string opens the app itself.
      */
-    fun sendTo(subscription: PushSubscriptionEntity, title: String, body: String): PushSendResult {
+    fun sendTo(subscription: PushSubscriptionEntity, title: String, body: String, targetPath: String): PushSendResult {
         val payload = jsonMapper.writeValueAsString(
             PushNotificationPayload(
                 notification = PushNotificationPayloadNotification(
                     title = title,
                     body = body,
-                    icon = iconPath("icon-192x192.png"),
-                    badge = iconPath("badge-96x96.png"),
+                    icon = absolutePath("icons/icon-192x192.png"),
+                    badge = absolutePath("icons/badge-96x96.png"),
+                    data = PushNotificationPayloadData(
+                        onActionClick = PushNotificationPayloadActions(
+                            default = PushNotificationPayloadAction(
+                                operation = "navigateLastFocusedOrOpen",
+                                url = absolutePath(targetPath),
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
@@ -84,16 +105,17 @@ class PushBroadcastService(
     }
 
     /**
-     * Icon URLs have to be built against the app's own base path, not the origin root: dev, test
-     * and prod share one origin at different path prefixes (see
+     * Icon and click-target URLs have to be built against the app's own base path, not the origin
+     * root: dev, test and prod share one origin at different path prefixes (see
      * [at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties.relativeBaseUrl]), so
      * a bare `/icons/...` resolves to the *host* root on every deployment that isn't served at `/`
-     * and 404s - which shows up as a notification with no icon and nothing else wrong.
+     * and 404s - which shows up as a notification with no icon and nothing else wrong. The same
+     * mistake in a click target lands the user on a 404 instead of the screen they were sent to.
      *
      * Read per send rather than cached, so a reloaded configuration takes effect (see
      * `config.properties.ConfigFileReloadService`).
      */
-    private fun iconPath(fileName: String) = "${tafelAdminProperties.server.basePath}icons/$fileName"
+    private fun absolutePath(path: String) = "${tafelAdminProperties.server.basePath}$path"
 }
 
 @ExcludeFromTestCoverage
@@ -120,4 +142,35 @@ data class PushNotificationPayloadNotification(
     val body: String,
     val icon: String,
     val badge: String,
+    val data: PushNotificationPayloadData,
+)
+
+/**
+ * The Angular service worker's own click-handling contract: it reads `notification.data.onActionClick`
+ * and acts on the entry matching the clicked action, falling back to `default` for a click on the
+ * notification body itself - which is the only case here, since we declare no action buttons. This
+ * is why tapping a notification navigates without a single line of frontend code: `ngsw-worker.js`
+ * implements it, so the shape below has to match what it expects rather than anything of ours.
+ */
+@ExcludeFromTestCoverage
+data class PushNotificationPayloadData(
+    val onActionClick: PushNotificationPayloadActions,
+)
+
+@ExcludeFromTestCoverage
+data class PushNotificationPayloadActions(
+    val default: PushNotificationPayloadAction,
+)
+
+/**
+ * [operation] is `navigateLastFocusedOrOpen` throughout: an already-open app tab navigates to
+ * [url] in place rather than a second tab opening beside it, and only a user with no tab open at
+ * all gets a new one. That matters more here than it looks - the app holds several permanent SSE
+ * streams, and duplicate tabs multiply them against a browser connection budget this app already
+ * uses most of.
+ */
+@ExcludeFromTestCoverage
+data class PushNotificationPayloadAction(
+    val operation: String,
+    val url: String,
 )

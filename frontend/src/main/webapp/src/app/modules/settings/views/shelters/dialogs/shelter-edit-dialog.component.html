@@ -1,4 +1,4 @@
-<tafel-dialog title="Notschlafstelle bearbeiten" testid="shelter-edit-dialog">
+<tafel-dialog title="Notschlafstelle bearbeiten" testId="shelter-edit-dialog">
   <div tafel-dialog-content>
     <form [formGroup]="form" class="grid grid-cols-1">
       <mat-form-field>
@@ -51,7 +51,7 @@
 
       <!-- Contacts -->
       <div class="mt-6">
-        <h4 class="mb-2">Kontakte</h4>
+        <h3 class="tafel-h4 mb-2">Kontakte</h3>
         <div formArrayName="contacts">
           @for (contactCtrl of contacts.controls; track i; let i = $index) {
             @if(i > 0) {

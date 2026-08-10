@@ -64,13 +64,13 @@ class FoodCollectionsExporter(
                 shops.forEach { currentShop ->
                     val columns = mutableListOf<String>()
                     columns.add(distribution.startedAt.format(DATE_FORMATTER))
-                    columns.add(foodCollection.route.number.toString())
+                    columns.add(foodCollection.route.name)
                     columns.add(currentShop.number.toString())
 
                     sortedFoodCategories.forEach { foodCategory ->
                         val itemPerCategory =
                             items.firstOrNull { it.category.id == foodCategory.id && it.shop.id == currentShop.id }
-                        val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
+                        val weight = itemPerCategory?.weight ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }
 

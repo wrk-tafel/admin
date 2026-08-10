@@ -2,9 +2,9 @@
   <mat-card class="shadow-sm">
     <mat-card-content>
       <div class="mb-4">
-        <h5 class="text-lg font-semibold">Benutzer-Suche</h5>
+        <h2 class="tafel-h5 text-lg font-semibold">Benutzer-Suche</h2>
         <p class="mt-2 mb-0 text-sm text-slate-600">
-          Suche direkt über die Personalnummer oder über Benutzername, Nachname und Vorname.
+          Suche direkt über die Personalnummer oder über das Suchfeld.
         </p>
       </div>
 
@@ -26,11 +26,13 @@
 
       <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div class="sm:w-1/3">
+          <div class="flex sm:w-2/3 items-center gap-2">
             <mat-form-field class="w-full" subscriptSizing="dynamic">
-              <mat-label>Benutzername</mat-label>
-              <input matInput testid="usernameText" type="text" [formField]="searchForm.username">
+              <mat-label>Suche</mat-label>
+              <input matInput testid="searchInputText" type="text" [formField]="searchForm.searchInput" (keydown.enter)="searchForDetails()">
             </mat-form-field>
+            <tafel-info-tooltip [testId]="'search-input-info-tooltip'"
+                                text="Durchsucht Benutzername, Personalnummer, Nachname und Vorname. Tippfehler werden toleriert - genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
           </div>
 
           <div class="sm:w-1/3 flex items-center">
@@ -39,32 +41,19 @@
         </div>
       </div>
 
-      <div class="mb-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="sm:w-1/3">
-            <mat-form-field class="w-full" subscriptSizing="dynamic">
-              <mat-label>Nachname</mat-label>
-              <input matInput testid="lastnameText" type="text" [formField]="searchForm.lastname">
-            </mat-form-field>
-          </div>
-          <div class="sm:w-1/3">
-            <mat-form-field class="w-full" subscriptSizing="dynamic">
-              <mat-label>Vorname</mat-label>
-              <input matInput testid="firstnameText" type="text" [formField]="searchForm.firstname">
-            </mat-form-field>
-          </div>
-        </div>
-      </div>
-
       <div class="flex sm:w-1/3 mt-6">
         <button type="button" matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
       </div>
+
+      <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+           with its text is not reliably announced. -->
+      <div class="sr-only" role="status" testid="searchresult-announcement">{{ searchAnnouncement() }}</div>
 
       @if(searchResult()) {
         <mat-divider class="!my-6"></mat-divider>
         <div class="mt-6">
           <div class="mb-6">
-            <h5 class="mb-6">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h5>
+            <h2 class="tafel-h5 mb-6">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h2>
             <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
                            [pageSizeOptions]="pageSizeOptions"
                            [pageIndex]="searchResult()!.currentPage - 1" [showFirstLastButtons]="true"
@@ -74,7 +63,7 @@
           <div class="hidden md:block">
             <table mat-table [dataSource]="searchResult()?.items ?? []" class="min-w-full divide-y divide-gray-200 mt-4" aria-label="Liste der gefundenen Benutzer" testid="searchresult-table">
               <ng-container matColumnDef="icon">
-                <th mat-header-cell *matHeaderCellDef></th>
+                <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
                 <td mat-cell *matCellDef="let user; let i = index"> <fa-icon [icon]="faUser"></fa-icon></td>
               </ng-container>
 
@@ -109,10 +98,12 @@
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
                 <td mat-cell *matCellDef="let user; let i = index" class="px-4 py-2">
                   <div class="flex gap-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
+                            matTooltip="Benutzerdetails anzeigen" aria-label="Benutzerdetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
+                            matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </div>
@@ -145,10 +136,12 @@
                     </div>
                   </mat-card-content>
                   <mat-card-actions class="flex gap-2 mt-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
+                            matTooltip="Benutzerdetails anzeigen" aria-label="Benutzerdetails anzeigen">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
+                            matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </mat-card-actions>

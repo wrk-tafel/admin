@@ -77,17 +77,24 @@ call `SseOutboxService.saveOutboxEntry(...)` from Kotlin code to enqueue an outb
 module — or anywhere in application code — ever calls `saveOutboxEntry("dashboard_update", ...)`.** The
 `dashboard_update` rows are inserted purely at the database level:
 
-1. Flyway migration `R__00059_dashboard_add_notification_trigger.sql` defines
-   `insert_dashboard_update_to_sse_outbox()` and attaches it as an `AFTER INSERT OR UPDATE OR DELETE` trigger
+1. Flyway migration `R__00059_dashboard_add_notification_trigger.sql` attaches
+   `insert_dashboard_update_to_sse_outbox()` (whose body lives in
+   `R__00099_dashboard_notify_every_change.sql`) as an `AFTER INSERT OR UPDATE OR DELETE` trigger
    on `distributions`, `distributions_households`, `distributions_statistics`,
-   `distributions_statistics_shelters`, `food_collections`, and `food_collections_items`. Any write to any of
-   those tables (by any module, through any code path — even a raw SQL migration) inserts a row into
-   `sse_outbox` with `notification_name = 'dashboard_update'` and `payload = NULL`.
-2. The insert is deliberately coalesced to at most one row per second:
-   `current_second := date_trunc('second', NOW())` combined with a
-   `UNIQUE (notification_name, event_time)` constraint and `ON CONFLICT ... DO NOTHING` — so a burst of
-   writes in the same table (e.g. saving several food collection items) produces at most one dashboard
-   refresh per second, not one per row.
+   `distributions_statistics_shelters`, `food_collections`, and `food_collections_items`;
+   `R__00097_dashboard_route_progress_trigger.sql` attaches the same function to
+   `routes_stops_completions`, which is what makes the route progress panel follow the drivers. Any
+   write to any of those tables (by any module, through any code path — even a raw SQL migration)
+   inserts a row into `sse_outbox` with `notification_name = 'dashboard_update'` and `payload = NULL`.
+2. The **row** is deliberately coalesced to at most one per second:
+   `current_second := date_trunc('second', clock_timestamp())` combined with a
+   `UNIQUE (notification_name, event_time)` constraint and `ON CONFLICT ... DO NOTHING`, so a burst of
+   writes doesn't fill `sse_outbox` with a row per changed row. The **notification** is not coalesced
+   with it: when the row was already there, `R__00099` sends that second's `pg_notify` by hand
+   instead, because the row for a second whose notification has already been delivered would
+   otherwise leave the change unannounced (see the migration's own comment, and issue #3168). What
+   keeps a burst cheap regardless is Postgres itself — identical notifications signalled within one
+   transaction are delivered once, so saving several food collection items wakes the dashboard once.
 3. A second, generic trigger from `R__00057_added_notification_procedure.sql`
    (`trigger_sse_outbox_notification` → `sse_outbox_notify_channel()`) fires on every `sse_outbox` insert
    (regardless of `notification_name`) and calls `pg_notify('sse_outbox', ...)` with the notification name and
@@ -117,5 +124,5 @@ notification.
   cheap/cached read.
 - If there is no currently open distribution, `getData()` returns an all-null `DashboardData`; controllers
   and the frontend must treat `null` as "nothing to show", not "zero".
-- `foodAmountTotal` sums `calculateWeight()` across every item of every food collection of the *current*
+- `foodAmountTotal` sums the stored `weight` across every item of every food collection of the *current*
   distribution only — it has no relation to the historic per-year totals computed in the `reporting` module.

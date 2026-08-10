@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   DEFAULT_CURRENCY_CODE,
+  ErrorHandler,
   inject,
   isDevMode,
   LOCALE_ID,
@@ -8,8 +9,7 @@ import {
 } from '@angular/core';
 import {provideServiceWorker} from '@angular/service-worker';
 import {
-  RedirectCommand,
-  Router,
+  TitleStrategy,
   provideRouter,
   withComponentInputBinding,
   withInMemoryScrolling,
@@ -30,9 +30,15 @@ import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dia
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 import {MAT_CARD_CONFIG} from '@angular/material/card';
-import {MatPaginatorIntl} from '@angular/material/paginator';
-import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
+import {TafelTitleStrategy} from './common/util/tafel-title-strategy';
+import {handleNavigationError} from './common/util/navigation-error-handler';
+import {TafelErrorHandler} from './common/support/tafel-error-handler';
+import {ClientLogService} from './common/support/client-log.service';
 
+// `MatDialog` is `providedIn: 'root'` and reads its defaults from the root injector, so this one
+// has to stay app-wide even though no screen outside the shell opens a dialog. The Material
+// components that do allow a route-level default - paginator and tooltip - are configured in
+// `shell.routes.ts` instead, which keeps them out of the bundle the login page loads.
 const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
   position: {top: '16px'}
 };
@@ -56,14 +62,21 @@ export const appConfig: ApplicationConfig = {
       }),
       withViewTransitions(),
       withComponentInputBinding(),
-      // A resolver failing (e.g. a bookmarked/direct-linked detail page whose entity was since
-      // deleted) needs an explicit fallback here: with real paths, that request is a genuine
-      // full-page load rather than an in-app navigation, so there's no previous in-app route left
-      // to fall back to on failure - without this handler the user is left on a blank shell.
-      withNavigationErrorHandler(() => new RedirectCommand(inject(Router).parseUrl('/404')))
+      // A navigation can fail for reasons that have nothing to do with the URL being wrong, and
+      // they are handled apart from each other - see `handleNavigationError`.
+      withNavigationErrorHandler(handleNavigationError)
     ),
+    {
+      // `useExisting`, not `useClass`: the shell reads the active route's title off the very same
+      // instance the router writes it to, and `useClass` would hand out a second one.
+      provide: TitleStrategy,
+      useExisting: TafelTitleStrategy
+    },
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAppInitializer(() => inject(SwUpdateService).init()),
+    // As early as possible: what a support request is worth is decided by whether the error it is
+    // about was still around to be attached.
+    provideAppInitializer(() => inject(ClientLogService).captureGlobalErrors()),
     provideServiceWorker('ngsw-worker.js', {
       // An active service worker serves navigations from its own cache, bypassing Cypress's
       // network layer - this made cy.visit() unreliable (e.g. a fresh navigation's onBeforeLoad
@@ -105,8 +118,9 @@ export const appConfig: ApplicationConfig = {
       useValue: {appearance: 'outlined'}
     },
     {
-      provide: MatPaginatorIntl,
-      useFactory: getGermanPaginatorIntl
+      // `useExisting`, so an uncaught error and a support request read the same instance's log.
+      provide: ErrorHandler,
+      useExisting: TafelErrorHandler
     }
   ]
 };

@@ -43,6 +43,18 @@ export class AppComponent {
 
   private showDelayTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
+  // A client-side navigation swaps the whole screen without the user agent noticing any of it: no
+  // document load happens, so nothing is announced (the document title alone is not - see
+  // `TafelTitleStrategy`), and focus stays on the sidebar link that was activated, from where the
+  // next Tab continues through the navigation instead of entering the page that just opened.
+  // Moving focus to the `main` landmark fixes both at once: it is where the shell renders the
+  // route title as the page's `h1`, so the screen announces itself, and the keyboard continues
+  // from the start of the new content.
+  private static readonly MAIN_CONTENT_ID = 'hauptinhalt';
+
+  // The first NavigationEnd belongs to the document load, which announces itself.
+  private firstNavigationHandled = false;
+
   constructor() {
     this.router.events.pipe(takeUntilDestroyed()).subscribe(evt => {
       if (evt instanceof NavigationStart) {
@@ -64,6 +76,7 @@ export class AppComponent {
 
       if (evt instanceof NavigationEnd) {
         window.scrollTo(0, 0);
+        this.focusMainContent();
       }
     });
 
@@ -78,6 +91,37 @@ export class AppComponent {
         this.pushNotificationService.syncSubscription();
       }
     });
+  }
+
+  private focusMainContent() {
+    const wasFirst = !this.firstNavigationHandled;
+    this.firstNavigationHandled = true;
+    if (wasFirst) {
+      return;
+    }
+
+    // Screens without the shell (login, the ticket-screen kiosk) have no main landmark at all.
+    const main = document.getElementById(AppComponent.MAIN_CONTENT_ID);
+    if (!main) {
+      return;
+    }
+
+    // A screen that autofocuses a control of its own (`tafelAutofocus`, e.g. the check-in customer
+    // number the scanner types into) claims focus for that control - taking it to the landmark
+    // would break exactly the flow that autofocus exists for. The control has to be looked for
+    // rather than read off `activeElement`: the directive applies the focus a tick after this
+    // runs, so at this point focus is still wherever the navigation left it.
+    if (main.querySelector('[tafelAutofocus]')) {
+      return;
+    }
+
+    // Something else on the screen already took focus during activation.
+    const active = document.activeElement;
+    if (active && active !== document.body && main.contains(active)) {
+      return;
+    }
+
+    main.focus();
   }
 
 }

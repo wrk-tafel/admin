@@ -1,7 +1,7 @@
 <form autocomplete="off">
   <mat-card>
     <mat-card-header class="justify-center text-center w-full">
-      <h5>Benutzerdaten</h5>
+      <h2 class="tafel-h5">Benutzerdaten</h2>
     </mat-card-header>
     <mat-card-content>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -96,7 +96,7 @@
       </div>
       <hr>
       <div class="flex items-center justify-between">
-        <h5>Berechtigungen</h5>
+        <h2 class="tafel-h5">Berechtigungen</h2>
         <div class="text-sm text-gray-500" testid="permissionsSelectedCount">
           {{selectedPermissionsCount()}} von {{totalPermissionsCount()}} ausgewählt
         </div>
@@ -115,9 +115,20 @@
               @for (permission of group.permissions; track permission.key) {
                 <div [attr.testid]="'permission-' + permission.key">
                   <mat-checkbox [checked]="permission.enabled" (change)="togglePermission(permission.key)"
+                                [disabled]="isPermissionLocked(permission.key)"
                                 [attr.testid]="'permission-checkbox-' + permission.key">
                     {{permission.title}}
                   </mat-checkbox>
+                  @if (isPermissionLocked(permission.key)) {
+                    <!--
+                      Shown rather than hiding the checkbox: its current state still has to be
+                      visible and still has to be submitted, so that a user manager editing an
+                      administrator doesn't strip the permission just by saving the form.
+                    -->
+                    <div testid="permission-locked-hint" class="text-xs text-gray-500">
+                      Nur ein Administrator kann diese Berechtigung vergeben oder entziehen.
+                    </div>
+                  }
                 </div>
               }
             </div>

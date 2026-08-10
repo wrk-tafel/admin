@@ -2,22 +2,22 @@
   <mat-card-header class="text-xl font-bold">Kunden-Duplikate</mat-card-header>
   <mat-card-content>
     <div class="flex flex-col gap-2 mb-4">
-      <h6>Legende:</h6>
+      <h2 class="tafel-h6">Legende:</h2>
       <div>
-        <button matButton="filled" class="button-success me-2">
+        <button matButton="filled" class="button-success me-2" tabindex="-1" aria-label="Symbol: Kunden zusammenführen">
           <fa-icon [icon]="faCheck"></fa-icon>
         </button>
         <strong>Kunden zusammenführen:</strong> Öffnet den Datenabgleich für die ausgewählten Kunden - dort
         können unterschiedliche Felder ausgewählt werden, bevor die Zusammenführung bestätigt wird.
       </div>
       <div>
-        <button matButton="filled" class="me-2">
+        <button matButton="filled" class="me-2" tabindex="-1" aria-label="Symbol: Kunden-Details ansehen">
           <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
         </button>
         <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
       </div>
       <div>
-        <button matButton="filled" class="button-danger me-2">
+        <button matButton="filled" class="button-danger me-2" tabindex="-1" aria-label="Symbol: Kunden löschen">
           <fa-icon [icon]="faTrashCan"></fa-icon>
         </button>
         <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
@@ -26,8 +26,12 @@
 
     <hr/>
 
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="duplicates-announcement">{{ duplicatesAnnouncement() }}</div>
+
     @if (customerDuplicatesData()?.items?.length === 0) {
-      <h4 class="font-bold" testid="no-duplicates-message">Keine Duplikate gefunden!</h4>
+      <h2 class="tafel-h4 font-bold" testid="no-duplicates-message">Keine Duplikate gefunden!</h2>
     }
 
     @if ((customerDuplicatesData()?.items?.length ?? 0) > 0) {
@@ -47,13 +51,13 @@
                   {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
                 </div>
                 <div class="text-right pt-2 sm:pt-0">
-                  <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + item.customer.id" (click)="startMerge(item.customer)">
+                  <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + item.customer.id" (click)="startMerge(item.customer)" matTooltip="Kunden zusammenführen" aria-label="Kunden zusammenführen">
                     <fa-icon [icon]="faCheck"></fa-icon>
                   </button>
-                  <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + item.customer.id" (click)="showCustomerDetail(item.customer.id!)">
+                  <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + item.customer.id" (click)="showCustomerDetail(item.customer.id!)" matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                     <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
                   </button>
-                  <button matButton="filled" class="button-danger" [attr.testid]="'duplicate-delete-button-' + item.customer.id" (click)="openDeleteCustomerDialog(item.customer.id!)">
+                  <button matButton="filled" class="button-danger" [attr.testid]="'duplicate-delete-button-' + item.customer.id" (click)="openDeleteCustomerDialog(item.customer.id!)" matTooltip="Kunden löschen" aria-label="Kunden löschen">
                     <fa-icon [icon]="faTrashCan"></fa-icon>
                   </button>
                 </div>
@@ -70,11 +74,11 @@
                   {{item.customer.address | formatCustomerAddress}}
                 </div>
                 <div class="font-bold text-white px-2"
-                     [ngClass]="{'bg-green-600': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}">
+                     [ngClass]="{'bg-green-700': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}">
                   Gültig bis:
                 </div>
                 <div class="text-white px-2"
-                     [ngClass]="{'bg-green-600': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}"
+                     [ngClass]="{'bg-green-700': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}"
                      [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
                 </div>
               </div>
@@ -89,13 +93,13 @@
                     {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
                   </div>
                   <div class="text-right pt-2 sm:pt-0">
-                    <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + similarCustomer.id" (click)="startMerge(similarCustomer)">
+                    <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + similarCustomer.id" (click)="startMerge(similarCustomer)" matTooltip="Kunden zusammenführen" aria-label="Kunden zusammenführen">
                       <fa-icon [icon]="faCheck"></fa-icon>
                     </button>
-                    <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + similarCustomer.id" (click)="showCustomerDetail(similarCustomer.id!)">
+                    <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + similarCustomer.id" (click)="showCustomerDetail(similarCustomer.id!)" matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                       <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
                     </button>
-                    <button matButton="filled" class="button-danger" [attr.testid]="'duplicate-delete-button-' + similarCustomer.id" (click)="openDeleteCustomerDialog(similarCustomer.id!)">
+                    <button matButton="filled" class="button-danger" [attr.testid]="'duplicate-delete-button-' + similarCustomer.id" (click)="openDeleteCustomerDialog(similarCustomer.id!)" matTooltip="Kunden löschen" aria-label="Kunden löschen">
                       <fa-icon [icon]="faTrashCan"></fa-icon>
                     </button>
                   </div>
@@ -112,11 +116,11 @@
                     {{similarCustomer.address | formatCustomerAddress}}
                   </div>
                   <div class="font-bold text-white px-2"
-                       [ngClass]="{'bg-green-600': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}">
+                       [ngClass]="{'bg-green-700': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}">
                     Gültig bis:
                   </div>
                   <div class="text-white px-2"
-                       [ngClass]="{'bg-green-600': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}"
+                       [ngClass]="{'bg-green-700': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}"
                        [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
                   </div>
                 </div>

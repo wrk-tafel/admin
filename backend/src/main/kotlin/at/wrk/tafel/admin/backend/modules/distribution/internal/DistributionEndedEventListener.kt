@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService
 import org.slf4j.LoggerFactory
@@ -26,8 +27,8 @@ import org.springframework.transaction.support.TransactionTemplate
  * this method's own persistence context instead of a stale/detached one. Statistic and missing-cost-
  * contribution are *not* individually isolated with try/catch - both run in the same transaction, so a
  * failure in either rolls the whole thing back rather than silently committing a half-done result (e.g.
- * a saved statistic with no cost contributions applied). That whole transaction is retried (via the
- * shared `RetryTemplate` bean from `config.RetryConfig`) before being given up on - safe to retry as a
+ * a saved statistic with no cost contributions applied). That whole transaction is retried (as often
+ * as `tafeladmin.distribution.closeRetry` says) before being given up on - safe to retry as a
  * unit precisely because a failed attempt leaves no partial state behind (the rollback already
  * guarantees that), so a retry always starts from a clean slate. If every attempt fails,
  * [DistributionClosedEvent] is never published either - Spring's default async-uncaught-exception
@@ -54,7 +55,7 @@ class DistributionEndedEventListener(
     private val transactionTemplate: TransactionTemplate,
     private val distributionRepository: DistributionRepository,
     private val eventPublisher: ApplicationEventPublisher,
-    private val retryTemplate: RetryTemplate,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionEndedEventListener::class.java)
@@ -66,7 +67,7 @@ class DistributionEndedEventListener(
         val distributionId = event.distributionId
 
         try {
-            retryTemplate.execute<Unit, Exception> { context ->
+            retryTemplate().execute<Unit, Exception> { context ->
                 if (context.retryCount > 0) {
                     logger.warn("Retrying distribution post-processing (attempt #${context.retryCount + 1}) ...")
                 }
@@ -91,5 +92,20 @@ class DistributionEndedEventListener(
             logger.error("Publishing DistributionClosedEvent failed", e)
             throw e
         }
+    }
+
+    /**
+     * Built per event rather than injected as a bean, which is what makes `closeRetry` take effect
+     * on a running deployment: a `RetryTemplate` fixes its policies when it is built, so one created
+     * at startup would keep whatever it was configured with (see `ConfigFileReloadService`).
+     */
+    private fun retryTemplate(): RetryTemplate {
+        val closeRetry = tafelAdminProperties.distribution.closeRetry
+
+        return RetryTemplate.builder()
+            .maxAttempts(closeRetry.maxAttempts)
+            .fixedBackoff(closeRetry.backoff)
+            .retryOn(Exception::class.java)
+            .build()
     }
 }

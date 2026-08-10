@@ -27,8 +27,9 @@ know what a scan means (customer lookup, ticket assignment, etc.) — that's ent
   behavior.
 - `getScannerIds()` — all registered scanner ids, sorted.
 - `cleanupScannerRegistrations()` — `@Scheduled(fixedDelay = 1, TimeUnit.HOURS)`, deletes registrations
-  whose `registrationTime` is older than `SCANNER_REGISTRATIONS_KEEP_DAYS` (2 days). This is what frees up
-  a scanner id for reuse — see below.
+  whose `registrationTime` is older than `tafeladmin.checkin.scannerRegistrationRetention` (2 days),
+  read per run so it can be widened without a restart. This is what frees up a scanner id for reuse —
+  see below.
 
 ### ScannerRegistrationEntity / ScannerRegistrationRepository (`database/model/checkin/`)
 Table `scanner_registrations` (`id`, `registration_time`, `scanner_id`). Per
@@ -56,7 +57,7 @@ package at.wrk.tafel.admin.backend.modules.checkin;
 etc.) — confirmed: neither `ScannerController` nor `ScannerService` reference anything under
 `modules.*` besides their own `internal` package. Its only outside dependencies are shared
 infrastructure that sits *outside* the `modules` tree and isn't subject to the Modulith check:
-`common.sse.SseUtil`, `database.common.sseoutbox.SseOutboxService`, and its own
+`common.sse.SseEmitterFactory`, `database.common.sseoutbox.SseOutboxService`, and its own
 `database.model.checkin.*` entity/repository.
 
 **Architectural implication:** `checkin` cannot call into `distribution` to assign a ticket, nor into

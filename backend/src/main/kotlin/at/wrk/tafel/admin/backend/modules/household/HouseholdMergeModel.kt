@@ -10,7 +10,7 @@ import java.time.LocalDateTime
  * Fields a household-merge caller may resolve a target/source conflict for. `ADDRESS` and
  * `LOCK_STATE` are atomic groups (all their sub-fields come from the same side) rather than
  * per-column, since picking e.g. street from one side and city from the other would produce a
- * nonsensical result. `issuer`/`issuedAt`/`migrated`/`prolongedAt` are deliberately not pickable -
+ * nonsensical result. `issuer`/`issuedAt`/`prolongedAt` are deliberately not pickable -
  * they're provenance/internal bookkeeping, not user-editable data.
  */
 @ExcludeFromTestCoverage
@@ -47,8 +47,7 @@ data class HouseholdMergeFieldSelectionItem(
 data class HouseholdMergeRequest(
     @field:NotEmpty
     val sourceHouseholdIds: List<Long>,
-    @field:Valid
-    val fieldSelections: List<HouseholdMergeFieldSelectionItem> = emptyList(),
+    val fieldSelections: List<@Valid HouseholdMergeFieldSelectionItem> = emptyList(),
 )
 
 @ExcludeFromTestCoverage

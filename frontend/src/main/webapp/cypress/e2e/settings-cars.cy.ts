@@ -31,7 +31,8 @@ describe('Settings - Cars', () => {
     // Try to save without required fields
     cy.get('input[formControlName="licensePlate"]').should('be.visible').clear();
     cy.contains('Speichern').click();
-    // Ensure dialog still open (save did not close because of validation)
+
+    cy.byTestId('car-create-dialog').should('be.visible');
     cy.get('input[formControlName="licensePlate"]').should('have.class', 'ng-invalid');
   });
 
@@ -130,6 +131,73 @@ describe('Settings - Cars', () => {
     cy.byTestId('cars-table').should('be.visible');
     cy.byTestId('cars-cards').should('not.be.visible');
     cy.byTestId('addCarButton').should('be.visible');
+  });
+
+
+  // The states below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations while the create dialog is open', () => {
+      cy.byTestId('addCarButton').click();
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while a row is edited inline', () => {
+      cy.byTestId('editCarButton-0').click();
+      cy.byTestId('carLicensePlateInput-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="cars-table"]');
+    });
+
+    it('has no violations while a card is edited inline on phone', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.reload();
+
+      cy.byTestId('editCarButtonMobile-0').click();
+      cy.byTestId('carNameInputMobile-0').should('be.visible');
+
+      cy.checkAccessibility('[testid="cars-cards"]');
+    });
+
+  });
+
+  // Angular CDK's drag-and-drop contributes no keyboard behaviour of its own, so without this the
+  // sort order could only be changed with a pointing device (see #3131).
+  //
+  // Every lookup goes through `cy.get` scoped to the table, and each move waits for its request to
+  // land: a reorder re-renders the rows optimistically and then again from the response, so a
+  // subject captured before that second render is gone by the time it is used. The table scope
+  // also picks the displayed one of the two responsive layouts, which share a testid.
+  it('reorders with the keyboard and keeps focus on the moved record', () => {
+    const handle = (index: number) =>
+      cy.get('[testid="cars-table"] [testid="dragCarHandle-' + index + '"]');
+
+    cy.intercept('POST', '/api/cars/reorder').as('reorder');
+
+    handle(0).invoke('attr', 'aria-label').then((label) => {
+      const movedRecord = label!.split(', Position')[0];
+      expect(movedRecord).to.contain('Fahrzeug');
+
+      handle(0).focus().trigger('keydown', {key: 'ArrowDown'});
+      cy.wait('@reorder');
+
+      handle(1).should(($handle) => {
+        const movedLabel = $handle.attr('aria-label')!;
+        expect(movedLabel).to.contain(movedRecord);
+        expect(movedLabel).to.contain('Position 2 von');
+      });
+      cy.focused().should('have.attr', 'testid', 'dragCarHandle-1');
+
+      // back where it started, so the order the other cases rely on is unchanged
+      handle(1).focus().trigger('keydown', {key: 'ArrowUp'});
+      cy.wait('@reorder');
+
+      handle(0).should(($handle) => {
+        expect($handle.attr('aria-label')).to.contain(movedRecord);
+      });
+    });
   });
 
 });

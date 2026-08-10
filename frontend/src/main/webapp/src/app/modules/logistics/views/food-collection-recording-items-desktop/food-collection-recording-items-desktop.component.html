@@ -1,7 +1,7 @@
 @if (formReady()) {
   <form [formGroup]="form" autocomplete="off">
     <div class="mt-6 rounded-lg border border-green-200 bg-green-50 p-4" testid="items-section">
-      <h6 class="font-bold text-green-900 mb-2">Warenmenge</h6>
+      <h3 class="tafel-h6 font-bold text-green-900 mb-2">Warenmenge</h3>
       <p class="text-sm text-green-900 mb-2">
         Kisten, die von der Filiale mitgenommen werden. Menge je Kategorie und Filiale erfassen.
       </p>
@@ -12,7 +12,9 @@
       <table class="w-full table-fixed divide-y divide-green-200" testid="items-table">
         <thead>
         <tr>
-          <th scope="col" class="w-40 pr-4"></th>
+          <!-- The matrix' corner cell heads nothing - it sits above the category names, which are
+               row headers. A `th` here would be an empty column header (axe empty-table-header). -->
+          <td class="w-40 pr-4"></td>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
             <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }
@@ -22,13 +24,16 @@
           @for (category of categories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex"
                 [ngClass]="{'bg-red-100': isControlInvalid(category)}">
-              <td class="font-bold pr-4">{{ foodCategories()?.[categoryIndex]?.name }}</td>
+              <th scope="row" class="font-bold pr-4 text-left">{{ foodCategories()?.[categoryIndex]?.name }}</th>
               <ng-container formArrayName="shops">
                 @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex" class="px-1">
                     <mat-form-field subscriptSizing="dynamic" class="w-full">
+                      <!-- the row and column headers name the cell, not the input inside it, so
+                           without this every cell of the matrix is announced as "edit, blank" -->
                       <input matInput type="number" min="0"
                              [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                             [attr.aria-label]="amountInputLabel(categoryIndex, shopIndex)"
                              formControlName="amount">
                     </mat-form-field>
                   </td>
@@ -41,7 +46,7 @@
     </div>
 
     <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4" testid="return-items-section">
-      <h6 class="font-bold text-amber-900 mb-2">Retourware</h6>
+      <h3 class="tafel-h6 font-bold text-amber-900 mb-2">Retourware</h3>
       <p class="text-sm text-amber-900 mb-2">
         Kisten, die an die Filiale zurückgehen. Nicht gelistete Kisten unten mit eigener Beschreibung erfassen.
       </p>
@@ -49,7 +54,7 @@
       <table class="w-full table-fixed divide-y divide-amber-200">
         <thead>
         <tr>
-          <th scope="col" class="w-40 pr-4"></th>
+          <td class="w-40 pr-4"></td>
           @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
             <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
           }
@@ -58,13 +63,14 @@
         <tbody formArrayName="returnCategories">
           @for (category of returnCategories.controls; let categoryIndex = $index; track category) {
             <tr [formGroupName]="categoryIndex">
-              <td class="font-bold pr-4">{{ foodReturnCategories()?.[categoryIndex]?.name }}</td>
+              <th scope="row" class="font-bold pr-4 text-left">{{ foodReturnCategories()?.[categoryIndex]?.name }}</th>
               <ng-container formArrayName="shops">
                 @for (shop of getReturnCategoryShops(categoryIndex).controls; let shopIndex = $index; track shop) {
                   <td [formGroupName]="shopIndex" class="px-1">
                     <mat-form-field subscriptSizing="dynamic" class="w-full">
                       <input matInput type="number" min="0"
                              [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                             [attr.aria-label]="returnAmountInputLabel(categoryIndex, shopIndex)"
                              formControlName="amount">
                     </mat-form-field>
                   </td>
@@ -112,7 +118,8 @@
             </mat-form-field>
             <button type="button" matButton="filled" class="button-danger"
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
-                    (click)="removeReturnItem(returnItemIndex)">
+                    (click)="removeReturnItem(returnItemIndex)"
+                    matTooltip="Retour-Position entfernen" aria-label="Retour-Position entfernen">
               <fa-icon [icon]="faRemove"></fa-icon>
             </button>
           </div>

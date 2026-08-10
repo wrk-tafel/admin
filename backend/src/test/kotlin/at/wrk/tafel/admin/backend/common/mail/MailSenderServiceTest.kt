@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.mail
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxService
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.base.RecipientType
@@ -22,16 +23,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.mail.javamail.JavaMailSender
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
-import java.io.ByteArrayInputStream
 
 @ExtendWith(MockKExtension::class)
 internal class MailSenderServiceTest {
-
-    @RelaxedMockK
-    private lateinit var mailSender: JavaMailSender
 
     @RelaxedMockK
     private lateinit var properties: TafelAdminProperties
@@ -42,17 +38,23 @@ internal class MailSenderServiceTest {
     @RelaxedMockK
     private lateinit var templateEngine: TemplateEngine
 
+    @RelaxedMockK
+    private lateinit var mailOutboxService: MailOutboxService
+
     @InjectMockKs
     private lateinit var service: MailSenderService
 
+    /**
+     * `tafeladmin.mail` unset is the normal state of a dev environment - there is nobody to send
+     * from, so the mail is skipped instead of failing on a missing `from` address.
+     */
     @Test
-    fun `sendTextMail - mailing disabled`() {
-        val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine)
-        every { properties.mail!!.from } returns "from-address"
+    fun `sendTextMail - no mail configuration`() {
+        every { properties.mail } returns null
 
         service.sendTextMail(MailType.DAILY_REPORT, "subject", "text", emptyList())
 
-        verify(exactly = 0) { mailSender.send(any<MimeMessage>()) }
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any()) }
     }
 
     @Test
@@ -79,12 +81,11 @@ internal class MailSenderServiceTest {
             inputStreamSource = ByteArrayResource(ByteArray(10)),
             contentType = "application/pdf",
         )
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         service.sendTextMail(MailType.DAILY_REPORT, subject, text, listOf(attachment))
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailSender.send(capture(mailMessageSlot)) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -118,22 +119,20 @@ internal class MailSenderServiceTest {
         every { properties.mail!!.subjectPrefix } returns null
 
         every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         val subject = "subj"
         service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailSender.send(capture(mailMessageSlot)) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
 
         // Regression guard: an unset prefix must not leave a stray leading space in the subject.
         assertThat(mailMessageSlot.captured.subject).isEqualTo(subject)
     }
 
     @Test
-    fun `sendHtmlMail - mailing disabled`() {
-        val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine)
-        every { properties.mail!!.from } returns "from-address"
+    fun `sendHtmlMail - no mail configuration`() {
+        every { properties.mail } returns null
 
         service.sendHtmlMail(
             mailType = MailType.DAILY_REPORT,
@@ -143,7 +142,7 @@ internal class MailSenderServiceTest {
             context = Context(),
         )
 
-        verify(exactly = 0) { mailSender.send(any<MimeMessage>()) }
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any()) }
     }
 
     @Test
@@ -175,7 +174,6 @@ internal class MailSenderServiceTest {
             inputStreamSource = ByteArrayResource(ByteArray(10)),
             contentType = "application/pdf",
         )
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         service.sendHtmlMail(MailType.DAILY_REPORT, subject, listOf(attachment), subTemplateName, context)
 
@@ -183,7 +181,7 @@ internal class MailSenderServiceTest {
         assertThat(context.getVariable("subTemplate")).isEqualTo(subTemplateName)
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailSender.send(capture(mailMessageSlot)) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -211,7 +209,7 @@ internal class MailSenderServiceTest {
 
         // Content-Type headers on the in-memory part tree are only populated from the
         // DataHandler once updateHeaders() runs (normally triggered by writeTo() when the
-        // message is actually transmitted, which doesn't happen here since mailSender is mocked).
+        // message is actually transmitted, which doesn't happen here since the message is only queued).
         mailMessage.saveChanges()
 
         val textPart = findPartByMimeType(mailMessage, "text/html")
@@ -221,6 +219,49 @@ internal class MailSenderServiceTest {
         val attachmentPart = findPartByFilename(mailMessage, attachment.filename)
         assertThat(attachmentPart).isNotNull
         assertThat(attachmentPart!!.contentType).contains(attachment.contentType)
+    }
+
+    @Test
+    fun `sendHtmlMailTo sends to the given addresses without asking the repository`() {
+        val fromAddress = "from-address"
+        every { properties.mail!!.from } returns fromAddress
+        every { properties.mail!!.subjectPrefix } returns "[PREFIX]"
+        every { properties.mail?.defaultRecipientsBcc } returns listOf("archive@localhost")
+        every { templateEngine.process(any<String>(), any<Context>()) } returns "rendered content"
+
+        val context = Context()
+        service.sendHtmlMailTo(
+            recipients = listOf("support1@localhost", "support2@localhost"),
+            subject = "subj",
+            templateName = "mails/support-request-mail",
+            context = context,
+        )
+
+        verify { templateEngine.process("mail-layout", context) }
+        assertThat(context.getVariable("subTemplate")).isEqualTo("mails/support-request-mail")
+
+        // the recipients are configuration, so nothing may be looked up in mail_recipients here
+        verify(exactly = 0) { mailRecipientRepository.findAllByMailType(any()) }
+
+        val mailMessageSlot = slot<MimeMessage>()
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+
+        val mailMessage = mailMessageSlot.captured
+        assertThat(mailMessage.subject).isEqualTo("[PREFIX] subj")
+        assertThat(mailMessage.getRecipients(Message.RecipientType.TO).map { it.toString() })
+            .containsExactly("support1@localhost", "support2@localhost")
+        assertThat(mailMessage.getRecipients(Message.RecipientType.CC)).isNull()
+        assertThat(mailMessage.getRecipients(Message.RecipientType.BCC).map { it.toString() })
+            .containsExactly("archive@localhost")
+
+        // subject and recipients are handed over separately so the queue can be read without MIME
+        verify {
+            mailOutboxService.enqueue(
+                any(),
+                "[PREFIX] subj",
+                listOf("support1@localhost", "support2@localhost"),
+            )
+        }
     }
 
     @Test
@@ -238,12 +279,11 @@ internal class MailSenderServiceTest {
             testMailRecipient_DR_TO1,
             testMailRecipient_DR_TO2,
         )
-        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
         service.sendTextMail(MailType.DAILY_REPORT, "", "")
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailSender.send(capture(mailMessageSlot)) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull

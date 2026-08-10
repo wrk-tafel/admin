@@ -6,15 +6,21 @@ Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinne
 
 ## Benutzer suchen
 
-Unter **Benutzer → Suchen** kann nach Personalnummer, Benutzername, Nachname und/oder Vorname gesucht werden. Standardmäßig werden nur aktive Benutzer angezeigt (Checkbox "Aktiv").
+Unter **Benutzer → Suchen** durchsucht das Feld **Suche** Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung. Standardmäßig werden nur aktive Benutzer angezeigt (Checkbox "Aktiv").
 
 ![Benutzer-Suche](images/benutzer-suchen.jpg)
 
 Alternativ kann über das Feld "Personalnummer" (Button **Anzeigen**) direkt zur Detailansicht eines Benutzers gesprungen werden; ist die Personalnummer unbekannt, erscheint "Benutzer nicht gefunden!".
 
-Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status (Aktiv). Über die Aktionen kann der Benutzer angesehen (Lupe) oder bearbeitet (Stift) werden. Liefert die Suche keine Treffer, erscheint "Keine Benutzer gefunden!"; bei vielen Treffern kann über die Seitennavigation geblättert werden. Auf schmalen Bildschirmen wird das Ergebnis statt als Tabelle als Kartenliste dargestellt.
+Beim Öffnen der Seite werden bereits die ersten Benutzer angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff grenzt diese Liste dann ein.
+
+Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status (Aktiv). Über die Aktionen kann der Benutzer angesehen (Lupe) oder bearbeitet (Stift) werden. Liefert die Suche keine Treffer, erscheint "Keine Benutzer gefunden!"; bei vielen Treffern kann über die Seitennavigation geblättert werden.
 
 ![Suchergebnis](images/benutzer-suchen-ergebnis.jpg)
+
+Auf schmalen Bildschirmen wird das Ergebnis statt als Tabelle als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+
+![Suchergebnis auf schmalen Bildschirmen](images/benutzer-suchen-ergebnis-mobil.jpg)
 
 ## Benutzerdetails
 
@@ -39,14 +45,26 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 | Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
-| Verwaltung | Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken |
+| Verwaltung | Änderungsprotokoll, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
+
+Die Berechtigung **Änderungsprotokoll** gibt Einsicht in den Verlauf aller Änderungen – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Änderungsprotokoll](aenderungsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
+
+Die Berechtigung **Administrator** ist eine Sonderrolle für jene Personen, die die Anwendung technisch betreuen: sie schließt automatisch **alle anderen Berechtigungen** mit ein, unabhängig davon, was sonst noch angehakt ist. In der Berechtigungsliste des Benutzers bleibt trotzdem nur "Administrator" markiert – die übrigen Berechtigungen ergeben sich erst bei der Anmeldung.
+
+Vergeben oder entziehen kann diese Berechtigung nur, wer selbst Administrator ist. Für alle anderen ist das Kästchen sichtbar, aber nicht änderbar – so lässt sich ein Administrator-Konto weiterhin bearbeiten (z. B. Name oder Personalnummer), ohne dass dabei versehentlich die Berechtigung verloren geht.
+
+Zusätzlich erhalten Administratoren die technischen Push-Benachrichtigungen (siehe [Benachrichtigungen](README.md#benachrichtigungen)).
 
 Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewählt und eine Passwort-Änderung beim ersten Login vorausgewählt.
 
 ![Benutzer erstellen](images/benutzer-erstellen.jpg)
+
+<a id="anmelde-versuche"></a>
 
 ## Anmelde-Versuche
 
 Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status (z. B. gesperrt bis) angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt. Über den Papierkorb-Button kann der Eintrag gelöscht werden (mit Sicherheitsabfrage) – dabei wird eine bestehende Sperre ebenfalls aufgehoben; eine separate Funktion, die nur die Sperre entfernt und den Eintrag behält, gibt es nicht. Sind keine (aktuell gesperrten) Fehlversuche vorhanden, bleibt die Liste leer.
 
 ![Anmelde-Versuche](images/benutzer-anmeldeversuche.jpg)
+
+Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).

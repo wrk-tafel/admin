@@ -71,6 +71,46 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
+  it('shows how far each route has got, once a driver has started ticking stops off', () => {
+    // route 2 from the testdata, with its three stops - completions live per calendar day, so they
+    // survive between specs of the same run and have to be cleared first
+    [200, 210, 220].forEach(stopId =>
+      cy.request('PUT', `/api/routes/2/guidance/stops/${stopId}`, {completed: false})
+    );
+    cy.createDistribution();
+    cy.visit('/');
+
+    // The route guidance screen is optional, so the panel stays away entirely until somebody has
+    // actually used it today - a deployment whose drivers don't use it gets no panel of permanent
+    // zeroes on a dashboard that has to fit on one screen.
+    cy.byTestId('customers-count').should('be.visible');
+    cy.byTestId('route-progress-panel').should('not.exist');
+
+    // a driver ticks the first stop off out on the road
+    cy.request('PUT', '/api/routes/2/guidance/stops/200', {completed: true});
+
+    // Reloaded rather than waiting for the push: the panel updates live from the dashboard's SSE
+    // stream (that stream is what tests 1 and 4 assert, through the distribution state flipping
+    // without a reload), but a push that lands while Cypress's proxy is between connections is not
+    // replayed, which made this spec fail about half its runs. What is asserted here is the panel's
+    // own rule and content, and both survive a reload.
+    cy.reload();
+
+    cy.byTestId('route-progress-entry-2').should('contain.text', 'Route 2');
+    cy.byTestId('route-progress-count-2').invoke('text').invoke('trim').should('equal', '1 / 3');
+    // one segment per stop of the route, the first of them filled
+    cy.byTestId('route-progress-segments-2').should('have.attr', 'aria-valuenow', '1')
+      .find('span').should('have.length', 3);
+    cy.byTestId('route-progress-segments-2').find('span').eq(0).should('have.class', 'bg-green-700');
+    cy.byTestId('route-progress-segments-2').find('span').eq(1).should('not.have.class', 'bg-green-700');
+
+    // every route is listed from then on, including the ones still at zero
+    cy.byTestId('route-progress-count-3').invoke('text').invoke('trim').should('equal', '0 / 2');
+
+    cy.request('PUT', '/api/routes/2/guidance/stops/200', {completed: false});
+    cy.closeDistribution();
+  });
+
   it('dashboard content and actions usable on phone', () => {
     // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
     // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.
@@ -117,6 +157,41 @@ describe('Dashboard', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
 
     cy.closeDistribution();
+  });
+
+  // The dialogs below exist only after a click, so neither the template lint nor the Lighthouse
+  // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    afterEach(() => {
+      cy.closeDistribution();
+    });
+
+    it('has no violations in the shelter selection dialog', () => {
+      cy.createDistribution();
+      cy.reload();
+
+      cy.byTestId('dashboard-select-shelters-button').click();
+      cy.byTestId('selectable-shelter-row-0').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations in the two dialogs that close the distribution', () => {
+      cy.createDistribution();
+      cy.reload();
+
+      cy.byTestId('distribution-close-button').click();
+      cy.checkDialogAccessibility();
+
+      // No statistics were entered for this distribution, so the close is refused with an error
+      // rather than a warning - and "Trotzdem beenden", which only an overridable warning offers,
+      // is not rendered. Cancel is the button this dialog always has.
+      cy.byTestId('distribution-close-dialog-ok-button').click();
+      cy.byTestId('distribution-close-validation-dialog-cancel-button').should('be.visible');
+      cy.checkDialogAccessibility();
+    });
+
   });
 
 });

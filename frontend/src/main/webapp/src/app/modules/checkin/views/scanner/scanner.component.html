@@ -8,8 +8,8 @@
       </div>
     }
     <div class="flex mb-4">
-      <h1 class="text-6xl">Scanner Nr:</h1>
-      <h1 class="ms-4 text-6xl" testid="scanner-id">{{ scannerId() }}</h1>
+      <h2 class="tafel-h1 text-6xl">Scanner Nr:</h2>
+      <h2 class="tafel-h1 ms-4 text-6xl" testid="scanner-id">{{ scannerId() }}</h2>
     </div>
     <div class="flex gap-4 my-4">
       <mat-form-field subscriptSizing="dynamic">
@@ -22,9 +22,11 @@
           }
         </mat-select>
       </mat-form-field>
-      <h4 class="flex items-center justify-center m-0">
+      <!-- Not a heading: it holds the camera's state badge, and as an <h4> after the <h1> above it
+           skipped two levels. text-2xl keeps the badge at the size it sizes itself from. -->
+      <div class="text-2xl flex items-center justify-center m-0">
         <div testid="state-camera" [class]="'badge badge-' + readyStateColor()">{{ readyStateText() }}</div>
-      </h4>
+      </div>
     </div>
     <mat-divider class="!my-4"></mat-divider>
     <video id="qrCodeReaderVideo" class="w-full max-w-lg" muted></video>

@@ -22,6 +22,7 @@ SELECT setval('shelters_contacts_seq', 10000, false);
 SELECT setval('distributions_statistics_shelters_seq', 10000, false);
 SELECT setval('mail_recipients_seq', 10000, false);
 SELECT setval('login_attempts_seq', 10000, false);
+SELECT setval('audit_log_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -55,6 +56,10 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1011, NOW(), NOW(), 100, 'CUSTOMERS_ABOVE_LIMIT');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1012, NOW(), NOW(), 100, 'CUSTOMERS_OVERVIEW');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1013, NOW(), NOW(), 100, 'ADMINISTRATOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1014, NOW(), NOW(), 100, 'AUDIT_LOG');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -111,6 +116,10 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3011, NOW(), NOW(), 300, 'CUSTOMERS_ABOVE_LIMIT');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3012, NOW(), NOW(), 300, 'CUSTOMERS_OVERVIEW');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3013, NOW(), NOW(), 300, 'ADMINISTRATOR');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3014, NOW(), NOW(), 300, 'AUDIT_LOG');
 
 -- user: scanner1
 -- pwd: 12345
@@ -208,7 +217,7 @@ UPDATE households SET main_person_id = 101 WHERE id = 101;
 
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1003, NOW(), NOW(), 101, 100,
-        'Testnotiz 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 3.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1002, NOW(), NOW(), 101, 100, 'Testnotiz 2');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
@@ -268,34 +277,34 @@ UPDATE households SET main_person_id = 103 WHERE id = 103;
 
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1041, NOW(), NOW(), 103, 100,
-        'Testnotiz 1.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 1.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1042, NOW(), NOW(), 103, 100,
-        'Testnotiz 2.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 2.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1043, NOW(), NOW(), 103, 100,
-        'Testnotiz 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 3.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1044, NOW(), NOW(), 103, 100,
-        'Testnotiz 4.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 4.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1045, NOW(), NOW(), 103, 100,
-        'Testnotiz 5.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 5.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1046, NOW(), NOW(), 103, 100,
-        'Testnotiz 6.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 6.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1047, NOW(), NOW(), 103, 100,
-        'Testnotiz 7.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 7.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1048, NOW(), NOW(), 103, 100,
-        'Testnotiz 8.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 8.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1049, NOW(), NOW(), 103, 100,
-        'Testnotiz 9.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 9.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
 VALUES (1050, NOW(), NOW(), 103, 100,
-        'Testnotiz 10.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+        E'Testnotiz 10.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
@@ -531,8 +540,8 @@ INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_i
                                       count_persons, count_infants, average_persons_per_customer,
                                       count_customers_new, count_persons_new,
                                       count_customers_prolonged, count_persons_prolonged,
-                                      count_customers_updated, employee_count, persons_in_shelter_count)
-VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8, 100, 200);
+                                      count_customers_updated, employee_count)
+VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8, 100);
 
 -- register customers to distribution
 INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
@@ -579,60 +588,60 @@ VALUES (1, NOW(), NOW(), 100, 'Billa', '01 23 45 67 89', null,
         'Fr. Musterfrau', 'Bloch-Bauer-Promenade 1', 1100, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (2, NOW(), NOW(), 200, 'Billa Plus', '01 23 45 67 89',
-        'DW 123 od. 456', 'Hr. Mustermann', 'Herzgasse 2', 1110, 'Wien', 'BOX');
+VALUES (2, NOW(), NOW(), 200, 'Billa Plus', '01 40 144 20', 'DW 123 od. 456',
+        'Hr. Mustermann', 'Herzgasse 2', 1110, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (3, NOW(), NOW(), 300, 'Hofer', '01 23 45 67 89', null,
+VALUES (3, NOW(), NOW(), 300, 'Hofer', '01 40 144 30', null,
         'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (4, NOW(), NOW(), 400, 'Hofer 2', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (4, NOW(), NOW(), 400, 'Penny', null, 'Anlieferung nur bis 16:00',
+        'Hr. Beispiel', 'Meidlinger Hauptstraße 4', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (5, NOW(), NOW(), 500, 'Hofer 3', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (5, NOW(), NOW(), 500, 'Spar', '01 40 144 50', null,
+        null, 'Schönbrunner Straße 5', 1050, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (6, NOW(), NOW(), 600, 'Hofer 4', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (6, NOW(), NOW(), 600, 'Eurospar', '01 40 144 60', null,
+        'Fr. Beispiel', 'Wiedner Hauptstraße 6', 1040, 'Wien', 'KG');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (7, NOW(), NOW(), 700, 'Hofer 5', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (7, NOW(), NOW(), 700, 'Interspar', '01 40 144 70', 'Grosse Mengen - zweiter Wagen noetig',
+        'Hr. Mustermann', 'Landstraßer Gürtel 7', 1030, 'Wien', 'KG');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (8, NOW(), NOW(), 800, 'Hofer 6', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (8, NOW(), NOW(), 800, 'Merkur', null, null,
+        null, 'Praterstraße 8', 1020, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (9, NOW(), NOW(), 900, 'Hofer 7', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (9, NOW(), NOW(), 900, 'Lidl', '01 40 144 90', null,
+        'Fr. Musterfrau', 'Taborstraße 9', 1020, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (10, NOW(), NOW(), 1000, 'Hofer 8', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (10, NOW(), NOW(), 1000, 'Denns BioMarkt', '01 40 144 100', 'Nur Bio - getrennt verladen',
+        'Hr. Beispiel', 'Währinger Straße 10', 1090, 'Wien', 'KG');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (11, NOW(), NOW(), 1100, 'Hofer 9', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (11, NOW(), NOW(), 1100, 'Bäckerei Ströck', '01 40 144 110', null,
+        'Fr. Beispiel', 'Alser Straße 11', 1080, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (12, NOW(), NOW(), 1200, 'Denns Biomarkt 10', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (12, NOW(), NOW(), 1200, 'Bäckerei Anker', null, 'Ware steht ab 06:00 bereit',
+        null, 'Josefstädter Straße 12', 1080, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (13, NOW(), NOW(), 1300, 'Hofer 11', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (13, NOW(), NOW(), 1300, 'Etsan Supermarkt', '01 40 144 130', null,
+        'Hr. Mustermann', 'Ottakringer Straße 13', 1160, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (14, NOW(), NOW(), 1400, 'Hofer 12', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (14, NOW(), NOW(), 1400, 'Unimarkt', '01 40 144 140', null,
+        'Fr. Musterfrau', 'Thaliastraße 14', 1160, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (15, NOW(), NOW(), 1500, 'Hofer 13', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
+VALUES (15, NOW(), NOW(), 1500, 'Nahversorger Nord', null, 'Zufahrt ueber den Hinterhof',
+        'Hr. Beispiel', 'Brünner Straße 15', 1210, 'Wien', 'KG');
 
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
@@ -650,8 +659,36 @@ VALUES (30, NOW(), NOW(), 3000, 'Denns BioMarkt', '01 23 45 67 89', null,
 
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
-VALUES (31, NOW(), NOW(), 3100, 'Denns BioMarkt', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien', 'KG');
+VALUES (31, NOW(), NOW(), 3100, 'Basic Bio', '01 40 144 310', 'Kisten bitte gleich mitnehmen',
+        'Hr. Beispiel', 'Landstraßer Hauptstraße 31', 1030, 'Wien', 'BOX');
+
+-- the shops of route 4
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (40, NOW(), NOW(), 4000, 'Spar', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Landstraßer Hauptstraße 6', 1030, 'Wien', 'BOX');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (41, NOW(), NOW(), 4100, 'Spar Gourmet', '01 23 45 67 89', 'Rampe hinter dem Haus',
+        'Hr. Mustermann', 'Rasumofskygasse 7', 1030, 'Wien', 'BOX');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (42, NOW(), NOW(), 4200, 'MPreis', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Erdbergstraße 8', 1030, 'Wien', 'KG');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (43, NOW(), NOW(), 4300, 'Adeg', '01 23 45 67 89', null,
+        'Hr. Mustermann', 'Fasangasse 9', 1030, 'Wien', 'BOX');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (44, NOW(), NOW(), 4400, 'Nah & Frisch', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Ungargasse 10', 1030, 'Wien', 'BOX');
+
+-- the single shop of route 5
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (50, NOW(), NOW(), 5000, 'Bäckerei Felber', '01 23 45 67 89', null,
+        'Hr. Mustermann', 'Rennweg 11', 1030, 'Wien', 'BOX');
 
 -- routes
 INSERT INTO routes (id, created_at, updated_at, number, name, note)
@@ -663,51 +700,61 @@ VALUES (2, NOW(), NOW(), 2, 'Route 2', null);
 INSERT INTO routes (id, created_at, updated_at, number, name, note)
 VALUES (3, NOW(), NOW(), 3, 'Route 3', null);
 
+-- A mid-sized route, between route 1's fifteen stops and route 2's three: enough of them for the
+-- dashboard's per-stop progress segments to look like a real day's route rather than a special case.
+INSERT INTO routes (id, created_at, updated_at, number, name, note)
+VALUES (4, NOW(), NOW(), 4, 'Route 4', 'Schlüssel für die Rampe beim Portier abholen');
+
+-- One stop only. Arriving there is arriving at the route's *first* stop, so it never announces
+-- "beim letzten Stopp" - see RouteAtLastStopEvent.
+INSERT INTO routes (id, created_at, updated_at, number, name, note)
+VALUES (5, NOW(), NOW(), 5, 'Route 5', null);
+
 -- shops to routes
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (1, NOW(), NOW(), 1, 1, '14:00:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (2, NOW(), NOW(), 1, 2, '14:15:00');
+VALUES (2, NOW(), NOW(), 1, 2, '14:20:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (3, NOW(), NOW(), 1, 3, '14:30:00');
+VALUES (3, NOW(), NOW(), 1, 3, '14:35:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (4, NOW(), NOW(), 1, 4, '14:45:00');
+VALUES (4, NOW(), NOW(), 1, 4, '15:00:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (5, NOW(), NOW(), 1, 5, '15:00:00');
+VALUES (5, NOW(), NOW(), 1, 5, '15:10:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (6, NOW(), NOW(), 1, 6, '15:15:00');
+VALUES (6, NOW(), NOW(), 1, 6, '15:40:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (7, NOW(), NOW(), 1, 7, '15:30:00');
+VALUES (7, NOW(), NOW(), 1, 7, '16:00:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (8, NOW(), NOW(), 1, 8, '15:45:00');
+VALUES (8, NOW(), NOW(), 1, 8, '16:10:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (9, NOW(), NOW(), 1, 9, '16:00:00');
+VALUES (9, NOW(), NOW(), 1, 9, '16:35:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (10, NOW(), NOW(), 1, 10, '16:15:00');
+VALUES (10, NOW(), NOW(), 1, 10, '16:50:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (11, NOW(), NOW(), 1, 11, '16:30:00');
+VALUES (11, NOW(), NOW(), 1, 11, '17:00:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (12, NOW(), NOW(), 1, 12, '16:45:00');
+VALUES (12, NOW(), NOW(), 1, 12, '17:25:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (13, NOW(), NOW(), 1, 13, '17:00:00');
+VALUES (13, NOW(), NOW(), 1, 13, '17:40:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (14, NOW(), NOW(), 1, 14, '17:15:00');
+VALUES (14, NOW(), NOW(), 1, 14, '17:55:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (15, NOW(), NOW(), 1, 15, '17:30:00');
+VALUES (15, NOW(), NOW(), 1, 15, '18:20:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (200, NOW(), NOW(), 2, 20, '12:00:00');
@@ -723,6 +770,27 @@ VALUES (300, NOW(), NOW(), 3, 30, '13:00:00');
 
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (310, NOW(), NOW(), 3, 31, '13:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (400, NOW(), NOW(), 4, 40, '11:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (410, NOW(), NOW(), 4, 41, '11:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time, description)
+VALUES (420, NOW(), NOW(), 4, null, '12:00:00', 'Mittagspause');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (430, NOW(), NOW(), 4, 42, '12:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (440, NOW(), NOW(), 4, 43, '13:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (450, NOW(), NOW(), 4, 44, '13:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (500, NOW(), NOW(), 5, 50, '10:00:00');
 
 -- food categories
 INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, sort_order)
@@ -763,8 +831,8 @@ INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_i
                                       count_persons, count_infants, average_persons_per_customer,
                                       count_customers_new, count_persons_new,
                                       count_customers_prolonged, count_persons_prolonged,
-                                      count_customers_updated, employee_count, persons_in_shelter_count)
-VALUES (1, NOW(), NOW(), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                                      count_customers_updated, employee_count)
+VALUES (1, NOW(), NOW(), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- other employees
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
@@ -790,24 +858,31 @@ INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route
 VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500);
 
 -- food collections items for route 1
+-- `weight` is stored, not derived on read (see FoodCollectionItemEntity), so it has to be computed
+-- here exactly as the application would: the amount itself for a shop measuring in KG, otherwise
+-- amount * the category's weight per unit.
 WITH ShopCategories AS (
-                        SELECT s.id AS shop_id, fc.id AS food_category_id
+                        SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
                         FROM shops s
                         JOIN routes_stops rs ON rs.shop_id = s.id
                         JOIN routes r ON rs.route_id = r.id
                         CROSS JOIN food_categories fc
                         WHERE r.id = 1
-                        )
+                        ),
+     Items AS (SELECT sc.*, sc.shop_id AS amount -- using same as amount
+               FROM ShopCategories sc)
 INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
-                             amount)
+                             amount,
+                             weight)
 SELECT 1,         -- fixed collection 1
-       sc.shop_id,
-       sc.food_category_id,
-       sc.shop_id -- using same as amount
-FROM ShopCategories sc;
+       i.shop_id,
+       i.food_category_id,
+       i.amount,
+       CASE WHEN i.food_unit = 'KG' THEN i.amount ELSE i.amount * COALESCE(i.weight_per_unit, 0) END
+FROM Items i;
 
 -- food collection for route 2
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
@@ -827,12 +902,25 @@ INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
-                             amount)
+                             amount,
+                             weight)
 SELECT 2,         -- fixed collection 2
        sc.shop_id,
        sc.food_category_id,
-       0 -- amount
+       0, -- amount
+       0  -- a zero amount weighs nothing whatever the unit is
 FROM ShopCategories sc;
+
+-- return boxes route 2 brought back last time - the route guidance screen sends them out again
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 20, 'Graue Kisten', 4);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 20, 'Bananenkartons', 2);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 21, 'Klappkisten schwarz', 3);
+-- a zero is "nothing came back", not an empty crate to carry - guidance must not list it
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (2, 21, 'Ströck Kisten', 0);
 
 -- food collection for route 3 (empty)
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
@@ -841,7 +929,7 @@ VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200);
 
 -- food collections items for route 3 (all empty)
 WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id
+    SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
     FROM shops s
              JOIN routes_stops rs ON rs.shop_id = s.id
              JOIN routes r ON rs.route_id = r.id
@@ -852,12 +940,27 @@ INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
-                             amount)
+                             amount,
+                             weight)
 SELECT 3,         -- fixed collection 3
        sc.shop_id,
        sc.food_category_id,
-       1 -- amount
+       1, -- amount
+       CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END
 FROM ShopCategories sc;
+
+-- return boxes route 3 brought back last time. Route 3 is the only route no e2e spec ever records a
+-- food collection for, so this stays the newest collection it has - which is what makes the route
+-- guidance screen's return boxes assertable without depending on the order the specs ran in.
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 30, 'Graue Kisten', 4);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 30, 'Bananenkartons', 2);
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 31, 'Klappkisten schwarz', 3);
+-- a zero is "nothing came back", not an empty crate to carry - guidance must not list it
+INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
+VALUES (3, 31, 'Ströck Kisten', 0);
 
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
@@ -915,3 +1018,94 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW() + interval '2 years', NOW() + interval '2 years');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
 VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);
+
+
+-- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters
+-- something to filter. Written directly rather than by exercising the application, which is the
+-- only way to get a spread of dates out of a fixture that loads in one moment - and the reason
+-- these rows carry no matching change in the data itself: they describe edits that never happened.
+--
+-- Shaped so each filter has a visible effect: every entity type and operation occurs, the actors
+-- are three different users, and the business keys are households that exist in this fixture. The
+-- timestamps run from 2 hours to ~29 days old - deliberately inside tafeladmin.audit.retentionDays,
+-- so the nightly cleanup never quietly removes half the fixture from a long-running environment.
+-- That also means the screen opens with all of them: narrowing the date range is what shows it
+-- working, which is what one actually does with it.
+--
+-- The newest is deliberately 2 hours old: an e2e test that creates a customer and then reads the
+-- log expects its own change first, which a fixture row stamped "now" could tie with.
+WITH shapes (idx, entity_type, entity_id, business_key, operation, changed_fields) AS (
+    VALUES (0, 'Household', 100, '100', 'UPDATE',
+            '{"addressCity": ["Wien", "Graz"], "addressPostalCode": ["1030", "8010"]}'),
+           (1, 'Household', 101, '101', 'UPDATE',
+            '{"telephoneNumber": ["00436645678953", "00436641112223"]}'),
+           (2, 'Household', 102, '102', 'INSERT',
+            '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2999-12-31"]}'),
+           (3, 'Household', 103, '103', 'DELETE',
+            '{"addressStreet": ["Erdberg", null], "addressCity": ["Wien", null], "email": ["geloescht@wrk.at", null]}'),
+           (4, 'Person', 104, '104', 'UPDATE',
+            '{"income": ["456.00", "512.00"], "incomeDue": ["2026-01-31", "2026-07-31"]}'),
+           (5, 'Person', 105, '105', 'INSERT',
+            '{"firstname": [null, "Neues"], "lastname": [null, "Haushaltsmitglied"], "isMainPerson": [null, false]}'),
+           (6, 'HouseholdNote', 110, '110', 'INSERT',
+            '{"note": [null, "Kunde hat Einkommensnachweis nachgereicht"]}'),
+           (7, 'Document', 111, '111', 'INSERT',
+            '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'),
+           (8, 'User', 200, 'testuser', 'UPDATE',
+            '{"enabled": [true, false], "passwordChangeRequired": [false, true]}'),
+           (9, 'UserAuthority', 200, 'testuser', 'INSERT',
+            '{"name": [null, "CUSTOMERS_OVERVIEW"]}'),
+           (10, 'StaticValue', 1, 'INCOME_LIMIT', 'UPDATE',
+            '{"amount": ["1200.00", "1250.00"]}'),
+           (11, 'MailRecipient', 1, 'DAILY_REPORT', 'UPDATE',
+            '{"address": ["alt@wrk.at", "neu@wrk.at"]}')
+)
+INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, actor_firstname,
+                       actor_lastname, entity_type, entity_id,
+                       business_key, operation, changed_fields)
+SELECT n,
+       NOW() - interval '2 hours' - (n * interval '7 hours'),
+       CASE n % 3 WHEN 0 THEN 100 WHEN 1 THEN 300 ELSE 200 END,
+       CASE n % 3 WHEN 0 THEN 'e2etest' WHEN 1 THEN 'admin' ELSE 'testuser' END,
+       CASE n % 3 WHEN 0 THEN 'E2E' WHEN 1 THEN 'AD' ELSE 'Test' END,
+       CASE n % 3 WHEN 0 THEN 'Test' WHEN 1 THEN 'min' ELSE 'User' END,
+       shapes.entity_type,
+       shapes.entity_id,
+       shapes.business_key,
+       shapes.operation,
+       shapes.changed_fields::jsonb
+FROM generate_series(1, 100) AS n
+         JOIN shapes ON shapes.idx = n % 12;
+
+
+-- A single customer with a full history, so the "Verlauf" tab on the customer detail screen shows
+-- something without having to make changes by hand first. Kunde 132 is the one to open when testing
+-- it: every entity type that belongs to a household occurs, spread over the last three weeks and
+-- across three different users.
+INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, actor_firstname,
+                       actor_lastname, entity_type, entity_id,
+                       business_key, operation, changed_fields)
+VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'E2E', 'Test', 'Household', 132, '132', 'UPDATE',
+        '{"telephoneNumber": ["00436641111111", "00436642222222"], "email": ["alt@wrk.at", "neu@wrk.at"]}'::jsonb),
+       (202, NOW() - interval '1 day', 300, 'admin', 'AD', 'min', 'Person', 132, '132', 'UPDATE',
+        '{"income": ["1100.00", "1250.00"], "incomeDue": ["2026-06-30", "2026-12-31"]}'::jsonb),
+       (203, NOW() - interval '2 days', 100, 'e2etest', 'E2E', 'Test', 'HouseholdNote', 1321, '132', 'INSERT',
+        '{"note": [null, "Einkommensnachweis nachgereicht und geprueft"]}'::jsonb),
+       (204, NOW() - interval '4 days', 200, 'testuser', 'Test', 'User', 'Document', 1322, '132', 'INSERT',
+        '{"fileName": [null, "einkommensnachweis.pdf"], "documentType": [null, "INCOME"]}'::jsonb),
+       (205, NOW() - interval '6 days', 300, 'admin', 'AD', 'min', 'Household', 132, '132', 'UPDATE',
+        '{"addressStreet": ["Erdberg", "Landstrasser Hauptstrasse"], "addressHouseNumber": ["5", "12"]}'::jsonb),
+       (206, NOW() - interval '8 days', 100, 'e2etest', 'E2E', 'Test', 'Person', 1323, '132', 'INSERT',
+        '{"firstname": [null, "Lena"], "lastname": [null, "Musterkind"], "isMainPerson": [null, false]}'::jsonb),
+       (207, NOW() - interval '11 days', 300, 'admin', 'AD', 'min', 'Household', 132, '132', 'UPDATE',
+        '{"locked": [false, true], "lockReason": [null, "Unterlagen unvollstaendig"]}'::jsonb),
+       (208, NOW() - interval '13 days', 300, 'admin', 'AD', 'min', 'Household', 132, '132', 'UPDATE',
+        '{"locked": [true, false], "lockReason": ["Unterlagen unvollstaendig", null]}'::jsonb),
+       (209, NOW() - interval '16 days', 200, 'testuser', 'Test', 'User', 'Person', 1324, '132', 'DELETE',
+        '{"firstname": ["Ausgezogenes", null], "lastname": ["Haushaltsmitglied", null]}'::jsonb),
+       (210, NOW() - interval '19 days', 100, 'e2etest', 'E2E', 'Test', 'HouseholdNote', 1325, '132', 'INSERT',
+        '{"note": [null, "Telefonisch nicht erreichbar"]}'::jsonb),
+       (211, NOW() - interval '22 days', 100, 'e2etest', 'E2E', 'Test', 'Household', 132, '132', 'UPDATE',
+        '{"validUntil": ["2026-06-30", "2026-12-31"], "prolongedAt": [null, "2026-07-18T10:12:00"]}'::jsonb),
+       (212, NOW() - interval '26 days', 100, 'e2etest', 'E2E', 'Test', 'Household', 132, '132', 'INSERT',
+        '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2026-06-30"]}'::jsonb);

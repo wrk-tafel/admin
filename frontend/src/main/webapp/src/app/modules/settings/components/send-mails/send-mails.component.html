@@ -4,7 +4,7 @@
       <mat-card-title>
         <div class="flex items-center gap-2">
           <fa-icon [icon]="faEnvelope" />
-          <h5 class="mb-0 mt-1">E-Mails erneut senden</h5>
+          <h2 class="tafel-h5 mb-0 mt-1">E-Mails erneut senden</h2>
         </div>
       </mat-card-title>
     </mat-card-header>
@@ -14,7 +14,7 @@
         hinterlegten Empfänger.
       </p>
 
-      <mat-form-field class="w-full">
+      <mat-form-field class="w-full" subscriptSizing="dynamic">
         <mat-label>Ausgabe vom:</mat-label>
         <mat-select [value]="selectedDistribution()" (selectionChange)="selectedDistribution.set($event.value)">
           @for (distribution of distributions(); track distribution) {
@@ -25,7 +25,7 @@
         </mat-select>
       </mat-form-field>
     </mat-card-content>
-    <mat-card-footer class="mt-6">
+    <mat-card-footer>
       <button matButton="filled"
               [disabled]="!selectedDistribution()"
               (click)="sendMails()">

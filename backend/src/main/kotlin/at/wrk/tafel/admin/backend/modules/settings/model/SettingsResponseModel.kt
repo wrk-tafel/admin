@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotBlank
 
 @ExcludeFromTestCoverage
 data class MailRecipientsRequest(
-    @field:Valid
-    val mailRecipients: List<MailRecipientsPerMailType>,
+    val mailRecipients: List<@Valid MailRecipientsPerMailType>,
 )
 
 @ExcludeFromTestCoverage
@@ -19,8 +18,7 @@ data class MailRecipientsResponse(
 data class MailRecipientsPerMailType(
     @field:NotBlank
     val mailType: String,
-    @field:Valid
-    val recipients: List<MailRecipientAdresses>,
+    val recipients: List<@Valid MailRecipientAdresses>,
 )
 
 @ExcludeFromTestCoverage

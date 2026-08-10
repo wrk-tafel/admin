@@ -9,6 +9,7 @@ import {UserLoginAttemptsComponent} from './views/login-attempts/user-login-atte
 export const routes: Routes = [
   {
     path: 'detail/:id',
+    title: 'Benutzer-Details',
     component: UserDetailComponent,
     resolve: {
       userData: UserDataResolver,
@@ -16,6 +17,7 @@ export const routes: Routes = [
   },
   {
     path: 'bearbeiten/:id',
+    title: 'Benutzer bearbeiten',
     component: UserEditComponent,
     resolve: {
       userData: UserDataResolver,
@@ -24,10 +26,12 @@ export const routes: Routes = [
   },
   {
     path: 'suchen',
+    title: 'Benutzer suchen',
     component: UserSearchComponent
   },
   {
     path: 'erstellen',
+    title: 'Benutzer anlegen',
     component: UserEditComponent,
     resolve: {
       permissionsData: PermissionsDataResolver
@@ -35,6 +39,7 @@ export const routes: Routes = [
   },
   {
     path: 'anmelde-versuche',
+    title: 'Anmelde-Versuche',
     component: UserLoginAttemptsComponent
   }
 ];

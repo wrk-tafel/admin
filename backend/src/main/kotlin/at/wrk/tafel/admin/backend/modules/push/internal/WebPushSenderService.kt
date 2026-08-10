@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -53,6 +54,7 @@ enum class PushSendResult {
 class WebPushSenderService(
     private val vapidSigner: VapidSigner,
     private val encryptionService: WebPushEncryptionService,
+    private val tafelAdminProperties: TafelAdminProperties,
     private val restClient: RestClient = defaultRestClient(),
 ) {
     companion object {
@@ -61,24 +63,6 @@ class WebPushSenderService(
         private const val CONTENT_ENCODING = "aes128gcm"
         private const val TTL_HEADER = "TTL"
         private const val URGENCY_HEADER = "Urgency"
-
-        /**
-         * Without an `Urgency` header the push service applies `normal`, and FCM defers
-         * normal-urgency messages to the next maintenance window while the device is in Doze - so
-         * they only surface once something else wakes the device (typically the user opening the
-         * app). `high` is what tells FCM to deliver immediately, which is the whole point of an
-         * "Ausgabe gestartet" alert.
-         */
-        private const val URGENCY = "high"
-
-        /**
-         * How long the push service may hold a message for a device that's currently offline, in
-         * seconds. 12 hours is roughly the span of a distribution day (about 12:00-24:00, with the
-         * "started"/"closed" alerts at either end): long enough that a phone merely asleep or out
-         * of signal for a few hours still gets told about the distribution the notification is
-         * actually about, short enough that it can't resurface the next day when it means nothing.
-         */
-        private const val TTL_SECONDS = "${12 * 60 * 60}"
 
         /**
          * Both timeouts matter more here than the numbers themselves: `PushBroadcastService` walks
@@ -111,7 +95,7 @@ class WebPushSenderService(
      * three minutes, with everything over that budget silently dropped rather than queued. Every
      * notification here would share one of three topics, so repeated sends land in one bucket and
      * stop arriving: pressing the test button ten times delivers about one of them, and a device
-     * whose budget is already spent gets nothing at all. [TTL_SECONDS] already keeps an undelivered
+     * whose budget is already spent gets nothing at all. The `TTL` already keeps an undelivered
      * backlog from outliving the distribution it's about, which is what the topic was wanted for in
      * the first place.
      */
@@ -120,6 +104,9 @@ class WebPushSenderService(
             logger.warn("Skipped push send - VAPID isn't configured")
             return PushSendResult.NOT_CONFIGURED
         }
+
+        // Read per send rather than kept in a field - see TafelAdminPushDeliveryProperties.
+        val deliveryProperties = tafelAdminProperties.pushDelivery
 
         return try {
             val endpoint = URI.create(requireNotNull(subscriptionEntity.endpoint) { "The subscription has no endpoint" })
@@ -135,8 +122,8 @@ class WebPushSenderService(
                 .uri(endpoint)
                 .header(HttpHeaders.AUTHORIZATION, vapidSigner.authorizationHeader(endpoint))
                 .header(HttpHeaders.CONTENT_ENCODING, CONTENT_ENCODING)
-                .header(TTL_HEADER, TTL_SECONDS)
-                .header(URGENCY_HEADER, URGENCY)
+                .header(TTL_HEADER, deliveryProperties.ttl.toSeconds().toString())
+                .header(URGENCY_HEADER, deliveryProperties.urgency)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(body)
                 // exchange rather than retrieve: the interesting statuses below are exactly the ones

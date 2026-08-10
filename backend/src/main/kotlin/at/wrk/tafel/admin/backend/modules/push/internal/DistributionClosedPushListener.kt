@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
@@ -24,7 +24,7 @@ class DistributionClosedPushListener(
     @EventListener
     fun onDistributionClosed(event: DistributionClosedEvent) {
         val distribution = distributionRepository.findByIdOrNull(event.distributionId) ?: return
-        val dateFormatted = distribution.startedAt!!.format(DATE_FORMATTER)
+        val dateFormatted = distribution.startedAt.format(DATE_FORMATTER)
 
         pushBroadcastService.broadcast(
             type = PushNotificationType.DISTRIBUTION_CLOSED,

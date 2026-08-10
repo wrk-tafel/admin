@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

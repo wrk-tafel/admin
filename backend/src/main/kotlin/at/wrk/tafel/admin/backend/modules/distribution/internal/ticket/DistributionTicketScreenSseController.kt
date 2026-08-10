@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
+import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
@@ -18,11 +18,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 class DistributionTicketScreenSseController(
     private val service: DistributionService,
     private val sseOutboxService: SseOutboxService,
+    private val sseEmitterFactory: SseEmitterFactory,
 ) {
 
     @GetMapping("/current")
     fun listenForChanges(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
+        val sseEmitter = sseEmitterFactory.createSseEmitter()
 
         // send initial state
         var currentTicketNumber: Int? = null

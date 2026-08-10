@@ -25,6 +25,7 @@ import {MatButton} from '@angular/material/button';
 import {faCheck, faPencil, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {staticValueTypeLabels} from './static-value-type-labels';
 
@@ -52,7 +53,8 @@ import {staticValueTypeLabels} from './static-value-type-labels';
     CurrencyPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatTooltipModule
   ]
 })
 export class SettingsStaticValuesComponent {
@@ -70,6 +72,24 @@ export class SettingsStaticValuesComponent {
 
   protected typeLabel(type: StaticValueTypeEnum): string {
     return staticValueTypeLabels[type];
+  }
+
+  /**
+   * Names one row for the row actions' accessible names. The type alone does not identify a row -
+   * several rows share it and differ only in their household size or age.
+   */
+  protected rowLabel(staticValue: StaticValueItem): string {
+    const parts = [this.typeLabel(staticValue.type!)];
+    if (staticValue.countAdults != null) {
+      parts.push(`${staticValue.countAdults} Erwachsene`);
+    }
+    if (staticValue.countChildren != null) {
+      parts.push(`${staticValue.countChildren} Kinder`);
+    }
+    if (staticValue.age != null) {
+      parts.push(`Alter ${staticValue.age}`);
+    }
+    return parts.join(', ');
   }
 
   constructor() {

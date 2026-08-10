@@ -2,8 +2,8 @@
   <mat-card-header class="mb-2">
     <mat-card-title>
       <div class="flex items-center gap-2">
-        <h5 class="mb-0 mt-1">Mitarbeiter</h5>
-        <button matButton="filled" class="button-success" testid="addEmployeeButton" (click)="addEmployee()">
+        <h2 class="tafel-h5 mb-0 mt-1">Mitarbeiter</h2>
+        <button matButton="filled" class="button-success" testid="addEmployeeButton" matTooltip="Neuen Mitarbeiter anlegen" (click)="addEmployee()" aria-label="Neuen Mitarbeiter anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
       </div>
@@ -20,7 +20,7 @@
         <mat-label>Suche</mat-label>
         <input matInput testid="employeeSearchInput" [formControl]="searchControl" (keydown.enter)="search()"/>
       </mat-form-field>
-      <button matButton="filled" testid="searchEmployeeButton" (click)="search()">
+      <button matButton="filled" testid="searchEmployeeButton" matTooltip="Mitarbeiter suchen" (click)="search()" aria-label="Mitarbeiter suchen">
         <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
       </button>
     </div>
@@ -39,8 +39,10 @@
         <td mat-cell *matCellDef="let employee; let i = index">
           @if (editingId() === employee.id) {
             <mat-form-field subscriptSizing="dynamic">
+              <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
+                   inside it, and a visible label here would repeat the column header in every row -->
               <input #personnelNumberInput matInput [formControl]="personnelNumberControl"
-                     [attr.testid]="'employeePersonnelNumberInput-' + i"
+                     [attr.testid]="'employeePersonnelNumberInput-' + i" aria-label="Personalnummer"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
           } @else {
@@ -55,6 +57,7 @@
           @if (editingId() === employee.id) {
             <mat-form-field subscriptSizing="dynamic">
               <input matInput [formControl]="firstnameControl" [attr.testid]="'employeeFirstnameInput-' + i"
+                     aria-label="Vorname"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
           } @else {
@@ -69,6 +72,7 @@
           @if (editingId() === employee.id) {
             <mat-form-field subscriptSizing="dynamic">
               <input matInput [formControl]="lastnameControl" [attr.testid]="'employeeLastnameInput-' + i"
+                     aria-label="Nachname"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
           } @else {
@@ -81,15 +85,15 @@
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let employee; let i = index">
           @if (editingId() === employee.id) {
-            <button matButton="filled" [attr.testid]="'saveEmployeeButton-' + i" (click)="saveEdit(employee)">
+            <button matButton="filled" [attr.testid]="'saveEmployeeButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelEmployeeButton-' + i" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelEmployeeButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' abbrechen'">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButton-' + i"
-                    (click)="startEdit(employee)">
+            <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButton-' + i" matTooltip="Mitarbeiter bearbeiten"
+                    (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
           }
@@ -144,15 +148,15 @@
             </mat-card-content>
             <mat-card-actions class="flex gap-2">
               @if (editingId() === employee.id) {
-                <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" (click)="saveEdit(employee)">
+                <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
-                <button matButton="outlined" [attr.testid]="'cancelEmployeeButtonMobile-' + i" (click)="cancelEdit()">
+                <button matButton="outlined" [attr.testid]="'cancelEmployeeButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' abbrechen'">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButtonMobile-' + i"
-                        (click)="startEdit(employee)">
+                <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
+                        (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
               }

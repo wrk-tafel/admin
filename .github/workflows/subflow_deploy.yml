@@ -22,6 +22,11 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    # Every deploy is recorded against a GitHub environment named after the server folder it writes
+    # to: that is what lists it under the repository's Deployments, and what per-environment secrets
+    # and protection rules would attach to. None of the three carries a protection rule - every
+    # deploy here runs automatically off the branch that triggered it, see ADR-0043.
+    environment: ${{ inputs.environment }}
     steps:
       - name: Create SSH key
         run: |

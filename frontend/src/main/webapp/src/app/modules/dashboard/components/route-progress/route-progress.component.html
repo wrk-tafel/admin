@@ -1,0 +1,31 @@
+<mat-card class="h-full mat-card-primary" testid="route-progress-panel">
+  <mat-card-content class="!p-4">
+    <h2 class="tafel-h4 mb-1">Routen unterwegs</h2>
+    <!-- several routes per row and one line each: the dashboard has to fit on one screen, and a
+         stacked list of full-width bars is what pushed it past that -->
+    <ul class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-3">
+      @for (route of routes(); track route.routeId) {
+        <!-- the testids carry the route id: the whole list is replaced on every SSE push, so a
+             test that held on to a plain "the entry" element would be retrying against a node
+             that is no longer in the document -->
+        <li class="flex items-center gap-2" [attr.testid]="'route-progress-entry-' + route.routeId">
+          <span class="min-w-0 max-w-[45%] truncate font-semibold">{{ route.routeName }}</span>
+          <!-- one segment per stop rather than a single filled bar: at a glance it says how many
+               stops a route has and how many of them are behind it, not just a percentage -->
+          <div class="flex flex-1 gap-0.5" role="progressbar" [attr.aria-label]="route.label"
+               aria-valuemin="0" [attr.aria-valuemax]="route.totalStops"
+               [attr.aria-valuenow]="route.completedStops"
+               [attr.testid]="'route-progress-segments-' + route.routeId">
+            @for (segment of route.segments; track $index) {
+              <span class="h-2 flex-1 rounded-sm"
+                    [class.bg-green-700]="segment" [class.bg-slate-300]="!segment"></span>
+            }
+          </div>
+          <span class="tabular-nums" [attr.testid]="'route-progress-count-' + route.routeId">
+            {{ route.completedStops }} / {{ route.totalStops }}
+          </span>
+        </li>
+      }
+    </ul>
+  </mat-card-content>
+</mat-card>

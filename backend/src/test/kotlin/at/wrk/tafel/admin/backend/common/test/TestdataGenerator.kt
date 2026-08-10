@@ -48,7 +48,6 @@ object TestdataGenerator {
             householdId = generateRandomLong(),
             validUntil = LocalDate.now().plusYears(1),
             locked = false,
-            migrated = false,
         )
 
         household.issuer = issuer

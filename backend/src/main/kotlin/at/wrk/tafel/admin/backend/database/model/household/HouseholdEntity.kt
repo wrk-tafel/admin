@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.model.household
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
@@ -47,8 +48,6 @@ class HouseholdEntity(
     var validUntil: LocalDate,
     @Column(name = "locked")
     var locked: Boolean = false,
-    @Column(name = "migrated")
-    var migrated: Boolean = false,
 ) : BaseChangeTrackingEntity() {
 
     @ManyToOne
@@ -100,7 +99,15 @@ class HouseholdEntity(
     var pendingCostContribution: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "single_parent")
-    var singleParent: Boolean? = null
+    var singleParent: Boolean = false
+
+    /**
+     * Everything the single search box may match a household on - household number, the names of all
+     * its members, address, phone number and e-mail - concatenated and lower-cased. Maintained by a
+     * database trigger (see `R__00088_fulltext_search.sql`), hence read-only here.
+     */
+    @Column(name = "search_text", insertable = false, updatable = false)
+    var searchText: String? = null
 
     @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
     var persons: MutableList<PersonEntity> = mutableListOf()
@@ -116,23 +123,9 @@ class HouseholdEntity(
 
     interface Specs {
         companion object {
-            fun firstnameContains(firstname: String?): Specification<HouseholdEntity>? = firstname?.let {
+            fun searchTextMatches(searchTerm: String?, similarityThreshold: Float): Specification<HouseholdEntity>? = searchTerm?.let {
                 Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
-                    cb.like(
-                        cb.lower(mainPerson["firstname"]),
-                        "%${firstname.lowercase()}%",
-                    )
-                }
-            }
-
-            fun lastnameContains(lastname: String?): Specification<HouseholdEntity>? = lastname?.let {
-                Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
-                    cb.like(
-                        cb.lower(mainPerson["lastname"]),
-                        "%${lastname.lowercase()}%",
-                    )
+                    SearchTextSpecs.matches(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], searchTerm, similarityThreshold)
                 }
             }
 
@@ -188,11 +181,23 @@ class HouseholdEntity(
                 cb.greaterThan(pendingCostContribution, BigDecimal.ZERO)
             }
 
-            fun orderByUpdatedAtDesc(spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            /**
+             * Best match first while a search term is given, most recently updated first otherwise
+             * (a plain filter-only search has no notion of a better hit). Ordering always ends on the
+             * id so paging stays stable when two households score - or were updated - identically.
+             */
+            fun orderBySearchRelevance(searchTerm: String?, spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val updatedAt: Expression<LocalDate> = root["updatedAt"]
                 val id: Expression<Long> = root["id"]
 
-                cq!!.orderBy(cb.desc(updatedAt), cb.desc(id))
+                val orders = buildList {
+                    searchTerm?.let {
+                        add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                    }
+                    add(cb.desc(updatedAt))
+                    add(cb.desc(id))
+                }
+                cq!!.orderBy(orders)
                 spec.toPredicate(root, cq, cb)
             }
 

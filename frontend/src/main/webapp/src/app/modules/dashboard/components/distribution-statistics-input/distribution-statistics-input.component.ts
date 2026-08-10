@@ -11,6 +11,7 @@ import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.serv
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',
@@ -29,7 +30,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     FormsModule,
     SelectSheltersComponent,
     MatError,
-    MatLabel
+    MatLabel,
+    TafelInfoTooltipComponent
   ]
 })
 export class DistributionStatisticsInputComponent {
@@ -55,6 +57,9 @@ export class DistributionStatisticsInputComponent {
 
   selectedShelters = signal<ShelterItem[]>([]);
 
+  // Both controls get their disabled state from here, never from a [disabled] binding in the
+  // template: on a `formControlName` that binding is what Angular warns about, since the reactive
+  // control is the single source of truth for it.
   distributionEffect = effect(() => {
     const distribution = this.distribution();
     if (distribution) {

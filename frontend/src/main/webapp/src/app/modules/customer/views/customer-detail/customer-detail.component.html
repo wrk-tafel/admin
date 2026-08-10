@@ -68,7 +68,7 @@
                 [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
         </button>
         <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
-                aria-label="Toggle Dropdown">▾
+                aria-label="Weitere Aktionen für diesen Kunden">▾
         </button>
       </div>
       <mat-menu #editMenu="matMenu">
@@ -117,7 +117,7 @@
             <div>
               <mat-card>
                 <mat-card-header class="justify-center text-center w-full">
-                  <h5>Hauptbezieher</h5>
+                  <h2 class="tafel-h5">Hauptbezieher</h2>
                 </mat-card-header>
                 <mat-card-content>
                   <div class="flex justify-between">
@@ -185,16 +185,23 @@
                       testid="issuedInformation">am {{ customerData()?.issuedAt | date : 'dd.MM.yyyy' }} {{ customerData()?.issuer | formatIssuer }}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="font-bold text-white px-2"
-                          [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
-                      Gültig bis:
+                    <span class="font-bold flex items-center">
+                      <span class="text-white px-2"
+                            [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
+                        Gültig bis:
+                      </span>
+                      <tafel-info-tooltip [testId]="'valid-until-info-tooltip'"
+                                          text="Ende der Bezugsberechtigung. Grün bedeutet aufrecht, rot abgelaufen - über 'Bezug verlängern' kann das Datum verlängert werden."></tafel-info-tooltip>
                     </span>
                     <span testid="validUntilText" class="text-white px-2"
-                          [ngClass]="{'bg-green-600': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
+                          [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="font-bold"
-                          [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
+                    <span class="font-bold flex items-center">
+                      <span [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
+                      <tafel-info-tooltip [testId]="'pending-cost-contribution-info-tooltip'"
+                                          text="Summe der Unkostenbeiträge, die bei früheren Ausgaben nicht bezahlt wurden. Sie wird beim nächsten Besuch eingehoben und kann über 'Unkostenbeitrag' verbucht werden."></tafel-info-tooltip>
+                    </span>
                     <span testid="pendingCostContributionText"
                           [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">
                       {{ customerData()?.pendingCostContribution | currency }}
@@ -207,8 +214,9 @@
               <mat-card>
                 <mat-card-header class="w-full">
                   <div class="flex justify-between items-center w-full">
-                    <h5 class="m-0">Aktuellste Notiz</h5>
-                    <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()">
+                    <h2 class="tafel-h5 m-0">Aktuellste Notiz</h2>
+                    <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
+                            matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
                       <fa-icon [icon]="faPlus"></fa-icon>
                     </button>
                   </div>
@@ -216,7 +224,7 @@
                 <mat-card-content>
                   @if (customerNotes()?.length === 0) {
                     <div class="font-bold" testid="latest-customer-note-none">
-                      <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                      <h3 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h3>
                     </div>
                   }
                   @if (customerNotes()?.length !== 0) {
@@ -225,7 +233,10 @@
                         <span class="font-bold"
                               testid="note-title">{{ customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()[0].author }}</span>
                       </div>
-                      <div testid="note-text" [innerHtml]="customerNotes()[0].note"></div>
+                      <!-- Notes are free text, never markup: interpolated (not [innerHtml]) so a
+                           tag stays text, with pre-line so typed newlines still break the line.
+                           The all-notes dialog and the check-in panel render it the same way. -->
+                      <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()[0].note }}</div>
                     </div>
                   }
                 </mat-card-content>
@@ -249,7 +260,7 @@
         </ng-template>
         <div>
           @if (customerData()?.additionalPersons?.length === 0) {
-            <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
+            <h3 testid="nopersons-label" class="tafel-h6 mt-4">Keine Personen vorhanden</h3>
           }
           @if ((customerData()?.additionalPersons?.length ?? 0) > 0) {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
@@ -331,10 +342,14 @@
                           </div>
                         </div>
                         <div class="flex gap-2 shrink-0 justify-end">
-                          <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)">
+                          <!-- the file name belongs in the name: these are cards, so there is no row
+                               context that would tell one card's buttons from the next one's -->
+                          <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
+                                  matTooltip="Dokument herunterladen" [attr.aria-label]="'Dokument ' + doc.fileName + ' herunterladen'">
                             <fa-icon [icon]="faDownload"></fa-icon>
                           </button>
-                          <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)">
+                          <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
+                                  matTooltip="Dokument löschen" [attr.aria-label]="'Dokument ' + doc.fileName + ' löschen'">
                             <fa-icon [icon]="faTrashCan"></fa-icon>
                           </button>
                         </div>
@@ -350,6 +365,22 @@
           </div>
         </div>
       </mat-tab>
+      <!-- Seeing a customer's current data and seeing every change ever made to it are separate
+           levels of access, so the tab only exists for whoever may read the audit trail. -->
+      @if (hasAuditPermission()) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span testid="history-tab-label">Verlauf</span>
+          </ng-template>
+          <!-- matTabContent, unlike every other tab here: a tab's content is otherwise created with
+               the screen even while it is not shown, and this is the only tab that fetches on its
+               own rather than reading what the resolver already loaded. Without it, every visit to a
+               customer would query the audit trail nobody asked to see. -->
+          <ng-template matTabContent>
+            <tafel-customer-history [customerId]="customerData()!.id!"></tafel-customer-history>
+          </ng-template>
+        </mat-tab>
+      }
     </mat-tab-group>
   </div>
 </div>

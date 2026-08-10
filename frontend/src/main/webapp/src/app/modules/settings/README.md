@@ -36,6 +36,16 @@ settings/
     employees/                     # route: einstellungen/mitarbeiter
       dialogs/
         employee-create-dialog.component.ts
+    food-return-categories/        # route: einstellungen/retourkategorien
+      dialogs/
+        food-return-category-create-dialog.component.ts
+    shops/                         # route: einstellungen/filialen
+      dialogs/
+        shop-edit-dialog.component.ts
+    routes/                        # route: einstellungen/routen
+      dialogs/
+        route-edit-dialog.component.ts
+    enabled-filter.ts              # Alle/Aktiv/Inaktiv filter shared by shops + routes
   settings.routes.ts
 ```
 
@@ -206,6 +216,47 @@ that reflect the domain:
   dialog title, calls the API itself and closes with the saved entity) rather
   than a generic create dialog — reusing it here would have been misleading.
 
+## `shops` (`SettingsShopsComponent`) and `routes` (`SettingsRoutesComponent`)
+
+The two logistics master-data screens. Unlike every other view in this module they are **not**
+Material tables with a mobile card fallback: both render a list of expandable cards, because their
+records carry more detail than a row can hold (a shop's contact block, a route's whole list of
+stops). The collapsed header row is the overview — number badge, name, one line of summary
+(`view.address` / `view.stopsSummary`) and an "Inaktiv" badge — the expanded body holds the
+details, so there is no separate read-only details dialog for either of them.
+
+Both follow the same shape, and a change to one usually belongs in the other:
+
+- **View models, not raw entities in the template.** A `computed()` maps each `ShopItem`/`RouteData`
+  to a `ShopView`/`RouteView` that pre-renders everything the template shows (address string, unit
+  label, resolved shop name per stop, `HH:mm` times, stops summary) plus a lowercased
+  `searchIndex`. The template only interpolates — no method calls, no pipes per row.
+- **Search + status filter.** A `FormControl` fed through `toSignal()` and an `enabledFilter`
+  signal (`EnabledFilter` from `views/enabled-filter.ts`) drive a `visibleShops()`/`visibleRoutes()`
+  `computed()`. Filtering is purely client-side; both endpoints return the full list anyway.
+- **Enabling/disabling** happens with a `mat-slide-toggle`. On a failed update the list is
+  reloaded, because the toggle has already moved on its own and only fresh data puts it back.
+- **Editing** stays dialog-based (`shop-edit-dialog`, `route-edit-dialog`), and the edit button is
+  disabled while the record is inactive, same convention as cars/food-categories.
+- **Both controls sit in the record's header row**, not in the expanded body, so a record can be
+  switched or edited without expanding it first. This is why neither screen uses `mat-accordion`:
+  `mat-expansion-panel-header` is itself a `role="button"`, and a control nested inside a button is
+  not reliably reachable — assistive technology exposes the header as one button and need not
+  convey the children's roles (axe reports it as `nested-interactive`, one node per record). Each
+  record is therefore a plain card whose summary is its own `<button>` carrying
+  `aria-expanded`/`aria-controls`, with the toggle and the edit button as its **siblings** and the
+  body a `role="region"` that `[hidden]` collapses. A new control in that row goes beside them, not
+  inside the summary button. Expanded state is held as a `Set` of record ids (not indices), so a
+  search or filter change cannot transfer it to whichever record moves into that position.
+- `route-edit-dialog` manages the stops as a nested `stops: FormArray` of
+  `{ time, shopId, description }` with `addStop()`/`removeStop()` plus manual
+  `ChangeDetectorRef.detectChanges()` calls, structurally the twin of `shelter-edit-dialog`'s
+  contacts array. Stop order is never edited by hand — the backend sorts stops by their time
+  (`RouteService.mapRoute`), so there is no drag-and-drop here.
+- `SettingsRoutesComponent` loads shops alongside routes (`forkJoin`) to resolve each stop's shop
+  name and address. New routes may only pick active shops, while editing a route additionally
+  offers the disabled shops it already stops at, so saving can't silently drop such a stop.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
@@ -220,6 +271,10 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
   exercised from this module).
 - `distribution-api.service.ts` — used by `send-mails` to list distributions and
   trigger re-sends.
+- `shop-api.service.ts` — `ShopApiService`, shared with `routes` (which needs the shop list to
+  resolve its stops) and with `logistics`' food-collection recording.
+- `route-api.service.ts` — `RouteApiService`; the settings view uses `getAllRoutes()` plus
+  create/update, `logistics` only the `getActiveRoutes()` read side.
 - `employee-api.service.ts` — `EmployeeApiService`; `findEmployees()` (paged,
   optional `searchInput`) and `saveEmployee()` predate this view (shared with
   `logistics`' create-employee flow), `updateEmployee()` was added for this

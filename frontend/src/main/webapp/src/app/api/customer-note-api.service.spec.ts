@@ -45,6 +45,7 @@ describe('CustomerNoteApiService', () => {
       note: note
     };
     const mockNoteItem: CustomerNoteItem = {
+      id: 47,
       author: 'author1',
       timestamp: dayjs().subtract(1, 'hour').toDate(),
       note: 'note from author 1'

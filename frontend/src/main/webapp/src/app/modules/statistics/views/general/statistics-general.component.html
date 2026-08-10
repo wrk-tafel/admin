@@ -2,16 +2,19 @@
   <div class="md:col-span-3">
     <mat-card>
       <mat-card-header>
-        <h5>Statistik</h5>
+        <h2 class="tafel-h5">Statistik</h2>
       </mat-card-header>
       <mat-card-content>
         <p class="mb-4 text-sm text-slate-600">
           Auswertungen über Kunden, Notschlafstellen und Logistik für den gewählten Zeitraum.
         </p>
 
-        <div class="font-bold mb-2">Zeitraum</div>
+        <div class="font-bold mb-2" id="dateRangeLabel">Zeitraum</div>
         <div class="overflow-x-auto">
+          <!-- every control in this block is named by the visible text beside it: without the
+               explicit association those are plain <div>s that name nothing -->
           <mat-button-toggle-group testid="dateRangeModeInput" [value]="selectedMode()"
+                                    aria-labelledby="dateRangeLabel"
                                     (change)="onModeChange($event.value)">
             <mat-button-toggle value="year">Jahr</mat-button-toggle>
             <mat-button-toggle value="currentMonth">Aktuelles Monat</mat-button-toggle>
@@ -24,11 +27,12 @@
           @switch (selectedMode()) {
             @case ('year') {
               <div class="sm:col-span-2">
-                <div class="mb-2">Jahr</div>
+                <div class="mb-2" id="yearLabel">Jahr</div>
               </div>
               <div class="sm:col-span-5">
                 <mat-form-field subscriptSizing="dynamic" class="w-full">
                   <mat-select testid="yearInput" [ngModel]="selectedYear()"
+                              aria-labelledby="yearLabel"
                               (ngModelChange)="onYearSelected($event)">
                     @for (year of yearOptions(); track year) {
                       <mat-option [value]="year" [attr.testid]="'yearInput-option-' + year">{{ year }}</mat-option>
@@ -39,11 +43,12 @@
             }
             @case ('distribution') {
               <div class="sm:col-span-2">
-                <div class="mb-2">Ausgabe</div>
+                <div class="mb-2" id="distributionLabel">Ausgabe</div>
               </div>
               <div class="sm:col-span-5">
                 <mat-form-field subscriptSizing="dynamic" class="w-full">
                   <mat-select testid="distributionDateInput"
+                              aria-labelledby="distributionLabel"
                               [ngModel]="selectedDistribution()"
                               (ngModelChange)="onDistributionSelected($event)">
                     <mat-option [value]="undefined"></mat-option>
@@ -56,19 +61,21 @@
             }
             @case ('custom') {
               <div class="sm:col-span-2">
-                <div class="mb-2">von</div>
+                <div class="mb-2" id="dateRangeFromLabel">von</div>
               </div>
               <div class="sm:col-span-5">
                 <mat-form-field subscriptSizing="dynamic" class="w-full">
-                  <input matInput testid="dataRangeFromInput" type="date" [(ngModel)]="dateRangeFrom">
+                  <input matInput testid="dataRangeFromInput" type="date" aria-labelledby="dateRangeFromLabel"
+                         [(ngModel)]="dateRangeFrom">
                 </mat-form-field>
               </div>
               <div class="sm:col-span-2 mt-2 sm:mt-0">
-                <div class="mb-2">bis</div>
+                <div class="mb-2" id="dateRangeToLabel">bis</div>
               </div>
               <div class="sm:col-span-5 mt-2 sm:mt-0">
                 <mat-form-field subscriptSizing="dynamic" class="w-full">
-                  <input matInput testid="dataRangeToInput" type="date" [(ngModel)]="dateRangeTo">
+                  <input matInput testid="dataRangeToInput" type="date" aria-labelledby="dateRangeToLabel"
+                         [(ngModel)]="dateRangeTo">
                 </mat-form-field>
               </div>
             }
@@ -80,7 +87,7 @@
   <div class="mt-4 md:mt-0">
     <mat-card class="h-full">
       <mat-card-header>
-        <h5>Export</h5>
+        <h2 class="tafel-h5">Export</h2>
       </mat-card-header>
       <mat-card-content>
         <button matButton="filled" (click)="generateCsv()">
@@ -93,11 +100,11 @@
 @if (statisticsData()) {
   <mat-card class="mt-4">
     <mat-card-header>
-      <h5>Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h5>
+      <h2 class="tafel-h5">Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h2>
     </mat-card-header>
     <mat-card-content>
       <div>
-        <h5>Kunden und Personen</h5>
+        <h3 class="tafel-h5">Kunden und Personen</h3>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
@@ -115,7 +122,7 @@
         </div>
       </div>
       <div class="mt-4">
-        <h5>Notschlafstellen</h5>
+        <h3 class="tafel-h5">Notschlafstellen</h3>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
@@ -129,7 +136,7 @@
         </div>
       </div>
       <div class="mt-4">
-        <h5>Transport- / Logistik</h5>
+        <h3 class="tafel-h5">Transport- / Logistik</h3>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>

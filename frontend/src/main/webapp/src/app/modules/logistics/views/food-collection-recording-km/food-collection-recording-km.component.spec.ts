@@ -29,7 +29,7 @@ describe('FoodCollectionRecordingKmComponent', () => {
     foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as MockedObject<FoodCollectionsApiService>;
   });
 
-  const mockRoute: RouteData = {id: 123, name: 'Test Route'};
+  const mockRoute: RouteData = {id: 123, number: 1, name: 'Test Route', enabled: true, stops: []};
   const mockRouteData: SelectedRouteData = {
     route: mockRoute,
     shops: [],

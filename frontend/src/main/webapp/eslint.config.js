@@ -150,7 +150,14 @@ module.exports = tseslint.config(
   {
     files: ['**/*.html'],
     extends: [
-      ...angular.configs.templateRecommended
+      ...angular.configs.templateRecommended,
+      // The static half of this project's accessibility checking. The `lighthouse` job's `pages`
+      // sweep enforces axe at score 1, but only over what a route actually renders for the e2e
+      // fixtures - it never opens a dialog, never expands a panel, and never sees a component that
+      // no route in its matrix reaches. These rules read the templates instead, so a click handler
+      // on an element nothing can focus is a lint error at authoring time rather than a defect
+      // nobody's audit happens to load.
+      ...angular.configs.templateAccessibility
     ],
     rules: {}
   }

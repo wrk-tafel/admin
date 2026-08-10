@@ -1,7 +1,7 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
     <mat-card-title>
-      <h5 class="mb-0 mt-1">Grenzwerte</h5>
+      <h2 class="tafel-h5 mb-0 mt-1">Grenzwerte</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
@@ -37,8 +37,10 @@
         <td mat-cell *matCellDef="let staticValue; let i = index">
           @if (editingId() === staticValue.id) {
             <mat-form-field subscriptSizing="dynamic">
+              <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
+                   inside it, and a visible label here would repeat the column header in every row -->
               <input #amountInput matInput type="number" step="0.01" [formControl]="amountControl"
-                     [attr.testid]="'staticValueAmountInput-' + i"
+                     [attr.testid]="'staticValueAmountInput-' + i" aria-label="Betrag"
                      (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
               <span matTextSuffix>&nbsp;€</span>
             </mat-form-field>
@@ -52,15 +54,15 @@
         <th mat-header-cell *matHeaderCellDef>Aktionen</th>
         <td mat-cell *matCellDef="let staticValue; let i = index">
           @if (editingId() === staticValue.id) {
-            <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + i" (click)="saveEdit(staticValue)">
+            <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' speichern'">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" (click)="cancelEdit()">
+            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(staticValue) + ' abbrechen'">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + i"
-                    (click)="startEdit(staticValue)">
+            <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + i" matTooltip="Betrag bearbeiten"
+                    (click)="startEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
           }
@@ -92,8 +94,9 @@
                 <div>
                   @if (editingId() === staticValue.id) {
                     <mat-form-field subscriptSizing="dynamic">
+                      <!-- the card's own "Betrag:" text sits in a sibling cell and names nothing -->
                       <input #amountInputMobile matInput type="number" step="0.01" [formControl]="amountControl"
-                             [attr.testid]="'staticValueAmountInputMobile-' + i"
+                             [attr.testid]="'staticValueAmountInputMobile-' + i" aria-label="Betrag"
                              (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
                       <span matTextSuffix>&nbsp;€</span>
                     </mat-form-field>
@@ -105,15 +108,15 @@
             </mat-card-content>
             <mat-card-actions class="flex gap-2">
               @if (editingId() === staticValue.id) {
-                <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + i" (click)="saveEdit(staticValue)">
+                <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
-                <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + i" (click)="cancelEdit()">
+                <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(staticValue) + ' abbrechen'">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButtonMobile-' + i"
-                        (click)="startEdit(staticValue)">
+                <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButtonMobile-' + i" matTooltip="Betrag bearbeiten"
+                        (click)="startEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
               }

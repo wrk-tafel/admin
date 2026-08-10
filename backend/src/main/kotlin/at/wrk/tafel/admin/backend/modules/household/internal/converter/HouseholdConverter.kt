@@ -56,18 +56,22 @@ class HouseholdConverter(
         householdEntity.addressCity = householdUpdate.address.city?.trim()
         householdEntity.telephoneNumber = householdUpdate.telephoneNumber
         householdEntity.email = householdUpdate.email?.takeIf { it.isNotBlank() }?.trim()
-        householdEntity.singleParent = householdUpdate.singleParent
+        // The form's checkbox always sends a value; a request that omits it means "not a single
+        // parent" rather than "unknown", and `households.single_parent` is not nullable.
+        householdEntity.singleParent = householdUpdate.singleParent == true
 
-        val prolongedAt =
-            if (storedEntity != null &&
-                householdUpdate.validUntil != null &&
-                householdUpdate.validUntil.isAfter(storedEntity.validUntil)
-            ) {
-                LocalDateTime.now()
-            } else {
-                null
-            }
-        householdEntity.prolongedAt = prolongedAt
+        // Only stamped when this save actually pushes `validUntil` further out; any other update
+        // leaves the stored value untouched. `HouseholdService.getHouseholdsOverview` ("Verlängert")
+        // and `DistributionStatisticService`'s `countCustomersProlonged` select on `prolongedAt`
+        // falling inside a distribution's window, so clearing it on an unrelated later edit (address,
+        // telephone number, an added person) would silently drop the household from that
+        // distribution's numbers.
+        if (storedEntity != null &&
+            householdUpdate.validUntil != null &&
+            householdUpdate.validUntil.isAfter(storedEntity.validUntil)
+        ) {
+            householdEntity.prolongedAt = LocalDateTime.now()
+        }
         if (householdUpdate.validUntil != null) {
             householdEntity.validUntil = householdUpdate.validUntil
         }
@@ -83,10 +87,6 @@ class HouseholdConverter(
             householdEntity.lockedBy = null
             householdEntity.lockReason = null
         }
-
-        // TODO revisit on 01.01.2026 if still necessary
-        // once the household was updated/fixed the required fields - migration is done
-        householdEntity.migrated = false
 
         // The main person row is always updated in place (never removed and re-created), so that
         // households.main_person_id never points at a row scheduled for orphan removal.

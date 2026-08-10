@@ -7,8 +7,12 @@
 
     <hr/>
 
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="above-limit-announcement">{{ aboveLimitAnnouncement() }}</div>
+
     @if ((customerAboveLimitData()?.items?.length ?? 0) === 0) {
-      <h4 class="font-bold mt-4">Keine Kunden über dem Limit gefunden!</h4>
+      <h2 class="tafel-h4 font-bold mt-4">Keine Kunden über dem Limit gefunden!</h2>
     }
 
     @if ((customerAboveLimitData()?.items?.length ?? 0) > 0) {
@@ -22,7 +26,7 @@
         <table mat-table [dataSource]="customerAboveLimitData()!.items" class="min-w-full divide-y divide-gray-200"
                aria-label="Liste der Kunden über dem Limit">
           <ng-container matColumnDef="icon">
-            <th mat-header-cell *matHeaderCellDef></th>
+            <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
             <td mat-cell *matCellDef="let item"><fa-icon [icon]="faUser"></fa-icon></td>
           </ng-container>
 
@@ -68,7 +72,8 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
             <td mat-cell *matCellDef="let item; let i = index" class="px-4 py-2">
-              <button type="button" matButton="filled" class="button-info" [attr.testid]="'abovelimit-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)">
+              <button type="button" matButton="filled" class="button-info" [attr.testid]="'abovelimit-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)"
+                      matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                 <fa-icon [icon]="faSearch"></fa-icon>
               </button>
             </td>
@@ -103,7 +108,8 @@
                 </div>
               </mat-card-content>
               <mat-card-actions class="flex gap-2 mt-2">
-                <button type="button" matButton="filled" class="button-info" [attr.testid]="'abovelimit-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)">
+                <button type="button" matButton="filled" class="button-info" [attr.testid]="'abovelimit-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)"
+                      matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                   <fa-icon [icon]="faSearch"></fa-icon>
                 </button>
               </mat-card-actions>

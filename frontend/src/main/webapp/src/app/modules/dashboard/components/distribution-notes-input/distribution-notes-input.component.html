@@ -1,23 +1,30 @@
 <mat-card class="h-full mat-card-primary">
   <mat-card-header>
     <mat-card-title>
-      <h4>Anmerkungen</h4>
+      <h2 class="tafel-h4">Anmerkungen</h2>
     </mat-card-title>
   </mat-card-header>
-  <mat-card-content>
-    <mat-form-field class="w-full" appearance="fill">
+  <!-- `!flex`: Material's own `.mat-mdc-card-content { display: block }` is a single class like
+       the utility and comes later in the cascade, so a plain `flex` here does nothing. -->
+  <mat-card-content class="!flex flex-col">
+    <mat-form-field class="w-full lg:flex-1" appearance="fill">
+      <!--
+        A placeholder was standing in for the label, and a placeholder is gone the moment the field
+        holds anything - which is exactly when a screen-reader user asks what field they are in.
+      -->
+      <mat-label>Notizen zur Ausgabe</mat-label>
       <textarea
         matInput
         testid="distribution-notes-textarea"
         placeholder="Notizen für diese Ausgabe eingeben ..."
         [ngModel]="notes()"
         (ngModelChange)="notes.set($event)"
-        rows="7"
+        rows="4"
         [disabled]="inputIsDisabled()"
       ></textarea>
     </mat-form-field>
   </mat-card-content>
-  <mat-card-footer class="mt-4">
+  <mat-card-footer>
     <button
       mat-raised-button
       testid="distribution-notes-save-button"

@@ -3,7 +3,7 @@
     <mat-card-title>
       <div class="flex items-center gap-2">
         <fa-icon [icon]="faEnvelope" />
-        <h5 class="mb-0 mt-1">E-Mail Empfänger</h5>
+        <h2 class="tafel-h5 mb-0 mt-1">E-Mail Empfänger</h2>
       </div>
     </mat-card-title>
   </mat-card-header>
@@ -17,8 +17,10 @@
         @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
           <mat-tab>
             <ng-template mat-tab-label>
+              <!-- red-700 rather than the red-600 used on white elsewhere: the tab header's own
+                   background is grey, where red-600 only reaches 3.75:1 -->
               <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
-                    [class.text-red-600]="isControlInvalid(recipientOfMailType)">
+                    [class.text-red-700]="isControlInvalid(recipientOfMailType)">
                 {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
               </span>
             </ng-template>
@@ -34,7 +36,10 @@
                         <button type="button" matButton="filled"
                                 class="button-success"
                                 [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
-                                (click)="addAddress(i, j)">
+                                (click)="addAddress(i, j)"
+                                [attr.aria-label]="'Weitere E-Mail Adresse hinzufügen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
+                                matTooltip="Weitere E-Mail Adresse hinzufügen"
+                                matTooltipPosition="above">
                           <fa-icon [icon]="faPlus"></fa-icon>
                         </button>
                       </div>
@@ -47,6 +52,7 @@
                             <input
                               [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                               type="email"
+                              [attr.aria-label]="getRecipientTypeLabel(recipient.get('recipientType')!.value) + ' - E-Mail Adresse ' + (k + 1)"
                               [formControlName]="k"
                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               [class.border-red-500]="isControlInvalid(address)"
@@ -62,7 +68,9 @@
                             <button type="button" matButton="filled"
                                     class="button-danger"
                                     [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
-                                    (click)="removeAddress(i, j, k)">
+                                    (click)="removeAddress(i, j, k)"
+                                    [attr.aria-label]="'E-Mail Adresse ' + (k + 1) + ' entfernen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
+                                    matTooltip="E-Mail Adresse entfernen">
                               <fa-icon [icon]="faTrashCan"></fa-icon>
                             </button>
                           </div>

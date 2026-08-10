@@ -1,3 +1,14 @@
+<!--
+  Ahead of the sidenav container, because that is what makes it the first thing the tab order
+  reaches - inside `mat-sidenav-content` it would sit behind the whole navigation it exists to skip.
+  Hidden until it has focus. The click is handled here instead of letting the browser follow the
+  fragment, because `anchorScrolling` is enabled in `appConfig` and the router would turn it into a
+  navigation of its own.
+-->
+<a href="#hauptinhalt" (click)="skipToContent($event)" testid="skip-to-content" class="tafel-skip-link">
+  Zum Hauptinhalt springen
+</a>
+
 <mat-sidenav-container class="h-screen print:hidden">
   <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
                class="!border-r-0 transition-all duration-200"
@@ -20,36 +31,56 @@
       </a>
     </div>
 
-    <nav class="py-2 overflow-y-auto grow">
+    <nav class="py-2 overflow-y-auto grow" aria-label="Hauptnavigation">
       @for (item of navItems(); track item.name + '-' + $index) {
         @if (item.title) {
           @if (!collapsed()) {
-            <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold">{{ item.name }}</div>
+            <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-400 font-semibold">{{ item.name }}</div>
           }
         } @else {
           <div>
             @if (item.children) {
-              <a (click)="toggleExpanded(item.name)"
-                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
-                 [class.justify-center]="collapsed()"
-                 [class.pointer-events-none]="item.attributes?.disabled"
-                 [class.opacity-50]="item.attributes?.disabled">
+              <!--
+                A button rather than an anchor: this only expands the group below it, it navigates
+                nowhere. An `<a>` without an `href` is not focusable and not activatable by keyboard,
+                which left the whole submenu unreachable without a mouse.
+              -->
+              <!--
+                Both attributes drop away while the sidebar is collapsed: the submenu is not
+                rendered at all in that state, so there is nothing for the button to control and
+                nothing its expanded state could describe.
+              -->
+              <button type="button" (click)="toggleExpanded(item.name)"
+                      [attr.aria-expanded]="collapsed() ? null : expandedItems().has(item.name)"
+                      [attr.aria-controls]="collapsed() ? null : 'nav-group-' + $index"
+                      [disabled]="!!item.attributes?.disabled"
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                      [class.justify-center]="collapsed()"
+                      [class.text-gray-400]="item.attributes?.disabled"
+                      [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
                 @if (!collapsed()) {
-                  <span class="grow">{{ item.name }}</span>
+                  <span class="grow text-left">{{ item.name }}</span>
                   <fa-icon [icon]="expandedItems().has(item.name) ? faAngleDown : faAngleRight"
                            class="w-3 shrink-0"></fa-icon>
                 }
-              </a>
+              </button>
             } @else {
+              <!--
+                `pointer-events-none` alone only disables the mouse - a disabled entry stayed in the
+                tab order and still navigated on Enter, so it needs to leave the tab order too.
+              -->
               <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
                  (click)="isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                  [class.justify-center]="collapsed()"
                  [class.pointer-events-none]="item.attributes?.disabled"
-                 [class.opacity-50]="item.attributes?.disabled">
+                 [class.text-gray-400]="item.attributes?.disabled"
+                 [attr.aria-disabled]="item.attributes?.disabled ? true : null"
+                 [attr.tabindex]="item.attributes?.disabled ? -1 : null"
+                 [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
@@ -62,16 +93,18 @@
               </a>
             }
             @if (item.children && !collapsed() && expandedItems().has(item.name)) {
-              @for (child of item.children; track child.name) {
-                <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                   (click)="isMobile() && sidenav.close()"
-                   class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
-                  @if (child.icon) {
-                    <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
-                  }
-                  <span>{{ child.name }}</span>
-                </a>
-              }
+              <div [id]="'nav-group-' + $index">
+                @for (child of item.children; track child.name) {
+                  <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                     (click)="isMobile() && sidenav.close()"
+                     class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
+                    @if (child.icon) {
+                      <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
+                    }
+                    <span>{{ child.name }}</span>
+                  </a>
+                }
+              </div>
             }
           </div>
         }
@@ -80,13 +113,14 @@
 
     <div class="hidden lg:flex px-2 py-2 shrink-0"
          [class.justify-end]="!collapsed()" [class.justify-center]="collapsed()">
-      <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
+      <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen" testid="sidenav-collapse-toggle"
+              [matTooltip]="collapsed() ? 'Menü ausklappen' : 'Menü einklappen'" matTooltipPosition="right"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
     @if (!collapsed() && appConfig(); as info) {
-      <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-500 shrink-0 text-center">
+      <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-400 shrink-0 text-center">
         <div class="truncate">{{ info.version }}</div>
         @if (info.buildTime !== 'unknown') {
           <div class="truncate">{{ info.buildTime | date: 'dd.MM.yyyy HH:mm' }}</div>
@@ -96,10 +130,31 @@
    </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="flex flex-col min-h-screen">
+  <!--
+    `!flex`, not `flex`: Material's own `.mat-drawer-content { display: block }` is a single class
+    like the utility and comes later in the cascade, so a plain `flex` here is silently a no-op and
+    the `grow` on `<main>` below has nothing to grow inside.
+  -->
+  <mat-sidenav-content class="!flex flex-col min-h-screen">
     <tafel-default-header class="block sticky top-0 z-10 bg-white shadow-sm" (toggleSidebar)="sidenav.toggle()"/>
-    <div class="grow px-6 pt-6 pb-6">
+    <!--
+      `tabindex="-1"` makes the landmark itself a focus target for the skip link - without it the
+      focus stays where it was and the next Tab would continue in the navigation.
+    -->
+    <!--
+      A column flex container, so a screen that wants to fill the height it was given can say so
+      with `flex-1` on itself (the dashboard does, to end exactly at the fold). Nothing grows
+      unless it asks to, so every other screen keeps its natural height.
+    -->
+    <main #mainContent id="hauptinhalt" tabindex="-1" class="flex grow flex-col px-6 pt-6 pb-6 focus:outline-none">
+      <!--
+        The page's one `h1`, from the same route title the document title uses. The screens
+        themselves show no page heading - the sidebar is what names the open page - so without this
+        a screen reader's heading navigation would start in the middle of the outline, and the
+        headings the cards do carry would have nothing to sit under.
+      -->
+      <h1 class="sr-only">{{ pageTitle() }}</h1>
       <router-outlet/>
-    </div>
+    </main>
   </mat-sidenav-content>
 </mat-sidenav-container>

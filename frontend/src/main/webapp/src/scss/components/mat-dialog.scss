@@ -6,19 +6,20 @@
 }
 
 .dialog-header-warning {
-  background-color: #f9b115;
+  background-color: var(--tafel-severity-warning);
+  --mat-dialog-subhead-color: var(--tafel-severity-on-warning);
 }
 
 .dialog-header-info {
-  background-color: #39f;
+  background-color: var(--tafel-severity-info);
 }
 
 .dialog-header-danger {
-  background-color: #e55353;
+  background-color: var(--tafel-severity-danger);
 }
 
 .dialog-header-success {
-  background-color: #1b9e3e;
+  background-color: var(--tafel-severity-success);
 }
 
 // Tighter corners/padding and a larger content font than Material's M3 defaults, plus white

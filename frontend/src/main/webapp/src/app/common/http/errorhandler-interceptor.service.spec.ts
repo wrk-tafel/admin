@@ -7,6 +7,7 @@ import { SUPPRESS_ERROR_TOAST } from './suppress-error-toast.token';
 import { ProblemDetail } from '../api/problem-detail';
 import { AuthenticationService } from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
+import {ClientLogService} from '../support/client-log.service';
 
 describe('ErrorHandlerInterceptor', () => {
     let httpTestingController: HttpTestingController;
@@ -230,6 +231,24 @@ describe('ErrorHandlerInterceptor', () => {
             detail: 'Custom message from body'
         };
         mockReq.flush(errorBody, mockErrorResponse);
+        httpTestingController.verify();
+    });
+
+    it('records every failure for a later support request, suppressed toast included', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+        const clientLogService = TestBed.inject(ClientLogService);
+
+        const observer = {
+            error: (_: any) => {
+                expect(clientLogService.getEntries().map(entry => entry.message)).toEqual([
+                    'HTTP 500 - GET /test: Interner Serverfehler!'
+                ]);
+            },
+        };
+        httpClient.get('/test', { context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true) }).subscribe(observer);
+
+        const mockReq = httpTestingController.expectOne('/test');
+        mockReq.flush(null, { status: 500, statusText: 'Internal Server Error' });
         httpTestingController.verify();
     });
 

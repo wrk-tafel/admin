@@ -8,31 +8,31 @@
 .mat-mdc-raised-button:not([disabled]):not(.mat-mdc-button-disabled),
 .mat-mdc-unelevated-button:not([disabled]):not(.mat-mdc-button-disabled) {
   &.button-success {
-    background-color: #1b9e3e !important;
+    background-color: var(--tafel-severity-success) !important;
     color: white !important;
 
     &:hover, &:focus, &:active {
-      background-color: #1b9e3e !important;
+      background-color: var(--tafel-severity-success) !important;
       color: white !important;
     }
   }
 
   &.button-warning {
-    background-color: #f9b115 !important;
-    color: white !important;
+    background-color: var(--tafel-severity-warning) !important;
+    color: var(--tafel-severity-on-warning) !important;
 
     &:hover, &:focus, &:active {
-      background-color: #f9b115 !important;
-      color: white !important;
+      background-color: var(--tafel-severity-warning) !important;
+      color: var(--tafel-severity-on-warning) !important;
     }
   }
 
   &.button-danger {
-    background-color: #e55353 !important;
+    background-color: var(--tafel-severity-danger) !important;
     color: white !important;
 
     &:hover, &:focus, &:active {
-      background-color: #e55353 !important;
+      background-color: var(--tafel-severity-danger) !important;
       color: white !important;
     }
   }

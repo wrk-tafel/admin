@@ -4,13 +4,14 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.enabledEquals
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.firstnameContains
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.lastnameContains
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.orderByUpdatedAtDesc
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.usernameContains
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.orderBySearchRelevance
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.searchTextMatches
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
@@ -36,6 +37,7 @@ class TafelUserDetailsManager(
     private val employeeRepository: EmployeeRepository,
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -52,23 +54,27 @@ class TafelUserDetailsManager(
         return user?.let { mapToUserDetails(user) }
     }
 
+    /**
+     * Whether anyone other than [excludedUserId] would still be an administrator able to log in.
+     * Used to keep the last one from being removed - see `UserController`.
+     */
+    fun anotherEnabledAdministratorExists(excludedUserId: Long): Boolean = userRepository.countOtherEnabledUsersWithAuthority(UserPermissions.ADMINISTRATOR.key, excludedUserId) > 0
+
     fun loadUsers(
-        username: String?,
-        firstname: String?,
-        lastname: String?,
+        searchInput: String?,
         enabled: Boolean?,
         page: Int?,
         pageSize: Int? = null,
     ): UserSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val searchTerm = SearchTextSpecs.normalize(searchInput)
 
-        val spec = orderByUpdatedAtDesc(
+        val spec = orderBySearchRelevance(
+            searchTerm,
             where(
                 Specification.allOf(
                     listOf(
-                        usernameContains(username),
-                        firstnameContains(firstname),
-                        lastnameContains(lastname),
+                        searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
                         enabledEquals(enabled),
                     ).mapNotNull { it },
                 ),

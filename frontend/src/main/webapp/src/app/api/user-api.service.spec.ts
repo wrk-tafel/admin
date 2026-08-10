@@ -62,28 +62,20 @@ describe('UserApiService', () => {
   });
 
   it('search user with all parameters', () => {
-    apiService.searchUser('maxl-username', false, 'mustermann', 'max', 3).subscribe();
+    apiService.searchUser('mustermann', false, 3).subscribe();
 
     const req = httpMock.expectOne({
       method: 'GET',
-      url: '/users?username=maxl-username&enabled=false&lastname=mustermann&firstname=max&page=3'
+      url: '/users?searchInput=mustermann&enabled=false&page=3'
     });
     req.flush(null);
     httpMock.verify();
   });
 
-  it('search user with lastname only', () => {
-    apiService.searchUser(null, null, 'mustermann', null).subscribe();
+  it('search user with a search input only', () => {
+    apiService.searchUser('mustermann', null).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/users?lastname=mustermann'});
-    req.flush(null);
-    httpMock.verify();
-  });
-
-  it('search user with firstname only', () => {
-    apiService.searchUser(null, null, null, 'max').subscribe();
-
-    const req = httpMock.expectOne({method: 'GET', url: '/users?firstname=max'});
+    const req = httpMock.expectOne({method: 'GET', url: '/users?searchInput=mustermann'});
     req.flush(null);
     httpMock.verify();
   });

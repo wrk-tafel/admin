@@ -190,9 +190,25 @@ describe('DistributionStatisticsInputComponent', () => {
     fixture.detectChanges();
 
     expect(component.employeeCount.disabled).toBe(true);
+    // Comes from the effect alone - the template deliberately has no [disabled] binding on the
+    // formControlName, so this is what proves the control still ends up disabled without it.
+    expect(component.personsInShelterCount.disabled).toBe(true);
     expect(component.panelDisabled()).toBe(true);
     expect(component.employeeCount.value).toBeUndefined();
     expect(component.personsInShelterCount.value).toBeNull();
+  });
+
+  it('personsInShelterCount enabled with an active distribution', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    const componentRef = fixture.componentRef;
+    const component = fixture.componentInstance;
+
+    componentRef.setInput('sheltersData', {shelters: testShelters});
+    componentRef.setInput('initialSelectedShelterNames', []);
+    fixture.detectChanges();
+
+    expect(component.personsInShelterCount.enabled).toBe(true);
+    expect(component.panelDisabled()).toBe(false);
   });
 
 });

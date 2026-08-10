@@ -1,7 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesRepository
@@ -58,12 +62,67 @@ internal class PushPreferencesServiceTest {
     }
 
     @Test
-    fun `getPreferencesForCurrentUser defaults the master switch and every type to enabled`() {
+    fun `getPreferencesForCurrentUser defaults the master switch and every listed type to enabled`() {
         val result = service.getPreferencesForCurrentUser()
 
         assertThat(result.masterEnabled).isTrue()
         assertThat(result.types).allSatisfy { assertThat(it.enabled).isTrue() }
+    }
+
+    /**
+     * The test user holds CHECKIN and USER_MANAGEMENT, neither of which unlocks a restricted type -
+     * so it sees exactly the six that trace the distribution day and nothing else. Offering a toggle
+     * for a type this user can never receive would be a setting with no effect whichever way it is
+     * set.
+     */
+    @Test
+    fun `getPreferencesForCurrentUser lists only the types this user can actually receive`() {
+        val result = service.getPreferencesForCurrentUser()
+
+        assertThat(result.types.map { it.type }).containsExactlyInAnyOrder(
+            PushNotificationTypeApi.DISTRIBUTION_STARTED,
+            PushNotificationTypeApi.CHECKIN_STARTED,
+            PushNotificationTypeApi.ROUTE_AT_LAST_STOP,
+            PushNotificationTypeApi.FOOD_COLLECTION_COMPLETED,
+            PushNotificationTypeApi.FOOD_HANDOUT_STARTED,
+            PushNotificationTypeApi.ALL_TICKETS_PROCESSED,
+            PushNotificationTypeApi.DISTRIBUTION_CLOSED,
+        )
+    }
+
+    /** ADMINISTRATOR grants every other permission, so it is offered every type. */
+    @Test
+    fun `getPreferencesForCurrentUser lists every type for an administrator`() {
+        every { userRepository.findByUsername(any()) } returns userWithPermissions(UserPermissions.ADMINISTRATOR)
+
+        val result = service.getPreferencesForCurrentUser()
+
         assertThat(result.types.map { it.type }).containsExactlyInAnyOrderElementsOf(PushNotificationTypeApi.entries)
+    }
+
+    /**
+     * The technical types are addressed to whoever maintains the application, so leading the
+     * distribution must not on its own put a failed report mail or an account lockout in the list -
+     * it only adds the reminder that a distribution was left open.
+     */
+    @Test
+    fun `getPreferencesForCurrentUser withholds the technical types from a supervisor`() {
+        every { userRepository.findByUsername(any()) } returns userWithPermissions(UserPermissions.SUPERVISOR)
+
+        val result = service.getPreferencesForCurrentUser()
+
+        assertThat(result.types.map { it.type })
+            .contains(PushNotificationTypeApi.DISTRIBUTION_STILL_OPEN)
+            .doesNotContain(PushNotificationTypeApi.USER_LOCKED_OUT, PushNotificationTypeApi.REPORT_MAIL_FAILED)
+    }
+
+    private fun userWithPermissions(vararg permissions: UserPermissions) = UserEntity(
+        username = "someone",
+        password = "pw",
+        employee = EmployeeEntity(personnelNumber = "s-1", firstname = "first", lastname = "last"),
+    ).apply {
+        id = 42
+        authorities = permissions.map { UserAuthorityEntity(user = this, name = it.key) }.toMutableList()
     }
 
     @Test

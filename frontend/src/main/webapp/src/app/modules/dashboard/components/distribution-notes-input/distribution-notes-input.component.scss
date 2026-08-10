@@ -1,0 +1,18 @@
+// The card is stretched to the bottom of the screen by the dashboard's last row, and the notes are
+// the one thing here worth having more of - so the textarea takes that height rather than leaving
+// it as empty card. Material builds the field out of three nested wrappers between the form field
+// and the textarea, each of them content-sized, so every one of them has to be told to fill or the
+// height stops at the outermost.
+:host ::ng-deep {
+  .mat-mdc-text-field-wrapper,
+  .mat-mdc-form-field-flex,
+  .mat-mdc-form-field-infix {
+    height: 100%;
+  }
+
+  textarea.mat-mdc-input-element {
+    height: 100%;
+    // the drag handle would let the textarea grow past the card it is being sized to fit
+    resize: none;
+  }
+}

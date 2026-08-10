@@ -8,17 +8,18 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
+import at.wrk.tafel.admin.backend.modules.reporting.events.ReportMailFailedEvent
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
-import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import org.thymeleaf.context.Context
 import java.time.format.DateTimeFormatter
 
@@ -30,23 +31,34 @@ import java.time.format.DateTimeFormatter
  * on mail failures propagating back to the caller synchronously, which an async/after-commit listener
  * wouldn't allow.
  *
- * All three mails are isolated from each other (one retrying/failing never blocks another from being
- * attempted) and each is retried (via the shared `RetryTemplate` bean from `config.RetryConfig`) before
- * being given up on - mirroring the independence they used to have as separate `DistributionPostProcessor`
- * beans back when `distribution` ran them directly (the return-boxes mail never depended on `reporting`;
- * it moved here purely so all three mails share the same isolation/retry handling).
- * If any still fail after all retries, the first failure is rethrown (with the others attached as
- * suppressed exceptions) once all three have been attempted, so `DistributionService.sendMails()` still
- * surfaces a real error to the caller - the automatic post-close flow just logs and moves on, same as
+ * All three mails are isolated from each other - one failing never blocks another from being attempted,
+ * mirroring the independence they used to have as separate `DistributionPostProcessor` beans back when
+ * `distribution` ran them directly (the return-boxes mail never depended on `reporting`; it moved here
+ * purely so all three mails share the same isolation handling). If any fail, the first failure is
+ * rethrown (with the others attached as suppressed exceptions) once all three have been attempted, so
+ * `DistributionService.sendMails()` still surfaces a real error to the caller - the automatic post-close
+ * flow just logs and moves on, same as
  * `at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService`
  * does for its own failures.
  *
- * `@Transactional` (read-only, since this only reads) because `distribution` is fetched via the
- * repository, whose own transaction closes as soon as the fetch returns - without an outer transaction
- * here, `distribution.households`/`.foodCollections` (both lazy) would throw
- * `LazyInitializationException` the moment they're accessed below, on every single invocation. Same
- * fix as `DistributionEndedEventListener` applies for the same reason, just via the annotation instead
- * of `TransactionTemplate` since there's no retry-the-whole-transaction-as-a-unit requirement here.
+ * **Each mail gets its own transaction**, opened here via `TransactionTemplate` rather than by annotating
+ * the whole listener, and two things force that:
+ * - A transaction is needed at all because `distribution` is fetched via the repository, whose own
+ *   transaction closes as soon as the fetch returns - `distribution.households`/`.foodCollections` (both
+ *   lazy) would otherwise throw `LazyInitializationException` the moment they're accessed. Hence the
+ *   re-fetch inside each transaction, the same way `DistributionEndedEventListener` does it.
+ * - It has to be *one transaction per mail*, and read-write, because composing a mail now queues it in
+ *   `mail_outbox` ([MailSenderService]) instead of handing it to SMTP. Under one shared transaction the
+ *   final rethrow would roll back the mails that were queued successfully, so a single failing mail
+ *   would silently cancel its two healthy siblings - isolation in name only. A read-only transaction
+ *   would fail outright, since queuing a mail is a write.
+ *
+ * There is no retry here any more: what is left inside a transaction is rendering a PDF/CSV and writing
+ * a row, and neither gets better on a second identical attempt. Retrying the *delivery* - the part that
+ * genuinely fails transiently, because it talks to a mail server - is `MailOutboxService`'s job, on a
+ * backoff and long after this method has returned. [ReportMailFailedEvent] therefore now reports a mail
+ * that could not be *built*; a mail that could not be *delivered* is reported by `MailOutboxService`
+ * itself, via `MailDeliveryFailedEvent`.
  */
 @Component
 class DistributionClosedEventListener(
@@ -55,7 +67,8 @@ class DistributionClosedEventListener(
     private val dailyReportService: DailyReportService,
     private val statisticExportService: StatisticExportService,
     private val mailSenderService: MailSenderService,
-    private val retryTemplate: RetryTemplate,
+    private val transactionTemplate: TransactionTemplate,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionClosedEventListener::class.java)
@@ -64,15 +77,15 @@ class DistributionClosedEventListener(
     }
 
     @EventListener
-    @Transactional(readOnly = true)
     fun onDistributionClosed(event: DistributionClosedEvent) {
-        val distribution = distributionRepository.findByIdOrNull(event.distributionId) ?: return
-        val statistic = distribution.statistic ?: return
-
+        val distributionId = event.distributionId
         val failures = mutableListOf<Exception>()
-        runIsolatedWithRetry("daily report mail", failures) { sendDailyReportMail(distribution, statistic) }
-        runIsolatedWithRetry("statistic mail", failures) { sendStatisticMail(distribution, statistic) }
-        runIsolatedWithRetry("return boxes mail", failures) { sendReturnBoxesMail(distribution) }
+
+        queueIsolated("daily report mail", "Tagesreport", distributionId, failures, ::sendDailyReportMail)
+        queueIsolated("statistic mail", "Statistiken", distributionId, failures, ::sendStatisticMail)
+        queueIsolated("return boxes mail", "Retourkisten", distributionId, failures) { distribution, _ ->
+            sendReturnBoxesMail(distribution)
+        }
 
         failures.firstOrNull()?.let { first ->
             failures.drop(1).forEach { first.addSuppressed(it) }
@@ -80,17 +93,34 @@ class DistributionClosedEventListener(
         }
     }
 
-    private fun runIsolatedWithRetry(description: String, failures: MutableList<Exception>, block: () -> Unit) {
+    /**
+     * Runs one mail's composing in a transaction of its own (see the class doc) and keeps its failure
+     * to itself. [description] names the mail in the log; [reportName] names it to people, in the
+     * [ReportMailFailedEvent] published when it fails. That event is published per failed mail and
+     * before the collected failures are rethrown, so a mail that fails while a later one succeeds is
+     * still reported - and so the notification goes out on the automatic post-close path too, which
+     * swallows the rethrown exception.
+     *
+     * A distribution that has since disappeared, or one without a statistics snapshot, means there is
+     * nothing to report on - not a failure, so it is skipped silently rather than counted as one.
+     */
+    private fun queueIsolated(
+        description: String,
+        reportName: String,
+        distributionId: Long,
+        failures: MutableList<Exception>,
+        block: (DistributionEntity, DistributionStatisticEntity) -> Unit,
+    ) {
         try {
-            retryTemplate.execute<Unit, Exception> { context ->
-                if (context.retryCount > 0) {
-                    logger.warn("Retrying $description (attempt #${context.retryCount + 1}) ...")
-                }
-                block()
+            transactionTemplate.executeWithoutResult {
+                val distribution = distributionRepository.findByIdOrNull(distributionId) ?: return@executeWithoutResult
+                val statistic = distribution.statistic ?: return@executeWithoutResult
+                block(distribution, statistic)
             }
         } catch (e: Exception) {
-            logger.error("Sending $description failed after retrying", e)
+            logger.error("Queuing $description failed", e)
             failures += e
+            eventPublisher.publishEvent(ReportMailFailedEvent(distributionId = distributionId, reportName = reportName))
         }
     }
 
@@ -126,7 +156,7 @@ class DistributionClosedEventListener(
             "mails/daily-report-mail",
             ctx,
         )
-        logger.info("Mail with daily report '$mailSubject' - file: '$filename' sent!")
+        logger.info("Mail with daily report '$mailSubject' - file: '$filename' queued!")
     }
 
     private fun sendStatisticMail(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
@@ -154,7 +184,7 @@ class DistributionClosedEventListener(
             context = ctx,
         )
 
-        logger.info("Mail with statistic files '$mailSubject' sent!")
+        logger.info("Mail with statistic files '$mailSubject' queued!")
     }
 
     private fun sendReturnBoxesMail(distribution: DistributionEntity) {
@@ -176,7 +206,7 @@ class DistributionClosedEventListener(
             context = ctx,
         )
 
-        logger.info("Mail for return boxes '$mailSubject' sent!")
+        logger.info("Mail for return boxes '$mailSubject' queued!")
     }
 
     /**

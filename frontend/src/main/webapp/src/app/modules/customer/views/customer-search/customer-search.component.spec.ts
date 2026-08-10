@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {EMPTY, of} from 'rxjs';
@@ -62,8 +62,17 @@ describe('CustomerSearchComponent', () => {
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName('Router.navigate')
+                        navigate: vi.fn().mockName('Router.navigate'),
+                        // the result table's name column is a real link now, and RouterLink builds
+                        // its href from these two
+                        createUrlTree: vi.fn().mockName('Router.createUrlTree').mockReturnValue({}),
+                        serializeUrl: vi.fn().mockName('Router.serializeUrl').mockReturnValue('/kunden/detail/1'),
+                        events: EMPTY
                     }
+                },
+                {
+                    provide: ActivatedRoute,
+                    useValue: {}
                 },
                 {
                     provide: TafelToastrService,
@@ -80,7 +89,30 @@ describe('CustomerSearchComponent', () => {
         apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+
+        // The component searches once as it is constructed, before any test can arrange a response -
+        // without a default here every test would fail on the constructor rather than on its subject.
+        apiService.searchCustomer.mockReturnValue(EMPTY);
     }));
+
+    it('loads the first page of customers without being asked to', () => {
+        apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        expect(apiService.searchCustomer)
+            .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined);
+        expect(component.searchResult()).toEqual(searchCustomerMockResponse);
+    });
+
+    it('stays silent when that initial load finds nothing', () => {
+        apiService.searchCustomer.mockReturnValue(of({items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 10}));
+
+        TestBed.createComponent(CustomerSearchComponent);
+
+        expect(toastr.info).not.toHaveBeenCalled();
+    });
 
     it('component can be created', () => {
         const fixture = TestBed.createComponent(CustomerSearchComponent);
@@ -102,19 +134,18 @@ describe('CustomerSearchComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
     });
 
-    it('search with firstname and lastname', () => {
+    it('search with a search input', () => {
         const fixture = TestBed.createComponent(CustomerSearchComponent);
         const component = fixture.componentInstance;
 
-        component.firstname.setValue('firstname');
-        component.lastname.setValue('lastname');
+        component.searchInput.setValue('muster');
 
         apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
 
         component.searchForDetails();
 
         expect(apiService.searchCustomer)
-            .toHaveBeenCalledWith('lastname', 'firstname', undefined, undefined, undefined, undefined, undefined);
+            .toHaveBeenCalledWith('muster', undefined, undefined, undefined, undefined, undefined);
 
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -125,42 +156,18 @@ describe('CustomerSearchComponent', () => {
         expect(fixture.debugElement.query(By.css('[testid="searchresult-personsCount-0"]')).nativeElement.textContent).toBe('2');
     });
 
-    it('search with firstname only', () => {
+    it('search with no results', () => {
         const fixture = TestBed.createComponent(CustomerSearchComponent);
         const component = fixture.componentInstance;
-        component.firstname.setValue('firstname');
-        apiService.searchCustomer.mockReturnValue(EMPTY);
-
-        component.searchForDetails();
-
-        expect(apiService.searchCustomer)
-            .toHaveBeenCalledWith(undefined, 'firstname', undefined, undefined, undefined, undefined, undefined);
-    });
-
-    it('search with firstname no results', () => {
-        const fixture = TestBed.createComponent(CustomerSearchComponent);
-        const component = fixture.componentInstance;
-        component.firstname.setValue('firstname');
+        component.searchInput.setValue('muster');
         const response: CustomerSearchResult = { items: [], currentPage: 0, totalCount: 0, totalPages: 0, pageSize: 5 };
         apiService.searchCustomer.mockReturnValue(of(response));
 
         component.searchForDetails();
 
         expect(apiService.searchCustomer)
-            .toHaveBeenCalledWith(undefined, 'firstname', undefined, undefined, undefined, undefined, undefined);
+            .toHaveBeenCalledWith('muster', undefined, undefined, undefined, undefined, undefined);
         expect(toastr.info).toHaveBeenCalledWith('Keine Kunden gefunden!');
-    });
-
-    it('search with lastname only', () => {
-        const fixture = TestBed.createComponent(CustomerSearchComponent);
-        const component = fixture.componentInstance;
-        component.lastname.setValue('lastname');
-        apiService.searchCustomer.mockReturnValue(EMPTY);
-
-        component.searchForDetails();
-
-        expect(apiService.searchCustomer)
-            .toHaveBeenCalledWith('lastname', undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with postProcessing enabled', () => {
@@ -171,7 +178,7 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, true, undefined, undefined, undefined, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, true, undefined, undefined, undefined, undefined);
     });
 
   it('search with costContribution enabled', () => {
@@ -182,7 +189,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, true, undefined, undefined, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, true, undefined, undefined, undefined);
   });
 
   it('search with valid enabled', () => {
@@ -193,7 +200,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, true, undefined, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(undefined, undefined, undefined, true, undefined, undefined);
   });
 
     it('navigate to customer', () => {

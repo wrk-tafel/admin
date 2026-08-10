@@ -1,0 +1,8 @@
+<button type="button"
+        class="tafel-info-tooltip inline-flex items-center align-middle ml-1 text-slate-400 hover:text-slate-600 cursor-help"
+        [attr.testid]="testId()"
+        [attr.aria-label]="text()"
+        [matTooltip]="text()"
+        matTooltipPosition="above">
+  <fa-icon [icon]="faCircleInfo"></fa-icon>
+</button>

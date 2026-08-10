@@ -1,0 +1,145 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-3">
+          <h2 class="tafel-h5 mb-0 mt-1">Filialen</h2>
+          <span class="text-sm font-normal text-slate-500" testid="shops-summary">
+            {{ enabledCount() }} von {{ totalCount() }} aktiv
+          </span>
+        </div>
+        <button matButton="filled" class="button-success" testid="addShopButton" (click)="addShop()">
+          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          Filiale anlegen
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Filialen, bei denen Waren abgeholt werden. Die Einheit legt fest, ob die Warenerfassung dort in
+      Kisten oder in Kilogramm zählt. Inaktive Filialen werden bei der Warenerfassung nicht mehr
+      angezeigt, bleiben aber in bereits erfassten Ausgabetagen erhalten.
+    </p>
+
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
+        <mat-label>Filiale suchen</mat-label>
+        <fa-icon matPrefix [icon]="faMagnifyingGlass" class="ms-3 me-2 text-slate-400"></fa-icon>
+        <input matInput [formControl]="searchControl" testid="shops-search-input"
+               placeholder="Nummer, Name, Adresse oder Ansprechperson"/>
+        @if (searchControl.value) {
+          <button matIconButton matSuffix type="button" aria-label="Suche zurücksetzen"
+                  testid="shops-search-clear-button" (click)="clearSearch()">
+            <fa-icon [icon]="faXmark"></fa-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-button-toggle-group class="ms-auto" [value]="enabledFilter()" (change)="onFilterChanged($event)"
+                               aria-label="Nach Status filtern" testid="shops-status-filter">
+        <mat-button-toggle value="ALL" testid="shops-filter-all">Alle</mat-button-toggle>
+        <mat-button-toggle value="ENABLED" testid="shops-filter-enabled">Aktiv</mat-button-toggle>
+        <mat-button-toggle value="DISABLED" testid="shops-filter-disabled">Inaktiv</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
+         as the record's summary, and mat-expansion-panel-header is itself a role="button" that
+         cannot legally contain another control. The summary is its own button instead, so the two
+         actions are its siblings rather than controls nested inside a button (#3137). -->
+    <div class="block" testid="shops-list">
+      @for (view of visibleShops(); track view.shop.id; let i = $index) {
+        <div class="mb-2 rounded-xl bg-white shadow-sm" [attr.testid]="'shops-row-' + i">
+          <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
+            <button type="button" class="flex flex-1 cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 text-start"
+                    [id]="'shops-toggle-' + i" [attr.testid]="'shops-toggle-' + i"
+                    [attr.aria-expanded]="isExpanded(view.shop.id)"
+                    [attr.aria-controls]="'shops-panel-' + i"
+                    (click)="toggleExpanded(view.shop.id)">
+              <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
+                {{ view.shop.number }}
+              </span>
+              <span class="font-medium" [class.text-slate-400]="!view.shop.enabled">{{ view.shop.name }}</span>
+              <span class="text-sm text-slate-500">{{ view.address }}</span>
+              <span [class]="view.foodUnitClass">{{ view.foodUnitLabel }}</span>
+              @if (!view.shop.enabled) {
+                <span class="badge badge-danger" testid="shops-inactive-badge">Inaktiv</span>
+              }
+              <fa-icon class="ms-auto text-slate-500" [icon]="isExpanded(view.shop.id) ? faChevronUp : faChevronDown"></fa-icon>
+            </button>
+            <!-- both actions stay reachable without expanding the shop first -->
+            <mat-slide-toggle [checked]="view.shop.enabled" [attr.testid]="'shops-enabled-toggle-' + i"
+                              (change)="onEnabledToggled(view.shop, $event)">
+              Aktiv
+            </mat-slide-toggle>
+            <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
+                    [disabled]="!view.shop.enabled" [attr.aria-label]="'Filiale ' + view.shop.name + ' bearbeiten'"
+                    (click)="editShop(view.shop)">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          </div>
+
+          <div class="px-6 pb-4" role="region" [id]="'shops-panel-' + i"
+               [attr.aria-labelledby]="'shops-toggle-' + i" [hidden]="!isExpanded(view.shop.id)">
+          <dl class="grid gap-x-8 gap-y-3 sm:grid-cols-2" [attr.testid]="'shop-details-' + i">
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">Adresse</dt>
+              <dd class="m-0">{{ view.shop.addressStreet }}</dd>
+              <dd class="m-0">{{ view.shop.addressPostalCode }} {{ view.shop.addressCity }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">Einheit</dt>
+              <dd class="m-0">{{ view.foodUnitLabel }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">Telefon</dt>
+              <dd class="m-0">
+                @if (view.shop.phone) {
+                  <a class="text-blue-700 underline" [href]="'tel:' + view.shop.phone">{{ view.shop.phone }}</a>
+                } @else {
+                  <span class="text-slate-400">-</span>
+                }
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">Ansprechperson</dt>
+              <dd class="m-0">
+                @if (view.shop.contactPerson) {
+                  {{ view.shop.contactPerson }}
+                } @else {
+                  <span class="text-slate-400">-</span>
+                }
+              </dd>
+            </div>
+          </dl>
+
+          @if (view.shop.note) {
+            <div class="mt-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+              <fa-icon [icon]="faNoteSticky" class="mt-0.5"></fa-icon>
+              <span class="whitespace-pre-line">{{ view.shop.note }}</span>
+            </div>
+          }
+
+          @if (!view.shop.enabled) {
+            <p class="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-500">
+              Zum Bearbeiten zuerst aktivieren
+            </p>
+          }
+          </div>
+        </div>
+      } @empty {
+        @if (loaded()) {
+          <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="shops-empty">
+            <fa-icon [icon]="faShop" size="2x"></fa-icon>
+            @if (filtered()) {
+              <span>Keine Filiale entspricht der Suche.</span>
+            } @else {
+              <span>Noch keine Filialen angelegt.</span>
+            }
+          </div>
+        }
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

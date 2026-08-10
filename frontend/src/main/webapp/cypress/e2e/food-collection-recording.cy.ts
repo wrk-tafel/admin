@@ -1,5 +1,6 @@
 import {recurse} from 'cypress-recurse';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('Food Collection Recording', () => {
   beforeEach(() => {
@@ -50,9 +51,47 @@ describe('Food Collection Recording', () => {
       // Route 2 now has both base data and food items entered, so the dashboard panel should
       // count it as fully recorded and list it by name - other routes (untouched) must not count.
       cy.visit('/');
-      cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 3');
+      cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 5');
       cy.byTestId('recorded-route-names').should('have.text', 'Route 2');
     });
+  });
+
+  it('shows the saved driver and co-driver right away when the route is opened again', () => {
+    // The employee search matches substrings, so the driver's own personnel number ('0200') also
+    // finds '02000'. Resolving a stored driver through that search again would pop the employee
+    // selection dialog open the moment the route is picked.
+    cy.intercept('POST', '**/food-collections/routes/*').as('saveRouteData');
+    cy.intercept('POST', '**/food-collections/routes/*/km').as('saveKm');
+
+    enterRouteData();
+    selectAmbiguousDriver();
+    selectExistingCoDriver();
+
+    // the mileage is filled in as well so the route counts as fully recorded - an incomplete route
+    // blocks closing the distribution in afterEach
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+
+    saveAndConfirmKmDiff();
+    // waits on the two requests this test reopens the route for, rather than on the success toast,
+    // which only appears once every section of the screen has been sent
+    cy.wait('@saveRouteData').its('response.statusCode').should('eq', 200);
+    cy.wait('@saveKm').its('response.statusCode').should('eq', 200);
+
+    // reopening the route must not search for the stored employees again - that search is what
+    // used to open the dialog, so its absence is the actual fix and not just a symptom of it
+    cy.intercept({method: 'GET', url: /\/api\/employees(\?|$)/}).as('employeeSearchOnReopen');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 1').click();
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+
+    cy.byTestId('select-route-tab').click();
+    cy.byTestId('selectedDriverDescription').should('have.text', '0200 Test User');
+    cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
+    assertNoEmployeeModalsOpen();
+    cy.get('@employeeSearchOnReopen.all').should('have.length', 0);
   });
 
   it('rejects a free-text return item repeating a return category', () => {
@@ -257,6 +296,64 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  // Nothing below exists on the route the Lighthouse `pages` sweep loads: with no route selected
+  // `formReady()` is false, so the whole item matrix - a core screen during a distribution - is
+  // audited by no gate at all. See cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the item matrix once a route is selected', () => {
+      enterRouteData();
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('items-table').should('be.visible');
+      addFreetextReturnItem(20, 'Bananenkartons grün', 3);
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations on the item screen of the responsive layout', () => {
+      cy.viewport(PHONE_VIEWPORT);
+      cy.byTestId('routeInput').should('be.visible');
+
+      enterRouteData();
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('items-section').should('be.visible');
+      addFreetextReturnItem(undefined, 'Bananenkartons grün', 3);
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations in the employee dialogs', () => {
+      cy.getAnyRandomNumber().then((randomNumber) => {
+        enterRouteData();
+
+        cy.byTestId('coDriverSearchInput').type(String(randomNumber));
+        cy.byTestId('codriver-employee-search-button').click();
+        cy.byTestId('codriver-search-create-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('codriver-search-create-dialog').within(() => {
+          cy.byTestId('cancel-button').click();
+        });
+
+        cy.byTestId('coDriverSearchInput').clear().type('scan');
+        cy.byTestId('codriver-employee-search-button').click();
+        cy.byTestId('codriver-select-employee-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+      });
+    });
+
+    it('has no violations on the mileage confirmation dialog', () => {
+      enterRouteData();
+      cy.byTestId('select-items-tab').click();
+      enterKmData();
+
+      cy.byTestId('save-button').click();
+      cy.byTestId('km-diff-dialog').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+  });
+
   function enterRouteData() {
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();
@@ -314,6 +411,21 @@ describe('Food Collection Recording', () => {
     cy.byTestId('driver-employee-search-button').click();
     cy.byTestId('driverSearchInput').should('not.exist');
     cy.byTestId('selectedDriverDescription').should('have.text', '00000 E2E Test');
+  }
+
+  // testdata: '0200' is a personnel number of its own and at the same time part of '02000', so the
+  // search always returns both employees and the selection dialog has to be used
+  function selectAmbiguousDriver() {
+    cy.byTestId('driverSearchInput').type('0200');
+    cy.byTestId('driver-employee-search-button').click();
+
+    cy.byTestId('driver-select-employee-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('select-employee-row-0').should('contain.text', '0200 Test User');
+        cy.byTestId('select-employee-button-0').click();
+      });
+    cy.byTestId('selectedDriverDescription').should('have.text', '0200 Test User');
   }
 
   function createAndSelectCoDriver(randomNumber: number) {
@@ -396,8 +508,7 @@ describe('Food Collection Recording', () => {
   function returnCategoryName(categoryId: number) {
     return cy.byTestId(`return-category-${categoryId}-shop-20-input`)
       .closest('tr')
-      .find('td')
-      .first()
+      .find('th[scope="row"]')
       .invoke('text')
       .then((text) => text.trim());
   }

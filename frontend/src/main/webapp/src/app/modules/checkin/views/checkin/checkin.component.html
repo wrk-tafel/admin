@@ -4,7 +4,7 @@
   </mat-card-header>
   <mat-card-content>
     <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
-      <label class="md:col-span-1">Scanner</label>
+      <div class="md:col-span-1">Scanner</div>
       <mat-form-field class="md:col-span-2" subscriptSizing="dynamic">
         <mat-label>Scanner auswählen</mat-label>
         <mat-select testid="scannerIdInput" [(ngModel)]="selectedScannerId">
@@ -14,19 +14,23 @@
           }
         </mat-select>
       </mat-form-field>
-      <h4 class="m-0 md:col-span-1">
+      <!-- Not a heading: it holds the scanner's state badge, which names no section of the page.
+           text-2xl keeps the badge at the size it sizes itself from. -->
+      <!-- role="status": the badge flips on its own when a scanner connects or drops, with nothing
+           else on the screen changing to give that away -->
+      <div class="text-2xl m-0 md:col-span-1" role="status">
         <div class="badge"
              [ngClass]="{'badge-success': scannerReadyState(), 'badge-danger': !scannerReadyState()}"
              testid="state-camera">
           {{ scannerReadyState() ? 'AKTIV' : 'INAKTIV' }}
         </div>
-      </h4>
+      </div>
     </div>
 
     <mat-divider class="!my-6"></mat-divider>
 
     <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
-      <label class="md:col-span-1">Kundennummer</label>
+      <div class="md:col-span-1">Kundennummer</div>
       <mat-form-field class="md:col-span-2" subscriptSizing="dynamic">
         <mat-label>Kundennummer</mat-label>
         <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
@@ -42,7 +46,9 @@
   @if (customer() !== undefined) {
     <mat-card class="mt-6 md:m-4" testid="customerDetailPanel">
       <mat-card-header>
-        <h2 class="flex gap-2 text-xl font-semibold">
+        <!-- Not a heading: it holds the customer's state badges, which name no section of the page.
+             text-xl keeps the badges at the size they size themselves from. -->
+        <div class="flex gap-2 text-xl font-semibold">
           <div class="badge"
                [ngClass]="{'badge-danger': customerStateColor() === 'danger',
                                    'badge-warning': customerStateColor() === 'warning',
@@ -54,7 +60,7 @@
               Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
             </div>
           }
-        </h2>
+        </div>
       </mat-card-header>
       <mat-card-content>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -138,7 +144,7 @@
               <mat-card-content>
                 @if (customerNotes()?.length === 0) {
                   <div class="font-semibold">
-                    <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                    <h4 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h4>
                   </div>
                 }
                 @if (customerNotes() && customerNotes()?.length !== 0) {
@@ -146,9 +152,7 @@
                     <div class="mb-2 font-semibold" testid="note-title">
                       {{ customerNotes()![0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()![0].author }}
                     </div>
-                    <div testid="note-text">
-                      {{ customerNotes()![0].note }}
-                    </div>
+                    <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()![0].note }}</div>
                   </div>
                 }
               </mat-card-content>
@@ -173,7 +177,8 @@
                 }
               </mat-form-field>
               @if (ticketNumberEdit() === true) {
-                <button matButton="filled" class="button-danger" testid="deleteTicketButton" (click)="deleteTicket()">
+                <button matButton="filled" class="button-danger" testid="deleteTicketButton" (click)="deleteTicket()"
+                        matTooltip="Zugewiesenes Ticket wieder entfernen" aria-label="Zugewiesenes Ticket wieder entfernen">
                   <fa-icon [icon]="faTrashCan"></fa-icon>
                 </button>
               }

@@ -1,4 +1,4 @@
-import {Component, inject, input, linkedSignal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerOverviewItem, CustomerOverviewResponse} from '../../../../api/customer-api.service';
 import {DistributionItem, DistributionListResponse} from '../../../../api/distribution-api.service';
@@ -7,6 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {faRotate, faSearch, faUserPlus} from '@fortawesome/free-solid-svg-icons';
@@ -25,7 +26,8 @@ import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-custome
     FormsModule,
     CommonModule,
     FaIconComponent,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule
   ]
 })
 export class CustomerOverviewComponent {
@@ -40,6 +42,16 @@ export class CustomerOverviewComponent {
   // distribution is selected
   readonly customerOverviewData = linkedSignal(() => this.customerOverviewDataInput());
   readonly selectedDistributionId = linkedSignal(() => this.customerOverviewDataInput()?.distributionId ?? undefined);
+
+  // What the role="status" region in the template says. Picking a different distribution swaps
+  // both lists at once, with nothing else on the screen saying what came back.
+  protected readonly overviewAnnouncement = computed(() => {
+    const data = this.customerOverviewData();
+    if (!data) {
+      return '';
+    }
+    return `${data.newCustomers?.length ?? 0} neue Kunden, ${data.renewedCustomers?.length ?? 0} verlängerte Kunden`;
+  });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);

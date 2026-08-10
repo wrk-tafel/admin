@@ -2,6 +2,7 @@ import * as path from 'path';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 dayjs.extend(customParseFormat);
 
@@ -115,6 +116,45 @@ describe('Customer Detail', () => {
 
     cy.byTestId('latest-customer-note').should('not.exist');
     cy.byTestId('latest-customer-note-none').should('be.visible');
+  });
+
+  // Customer 103's notes are all inserted in one testdata transaction, so they share a single
+  // created_at to the microsecond. Tracking the list by that timestamp collapsed every row onto
+  // one key (NG0955) - only a real render over real data shows all ten actually surviving.
+  it('all notes dialog lists every note of a customer whose notes share a timestamp', () => {
+    cy.visit('/kunden/detail/103');
+
+    cy.byTestId('showall-notes-button').click();
+
+    // Scoped to the dialog - the "latest note" panel behind it carries the same testid.
+    cy.get('mat-dialog-content').within(() => {
+      cy.byTestId('note-title').should('have.length', 10);
+      // Newest first, so note 10 is at the top and note 1 sits below the dialog's scroll fold.
+      cy.contains('Testnotiz 10.').should('be.visible');
+      cy.contains('Testnotiz 1.').scrollIntoView().should('be.visible');
+    });
+  });
+
+  // The panel and the dialog render the same note text and used to disagree about it: the panel
+  // interpreted it as HTML, the dialog escaped it. Both now show plain text with real newlines.
+  it('note text renders identically as plain text in the panel and the dialog', () => {
+    cy.visit('/kunden/detail/103');
+
+    // The testdata note carries a real newline; it has to survive as one instead of collapsing.
+    const assertPlainTextWithNewline = () => {
+      cy.byTestId('note-text')
+        .filterDisplayed()
+        .first()
+        .invoke('text')
+        .should('contain', 'Testnotiz 10.\nLorem ipsum');
+    };
+
+    assertPlainTextWithNewline();
+
+    cy.byTestId('showall-notes-button').click();
+    cy.get('mat-dialog-content').within(() => {
+      assertPlainTextWithNewline();
+    });
   });
 
   it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
@@ -695,6 +735,169 @@ describe('Customer Detail', () => {
         // Should stay on edit page
         cy.url().should('contain', '/kunden/bearbeiten/' + customerId);
         cy.byTestId('confirm-customer-save-dialog').should('not.exist');
+      });
+    });
+
+  });
+
+  describe('Verlauf tab', () => {
+
+    it('shows the change history of the customer', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('history-tab-label').scrollIntoView().click();
+
+        cy.byTestId('customer-history').should('be.visible');
+        cy.byTestId('audit-entry-list').should('exist');
+        cy.byTestId('audit-entry-0-actor').should('contain.text', 'e2etest');
+      });
+    });
+
+    it('shows what an edit changed, with the previous value', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customer = response.body.data;
+
+        cy.updateCustomer({...customer, telephoneNumber: '0699333444'});
+
+        cy.visit('/kunden/detail/' + customer.id);
+        cy.byTestId('history-tab-label').scrollIntoView().click();
+
+        cy.byTestId('audit-entry-0-changes').should('contain.text', 'Telefon');
+        cy.byTestId('audit-entry-0-changes').should('contain.text', '0699333444');
+      });
+    });
+
+    it('pages through the history', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('history-tab-label').scrollIntoView().click();
+
+        cy.byTestId('customer-history-paginator').should('exist');
+      });
+    });
+
+    it('hides the tab from a user without the audit permission', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        // e2etest2 holds CUSTOMER and nothing else, so it can open the customer but must not see
+        // every change ever made to them - those are separate levels of access.
+        cy.loginE2ETest2();
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('customerIdText').should('have.text', String(customerId));
+        cy.byTestId('history-tab-label').should('not.exist');
+      });
+    });
+
+  });
+
+  // Only the first tab and none of the dialogs exist on the initial render the Lighthouse `pages`
+  // sweep grades - see cypress/support/accessibility.ts.
+  describe('accessibility', () => {
+
+    it('has no violations on the tabs that are not selected by default', () => {
+      cy.visit('/kunden/detail/101');
+
+      cy.byTestId('additionalpersons-tab-label').click();
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('upload-document-panel').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    // 132 is the testdata customer with a full history, so the tab renders entries of every
+    // household-scoped type rather than an empty state.
+    it('has no violations on the Verlauf tab', () => {
+      cy.visit('/kunden/detail/132');
+
+      cy.byTestId('history-tab-label').scrollIntoView().click();
+      cy.byTestId('audit-entry-list').should('exist');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations in the note dialogs', () => {
+      // 103 is the testdata customer with more than one note, so the "all notes" dialog exists
+      cy.visit('/kunden/detail/103');
+
+      cy.byTestId('addnote-button').click();
+      cy.checkDialogAccessibility();
+      cy.byTestId('cancelButton').click();
+
+      cy.byTestId('showall-notes-button').click();
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations in the overflow menu and its dialogs', () => {
+      cy.createDummyCustomer().then((response) => {
+        cy.visit('/kunden/detail/' + response.body.data.id);
+
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.checkMenuAccessibility();
+
+        cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lock-customer-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('cancelButton').click();
+        });
+
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.byTestId('deleteCustomerButton').click();
+        cy.byTestId('deletecustomer-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+      });
+    });
+
+    it('has no violations in the cost contribution dialogs', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id!;
+
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('costContributionButton').scrollIntoView().click();
+        cy.byTestId('editCostContributionButton').click();
+        cy.byTestId('edit-cost-contribution-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('edit-cost-contribution-dialog').within(() => {
+          cy.byTestId('amount-input').clear().type('75');
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('costContributionButton').scrollIntoView().click();
+        cy.byTestId('payCostContributionAmountButton').click();
+        cy.byTestId('pay-cost-contribution-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('pay-cost-contribution-dialog').within(() => {
+          cy.byTestId('cancelButton').click();
+        });
+
+        // other specs (e.g. customer-search.cy.ts's "search by cost contribution") count the
+        // customers carrying debt, so this one must not be left with any
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+      });
+    });
+
+    it('has no violations on the document delete dialog', () => {
+      cy.createDummyCustomer().then((response) => {
+        cy.visit('/kunden/detail/' + response.body.data.id);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-deleteButton').should('be.visible').click();
+        cy.byTestId('deletedocument-dialog').should('be.visible');
+
+        cy.checkDialogAccessibility();
       });
     });
 

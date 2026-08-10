@@ -1,5 +1,9 @@
+// The top padding matters as much as the others: a footer holds the card's action button, which
+// would otherwise sit flush against the last row of the content above it. Card footers therefore
+// carry the spacing themselves and don't need a margin from the component that uses them - same
+// padding as .mat-mdc-card-actions below.
 .mat-mdc-card-footer {
-  padding: 0 1rem 1rem 1rem !important;
+  padding: 1rem !important;
 }
 
 // MAT_CARD_CONFIG (app.config.ts) defaults every <mat-card> to appearance="outlined", whose own
@@ -35,15 +39,16 @@
 
 .mat-card-warning {
   @extend .mat-card-colored;
-  background-color: #f9b115 !important;
+  background-color: var(--tafel-severity-warning) !important;
+  color: var(--tafel-severity-on-warning) !important;
 }
 
 .mat-card-danger {
   @extend .mat-card-colored;
-  background-color: #e55353 !important;
+  background-color: var(--tafel-severity-danger) !important;
 }
 
 .mat-card-success {
   @extend .mat-card-colored;
-  background-color: #1b9e3e !important;
+  background-color: var(--tafel-severity-success) !important;
 }

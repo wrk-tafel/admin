@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
@@ -25,12 +26,11 @@ class HouseholdDocumentService(
     private val documentStorageService: DocumentStorageService,
     private val scannerFileService: ScannerFileService,
     private val documentScannerWatcherService: DocumentScannerWatcherService,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
         private val ALLOWED_CONTENT_TYPES = setOf(MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE)
-        private const val MAX_FILE_SIZE_MB = 25
-        private const val MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024L
         private val IMPORT_FILE_NAME_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
     }
 
@@ -149,9 +149,16 @@ class HouseholdDocumentService(
             ?: throw NotFoundException("Person Nr. $id nicht bei Kunde Nr. ${household.householdId} vorhanden!")
     }
 
+    /**
+     * Re-read per upload rather than kept in a field, so lowering the limit applies to the next
+     * upload instead of the next restart (`ConfigFileReloadService`). The servlet container's own
+     * ceiling is derived from the same value with headroom (`MultipartConfig`), which is what lets
+     * this check answer with a readable message before the container refuses the request itself.
+     */
     private fun validateSize(sizeBytes: Long) {
-        if (sizeBytes > MAX_FILE_SIZE_BYTES) {
-            throw BusinessRuleException("Datei ist zu groß (max. $MAX_FILE_SIZE_MB MB)!")
+        val maxDocumentSize = tafelAdminProperties.storage.maxDocumentSize
+        if (sizeBytes > maxDocumentSize.toBytes()) {
+            throw BusinessRuleException("Datei ist zu groß (max. ${maxDocumentSize.toMegabytes()} MB)!")
         }
     }
 

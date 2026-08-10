@@ -19,10 +19,17 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {CarApiService, CarData, CarList} from '../../../../api/car-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faEye, faEyeSlash, faGripVertical, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {
+  TafelReorderHandleComponent
+} from '../../../../common/components/tafel-reorder-handle/tafel-reorder-handle.component';
+import {
+  ReorderFeedbackService
+} from '../../../../common/components/tafel-reorder-handle/reorder-feedback.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'tafel-settings-cars',
@@ -50,13 +57,16 @@ import {MatInputModule} from '@angular/material/input';
     MatInputModule,
     CdkDropList,
     CdkDrag,
-    CdkDragHandle
+    CdkDragHandle,
+    MatTooltipModule,
+    TafelReorderHandleComponent
   ]
 })
 export class SettingsCarsComponent {
   private readonly carApiService = inject(CarApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
+  private readonly reorderFeedback = inject(ReorderFeedbackService);
 
   private _cars = signal<CarList | null>(null);
   protected cars = this._cars;
@@ -147,18 +157,61 @@ export class SettingsCarsComponent {
     });
   }
 
+  /**
+   * Without this the table rebuilds every row whenever the list is replaced - which a reorder does
+   * twice, optimistically and again from the response - and the rebuild throws away the row that
+   * currently has focus. Keyed by id, the existing rows are moved instead, so the handle the
+   * keyboard is on survives its own reorder.
+   */
+  protected trackById(index: number, item: {id: number}): number {
+    return item.id;
+  }
+
   protected drop(event: CdkDragDrop<CarData[]>) {
+    this.reorder(event.previousIndex, event.currentIndex, false);
+  }
+
+  /** The keyboard path of the same reordering - `offset` is -1 for one place up, 1 for one down. */
+  protected moveCar(index: number, offset: number) {
+    const targetIndex = index + offset;
+    const car = this.reorder(index, targetIndex, true);
+
+    if (car) {
+      this.reorderFeedback.announce(`Fahrzeug ${car.name}`, targetIndex, (this.cars()?.cars ?? []).length);
+    }
+  }
+
+  /**
+   * `keepFocusOnHandle` only for the keyboard path: after a drag the pointer, not the keyboard, is
+   * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
+   */
+  private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): CarData | undefined {
     const reordered = [...(this.cars()?.cars ?? [])];
-    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    if (toIndex < 0 || toIndex >= reordered.length) {
+      return undefined;
+    }
+
+    moveItemInArray(reordered, fromIndex, toIndex);
     this._cars.set({cars: reordered}); // optimistic, updates in the background
+    if (keepFocusOnHandle) {
+      this.reorderFeedback.refocusHandle(`dragCarHandle-${toIndex}`);
+    }
 
     this.carApiService.reorderCars(reordered.map(car => car.id)).subscribe({
-      next: data => this._cars.set(data),
+      next: data => {
+        this._cars.set(data);
+        // The response replaces every record, so the focused handle is a new element by now.
+        if (keepFocusOnHandle) {
+          this.reorderFeedback.refocusHandle(`dragCarHandle-${toIndex}`);
+        }
+      },
       error: () => {
         this.toastr.error('Fehler beim Ändern der Reihenfolge', 'Fehler');
         this.loadCars();
       }
     });
+
+    return reordered[toIndex];
   }
 
   protected readonly faPencil = faPencil;
@@ -167,5 +220,4 @@ export class SettingsCarsComponent {
   protected readonly faPlus = faPlus;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;
-  protected readonly faGripVertical = faGripVertical;
 }

@@ -15,6 +15,8 @@ import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
 })
 export class TafelCounterInputComponent {
   testId = input.required<string>();
+  /** Names the counter for assistive technology, e.g. the food category it counts. */
+  label = input.required<string>();
   key = input.required<unknown>();
   value = input.required<number>();
   minValue = input<number>(0);

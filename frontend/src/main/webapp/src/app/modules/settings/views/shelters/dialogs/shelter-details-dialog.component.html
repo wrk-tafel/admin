@@ -1,7 +1,7 @@
-<tafel-dialog title="Notschlafstelle Details" testid="shelter-details-dialog">
+<tafel-dialog title="Notschlafstelle Details" testId="shelter-details-dialog">
   <div tafel-dialog-content>
     <div class="grid grid-cols-1 gap-2">
-      <h5>Daten</h5>
+      <h3 class="tafel-h5">Daten</h3>
       <div><strong>Name:</strong> {{ data.shelter?.name }}</div>
       <div><strong>Straße:</strong> {{ data.shelter?.addressStreet }} {{ data.shelter?.addressHouseNumber }}</div>
       <div><strong>Stiege:</strong> {{ data.shelter?.addressStairway ?? '-' }}</div>
@@ -12,7 +12,7 @@
       <div><strong>Hinweis:</strong> {{ data.shelter?.note ?? '-' }}</div>
 
       <div class="mt-2">
-        <h5 class="mb-2">Kontakte</h5>
+        <h3 class="tafel-h5 mb-2">Kontakte</h3>
         @if (data.shelter?.contacts; as contacts) {
           @if (contacts.length > 0) {
             <ul class="list-disc pl-4">

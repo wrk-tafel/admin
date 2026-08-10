@@ -30,6 +30,18 @@ module, and named interfaces gate service/DTO access only (see
   (in [`HouseholdResponseModel.kt`](HouseholdResponseModel.kt)) expose `persons: List<Person>` with
   `mainPerson()`/`additionalPersons()` helper methods, mirroring
   `HouseholdEntity.additionalPersons()` on the entity side.
+- **A household or person may be incomplete on purpose.** Of the fields the customer form marks
+  required, only `single_parent` is enforced by the schema (`not null` with a `false` default, see
+  `R__00091_household_single_parent_not_null.sql`) — a checkbox has no "unknown" state. The address
+  parts and a person's name, birth date and gender stay nullable: that incompleteness is exactly
+  what `HouseholdEntity.Specs.postProcessingNecessary()` searches for and what the "Daten
+  unvollständig" filter in the customer search exists to surface. The 2023 import left rows in that
+  shape that cannot be reconstructed, `testdata.sql` seeds household 106 the same way to exercise
+  the filter, and `HouseholdEntitySpecsIT` persists incomplete persons — a column constraint would
+  make all of those impossible to write. Presence is enforced one layer up instead, by `@NotBlank`
+  /`@NotNull` on `HouseholdAddress` and `Person`. `HouseholdRequiredFieldsIT` locks the decision
+  down. `telephone_number` is not enforced anywhere on the backend — only the frontend form treats
+  it as mandatory.
 - Legacy: the old `customers` / `customers_addpersons` tables (see
   `R__00067_household_person_refactor.sql`) were superseded by `households`/`persons`. They are kept
   read-only for a production observation window before a separate cleanup migration
@@ -104,8 +116,10 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
-(paginated search with `HouseholdEntity.Specs` JPA specifications for name/postProcessing/
-cost-contribution/valid filters), `getHouseholdsAboveLimit`, `getHouseholdsOverview`, `generatePdf`,
+(paginated search with `HouseholdEntity.Specs` JPA specifications - one free-text `searchInput`
+matched against the trigger-maintained `search_text` column plus the postProcessing/
+cost-contribution/valid filters, see `SearchTextSpecs`), `getHouseholdsAboveLimit`,
+`getHouseholdsOverview`, `generatePdf`,
 `deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
@@ -135,10 +149,10 @@ Bidirectional mapping between the API-facing `Household`/`Person` models and
   this is how the module gets employee data without depending on `base::employee`. It needs the
   managed entity to assign, which is exactly what that named interface's service doesn't hand out.
 - Tracks `prolongedAt`: set to "now" whenever an update pushes `validUntil` further into the future
-  than it already was.
-- Force-clears `migrated = false` whenever a household is saved through the app (there's a
-  `// TODO revisit on 01.01.2026` comment - this flag exists only to track post-refactor
-  data-quality fixups and can likely be removed after that date).
+  than it already was. Every other update leaves the stored value alone - `getHouseholdsOverview`'s
+  "Verlängert" list and `DistributionStatisticService.countCustomersProlonged` both select on
+  `prolongedAt` falling inside a distribution's window, so clearing it on an unrelated later edit
+  would drop the household out of that distribution's numbers.
 
 **Never use `mapHouseholdToEntity` for merge re-parenting**: it does
 `householdEntity.persons.clear(); householdEntity.persons.addAll(mappedPersons)`, relying on
@@ -271,7 +285,9 @@ library, with the Tafel logo overlaid.
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with
 the authoring employee and a timestamp. Simple create/list (paginated, 5 per page, newest first);
-no update or delete endpoint exists.
+no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
+timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
+frontend needs the id as a stable list key.
 
 ## Gotchas / best practices
 

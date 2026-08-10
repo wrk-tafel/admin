@@ -1,9 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.distribution.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService
 import io.mockk.every
@@ -18,8 +19,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.retry.support.RetryTemplate
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.Duration
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -42,23 +43,21 @@ internal class DistributionEndedEventListenerTest {
 
     private lateinit var listener: DistributionEndedEventListener
 
+    // The listener builds a real RetryTemplate from these, so the retry behavior is genuinely
+    // exercised - the backoff is cut to a millisecond so it isn't exercised in real time.
+    private val tafelAdminProperties = TafelAdminProperties().apply {
+        distribution.closeRetry.backoff = Duration.ofMillis(1)
+    }
+
     @BeforeEach
     fun beforeEach() {
-        // Real RetryTemplate (not mocked) with no backoff, so retry behavior is genuinely exercised
-        // without slowing the test down with real waits between attempts.
-        val retryTemplate = RetryTemplate.builder()
-            .maxAttempts(3)
-            .noBackoff()
-            .retryOn(Exception::class.java)
-            .build()
-
         listener = DistributionEndedEventListener(
             distributionStatisticService,
             missingCostContributionService,
             transactionTemplate,
             distributionRepository,
             eventPublisher,
-            retryTemplate,
+            tafelAdminProperties,
         )
     }
 
@@ -119,6 +118,30 @@ internal class DistributionEndedEventListenerTest {
 
         verify(exactly = 3) { missingCostContributionService.addMissingCostContributions(distribution) }
         verify(exactly = 0) { eventPublisher.publishEvent(any<DistributionClosedEvent>()) }
+    }
+
+    /**
+     * The attempt count is configuration, not a constant - a close that keeps failing against a
+     * database under load is exactly when somebody wants to give it more attempts, and a
+     * distribution day cannot take the restart that would otherwise cost.
+     */
+    @Test
+    fun `retries as often as configured`() {
+        tafelAdminProperties.distribution.closeRetry.maxAttempts = 5
+        every { missingCostContributionService.addMissingCostContributions(any()) } throws
+            IllegalStateException("Test exception")
+
+        val distributionId = 123L
+        val distribution = mockk<DistributionEntity>()
+        every { distribution.id } returns distributionId
+        every { distributionStatisticService.saveStatistic(distribution) } returns mockk<DistributionStatisticEntity>()
+        every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
+
+        assertThrows<IllegalStateException> {
+            listener.onDistributionEnded(DistributionEndedEvent(distributionId))
+        }
+
+        verify(exactly = 5) { missingCostContributionService.addMissingCostContributions(distribution) }
     }
 
     @Test

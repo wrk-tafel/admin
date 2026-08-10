@@ -7,6 +7,7 @@ import {CarApiService, CarData, CarList} from '../../../../api/car-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {LiveAnnouncer} from '@angular/cdk/a11y';
 
 describe('SettingsCarsComponent', () => {
   const testCar1: CarData = {
@@ -26,6 +27,7 @@ describe('SettingsCarsComponent', () => {
 
   let carApiMock: Partial<CarApiService>;
   let toastrMock: Partial<TafelToastrService>;
+  let liveAnnouncerMock: Partial<LiveAnnouncer>;
 
   beforeEach(() => {
     carApiMock = {
@@ -40,6 +42,10 @@ describe('SettingsCarsComponent', () => {
       error: vi.fn()
     };
 
+    liveAnnouncerMock = {
+      announce: vi.fn(() => Promise.resolve())
+    };
+
     const matDialogMock: Partial<MatDialog> = {
       open: vi.fn(() => ({afterClosed: () => of(undefined)})) as any
     };
@@ -50,7 +56,8 @@ describe('SettingsCarsComponent', () => {
         provideHttpClientTesting(),
         {provide: CarApiService, useValue: carApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
-        {provide: MatDialog, useValue: matDialogMock}
+        {provide: MatDialog, useValue: matDialogMock},
+        {provide: LiveAnnouncer, useValue: liveAnnouncerMock}
       ]
     }).compileComponents();
   });
@@ -135,6 +142,31 @@ describe('SettingsCarsComponent', () => {
 
     expect(component['cars']()?.cars.map(c => c.id)).toEqual([testCar2.id, testCar1.id]);
     expect(carApiMock.reorderCars).toHaveBeenCalledWith([testCar2.id, testCar1.id]);
+  });
+
+  it('moveCar() persists the new order and announces the new position', () => {
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['moveCar'](0, 1);
+
+    expect(component['cars']()?.cars.map(c => c.id)).toEqual([testCar2.id, testCar1.id]);
+    expect(carApiMock.reorderCars).toHaveBeenCalledWith([testCar2.id, testCar1.id]);
+    expect(liveAnnouncerMock.announce).toHaveBeenCalledWith('Fahrzeug Car 123 ist jetzt an Position 2 von 2.', 'assertive');
+  });
+
+  it('moveCar() past either end of the list changes nothing', () => {
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['moveCar'](0, -1);
+    component['moveCar'](1, 1);
+
+    expect(component['cars']()?.cars.map(c => c.id)).toEqual([testCar1.id, testCar2.id]);
+    expect(carApiMock.reorderCars).not.toHaveBeenCalled();
+    expect(liveAnnouncerMock.announce).not.toHaveBeenCalled();
   });
 
   it('drop() reverts and shows an error toast when persisting fails', () => {

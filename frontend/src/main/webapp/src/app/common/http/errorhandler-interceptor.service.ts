@@ -6,6 +6,7 @@ import {AuthenticationService} from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../api/problem-detail';
 import {SUPPRESS_ERROR_TOAST} from './suppress-error-toast.token';
+import {ClientLogService} from '../support/client-log.service';
 
 /**
  * Central HTTP error handling, applied to every request. Three independent stages are chained
@@ -19,9 +20,11 @@ import {SUPPRESS_ERROR_TOAST} from './suppress-error-toast.token';
  *    'blob'` requests (PDF downloads), Angular still delivers a JSON error body as a `Blob`
  *    instead of parsing it, so this reads the blob as text and re-parses it into the same shape a
  *    non-blob request would have gotten.
- * 3. {@link handleErrorMessage} - shows a toast with the backend's error message by default,
+ * 3. {@link handleErrorMessage} - records the failure in {@link ClientLogService} so a later
+ *    support request can carry it, and shows a toast with the backend's error message by default,
  *    unless the request opted out via the {@link SUPPRESS_ERROR_TOAST} context (callers that
- *    fully own presenting the error themselves).
+ *    fully own presenting the error themselves). The recording happens either way: a request that
+ *    presents its own error is no less interesting to whoever reads the support mail.
  */
 export const errorHandlerInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -29,6 +32,7 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const authenticationService = inject(AuthenticationService);
   const toastr = inject(TafelToastrService);
+  const clientLogService = inject(ClientLogService);
 
   const handleAuthError = (error: HttpErrorResponse): Observable<any> => {
     if (authenticationService.isAuthenticated() && error.status === 401) {
@@ -54,6 +58,8 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
   };
 
   const handleErrorMessage = (error: HttpErrorResponse): Observable<any> => {
+    clientLogService.record(`HTTP ${error.status} - ${request.method} ${request.url}: ${extractErrorMessage(error)}`);
+
     if (!request.context.get(SUPPRESS_ERROR_TOAST)) {
       toastr.error(extractErrorMessage(error), `HTTP ${error.status} - ${error.statusText}`);
     }

@@ -1,0 +1,32 @@
+### Send a support request (mailed to tafeladmin.support.recipients, 500 when none is configured)
+POST {{baseApiPath}}/support
+Content-Type: application/json
+
+{
+  "title": "Login geht nicht",
+  "text": "Nach dem Anmelden bleibt die Seite leer.",
+  "clientContext": {
+    "screenshot": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
+    "page": "http://localhost:4200/uebersicht",
+    "userAgent": "Mozilla/5.0 Chrome/128",
+    "viewport": "1280x800",
+    "screen": "1920x1080",
+    "language": "de-AT",
+    "timeZone": "Europe/Vienna",
+    "recentErrors": [
+      {
+        "timestamp": "10:15:00",
+        "message": "HTTP 500 - GET /api/households"
+      }
+    ]
+  }
+}
+
+### The whole clientContext is optional - a request without it still goes out
+POST {{baseApiPath}}/support
+Content-Type: application/json
+
+{
+  "title": "Verbesserungsvorschlag",
+  "text": "Die Kundensuche könnte den Fokus behalten."
+}

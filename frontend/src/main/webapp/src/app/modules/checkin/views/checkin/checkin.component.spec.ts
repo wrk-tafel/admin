@@ -610,11 +610,13 @@ describe('CheckinComponent', () => {
         const mockNotesResponse: CustomerNotesResponse = {
             items: [
                 {
+                    id: 612,
                     author: 'author1',
                     timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
                     note: 'note from author 2'
                 },
                 {
+                    id: 617,
                     author: 'author2',
                     timestamp: dayjs('2023-03-20T19:45:25.615477+01:00').toDate(),
                     note: 'note from author 1'

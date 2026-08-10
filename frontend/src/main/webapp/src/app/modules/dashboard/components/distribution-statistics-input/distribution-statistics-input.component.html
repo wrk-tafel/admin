@@ -1,11 +1,11 @@
 <mat-card class="h-full mat-card-primary">
   <mat-card-header>
     <mat-card-title>
-      <h4>Statistik</h4>
+      <h2 class="tafel-h4">Statistik</h2>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <form [formGroup]="form" autocomplete="off" class="flex flex-col gap-6">
+    <form [formGroup]="form" autocomplete="off" class="flex flex-col gap-2">
       <mat-form-field appearance="fill" class="w-full" testid="distribution-statistics-employee-count-input">
         <mat-label>Anzahl der Mitarbeiter</mat-label>
         <input
@@ -14,6 +14,8 @@
           formControlName="employeeCount"
           placeholder="Anzahl der Mitarbeiter"
         />
+        <tafel-info-tooltip matSuffix [testId]="'employee-count-info-tooltip'"
+                            text="Anzahl der Mitarbeiter, die an diesem Ausgabetag im Einsatz waren. Fließt in die Statistik und den Tagesbericht ein."></tafel-info-tooltip>
         @if (employeeCount.errors?.required && employeeCount.touched) {
           <mat-error>
             Pflichtfeld
@@ -35,8 +37,9 @@
             formControlName="personsInShelterCount"
             placeholder="Personen in Notschlafstellen"
             [readonly]="true"
-            [disabled]="panelDisabled()"
           />
+          <tafel-info-tooltip matSuffix [testId]="'persons-in-shelter-info-tooltip'"
+                              text="Wird nicht direkt eingegeben: über den Rechner daneben werden die belieferten Notschlafstellen ausgewählt, die Summe ihrer Personen steht dann hier."></tafel-info-tooltip>
           @if (personsInShelterCount.errors?.required && personsInShelterCount.touched) {
             <mat-error>
               Pflichtfeld

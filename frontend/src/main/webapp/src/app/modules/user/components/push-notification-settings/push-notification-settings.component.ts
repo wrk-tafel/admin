@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, computed, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatSlideToggle, MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -6,10 +6,18 @@ import {faBell, faBellSlash, faPaperPlane, faPen, faTrashCan} from '@fortawesome
 import {DatePipe} from '@angular/common';
 import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {userAgentLabel} from '../../../../common/util/user-agent-label.util';
-import {PushNotificationType, PushPreferencesResponse, PushTestResult, pushNotificationTypeLabel} from '../../../../api/push-api.service';
+import {
+  PushNotificationType,
+  PushPreferencesResponse,
+  PushTestResult,
+  pushNotificationTypeDescription,
+  pushNotificationTypeGroups,
+  pushNotificationTypeLabel
+} from '../../../../api/push-api.service';
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
 
 const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types: []};
@@ -25,7 +33,8 @@ const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types
     MatSlideToggle,
     FaIconComponent,
     DatePipe,
-    MatButton
+    MatButton,
+    MatTooltipModule
   ]
 })
 export class PushNotificationSettingsComponent {
@@ -167,8 +176,29 @@ export class PushNotificationSettingsComponent {
     return device.label ?? userAgentLabel(device.userAgent);
   }
 
+  /**
+   * The preferences response carries only which types this user may receive, in enum order. This
+   * turns that flat list into the screen's grouping and ordering, keeping only the types that came
+   * back and dropping any group left empty by the permission filtering - so a user who is an
+   * audience for nothing technical sees no "Technisches" heading at all, rather than an empty one.
+   */
+  readonly typeGroups = computed(() => {
+    const receivable = new Map(this.preferences().types.map(item => [item.type, item]));
+
+    return pushNotificationTypeGroups
+      .map(group => ({
+        title: group.title,
+        items: group.types.map(type => receivable.get(type)).filter(item => item !== undefined)
+      }))
+      .filter(group => group.items.length > 0);
+  });
+
   protected typeLabel(type: PushNotificationType): string {
     return pushNotificationTypeLabel[type];
+  }
+
+  protected typeDescription(type: PushNotificationType): string {
+    return pushNotificationTypeDescription[type];
   }
 
   async onMasterToggle(event: MatSlideToggleChange) {

@@ -6,13 +6,23 @@ Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Fam
 
 ## Kunden suchen
 
-Unter **Kunden → Kunden suchen** kann entweder direkt über die **Kundennummer** (Feld oben, Button **Anzeigen**) zur Detailansicht gesprungen werden, oder über Nachname und/oder Vorname gesucht werden. Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" filtern. Ist zur eingegebenen Kundennummer kein Kunde vorhanden, erscheint die Meldung "Kunde nicht gefunden!".
+Unter **Kunden → Kunden suchen** kann entweder direkt über die **Kundennummer** (Feld oben, Button **Anzeigen**) zur Detailansicht gesprungen werden, oder über das Feld **Suche** gesucht werden. Ist zur eingegebenen Kundennummer kein Kunde vorhanden, erscheint die Meldung "Kunde nicht gefunden!".
+
+Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
+
+Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" filtern; die Filter können auch ohne Sucheingabe verwendet werden. Das Info-Symbol (ⓘ) neben dem Suchfeld und neben jedem Filter erklärt, wonach genau gesucht wird – "Daten unvollständig" findet z. B. Kunden, bei denen bei einer Person Pflichtangaben fehlen.
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
+
+Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein.
 
 Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Über die Aktionen kann der Kunde angesehen (Lupe) oder bearbeitet (Stift) werden. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
+
+Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und denselben Aktionen (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+
+![Suchergebnis auf schmalen Bildschirmen](images/kunden-suchen-ergebnis-mobil.jpg)
 
 ## Kunden-Detail
 
@@ -56,9 +66,26 @@ Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden.
 
 ![Dokumente](images/kunden-detail-dokumente.jpg)
 
+### Verlauf
+
+Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
+
+Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Änderungsprotokoll](aenderungsprotokoll.md), dort zusätzlich filterbar.
+
+![Verlauf](images/kunden-verlauf.jpg)
+
 ## Kunden anlegen / bearbeiten
 
 Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein, die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor.
+
+Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das ihre Wirkung erklärt (siehe [Kurzhinweise](README.md#tooltips-und-erklaerungen)):
+
+- **Einkommen (monatl.)**: Die Einkommen aller Personen im Haushalt werden zusammengezählt und gegen die Einkommensgrenze geprüft.
+- **nachgewiesen bis**: Datum, bis zu dem der vorgelegte Einkommensnachweis gültig ist.
+- **Alleinerzieher**: Wird nur für die Statistik erfasst und beeinflusst die Einkommensgrenze nicht.
+- **Gültig bis**: Ende der Bezugsberechtigung; danach wird der Kunde bei der Annahme als ungültig angezeigt.
+- **Bezieht Familienbeihilfe** (bei weiteren Personen): Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel werden automatisch zum Haushaltseinkommen dazugerechnet.
+- **Nicht im selben Haushalt (keine Berechnung)**: Die Person bleibt beim Kunden erfasst, ihr Einkommen wird aber weder mitgezählt noch erhöht sie die Einkommensgrenze.
 
 ![Kunde anlegen](images/kunden-anlegen.jpg)
 
@@ -96,6 +123,8 @@ Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Ge
 
 ![Kunden über Limit](images/kunden-ueber-limit.jpg)
 
+Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
+
 <a id="kunden-übersicht"></a>
 
 ## Kunden-Übersicht
@@ -103,3 +132,5 @@ Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Ge
 Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet, getrennt in die Bereiche "Neu" und "Verlängert". Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Über die Auswahlbox **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden; ohne Auswahl zeigt die Seite den zuletzt begonnenen (bzw. laufenden) Ausgabetag. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
 
 ![Kunden-Übersicht](images/kunden-uebersicht.jpg)
+
+Auf schmalen Bildschirmen werden beide Bereiche ("Neu" und "Verlängert") jeweils als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).

@@ -82,11 +82,11 @@ class FoodCollectionsExporterTest {
             listOf(
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)"),
                 listOf("Datum", "Route", "Spender", "Category 1", "Category 2", "Category 3"),
-                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "1", "0", "0", "0"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "20", "0", "120"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
-                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
+                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "Route 2", "3", "0", "0", "5"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "Route 1", "1", "0", "0", "0"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "Route 1", "2", "20", "0", "120"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "Route 2", "3", "0", "0", "5"),
+                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "Route 2", "3", "0", "0", "5"),
             ),
         )
     }

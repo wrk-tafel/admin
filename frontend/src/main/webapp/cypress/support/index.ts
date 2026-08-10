@@ -3,6 +3,8 @@
 /// <reference types="cypress" />
 
 import {AddCustomerToDistributionRequest, CustomerCreationResponse, CustomerData, UserData} from './commands';
+import type {ElementContext} from 'axe-core';
+import type {Options} from 'cypress-axe';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace -- Cypress's documented pattern for augmenting Chainable
@@ -111,7 +113,8 @@ declare global {
       deleteUser(userId: number): Cypress.Chainable<Cypress.Response<void>>;
 
       /**
-       * Custom command to close a distribution.
+       * Custom command to close a distribution. Fails when the backend refuses the close (e.g.
+       * because a route was only recorded partially) instead of leaving it open silently.
        * @example cy.closeDistribution();
        */
       closeDistribution(): void;
@@ -123,6 +126,32 @@ declare global {
        * @example cy.accrueCostContributionDebt(customerId);
        */
       accrueCostContributionDebt(customerId: number): void;
+
+      /**
+       * Runs axe against the current state of the application and fails on any violation.
+       * Pass a context to scope it to an overlay/panel/table, which keeps a failure readable -
+       * see cypress/support/accessibility.ts.
+       * @example cy.checkAccessibility('[testid="cars-table"]');
+       */
+      checkAccessibility(context?: ElementContext, options?: Options): void;
+
+      /**
+       * Runs axe against the currently open dialog.
+       * @example cy.checkDialogAccessibility();
+       */
+      checkDialogAccessibility(options?: Options): void;
+
+      /**
+       * Runs axe against the currently open menu panel.
+       * @example cy.checkMenuAccessibility();
+       */
+      checkMenuAccessibility(options?: Options): void;
+
+      /**
+       * Runs axe against the currently open select panel.
+       * @example cy.checkSelectAccessibility();
+       */
+      checkSelectAccessibility(options?: Options): void;
 
       /**
        * Custom command to generate a random number in a given range.

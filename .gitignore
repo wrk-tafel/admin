@@ -25,3 +25,12 @@ build/
 /backend/documents/
 /scanner-inbox/
 /backend/scanner-inbox/
+
+### JVM crash dumps - written next to whatever directory the JVM was started from, and worth
+### nothing to anybody else once the crash has been diagnosed
+hs_err_pid*.log
+replay_pid*.log
+
+### production data pulled out of the live database for a one-off cleanup - never commit these
+/households.txt
+/households_updated.sql

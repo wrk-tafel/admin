@@ -4,20 +4,24 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardRouteProgressItem
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardTicketsData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class DashboardService(
     private val distributionRepository: DistributionRepository,
     private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val routeRepository: RouteRepository,
+    private val routeStopCompletionRepository: RouteStopCompletionRepository,
 ) {
 
     @Transactional(readOnly = true)
@@ -62,28 +66,61 @@ class DashboardService(
     )
 
     private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {
-        // A route only counts as "recorded" once the whole trip is done: base data (car/driver/
-        // co-driver/mileage) plus the picked-up food items - a FoodCollectionEntity can otherwise
-        // exist with only one of the two (see FoodCollectionService.getOrCreateFoodCollectionEntity).
         val doneFoodCollections = currentDistribution.foodCollections.filter { it.isFullyRecorded() }
+        // disabled routes aren't driven anymore, so they must not inflate the target count
+        val enabledRoutes = routeRepository.findByEnabledIsTrue()
 
         return DashboardLogisticsData(
             foodCollectionsRecordedCount = doneFoodCollections.size,
-            foodCollectionsTotalCount = routeRepository.findAll().size,
+            foodCollectionsTotalCount = enabledRoutes.size,
             recordedRouteNames = doneFoodCollections
                 .sortedWith(compareBy({ it.route.number }, { it.route.name }))
                 .map { it.route.name },
             foodAmountTotal = currentDistribution.foodCollections
                 .flatMap { it.items ?: emptyList() }
-                .map { it.calculateWeight() }
+                .map { it.weight }
                 .sumOf { it },
+            routeProgress = getRouteProgress(enabledRoutes),
         )
     }
 
-    private fun FoodCollectionEntity.isFullyRecorded(): Boolean = car != null &&
-        driver != null &&
-        coDriver != null &&
-        kmStart != null &&
-        kmEnd != null &&
-        !items.isNullOrEmpty()
+    /**
+     * The stop counts behind the route guidance screen, for every route that is still driven.
+     * Routes without stops are left out - "0 von 0" says nothing, and a route only gets its stops
+     * once someone has set them up.
+     *
+     * Empty until somebody has actually ticked a stop off today. The route guidance screen is
+     * optional - a deployment whose drivers don't use it would otherwise get a panel of permanent
+     * zeroes taking up room on a dashboard that has to fit on one screen. As soon as the first stop
+     * of the day is ticked off, *every* route appears, including the ones still at zero: from then
+     * on "Route 3: 0 / 15" is news rather than noise.
+     */
+    private fun getRouteProgress(enabledRoutes: List<RouteEntity>): List<DashboardRouteProgressItem> {
+        val routesWithStops = enabledRoutes.filter { it.stops.isNotEmpty() }
+        val stopIds = routesWithStops.flatMap { route -> route.stops.mapNotNull { it.id } }
+        if (stopIds.isEmpty()) {
+            return emptyList()
+        }
+
+        // one query for every route's stops rather than one per route
+        val completedStopIds = routeStopCompletionRepository
+            .findAllByRouteStopIdInAndCompletionDate(stopIds, LocalDate.now())
+            .mapNotNull { it.routeStop.id }
+            .toSet()
+        if (completedStopIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return routesWithStops
+            .sortedWith(compareBy({ it.number }, { it.name }))
+            .map { route ->
+                DashboardRouteProgressItem(
+                    routeId = route.id!!,
+                    routeNumber = route.number,
+                    routeName = route.name,
+                    completedStops = route.stops.count { it.id in completedStopIds },
+                    totalStops = route.stops.size,
+                )
+            }
+    }
 }

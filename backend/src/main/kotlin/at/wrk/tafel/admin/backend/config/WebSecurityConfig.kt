@@ -130,8 +130,12 @@ class WebSecurityConfig(
                 exceptionHandling.accessDeniedHandler(TafelAccessDeniedHandler())
             }
             .csrf { csrf ->
-                val tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
-                tokenRepository.setCookieCustomizer { it.sameSite("Strict") }
+                val cookieTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
+                cookieTokenRepository.setCookieCustomizer { it.sameSite("Strict") }
+                val tokenRepository = SessionBoundCsrfTokenRepository(
+                    delegate = cookieTokenRepository,
+                    secret = applicationProperties.security.jwtToken.secret.value,
+                )
 
                 csrf.csrfTokenRepository(tokenRepository)
                 csrf.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
@@ -170,7 +174,7 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties)
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())

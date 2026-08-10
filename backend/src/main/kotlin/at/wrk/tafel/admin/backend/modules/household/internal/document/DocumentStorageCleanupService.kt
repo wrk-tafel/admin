@@ -10,7 +10,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
  * Deletes document files left behind on disk once their DB row is gone.
@@ -30,14 +29,17 @@ class DocumentStorageCleanupService(
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(DocumentStorageCleanupService::class.java)
-
-        // A file is written to disk (DocumentStorageService.store) before its DB row is committed
-        // (HouseholdDocumentService.uploadDocument/importFromScannerFile) - skipping anything newer
-        // than this avoids deleting a just-uploaded file out from under a request still in flight.
-        private const val MIN_AGE_MINUTES = 60L
     }
 
-    @Scheduled(cron = "0 0 23 * * *")
+    /**
+     * Shares 05:00 with `AuditRetentionService` - the quiet window between the last late-evening
+     * work and the first distribution-day activity. The two never contend for anything: this one
+     * only walks the documents folder, that one only deletes `audit_log` rows. They do share the
+     * single scheduled-task thread (`spring.task.scheduling.pool.size` is left at its default of 1),
+     * so they run one after the other rather than at once - which is fine, since neither is
+     * time-critical and both have hours of headroom.
+     */
+    @Scheduled(cron = "0 0 5 * * *")
     fun cleanupOrphanedFiles() {
         val documentsRoot = Paths.get(tafelAdminProperties.storage.documentsPath)
         if (!Files.isDirectory(documentsRoot)) {
@@ -45,7 +47,10 @@ class DocumentStorageCleanupService(
         }
 
         val knownPaths = documentRepository.findAllStoragePaths().toSet()
-        val cutoff = Instant.now().minus(MIN_AGE_MINUTES, ChronoUnit.MINUTES)
+        // A file is written to disk (DocumentStorageService.store) before its DB row is committed
+        // (HouseholdDocumentService.uploadDocument/importFromScannerFile) - skipping anything newer
+        // than this avoids deleting a just-uploaded file out from under a request still in flight.
+        val cutoff = Instant.now().minus(tafelAdminProperties.storage.orphanedFileMinAge)
 
         val orphanedFiles: List<Path> = Files.walk(documentsRoot).use { stream ->
             stream

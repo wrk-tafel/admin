@@ -41,10 +41,23 @@ jobs:
             The description "{subject}" found in title "{title}" must start with a lowercase
             letter, must not end with a period, and (with its type/scope prefix) must keep the
             whole title under 100 characters — matches the commitlint check on commits.
+  # Every job below is gated on what this pull request actually touches, so a docs-only change (or
+  # a title/description edit, which re-triggers this workflow with unchanged commits) costs nothing
+  # beyond the two lint jobs above. See subflow_changes.yml for the classification rules.
+  changes:
+    uses: ./.github/workflows/subflow_changes.yml
   build:
+    # Both artifacts are built whenever the application changed at all: the image and the e2e run
+    # need the jar and the frontend bundle together, no matter which of the two was edited.
     uses: ./.github/workflows/subflow_build.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
   test:
     uses: ./.github/workflows/subflow_test.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
   version:
     runs-on: ubuntu-latest
     outputs:
@@ -62,6 +75,14 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:
     uses: ./.github/workflows/subflow_lint.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      backend: ${{ needs.changes.outputs.backend == 'true' }}
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+      docker: ${{ needs.changes.outputs.docker == 'true' }}
+  # sonar, build-push-image, e2e-test and deploy-dev need no gate of their own: they depend on
+  # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, version]
@@ -73,51 +94,13 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
-  # TEMPORARY (issue #3017): lets a PR's userguide PDF be downloaded and eyeballed before merge,
-  # e.g. to verify page-break CSS changes render correctly. Mirrors release.yml's userguide-pdf
-  # job (see the comments there for the reasoning behind each step) - remove once no longer needed
-  # for that verification, this isn't meant to run on every PR long-term.
-  userguide-pdf:
-    runs-on: ubuntu-latest
-    needs: version
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: 'frontend/src/main/webapp/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'docs/userguide/package-lock.json'
-      - run: npm ci --ignore-scripts
-        working-directory: docs/userguide
-      - name: Combine userguide chapters into one markdown file
-        run: |
-          cd docs/userguide
-          cp README.md combined.md
-          for chapter in anmeldung kunden logistik benutzer einstellungen statistiken; do
-            cat "$chapter.md" >> combined.md
-          done
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
-      - name: Render userguide PDF
-        env:
-          USERGUIDE_VERSION: ${{ needs.version.outputs.version }}
-        run: |
-          CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium)
-          if [ -z "$CHROME_PATH" ]; then
-            echo "::error::No Chrome/Chromium executable found on this runner" >&2
-            exit 1
-          fi
-          export CHROME_PATH
-          node_modules/.bin/md-to-pdf combined.md --config-file md-to-pdf.config.js
-        working-directory: docs/userguide
-      - name: Rename PDF to release asset name
-        run: mv docs/userguide/combined.pdf tafel-admin-benutzerhandbuch.pdf
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: userguide-pdf
-          path: tafel-admin-benutzerhandbuch.pdf
-          if-no-files-found: error
-          retention-days: 1
+  lighthouse:
+    # Rates the built frontend bundle and enforces the thresholds in lighthouserc.cjs. Gated on the
+    # frontend rather than on the application as a whole: a backend-only change ships the identical
+    # bundle, so re-measuring it can only produce runner noise.
+    uses: ./.github/workflows/subflow_lighthouse.yml
+    needs: [changes, build]
+    if: needs.changes.outputs.frontend == 'true'
   deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [build-push-image, version]

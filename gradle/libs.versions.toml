@@ -12,7 +12,7 @@ jackson = "3.2.1"
 jackson-legacy = "2.22.1"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
-bouncycastle = "1.85"
+bouncycastle = "1.85.2"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
@@ -30,7 +30,7 @@ image-comparison = "4.4.0"
 awaitility = "4.3.0"
 
 # Plugin versions
-sonarqube = "7.3.1.8318"
+sonarqube = "7.4.0.8496"
 ktlint-gradle = "14.2.0"
 
 [libraries]
@@ -54,8 +54,7 @@ spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
 # Spring Modulith
-spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
-spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
+spring-modulith-api = { module = "org.springframework.modulith:spring-modulith-api" }
 
 # Spring Cloud
 spring-cloud-context = { module = "org.springframework.cloud:spring-cloud-context" }

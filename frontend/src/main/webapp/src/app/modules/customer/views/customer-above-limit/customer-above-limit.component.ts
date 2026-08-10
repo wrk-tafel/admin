@@ -1,10 +1,11 @@
-import {Component, inject, input, linkedSignal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerAboveLimitItem, CustomerAboveLimitResponse, CustomerApiService} from '../../../../api/customer-api.service';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {CommonModule} from '@angular/common';
 import {faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -21,7 +22,8 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
     MatPaginatorModule,
     CommonModule,
     FaIconComponent,
-    FormatCustomerAddressPipe
+    FormatCustomerAddressPipe,
+    MatTooltipModule
   ]
 })
 export class CustomerAboveLimitComponent {
@@ -32,6 +34,18 @@ export class CustomerAboveLimitComponent {
 
   // Writable signal linked to input - resets when input changes, locally writable for pagination
   readonly customerAboveLimitData = linkedSignal(() => this.customerAboveLimitDataInput());
+
+  // What the role="status" region in the template says: paging replaces the whole table without
+  // announcing what is on the new page.
+  protected readonly aboveLimitAnnouncement = computed(() => {
+    const data = this.customerAboveLimitData();
+    if (!data) {
+      return '';
+    }
+    return data.totalCount === 0
+      ? 'Keine Kunden über dem Limit gefunden'
+      : `${data.totalCount} Kunden über dem Limit gefunden, Seite ${data.currentPage}`;
+  });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);

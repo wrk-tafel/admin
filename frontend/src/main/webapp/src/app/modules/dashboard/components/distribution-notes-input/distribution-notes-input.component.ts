@@ -2,7 +2,7 @@ import {Component, computed, inject, input, linkedSignal, Signal} from '@angular
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {MatInput} from '@angular/material/input';
-import {MatFormField} from '@angular/material/form-field';
+import {MatFormField, MatLabel} from '@angular/material/form-field';
 import {FormsModule} from '@angular/forms';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionItem} from '../../../../api/distribution-api.service';
@@ -12,12 +12,14 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-distribution-notes-input',
   templateUrl: 'distribution-notes-input.component.html',
+  styleUrls: ['distribution-notes-input.component.scss'],
   imports: [
     MatCard,
     MatCardHeader,
     MatCardTitle,
     MatCardContent,
     MatFormField,
+    MatLabel,
     MatInput,
     MatButton,
     MatCardFooter,

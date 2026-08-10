@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
 data class HouseholdNoteItem(
+    val id: Long,
     val author: String? = null,
     val timestamp: LocalDateTime,
     val note: String,

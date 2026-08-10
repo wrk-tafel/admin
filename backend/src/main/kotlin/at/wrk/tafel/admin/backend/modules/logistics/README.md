@@ -36,22 +36,82 @@ DB level — it only governs `modules`-to-`modules` traffic.
 
 ## Components by sub-area
 
-### Routes & shops (`RouteController`, `internal/RouteService`, `internal/ShopService`)
-- `RouteEntity` (`routes`) has a `number` (`Double`, allows things like route "2.1") and a `name`,
-  plus `stops: List<RouteStopEntity>` (mapped by `route`, table `routes_stops`).
+### Routes & shops (`RouteController`, `ShopsController`, `internal/RouteService`, `internal/ShopService`)
+- `RouteEntity` (`routes`) has a `number` (`Double`, allows things like route "2.1"), a `name` and
+  an `enabled` flag, plus `stops: MutableList<RouteStopEntity>` (mapped by `route`, table
+  `routes_stops`, `cascade = [CascadeType.ALL], orphanRemoval = true`).
+- The `number` is an ordering/identification field, not a label: it is used to sort routes and to
+  address them in the API, never to name one in text a user reads. Anywhere a route has to be named
+  — a validation message (`DistributionService.validateClose()`), the "Route" column of the
+  `TOeT_Spenden` CSV export — use its `name`, which already carries the number ("Route 2"). Printing
+  the raw `Double` would read as "2.0" anyway.
 - `RouteStopEntity` links a route to a `ShopEntity` at a given `time` (`LocalTime`), with a free
-  `description`.
-- There is **no standalone "list all shops" endpoint**. `ShopService.getShopsForRouteId(routeId)`
-  is the only way shops are surfaced to the frontend: it loads the route, sorts its `stops` by
-  `time`, and maps each stop's shop. Shops are always presented in route/stop-time order, never
-  independently.
+  `description`. The shop is nullable — a stop can be a pause or anything else that isn't a pickup.
+  `routes_stops` is unique on both `(route_id, shop_id)` and `(route_id, time)`, so a route visits
+  each shop once and has one stop per time.
+- **A route's stops are replaced wholesale on update**, like shelter contacts below — but with an
+  explicit `saveAndFlush()` between clearing and re-adding them. Without that flush the inserts of
+  the new stops can reach the database before the removed ones are deleted, and re-using a shop or
+  a time that a removed stop still occupies then violates one of those unique constraints.
+  `RouteServiceIT` covers exactly that case (swapping two stops' times).
+- **`time` is the ordering key, there is no `sortOrder`.** Both `RouteService.getAllRoutes()` and
+  `ShopService.getShopsForRouteId()` sort a route's stops by `time`; routes and shops themselves
+  sort by their `number`. This is the one piece of sortable master data here that is *not* the
+  drag-and-drop `sortOrder` pattern used by shelters/cars/categories.
 - `ShopEntity` (`shops`) embeds `ShopAddress` (`address_street`/`address_postal_code`/
   `address_city`) and carries a `foodUnit: FoodUnit` (`BOX` or `KG`) — this drives weight
-  calculation in food collections (see below).
-- There is no standalone shop repository — `ShopService` goes through `RouteRepository` for
-  everything (see above). A `RouteShopRepository` used to exist here (`JpaRepository<RouteStopEntity, Long>`,
-  despite its name actually repository-managing *stops*, not shops) but was unused dead code and
-  has been removed; don't recreate a shop-specific repository without checking `ShopService` first.
+  calculation in food collections (see below) — plus an `enabled` flag. `number` is unique, checked
+  in `ShopService` before saving so a duplicate surfaces as a `BusinessRuleException` rather than a
+  constraint violation.
+- `ShopService.getShopsForRouteId(routeId)` is what the food-collection recording screen sees: it
+  loads the route, sorts its stops by `time`, and maps each stop's shop, **skipping disabled ones**.
+  `RouteController.getActiveRoutes()` (`GET /api/routes/active`) does the same for routes.
+- **Neither routes nor shops can be deleted** — `food_collections.route_id`,
+  `food_collections_items.shop_id` and `food_collections_return_items.shop_id` all reference them,
+  so recorded history would break. The `enabled` flag is the only way to retire one; disabling
+  keeps every past food collection intact.
+- **Permission split, same shape as cars/food categories:** `getActiveRoutes()` and
+  `getShopsOfRoute()` require `LOGISTICS` (the recording screen), while the full list plus
+  create/update on both controllers require `SETTINGS` (the maintenance screens under
+  `/einstellungen/routen` and `/einstellungen/filialen`).
+
+### Route guidance (`RouteGuidanceController`, `internal/RouteGuidanceService`)
+- Serves the `/logistik/routen-navi` screen: `GET /api/routes/{routeId}/guidance` returns the route's
+  stops in driving order with everything a driver on the road needs (address, phone, contact
+  person, shop note, food unit), and `PUT /api/routes/{routeId}/guidance/stops/{stopId}` ticks a
+  stop off or undoes it. Both require `LOGISTICS`.
+- **This read model is not `getShopsForRouteId`'s, and the difference is deliberate.** That one
+  serves the recording screen and drops what it cannot record against: stops without a shop, and
+  shops that are disabled. Guidance keeps both — a driver is sent to every stop the route still
+  holds, and silently omitting one would leave a gap on the road. `RouteGuidanceShop.enabled` is
+  carried so the screen can mark a retired shop rather than hide it.
+- **Progress is keyed by `(route_stop, calendar date)`, not by a distribution**
+  (`routes_stops_completions`, `RouteStopCompletionEntity`). The screen is reachable without an
+  active distribution on purpose — a driver looks at the route before the day starts — so a
+  distribution key would leave it unusable exactly then. The date comes from the server's
+  `LocalDate.now()` and is never accepted from the client.
+- **A completion is deleted with its stop** (`on delete cascade` on `route_stop_id`). That is not a
+  rare edge: `RouteService.updateRoute` replaces a route's stops wholesale, so *any* edit of a route
+  in the settings screen drops today's progress for it. `RouteGuidanceServiceIT` pins that behaviour
+  down.
+- Ticking an already-ticked stop is a no-op rather than a re-stamp: the stored `createdAt` is what
+  tells a second driver when the stop was actually done.
+- **Arriving at the last stop publishes `RouteAtLastStopEvent`** — every stop but the final one
+  ticked off, which is the point at which the van is about to head back and the people unloading it
+  want to know. `routes.last_stop_notified_date` keeps that to one announcement per route per day,
+  claimed atomically by `RouteRepository.markLastStopNotified` the same way
+  `DistributionRepository.markFoodCollectionCompleted` does; a driver who takes a stop back and
+  ticks it off again passes the same point twice and must not announce it twice. A one-stop route
+  never triggers it.
+- **The return boxes come from the route's *previous* food collection**, not the current one:
+  `findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc` excludes the
+  running distribution, because a `food_collections` row for today is created the moment anyone
+  opens the recording screen and would otherwise shadow the trip whose boxes are still in the hall.
+  A recorded amount of `0` is filtered out - it means "nothing came back", not an empty crate.
+- Boxes recorded for a shop the route no longer stops at land in `unassignedReturnItems` rather than
+  being dropped, so a route edit cannot silently strand them. The `PUT` answer carries the stop's
+  return items too: the screen replaces that one stop with the response, so leaving them off would
+  make them vanish the moment a driver ticks the stop.
 
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal
@@ -134,7 +194,7 @@ This is the most involved sub-area — it records what a route's team actually p
   in the catalog. `FoodReturnCategoryEntity` rows are only the recording screen's pre-filled
   counters — saving one stores a return item whose `description` is the category's name, exactly
   like a hand-typed row. Only amounts `> 0` are stored; a zero is the absence of a row. Return
-  boxes are never weighed, so unlike items they have no `calculateWeight()` and contribute nothing
+  boxes are never weighed, so unlike items they have no `weight` and contribute nothing
   to food-amount statistics — their one consumer is the "Retourkisten" mail in
   `reporting.DistributionClosedEventListener`.
 - **Race condition guard, second instance:** both return-item save paths
@@ -153,10 +213,17 @@ This is the most involved sub-area — it records what a route's team actually p
   dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
   they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data
   because they're read off the car on return, long after car/driver/co-driver are known.
-- `FoodCollectionItemEntity.calculateWeight()` is where the shop's `foodUnit` and the category's
+- `FoodCollectionItemEntity.weight` is where the shop's `foodUnit` and the category's
   `weightPerUnit` come together: if the shop's unit is `KG`, `amount` *is* the weight; otherwise
   weight = `amount * category.weightPerUnit`. Get the shop's unit wrong and every subsequent
   weight-based report/statistic derived from this collection is wrong too.
+- **The weight is stored, not derived on read.** `weight` is computed once, when the item is
+  written, and persisted on `food_collections_items` (column added in `R__00086`). `foodUnit` and
+  `weightPerUnit` are master data an operator can edit at any time, so recomputing on every read
+  would rewrite the kg of distributions that closed long ago —
+  `distributions_statistics.food_total_amount` is frozen at close time and the `TOeT_Spenden`
+  export would stop agreeing with it. `updateAmount()` is therefore the only way to change an
+  item's `amount`; it recomputes `weight` in the same step so the two can't drift apart.
 
 ## Persistence gotchas — summary
 
