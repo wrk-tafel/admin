@@ -191,9 +191,20 @@ Cypress.Commands.add('closeDistribution', () => {
     failOnStatusCode: false
   });
 
+  // The close endpoint answers 200 either way: an actual close returns an empty body, while a
+  // refused one returns the DistributionCloseResponse validation result - forceClose overrides
+  // warnings only, never hard errors. Without checking the body, a refused close looks like a
+  // success here and the distribution stays open, so the failure only surfaces much later as
+  // "Ausgabe bereits gestartet!" in whichever spec runs next.
   cy.request({
     method: 'POST',
     url: '/api/distributions/close?forceClose=true'
+  }).then((response) => {
+    const validationResult = response.body as { errors?: string[], warnings?: string[] } | '';
+    if (validationResult) {
+      const reasons = [...(validationResult.errors ?? []), ...(validationResult.warnings ?? [])];
+      throw new Error(`Closing the distribution was refused: ${reasons.join(', ')}`);
+    }
   });
 });
 

@@ -422,6 +422,33 @@ return true;
         expect(fixture.nativeElement.querySelector('#' + toggle.getAttribute('aria-controls'))).toBeTruthy();
     });
 
+    // The distribution state arrives after the sidebar has first rendered (initial fetch plus the
+    // SSE stream), so navItems recomputes while a user may already be tabbing through the menu.
+    // Recreating an entry's DOM at that point would drop whatever focus sat on it, which is why the
+    // track expression has to keep every entry's identity stable across that recompute.
+    it('keeps a nav entrys DOM node across a distribution state change', () => {
+        authService.hasPermission.mockReturnValue(true);
+        authService.hasAnyPermission.mockReturnValue(true);
+        const distribution = signal<DistributionItem | null>(null);
+        globalStateService.getCurrentDistribution.mockReturnValue(distribution.asReadonly());
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const groupName = component.navItems().find(item => item.children)!.name;
+        const toggleOf = (): HTMLButtonElement =>
+            Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('nav button'))
+                .find(button => button.textContent!.includes(groupName))!;
+        const toggleBefore = toggleOf();
+
+        distribution.set({id: 123, startedAt: new Date()});
+        fixture.detectChanges();
+
+        expect(toggleBefore).toBeTruthy();
+        expect(toggleOf()).toBe(toggleBefore);
+    });
+
     it('a nav entry disabled by the distribution state leaves the tab order', () => {
         authService.hasPermission.mockReturnValue(true);
         authService.hasAnyPermission.mockReturnValue(true);
