@@ -67,7 +67,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0011](0011-configuration-hot-reload-instead-of-restarts.md) | Configuration reloaded on a running instance | accepted |
 | [0018](0018-optional-features-behind-a-kill-switch.md) | Optional per-deployment features gated by one availability rule | accepted |
 | [0012](0012-conventional-commits-drive-releases.md) | Conventional Commits drive the release version | accepted |
-| [0042](0042-deployments-through-github-environments.md) | Deploys run in GitHub environments, with an on-demand deploy beside the automatic one | accepted |
+| [0043](0043-every-environment-deploys-automatically.md) | Every environment deploys automatically, dev from all three pipelines | accepted |
+| [0042](0042-deployments-through-github-environments.md) | Deploys run in GitHub environments, with an on-demand deploy beside the automatic one | superseded by [0043](0043-every-environment-deploys-automatically.md) |
 | [0026](0026-branch-based-promotion-through-environments.md) | Branch-based promotion through dev, test and prod | superseded by [0042](0042-deployments-through-github-environments.md) |
 | [0013](0013-saturday-production-deploy-freeze.md) | Production deploys blocked all day Saturday | accepted |
 | [0019](0019-supply-chain-and-container-runtime-hardening.md) | Pinned supply chain and a container that fails loudly | accepted |

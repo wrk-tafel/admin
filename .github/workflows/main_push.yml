@@ -44,7 +44,7 @@ jobs:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
       docker: ${{ needs.changes.outputs.docker == 'true' }}
-  # sonar, build-push-image, e2e-test and deploy-test need no gate of their own: they depend on
+  # sonar, build-push-image, e2e-test and the deploy jobs need no gate of their own: they depend on
   # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
@@ -80,28 +80,16 @@ jobs:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
-  # The two jobs below deploy this commit on request instead of automatically: they wait as
-  # "Deployment review pending" until somebody approves them in the run. See ADR-0042 for why they
-  # carry no concurrency group - a job waiting for approval holds the group it is in, and one
-  # un-approved run would then block every later deploy to that environment.
-  deploy-dev-manual:
+  deploy-dev:
+    # Same build and the same gates as deploy-test above: dev follows main so the two environments
+    # run what was merged, and a pull-request deploy to dev is only ever a temporary detour from it.
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [build-push-image, test, e2e-test, version]
     with:
       environment: dev
-      githubEnvironment: dev-manual
       version: ${{ needs.version.outputs.version }}
-    secrets:
-      sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
-      sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
-  deploy-test-manual:
-    uses: ./.github/workflows/subflow_deploy.yml
-    needs: [build-push-image, test, e2e-test, version]
-    with:
-      environment: test
-      githubEnvironment: test-manual
-      version: ${{ needs.version.outputs.version }}
+    concurrency:
+      group: dev-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
