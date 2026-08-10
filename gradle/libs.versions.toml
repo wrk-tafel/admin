@@ -30,7 +30,7 @@ image-comparison = "4.4.0"
 awaitility = "4.3.0"
 
 # Plugin versions
-sonarqube = "7.3.1.8318"
+sonarqube = "7.4.0.8496"
 ktlint-gradle = "14.2.0"
 
 [libraries]
