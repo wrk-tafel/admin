@@ -135,6 +135,74 @@ class DashboardUpdateTriggerIT : TafelBaseIntegrationTest() {
         }
     }
 
+    /**
+     * The rows are coalesced to one per second, the notifications are not (see `R__00099`). A second
+     * change arriving in a second whose row already exists writes nothing - so if that row were the
+     * only thing that notified, the change would go unannounced and every open dashboard would keep
+     * showing the state from a fraction of a second earlier until something changed in a later
+     * second (issue #3168).
+     */
+    @Test
+    fun `a change in a second that was already notified reaches a listener too`() {
+        routeId = transactionTemplate.execute {
+            val route = RouteEntity(number = 93.7, name = "IT Dashboard Same Second Route").apply {
+                stops = mutableListOf(
+                    RouteStopEntity(route = this, time = LocalTime.of(9, 0)),
+                    RouteStopEntity(route = this, time = LocalTime.of(10, 0)),
+                )
+            }
+            routeRepository.saveAndFlush(route).id!!
+        }!!
+        val stopIds = transactionTemplate.execute { routeRepository.findById(routeId).get().stops.map { it.id!! } }!!
+
+        val firstNotified = CountDownLatch(1)
+        val secondNotified = CountDownLatch(2)
+        val callback: (String?) -> Unit = {
+            firstNotified.countDown()
+            secondNotified.countDown()
+        }
+        sseOutboxListenerService.registerCallback(DashboardController.DASHBOARD_UPDATE_NOTIFICATION_NAME, callback)
+
+        try {
+            transactionTemplate.executeWithoutResult {
+                jdbcTemplate.update("delete from sse_outbox where notification_name = 'dashboard_update'")
+            }
+            // Both stops are ticked off within the same second, which is what the coalescing keys
+            // on - starting at the top of one leaves the whole of it for the two writes.
+            sleepUntilTheNextSecondBegins()
+
+            tickOff(stopIds[0])
+            // Waited for rather than assumed: the second change has to arrive at a second that has
+            // *already been delivered*, which is what makes its missing row the whole signal.
+            assertThat(firstNotified.await(10, TimeUnit.SECONDS))
+                .describedAs("the first stop's notification reached the listener")
+                .isTrue()
+
+            tickOff(stopIds[1])
+
+            assertThat(secondNotified.await(10, TimeUnit.SECONDS))
+                .describedAs("the second stop's notification reached the listener as well")
+                .isTrue()
+            assertThat(dashboardNotifications())
+                .describedAs("dashboard_update rows - both stops shared one second, so they share one row")
+                .isEqualTo(1)
+        } finally {
+            sseOutboxListenerService.unregisterCallback(DashboardController.DASHBOARD_UPDATE_NOTIFICATION_NAME, callback)
+        }
+    }
+
+    private fun tickOff(stopId: Long) = transactionTemplate.executeWithoutResult {
+        val stop = routeRepository.findById(routeId).get().stops.first { it.id == stopId }
+        routeStopCompletionRepository.saveAndFlush(
+            RouteStopCompletionEntity(routeStop = stop, completionDate = LocalDate.now()),
+        )
+    }
+
+    private fun sleepUntilTheNextSecondBegins() {
+        val now = LocalTime.now()
+        Thread.sleep(1000L - now.nano / 1_000_000)
+    }
+
     private fun dashboardNotifications(): Int = jdbcTemplate.queryForObject(
         "select count(*) from sse_outbox where notification_name = 'dashboard_update'",
         Int::class.java,
