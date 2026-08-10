@@ -60,18 +60,17 @@ the screen needs no second request and no shop lookup of its own.
 
 A few things about it are worth knowing before changing it:
 
-- **One stop is on screen at a time**, paged with the two buttons below the card; the screen opens
-  on the first stop still to do. It is read at the wheel on a phone, where a scrollable list of
-  fifteen stops is the wrong shape.
-- **`Erledigt & weiter` is the one button a driver presses at a stop**: it ticks the stop off and
-  pages on, so arriving at the next stop costs no second tap. It reads `Erledigt` on the last stop,
-  which has nowhere to page on to. Starting the navigation ticks the stop off as well but stays put,
-  since the map app opens in its own window and the driver comes back to the same screen.
-- **Which control ticks off is deliberate.** `Vorheriger` re-opens the stop it lands on (paging back
-  is how a driver takes back a press of `Erledigt & weiter`), while `Nächster` only pages — the
-  screen is reachable without an active distribution so a route can be looked through beforehand,
-  and paging forward must not finish it. The tick is applied after the server confirms it, so a
-  driver is never moved past a stop that was not recorded.
+- **One stop is on screen at a time**, and the screen is two buttons: `Erledigt & weiter` and
+  `Zurück`. It is read at the wheel on a phone, where a scrollable list of fifteen stops is the
+  wrong shape and every extra control is one to get wrong.
+- **Moving is what records the progress.** Forward ticks the stop off and shows the next one
+  (`Erledigt` on the last stop, which has nowhere to move on to, and disabled once it is done);
+  back shows the previous stop and takes its tick out again. There is deliberately no separate
+  "done" or "undo" control — an earlier revision had both alongside a pager and nobody could tell
+  the two forward buttons apart. The tick is applied only after the server confirms it, so a driver
+  is never moved past a stop that was not recorded.
+- **The map link is only a link.** Starting the navigation changes no progress; it opens in its own
+  window and the same stop stays on screen.
 - **Navigation is a link, not a map.** Each stop renders an `<a href>` to
   `https://www.google.com/maps/dir/?api=1&destination=<address>`, plus one link over the
   stops still open that adds the intermediate ones as `waypoints`. Google's directions

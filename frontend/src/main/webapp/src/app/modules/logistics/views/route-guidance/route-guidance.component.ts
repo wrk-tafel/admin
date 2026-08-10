@@ -11,12 +11,10 @@ import {
   faBoxesStacked,
   faCheck,
   faChevronLeft,
-  faChevronRight,
   faDiamondTurnRight,
   faLocationDot,
   faNoteSticky,
   faPhone,
-  faRotateLeft,
   faRoute,
   faUser
 } from '@fortawesome/free-solid-svg-icons';
@@ -43,9 +41,9 @@ const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
 // tooltip instead: on a phone in a van the stop itself has to be the first thing on the screen.
 const INFO_TEXT =
   'Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren werden. '
-  + '"Navigation starten" und "Erledigt & weiter" vermerken den Stopp als erledigt - für den heutigen '
-  + 'Tag und auch auf anderen Geräten sichtbar. "Vorheriger" macht das für den Stopp, zu dem '
-  + 'zurückgegangen wird, wieder rückgängig.';
+  + '"Erledigt & weiter" hakt den Stopp ab und zeigt den nächsten - für den heutigen Tag und auch auf '
+  + 'anderen Geräten sichtbar. "Zurück" zeigt den vorherigen Stopp wieder an und macht das Abhaken '
+  + 'dabei rückgängig.';
 
 interface StopView {
   stop: RouteGuidanceStop;
@@ -55,7 +53,6 @@ interface StopView {
   navigationLabel?: string;
   completedLabel?: string;
   isNext: boolean;
-  undoLabel?: string;
 }
 
 @Component({
@@ -113,39 +110,19 @@ export class RouteGuidanceComponent {
   });
 
   // Only one stop is on screen at a time: this is read at the wheel, on a phone, and a scrollable
-  // list of fifteen stops is the wrong shape for that. The driver pages through with the two
-  // buttons below.
+  // list of fifteen stops is the wrong shape for that. Two buttons drive the whole screen, and they
+  // carry the progress with them - see goForward/goBack.
   private readonly _currentIndex = signal(0);
   protected readonly currentIndex = this._currentIndex.asReadonly();
   protected readonly currentStop = computed<StopView | undefined>(() => this.stopViews()[this._currentIndex()]);
   protected readonly hasPreviousStop = computed(() => this._currentIndex() > 0);
   protected readonly hasNextStop = computed(() => this._currentIndex() < this.stops().length - 1);
 
-  /**
-   * Paging back is a correction, not a look around: the stop it lands on is open again. A driver who
-   * pressed "Erledigt & weiter" one stop too early takes it back the same way they moved on.
-   */
-  protected goToPreviousStop() {
-    const targetIndex = Math.max(0, this._currentIndex() - 1);
-    this._currentIndex.set(targetIndex);
-
-    const target = this.stops()[targetIndex];
-    if (target?.completed) {
-      this.setCompletion(target, false);
-    }
-  }
-
-  // Forward is plain paging - it must not tick anything off, or looking through a route before the
-  // day starts (which this screen is reachable for) would finish it.
-  protected goToNextStop() {
-    this._currentIndex.update(index => Math.min(this.stops().length - 1, index + 1));
-  }
-
-  protected readonly doneButtonText = computed(() => this.hasNextStop() ? 'Erledigt & weiter' : 'Erledigt');
+  protected readonly forwardButtonText = computed(() => this.hasNextStop() ? 'Erledigt & weiter' : 'Erledigt');
 
   // the accessible name starts with the button's own visible text, so a screen reader user hears
   // the same label the sighted one reads
-  protected readonly doneButtonLabel = computed(() => {
+  protected readonly forwardButtonLabel = computed(() => {
     const view = this.currentStop();
     if (!view) {
       return undefined;
@@ -153,6 +130,18 @@ export class RouteGuidanceComponent {
     const stop = `Stopp ${view.timeLabel} ${view.title} als erledigt markieren`;
     return this.hasNextStop() ? `${stop} und zum nächsten Stopp` : stop;
   });
+
+  protected readonly backButtonLabel = computed(() => {
+    const previous = this.stopViews()[this._currentIndex() - 1];
+    return previous
+      ? `Zurück zu Stopp ${previous.timeLabel} ${previous.title} und wieder als offen markieren`
+      : undefined;
+  });
+
+  // Forward on the last stop only ticks it off; once that is done there is nothing left to press.
+  protected readonly forwardDisabled = computed(() =>
+    this.pendingStopId() !== undefined || (!this.hasNextStop() && !!this.currentStop()?.stop.completed)
+  );
 
   // every stop still to be driven that has an address to navigate to
   private readonly remainingShopStops = computed(
@@ -171,7 +160,22 @@ export class RouteGuidanceComponent {
     return `${MAPS_DIRECTIONS_URL}&destination=${destination}${waypointsParam}&travelmode=driving`;
   });
 
-  protected readonly remainingRouteTruncated = computed(() => this.remainingShopStops().length > MAX_MAP_STOPS);
+  /**
+   * Only set when the link does not reach the end of the route, and it says what is and is not
+   * covered: "the map is short" would read as if the link were unusable, when in fact it takes the
+   * driver through the next ten stops and only what comes after them has to be navigated singly.
+   */
+  protected readonly remainingRouteTruncatedHint = computed(() => {
+    const overflow = this.remainingShopStops().length - MAX_MAP_STOPS;
+    if (overflow <= 0) {
+      return undefined;
+    }
+
+    const covered = `Die Karte führt über die nächsten ${MAX_MAP_STOPS} Stopps.`;
+    return overflow === 1
+      ? `${covered} Der Stopp danach ist einzeln zu navigieren.`
+      : `${covered} Die ${overflow} Stopps danach sind einzeln zu navigieren.`;
+  });
 
   protected onSelectedRouteChange(route: RouteData | undefined) {
     this.selectedRoute = route;
@@ -195,26 +199,29 @@ export class RouteGuidanceComponent {
   }
 
   /**
-   * Starting the navigation is the confirmation - a driver who is on the way to a stop has dealt
-   * with it, and asking for a second tap on a phone in a moving van is one tap too many. The link
-   * opens the map app either way; only the marking is done here, and only once.
+   * The whole screen is these two buttons, and moving is what records the progress - there is no
+   * separate control to tick a stop off or take it back.
+   *
+   * Forward: the stop is done and the next one is up. On the last stop there is nowhere to move on
+   * to, so it only ticks off. Back: the driver was not finished here after all, so the stop that
+   * comes back on screen is open again.
    */
-  protected onNavigationStarted(stop: RouteGuidanceStop) {
-    if (!stop.completed) {
-      this.setCompletion(stop, true);
-    }
-  }
-
-  /**
-   * The one button a driver presses at a stop: it ticks the stop off and moves on, so arriving at
-   * the next one costs no second tap. The last stop has nowhere to move on to and only ticks off.
-   */
-  protected completeAndAdvance(stop: RouteGuidanceStop) {
+  protected goForward(stop: RouteGuidanceStop) {
     this.setCompletion(stop, true, true);
   }
 
-  protected undoStop(stop: RouteGuidanceStop) {
-    this.setCompletion(stop, false);
+  protected goBack() {
+    const targetIndex = Math.max(0, this._currentIndex() - 1);
+    this._currentIndex.set(targetIndex);
+
+    const target = this.stops()[targetIndex];
+    if (target?.completed) {
+      this.setCompletion(target, false);
+    }
+  }
+
+  private goToNextStop() {
+    this._currentIndex.update(index => Math.min(this.stops().length - 1, index + 1));
   }
 
   private setCompletion(stop: RouteGuidanceStop, completed: boolean, advanceOnSuccess = false) {
@@ -270,10 +277,7 @@ export class RouteGuidanceComponent {
           .filter(part => !!part)
           .join(' ')
         : undefined,
-      isNext,
-      undoLabel: stop.completed
-        ? `Rückgängig: Stopp ${timeLabel} ${title} wieder als offen markieren`
-        : undefined
+      isNext
     };
   }
 
@@ -284,12 +288,10 @@ export class RouteGuidanceComponent {
   protected readonly faBoxesStacked = faBoxesStacked;
   protected readonly faCheck = faCheck;
   protected readonly faChevronLeft = faChevronLeft;
-  protected readonly faChevronRight = faChevronRight;
   protected readonly faDiamondTurnRight = faDiamondTurnRight;
   protected readonly faLocationDot = faLocationDot;
   protected readonly faNoteSticky = faNoteSticky;
   protected readonly faPhone = faPhone;
-  protected readonly faRotateLeft = faRotateLeft;
   protected readonly faRoute = faRoute;
   protected readonly faUser = faUser;
   protected readonly infoText = INFO_TEXT;

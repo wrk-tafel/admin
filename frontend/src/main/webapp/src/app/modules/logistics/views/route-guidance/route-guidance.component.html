@@ -139,57 +139,37 @@
 
           <div class="mt-4 flex flex-wrap items-center gap-3">
             @if (view.navigationUrl) {
-              <!-- the link opens the map app; the click handler only records that the stop was
-                   dealt with, so there is no second confirmation to tap -->
-              <a matButton="filled" class="w-full sm:w-auto" testid="guidance-navigate-button"
+              <!-- purely the map app: the progress is the two buttons below and nothing else -->
+              <a matButton="outlined" class="w-full sm:w-auto" testid="guidance-navigate-button"
                  [href]="view.navigationUrl" target="_blank" rel="noopener"
-                 [attr.aria-label]="view.navigationLabel"
-                 (click)="onNavigationStarted(view.stop)">
+                 [attr.aria-label]="view.navigationLabel">
                 <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
                 Navigation starten
               </a>
-            }
-            @if (!view.stop.completed) {
-              <!-- the one button a driver presses at a stop: ticking off and moving on are the same
-                   press, and it never depends on the map app - a stop without a shop has nowhere to
-                   navigate to, and a driver who knows the way must not be sent through Google Maps -->
-              <button matButton="filled" type="button" class="button-success w-full sm:w-auto"
-                      testid="guidance-done-button" [attr.aria-label]="doneButtonLabel()"
-                      [disabled]="pendingStopId() !== undefined"
-                      (click)="completeAndAdvance(view.stop)">
-                <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
-                {{ doneButtonText() }}
-              </button>
             }
             @if (view.completedLabel) {
               <span class="text-sm text-green-700" testid="guidance-completed-label">
                 {{ view.completedLabel }}
               </span>
             }
-            @if (view.undoLabel; as undoLabel) {
-              <button matButton type="button" testid="guidance-undo-button"
-                      [attr.aria-label]="undoLabel"
-                      [disabled]="pendingStopId() !== undefined"
-                      (click)="undoStop(view.stop)">
-                <fa-icon [icon]="faRotateLeft" class="me-2"></fa-icon>
-                Rückgängig
-              </button>
-            }
           </div>
         </div>
 
+        <!-- the whole screen: moving is what records the progress - forward ticks the stop off,
+             back takes it out again. There is no separate control for either. -->
         <div class="mt-4 grid grid-cols-2 gap-3">
-          <!-- back is a correction, not a look around: it re-opens the stop it lands on -->
           <button matButton="outlined" type="button" testid="guidance-previous-button"
+                  [attr.aria-label]="backButtonLabel()"
                   [disabled]="!hasPreviousStop() || pendingStopId() !== undefined"
-                  (click)="goToPreviousStop()">
+                  (click)="goBack()">
             <fa-icon [icon]="faChevronLeft" class="me-2"></fa-icon>
-            Vorheriger
+            Zurück
           </button>
-          <button matButton="outlined" type="button" testid="guidance-next-button"
-                  [disabled]="!hasNextStop()" (click)="goToNextStop()">
-            Nächster
-            <fa-icon [icon]="faChevronRight" class="ms-2"></fa-icon>
+          <button matButton="filled" type="button" class="button-success"
+                  testid="guidance-done-button" [attr.aria-label]="forwardButtonLabel()"
+                  [disabled]="forwardDisabled()" (click)="goForward(view.stop)">
+            <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
+            {{ forwardButtonText() }}
           </button>
         </div>
       } @else {
@@ -209,10 +189,9 @@
             <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
             Restliche Route in Karte öffnen
           </a>
-          @if (remainingRouteTruncated()) {
-            <p class="mt-2 text-sm text-amber-900" testid="guidance-whole-route-truncated">
-              Die Karte enthält nur die nächsten 10 Stopps. Die weiteren Stopps bitte einzeln
-              navigieren.
+          @if (remainingRouteTruncatedHint(); as truncatedHint) {
+            <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-truncated">
+              {{ truncatedHint }}
             </p>
           }
         </div>

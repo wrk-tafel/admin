@@ -38,7 +38,6 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-stop-phone').should('have.attr', 'href', 'tel:01 23 45 67 89');
     cy.byTestId('guidance-stop-contact').should('contain.text', 'Hr. Mustermann');
     cy.byTestId('guidance-next-badge').should('be.visible');
-    // a shop stop offers both: the navigation and a tick that opens no map app
     cy.byTestId('guidance-navigate-button').should('be.visible');
     cy.byTestId('guidance-done-button').should('contain.text', 'Erledigt & weiter');
     // the explanation is a tooltip, so the stop itself is the first thing on the screen
@@ -46,70 +45,50 @@ describe('Route Guidance', () => {
     // nothing before the first stop
     cy.byTestId('guidance-previous-button').should('be.disabled');
 
-    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-done-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
     cy.byTestId('guidance-stop').should('contain.text', 'Stopp ohne Filiale');
     cy.byTestId('guidance-stop-description').should('contain.text', 'Extra stop at home');
-    // a stop with no shop has nowhere to navigate to, so it keeps a button of its own
+    // a stop with no shop has nowhere to navigate to, and needs no button of its own either
     cy.byTestId('guidance-navigate-button').should('not.exist');
-    cy.byTestId('guidance-done-button').should('be.visible');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
 
-    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-done-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
     cy.byTestId('guidance-stop').should('contain.text', 'Denns BioMarkt');
-    cy.byTestId('guidance-next-button').should('be.disabled');
     // the last stop has nowhere to move on to
     cy.byTestId('guidance-done-button').should('contain.text', 'Erledigt').should('not.contain.text', 'weiter');
 
-    cy.byTestId('guidance-previous-button').click();
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
-    // paging forward alone ticks nothing off - the route can be looked through before the day starts
-    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+    cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
+    cy.byTestId('guidance-summary').should('contain.text', '3 von 3 Stopps erledigt');
+    // everything is done, so there is nothing left to press forward
+    cy.byTestId('guidance-done-button').should('be.disabled');
   });
 
-  it('marks a stop as done when the navigation is started, without a second tap', () => {
+  it('records who ticked a stop off and when, and keeps it over a reload', () => {
     selectRoute2();
 
-    // the real link opens the map app in a new tab - swallow the navigation so the run stays put,
-    // while Angular's own click handler (which records the stop) still fires
-    cy.byTestId('guidance-navigate-button').then($link => $link.on('click', e => e.preventDefault()));
-    cy.byTestId('guidance-navigate-button').click();
-
-    cy.byTestId('guidance-done-badge').should('be.visible');
-    cy.byTestId('guidance-completed-label').invoke('text').invoke('trim')
-      .should('match', /^Erledigt um \d{2}:\d{2} von E2E Test$/);
-    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
-    // starting the navigation does not page on - the driver comes back to this stop
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
-
-    // the tick can be taken back on the spot
-    cy.byTestId('guidance-undo-button').click();
-    cy.byTestId('guidance-done-badge').should('not.exist');
-    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
-
-    // it survives a reload and the screen opens on the next stop still to do
     cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+
+    // the screen opens on the next stop still to do, with the tick still there
     cy.visit('/logistik/routenbegleitung');
     selectRoute2();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+
+    // and the stop behind it carries who did it and when
+    cy.byTestId('guidance-previous-button').click();
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
   });
 
-  it('ticks a shop stop off and moves on in one press, without opening the map app', () => {
-    selectRoute2();
-
-    cy.byTestId('guidance-done-button').click();
-
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
-    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
-  });
-
-  it('re-opens the stop it pages back to', () => {
+  it('takes the tick back on the stop it goes back to', () => {
     selectRoute2();
     cy.byTestId('guidance-done-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
 
-    // going back is a correction: the stop it lands on is open again
+    // going back is how a tick is taken back - there is no separate control for it
     cy.byTestId('guidance-previous-button').click();
 
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
@@ -117,15 +96,14 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
   });
 
-  it('marks a stop without a shop as done explicitly', () => {
+  it('starts the navigation without touching the progress', () => {
     selectRoute2();
-    cy.byTestId('guidance-next-button').click();
-    cy.byTestId('guidance-navigate-button').should('not.exist');
 
-    cy.byTestId('guidance-done-button').click();
-
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
-    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+    cy.byTestId('guidance-navigate-button')
+      .should('have.attr', 'target', '_blank')
+      .should('have.attr', 'href')
+      .and('contain', 'Kudlichgasse%204%2C%201130%20Wien');
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
   });
 
   // Route 3, not route 2: the screen shows the boxes of a route's newest collection, and route 3 is
@@ -140,7 +118,7 @@ describe('Route Guidance', () => {
       .should('contain.text', '2 × Bananenkartons')
       .should('contain.text', '4 × Graue Kisten');
 
-    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-done-button').click();
     cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
     // a zero amount means nothing came back - it must not be listed
     cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
@@ -150,7 +128,7 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     // the pause stop has no shop and therefore nothing to hand back
-    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-done-button').click();
     cy.byTestId('guidance-stop-return-items').should('not.exist');
   });
 
@@ -177,8 +155,8 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     cy.byTestId('guidance-stop').should('be.visible');
-    // the paging buttons sit below the stop card, which fills a phone screen on its own
-    cy.byTestId('guidance-next-button').scrollIntoView().should('be.visible').click();
+    // the two buttons sit below the stop card, which fills a phone screen on its own
+    cy.byTestId('guidance-done-button').scrollIntoView().should('be.visible').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
   });
 
