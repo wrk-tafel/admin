@@ -39,11 +39,15 @@ the technical context of the report.**
   `[TEST] Support: Scanner reagiert nicht`.
 - With no recipient configured, the endpoint fails with the same clear German "not configured"
   message as before rather than silently swallowing the request.
-- The attached context is split by who can be trusted to know it. The server fills in the reporter,
-  the time, the running version and build, and the environment label. The browser reports the page
-  URL, the user agent, the viewport and screen size, the language and the time zone, plus the last
-  20 errors of the session — HTTP failures seen by the error interceptor and uncaught errors seen by
-  `TafelErrorHandler`, kept in memory by `ClientLogService`.
+- The attached context is split by who can be trusted to know it. The server fills in the reporter -
+  username and, where there is an employee behind the account, their name - the time, the running
+  version and build, and the environment label. The browser reports the page URL, the user agent,
+  the viewport and screen size, the language and the time zone, plus the last 20 errors of the
+  session, kept in memory by `ClientLogService`: HTTP failures seen by the error interceptor,
+  uncaught errors seen by `TafelErrorHandler`, and what neither of those two ever sees - errors
+  thrown outside Angular, unhandled promise rejections and subresources that failed to load, all
+  three caught by the `window` listeners `ClientLogService.captureGlobalErrors` registers at
+  startup.
 - **A screenshot of the page is always attached as `screenshot.jpg`**, captured by
   `ScreenshotService` (`html-to-image`, code-split into its own chunk and loaded on first use)
   **before the dialog opens**, so what the mail shows is the screen being reported rather than the
@@ -51,10 +55,10 @@ the technical context of the report.**
   exceeds ~2MB; if it is still too large, or the capture fails for any reason, the request goes out
   without it — the picture is a best-effort extra, never a precondition. The server treats it the
   same way: a screenshot it cannot decode costs the mail its attachment, not the report.
-- The dialog says what is attached, in the dialog itself, and **shows the screenshot as a
-  thumbnail** — visible without scrolling. There is no opt-out: the report is worth having with the
-  picture, the destination is the organisation's own mailbox, and a checkbox clicked past under
-  distribution-day pressure protects nobody. Transparency is the safeguard, not a switch.
+- The dialog **names everything that is attached**, the screenshot included, before the report is
+  sent. There is no opt-out: the report is worth having with the picture, the destination is the
+  organisation's own mailbox, and a checkbox clicked past under distribution-day pressure protects
+  nobody. Transparency is the safeguard, not a switch.
 
 ## Consequences
 
@@ -92,12 +96,13 @@ where the operators already are.
 **A checkbox to leave the screenshot out.** Rejected: it makes the most useful part of a report
 optional at the exact moment nobody has attention to spare, so it would either be clicked past
 (protecting nobody) or occasionally turned off by someone being careful (costing the picture on the
-reports that most needed it). The preview stays, because being able to see what is sent is what
-transparency actually requires; the decision it supports is "finish here first", not a toggle.
+reports that most needed it). Saying what is attached is what transparency actually requires; the
+decision it supports is "finish here first", not a toggle.
 
-**Attach the screenshot without showing it.** Rejected: it is the one attached asset that can carry
-a customer's whole record, and a picture that leaves the browser unseen is a surprise waiting to
-happen. The thumbnail costs three lines of template.
+**Show the screenshot in the dialog as a thumbnail.** Rejected: it is a scaled-down copy of the page
+the reporter is looking at anyway, so it adds nothing to what they can already see - while taking up
+the dialog's space and pushing the form itself down on a small screen. Naming the screenshot in the
+dialog's text carries the same information at no cost.
 
 **Capture the screenshot when the request is submitted rather than when the dialog opens.**
 Rejected: by then the dialog is on top of the page and would be most of the picture. Capturing on

@@ -52,7 +52,7 @@ export class DefaultHeaderComponent {
   public async openSupportDialog() {
     const screenshot = await this.screenshotService.capture();
 
-    this.dialog.open(SupportDialogComponent, {data: {screenshot}}).afterClosed()
+    this.dialog.open(SupportDialogComponent).afterClosed()
       .subscribe((result: SupportDialogResult) => {
         if (result) {
           const clientContext = this.supportContextService.collect(screenshot);

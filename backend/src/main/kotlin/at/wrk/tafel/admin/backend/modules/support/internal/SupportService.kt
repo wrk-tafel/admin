@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.support.internal
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.support.model.SupportClientContext
 import at.wrk.tafel.admin.backend.modules.support.model.SupportRequest
@@ -26,6 +27,7 @@ private val logger = LoggerFactory.getLogger(SupportService::class.java)
 class SupportService(
     private val tafelAdminProperties: TafelAdminProperties,
     private val mailSenderService: MailSenderService,
+    private val userRepository: UserRepository,
     private val clock: Clock,
 ) {
 
@@ -94,7 +96,7 @@ class SupportService(
      */
     private fun collectDiagnostics(clientContext: SupportClientContext?, screenshotAttached: Boolean) = SupportDiagnostics(
         screenshotAttached = screenshotAttached,
-        username = SecurityContextHolder.getContext().authentication?.name ?: "unbekannt",
+        reportedBy = reportedBy(),
         reportedAt = LocalDateTime.now(clock).format(REPORTED_AT_FORMATTER),
         version = tafelAdminProperties.version,
         buildTime = tafelAdminProperties.buildTime,
@@ -110,6 +112,22 @@ class SupportService(
             ?: emptyList(),
     )
 
+    /**
+     * Who reported it, as both halves of the answer: the username identifies the account in the
+     * application, the employee's name is who to call back about the report. The bracket is left out
+     * entirely when there is no name to put in it - an account without an employee behind it, or one
+     * whose employee record carries no name. The username on its own is still an answer, "user ()"
+     * is not.
+     */
+    private fun reportedBy(): String {
+        val username = SecurityContextHolder.getContext().authentication?.name ?: return "unbekannt"
+        val employee = userRepository.findByUsername(username)?.employee
+        val fullname = listOfNotNull(employee?.firstname, employee?.lastname)
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
+        return if (fullname.isBlank()) username else "$username ($fullname)"
+    }
+
     // A missing value is spelled out rather than left blank - an empty line in the mail reads as an
     // oversight, "unbekannt" reads as what it is: the browser didn't tell us.
     private fun String?.orUnknown() = if (isNullOrBlank()) "unbekannt" else this
@@ -117,7 +135,7 @@ class SupportService(
 
 data class SupportDiagnostics(
     val screenshotAttached: Boolean,
-    val username: String,
+    val reportedBy: String,
     val reportedAt: String,
     val version: String,
     val buildTime: String,

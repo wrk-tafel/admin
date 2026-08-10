@@ -17,12 +17,6 @@ describe('Support request', () => {
 
     cy.byTestId('supportHint').should('contain.text', 'technische Infos');
 
-    // the screenshot is of the page behind the dialog, and the reporter can see what goes along
-    cy.byTestId('screenshotPreview').should('be.visible')
-      .and('have.attr', 'src')
-      .and('match', /^data:image\/jpeg;base64,/);
-    cy.byTestId('screenshotHint').should('contain.text', 'mitgeschickt');
-
     cy.byTestId('okButton').should('be.disabled');
 
     cy.byTestId('supportTitle').type('Login geht nicht');

@@ -35,6 +35,8 @@ describe('DefaultLayoutComponent', () => {
                 provideRouter([{path: 'uebersicht', title: 'Übersicht', children: []}]),
                 provideLocationMocks(),
                 {provide: TitleStrategy, useExisting: TafelTitleStrategy},
+                // the header collects the browser's context for a support request, which reads it
+                {provide: Window, useValue: window},
                 {
                     provide: AuthenticationService,
                     useValue: authServiceSpy

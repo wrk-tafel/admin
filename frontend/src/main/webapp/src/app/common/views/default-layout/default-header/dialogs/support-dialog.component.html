@@ -15,16 +15,6 @@
       Fehlersuche: Benutzername, aktuelle Seite, Browser, die letzten Fehlermeldungen dieser Sitzung
       und ein Screenshot der Seite.
     </p>
-    @if (data?.screenshot) {
-      <div class="mt-2 flex items-center gap-3">
-        <!-- Thumbnail-sized so it stays visible without scrolling: the screenshot always goes
-             along, and this is what makes that visible rather than a surprise. -->
-        <img class="h-16 w-28 shrink-0 border border-gray-300 object-cover object-left-top"
-             testid="screenshotPreview" [src]="data!.screenshot"
-             alt="Vorschau des mitgesendeten Screenshots der aktuellen Seite"/>
-        <span class="text-sm" testid="screenshotHint">Dieser Screenshot wird mitgeschickt.</span>
-      </div>
-    }
   </div>
   <div tafel-dialog-actions>
     <button testid="okButton" matButton="filled" (click)="save()"

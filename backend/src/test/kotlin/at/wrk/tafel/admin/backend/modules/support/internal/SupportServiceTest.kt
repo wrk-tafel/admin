@@ -4,10 +4,15 @@ import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminSupportProperties
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.support.model.SupportClientContext
 import at.wrk.tafel.admin.backend.modules.support.model.SupportClientLogItem
 import at.wrk.tafel.admin.backend.modules.support.model.SupportRequest
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
@@ -34,12 +39,20 @@ class SupportServiceTest {
     @RelaxedMockK
     private lateinit var mailSenderService: MailSenderService
 
+    @MockK
+    private lateinit var userRepository: UserRepository
+
     private val clock = Clock.fixed(Instant.parse("2026-03-22T09:15:30Z"), ZoneId.of("Europe/Vienna"))
 
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
             UsernamePasswordAuthenticationToken("test-user", null, emptyList())
+        every { userRepository.findByUsername("test-user") } returns UserEntity(
+            username = "test-user",
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1234", firstname = "Max", lastname = "Mustermann"),
+        )
     }
 
     @AfterEach
@@ -52,6 +65,7 @@ class SupportServiceTest {
         val service = SupportService(
             propertiesWithRecipients("support1@localhost", "support2@localhost", subjectPrefix = "Support:"),
             mailSenderService,
+            userRepository,
             clock,
         )
 
@@ -78,7 +92,7 @@ class SupportServiceTest {
 
     @Test
     fun `puts the configured prefix in front of the reported title`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = "Support:"), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = "Support:"), mailSenderService, userRepository, clock)
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
@@ -90,7 +104,7 @@ class SupportServiceTest {
 
     @Test
     fun `subjects the mail with the bare title when no prefix is configured`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = " "), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = " "), mailSenderService, userRepository, clock)
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
@@ -107,7 +121,7 @@ class SupportServiceTest {
             buildTime = "2026-03-20T10:00:00Z"
             environmentLabel = "TEST"
         }
-        val service = SupportService(properties, mailSenderService, clock)
+        val service = SupportService(properties, mailSenderService, userRepository, clock)
 
         service.sendSupportRequest(
             SupportRequest(
@@ -134,7 +148,7 @@ class SupportServiceTest {
         assertThat(diagnostics).isEqualTo(
             SupportDiagnostics(
                 screenshotAttached = false,
-                username = "test-user",
+                reportedBy = "test-user (Max Mustermann)",
                 reportedAt = "22.03.2026 10:15:30",
                 version = "1.2.3",
                 buildTime = "2026-03-20T10:00:00Z",
@@ -154,7 +168,7 @@ class SupportServiceTest {
 
     @Test
     fun `diagnostics stay complete when the browser reported nothing`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, userRepository, clock)
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
@@ -162,7 +176,7 @@ class SupportServiceTest {
         verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
 
         val diagnostics = contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics
-        assertThat(diagnostics.username).isEqualTo("test-user")
+        assertThat(diagnostics.reportedBy).isEqualTo("test-user (Max Mustermann)")
         assertThat(diagnostics.reportedAt).isEqualTo("22.03.2026 10:15:30")
         // an unset environmentLabel is production - reading a report as "no environment" would be worse
         assertThat(diagnostics.environmentLabel).isEqualTo("PROD")
@@ -174,20 +188,34 @@ class SupportServiceTest {
     @Test
     fun `records the reporter as unknown when there is no authentication`() {
         SecurityContextHolder.clearContext()
-        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, userRepository, clock)
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val contextSlot = slot<Context>()
         verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
 
-        assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).username)
+        assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).reportedBy)
             .isEqualTo("unbekannt")
     }
 
     @Test
+    fun `records the reporter by username alone when there is no user behind it to name`() {
+        every { userRepository.findByUsername("test-user") } returns null
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, userRepository, clock)
+
+        service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
+
+        val contextSlot = slot<Context>()
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
+
+        assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).reportedBy)
+            .isEqualTo("test-user")
+    }
+
+    @Test
     fun `attaches the screenshot the browser sent`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, userRepository, clock)
         val imageBytes = byteArrayOf(1, 2, 3, 4)
 
         service.sendSupportRequest(
@@ -213,7 +241,7 @@ class SupportServiceTest {
 
     @Test
     fun `sends the request without an attachment when no screenshot was sent`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, userRepository, clock)
 
         service.sendSupportRequest(SupportRequest(title = "title", text = "text"))
 
@@ -222,7 +250,7 @@ class SupportServiceTest {
 
     @Test
     fun `still sends the request when the screenshot cannot be used`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients("support@localhost"), mailSenderService, userRepository, clock)
 
         // a data URL of a type this doesn't handle, and one whose base64 is broken
         listOf("data:image/png;base64,AAAA", "data:image/jpeg;base64,not-base64!!").forEach { screenshot ->
@@ -247,7 +275,7 @@ class SupportServiceTest {
     @Test
     fun `fails clearly when no recipient is configured`() {
         val properties = TafelAdminProperties().apply { support = TafelAdminSupportProperties() }
-        val service = SupportService(properties, mailSenderService, clock)
+        val service = SupportService(properties, mailSenderService, userRepository, clock)
 
         assertThatThrownBy { service.sendSupportRequest(SupportRequest(title = "title", text = "text")) }
             .isInstanceOf(TafelApiException::class.java)
@@ -260,7 +288,7 @@ class SupportServiceTest {
 
     @Test
     fun `fails clearly when only blank recipients are configured`() {
-        val service = SupportService(propertiesWithRecipients(" "), mailSenderService, clock)
+        val service = SupportService(propertiesWithRecipients(" "), mailSenderService, userRepository, clock)
 
         assertThatThrownBy { service.sendSupportRequest(SupportRequest(title = "title", text = "text")) }
             .isInstanceOf(TafelApiException::class.java)
@@ -270,7 +298,7 @@ class SupportServiceTest {
 
     @Test
     fun `fails clearly when support is not configured at all`() {
-        val service = SupportService(TafelAdminProperties(), mailSenderService, clock)
+        val service = SupportService(TafelAdminProperties(), mailSenderService, userRepository, clock)
 
         assertThatThrownBy { service.sendSupportRequest(SupportRequest(title = "title", text = "text")) }
             .isInstanceOf(TafelApiException::class.java)

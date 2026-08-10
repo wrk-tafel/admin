@@ -1,5 +1,5 @@
 import {ErrorHandler, inject, Service} from '@angular/core';
-import {ClientLogService} from './client-log.service';
+import {ClientLogService, describeError} from './client-log.service';
 
 /**
  * Angular's own error handling, plus a note in {@link ClientLogService} so an uncaught error is
@@ -14,11 +14,4 @@ export class TafelErrorHandler extends ErrorHandler {
     this.clientLogService.record(describeError(error));
     super.handleError(error);
   }
-}
-
-function describeError(error: unknown): string {
-  if (error instanceof Error) {
-    return `${error.name}: ${error.message}`;
-  }
-  return `Fehler: ${String(error)}`;
 }

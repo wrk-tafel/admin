@@ -28,7 +28,7 @@ describe('SupportContextService', () => {
 
   it('collects the page, the browser and the recent errors', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-03-22T09:15:30.000Z'));
+    vi.setSystemTime(new Date(2026, 2, 22, 9, 15, 30));
     clientLogService.record('HTTP 500 - GET /api/households');
     vi.useRealTimers();
 
@@ -42,7 +42,7 @@ describe('SupportContextService', () => {
       screen: '1920x1080',
       language: 'de-AT',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      recentErrors: [{timestamp: '2026-03-22T09:15:30.000Z', message: 'HTTP 500 - GET /api/households'}]
+      recentErrors: [{timestamp: '22.03.2026 09:15:30', message: 'HTTP 500 - GET /api/households'}]
     });
   });
 

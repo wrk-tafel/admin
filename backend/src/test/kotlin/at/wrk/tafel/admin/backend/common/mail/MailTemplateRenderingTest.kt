@@ -166,7 +166,7 @@ class MailTemplateRenderingTest {
         recentErrors: List<SupportDiagnosticsError> = emptyList(),
     ) = SupportDiagnostics(
         screenshotAttached = screenshotAttached,
-        username = "test-user",
+        reportedBy = "test-user (Max Mustermann)",
         reportedAt = "22.03.2026 10:15:30",
         version = "1.2.3",
         buildTime = "2026-03-20T10:00:00Z",

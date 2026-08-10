@@ -3,27 +3,29 @@
     <br/>
     <!--/* [[...]] escapes, unlike the [(...)] the other mails use: everything below is either typed
            by the reporter or reported by their browser, so it must not be able to bring markup with
-           it. white-space keeps the typed line breaks without turning them into <br/>. */-->
-    <p><strong>Titel:</strong>&nbsp;[[ ${supportTitle} ]]</p>
+           it. white-space keeps the typed line breaks without turning them into <br/>. The gap
+           between a label and its value is a plain space, not &nbsp; - a mail client that sanitizes
+           the HTML may drop the entity, and then the value reads as glued to its label. */-->
+    <p><strong>Titel:</strong> [[ ${supportTitle} ]]</p>
     <br/>
     <p><strong>Anliegen:</strong></p>
     <p style="white-space: pre-wrap">[[ ${supportText} ]]</p>
     <br/>
     <p><h3>Technische Infos</h3></p>
-    <p><strong>Gemeldet von:</strong>&nbsp;[[ ${diagnostics.username} ]]</p>
-    <p><strong>Zeitpunkt:</strong>&nbsp;[[ ${diagnostics.reportedAt} ]]</p>
-    <p><strong>Umgebung:</strong>&nbsp;[[ ${diagnostics.environmentLabel} ]]</p>
-    <p><strong>Version:</strong>&nbsp;[[ ${diagnostics.version} ]]&nbsp;(Build [[ ${diagnostics.buildTime} ]])</p>
-    <p><strong>Seite:</strong>&nbsp;[[ ${diagnostics.page} ]]</p>
-    <p><strong>Browser:</strong>&nbsp;[[ ${diagnostics.userAgent} ]]</p>
-    <p><strong>Fenster/Bildschirm:</strong>&nbsp;[[ ${diagnostics.viewport} ]]&nbsp;/&nbsp;[[ ${diagnostics.screen} ]]</p>
-    <p><strong>Sprache/Zeitzone:</strong>&nbsp;[[ ${diagnostics.language} ]]&nbsp;/&nbsp;[[ ${diagnostics.timeZone} ]]</p>
-    <p><strong>Screenshot:</strong>&nbsp;<span th:if="${diagnostics.screenshotAttached}">siehe Anhang screenshot.jpg</span><span th:unless="${diagnostics.screenshotAttached}">nicht mitgesendet</span></p>
+    <p><strong>Gemeldet von:</strong> [[ ${diagnostics.reportedBy} ]]</p>
+    <p><strong>Zeitpunkt:</strong> [[ ${diagnostics.reportedAt} ]]</p>
+    <p><strong>Umgebung:</strong> [[ ${diagnostics.environmentLabel} ]]</p>
+    <p><strong>Version:</strong> [[ ${diagnostics.version} ]] (Build [[ ${diagnostics.buildTime} ]])</p>
+    <p><strong>Seite:</strong> [[ ${diagnostics.page} ]]</p>
+    <p><strong>Browser:</strong> [[ ${diagnostics.userAgent} ]]</p>
+    <p><strong>Fenster/Bildschirm:</strong> [[ ${diagnostics.viewport} ]] / [[ ${diagnostics.screen} ]]</p>
+    <p><strong>Sprache/Zeitzone:</strong> [[ ${diagnostics.language} ]] / [[ ${diagnostics.timeZone} ]]</p>
+    <p><strong>Screenshot:</strong> <span th:if="${diagnostics.screenshotAttached}">siehe Anhang screenshot.jpg</span><span th:unless="${diagnostics.screenshotAttached}">nicht mitgesendet</span></p>
     <br/>
     <p><strong>Letzte Fehler im Browser:</strong></p>
     <div th:if="${!#lists.isEmpty(diagnostics.recentErrors)}">
         <div th:each="error : ${diagnostics.recentErrors}">
-            <p>- [[ ${error.timestamp} ]]&nbsp;[[ ${error.message} ]]</p>
+            <p>- [[ ${error.timestamp} ]] [[ ${error.message} ]]</p>
         </div>
     </div>
     <div th:if="${#lists.isEmpty(diagnostics.recentErrors)}">
