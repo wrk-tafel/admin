@@ -378,8 +378,17 @@ The project uses GitHub Actions with the following pipelines:
 | Main Push | Push to `main` | Build, test, E2E tests, Docker image (tagged with the short commit SHA), deploy to test |
 | Release | Push to `release` | Build, test, E2E tests, Docker image (`<version>` + `latest`), user guide PDF, GitHub release, deploy to test + prod |
 
-See [ADR-0026](docs/architecture/adr/0026-branch-based-promotion-through-environments.md) for why
-promotion works this way, and which of these deploys is actually gated on a green pipeline.
+Each of those deploys is recorded against a GitHub environment (`dev`, `test`, `prod`), so the
+repository's **Deployments** page is the record of what runs where. Alongside the automatic deploy,
+every one of the three pipelines also carries a `deploy-dev-manual` and a `deploy-test-manual` job:
+they deploy that same build to dev or test on request, waiting in the run as *Deployment review
+pending* until someone approves them. That is what the `dev-manual` / `test-manual` environments
+and their required reviewer are for — approve to deploy, reject to close the run out. Production
+has no such job; the release pipeline is the only way there.
+
+See [ADR-0042](docs/architecture/adr/0042-deployments-through-github-environments.md) for why
+promotion works this way, which of these deploys is actually gated on a green pipeline, and why the
+manual jobs sit outside the per-environment concurrency groups.
 
 Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 
