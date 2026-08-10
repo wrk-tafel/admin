@@ -33,6 +33,9 @@ the technical context of the report.**
 - The recipients are `tafeladmin.support.recipients` — operator configuration, not a UI setting
   ([ADR-0011](0011-configuration-hot-reload-instead-of-restarts.md)). Support has to keep working
   when the thing being reported is that nobody can reach a screen to fix it.
+  `tafeladmin.support.subjectPrefix` marks the mail as a support request in a mailbox that also
+  receives the automated ones; the environment stays `tafeladmin.mail.subjectPrefix`'s job, so a
+  subject reads `[TEST] [SUPPORT] Support-Anfrage: …`.
 - With no recipient configured, the endpoint fails with the same clear German "not configured"
   message as before rather than silently swallowing the request.
 - The attached context is split by who can be trusted to know it. The server fills in the reporter,

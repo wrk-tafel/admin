@@ -73,6 +73,30 @@ class SupportServiceTest {
     }
 
     @Test
+    fun `puts the configured prefix in front of the subject`() {
+        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = "[SUPPORT]"), mailSenderService, clock)
+
+        service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
+
+        val subjectSlot = slot<String>()
+        verify { mailSenderService.sendHtmlMailTo(any(), capture(subjectSlot), any(), any(), any()) }
+
+        assertThat(subjectSlot.captured).isEqualTo("[SUPPORT] Support-Anfrage: Something is broken")
+    }
+
+    @Test
+    fun `leaves the subject alone when no prefix is configured`() {
+        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = " "), mailSenderService, clock)
+
+        service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
+
+        val subjectSlot = slot<String>()
+        verify { mailSenderService.sendHtmlMailTo(any(), capture(subjectSlot), any(), any(), any()) }
+
+        assertThat(subjectSlot.captured).isEqualTo("Support-Anfrage: Something is broken")
+    }
+
+    @Test
     fun `collects reporter, build and browser context as diagnostics`() {
         val properties = propertiesWithRecipients("support@localhost").apply {
             version = "1.2.3"
@@ -253,7 +277,10 @@ class SupportServiceTest {
         verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any()) }
     }
 
-    private fun propertiesWithRecipients(vararg recipients: String) = TafelAdminProperties().apply {
-        support = TafelAdminSupportProperties().apply { this.recipients = recipients.toList() }
+    private fun propertiesWithRecipients(vararg recipients: String, subjectPrefix: String = "") = TafelAdminProperties().apply {
+        support = TafelAdminSupportProperties().apply {
+            this.recipients = recipients.toList()
+            this.subjectPrefix = subjectPrefix
+        }
     }
 }

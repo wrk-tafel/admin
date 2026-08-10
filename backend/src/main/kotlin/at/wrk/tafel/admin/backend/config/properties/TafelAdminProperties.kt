@@ -215,6 +215,15 @@ class TafelAdminSupportProperties {
      * fix it.
      */
     var recipients: List<String> = emptyList()
+
+    /**
+     * Prepended to the subject of a support mail, so a report is recognizable as one in a mailbox
+     * that also receives the automated mails (e.g. "[SUPPORT]").
+     *
+     * Separate from [TafelAdminMailProperties.subjectPrefix], which marks *which environment* every
+     * mail came from - both end up on the subject, the environment's first.
+     */
+    var subjectPrefix: String = ""
 }
 
 @ExcludeFromTestCoverage

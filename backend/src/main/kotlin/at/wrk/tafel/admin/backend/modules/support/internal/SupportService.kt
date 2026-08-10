@@ -30,7 +30,8 @@ class SupportService(
 ) {
 
     fun sendSupportRequest(request: SupportRequest) {
-        val recipients = tafelAdminProperties.support?.recipients
+        val supportProperties = tafelAdminProperties.support
+        val recipients = supportProperties?.recipients
             ?.map { it.trim() }
             ?.filter { it.isNotEmpty() }
             ?: emptyList()
@@ -48,12 +49,16 @@ class SupportService(
 
         mailSenderService.sendHtmlMailTo(
             recipients = recipients,
-            subject = "Support-Anfrage: ${request.title}",
+            subject = subjectPrefix(supportProperties?.subjectPrefix) + "Support-Anfrage: ${request.title}",
             attachments = listOfNotNull(screenshot),
             templateName = "mails/support-request-mail",
             context = context,
         )
     }
+
+    // The configured prefix, with the separating space it needs and without the leading blank an
+    // unset one would otherwise put in front of every subject.
+    private fun subjectPrefix(configuredPrefix: String?) = if (configuredPrefix.isNullOrBlank()) "" else "${configuredPrefix.trim()} "
 
     /**
      * The screenshot the browser took of the page the report is about, as a mail attachment.

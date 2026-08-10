@@ -211,10 +211,13 @@ tafeladmin:
   # reports, to these addresses. Deployment-specific, so unset here - with no recipient the endpoint
   # fails with a clear error rather than pretending to have sent something. The mail goes out over
   # the spring.mail server above, from tafeladmin.mail.from, and carries tafeladmin.mail.subjectPrefix
-  # so it is obvious which environment a request came from (e.g. "[TEST]").
+  # so it is obvious which environment a request came from (e.g. "[TEST]"). subjectPrefix below is
+  # prepended on top of that, marking the mail as a support request rather than one of the automated
+  # mails - a subject then reads "[TEST] [SUPPORT] Support-Anfrage: ...".
   # support:
   #   recipients:
   #     - support@<domain>
+  #   subjectPrefix: "[SUPPORT]"
   # Who the automated mails (daily report, statistics, return boxes) come from. The recipients are
   # not configured here - they are maintained in the UI under Einstellungen. Only used when a mail
   # server is configured above; `from` is required as soon as one is.
