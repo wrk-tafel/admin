@@ -1,6 +1,6 @@
 # ADR-0026: Branch-based promotion through dev, test and prod
 
-**Status:** accepted · **Recorded:** 2026-08-09
+**Status:** superseded by [ADR-0042](0042-deployments-through-github-environments.md) · **Recorded:** 2026-08-09
 
 ## Context
 

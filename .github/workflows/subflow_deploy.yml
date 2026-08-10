@@ -7,6 +7,14 @@ on:
         description: 'Target environment folder on the server, e.g. "dev", "test", "prod"'
         type: string
         required: true
+      githubEnvironment:
+        description: >-
+          GitHub environment this deployment is recorded under. Defaults to the server folder above.
+          Pass "<folder>-manual" to hang the deploy off that environment's required-reviewer rule,
+          which turns it into a deploy that only happens once somebody approves it in the run.
+        type: string
+        required: false
+        default: ''
       version:
         description: 'Docker image tag to deploy, e.g. a commit SHA or release version'
         type: string
@@ -22,6 +30,12 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    # Every deploy is recorded against a GitHub environment: that is what lists it under the
+    # repository's Deployments, and what the protection rules configured on the environment apply
+    # to. The name is the only difference between an automatic deploy and a clickable one - the
+    # steps below are identical, and "<folder>-manual" simply names an environment that carries a
+    # required reviewer, so the job waits as "Deployment review pending" until it is approved.
+    environment: ${{ inputs.githubEnvironment || inputs.environment }}
     steps:
       - name: Create SSH key
         run: |

@@ -158,6 +158,33 @@ jobs:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
+  # The two jobs below put this release on dev or test on request instead of automatically: they
+  # wait as "Deployment review pending" until somebody approves them in the run - useful for
+  # reproducing a release build somewhere other than prod. See ADR-0042 for why they carry no
+  # concurrency group - a job waiting for approval holds the group it is in, and one un-approved
+  # run would then block every later deploy to that environment.
+  deploy-dev-manual:
+    uses: ./.github/workflows/subflow_deploy.yml
+    needs: [version, github-release]
+    with:
+      environment: dev
+      githubEnvironment: dev-manual
+      version: ${{ needs.version.outputs.version }}
+    secrets:
+      sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
+      sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
+  deploy-test-manual:
+    uses: ./.github/workflows/subflow_deploy.yml
+    needs: [version, github-release]
+    with:
+      environment: test
+      githubEnvironment: test-manual
+      version: ${{ needs.version.outputs.version }}
+    secrets:
+      sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
+      sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
   check-deploy-window:
     runs-on: ubuntu-latest
     steps:
