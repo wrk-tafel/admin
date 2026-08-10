@@ -143,7 +143,7 @@ than none.
 
 The exposure this section was written for is gone: the form no longer files a public GitHub issue
 but mails the request to the deployment's own support addresses
-([ADR-0040](adr/0040-support-requests-sent-as-mail.md)), so a helpfully-worded "Bei Kunde Nr. 1234,
+([ADR-0044](adr/0044-support-requests-sent-as-mail.md)), so a helpfully-worded "Bei Kunde Nr. 1234,
 Maria Musterfrau, wird das Einkommen falsch gerechnet" no longer becomes world-readable, mirrored
 and indexed within seconds.
 
@@ -155,7 +155,7 @@ which on a customer detail screen is that household's name, address and income f
 
 What makes that defensible rather than a surprise: the destination is the organisation's own
 mailbox, the dialog states what is attached, and the screenshot is shown as a preview before the
-request is sent (ADR-0040). It is always attached — there is deliberately no opt-out — so the
+request is sent (ADR-0044). It is always attached — there is deliberately no opt-out — so the
 control that remains is *where the reporter is standing* when they open support, which is what the
 user guide tells them.
 

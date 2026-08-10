@@ -1,4 +1,4 @@
-# ADR-0040: In-app support requests are sent as mail, with the browser's context attached
+# ADR-0044: In-app support requests are sent as mail, with the browser's context attached
 
 **Status:** accepted · **Recorded:** 2026-08-10
 

@@ -144,7 +144,7 @@ The backend uses **Spring Modulith** architecture with 11 core feature modules (
 - **settings**: Application configuration and mail recipient management
 - **support**: In-app support contact form that mails the request — plus the technical context of
   the report (reporter, version, page, browser, the session's last errors) and a screenshot of the
-  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0040
+  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0044
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
