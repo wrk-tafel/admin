@@ -31,18 +31,18 @@ class MailOutboxServiceIT : TafelBaseIntegrationTest() {
     @Test
     fun `a queued mail is stored as pending and comes back byte-for-byte`() {
         val mimeMessage = MimeMessage(Session.getInstance(Properties())).apply {
-            setSubject("Support-Anfrage: Login geht nicht")
+            setSubject("Support: Login geht nicht")
             setRecipient(Message.RecipientType.TO, InternetAddress("support@localhost"))
             setText("Anliegen")
             saveChanges()
         }
         val expectedMessage = mimeMessage.toByteArray()
 
-        mailOutboxService.enqueue(mimeMessage, "Support-Anfrage: Login geht nicht", listOf("support@localhost"))
+        mailOutboxService.enqueue(mimeMessage, "Support: Login geht nicht", listOf("support@localhost"))
 
         val storedMail = mailOutboxRepository.findAll().single { it.recipients == "support@localhost" }
         assertThat(storedMail.id).isNotNull()
-        assertThat(storedMail.subject).isEqualTo("Support-Anfrage: Login geht nicht")
+        assertThat(storedMail.subject).isEqualTo("Support: Login geht nicht")
         assertThat(storedMail.status).isEqualTo(MailOutboxStatus.PENDING)
         assertThat(storedMail.attempts).isZero()
         assertThat(storedMail.createdAt).isNotNull()

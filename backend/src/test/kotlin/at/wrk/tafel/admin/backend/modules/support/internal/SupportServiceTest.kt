@@ -49,7 +49,11 @@ class SupportServiceTest {
 
     @Test
     fun `sends the request to the configured recipients`() {
-        val service = SupportService(propertiesWithRecipients("support1@localhost", "support2@localhost"), mailSenderService, clock)
+        val service = SupportService(
+            propertiesWithRecipients("support1@localhost", "support2@localhost", subjectPrefix = "Support:"),
+            mailSenderService,
+            clock,
+        )
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
@@ -67,25 +71,25 @@ class SupportServiceTest {
         }
 
         assertThat(recipientsSlot.captured).containsExactly("support1@localhost", "support2@localhost")
-        assertThat(subjectSlot.captured).isEqualTo("Support-Anfrage: Something is broken")
+        assertThat(subjectSlot.captured).isEqualTo("Support: Something is broken")
         assertThat(contextSlot.captured.getVariable("supportTitle")).isEqualTo("Something is broken")
         assertThat(contextSlot.captured.getVariable("supportText")).isEqualTo("more details")
     }
 
     @Test
-    fun `puts the configured prefix in front of the subject`() {
-        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = "[SUPPORT]"), mailSenderService, clock)
+    fun `puts the configured prefix in front of the reported title`() {
+        val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = "Support:"), mailSenderService, clock)
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val subjectSlot = slot<String>()
         verify { mailSenderService.sendHtmlMailTo(any(), capture(subjectSlot), any(), any(), any()) }
 
-        assertThat(subjectSlot.captured).isEqualTo("[SUPPORT] Support-Anfrage: Something is broken")
+        assertThat(subjectSlot.captured).isEqualTo("Support: Something is broken")
     }
 
     @Test
-    fun `leaves the subject alone when no prefix is configured`() {
+    fun `subjects the mail with the bare title when no prefix is configured`() {
         val service = SupportService(propertiesWithRecipients("support@localhost", subjectPrefix = " "), mailSenderService, clock)
 
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
@@ -93,7 +97,7 @@ class SupportServiceTest {
         val subjectSlot = slot<String>()
         verify { mailSenderService.sendHtmlMailTo(any(), capture(subjectSlot), any(), any(), any()) }
 
-        assertThat(subjectSlot.captured).isEqualTo("Support-Anfrage: Something is broken")
+        assertThat(subjectSlot.captured).isEqualTo("Something is broken")
     }
 
     @Test

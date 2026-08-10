@@ -49,7 +49,7 @@ class SupportService(
 
         mailSenderService.sendHtmlMailTo(
             recipients = recipients,
-            subject = subjectPrefix(supportProperties?.subjectPrefix) + "Support-Anfrage: ${request.title}",
+            subject = subjectPrefix(supportProperties?.subjectPrefix) + request.title,
             attachments = listOfNotNull(screenshot),
             templateName = "mails/support-request-mail",
             context = context,
@@ -57,7 +57,7 @@ class SupportService(
     }
 
     // The configured prefix, with the separating space it needs and without the leading blank an
-    // unset one would otherwise put in front of every subject.
+    // empty one would otherwise put in front of the reported title.
     private fun subjectPrefix(configuredPrefix: String?) = if (configuredPrefix.isNullOrBlank()) "" else "${configuredPrefix.trim()} "
 
     /**

@@ -39,7 +39,6 @@ tafeladmin:
     # mail can be read at http://localhost:8025 without anything leaving the machine.
     recipients:
       - "support@localhost"
-    subjectPrefix: "[SUPPORT]"
   features:
     # Set to false to switch the scanner folder off without unsetting scannerPath below - the
     # "Scanner" document source then disappears from the UI and the folder is no longer polled.

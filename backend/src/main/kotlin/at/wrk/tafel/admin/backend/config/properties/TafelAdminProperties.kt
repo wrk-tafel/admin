@@ -217,8 +217,9 @@ class TafelAdminSupportProperties {
     var recipients: List<String> = emptyList()
 
     /**
-     * Prepended to the subject of a support mail, so a report is recognizable as one in a mailbox
-     * that also receives the automated mails (e.g. "[SUPPORT]").
+     * Put in front of the reported title to make up the subject of a support mail, so a report is
+     * recognizable as one in a mailbox that also receives the automated mails. The value shipped in
+     * `application.yml` is "Support:".
      *
      * Separate from [TafelAdminMailProperties.subjectPrefix], which marks *which environment* every
      * mail came from - both end up on the subject, the environment's first.
