@@ -1,4 +1,4 @@
-import {Component, inject, input, Signal} from '@angular/core';
+import {Component, computed, inject, input, Signal} from '@angular/core';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
@@ -46,6 +46,15 @@ export class DashboardComponent {
   readonly data: Signal<DashboardData | undefined> = toSignal(
     this.sseService.listen<DashboardData>('/sse/dashboard')
   );
+
+  /**
+   * The route progress, or `undefined` while nothing has been ticked off today - the template
+   * leaves the panel out entirely in that case, see the comment there.
+   */
+  readonly routeProgress = computed(() => {
+    const progress = this.data()?.logistics?.routeProgress;
+    return progress?.length ? progress : undefined;
+  });
 
 }
 

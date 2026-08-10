@@ -2,7 +2,7 @@ import {Component, inject, input} from '@angular/core';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatCard, MatCardContent, MatCardFooter} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {faDownload} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -13,8 +13,6 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
   templateUrl: 'registered-customers.component.html',
   imports: [
     MatCard,
-    MatCardHeader,
-    MatCardTitle,
     MatCardFooter,
     FaIconComponent,
     MatButton,

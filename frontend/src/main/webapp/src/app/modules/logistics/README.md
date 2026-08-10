@@ -8,12 +8,12 @@ Frontend feature module mounted at `/logistik`, gated by the `LOGISTICS` permiss
 Despite the module name, and despite the backend `logistics` module covering "routes,
 food collections, shelters, shops, cars, and food category management",
 **this frontend module contains two screens** (`logistics.routes.ts`):
-**Routenbegleitung** (route guidance) at `/logistik/routenbegleitung`, and
+**Routen-Navi** (route guidance) at `/logistik/routen-navi`, and
 **Warenerfassung** (food collection recording) at `/logistik/warenerfassung`.
 
 The two differ in one way that is easy to miss: Warenerfassung requires an active
 distribution (its constructor `effect()` navigates away once there is none, and its
-nav entry carries `activeDistributionRequired`), while Routenbegleitung deliberately
+nav entry carries `activeDistributionRequired`), while Routen-Navi deliberately
 does not — a driver looks at the route before the day starts.
 
 There is no route/shop/car management UI, and shelter and food-category admin
@@ -50,7 +50,7 @@ logistics/
   logistics.routes.ts
 ```
 
-## Route guidance (`routenbegleitung`)
+## Route guidance (`routen-navi`)
 
 `RouteGuidanceComponent` (`views/route-guidance`) takes the same `routeList`
 `model.required()` input from `RouteDataResolver`, and loads
@@ -81,7 +81,12 @@ A few things about it are worth knowing before changing it:
   signal rather than triggering a reload — the list must not jump under a driver's thumb.
   `pendingStopId` disables the buttons while a request is out.
 - **Progress is per calendar day and shared**, so a second person opening the same route
-  sees the same ticks; the completion's timestamp and the employee who set it are shown.
+  sees the same ticks; the completion's timestamp and the employee who set it are shown. The
+  counter in the card header and the bar below it both render `progressLabel()`, so the figure a
+  screen reader hears off the bar is the one on screen.
+- **Reaching the last stop is announced**, once per route per day: the backend publishes
+  `RouteAtLastStopEvent` when everything but the final stop is ticked off, and the `push` module
+  turns it into a notification naming the route. Nothing in this component is involved.
 - **The return boxes on the screen come from the route's last trip**, computed server-side
   (see the backend module README) — the component only renders `stop.returnItems` and the
   `unassignedReturnItems` block. The `PUT` answer carries them as well, which is why

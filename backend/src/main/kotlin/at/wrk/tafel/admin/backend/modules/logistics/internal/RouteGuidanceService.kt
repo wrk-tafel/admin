@@ -12,10 +12,13 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEn
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceReturnItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShop
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceStopItem
+import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -38,7 +41,12 @@ class RouteGuidanceService(
     private val foodCollectionRepository: FoodCollectionRepository,
     private val distributionRepository: DistributionRepository,
     private val userRepository: UserRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(RouteGuidanceService::class.java)
+    }
 
     @Transactional(readOnly = true)
     fun getGuidance(routeId: Long): RouteGuidanceResponse {
@@ -102,7 +110,43 @@ class RouteGuidanceService(
                 employee = currentEmployee()
             },
         )
+        publishIfAtLastStop(route, date)
         return mapStop(stop, completion, returnItems)
+    }
+
+    /**
+     * Announces that the driver has arrived at the route's final stop - see [RouteAtLastStopEvent]
+     * for why that moment and not the one after it.
+     *
+     * The completions are re-read rather than derived from what the caller just wrote: the tick that
+     * completes the picture can be any of the route's stops, not only the second-to-last one, since
+     * a driver may go back and catch up a stop they skipped. `markLastStopNotified` is what makes
+     * this happen once a day; everything above it is only the question of whether to ask.
+     */
+    private fun publishIfAtLastStop(route: RouteEntity, date: LocalDate) {
+        val stops = route.stops.sortedBy { it.time }
+        // a one-stop route's only stop is also its first - arriving there says nothing about
+        // heading back
+        if (stops.size < 2) {
+            return
+        }
+
+        val completedStopIds = findCompletions(stops, date).keys
+        val lastStop = stops.last()
+        if (lastStop.id in completedStopIds || !stops.dropLast(1).all { it.id in completedStopIds }) {
+            return
+        }
+
+        if (routeRepository.markLastStopNotified(route.id!!, date) == 1) {
+            logger.info("Route {} reached its last stop on {}", route.id, date)
+            eventPublisher.publishEvent(
+                RouteAtLastStopEvent(
+                    routeId = route.id!!,
+                    routeName = route.name,
+                    remainingStopName = lastStop.shop?.name ?: lastStop.description,
+                ),
+            )
+        }
     }
 
     private fun returnItemsByShopId(collection: FoodCollectionEntity?): Map<Long?, List<RouteGuidanceReturnItem>> = collection?.returnItems.orEmpty()

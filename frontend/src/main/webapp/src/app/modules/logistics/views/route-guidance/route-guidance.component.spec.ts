@@ -150,6 +150,32 @@ describe('RouteGuidanceComponent', () => {
     expect(component['completedCount']()).toBe(1);
   });
 
+  it('turns the counter into a percentage for the progress bar', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      stops: [{...shopStop, completed: true}, pauseStop, secondShopStop]
+    }));
+
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(component['progressLabel']()).toBe('1 von 3 Stopps erledigt');
+    expect(component['completedPercent']()).toBe(33);
+  });
+
+  it('reports no progress at all for a route without stops', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, stops: []}));
+
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(component['completedPercent']()).toBe(0);
+  });
+
   it('builds a stop view with the labels the template renders', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance;

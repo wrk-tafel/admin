@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDate
@@ -51,6 +53,9 @@ class RouteGuidanceServiceTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @InjectMockKs
     private lateinit var service: RouteGuidanceService
@@ -287,6 +292,75 @@ class RouteGuidanceServiceTest {
         val exception = assertThrows<NotFoundException> { service.setCompletion(1, 44, true) }
 
         assertThat(exception.body.detail).isEqualTo("Stopp 44 gehört nicht zur Route 1!")
+    }
+
+    @Test
+    fun `arriving at the last stop announces that the route is on its way back`() {
+        givenCompletedStops(11, 22)
+        every { routeRepository.markLastStopNotified(1, LocalDate.now()) } returns 1
+
+        service.setCompletion(1, 22, true)
+
+        verify {
+            eventPublisher.publishEvent(
+                RouteAtLastStopEvent(routeId = 1, routeName = "Route 1", remainingStopName = "Denns Bio"),
+            )
+        }
+    }
+
+    @Test
+    fun `a route whose last stop is done too is no longer at its last stop`() {
+        givenCompletedStops(11, 22, 33)
+        every { routeRepository.markLastStopNotified(any(), any()) } returns 1
+
+        service.setCompletion(1, 33, true)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<RouteAtLastStopEvent>()) }
+    }
+
+    @Test
+    fun `a route with stops still open in the middle is not at its last stop`() {
+        givenCompletedStops(22)
+        every { routeRepository.markLastStopNotified(any(), any()) } returns 1
+
+        service.setCompletion(1, 22, true)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<RouteAtLastStopEvent>()) }
+    }
+
+    /**
+     * The marker is what makes the announcement happen once a day - a driver who takes the
+     * second-to-last stop back and ticks it off again passes the same point twice.
+     */
+    @Test
+    fun `the last stop is announced only the first time it is reached`() {
+        givenCompletedStops(11, 22)
+        every { routeRepository.markLastStopNotified(1, LocalDate.now()) } returns 0
+
+        service.setCompletion(1, 22, true)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<RouteAtLastStopEvent>()) }
+    }
+
+    @Test
+    fun `taking a stop back never announces anything`() {
+        givenCompletedStops(11, 22)
+        every { routeRepository.markLastStopNotified(any(), any()) } returns 1
+
+        service.setCompletion(1, 11, false)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<RouteAtLastStopEvent>()) }
+        verify(exactly = 0) { routeRepository.markLastStopNotified(any(), any()) }
+    }
+
+    private fun givenCompletedStops(vararg stopIds: Long) {
+        every { routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now()) } returns
+            stopIds.map { stopId ->
+                RouteStopCompletionEntity(
+                    routeStop = route.stops.first { it.id == stopId },
+                    completionDate = LocalDate.now(),
+                ).apply { id = stopId }
+            }
     }
 
     private fun distribution(id: Long, startedAt: LocalDateTime) = DistributionEntity(

@@ -1,11 +1,7 @@
 <mat-card class="h-full mat-card-primary">
-  <mat-card-header>
-    <mat-card-title>
-      <h2 class="tafel-h4">Status</h2>
-    </mat-card-title>
-  </mat-card-header>
-  <mat-card-content class="text-center">
-    <div testid="distribution-state-text" class="font-bold text-5xl">{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</div>
+  <mat-card-content class="!p-4">
+    <h2 class="tafel-h4 mb-1">Status</h2>
+    <div testid="distribution-state-text" class="text-4xl font-bold leading-none">{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</div>
   </mat-card-content>
   <mat-card-footer>
     @if (!isDistributionActive()) {

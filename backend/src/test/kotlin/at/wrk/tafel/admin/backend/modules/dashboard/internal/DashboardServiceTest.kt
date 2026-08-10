@@ -239,13 +239,29 @@ internal class DashboardServiceTest {
         assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
         assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
         assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(140))
-        // routes 2-4 have no stops at all, so there is no progress to report for them
-        assertThat(data.logistics.routeProgress).singleElement()
-            .satisfies({
-                assertThat(it.routeName).isEqualTo("Route 1")
-                assertThat(it.completedStops).isEqualTo(0)
-                assertThat(it.totalStops).isEqualTo(3)
-            })
+        // nobody has ticked a stop off today, so the panel has nothing to say yet
+        assertThat(data.logistics.routeProgress).isEmpty()
+    }
+
+    /**
+     * The route guidance screen is optional, and a deployment whose drivers don't use it would
+     * otherwise carry a panel of permanent zeroes on a dashboard that has to fit on one screen.
+     */
+    @Test
+    fun `route progress stays empty until a stop has been ticked off today`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1)
+        every {
+            routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now())
+        } returns emptyList()
+
+        val data = service.getData()
+
+        assertThat(data.logistics!!.routeProgress).isEmpty()
     }
 
     @Test

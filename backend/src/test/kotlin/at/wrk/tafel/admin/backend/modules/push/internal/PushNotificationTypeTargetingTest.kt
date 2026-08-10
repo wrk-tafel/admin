@@ -18,6 +18,7 @@ internal class PushNotificationTypeTargetingTest {
         val dayTypes = listOf(
             PushNotificationType.DISTRIBUTION_STARTED,
             PushNotificationType.CHECKIN_STARTED,
+            PushNotificationType.ROUTE_AT_LAST_STOP,
             PushNotificationType.FOOD_COLLECTION_COMPLETED,
             PushNotificationType.FOOD_HANDOUT_STARTED,
             PushNotificationType.ALL_TICKETS_PROCESSED,
