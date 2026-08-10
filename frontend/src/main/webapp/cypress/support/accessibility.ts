@@ -82,26 +82,40 @@ Cypress.Commands.add('checkAccessibility', (context?: ElementContext, options?: 
 });
 
 // axe's colour-contrast rule reads computed colours, so it must not run while an overlay is still
-// fading in - a half-transparent panel measures as too little contrast and fails for the frame or
-// two the animation lasts. Cypress' own visibility rules are satisfied well before that, so the
-// component's animation-state class is what has to be waited on instead.
+// fading in - a half-transparent panel measures as too little contrast and fails for as long as the
+// animation lasts. Cypress' own visibility rules are satisfied well before that, so what an overlay
+// animates is what has to be waited on: the opacity reaching 1 is the one signal that says the
+// fade-in is *over*.
+//
+// Its animation-state class cannot say that on its own, because Angular Material adds that class a
+// frame after the overlay is in the DOM (`MatDialogContainer` sets it from a `requestAnimationFrame`,
+// `MatMenu` from the `animationstart` event). "Does not have the animating class" is therefore also
+// true in the window before the animation begins, which is exactly the window a `cy.get()` right
+// after the click lands in.
+function expectFadedIn($elements: JQuery<HTMLElement>): void {
+  $elements.each((_, element) => {
+    expect(Number(getComputedStyle(element).opacity)).to.equal(1);
+  });
+}
+
 Cypress.Commands.add('checkDialogAccessibility', (options?: Options) => {
   // Scoped to the dialog itself: while it is open the rest of the document is inert, and a
   // violation reported against the whole page would not say which of the two it came from.
-  cy.get('mat-dialog-container').should('be.visible').and('not.have.class', 'mdc-dialog--opening');
+  //
+  // `mdc-dialog--open` is required of *every* open container rather than just one, which also keeps
+  // a dialog that is still fading out of the audit: Material drops that class the moment closing
+  // starts, so a lingering predecessor holds this assertion until it is gone.
+  cy.get('mat-dialog-container').should('be.visible').and('have.class', 'mdc-dialog--open');
+  cy.get('mat-dialog-container .mat-mdc-dialog-inner-container').should(expectFadedIn);
   cy.checkAccessibility('mat-dialog-container', options);
 });
 
 Cypress.Commands.add('checkMenuAccessibility', (options?: Options) => {
-  cy.get('.mat-mdc-menu-panel').should('be.visible').and('not.have.class', 'mat-menu-panel-animating');
+  cy.get('.mat-mdc-menu-panel').should('be.visible').and(expectFadedIn);
   cy.checkAccessibility('.mat-mdc-menu-panel', options);
 });
 
 Cypress.Commands.add('checkSelectAccessibility', (options?: Options) => {
-  // Same reason as the dialog above, but a select panel keeps its animation class for as long as it
-  // is open, so there is none to wait on - the opacity the fade-in animates is what says it is done.
-  cy.get('.mat-mdc-select-panel')
-    .should('be.visible')
-    .and(($panel) => expect(Number(getComputedStyle($panel[0]).opacity)).to.equal(1));
+  cy.get('.mat-mdc-select-panel').should('be.visible').and(expectFadedIn);
   cy.checkAccessibility('.mat-mdc-select-panel', options);
 });
