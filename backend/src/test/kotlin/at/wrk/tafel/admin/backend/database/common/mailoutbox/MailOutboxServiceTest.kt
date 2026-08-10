@@ -9,12 +9,15 @@ import jakarta.mail.Session
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Limit
 import org.springframework.mail.MailSendException
 import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.io.ByteArrayInputStream
 import java.time.Clock
 import java.time.Instant
@@ -31,6 +34,9 @@ class MailOutboxServiceTest {
     @RelaxedMockK
     private lateinit var mailSender: JavaMailSender
 
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
+
     private val now = LocalDateTime.of(2026, 3, 22, 10, 15, 30)
     private val clock = Clock.fixed(Instant.parse("2026-03-22T09:15:30Z"), ZoneId.of("Europe/Vienna"))
 
@@ -42,7 +48,7 @@ class MailOutboxServiceTest {
 
     @Test
     fun `enqueue stores the composed message, its subject and its recipients as pending`() {
-        val service = MailOutboxService(mailOutboxRepository, mailSender, clock)
+        val service = service()
 
         service.enqueue(mimeMessage("subject"), "subject", listOf("to1@localhost", "to2@localhost"))
 
@@ -62,7 +68,7 @@ class MailOutboxServiceTest {
 
     @Test
     fun `sending marks a mail as sent`() {
-        val service = MailOutboxService(mailOutboxRepository, mailSender, clock)
+        val service = service()
         val pendingMail = pendingMail()
         every {
             mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(
@@ -85,7 +91,7 @@ class MailOutboxServiceTest {
 
     @Test
     fun `a failed send is retried later with the error recorded`() {
-        val service = MailOutboxService(mailOutboxRepository, mailSender, clock)
+        val service = service()
         val pendingMail = pendingMail()
         every {
             mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
@@ -104,7 +110,7 @@ class MailOutboxServiceTest {
 
     @Test
     fun `a mail is given up on after the last attempt and kept with its error`() {
-        val service = MailOutboxService(mailOutboxRepository, mailSender, clock)
+        val service = service()
         val pendingMail = pendingMail().apply { attempts = 4 }
         every {
             mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
@@ -121,8 +127,64 @@ class MailOutboxServiceTest {
     }
 
     @Test
+    fun `giving up on a mail announces it, so the failure is not just a row nobody reads`() {
+        val service = service()
+        val pendingMail = pendingMail().apply { attempts = 4 }
+        every {
+            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
+        } returns listOf(pendingMail)
+        every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
+        every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
+
+        service.sendPendingMails()
+
+        val eventSlot = slot<MailDeliveryFailedEvent>()
+        verify { eventPublisher.publishEvent(capture(eventSlot)) }
+        assertThat(eventSlot.captured.subject).isEqualTo("subject")
+        assertThat(eventSlot.captured.recipients).isEqualTo("to@localhost")
+        assertThat(eventSlot.captured.lastError).contains("smtp is down")
+    }
+
+    @Test
+    fun `a mail that will be retried announces nothing yet`() {
+        val service = service()
+        every {
+            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
+        } returns listOf(pendingMail())
+        every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
+        every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
+
+        service.sendPendingMails()
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<MailDeliveryFailedEvent>()) }
+    }
+
+    /**
+     * Queuing a mail is a write, so a read-only caller cannot do it. It is rejected here with a
+     * message naming the cause, rather than several frames deeper by Postgres refusing
+     * `mail_outbox_seq`'s `nextval()` - which is what made this fail silently the first time.
+     */
+    @Test
+    fun `enqueue refuses a read-only transaction and says why`() {
+        val service = service()
+        TransactionSynchronizationManager.setActualTransactionActive(true)
+        TransactionSynchronizationManager.setCurrentTransactionReadOnly(true)
+
+        try {
+            assertThatThrownBy { service.enqueue(mimeMessage("subject"), "subject", listOf("to@localhost")) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessageContaining("read-only")
+
+            verify(exactly = 0) { mailOutboxRepository.save(any<MailOutboxEntity>()) }
+        } finally {
+            TransactionSynchronizationManager.setCurrentTransactionReadOnly(false)
+            TransactionSynchronizationManager.setActualTransactionActive(false)
+        }
+    }
+
+    @Test
     fun `one failing mail does not stop the rest of the batch`() {
-        val service = MailOutboxService(mailOutboxRepository, mailSender, clock)
+        val service = service()
         val failing = pendingMail()
         val succeeding = pendingMail()
         every {
@@ -139,7 +201,7 @@ class MailOutboxServiceTest {
 
     @Test
     fun `nothing is polled when no mail server is configured`() {
-        val service = MailOutboxService(mailOutboxRepository, null, clock)
+        val service = service(mailSender = null)
 
         service.sendPendingMails()
 
@@ -150,7 +212,7 @@ class MailOutboxServiceTest {
 
     @Test
     fun `cleanup removes sent mails older than the retention window`() {
-        val service = MailOutboxService(mailOutboxRepository, mailSender, clock)
+        val service = service()
 
         service.cleanupSentMails()
 
@@ -158,6 +220,8 @@ class MailOutboxServiceTest {
             mailOutboxRepository.deleteAllByStatusAndSentAtBefore(MailOutboxStatus.SENT, now.minusDays(14))
         }
     }
+
+    private fun service(mailSender: JavaMailSender? = this.mailSender) = MailOutboxService(mailOutboxRepository, mailSender, clock, eventPublisher)
 
     private fun pendingMail() = MailOutboxEntity().apply {
         createdAt = now

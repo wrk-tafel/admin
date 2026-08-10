@@ -104,11 +104,20 @@ calling `dailyReportService.generateDailyReportPdf(statistic)` and
 mails `DailyReportMailPostProcessor`/`StatisticMailPostProcessor` used to send from inside `distribution`,
 now sent from inside `reporting` instead - plus a third mail, the return-boxes summary, ported over
 (unchanged logic) from `distribution`'s `ReturnBoxesMailPostProcessor`. That third one never actually
-depended on `reporting`; it moved here purely so all three mails share the same isolation/retry handling.
-All three mails are isolated from each other and each is retried up to 3 times (via a `RetryTemplate`)
-before being given up on; see `distribution/README.md`'s "Why `distribution` no longer depends on
-`reporting`" section for the full picture of both sides of this event, including the manual mail-resend
-path.
+depended on `reporting`; it moved here purely so all three mails share the same isolation handling.
+
+Each mail is composed in a transaction of its own and isolated from the other two, so one that fails
+neither blocks the others from being attempted nor rolls back the rows they already queued - the three
+go to three different recipient lists, so a broken CSV export must not also cost leadership its daily
+report. Nothing is retried here: composing a mail renders a PDF/CSV and writes a `mail_outbox` row, and
+neither gets better on a second identical attempt. The part that does fail transiently - handing the
+mail to a mail server - is retried by `MailOutboxService`, long after this listener has returned. See
+`distribution/README.md`'s "Why `distribution` no longer depends on `reporting`" section for the full
+picture of both sides of this event, including the manual mail-resend path.
+
+`ReportMailFailedEvent` therefore reports a mail that could not be **built**. A mail that could not be
+**delivered** is reported by `MailOutboxService` itself, via `MailDeliveryFailedEvent`; both end up as
+the same "E-Mail nicht versendet" push notification to administrators.
 
 Every class in this codebase whose job is to react to a Spring event is named `<EventName>Listener` — this
 one, and `distribution.internal.DistributionEndedEventListener` (reacts to `DistributionEndedEvent`, the

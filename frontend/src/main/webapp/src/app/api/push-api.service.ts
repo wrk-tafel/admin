@@ -73,7 +73,7 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.ALL_TICKETS_PROCESSED]: 'Alle angemeldeten Kunden einer Ausgabe wurden abgearbeitet.',
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Für alle aktiven Routen wurden die Waren erfasst.',
   [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
-  [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine Report-E-Mail konnte nach einer Ausgabe nicht versendet werden.'
+  [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine E-Mail konnte auch nach mehreren Versuchen nicht versendet werden.'
 };
 
 /**
