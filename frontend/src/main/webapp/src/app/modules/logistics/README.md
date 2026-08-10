@@ -40,7 +40,7 @@ logistics/
     food-collection-offline-queue.service.ts      # localStorage-backed item auto-save queue
     food-collection-return-items.ts               # free-text return-item validation helpers
   views/
-    route-guidance/                              # route picker + stop timeline + map deep links
+    route-guidance/                               # route picker + one stop at a time + map deep links
     food-collection-recording/                    # container: route picker + tabs + save button
     food-collection-recording-basedata/           # tab 1: car/driver/co-driver
     food-collection-recording-km/                 # tab 2: km start/end
@@ -58,8 +58,15 @@ logistics/
 already carries the stops in driving order, the shop details and today's progress, so
 the screen needs no second request and no shop lookup of its own.
 
-Three things about it are worth knowing before changing it:
+A few things about it are worth knowing before changing it:
 
+- **One stop is on screen at a time**, paged with the two buttons below the card; the screen opens
+  on the first stop still to do. It is read at the wheel on a phone, where a scrollable list of
+  fifteen stops is the wrong shape.
+- **Every stop can be ticked off without the map app.** Starting the navigation marks a stop as
+  done on the way out, but the `Erledigt` button is always there next to it — a stop without a shop
+  has nothing to navigate to, and a stop that was just undone would otherwise only be markable by
+  opening Google Maps again.
 - **Navigation is a link, not a map.** Each stop renders an `<a href>` to
   `https://www.google.com/maps/dir/?api=1&destination=<address>`, plus one link over the
   stops still open that adds the intermediate ones as `waypoints`. Google's directions

@@ -2,7 +2,7 @@ import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {RouteGuidanceComponent} from './route-guidance.component';
 import {
   RouteApiService,
@@ -352,6 +352,28 @@ describe('RouteGuidanceComponent', () => {
     expect(routeApiMock.setStopCompletion).toHaveBeenCalledWith(2, 200, false);
     expect(component['stopViews']()[0].stop.completed).toBe(false);
     expect(component['stopViews']()[0].completedLabel).toBeUndefined();
+  });
+
+  it('drops a stop answer that arrives after another route was picked', () => {
+    const pendingCompletion = new Subject<RouteGuidanceStop>();
+    routeApiMock.setStopCompletion = vi.fn(() => pendingCompletion.asObservable());
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['toggleStop'](component['stops']()[0]);
+    // the driver picks a different route while the tick is still on its way
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      routeId: 3,
+      routeName: 'Route 3',
+      stops: [secondShopStop]
+    }));
+    component['onSelectedRouteChange']({...testRoute, id: 3, name: 'Route 3'});
+    pendingCompletion.next({...shopStop, completed: true});
+
+    expect(component['guidance']()!.routeId).toBe(3);
+    expect(component['stops']().length).toBe(1);
   });
 
   it('shows a toast when a stop cannot be saved', () => {

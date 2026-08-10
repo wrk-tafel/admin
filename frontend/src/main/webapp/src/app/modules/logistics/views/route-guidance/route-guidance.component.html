@@ -171,11 +171,14 @@
                 <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
                 Navigation starten
               </a>
-            } @else {
-              <!-- a stop without a shop has nowhere to navigate to, so it needs a way of its own -->
+            }
+            @if (!view.stop.completed) {
+              <!-- ticking off never depends on the map app: a stop without a shop has nowhere to
+                   navigate to, and a driver who knows the way - or who has just pressed Rückgängig -
+                   must not be sent through the navigation to get the stop marked again -->
               <button matButton="filled" type="button" class="button-success w-full sm:w-auto"
                       testid="guidance-done-button" [attr.aria-label]="view.toggleLabel"
-                      [disabled]="pendingStopId() !== undefined || view.stop.completed"
+                      [disabled]="pendingStopId() !== undefined"
                       (click)="toggleStop(view.stop)">
                 <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
                 Erledigt

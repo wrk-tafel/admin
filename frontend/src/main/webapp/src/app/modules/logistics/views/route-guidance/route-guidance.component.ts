@@ -72,7 +72,6 @@ export class RouteGuidanceComponent {
 
   private readonly _guidance = signal<RouteGuidanceData | undefined>(undefined);
   protected readonly guidance = this._guidance.asReadonly();
-  protected readonly loading = signal(false);
   // the stop whose request is still on its way, so its button can't be pressed twice
   protected readonly pendingStopId = signal<number | undefined>(undefined);
 
@@ -146,7 +145,6 @@ export class RouteGuidanceComponent {
       return;
     }
 
-    this.loading.set(true);
     this.routeApiService.getRouteGuidance(route.id).subscribe({
       next: guidance => {
         this._guidance.set(guidance);
@@ -154,11 +152,9 @@ export class RouteGuidanceComponent {
         // whole route is finished
         const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);
         this._currentIndex.set(firstOpenIndex >= 0 ? firstOpenIndex : Math.max(0, guidance.stops.length - 1));
-        this.loading.set(false);
       },
       error: (error: HttpErrorResponse) => {
         this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden der Route');
-        this.loading.set(false);
       }
     });
   }
@@ -187,10 +183,15 @@ export class RouteGuidanceComponent {
     this.pendingStopId.set(stop.stopId);
     this.routeApiService.setStopCompletion(guidance.routeId, stop.stopId, completed).subscribe({
       next: updatedStop => {
-        this._guidance.set({
-          ...guidance,
-          stops: guidance.stops.map(current => current.stopId === updatedStop.stopId ? updatedStop : current)
-        });
+        // the answer is folded into whatever is on screen now, not into the guidance this request
+        // started from - a route picked while the request was out must not be overwritten by it
+        const current = this._guidance();
+        if (current?.routeId === guidance.routeId) {
+          this._guidance.set({
+            ...current,
+            stops: current.stops.map(stop => stop.stopId === updatedStop.stopId ? updatedStop : stop)
+          });
+        }
         this.pendingStopId.set(undefined);
       },
       error: (error: HttpErrorResponse) => {

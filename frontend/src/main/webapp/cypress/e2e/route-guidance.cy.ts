@@ -33,6 +33,9 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-stop-contact').should('contain.text', 'Hr. Mustermann');
     cy.byTestId('guidance-stop').should('contain.text', 'Einheit: Kisten');
     cy.byTestId('guidance-next-badge').should('be.visible');
+    // a shop stop offers both: the navigation and a plain tick that opens no map app
+    cy.byTestId('guidance-navigate-button').should('be.visible');
+    cy.byTestId('guidance-done-button').should('be.visible');
     // nothing before the first stop
     cy.byTestId('guidance-previous-button').should('be.disabled');
 
@@ -77,6 +80,20 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-undo-button').click();
     cy.byTestId('guidance-done-badge').should('not.exist');
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+  });
+
+  it('ticks a shop stop off and on again without ever opening the map app', () => {
+    selectRoute2();
+
+    cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-done-badge').should('be.visible');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+
+    // and back: an undone stop has to be markable again without going through the navigation
+    cy.byTestId('guidance-undo-button').click();
+    cy.byTestId('guidance-done-badge').should('not.exist');
+    cy.byTestId('guidance-done-button').should('be.visible').click();
+    cy.byTestId('guidance-done-badge').should('be.visible');
   });
 
   it('marks a stop without a shop as done explicitly', () => {
