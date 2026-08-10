@@ -2,25 +2,31 @@
 
 # Logistik
 
-Der Bereich "Logistik" begleitet die Routen-Teams: die **Routenbegleitung** unterwegs auf der Route, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; die Routenbegleitung ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
+Der Bereich "Logistik" begleitet die Routen-Teams: das **Routen-Navi** unterwegs auf der Route, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; das Routen-Navi ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
 
-<a id="routenbegleitung"></a>
+<a id="routen-navi"></a>
 
-## Routenbegleitung
+## Routen-Navi
 
-Unter **Logistik → Routenbegleitung** wird über das Dropdown **Route auswählen** eine der aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen) gewählt. Anschließend wird immer **ein Stopp** der Route angezeigt — die Seite wird am Steuer auf dem Handy gelesen, eine lange Liste wäre dort die falsche Darstellung. Die Reihenfolge ist die, in der die Stopps angefahren werden (nach der bei der Route hinterlegten Uhrzeit); beim Öffnen steht die Seite gleich beim ersten noch offenen Stopp. Über dem Stopp steht, der wievielte von wie vielen gerade angezeigt wird.
+Unter **Logistik → Routen-Navi** wird über das Dropdown **Route auswählen** eine der aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen) gewählt. Anschließend wird immer **ein Stopp** der Route angezeigt — die Seite wird am Steuer auf dem Handy gelesen, eine lange Liste wäre dort die falsche Darstellung. Die Reihenfolge ist die, in der die Stopps angefahren werden (nach der bei der Route hinterlegten Uhrzeit); beim Öffnen steht die Seite gleich beim ersten noch offenen Stopp. Über dem Stopp steht, der wievielte von wie vielen gerade angezeigt wird.
 
 Bedient wird die Seite mit **zwei Knöpfen**, und genau diese beiden halten auch den Fortschritt fest — es gibt keinen eigenen Knopf zum Abhaken.
 
 Je Stopp werden angezeigt: Uhrzeit, Filialnummer und Name der Filiale, Adresse, Telefonnummer (per Klick direkt wählbar), Ansprechperson sowie eine allfällige Notiz zur Filiale. Stopps ohne Filiale — etwa eine Pause — bleiben erhalten und werden mit ihrer Beschreibung angezeigt. Der erste noch offene Stopp ist mit **Nächster offener Stopp** gekennzeichnet, ein bereits abgehakter mit **Erledigt**. Eine Filiale, die inzwischen auf inaktiv gesetzt wurde, bleibt in der Route und wird mit **Filiale inaktiv** gekennzeichnet. Das **i-Symbol** neben der Überschrift blendet eine Kurzanleitung ein.
 
-![Routenbegleitung](images/logistik-routenbegleitung.jpg)
+Die Abbildung zeigt die Seite so, wie sie unterwegs tatsächlich verwendet wird: am Handy (siehe auch [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)). Am Computer ist es dieselbe Seite, nur breiter.
+
+![Routen-Navi am Handy](images/logistik-routen-navi.jpg)
 
 Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware abgeben** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"). Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
 
 **Erledigt & weiter** hakt den angezeigten Stopp ab und zeigt gleich den nächsten — das ist der Knopf, der unterwegs an jedem Stopp gedrückt wird. Beim letzten Stopp der Route heißt er nur **Erledigt**, weil es nichts mehr weiterzublättern gibt; ist auch dieser abgehakt, ist die Route fertig und der Knopf nicht mehr auswählbar.
 
-**Zurück** zeigt den vorherigen Stopp wieder an und macht das Abhaken dabei rückgängig. Wer also einen Stopp zu früh abgehakt hat, geht einmal zurück und der Stopp ist wieder offen. Neben dem Stopp werden Uhrzeit und Name der Person angezeigt, die ihn abgehakt hat. Der Zähler oben rechts zeigt den Fortschritt ("2 von 7 Stopps erledigt").
+**Zurück** zeigt den vorherigen Stopp wieder an und macht das Abhaken dabei rückgängig. Wer also einen Stopp zu früh abgehakt hat, geht einmal zurück und der Stopp ist wieder offen. Neben dem Stopp werden Uhrzeit und Name der Person angezeigt, die ihn abgehakt hat. Der Zähler oben rechts zeigt den Fortschritt ("2 von 7 Stopps erledigt"), darunter derselbe Wert als Fortschrittsbalken.
+
+Sobald alle Stopps bis auf den letzten abgehakt sind, wird automatisch eine [Push-Benachrichtigung](README.md#benachrichtigungen) "Route beim letzten Stopp" verschickt, damit in der Zentrale bekannt ist, dass das Fahrzeug bald zurückkommt. Sie wird je Route einmal pro Tag verschickt.
+
+Der abgehakte Fortschritt ist außerdem auf der [Übersicht](README.md#übersicht-dashboard) unter "Routen unterwegs" sichtbar — allerdings erst, sobald an diesem Tag der erste Stopp abgehakt wurde. Wird das Routen-Navi an einem Tag nicht verwendet, bleibt dieser Bereich der Übersicht ganz aus.
 
 **Navigation starten** öffnet die Navigation zur jeweiligen Filiale in der Karten-App des Geräts (am Handy die installierte Karten-App, am Computer die Karte im Browser). Am Fortschritt ändert das nichts — abgehakt wird ausschließlich über die beiden Knöpfe.
 

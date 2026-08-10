@@ -43,6 +43,7 @@ export enum PushNotificationType {
   CHECKIN_STARTED = 'CHECKIN_STARTED',
   FOOD_HANDOUT_STARTED = 'FOOD_HANDOUT_STARTED',
   ALL_TICKETS_PROCESSED = 'ALL_TICKETS_PROCESSED',
+  ROUTE_AT_LAST_STOP = 'ROUTE_AT_LAST_STOP',
   FOOD_COLLECTION_COMPLETED = 'FOOD_COLLECTION_COMPLETED',
   USER_LOCKED_OUT = 'USER_LOCKED_OUT',
   REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED'
@@ -55,6 +56,7 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.CHECKIN_STARTED]: 'Anmeldung gestartet',
   [PushNotificationType.FOOD_HANDOUT_STARTED]: 'Warenausgabe gestartet',
   [PushNotificationType.ALL_TICKETS_PROCESSED]: 'Alle Kunden abgearbeitet',
+  [PushNotificationType.ROUTE_AT_LAST_STOP]: 'Route beim letzten Stopp',
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Warenerfassung abgeschlossen',
   [PushNotificationType.USER_LOCKED_OUT]: 'Benutzer gesperrt',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet'
@@ -71,6 +73,7 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.CHECKIN_STARTED]: 'Der erste Kunde einer Ausgabe wurde angemeldet.',
   [PushNotificationType.FOOD_HANDOUT_STARTED]: 'Das erste Ticket wurde abgearbeitet, die Warenausgabe läuft.',
   [PushNotificationType.ALL_TICKETS_PROCESSED]: 'Alle angemeldeten Kunden einer Ausgabe wurden abgearbeitet.',
+  [PushNotificationType.ROUTE_AT_LAST_STOP]: 'Eine Route ist beim letzten Stopp und kommt bald zurück.',
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Für alle aktiven Routen wurden die Waren erfasst.',
   [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine E-Mail konnte auch nach mehreren Versuchen nicht versendet werden.'
@@ -101,6 +104,7 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
     types: [
       PushNotificationType.DISTRIBUTION_STARTED,
       PushNotificationType.CHECKIN_STARTED,
+      PushNotificationType.ROUTE_AT_LAST_STOP,
       PushNotificationType.FOOD_COLLECTION_COMPLETED,
       PushNotificationType.FOOD_HANDOUT_STARTED,
       PushNotificationType.ALL_TICKETS_PROCESSED,

@@ -1,5 +1,5 @@
 import {Component, computed, inject, input, Signal} from '@angular/core';
-import {MatCard, MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
+import {MatCard, MatCardContent} from '@angular/material/card';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 
@@ -8,8 +8,6 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
   templateUrl: 'recorded-food-collections.component.html',
   imports: [
     MatCard,
-    MatCardHeader,
-    MatCardTitle,
     MatCardContent
   ]
 })

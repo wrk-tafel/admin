@@ -1,3 +1,8 @@
+<!-- This screen is read at a glance, from across the room, while a distribution runs - so it has to
+     fit on one screen without scrolling. That is what sizes every panel here: each one carries its
+     title and its figure in a single padded block instead of a Material card header above a
+     centred number, and the dividers between the rows are narrow. A new panel has to earn its
+     height the same way. -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
   <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
   <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
@@ -5,7 +10,7 @@
                            [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
   </tafel-tickets-processed>
 </div>
-<mat-divider class="!m-4"></mat-divider>
+<mat-divider class="!my-3"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-5 gap-2">
   <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
                                    [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
@@ -16,11 +21,21 @@
   <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
   </tafel-food-amount>
 </div>
-<div class="mt-2">
-  <tafel-route-progress [routeProgress]="data()?.logistics?.routeProgress ?? null"></tafel-route-progress>
-</div>
-<mat-divider class="!m-4"></mat-divider>
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-y-2 lg:gap-x-2">
+<!-- Only once a driver has actually ticked a stop off today. The route guidance screen is optional,
+     and a deployment that doesn't use it would otherwise carry a panel of permanent zeroes on a
+     dashboard that has to fit on one screen. The backend decides that, not this template: it sends
+     an empty list until the first stop of the day is done (see DashboardService.getRouteProgress). -->
+@if (routeProgress(); as progress) {
+  <div class="mt-2">
+    <tafel-route-progress [routeProgress]="progress"></tafel-route-progress>
+  </div>
+}
+<mat-divider class="!my-3"></mat-divider>
+<!-- The last row takes whatever the rows above it left over, so the screen is exactly full whether
+     or not "Routen unterwegs" is there. Only from lg: up: below that breakpoint the panels are
+     stacked in one column and there is more of them than a phone screen holds, so squeezing them
+     into it would leave every field unusably short. -->
+<div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
   <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
                                        [employeeCountInput]="data()?.statistics?.employeeCount"
                                        [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">

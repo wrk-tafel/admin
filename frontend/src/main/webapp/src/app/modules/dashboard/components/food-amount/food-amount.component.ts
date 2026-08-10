@@ -1,5 +1,5 @@
 import {Component, input} from '@angular/core';
-import {MatCard, MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
+import {MatCard, MatCardContent} from '@angular/material/card';
 import {DecimalPipe} from '@angular/common';
 
 @Component({
@@ -7,8 +7,6 @@ import {DecimalPipe} from '@angular/common';
   templateUrl: 'food-amount.component.html',
   imports: [
     MatCard,
-    MatCardHeader,
-    MatCardTitle,
     MatCardContent,
     DecimalPipe
   ]

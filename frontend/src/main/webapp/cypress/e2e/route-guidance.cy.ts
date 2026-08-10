@@ -15,7 +15,7 @@ describe('Route Guidance', () => {
       )
     );
     // deliberately no cy.createDistribution() - the screen has to work outside a distribution
-    cy.visit('/logistik/routenbegleitung');
+    cy.visit('/logistik/routen-navi');
   });
 
   function selectRoute(name: string) {
@@ -32,6 +32,7 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+    cy.byTestId('guidance-progress').should('have.attr', 'aria-valuenow', '0');
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
     cy.byTestId('guidance-stop').should('contain.text', '12:00').should('contain.text', 'Lidl');
     cy.byTestId('guidance-stop-address').should('contain.text', 'Kudlichgasse 4, 1130 Wien');
@@ -52,6 +53,7 @@ describe('Route Guidance', () => {
     // a stop with no shop has nowhere to navigate to, and needs no button of its own either
     cy.byTestId('guidance-navigate-button').should('not.exist');
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+    cy.byTestId('guidance-progress').should('have.attr', 'aria-valuenow', '33');
 
     cy.byTestId('guidance-done-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
@@ -73,7 +75,7 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
 
     // the screen opens on the next stop still to do, with the tick still there
-    cy.visit('/logistik/routenbegleitung');
+    cy.visit('/logistik/routen-navi');
     selectRoute2();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
@@ -113,7 +115,9 @@ describe('Route Guidance', () => {
   it('lists the return boxes the last trip brought back', () => {
     selectRoute('Route 3');
 
-    cy.byTestId('guidance-return-summary').should('contain.text', 'Retourware mitnehmen');
+    cy.byTestId('guidance-return-summary')
+      .invoke('text').invoke('replace', /\s+/g, ' ')
+      .should('match', /Retourware mitnehmen: \d+ Kisten vom \d{2}\.\d{2}\.\d{4} gehen heute zurück\./);
     cy.byTestId('guidance-stop-return-items')
       .should('contain.text', '2 × Bananenkartons')
       .should('contain.text', '4 × Graue Kisten');

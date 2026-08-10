@@ -12,6 +12,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-distribution-notes-input',
   templateUrl: 'distribution-notes-input.component.html',
+  styleUrls: ['distribution-notes-input.component.scss'],
   imports: [
     MatCard,
     MatCardHeader,

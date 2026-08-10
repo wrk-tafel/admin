@@ -76,7 +76,7 @@ DB level — it only governs `modules`-to-`modules` traffic.
   `/einstellungen/routen` and `/einstellungen/filialen`).
 
 ### Route guidance (`RouteGuidanceController`, `internal/RouteGuidanceService`)
-- Serves the `/logistik/routenbegleitung` screen: `GET /api/routes/{routeId}/guidance` returns the route's
+- Serves the `/logistik/routen-navi` screen: `GET /api/routes/{routeId}/guidance` returns the route's
   stops in driving order with everything a driver on the road needs (address, phone, contact
   person, shop note, food unit), and `PUT /api/routes/{routeId}/guidance/stops/{stopId}` ticks a
   stop off or undoes it. Both require `LOGISTICS`.
@@ -96,6 +96,13 @@ DB level — it only governs `modules`-to-`modules` traffic.
   down.
 - Ticking an already-ticked stop is a no-op rather than a re-stamp: the stored `createdAt` is what
   tells a second driver when the stop was actually done.
+- **Arriving at the last stop publishes `RouteAtLastStopEvent`** — every stop but the final one
+  ticked off, which is the point at which the van is about to head back and the people unloading it
+  want to know. `routes.last_stop_notified_date` keeps that to one announcement per route per day,
+  claimed atomically by `RouteRepository.markLastStopNotified` the same way
+  `DistributionRepository.markFoodCollectionCompleted` does; a driver who takes a stop back and
+  ticks it off again passes the same point twice and must not announce it twice. A one-stop route
+  never triggers it.
 - **The return boxes come from the route's *previous* food collection**, not the current one:
   `findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc` excludes the
   running distribution, because a `food_collections` row for today is created the moment anyone

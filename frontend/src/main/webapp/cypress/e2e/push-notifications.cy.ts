@@ -108,7 +108,7 @@ describe('PushNotifications', () => {
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
     // here - the filtered case is the separate test below.
-    cy.byTestId('push-type-preference').should('have.length', 9);
+    cy.byTestId('push-type-preference').should('have.length', 10);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -128,12 +128,12 @@ describe('PushNotifications', () => {
   // The permission filtering lives entirely in the backend's preferences response, so the only way
   // to see it work is with a real login of a user who lacks those permissions - a mocked component
   // test would just be asserting the fixture it was handed. e2etest2 holds CUSTOMER alone, so it
-  // gets the six types that carry no permission requirement and none of the restricted ones.
+  // gets the seven types that carry no permission requirement and none of the restricted ones.
   it('offers only the notification types a user can actually receive', () => {
     cy.loginE2ETest2();
     cy.visit('/benachrichtigungen');
 
-    cy.byTestId('push-type-preference').should('have.length', 6);
+    cy.byTestId('push-type-preference').should('have.length', 7);
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STARTED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="ALL_TICKETS_PROCESSED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="USER_LOCKED_OUT"]').should('not.exist');
@@ -163,6 +163,7 @@ describe('PushNotifications', () => {
         expect(order).to.deep.equal([
           'DISTRIBUTION_STARTED',
           'CHECKIN_STARTED',
+          'ROUTE_AT_LAST_STOP',
           'FOOD_COLLECTION_COMPLETED',
           'FOOD_HANDOUT_STARTED',
           'ALL_TICKETS_PROCESSED',
