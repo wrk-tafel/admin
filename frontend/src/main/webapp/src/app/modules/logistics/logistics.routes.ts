@@ -4,8 +4,17 @@ import {FoodCategoriesDataResolver} from './resolver/food-categories-data-resolv
 import {FoodReturnCategoriesDataResolver} from './resolver/food-return-categories-data-resolver.component';
 import {CarDataResolver} from './resolver/car-data-resolver.component';
 import {FoodCollectionRecordingComponent} from './views/food-collection-recording/food-collection-recording.component';
+import {RouteGuidanceComponent} from './views/route-guidance/route-guidance.component';
 
 export const routes: Routes = [
+  {
+    path: 'routenbegleitung',
+    title: 'Routenbegleitung',
+    component: RouteGuidanceComponent,
+    resolve: {
+      routeList: RouteDataResolver
+    }
+  },
   {
     path: 'warenerfassung',
     title: 'Waren-Eingabe',

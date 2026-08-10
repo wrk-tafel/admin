@@ -75,6 +75,37 @@ DB level — it only governs `modules`-to-`modules` traffic.
   create/update on both controllers require `SETTINGS` (the maintenance screens under
   `/einstellungen/routen` and `/einstellungen/filialen`).
 
+### Route guidance (`RouteGuidanceController`, `internal/RouteGuidanceService`)
+- Serves the `/logistik/routenbegleitung` screen: `GET /api/routes/{routeId}/guidance` returns the route's
+  stops in driving order with everything a driver on the road needs (address, phone, contact
+  person, shop note, food unit), and `PUT /api/routes/{routeId}/guidance/stops/{stopId}` ticks a
+  stop off or undoes it. Both require `LOGISTICS`.
+- **This read model is not `getShopsForRouteId`'s, and the difference is deliberate.** That one
+  serves the recording screen and drops what it cannot record against: stops without a shop, and
+  shops that are disabled. Guidance keeps both — a driver is sent to every stop the route still
+  holds, and silently omitting one would leave a gap on the road. `RouteGuidanceShop.enabled` is
+  carried so the screen can mark a retired shop rather than hide it.
+- **Progress is keyed by `(route_stop, calendar date)`, not by a distribution**
+  (`routes_stops_completions`, `RouteStopCompletionEntity`). The screen is reachable without an
+  active distribution on purpose — a driver looks at the route before the day starts — so a
+  distribution key would leave it unusable exactly then. The date comes from the server's
+  `LocalDate.now()` and is never accepted from the client.
+- **A completion is deleted with its stop** (`on delete cascade` on `route_stop_id`). That is not a
+  rare edge: `RouteService.updateRoute` replaces a route's stops wholesale, so *any* edit of a route
+  in the settings screen drops today's progress for it. `RouteGuidanceServiceIT` pins that behaviour
+  down.
+- Ticking an already-ticked stop is a no-op rather than a re-stamp: the stored `createdAt` is what
+  tells a second driver when the stop was actually done.
+- **The return boxes come from the route's *previous* food collection**, not the current one:
+  `findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc` excludes the
+  running distribution, because a `food_collections` row for today is created the moment anyone
+  opens the recording screen and would otherwise shadow the trip whose boxes are still in the hall.
+  A recorded amount of `0` is filtered out - it means "nothing came back", not an empty crate.
+- Boxes recorded for a shop the route no longer stops at land in `unassignedReturnItems` rather than
+  being dropped, so a route edit cannot silently strand them. The `PUT` answer carries the stop's
+  return items too: the screen replaces that one stop with the response, so leaving them off would
+  make them vanish the moment a driver ticks the stop.
+
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal
   code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (added recently alongside

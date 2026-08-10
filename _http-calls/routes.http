@@ -48,3 +48,14 @@ Content-Type: application/json
 
 ### Fetch shops for a specific route
 GET {{baseApiPath}}/routes/1/shops
+
+### Fetch the driver guidance for a route (stops in order, shop details, today's progress)
+GET {{baseApiPath}}/routes/1/guidance
+
+### Tick a stop off for today (send false to undo it)
+PUT {{baseApiPath}}/routes/1/guidance/stops/1
+Content-Type: application/json
+
+{
+  "completed": true
+}

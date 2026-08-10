@@ -43,6 +43,15 @@ internal class DashboardControllerTest {
                 foodCollectionsTotalCount = 2,
                 recordedRouteNames = listOf("Route 1"),
                 foodAmountTotal = BigDecimal(3),
+                routeProgress = listOf(
+                    DashboardRouteProgressItem(
+                        routeId = 1,
+                        routeNumber = 1.0,
+                        routeName = "Route 1",
+                        completedStops = 2,
+                        totalStops = 3,
+                    ),
+                ),
             ),
             notes = "test-notes",
         )

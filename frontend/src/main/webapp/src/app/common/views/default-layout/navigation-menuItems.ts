@@ -12,6 +12,7 @@ import {
   faListCheck,
   faMagnifyingGlass,
   faPlus,
+  faRoute,
   faTriangleExclamation,
   faTruck,
   faUser,
@@ -102,6 +103,12 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Logistik',
     title: true
+  },
+  {
+    name: 'Routenbegleitung',
+    url: '/logistik/routenbegleitung',
+    icon: faRoute,
+    permissions: ['LOGISTICS']
   },
   {
     name: 'Waren-Eingabe',

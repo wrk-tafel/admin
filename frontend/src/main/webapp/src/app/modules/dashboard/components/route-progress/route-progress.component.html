@@ -1,0 +1,31 @@
+<mat-card class="h-full mat-card-primary" testid="route-progress-panel">
+  <mat-card-header>
+    <mat-card-title>
+      <h2 class="tafel-h4">Routen unterwegs</h2>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (routes().length > 0) {
+      <ul class="flex flex-col gap-3">
+        @for (route of routes(); track route.routeId) {
+          <!-- the testids carry the route id: the whole list is replaced on every SSE push, so a
+               test that held on to a plain "the entry" element would be retrying against a node
+               that is no longer in the document -->
+          <li [attr.testid]="'route-progress-entry-' + route.routeId">
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="font-semibold">{{ route.routeName }}</span>
+              <span class="tabular-nums" [attr.testid]="'route-progress-count-' + route.routeId">
+                {{ route.completedStops }} / {{ route.totalStops }}
+              </span>
+            </div>
+            <mat-progress-bar class="!mt-1 !h-2 !rounded-full" mode="determinate"
+                              [value]="route.percent" [attr.aria-label]="route.label">
+            </mat-progress-bar>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="text-right text-5xl" testid="route-progress-empty">-</div>
+    }
+  </mat-card-content>
+</mat-card>

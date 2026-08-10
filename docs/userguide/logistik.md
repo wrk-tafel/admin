@@ -2,7 +2,31 @@
 
 # Logistik
 
-Der Bereich "Logistik" dient der Erfassung der von den Routen-Teams eingesammelten Warenmengen. Der Menüpunkt ist nur aktiv, solange ein Ausgabetag gestartet ist.
+Der Bereich "Logistik" begleitet die Routen-Teams: die **Routenbegleitung** unterwegs auf der Route, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; die Routenbegleitung ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
+
+<a id="routenbegleitung"></a>
+
+## Routenbegleitung
+
+Unter **Logistik → Routenbegleitung** wird über das Dropdown **Route auswählen** eine der aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen) gewählt. Anschließend wird immer **ein Stopp** der Route angezeigt — die Seite wird am Steuer auf dem Handy gelesen, eine lange Liste wäre dort die falsche Darstellung. Die Reihenfolge ist die, in der die Stopps angefahren werden (nach der bei der Route hinterlegten Uhrzeit); beim Öffnen steht die Seite gleich beim ersten noch offenen Stopp. Über dem Stopp steht, der wievielte von wie vielen gerade angezeigt wird.
+
+Bedient wird die Seite mit **zwei Knöpfen**, und genau diese beiden halten auch den Fortschritt fest — es gibt keinen eigenen Knopf zum Abhaken.
+
+Je Stopp werden angezeigt: Uhrzeit, Filialnummer und Name der Filiale, Adresse, Telefonnummer (per Klick direkt wählbar), Ansprechperson sowie eine allfällige Notiz zur Filiale. Stopps ohne Filiale — etwa eine Pause — bleiben erhalten und werden mit ihrer Beschreibung angezeigt. Der erste noch offene Stopp ist mit **Nächster offener Stopp** gekennzeichnet, ein bereits abgehakter mit **Erledigt**. Eine Filiale, die inzwischen auf inaktiv gesetzt wurde, bleibt in der Route und wird mit **Filiale inaktiv** gekennzeichnet. Das **i-Symbol** neben der Überschrift blendet eine Kurzanleitung ein.
+
+![Routenbegleitung](images/logistik-routenbegleitung.jpg)
+
+Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware abgeben** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"). Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
+
+**Erledigt & weiter** hakt den angezeigten Stopp ab und zeigt gleich den nächsten — das ist der Knopf, der unterwegs an jedem Stopp gedrückt wird. Beim letzten Stopp der Route heißt er nur **Erledigt**, weil es nichts mehr weiterzublättern gibt; ist auch dieser abgehakt, ist die Route fertig und der Knopf nicht mehr auswählbar.
+
+**Zurück** zeigt den vorherigen Stopp wieder an und macht das Abhaken dabei rückgängig. Wer also einen Stopp zu früh abgehakt hat, geht einmal zurück und der Stopp ist wieder offen. Neben dem Stopp werden Uhrzeit und Name der Person angezeigt, die ihn abgehakt hat. Der Zähler oben rechts zeigt den Fortschritt ("2 von 7 Stopps erledigt").
+
+**Navigation starten** öffnet die Navigation zur jeweiligen Filiale in der Karten-App des Geräts (am Handy die installierte Karten-App, am Computer die Karte im Browser). Am Fortschritt ändert das nichts — abgehakt wird ausschließlich über die beiden Knöpfe.
+
+**Restliche Route in Karte öffnen** unterhalb der Stopps übergibt gleich mehrere noch offene Stopps als eine Fahrt an die Karten-App. Bis zu zehn Stopps passen in eine solche Fahrt; sind noch mehr offen, steht darunter, wie viele Stopps danach einzeln zu navigieren sind.
+
+Abgehakte Stopps gelten für den **jeweiligen Tag** und sind auch auf anderen Geräten sichtbar — ein zweites Handy oder die Zentrale sehen denselben Stand. Am nächsten Tag beginnt die Route wieder mit lauter offenen Stopps. Wird eine Route zwischenzeitlich unter [Einstellungen → Routen](einstellungen.md#routen) bearbeitet, geht der Fortschritt des Tages für diese Route verloren, da die Stopps dabei neu angelegt werden.
 
 ## Warenerfassung
 

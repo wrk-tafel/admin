@@ -16,6 +16,9 @@
   <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
   </tafel-food-amount>
 </div>
+<div class="mt-2">
+  <tafel-route-progress [routeProgress]="data()?.logistics?.routeProgress ?? null"></tafel-route-progress>
+</div>
 <mat-divider class="!m-4"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-y-2 lg:gap-x-2">
   <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"

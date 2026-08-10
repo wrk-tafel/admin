@@ -169,6 +169,7 @@ jobs:
               /benutzer/detail/100,
               /benutzer/bearbeiten/100,
               /benutzer/anmelde-versuche,
+              /logistik/routenbegleitung,
               /logistik/warenerfassung,
               /statistiken/allgemein,
               /statistiken/schulstartpakete,

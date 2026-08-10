@@ -7,9 +7,14 @@ Frontend feature module mounted at `/logistik`, gated by the `LOGISTICS` permiss
 
 Despite the module name, and despite the backend `logistics` module covering "routes,
 food collections, shelters, shops, cars, and food category management",
-**this frontend module contains a single screen**:
-**Warenerfassung** (food collection recording), reachable at `/logistik/warenerfassung`
-via `logistics.routes.ts`.
+**this frontend module contains two screens** (`logistics.routes.ts`):
+**Routenbegleitung** (route guidance) at `/logistik/routenbegleitung`, and
+**Warenerfassung** (food collection recording) at `/logistik/warenerfassung`.
+
+The two differ in one way that is easy to miss: Warenerfassung requires an active
+distribution (its constructor `effect()` navigates away once there is none, and its
+nav entry carries `activeDistributionRequired`), while Routenbegleitung deliberately
+does not — a driver looks at the route before the day starts.
 
 There is no route/shop/car management UI, and shelter and food-category admin
 screens are **not** here — they live in the
@@ -35,6 +40,7 @@ logistics/
     food-collection-offline-queue.service.ts      # localStorage-backed item auto-save queue
     food-collection-return-items.ts               # free-text return-item validation helpers
   views/
+    route-guidance/                               # route picker + one stop at a time + map deep links
     food-collection-recording/                    # container: route picker + tabs + save button
     food-collection-recording-basedata/           # tab 1: car/driver/co-driver
     food-collection-recording-km/                 # tab 2: km start/end
@@ -43,6 +49,43 @@ logistics/
     food-collection-recording-items-responsive/   # tab 2, mobile layout
   logistics.routes.ts
 ```
+
+## Route guidance (`routenbegleitung`)
+
+`RouteGuidanceComponent` (`views/route-guidance`) takes the same `routeList`
+`model.required()` input from `RouteDataResolver`, and loads
+`RouteApiService.getRouteGuidance(routeId)` when a route is picked — one call that
+already carries the stops in driving order, the shop details and today's progress, so
+the screen needs no second request and no shop lookup of its own.
+
+A few things about it are worth knowing before changing it:
+
+- **One stop is on screen at a time**, and the screen is two buttons: `Erledigt & weiter` and
+  `Zurück`. It is read at the wheel on a phone, where a scrollable list of fifteen stops is the
+  wrong shape and every extra control is one to get wrong.
+- **Moving is what records the progress.** Forward ticks the stop off and shows the next one
+  (`Erledigt` on the last stop, which has nowhere to move on to, and disabled once it is done);
+  back shows the previous stop and takes its tick out again. There is deliberately no separate
+  "done" or "undo" control — an earlier revision had both alongside a pager and nobody could tell
+  the two forward buttons apart. The tick is applied only after the server confirms it, so a driver
+  is never moved past a stop that was not recorded.
+- **The map link is only a link.** Starting the navigation changes no progress; it opens in its own
+  window and the same stop stays on screen.
+- **Navigation is a link, not a map.** Each stop renders an `<a href>` to
+  `https://www.google.com/maps/dir/?api=1&destination=<address>`, plus one link over the
+  stops still open that adds the intermediate ones as `waypoints`. Google's directions
+  URL takes at most nine waypoints, so that link covers the next ten stops and the
+  screen says so when it truncates. The reasoning is ADR-0040
+  (`docs/architecture/adr/0040-route-navigation-by-map-app-deep-link.md`).
+- **Ticking a stop is a `PUT` per stop**, and the response replaces that one stop in the
+  signal rather than triggering a reload — the list must not jump under a driver's thumb.
+  `pendingStopId` disables the buttons while a request is out.
+- **Progress is per calendar day and shared**, so a second person opening the same route
+  sees the same ticks; the completion's timestamp and the employee who set it are shown.
+- **The return boxes on the screen come from the route's last trip**, computed server-side
+  (see the backend module README) — the component only renders `stop.returnItems` and the
+  `unassignedReturnItems` block. The `PUT` answer carries them as well, which is why
+  replacing a single stop with the response is safe.
 
 ## Food collection recording (`warenerfassung`)
 
