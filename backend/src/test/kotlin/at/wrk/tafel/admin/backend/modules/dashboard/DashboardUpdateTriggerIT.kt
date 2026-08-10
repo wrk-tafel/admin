@@ -1,11 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
-import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxListenerService
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
