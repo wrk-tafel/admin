@@ -10,6 +10,7 @@ import {
 } from './components/recorded-food-collections/recorded-food-collections.component';
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
 import {RecordedRouteNamesComponent} from './components/recorded-route-names/recorded-route-names.component';
+import {RouteProgressComponent} from './components/route-progress/route-progress.component';
 import {ShelterListResponse} from '../../api/shelter-api.service';
 import {
   DistributionNotesInputComponent
@@ -29,6 +30,7 @@ import {MatDivider} from '@angular/material/list';
     DistributionStatisticsInputComponent,
     RecordedFoodCollectionsComponent,
     RecordedRouteNamesComponent,
+    RouteProgressComponent,
     FoodAmountComponent,
     DistributionNotesInputComponent,
     TicketsProcessedComponent,
@@ -70,4 +72,13 @@ export interface DashboardLogisticsData {
   foodCollectionsTotalCount?: number;
   recordedRouteNames?: string[];
   foodAmountTotal?: number;
+  routeProgress?: DashboardRouteProgressData[];
+}
+
+export interface DashboardRouteProgressData {
+  routeId: number;
+  routeNumber: number;
+  routeName: string;
+  completedStops: number;
+  totalStops: number;
 }
