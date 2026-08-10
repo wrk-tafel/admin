@@ -564,19 +564,17 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   is no longer Saturday. A red release run whose only failure is `check-deploy-window` means the
   freeze, not a broken build.
 - **Deploys run in GitHub Environments**: `subflow_deploy.yml`'s job declares
-  `environment: ${{ inputs.githubEnvironment || inputs.environment }}` — `environment` names the
-  folder on the server, `githubEnvironment` the GitHub environment the deployment is recorded
-  against. `dev`/`test`/`prod` carry no protection and deploy automatically; `dev-manual`/
-  `test-manual` carry a required reviewer, and the `deploy-dev-manual`/`deploy-test-manual` jobs
-  every pipeline carries point at those — same build, same server folder, but the job waits as
-  "Deployment review pending" until someone approves it. So a run with those jobs stays *in
-  progress* until each is approved or rejected, and fails after GitHub's 30-day approval timeout if
-  neither happens: never put them in a branch protection rule's required checks. They also
-  deliberately have **no** `concurrency` group — a job awaiting approval holds the group it is in,
-  so sharing `dev-environment`/`test-environment` with the automatic deploys would let one
-  un-clicked pull-request run block every later deploy to that environment. A new deploy target
-  needs its environment created in the repository settings too; a `githubEnvironment` naming one
-  that doesn't exist is auto-created *without* protection rather than failing. See ADR-0042.
+  `environment: ${{ inputs.environment }}` — one name for both the folder on the server and the
+  GitHub environment the deployment is recorded against. `dev`/`test`/`prod` are the only three, all
+  without protection rules: **every deploy is automatic**, none waits for an approval, and there is
+  no supported way to deploy a chosen build to a chosen environment by hand (re-running a run's
+  deploy job redeploys that run's image, which covers "put this build back"). A pull request deploys
+  to dev, `main` to dev and test, `release` to dev, test and prod — so dev is last-writer-wins, and
+  its resting state between pull requests is what `main` holds. Each deploy job carries its
+  environment's `concurrency` group (`dev-environment`/`test-environment`/`prod-environment`), so two
+  runs can't deploy the same environment at once. A new deploy target needs its environment created
+  in the repository settings too; an `environment` naming one that doesn't exist is auto-created
+  *without* protection rather than failing. See ADR-0043.
 - **Path-Aware Pipeline**: `pull_request.yml` and `main_push.yml` gate every job on what the change
   actually touches. `subflow_changes.yml` classifies the changed files into backend / frontend /
   docker image (a change under `.github/workflows/` counts as all three, since only running the

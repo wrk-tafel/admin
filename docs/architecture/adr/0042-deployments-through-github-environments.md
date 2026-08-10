@@ -1,6 +1,6 @@
 # ADR-0042: Deployments run in GitHub environments, with an on-demand deploy beside the automatic one
 
-**Status:** accepted · **Recorded:** 2026-08-10
+**Status:** superseded by [ADR-0043](0043-every-environment-deploys-automatically.md) · **Recorded:** 2026-08-10
 
 Supersedes [ADR-0026](0026-branch-based-promotion-through-environments.md).
 

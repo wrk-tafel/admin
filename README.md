@@ -375,20 +375,17 @@ The project uses GitHub Actions with the following pipelines:
 | Workflow | Trigger | Actions |
 |---|---|---|
 | Pull Request | PR opened/updated | Build, test, E2E tests, Docker image (tagged with the PR head's short commit SHA), deploy to dev |
-| Main Push | Push to `main` | Build, test, E2E tests, Docker image (tagged with the short commit SHA), deploy to test |
-| Release | Push to `release` | Build, test, E2E tests, Docker image (`<version>` + `latest`), user guide PDF, GitHub release, deploy to test + prod |
+| Main Push | Push to `main` | Build, test, E2E tests, Docker image (tagged with the short commit SHA), deploy to dev + test |
+| Release | Push to `release` | Build, test, E2E tests, Docker image (`<version>` + `latest`), user guide PDF, GitHub release, deploy to dev + test + prod |
 
 Each of those deploys is recorded against a GitHub environment (`dev`, `test`, `prod`), so the
-repository's **Deployments** page is the record of what runs where. Alongside the automatic deploy,
-every one of the three pipelines also carries a `deploy-dev-manual` and a `deploy-test-manual` job:
-they deploy that same build to dev or test on request, waiting in the run as *Deployment review
-pending* until someone approves them. That is what the `dev-manual` / `test-manual` environments
-and their required reviewer are for — approve to deploy, reject to close the run out. Production
-has no such job; the release pipeline is the only way there.
+repository's **Deployments** page is the record of what runs where. Every deploy is automatic —
+nothing waits for an approval, and there is no way to deploy a chosen build to a chosen environment
+by hand. Dev is written by all three pipelines and is last-writer-wins: a pull request puts its own
+build there to be looked at, and the next merge to `main` puts the merged state back.
 
-See [ADR-0042](docs/architecture/adr/0042-deployments-through-github-environments.md) for why
-promotion works this way, which of these deploys is actually gated on a green pipeline, and why the
-manual jobs sit outside the per-environment concurrency groups.
+See [ADR-0043](docs/architecture/adr/0043-every-environment-deploys-automatically.md) for why
+promotion works this way and which of these deploys is actually gated on a green pipeline.
 
 Code quality is monitored via SonarCloud with JaCoCo coverage reports.
 
