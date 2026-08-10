@@ -113,7 +113,8 @@ declare global {
       deleteUser(userId: number): Cypress.Chainable<Cypress.Response<void>>;
 
       /**
-       * Custom command to close a distribution.
+       * Custom command to close a distribution. Fails when the backend refuses the close (e.g.
+       * because a route was only recorded partially) instead of leaving it open silently.
        * @example cy.closeDistribution();
        */
       closeDistribution(): void;
