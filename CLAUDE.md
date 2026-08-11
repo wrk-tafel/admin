@@ -348,6 +348,14 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
 - Open Cypress UI: `npm run cy:open-local` (for local development)
+- **Test hooks: `testid` is the DOM attribute, `testId` is the Angular input.** Native and Material
+  elements carry the lowercase `testid="..."` / `[attr.testid]="..."` — that is what `cy.byTestId()`
+  and the specs' `[testid="..."]` selectors match. The `tafel-*` wrapper components that render the
+  attribute themselves (`tafel-dialog`, `tafel-info-tooltip`, `tafel-counter-input`,
+  `tafel-reorder-handle`, plus `testIdPrefix` on `tafel-employee-search-create`) take it as a
+  case-sensitive `input()` instead, so those get `testId="..."` / `[testId]="..."`. Mixing the two
+  up is silent — the attribute never binds, or the hook lands under a name nothing looks for — so
+  `eslint.config.js` has a `no-restricted-syntax` pair that fails `npm run lint` on either mistake
 - **Any new or changed frontend user-facing behavior (a new dialog, form field, button, tab, flow)
   must come with an added/updated Cypress e2e case** covering it end-to-end, not just a Vitest unit
   spec — this is easy to forget since unit tests alone can pass while the real flow is broken (e.g.
@@ -690,8 +698,25 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
   silently won't be findable.
-- **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
-- **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
+- **Income Validation**: Customer income is validated against configurable limits. The validation
+  logic is in `IncomeValidatorService`. Its limits come from `static_values`, read once per
+  validation run into an `IncomeRateCard` and resolved from memory afterwards — `validateAll` shares
+  one card across a whole batch, so `getHouseholdsAboveLimit` measures every household against the
+  same limits and the same date. **Nothing caches those rows** (there is no cache anywhere in the
+  codebase, and no `CacheManager` bean): a cache in front of this table meant an administrator's edit
+  took effect on the editing instance only, with a silently wrong eligibility answer everywhere else
+  — see ADR-0048 before reaching for `@Cacheable` here.
+- **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are
+  generated via Apache FOP. `PDFService` holds two things per process, because building either is
+  expensive and their input is immutable: the `FopFactory` (extracting the bundled fonts to disk),
+  and one compiled `Templates` per stylesheet (parsing its whole `xsl:include` tree). The
+  per-call parts are the `Transformer` created from those `Templates` and the `Fop` itself — neither
+  is thread-safe, and the shared FOP configuration a `Fop` is built from is a DOM tree that caches
+  its own traversal state, so that construction happens under a lock while the rendering does not.
+  Note this is memoization of classpath resources, which cannot change while the application runs —
+  it needs no eviction, no TTL and nothing that reaches a second instance. It is not a precedent for
+  holding on to anything a user or operator can edit; that is what ADR-0048 rules out for
+  `static_values` above.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`. Golden
   reference files in `src/test/resources/mail-references/` are compared byte-for-byte by
   `MailTemplateRenderingTest`, so a new/changed template needs its reference regenerated — and keep

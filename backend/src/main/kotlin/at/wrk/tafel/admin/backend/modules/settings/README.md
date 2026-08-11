@@ -70,10 +70,9 @@ tier, which is what the income validation reads it as.
   `(type, countAdults, countChildren, age)` — historized past/future rows (see below) are hidden
   from the admin listing on purpose, since admins only need to see/edit what applies right now.
 - **`updateStaticValue()` only lets the `amount` change.** `type`/`countAdults`/`countChildren`/
-  `age` are the lookup keys other code matches on (see `StaticValueRepository`'s
-  `findLatestForPersonCount`/`findSingleValueOfType`/`findValuesOfType`) and are deliberately not
-  editable through this endpoint — changing them here would silently break that matching
-  elsewhere.
+  `age` are the lookup keys other code matches on (`IncomeRateCard` resolves a row by them, and
+  `StaticValueRepository.findSingleValueOfType` by type alone) and are deliberately not editable
+  through this endpoint — changing them here would silently break that matching elsewhere.
 - Updates are **historized, not overwritten in place** — with one exception:
   - If the currently-valid row's `validFrom == today` (i.e. it was already edited once today),
     that same row is updated in place, to avoid stacking multiple same-day history rows.
@@ -81,17 +80,13 @@ tier, which is what the income validation reads it as.
     `today` to a sentinel far-future end date, `FICTIVE_END_DATE = 2999-12-31` (this exact
     placeholder convention — "no known end date" — is also used in migrations/testdata, so match
     it rather than inventing e.g. `null` or `LocalDate.MAX`).
-- **Caching:** `StaticValueRepository`'s three query methods are each `@Cacheable` under a
-  *different* cache name (`staticValueLatestForPersonCount`, `staticValueSingle`,
-  `staticValueList`) — the comment in the repository explains this is because the default Spring
-  cache key generator only considers arguments, not the method, and
-  `findSingleValueOfType`/`findValuesOfType` share the same argument shape and would otherwise
-  collide. Values are cached for the process lifetime because household validation would
-  otherwise re-query the same rows once per household. `SettingsService.updateStaticValue()` is
-  annotated `@CacheEvict(cacheNames = [...three names...], allEntries = true)` to keep this safe
-  despite values now being editable at runtime — **if you add a new cached query method to
-  `StaticValueRepository`, add its cache name to this eviction list too, or edits made through this
-  module's UI will appear to silently not take effect.**
+- **Nothing here is cached.** Income validation reads the values in effect today with one
+  `StaticValueRepository.findAllValidAt` per run and resolves its lookups from that snapshot
+  (`household.internal.income.IncomeRateCard`), so an amount edited through this module's UI applies
+  to the next validation — on every instance, with no eviction to broadcast and no restart. Keep it
+  that way: a cache in front of this table is what made an edit take effect on the editing instance
+  only, and the failure mode is a silently wrong eligibility answer rather than an error
+  (`docs/architecture/adr/0048-static-values-resolved-from-a-per-run-snapshot.md`).
 - **Again, the settings module is admin-only — it doesn't gatekeep reads.** Actual business logic
   reads `StaticValueRepository` directly, bypassing `settings` entirely:
   `household.internal.income.IncomeValidatorServiceImpl` (income-limit/family-bonus/tolerance

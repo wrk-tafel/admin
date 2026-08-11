@@ -10,24 +10,25 @@ import kotlin.math.max
 /**
  * Validates a household's combined monthly income against a configurable limit.
  *
- * All limits/bonuses are read from [StaticValueRepository] rather than hardcoded, so they can be
- * adjusted per [StaticValueType] over time (each lookup is date-scoped via `currentDate`) without
- * a code change. The overall algorithm:
+ * All limits/bonuses come from the [IncomeRateCard] in effect on the day of the validation rather
+ * than from code, so they can be adjusted per [StaticValueType] over time without a code change.
+ * The card is resolved once per run ([validateAll] shares one across every household it is given)
+ * and the arithmetic below is a pure function of the persons and that card. The overall algorithm:
  * 1. Sum `monthlyIncome` for persons not flagged `excludeFromIncomeCalculation`.
- * 2. Add a family allowance ([calculateFamilyAllowanceSum]): per child flagged
- *    `receivesFamilyAllowance`, an age-tiered Familienbeihilfe ([StaticValueType.FAMILY_ALLOWANCE],
- *    tiers being "from age X" brackets - see [familyAllowanceForAge])
- *    amount plus a flat Kinderabsetzbetrag ([StaticValueType.CHILD_TAX_ALLOWANCE]), plus a
- *    Geschwisterstaffel sibling addition ([StaticValueType.SIBLING_ADDITION]) that scales with the
- *    number of qualifying children (capped at the highest configured tier for
- *    [SIBLING_ADDITION_MAX_TIER_CHILDREN]+ children).
- * 3. Determine the limit ([calculateLimit]) from [StaticValueRepository.findLatestForPersonCount]
- *    for the adult/child counts, then add [StaticValueType.ADDITIONAL_ADULT] /
- *    [StaticValueType.ADDITIONAL_CHILD] for persons beyond the base household size
- *    ([BASE_HOUSEHOLD_ADULTS] adults, [BASE_HOUSEHOLD_CHILDREN_SINGLE_ADULT] or
- *    [BASE_HOUSEHOLD_CHILDREN_MULTIPLE_ADULTS] children depending on adult count), plus a
- *    [StaticValueType.TOLERANCE] buffer.
+ * 2. Add a family allowance ([calculateFamilyAllowance]): per child flagged
+ *    `receivesFamilyAllowance`, an age-tiered Familienbeihilfe
+ *    ([IncomeRateCard.familyAllowanceForAge]) amount plus a flat Kinderabsetzbetrag
+ *    ([IncomeRateCard.childTaxAllowance]), plus a Geschwisterstaffel sibling addition
+ *    ([IncomeRateCard.siblingAdditionPerChild]) that scales with the number of qualifying children.
+ * 3. Determine the limit ([calculateLimit]) from [IncomeRateCard.incomeLimit] for the adult/child
+ *    counts, then add [IncomeRateCard.additionalAdultLimit] / [IncomeRateCard.additionalChildLimit]
+ *    for persons beyond the base household size ([BASE_HOUSEHOLD_ADULTS] adults,
+ *    [BASE_HOUSEHOLD_CHILDREN_SINGLE_ADULT] or [BASE_HOUSEHOLD_CHILDREN_MULTIPLE_ADULTS] children
+ *    depending on adult count), plus a [IncomeRateCard.tolerance] buffer.
  * 4. Valid when the income sum does not exceed the resulting limit.
+ *
+ * Both sums are reported split into their parts as well ([IncomeValidatorDetails]), which is why
+ * steps 2 and 3 return their pieces rather than a total.
  */
 @Service
 class IncomeValidatorServiceImpl(
@@ -35,31 +36,40 @@ class IncomeValidatorServiceImpl(
 ) : IncomeValidatorService {
 
     companion object {
-        // A household's base limit (from findLatestForPersonCount) already covers this many
+        // A household's base limit (from IncomeRateCard.incomeLimit) already covers this many
         // adults, plus this many children (fewer if there's only a single adult in the
         // household) - anyone beyond that adds ADDITIONAL_ADULT/ADDITIONAL_CHILD on top.
         private const val BASE_HOUSEHOLD_ADULTS = 2
         private const val BASE_HOUSEHOLD_CHILDREN_SINGLE_ADULT = 2
         private const val BASE_HOUSEHOLD_CHILDREN_MULTIPLE_ADULTS = 3
-
-        // Sibling addition (Geschwisterstaffel) tiers stop increasing beyond this many
-        // children - the highest configured tier is used for any larger count.
-        private const val SIBLING_ADDITION_MAX_TIER_CHILDREN = 7
     }
 
-    override fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult {
+    override fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult = validate(persons, currentRateCard())
+
+    override fun validateAll(personsPerHousehold: List<List<IncomeValidatorPerson>>): List<IncomeValidatorResult> {
+        val rateCard = currentRateCard()
+        return personsPerHousehold.map { validate(it, rateCard) }
+    }
+
+    private fun currentRateCard(): IncomeRateCard {
+        val today = LocalDate.now()
+        return IncomeRateCard(referenceDate = today, values = staticValueRepository.findAllValidAt(today))
+    }
+
+    private fun validate(persons: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): IncomeValidatorResult {
         require(persons.isNotEmpty()) { "No persons given" }
 
         val includedPersons = persons.filterNot { it.excludeFromIncomeCalculation }
         val incomeSum = includedPersons.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
         val familyAllowanceRecipients = persons.filter { it.receivesFamilyAllowance }
-        val familyAllowance = calculateFamilyAllowance(familyAllowanceRecipients)
-        val limit = calculateLimit(includedPersons)
+        val familyAllowance = calculateFamilyAllowance(familyAllowanceRecipients, rateCard)
+        val limit = calculateLimit(includedPersons, rateCard)
 
         return buildResult(
             totalIncome = incomeSum + familyAllowance.sum(),
             limit = limit.sum(),
+            rateCard = rateCard,
             details = IncomeValidatorDetails(
                 incomeSum = incomeSum,
                 familyAllowanceSum = familyAllowance.familyAllowanceSum,
@@ -81,49 +91,15 @@ class IncomeValidatorServiceImpl(
      * flagged as receiving family allowance, plus the Geschwisterstaffel sibling addition. The
      * three stay apart instead of being summed on the spot because the result reports each of them.
      */
-    private fun calculateFamilyAllowance(recipients: List<IncomeValidatorPerson>): FamilyAllowance {
-        val children = recipients.filter { it.isChildForFamilyAllowance() }
+    private fun calculateFamilyAllowance(recipients: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): FamilyAllowance {
+        val children = recipients.filter { it.isChildForFamilyAllowance(rateCard.referenceDate) }
 
         return FamilyAllowance(
-            familyAllowanceSum = children.sumOf { familyAllowanceForAge(it.getAge()) },
-            childTaxAllowanceSum = children.sumOf { childTaxAllowance() },
-            siblingAdditionSum = siblingAddition(countChildren = children.size),
+            familyAllowanceSum = children.sumOf { rateCard.familyAllowanceForAge(it.getAge(rateCard.referenceDate)) },
+            childTaxAllowanceSum = children.sumOf { rateCard.childTaxAllowance() },
+            siblingAdditionSum = rateCard.siblingAdditionPerChild(countChildren = children.size)
+                .multiply(children.size.toBigDecimal()),
         )
-    }
-
-    /**
-     * The Familienbeihilfe amount for a child of [age]. A tier's own `age` is the *lower* bound of a
-     * "from age X" bracket, so the applicable tier is the highest one whose age the child has
-     * already reached - a 1-year-old gets the `age = 0` tier, a 20-year-old the `age = 19` one.
-     * Zero when no tier covers the age at all (i.e. the child is younger than the lowest tier).
-     */
-    private fun familyAllowanceForAge(age: Int): BigDecimal = staticValueRepository.findValuesOfType(
-        type = StaticValueType.FAMILY_ALLOWANCE,
-        currentDate = LocalDate.now(),
-    )
-        .asSequence()
-        .sortedByDescending { it.age }
-        .filter { (it.age ?: 0) <= age }
-        .map { it.amount }
-        .firstOrNull() ?: BigDecimal.ZERO
-
-    private fun childTaxAllowance(): BigDecimal = staticValueRepository
-        .findSingleValueOfType(type = StaticValueType.CHILD_TAX_ALLOWANCE, currentDate = LocalDate.now())
-        ?.amount ?: BigDecimal.ZERO
-
-    private fun siblingAddition(countChildren: Int): BigDecimal {
-        val tiers = staticValueRepository.findValuesOfType(
-            type = StaticValueType.SIBLING_ADDITION,
-            currentDate = LocalDate.now(),
-        )
-
-        val amountPerChild = if (countChildren >= SIBLING_ADDITION_MAX_TIER_CHILDREN) {
-            tiers.maxByOrNull { it.countChildren ?: 0 }?.amount
-        } else {
-            tiers.firstOrNull { it.countChildren == countChildren }?.amount
-        } ?: BigDecimal.ZERO
-
-        return amountPerChild.multiply(countChildren.toBigDecimal())
     }
 
     /**
@@ -131,9 +107,9 @@ class IncomeValidatorServiceImpl(
      * for every person beyond the base household size. Like [calculateFamilyAllowance], the parts
      * are returned rather than a total, since the result reports what the limit is made of.
      */
-    private fun calculateLimit(persons: List<IncomeValidatorPerson>): Limit {
-        val countAdults = persons.count { !it.isChild() }
-        val countChildren = persons.count { it.isChild() }
+    private fun calculateLimit(persons: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): Limit {
+        val countAdults = persons.count { !it.isChild(rateCard.referenceDate) }
+        val countChildren = persons.count { it.isChild(rateCard.referenceDate) }
 
         val countAdditionalAdults = max(0, countAdults - BASE_HOUSEHOLD_ADULTS)
         val baseChildrenLimit = if (countAdults == 1) {
@@ -146,39 +122,27 @@ class IncomeValidatorServiceImpl(
         val baseLimitCountAdults = countAdults - countAdditionalAdults
         val baseLimitCountChildren = countChildren - countAdditionalChildren
 
-        val baseLimit = staticValueRepository.findLatestForPersonCount(
-            currentDate = LocalDate.now(),
-            countAdults = baseLimitCountAdults,
-            countChildren = baseLimitCountChildren,
-        )?.amount ?: BigDecimal.ZERO
-
-        val additionalAdultLimit = staticValueRepository.findSingleValueOfType(
-            type = StaticValueType.ADDITIONAL_ADULT,
-            currentDate = LocalDate.now(),
-        )?.amount ?: BigDecimal.ZERO
-
-        val additionalChildLimit = staticValueRepository.findSingleValueOfType(
-            type = StaticValueType.ADDITIONAL_CHILD,
-            currentDate = LocalDate.now(),
-        )?.amount ?: BigDecimal.ZERO
-
         return Limit(
-            baseLimit = baseLimit,
+            baseLimit = rateCard.incomeLimit(
+                countAdults = baseLimitCountAdults,
+                countChildren = baseLimitCountChildren,
+            ),
             baseLimitCountAdults = baseLimitCountAdults,
             baseLimitCountChildren = baseLimitCountChildren,
             additionalAdultsCount = countAdditionalAdults,
-            additionalAdultsSum = additionalAdultLimit.multiply(countAdditionalAdults.toBigDecimal()),
+            additionalAdultsSum = rateCard.additionalAdultLimit().multiply(countAdditionalAdults.toBigDecimal()),
             additionalChildrenCount = countAdditionalChildren,
-            additionalChildrenSum = additionalChildLimit.multiply(countAdditionalChildren.toBigDecimal()),
+            additionalChildrenSum = rateCard.additionalChildLimit().multiply(countAdditionalChildren.toBigDecimal()),
         )
     }
 
     private fun buildResult(
         totalIncome: BigDecimal,
         limit: BigDecimal,
+        rateCard: IncomeRateCard,
         details: IncomeValidatorDetails,
     ): IncomeValidatorResult {
-        val toleranceValue = tolerance()
+        val toleranceValue = rateCard.tolerance()
         val limitWithTolerance = limit.add(toleranceValue)
 
         val differenceFromLimit = limitWithTolerance.subtract(totalIncome)
@@ -193,10 +157,6 @@ class IncomeValidatorServiceImpl(
             details = details,
         )
     }
-
-    private fun tolerance(): BigDecimal = staticValueRepository
-        .findSingleValueOfType(type = StaticValueType.TOLERANCE, currentDate = LocalDate.now())
-        ?.amount ?: BigDecimal.ZERO
 
     private data class FamilyAllowance(
         val familyAllowanceSum: BigDecimal,

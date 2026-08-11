@@ -19,114 +19,67 @@ class StaticValueRepositoryIT : TafelBaseIntegrationTest() {
     private lateinit var staticValueRepository: StaticValueRepository
 
     @Test
-    fun `findLatestForPersonCount finds the matching value using default type and person counts`() {
+    fun `findAllValidAt returns only the values in effect on the given date`() {
         val today = LocalDate.now()
 
-        val matching = StaticValueEntity(
-            validFrom = today.minusDays(1),
-            validTo = today.plusDays(1),
-            type = StaticValueType.INCOME_LIMIT,
-            amount = BigDecimal("999"),
-        ).apply {
-            countAdults = 0
-            countChildren = 0
-        }
-        testEntityManager.persist(matching)
-
-        val otherPersonCount = StaticValueEntity(
-            validFrom = today.minusDays(1),
-            validTo = today.plusDays(1),
-            type = StaticValueType.INCOME_LIMIT,
-            amount = BigDecimal("111"),
-        ).apply {
-            countAdults = 5
-            countChildren = 5
-        }
-        testEntityManager.persist(otherPersonCount)
+        val valid = persistStaticValue(BigDecimal("999"), validFrom = today.minusDays(1), validTo = today.plusDays(1))
+        val expired = persistStaticValue(BigDecimal("111"), validFrom = today.minusDays(10), validTo = today.minusDays(5))
+        val notYetValid = persistStaticValue(BigDecimal("222"), validFrom = today.plusDays(5), validTo = today.plusDays(10))
         testEntityManager.flush()
 
-        val result = staticValueRepository.findLatestForPersonCount(currentDate = today)
+        val result = staticValueRepository.findAllValidAt(today)
 
-        assertThat(result).isNotNull
-        assertThat(result!!.id).isEqualTo(matching.id)
-        assertThat(result.amount).isEqualByComparingTo(matching.amount)
+        assertThat(result.map { it.id }).contains(valid.id).doesNotContain(expired.id, notYetValid.id)
+        assertThat(result).allMatch { !today.isBefore(it.validFrom) && !today.isAfter(it.validTo) }
     }
 
     @Test
-    fun `findLatestForPersonCount finds the matching value for explicit person counts`() {
+    fun `findAllValidAt includes values whose validity starts or ends on the given date`() {
         val today = LocalDate.now()
 
-        val matching = StaticValueEntity(
-            validFrom = today.minusDays(1),
-            validTo = today.plusDays(1),
-            type = StaticValueType.INCOME_LIMIT,
-            amount = BigDecimal("1234"),
-        ).apply {
-            countAdults = 3
-            countChildren = 3
-        }
-        testEntityManager.persist(matching)
+        val startingToday = persistStaticValue(BigDecimal("333"), validFrom = today, validTo = today.plusDays(10))
+        val endingToday = persistStaticValue(BigDecimal("444"), validFrom = today.minusDays(10), validTo = today)
         testEntityManager.flush()
 
-        val result = staticValueRepository.findLatestForPersonCount(
-            currentDate = today,
-            countAdults = 3,
-            countChildren = 3,
-        )
+        val result = staticValueRepository.findAllValidAt(today)
 
-        assertThat(result).isNotNull
-        assertThat(result!!.id).isEqualTo(matching.id)
+        assertThat(result.map { it.id }).contains(startingToday.id, endingToday.id)
     }
 
     @Test
-    fun `findLatestForPersonCount finds the matching value when all parameters are given explicitly`() {
+    fun `findSingleValueOfType returns null when no value of that type is valid for the given date`() {
         val today = LocalDate.now()
 
-        val matching = StaticValueEntity(
-            validFrom = today.minusDays(1),
-            validTo = today.plusDays(1),
-            type = StaticValueType.INCOME_LIMIT,
-            amount = BigDecimal("4321"),
-        ).apply {
-            countAdults = 4
-            countChildren = 4
-        }
-        testEntityManager.persist(matching)
+        // the migrations seed one currently-valid row per type - findSingleValueOfType returns a
+        // single entity, so it has to be the only one of its type for this test to say anything
+        staticValueRepository.findAll()
+            .filter { it.type == StaticValueType.COST_CONTRIBUTION }
+            .forEach { staticValueRepository.delete(it) }
+        staticValueRepository.flush()
+
+        persistStaticValue(BigDecimal("1"), validFrom = today.minusDays(10), validTo = today.minusDays(5))
         testEntityManager.flush()
 
-        val result = staticValueRepository.findLatestForPersonCount(
-            type = StaticValueType.INCOME_LIMIT,
+        val result = staticValueRepository.findSingleValueOfType(
+            type = StaticValueType.COST_CONTRIBUTION,
             currentDate = today,
-            countAdults = 4,
-            countChildren = 4,
-        )
-
-        assertThat(result).isNotNull
-        assertThat(result!!.id).isEqualTo(matching.id)
-    }
-
-    @Test
-    fun `findLatestForPersonCount returns null when no value is valid for the given date`() {
-        val today = LocalDate.now()
-
-        val expired = StaticValueEntity(
-            validFrom = today.minusDays(10),
-            validTo = today.minusDays(5),
-            type = StaticValueType.INCOME_LIMIT,
-            amount = BigDecimal("1"),
-        ).apply {
-            countAdults = 7
-            countChildren = 7
-        }
-        testEntityManager.persist(expired)
-        testEntityManager.flush()
-
-        val result = staticValueRepository.findLatestForPersonCount(
-            currentDate = today,
-            countAdults = 7,
-            countChildren = 7,
         )
 
         assertThat(result).isNull()
+    }
+
+    private fun persistStaticValue(
+        amount: BigDecimal,
+        validFrom: LocalDate,
+        validTo: LocalDate,
+    ): StaticValueEntity {
+        val entity = StaticValueEntity(
+            validFrom = validFrom,
+            validTo = validTo,
+            type = StaticValueType.COST_CONTRIBUTION,
+            amount = amount,
+        )
+        testEntityManager.persist(entity)
+        return entity
     }
 }
