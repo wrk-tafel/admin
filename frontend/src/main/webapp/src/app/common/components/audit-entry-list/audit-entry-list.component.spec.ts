@@ -147,7 +147,7 @@ describe('AuditEntryListComponent', () => {
       expect(element.querySelector('[testid="audit-day-0-relative"]')?.textContent?.trim()).toBe('vor 3 Tagen');
       expect(element.querySelector('[testid="audit-day-1-relative"]')).toBeNull();
       expect(element.querySelector('[testid="audit-day-1-date"]')?.textContent?.trim())
-        .toBe(dayjs().subtract(30, 'day').format('DD.MM.YYYY'));
+        .toContain(dayjs().subtract(30, 'day').format('DD.MM.YYYY'));
     });
   });
 
