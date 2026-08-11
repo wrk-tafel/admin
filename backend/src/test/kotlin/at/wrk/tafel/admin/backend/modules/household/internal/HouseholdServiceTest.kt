@@ -544,6 +544,61 @@ class HouseholdServiceTest {
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
         assertThat(result.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
+
+        // the household that turned out to be below the limit is never mapped to a response
+        verify(exactly = 0) { householdConverter.mapEntityToHousehold(testHouseholdEntity1) }
+        verify(exactly = 1) { householdConverter.mapEntityToHousehold(testHouseholdEntity2) }
+    }
+
+    @Test
+    fun `get households above limit - income is validated from the household's own persons`() {
+        val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = LocalDate.of(1980, 1, 1)
+            income = BigDecimal("1200")
+            // the main person's own flags are deliberately ignored by the validation mapping
+            excludeFromHousehold = true
+            receivesFamilyAllowance = true
+        }
+        val childPerson = PersonEntity(household = household, country = testCountry1).apply {
+            birthDate = LocalDate.of(2020, 5, 5)
+            income = BigDecimal("50")
+            excludeFromHousehold = true
+            receivesFamilyAllowance = true
+        }
+        household.persons = mutableListOf(mainPerson, childPerson)
+        household.mainPerson = mainPerson
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns listOf(household)
+
+        val personsSlot = slot<List<IncomeValidatorPerson>>()
+        every { incomeValidatorService.validate(capture(personsSlot)) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1250"),
+            limit = BigDecimal("2000"),
+            toleranceValue = BigDecimal.ZERO,
+            amountExceededLimit = BigDecimal.ZERO,
+        )
+
+        val result = service.getHouseholdsAboveLimit()
+
+        assertThat(result.items).isEmpty()
+        assertThat(personsSlot.captured).containsExactly(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("50"),
+                birthDate = LocalDate.of(2020, 5, 5),
+                excludeFromIncomeCalculation = true,
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("1200"),
+                birthDate = LocalDate.of(1980, 1, 1),
+                excludeFromIncomeCalculation = false,
+                receivesFamilyAllowance = false,
+            ),
+        )
+        // validating a household costs no response mapping at all
+        verify(exactly = 0) { householdConverter.mapEntityToHousehold(any()) }
     }
 
     @Test
@@ -577,6 +632,12 @@ class HouseholdServiceTest {
         assertThat(secondPage.items.first().household).isEqualTo(invalidHouseholds[25])
         assertThat(secondPage.currentPage).isEqualTo(2)
         assertThat(secondPage.totalPages).isEqualTo(2)
+
+        // each household was mapped to a response exactly once - by the page view that returned it,
+        // not by both page views
+        testHouseholdEntities.forEach { entity ->
+            verify(exactly = 1) { householdConverter.mapEntityToHousehold(entity) }
+        }
     }
 
     @Test

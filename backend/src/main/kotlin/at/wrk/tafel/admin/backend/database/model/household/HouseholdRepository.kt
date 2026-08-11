@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.model.household
 
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
@@ -19,14 +20,16 @@ interface HouseholdRepository :
     fun getNextHouseholdSequenceValue(): Long
 
     /**
-     * Overrides the inherited `findAll(Specification)` with an eager fetch of `persons`. Without
-     * this, `HouseholdConverter.mapEntityToHousehold()` accessing the lazy `persons` collection
-     * would trigger one extra query per household - the only caller,
-     * `HouseholdService.getHouseholdsAboveLimit()`, loads every valid household up front rather
-     * than a paginated slice, so the N+1 cost would otherwise be unbounded.
+     * Overrides the inherited `findAll(Specification, Sort)` with an eager fetch of `persons`.
+     * Without this, income-validating each household in
+     * `HouseholdService.getHouseholdsAboveLimit()` would trigger one extra query per household -
+     * that caller loads every valid household up front rather than a paginated slice, so the N+1
+     * cost would otherwise be unbounded. An eager fetch is only safe here because the query is
+     * unpaginated: a collection fetch combined with a `Pageable` would make Hibernate paginate in
+     * memory over the whole result.
      */
     @EntityGraph(attributePaths = ["persons"])
-    override fun findAll(spec: Specification<HouseholdEntity>): List<HouseholdEntity>
+    override fun findAll(spec: Specification<HouseholdEntity>, sort: Sort): List<HouseholdEntity>
 
     fun existsByHouseholdId(id: Long): Boolean
 

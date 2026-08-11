@@ -61,6 +61,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0032](0032-checkin-relays-scans-without-interpreting-them.md) | Check-in relays scan results without interpreting them | accepted |
 | [0023](0023-ticket-numbers-come-from-the-caller.md) | Ticket numbers come from the caller; backend enforces uniqueness | accepted |
 | [0024](0024-server-side-income-validation.md) | Income validation re-runs server-side, with supervisor override | accepted |
+| [0049](0049-the-above-limit-list-is-computed-live-not-materialized.md) | The above-limit list is computed from live data, never materialized | accepted |
 | [0022](0022-duplicate-detection-and-merge-by-side.md) | Fuzzy duplicate detection; merges resolved by side | accepted |
 
 ### Operations, build and delivery

@@ -136,9 +136,16 @@ that's fine despite the module's `allowedDependencies` below only listing `base:
 
 `getHouseholdsAboveLimit` is worth knowing about if you touch it: the "above limit" filter can't be
 expressed in SQL because it depends on `IncomeValidatorService`, not stored columns, so it loads
-*every* valid household (via `HouseholdRepository.findAll(spec)`, which eagerly fetches `persons`
-via `@EntityGraph` to avoid N+1), evaluates income validation for each in memory, and then paginates
-the already-computed in-memory list.
+*every* valid household (via `HouseholdRepository.findAll(spec, sort)`, which eagerly fetches
+`persons` via `@EntityGraph` to avoid N+1), evaluates income validation for each in memory, and then
+paginates the already-computed in-memory list. Every page view therefore recomputes the whole set -
+deliberately, so the list is never stale
+(`docs/architecture/adr/0049-the-above-limit-list-is-computed-live-not-materialized.md`).
+What the endpoint keeps small is the work per run: validation reads the persons straight off the
+entities (`mapEntityToValidationPersons`, the entity-side twin of `mapToValidationPersons` - both
+must keep the same rules), and only the requested page's households are mapped to a
+`HouseholdResponse`, since that mapping resolves the issuer, the `lockedBy` user and every person's
+country.
 
 ### `HouseholdConverter` (`internal/converter`)
 Bidirectional mapping between the API-facing `Household`/`Person` models and

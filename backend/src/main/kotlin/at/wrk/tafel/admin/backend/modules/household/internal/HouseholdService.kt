@@ -198,34 +198,43 @@ class HouseholdService(
         )
     }
 
+    /**
+     * The "above limit" filter can't be expressed in SQL - it depends on [IncomeValidatorService],
+     * not on stored columns - so every valid household is loaded and income-validated on every page
+     * view, and the result is paginated in memory. That is what keeps the list an answer about live
+     * data: an income or a static value edited a second ago is reflected by the next request, with
+     * nothing to invalidate.
+     *
+     * Validation therefore runs off the loaded entities (it only needs birth date, income and the
+     * two flags), and only the requested page's households are mapped to a [HouseholdResponse] -
+     * that mapping resolves each household's issuer, its `lockedBy` user and every person's country,
+     * which for the vast majority of households the response throws away again.
+     */
     @Transactional(readOnly = true)
     fun getHouseholdsAboveLimit(page: Int? = null, pageSize: Int? = null): HouseholdAboveLimitSearchResult {
         // households needing post-processing (missing birthDate/gender/country/address/... - see
         // HouseholdEntity.Specs.postProcessingNecessary()) can't be income-validated
         val spec = where(Specification.allOf(listOf(validHousehold(), Specification.not(postProcessingNecessary()))))
         val households = householdRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "id"))
-            .map { householdConverter.mapEntityToHousehold(it) }
 
-        val itemsAboveLimit = households.mapNotNull { household ->
-            val result = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
-            if (!result.valid) {
-                HouseholdAboveLimitItem(
-                    household = household,
-                    totalSum = result.totalSum,
-                    limit = result.limit,
-                    amountExceededLimit = result.amountExceededLimit,
-                )
-            } else {
-                null
-            }
+        val entitiesAboveLimit = households.mapNotNull { household ->
+            val result = incomeValidatorService.validate(mapEntityToValidationPersons(household))
+            if (!result.valid) household to result else null
         }
 
-        // the "above limit" filter can't be expressed in SQL (it depends on IncomeValidatorService,
-        // not stored columns), so pagination is applied in-memory on the already-computed result
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val fromIndex = pageRequest.offset.toInt().coerceAtMost(itemsAboveLimit.size)
-        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(itemsAboveLimit.size)
-        val pagedResult = PageImpl(itemsAboveLimit.subList(fromIndex, toIndex), pageRequest, itemsAboveLimit.size.toLong())
+        val fromIndex = pageRequest.offset.toInt().coerceAtMost(entitiesAboveLimit.size)
+        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(entitiesAboveLimit.size)
+
+        val items = entitiesAboveLimit.subList(fromIndex, toIndex).map { (household, result) ->
+            HouseholdAboveLimitItem(
+                household = householdConverter.mapEntityToHousehold(household),
+                totalSum = result.totalSum,
+                limit = result.limit,
+                amountExceededLimit = result.amountExceededLimit,
+            )
+        }
+        val pagedResult = PageImpl(items, pageRequest, entitiesAboveLimit.size.toLong())
 
         return HouseholdAboveLimitSearchResult(
             items = pagedResult.content,
@@ -338,6 +347,35 @@ class HouseholdService(
         }
 
         val additionalValidatorPersons = additionalPersons.map {
+            IncomeValidatorPerson(
+                birthDate = it.birthDate,
+                monthlyIncome = it.income,
+                excludeFromIncomeCalculation = it.excludeFromHousehold,
+                receivesFamilyAllowance = it.receivesFamilyAllowance,
+            )
+        }
+
+        return additionalValidatorPersons + listOfNotNull(mainValidatorPerson)
+    }
+
+    /**
+     * The entity-side equivalent of [mapToValidationPersons], for callers that hold
+     * [HouseholdEntity] instances and have no reason to map them to a [HouseholdResponse] first.
+     * Same rules: the main person never counts as excluded and never contributes a family
+     * allowance, whatever its own flags say.
+     */
+    private fun mapEntityToValidationPersons(household: HouseholdEntity): List<IncomeValidatorPerson> {
+        val mainPersonEntity = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }
+
+        val mainValidatorPerson = mainPersonEntity?.let {
+            IncomeValidatorPerson(
+                birthDate = it.birthDate,
+                monthlyIncome = it.income,
+                excludeFromIncomeCalculation = false,
+            )
+        }
+
+        val additionalValidatorPersons = household.additionalPersons().map {
             IncomeValidatorPerson(
                 birthDate = it.birthDate,
                 monthlyIncome = it.income,
