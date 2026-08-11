@@ -303,7 +303,8 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result.totalSum).isEqualTo(BigDecimal("1205"))
+        // 500 + 500 + the age-10 tier (90) + the flat child tax allowance (15)
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1105"))
         assertThat(result.limit).isEqualTo(BigDecimal("1600"))
         assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
         assertThat(result.valid).isTrue
@@ -317,7 +318,7 @@ class IncomeValidatorServiceImplTest {
                 birthDate = LocalDate.now().minusYears(35),
             ),
             IncomeValidatorPerson(
-                monthlyIncome = BigDecimal("395"),
+                monthlyIncome = BigDecimal("495"),
                 birthDate = LocalDate.now().minusYears(30),
             ),
             IncomeValidatorPerson(
@@ -328,6 +329,7 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
+        // 1000 + 495 + the age-10 tier (90) + the flat child tax allowance (15)
         assertThat(result.totalSum).isEqualTo(BigDecimal("1600"))
         assertThat(result.limit).isEqualTo(BigDecimal("1600"))
         assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
@@ -353,9 +355,10 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result.totalSum).isEqualTo(BigDecimal("1805"))
+        // 1000 + 600 + the age-10 tier (90) + the flat child tax allowance (15)
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1705"))
         assertThat(result.limit).isEqualTo(BigDecimal("1600"))
-        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("205"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("105"))
         assertThat(result.valid).isFalse
     }
 
@@ -363,7 +366,7 @@ class IncomeValidatorServiceImplTest {
     fun `family with 8 children matching limit`() {
         val persons = listOf(
             IncomeValidatorPerson(
-                monthlyIncome = BigDecimal("992"),
+                monthlyIncome = BigDecimal("1612"),
                 birthDate = LocalDate.now().minusYears(35),
             ),
             IncomeValidatorPerson(
@@ -405,10 +408,137 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result.totalSum).isEqualTo(BigDecimal("2300"))
+        // 1612 + the per-child tiers for ages 0/3/10/19/24/4/12/20 (10 + 30 + 90 + 190 + 190 + 30 +
+        // 90 + 190 = 820) + 8x the flat child tax allowance (120) + the capped sibling addition (6
+        // per child for 8 children = 48)
+        assertThat(result.totalSum).isEqualTo(BigDecimal("2600"))
         assertThat(result.limit).isEqualTo(BigDecimal("2600"))
         assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
         assertThat(result.valid).isTrue
+    }
+
+    @Test
+    fun `family allowance per child is the highest tier the child's age has reached`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(2),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(3),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(9),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(19),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(24),
+                receivesFamilyAllowance = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        // 500 + the tiers reached at ages 2/3/9/19/24 (10 + 30 + 30 + 190 + 190 = 450) + 5x the flat
+        // child tax allowance (75) + the sibling addition for 5 children (4 each = 20)
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1045"))
+    }
+
+    @Test
+    fun `child younger than the lowest configured tier receives no family allowance`() {
+        every { staticValueRepository.findAllValidAt(any()) } returns
+            staticValues().filterNot { it.type == StaticValueType.FAMILY_ALLOWANCE && (it.age ?: 0) < 3 }
+
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("1000"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(1),
+                receivesFamilyAllowance = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        // 1000 + no tier covers a 1-year-old + the flat child tax allowance (15)
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1015"))
+        assertThat(result.limit).isEqualTo(BigDecimal("1100"))
+        assertThat(result.valid).isTrue
+    }
+
+    @Test
+    fun `details report every part the two totals were added up from`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("300"),
+                birthDate = LocalDate.now().minusYears(30),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(28),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(2),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(5),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(8),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(12),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(14),
+                receivesFamilyAllowance = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        val details = result.details
+        assertThat(details.incomeSum).isEqualTo(BigDecimal("800"))
+        // the tiers reached at ages 2/5/8/12/14: 10 + 30 + 30 + 90 + 90
+        assertThat(details.familyAllowanceSum).isEqualTo(BigDecimal("250"))
+        assertThat(details.childTaxAllowanceSum).isEqualTo(BigDecimal("75"))
+        // 5 children, so 4 each
+        assertThat(details.siblingAdditionSum).isEqualTo(BigDecimal("20"))
+
+        // 3 adults and 5 children, of which the base limit covers 2 and 3
+        assertThat(details.baseLimit).isEqualTo(BigDecimal("1800"))
+        assertThat(details.baseLimitCountAdults).isEqualTo(2)
+        assertThat(details.baseLimitCountChildren).isEqualTo(3)
+        assertThat(details.additionalAdultsCount).isEqualTo(1)
+        assertThat(details.additionalAdultsSum).isEqualTo(BigDecimal("200"))
+        assertThat(details.additionalChildrenCount).isEqualTo(2)
+        assertThat(details.additionalChildrenSum).isEqualTo(BigDecimal("200"))
+
+        // the parts are exactly the two totals, split up
+        assertThat(
+            details.incomeSum + details.familyAllowanceSum + details.childTaxAllowanceSum + details.siblingAdditionSum,
+        ).isEqualTo(result.totalSum)
+        assertThat(
+            details.baseLimit + details.additionalAdultsSum + details.additionalChildrenSum + result.toleranceValue,
+        ).isEqualTo(result.limit)
     }
 
     @Test

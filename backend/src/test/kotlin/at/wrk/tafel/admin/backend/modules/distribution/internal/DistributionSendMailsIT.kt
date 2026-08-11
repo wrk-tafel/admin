@@ -125,7 +125,9 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         // but it cannot rule the case out: a poll already in flight holds its rows in memory and can
         // deliver them after both of these lines have run. That is why the assertions below count
         // this test's own three subjects instead of what Mailpit holds in total.
-        transactionTemplate.executeWithoutResult { mailOutboxRepository.deleteAll() }
+        // Set-based: a row loaded for a per-row delete can be gone by the time it is flushed, since
+        // every context's retention cleanup works this table too, and that rolls the drain back.
+        transactionTemplate.executeWithoutResult { mailOutboxRepository.deleteAllInBatch() }
         mailpitClient.delete().uri("/api/v1/messages").retrieve().toBodilessEntity()
 
         testUser = transactionTemplate.execute { userRepository.saveAndFlush(createUser()) }!!
@@ -169,7 +171,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
                 householdRepository.delete(household)
             }
             userRepository.deleteById(testUser.id!!)
-            mailOutboxRepository.deleteAll()
+            mailOutboxRepository.deleteAllInBatch()
         }
     }
 

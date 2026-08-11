@@ -93,7 +93,12 @@ Die Bearbeitungsmaske eines bestehenden Kunden zeigt zusätzlich die bereits erf
 
 ![Kunde bearbeiten](images/kunden-bearbeiten.jpg)
 
-Über den Button **Anspruch prüfen** kann jederzeit, auch ohne zu speichern, geprüft werden, ob der Haushalt mit den aktuell eingegebenen Daten bezugsberechtigt ist. Das Ergebnis ("Anspruch vorhanden" bzw. "Kein Anspruch vorhanden") wird zusammen mit dem geltenden Limit (inkl. Toleranz), dem Gesamteinkommen des Haushalts und ggf. der Differenz zum Limit angezeigt.
+Über den Button **Anspruch prüfen** kann jederzeit, auch ohne zu speichern, geprüft werden, ob der Haushalt mit den aktuell eingegebenen Daten bezugsberechtigt ist. Das Ergebnis ("Anspruch vorhanden" bzw. "Kein Anspruch vorhanden") wird gemeinsam mit der vollständigen Berechnung angezeigt, sodass nachvollziehbar ist, wie die beiden Summen zustande kommen:
+
+- **Einkommen**: das summierte Einkommen der Personen im Haushalt, die Familienbeihilfe, der Kinderabsetzbetrag und die Geschwisterstaffel – darunter das Gesamteinkommen.
+- **Limit**: der Grundbetrag für die Haushaltsgröße (z. B. "Grundbetrag (2 Erw., 1 Kind)"), die Zuschläge für jede weitere erwachsene Person bzw. jedes weitere Kind darüber hinaus sowie die Toleranz – darunter das Gesamtlimit. Zuschlagszeilen erscheinen nur dann, wenn es solche weiteren Personen tatsächlich gibt.
+
+Abgeschlossen wird die Aufstellung mit **Einkommen über Limit**: Bei einem bezugsberechtigten Haushalt steht dort 0,00 €, andernfalls die rot hervorgehobene Differenz. Die Sätze, aus denen sich die Berechnung speist, werden unter [Einstellungen → Statische Werte](einstellungen.md) gepflegt.
 
 ![Anspruch prüfen](images/kunden-anspruch-pruefen.jpg)
 

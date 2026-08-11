@@ -33,7 +33,10 @@ import java.util.concurrent.TimeUnit
  * `mail_outbox` is one table shared by every IT class, and the contexts of classes that ran before
  * this one keep their pollers running against it (see `DistributionSendMailsIT`). So the fixtures
  * here are dated an hour ahead and this context's clock is shifted two hours forward: due for the
- * polls under test, not yet due for anybody else's.
+ * polls under test, not yet due for anybody else's. For the same reason the queue is emptied with a
+ * single set-based statement and the rows are asserted by id: every context's retention cleanup runs
+ * against this table as well, so a row can disappear between a `findAll()` and the flush of the
+ * per-row deletes it fed - which rolls the emptying transaction back.
  */
 class MailOutboxConcurrentSendIT : TafelBaseIntegrationTest() {
 
@@ -83,14 +86,15 @@ class MailOutboxConcurrentSendIT : TafelBaseIntegrationTest() {
     @BeforeEach
     @AfterEach
     fun emptyTheQueue() {
-        mailOutboxRepository.deleteAll()
+        mailOutboxRepository.deleteAllInBatch()
         recordingMailSender.sentSubjects.clear()
         recordingMailSender.killNextSend = false
     }
 
     @Test
     fun `two pollers working the same queue send every mail exactly once`() {
-        val queuedSubjects = givenDueMails().map { it.subject!! }
+        val queuedMails = givenDueMails()
+        val queuedSubjects = queuedMails.map { it.subject!! }
 
         val barrier = CyclicBarrier(2)
         val executor = Executors.newFixedThreadPool(2)
@@ -108,7 +112,7 @@ class MailOutboxConcurrentSendIT : TafelBaseIntegrationTest() {
         assertThat(recordingMailSender.sentSubjects)
             .doesNotHaveDuplicates()
             .containsExactlyInAnyOrderElementsOf(queuedSubjects)
-        assertThat(mailOutboxRepository.findAll())
+        assertThat(mailOutboxRepository.findAllById(queuedMails.map { it.id!! }))
             .hasSize(MAIL_COUNT)
             .allMatch { it.status == MailOutboxStatus.SENT }
             .allMatch { it.attempts == 1 }

@@ -30,6 +30,36 @@ describe('Customer Creation', () => {
     cy.url().should('include', '/kunden/detail');
   });
 
+  it('breaks the validation result down into the amounts it was calculated from', () => {
+    createCustomer();
+
+    cy.byTestId('validationresult-dialog')
+      .should('be.visible')
+      .within(() => {
+        // the two adults' income; the 3-year-old has none and the 8-year-old is not in the household
+        cy.byTestId('detail-income').should('contain.text', '1.000,00');
+        // both children receive family allowance and are in the "ab 3" tier, so 2x 148,00 plus
+        // 2x the flat child tax allowance
+        cy.byTestId('detail-familyallowance').should('contain.text', '296,00');
+        cy.byTestId('detail-childtaxallowance').should('contain.text', '141,80');
+        // two children, so the sibling addition applies at 8,60 each
+        cy.byTestId('detail-siblingaddition').should('contain.text', '17,20');
+        cy.byTestId('total-income').should('contain.text', '1.455,00');
+
+        // 2 adults and 1 child in the household, none of them beyond the base household size
+        cy.byTestId('detail-baselimit')
+          .should('contain.text', 'Grundbetrag (2 Erw., 1 Kind)')
+          .and('contain.text', '3.289,00');
+        cy.byTestId('detail-additionaladults').should('not.exist');
+        cy.byTestId('detail-additionalchildren').should('not.exist');
+        cy.byTestId('detail-tolerance').should('contain.text', '100,00');
+        cy.byTestId('total-limit').should('contain.text', '3.389,00');
+
+        cy.byTestId('amount-exceeded').should('contain.text', '0,00');
+        cy.byTestId('ok-button').click();
+      });
+  });
+
   it('create new customer not qualified and save denied', () => {
     createCustomer(10000);
 

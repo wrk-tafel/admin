@@ -131,6 +131,29 @@ data class ValidateHouseholdResponse(
     val limit: BigDecimal,
     val toleranceValue: BigDecimal,
     val amountExceededLimit: BigDecimal,
+    val details: IncomeCalculationDetails,
+)
+
+/**
+ * What [ValidateHouseholdResponse.totalSum] and `limit` are made up of, so the frontend can show
+ * the calculation rather than only its outcome. Every amount here is part of one of those two
+ * totals - `totalSum` is [incomeSum] + [familyAllowanceSum] + [childTaxAllowanceSum] +
+ * [siblingAdditionSum], `limit` is [baseLimit] + [additionalAdultsSum] + [additionalChildrenSum] +
+ * [ValidateHouseholdResponse.toleranceValue].
+ */
+@ExcludeFromTestCoverage
+data class IncomeCalculationDetails(
+    val incomeSum: BigDecimal,
+    val familyAllowanceSum: BigDecimal,
+    val childTaxAllowanceSum: BigDecimal,
+    val siblingAdditionSum: BigDecimal,
+    val baseLimit: BigDecimal,
+    val baseLimitCountAdults: Int,
+    val baseLimitCountChildren: Int,
+    val additionalAdultsCount: Int,
+    val additionalAdultsSum: BigDecimal,
+    val additionalChildrenCount: Int,
+    val additionalChildrenSum: BigDecimal,
 )
 
 @ExcludeFromTestCoverage

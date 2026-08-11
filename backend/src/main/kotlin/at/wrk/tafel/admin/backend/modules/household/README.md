@@ -264,6 +264,14 @@ the implementation:
 - A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket) -
   both measured against the card's `referenceDate`, so a validation crossing midnight still resolves
   against a single date.
+- The `FAMILY_ALLOWANCE` rows are "from age X" brackets, so a child is counted at the **highest tier
+  whose `age` they have already reached** (the seeded 0/3/10/19 tiers mirror the Austrian
+  Familienbeihilfe rate card, where the amount rises with the child's age) - a 12-year-old gets the
+  `age = 10` tier, everyone from 19 up to the 24 limit the `age = 19` one.
+- The result carries an `IncomeValidatorDetails` next to the two totals: the income split into
+  income/Familienbeihilfe/Kinderabsetzbetrag/Geschwisterstaffel, and the limit into base limit,
+  per-person surcharges and tolerance. It adds no rule - the parts are exactly the totals, split up -
+  and exists so the frontend's validation dialog can show how a result came about.
 - Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) are
   excluded from the income sum entirely, but can still receive family allowance.
 - The base limit is looked up per (adult count, child count) via `IncomeRateCard.incomeLimit`, then a

@@ -15,7 +15,7 @@ import kotlin.math.max
  * The card is resolved once per run ([validateAll] shares one across every household it is given)
  * and the arithmetic below is a pure function of the persons and that card. The overall algorithm:
  * 1. Sum `monthlyIncome` for persons not flagged `excludeFromIncomeCalculation`.
- * 2. Add a family allowance ([calculateFamilyAllowanceSum]): per child flagged
+ * 2. Add a family allowance ([calculateFamilyAllowance]): per child flagged
  *    `receivesFamilyAllowance`, an age-tiered Familienbeihilfe
  *    ([IncomeRateCard.familyAllowanceForAge]) amount plus a flat Kinderabsetzbetrag
  *    ([IncomeRateCard.childTaxAllowance]), plus a Geschwisterstaffel sibling addition
@@ -26,6 +26,9 @@ import kotlin.math.max
  *    [BASE_HOUSEHOLD_CHILDREN_SINGLE_ADULT] or [BASE_HOUSEHOLD_CHILDREN_MULTIPLE_ADULTS] children
  *    depending on adult count), plus a [IncomeRateCard.tolerance] buffer.
  * 4. Valid when the income sum does not exceed the resulting limit.
+ *
+ * Both sums are reported split into their parts as well ([IncomeValidatorDetails]), which is why
+ * steps 2 and 3 return their pieces rather than a total.
  */
 @Service
 class IncomeValidatorServiceImpl(
@@ -60,36 +63,51 @@ class IncomeValidatorServiceImpl(
         val incomeSum = includedPersons.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
         val familyAllowanceRecipients = persons.filter { it.receivesFamilyAllowance }
-        val familyAllowanceSum = calculateFamilyAllowanceSum(familyAllowanceRecipients, rateCard)
-
-        val totalIncome = incomeSum + familyAllowanceSum
+        val familyAllowance = calculateFamilyAllowance(familyAllowanceRecipients, rateCard)
         val limit = calculateLimit(includedPersons, rateCard)
 
-        return buildResult(totalIncome = totalIncome, limit = limit, rateCard = rateCard)
+        return buildResult(
+            totalIncome = incomeSum + familyAllowance.sum(),
+            limit = limit.sum(),
+            rateCard = rateCard,
+            details = IncomeValidatorDetails(
+                incomeSum = incomeSum,
+                familyAllowanceSum = familyAllowance.familyAllowanceSum,
+                childTaxAllowanceSum = familyAllowance.childTaxAllowanceSum,
+                siblingAdditionSum = familyAllowance.siblingAdditionSum,
+                baseLimit = limit.baseLimit,
+                baseLimitCountAdults = limit.baseLimitCountAdults,
+                baseLimitCountChildren = limit.baseLimitCountChildren,
+                additionalAdultsCount = limit.additionalAdultsCount,
+                additionalAdultsSum = limit.additionalAdultsSum,
+                additionalChildrenCount = limit.additionalChildrenCount,
+                additionalChildrenSum = limit.additionalChildrenSum,
+            ),
+        )
     }
 
     /**
      * Familienbeihilfe (age-tiered) plus Kinderabsetzbetrag (flat, per child) for every person
-     * flagged as receiving family allowance, plus the Geschwisterstaffel sibling addition.
+     * flagged as receiving family allowance, plus the Geschwisterstaffel sibling addition. The
+     * three stay apart instead of being summed on the spot because the result reports each of them.
      */
-    private fun calculateFamilyAllowanceSum(recipients: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): BigDecimal {
+    private fun calculateFamilyAllowance(recipients: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): FamilyAllowance {
         val children = recipients.filter { it.isChildForFamilyAllowance(rateCard.referenceDate) }
 
-        val perChildAllowanceSum = children.sumOf { child ->
-            rateCard.familyAllowanceForAge(child.getAge(rateCard.referenceDate)) + rateCard.childTaxAllowance()
-        }
-
-        val siblingAddition = rateCard.siblingAdditionPerChild(countChildren = children.size)
-            .multiply(children.size.toBigDecimal())
-
-        return perChildAllowanceSum + siblingAddition
+        return FamilyAllowance(
+            familyAllowanceSum = children.sumOf { rateCard.familyAllowanceForAge(it.getAge(rateCard.referenceDate)) },
+            childTaxAllowanceSum = children.sumOf { rateCard.childTaxAllowance() },
+            siblingAdditionSum = rateCard.siblingAdditionPerChild(countChildren = children.size)
+                .multiply(children.size.toBigDecimal()),
+        )
     }
 
     /**
      * Base limit for the household's adult/child counts, plus ADDITIONAL_ADULT/ADDITIONAL_CHILD
-     * for every person beyond the base household size.
+     * for every person beyond the base household size. Like [calculateFamilyAllowance], the parts
+     * are returned rather than a total, since the result reports what the limit is made of.
      */
-    private fun calculateLimit(persons: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): BigDecimal {
+    private fun calculateLimit(persons: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): Limit {
         val countAdults = persons.count { !it.isChild(rateCard.referenceDate) }
         val countChildren = persons.count { it.isChild(rateCard.referenceDate) }
 
@@ -101,17 +119,29 @@ class IncomeValidatorServiceImpl(
         }
         val countAdditionalChildren = max(0, countChildren - baseChildrenLimit)
 
-        val baseLimit = rateCard.incomeLimit(
-            countAdults = countAdults - countAdditionalAdults,
-            countChildren = countChildren - countAdditionalChildren,
-        )
+        val baseLimitCountAdults = countAdults - countAdditionalAdults
+        val baseLimitCountChildren = countChildren - countAdditionalChildren
 
-        return baseLimit
-            .add(rateCard.additionalAdultLimit().multiply(countAdditionalAdults.toBigDecimal()))
-            .add(rateCard.additionalChildLimit().multiply(countAdditionalChildren.toBigDecimal()))
+        return Limit(
+            baseLimit = rateCard.incomeLimit(
+                countAdults = baseLimitCountAdults,
+                countChildren = baseLimitCountChildren,
+            ),
+            baseLimitCountAdults = baseLimitCountAdults,
+            baseLimitCountChildren = baseLimitCountChildren,
+            additionalAdultsCount = countAdditionalAdults,
+            additionalAdultsSum = rateCard.additionalAdultLimit().multiply(countAdditionalAdults.toBigDecimal()),
+            additionalChildrenCount = countAdditionalChildren,
+            additionalChildrenSum = rateCard.additionalChildLimit().multiply(countAdditionalChildren.toBigDecimal()),
+        )
     }
 
-    private fun buildResult(totalIncome: BigDecimal, limit: BigDecimal, rateCard: IncomeRateCard): IncomeValidatorResult {
+    private fun buildResult(
+        totalIncome: BigDecimal,
+        limit: BigDecimal,
+        rateCard: IncomeRateCard,
+        details: IncomeValidatorDetails,
+    ): IncomeValidatorResult {
         val toleranceValue = rateCard.tolerance()
         val limitWithTolerance = limit.add(toleranceValue)
 
@@ -124,6 +154,27 @@ class IncomeValidatorServiceImpl(
             limit = limitWithTolerance,
             toleranceValue = toleranceValue,
             amountExceededLimit = if (valid) BigDecimal.ZERO else differenceFromLimit.abs(),
+            details = details,
         )
+    }
+
+    private data class FamilyAllowance(
+        val familyAllowanceSum: BigDecimal,
+        val childTaxAllowanceSum: BigDecimal,
+        val siblingAdditionSum: BigDecimal,
+    ) {
+        fun sum(): BigDecimal = familyAllowanceSum + childTaxAllowanceSum + siblingAdditionSum
+    }
+
+    private data class Limit(
+        val baseLimit: BigDecimal,
+        val baseLimitCountAdults: Int,
+        val baseLimitCountChildren: Int,
+        val additionalAdultsCount: Int,
+        val additionalAdultsSum: BigDecimal,
+        val additionalChildrenCount: Int,
+        val additionalChildrenSum: BigDecimal,
+    ) {
+        fun sum(): BigDecimal = baseLimit + additionalAdultsSum + additionalChildrenSum
     }
 }

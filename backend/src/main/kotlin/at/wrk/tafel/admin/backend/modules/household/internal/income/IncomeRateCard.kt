@@ -53,13 +53,14 @@ class IncomeRateCard(
     fun childTaxAllowance(): BigDecimal = singleAmount(StaticValueType.CHILD_TAX_ALLOWANCE)
 
     /**
-     * Familienbeihilfe - the highest configured age tier at or above [age]. Whether that is the
-     * bracket the seeded "from age X" tiers actually mean is
-     * [#3199](https://github.com/wrk-tafel/admin/issues/3199).
+     * Familienbeihilfe for a child of [age]. A tier's own `age` is the *lower* bound of a "from age
+     * X" bracket, so the applicable tier is the highest one whose age the child has already reached
+     * - a 1-year-old gets the `age = 0` tier, a 20-year-old the `age = 19` one. Zero when no tier
+     * covers the age at all, i.e. the child is younger than the lowest configured tier.
      */
     fun familyAllowanceForAge(age: Int): BigDecimal = ratesOf(StaticValueType.FAMILY_ALLOWANCE)
         .sortedByDescending { it.age }
-        .firstOrNull { (it.age ?: 0) >= age }
+        .firstOrNull { (it.age ?: 0) <= age }
         ?.amount ?: BigDecimal.ZERO
 
     /** Geschwisterstaffel - the amount added *per child* in a household with [countChildren] children. */

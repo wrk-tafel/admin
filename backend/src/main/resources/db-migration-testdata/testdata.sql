@@ -478,56 +478,60 @@ UPDATE households SET main_person_id = 132 WHERE id = 132;
 DELETE FROM static_values;
 
 -- income limits
+-- Austria's at-risk-of-poverty threshold (Armutsgefährdungsschwelle, EU-SILC 2025: EUR 1 827 a
+-- month for a single-person household), scaled by the EU equivalence scale the threshold is
+-- published with: +0.5 per additional adult, +0.3 per child, rounded to whole euros.
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (1, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1328.00, 1, 0);
+VALUES (1, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1827.00, 1, 0);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (2, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1726.00, 1, 1);
+VALUES (2, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2375.00, 1, 1);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (3, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2124.00, 1, 2);
+VALUES (3, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2923.00, 1, 2);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (4, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1992.00, 2, 0);
+VALUES (4, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2741.00, 2, 0);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (5, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2390.00, 2, 1);
+VALUES (5, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3289.00, 2, 1);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (6, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2788.00, 2, 2);
+VALUES (6, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3837.00, 2, 2);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (7, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3187.00, 2, 3);
+VALUES (7, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 4385.00, 2, 3);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
-VALUES (8, 'ADDITIONAL_ADULT', '1900-01-01', '2999-12-31', 664.00);
+VALUES (8, 'ADDITIONAL_ADULT', '1900-01-01', '2999-12-31', 914.00);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
-VALUES (9, 'ADDITIONAL_CHILD', '1900-01-01', '2999-12-31', 398.00);
+VALUES (9, 'ADDITIONAL_CHILD', '1900-01-01', '2999-12-31', 548.00);
 
 -- income tolerance
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (10, 'TOLERANCE', '1900-01-01', '2999-12-31', 100.00);
 
--- family allowance
+-- family allowance (Familienbeihilfe, official rates for 2025-2027; the age is the bracket's lower
+-- bound - "ab Geburt / ab 3 / ab 10 / ab 19 Jahren")
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (11, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 114.00, 0);
+VALUES (11, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 138.40, 0);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (12, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 121.90, 3);
+VALUES (12, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 148.00, 3);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (13, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 141.50, 10);
+VALUES (13, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 171.80, 10);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
-VALUES (14, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 165.10, 19);
+VALUES (14, 'FAMILY_ALLOWANCE', '1900-01-01', '2999-12-31', 200.40, 19);
 
--- child tax allowance
+-- child tax allowance (Kinderabsetzbetrag)
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
-VALUES (15, 'CHILD_TAX_ALLOWANCE', '1900-01-01', '2999-12-31', 58.40);
+VALUES (15, 'CHILD_TAX_ALLOWANCE', '1900-01-01', '2999-12-31', 70.90);
 
--- sibling addition
+-- sibling addition (Geschwisterstaffelung, per child; the last row is the "7 or more" tier)
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
-VALUES (16, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 7.10, 2);
+VALUES (16, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 8.60, 2);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
-VALUES (17, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 17.40, 3);
+VALUES (17, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 21.10, 3);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
-VALUES (18, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 26.50, 4);
+VALUES (18, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 32.10, 4);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
-VALUES (19, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 32.00, 5);
+VALUES (19, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 38.90, 5);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
-VALUES (20, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 35.70, 6);
+VALUES (20, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 43.40, 6);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
-VALUES (21, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);
+VALUES (21, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 63.10, 7);
 
 -- cost contribution
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)

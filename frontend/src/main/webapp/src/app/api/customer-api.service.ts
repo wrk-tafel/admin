@@ -230,6 +230,27 @@ export interface ValidateCustomerResponse {
   limit: number;
   toleranceValue: number;
   amountExceededLimit: number;
+  details: IncomeCalculationDetails;
+}
+
+/**
+ * What totalSum and limit are made up of, so the result dialog can show the calculation and not
+ * just its outcome. totalSum is incomeSum + familyAllowanceSum + childTaxAllowanceSum +
+ * siblingAdditionSum, limit is baseLimit + additionalAdultsSum + additionalChildrenSum +
+ * toleranceValue.
+ */
+export interface IncomeCalculationDetails {
+  incomeSum: number;
+  familyAllowanceSum: number;
+  childTaxAllowanceSum: number;
+  siblingAdditionSum: number;
+  baseLimit: number;
+  baseLimitCountAdults: number;
+  baseLimitCountChildren: number;
+  additionalAdultsCount: number;
+  additionalAdultsSum: number;
+  additionalChildrenCount: number;
+  additionalChildrenSum: number;
 }
 
 export type CustomerSearchResult = PagedResponse<CustomerData>;
