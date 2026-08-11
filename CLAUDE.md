@@ -348,6 +348,14 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
 - Open Cypress UI: `npm run cy:open-local` (for local development)
+- **Test hooks: `testid` is the DOM attribute, `testId` is the Angular input.** Native and Material
+  elements carry the lowercase `testid="..."` / `[attr.testid]="..."` — that is what `cy.byTestId()`
+  and the specs' `[testid="..."]` selectors match. The `tafel-*` wrapper components that render the
+  attribute themselves (`tafel-dialog`, `tafel-info-tooltip`, `tafel-counter-input`,
+  `tafel-reorder-handle`, plus `testIdPrefix` on `tafel-employee-search-create`) take it as a
+  case-sensitive `input()` instead, so those get `testId="..."` / `[testId]="..."`. Mixing the two
+  up is silent — the attribute never binds, or the hook lands under a name nothing looks for — so
+  `eslint.config.js` has a `no-restricted-syntax` pair that fails `npm run lint` on either mistake
 - **Any new or changed frontend user-facing behavior (a new dialog, form field, button, tab, flow)
   must come with an added/updated Cypress e2e case** covering it end-to-end, not just a Vitest unit
   spec — this is easy to forget since unit tests alone can pass while the real flow is broken (e.g.
