@@ -249,6 +249,10 @@ Validates a household's combined income against configurable limits stored in `S
 `SIBLING_ADDITION`, `CHILD_TAX_ALLOWANCE`, and a per-person-count base limit). Key rules baked into
 the implementation:
 - A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket).
+- The `FAMILY_ALLOWANCE` rows are "from age X" brackets, so a child is counted at the **highest tier
+  whose `age` they have already reached** (the seeded 0/3/10/19 tiers mirror the Austrian
+  Familienbeihilfe rate card, where the amount rises with the child's age) - a 12-year-old gets the
+  `age = 10` tier, everyone from 19 up to the 24 limit the `age = 19` one.
 - Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) are
   excluded from the income sum entirely, but can still receive family allowance.
 - The base limit is looked up per (adult count, child count) via

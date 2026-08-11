@@ -15,7 +15,8 @@ import kotlin.math.max
  * a code change. The overall algorithm:
  * 1. Sum `monthlyIncome` for persons not flagged `excludeFromIncomeCalculation`.
  * 2. Add a family allowance ([calculateFamilyAllowanceSum]): per child flagged
- *    `receivesFamilyAllowance`, an age-tiered Familienbeihilfe ([StaticValueType.FAMILY_ALLOWANCE])
+ *    `receivesFamilyAllowance`, an age-tiered Familienbeihilfe ([StaticValueType.FAMILY_ALLOWANCE],
+ *    tiers being "from age X" brackets - see [familyAllowanceForAge])
  *    amount plus a flat Kinderabsetzbetrag ([StaticValueType.CHILD_TAX_ALLOWANCE]), plus a
  *    Geschwisterstaffel sibling addition ([StaticValueType.SIBLING_ADDITION]) that scales with the
  *    number of qualifying children (capped at the highest configured tier for
@@ -75,13 +76,19 @@ class IncomeValidatorServiceImpl(
         return perChildAllowanceSum + siblingAddition(countChildren = children.size)
     }
 
+    /**
+     * The Familienbeihilfe amount for a child of [age]. A tier's own `age` is the *lower* bound of a
+     * "from age X" bracket, so the applicable tier is the highest one whose age the child has
+     * already reached - a 1-year-old gets the `age = 0` tier, a 20-year-old the `age = 19` one.
+     * Zero when no tier covers the age at all (i.e. the child is younger than the lowest tier).
+     */
     private fun familyAllowanceForAge(age: Int): BigDecimal = staticValueRepository.findValuesOfType(
         type = StaticValueType.FAMILY_ALLOWANCE,
         currentDate = LocalDate.now(),
     )
         .asSequence()
         .sortedByDescending { it.age }
-        .filter { (it.age ?: 0) >= age }
+        .filter { (it.age ?: 0) <= age }
         .map { it.amount }
         .firstOrNull() ?: BigDecimal.ZERO
 

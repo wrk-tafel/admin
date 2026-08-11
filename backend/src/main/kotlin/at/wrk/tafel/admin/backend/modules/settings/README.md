@@ -62,7 +62,9 @@ Modeled as flat rows in `mail_recipients`: `(mailType, recipientType, address)`,
 `INCOME_LIMIT`, `ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_ALLOWANCE`,
 `CHILD_TAX_ALLOWANCE`, `SIBLING_ADDITION`, `COST_CONTRIBUTION`), a `BigDecimal amount`, and a
 `[validFrom, validTo]` validity window, optionally further keyed by `countAdults`/`countChildren`/
-`age` for lookup-table-style values (e.g. income limit by household composition).
+`age` for lookup-table-style values (e.g. income limit by household composition). `age` is the
+**lower** bound of a bracket - a `FAMILY_ALLOWANCE` row applies from that age up to the next higher
+tier, which is what the income validation reads it as.
 
 - **`getStaticValues()` only ever returns the row currently valid "today"** per
   `(type, countAdults, countChildren, age)` — historized past/future rows (see below) are hidden
