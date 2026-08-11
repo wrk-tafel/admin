@@ -480,7 +480,7 @@ DELETE FROM static_values;
 -- income limits
 -- Austria's at-risk-of-poverty threshold (Armutsgefährdungsschwelle, EU-SILC 2025: EUR 1 827 a
 -- month for a single-person household), scaled by the EU equivalence scale the threshold is
--- published with: +0.5 per additional adult, +0.3 per child, cut off at whole euros.
+-- published with: +0.5 per additional adult, +0.3 per child, rounded to whole euros.
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (1, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1827.00, 1, 0);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
@@ -488,15 +488,15 @@ VALUES (2, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2375.00, 1, 1);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (3, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2923.00, 1, 2);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (4, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2740.00, 2, 0);
+VALUES (4, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2741.00, 2, 0);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (5, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3288.00, 2, 1);
+VALUES (5, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3289.00, 2, 1);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (6, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3836.00, 2, 2);
+VALUES (6, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3837.00, 2, 2);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
-VALUES (7, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 4384.00, 2, 3);
+VALUES (7, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 4385.00, 2, 3);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
-VALUES (8, 'ADDITIONAL_ADULT', '1900-01-01', '2999-12-31', 913.00);
+VALUES (8, 'ADDITIONAL_ADULT', '1900-01-01', '2999-12-31', 914.00);
 INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (9, 'ADDITIONAL_CHILD', '1900-01-01', '2999-12-31', 548.00);
 
