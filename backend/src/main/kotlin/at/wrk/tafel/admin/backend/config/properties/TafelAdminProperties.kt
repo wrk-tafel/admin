@@ -290,9 +290,6 @@ class TafelAdminMailOutboxProperties {
      */
     var maxAttempts: Int = 5
 
-    /** How many mails one poll takes on, oldest first. The rest wait for the next tick. */
-    var batchSize: Int = 20
-
     /** Waited after the first failed attempt, and multiplied by the attempt count after that. */
     var retryBackoff: Duration = Duration.ofMinutes(5)
 

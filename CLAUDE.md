@@ -217,7 +217,13 @@ choice on its own merits).
   about work that did not happen" failure ADR-0041 exists to prevent. Note a *unit* test with a
   mocked repository cannot see any of this, and neither can a `@Transactional` integration test: the
   test's own read-write transaction is what the code under test would join, and the rows it queues
-  are rolled back before the poller could ever see them (see `DistributionSendMailsIT`)
+  are rolled back before the poller could ever see them (see `DistributionSendMailsIT`).
+  **A poll takes one mail at a time with `SELECT ... FOR UPDATE SKIP LOCKED` and sends it inside
+  that transaction** (ADR-0045), so a second application instance polling the same table skips the
+  row being sent instead of delivering it again. The transaction spanning SMTP is why the scope is
+  one mail: a poller killed mid-send rolls back exactly that mail — which the next poll picks up
+  seconds later, and which is what makes delivery at-least-once — while the ones already sent keep
+  their outcome
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation

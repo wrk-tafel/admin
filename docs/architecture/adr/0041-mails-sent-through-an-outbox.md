@@ -57,7 +57,8 @@ is also what picks up a retry and a row left behind by a crash — a notificatio
   produced them. Bounded by the 14-day cleanup.
 - **Two application instances would send every queued mail twice.** This deployment runs one
   container ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md)); a second instance
-  would need a `FOR UPDATE SKIP LOCKED` claim on the batch first.
+  would need a `FOR UPDATE SKIP LOCKED` claim on the batch first. That lock is
+  [ADR-0045](0045-one-mail-per-transaction-taken-with-skip-locked.md).
 - A mail is queued only if its transaction commits, which is the point — and it also means a caller
   that never commits never sends.
 

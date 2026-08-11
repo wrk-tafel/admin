@@ -253,8 +253,6 @@ tafeladmin:
     # Delivery attempts before a mail is parked as FAILED and reported as a push notification to
     # administrators. With the backoff below, five attempts span roughly half an hour.
     maxAttempts: 5
-    # Mails one poll takes on, oldest first; the rest wait for the next tick.
-    batchSize: 20
     # Waited after the first failed attempt, multiplied by the attempt count after that, capped at
     # maxRetryBackoff so a long outage still gets a regular retry.
     retryBackoff: 5m

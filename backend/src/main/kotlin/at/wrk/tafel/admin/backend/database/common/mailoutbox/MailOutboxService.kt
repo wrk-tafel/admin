@@ -5,12 +5,12 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import jakarta.mail.internet.MimeMessage
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.data.domain.Limit
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.Clock
@@ -37,10 +37,15 @@ import java.util.concurrent.TimeUnit
  *   parked as [MailOutboxStatus.FAILED] with the error rather than dropped, and announced with a
  *   [MailDeliveryFailedEvent] - the caller that asked for the mail is long gone by then, so nothing
  *   else would ever tell anybody it did not arrive.
+ *
+ * One mail is taken, sent and recorded per transaction, and it is taken with `FOR UPDATE SKIP
+ * LOCKED` - which is what lets more than one application instance poll the same queue without both
+ * of them delivering the same mail.
  */
 @Service
 class MailOutboxService(
     private val mailOutboxRepository: MailOutboxRepository,
+    private val transactionTemplate: TransactionTemplate,
     private val mailSender: JavaMailSender?,
     private val clock: Clock,
     private val eventPublisher: ApplicationEventPublisher,
@@ -95,8 +100,18 @@ class MailOutboxService(
     }
 
     /**
-     * Deliberately not `@Transactional` as a whole: every mail's outcome is saved on its own, so one
-     * that fails cannot roll back the outcome already recorded for the others in the batch.
+     * Sends every mail that is due, one transaction per mail: the row is taken with `FOR UPDATE SKIP
+     * LOCKED`, handed to the mail server and its outcome recorded, all under that one transaction.
+     *
+     * The lock is what a second application instance runs into - it skips the row and takes the next
+     * one instead of waiting, so two pollers share the queue rather than both delivering it. Holding
+     * it across the SMTP call is deliberate and is why the scope is one mail: a poller killed
+     * mid-send rolls that single mail back to `PENDING`, where the next poll picks it up seconds
+     * later, and the mails already sent keep their recorded outcome because they were committed one
+     * by one.
+     *
+     * The cutoff is read once, so a poll delivers the mails that were due when it started rather
+     * than chasing rows that became due while it ran - those are the next tick's.
      */
     @Scheduled(fixedDelayString = "\${tafeladmin.mailOutbox.interval:10s}")
     fun sendPendingMails() {
@@ -104,18 +119,35 @@ class MailOutboxService(
             return
         }
 
-        // Read once so the whole batch is handled by one consistent set of settings - they are
+        // Read once so the whole poll is handled by one consistent set of settings - they are
         // re-bound in place when the config file changes (see ConfigFileReloadService), and
         // re-reading per mail could straddle a reload.
         val properties = tafelAdminProperties.mailOutbox
+        val dueUntil = LocalDateTime.now(clock)
+        val handledIds = mutableSetOf<Long>()
 
-        val pendingMails = mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(
-            status = MailOutboxStatus.PENDING,
-            nextAttemptAt = LocalDateTime.now(clock),
-            limit = Limit.of(properties.batchSize),
-        )
+        while (true) {
+            val handledId = sendNextDueMail(dueUntil, mailSender, properties) ?: return
+            // A sent mail leaves the queue and a failed one is rescheduled into the future, so the
+            // same row cannot come back - unless an operator configured a retryBackoff of zero, and
+            // this is what keeps that from spinning the poll forever against the mail server.
+            if (!handledIds.add(handledId)) {
+                logger.warn("Mail {} is due again immediately - stopping this poll, check tafeladmin.mailOutbox.retryBackoff", handledId)
+                return
+            }
+        }
+    }
 
-        pendingMails.forEach { send(it, mailSender, properties) }
+    private fun sendNextDueMail(
+        dueUntil: LocalDateTime,
+        mailSender: JavaMailSender,
+        properties: TafelAdminMailOutboxProperties,
+    ): Long? = transactionTemplate.execute {
+        mailOutboxRepository.findNextDueForUpdateSkipLocked(MailOutboxStatus.PENDING.name, dueUntil)
+            ?.let { mail ->
+                send(mail, mailSender, properties)
+                mail.id
+            }
     }
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
