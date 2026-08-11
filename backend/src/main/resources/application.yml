@@ -152,7 +152,7 @@ tafeladmin:
   environmentLabel: ""
   # The audit trail (audit_log) - see ADR-0039. `enabled` and `retentionDays` are read per use and
   # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
-  # its expression when the bean is created (same as configReload.interval below), so changing it
+  # its expression when the bean is created (same as configReload.cron below), so changing it
   # needs a restart. 05:00 is the quiet window between the last late-evening work and the first
   # distribution-day activity, so the delete never lands while anyone is working; the
   # orphaned-document cleanup runs in the same slot and contends for nothing with it.
@@ -194,7 +194,10 @@ tafeladmin:
   # only, so switching it needs a restart either way.
   configReload:
     enabled: true
-    interval: 5s
+    # A cron, not an interval: every instance re-reads the file for itself, and firing on the
+    # wall-clock boundary is what makes them pick a change up together rather than each on its own
+    # boot-time phase. Read once at startup, like `enabled`.
+    cron: "*/5 * * * * *"
   # Typo tolerance of the single search box on the customer and user search screens. See
   # TafelAdminSearchProperties - this is read per request, so it can be tuned against real data
   # without restarting the container.
@@ -236,7 +239,7 @@ tafeladmin:
   # A mail is written to the mail_outbox table inside the transaction that produced it and handed to
   # the mail server by a poller afterwards (MailOutboxService). How often that poller looks is
   # tafeladmin.mailOutbox.interval below - read at startup only, for the same reason as
-  # tafeladmin.configReload.interval.
+  # tafeladmin.configReload.cron.
   # mail:
   #   from: no-reply@<domain>
   #   subjectPrefix: "[TEST]"
@@ -247,7 +250,7 @@ tafeladmin:
   mailOutbox:
     # How often the poller looks for mails to send, and how often the queue is cleared of the mails
     # it no longer has to keep. Both are read at startup only, for the same reason as
-    # tafeladmin.configReload.interval; everything below them is re-read per use, so retries can be
+    # tafeladmin.configReload.cron; everything below them is re-read per use, so retries can be
     # slowed down or a backlog drained faster on a running deployment - which is what you want during
     # a mail server incident, not a restart.
     interval: 10s

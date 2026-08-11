@@ -331,7 +331,7 @@ class MailOutboxServiceTest {
         service.cleanupOldMails()
 
         verify {
-            mailOutboxRepository.deleteAllByStatusAndSentAtBefore(MailOutboxStatus.SENT, now.minusDays(14))
+            mailOutboxRepository.deleteAllByStatusAndSentAtBeforeSkipLocked(MailOutboxStatus.SENT.name, now.minusDays(14))
         }
     }
 
@@ -347,7 +347,7 @@ class MailOutboxServiceTest {
         service.cleanupOldMails()
 
         verify {
-            mailOutboxRepository.deleteAllByStatusAndCreatedAtBefore(MailOutboxStatus.FAILED, now.minusDays(30))
+            mailOutboxRepository.deleteAllByStatusAndCreatedAtBeforeSkipLocked(MailOutboxStatus.FAILED.name, now.minusDays(30))
         }
     }
 
@@ -363,8 +363,8 @@ class MailOutboxServiceTest {
         service.cleanupOldMails()
 
         verify {
-            mailOutboxRepository.deleteAllByStatusAndSentAtBefore(MailOutboxStatus.SENT, now.minusDays(3))
-            mailOutboxRepository.deleteAllByStatusAndCreatedAtBefore(MailOutboxStatus.FAILED, now.minusDays(7))
+            mailOutboxRepository.deleteAllByStatusAndSentAtBeforeSkipLocked(MailOutboxStatus.SENT.name, now.minusDays(3))
+            mailOutboxRepository.deleteAllByStatusAndCreatedAtBeforeSkipLocked(MailOutboxStatus.FAILED.name, now.minusDays(7))
         }
     }
 

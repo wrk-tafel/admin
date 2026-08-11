@@ -85,6 +85,11 @@ dependencies {
     implementation(libs.spring.cloud.context)
     implementation(libs.spring.security.messaging)
     implementation(libs.spring.retry)
+    // Runs the scheduled jobs that have no rows to claim once per cluster (see SchedulerLockConfig).
+    // The JDBC provider keeps its lock in the application's own database, so this adds a library and
+    // one table rather than a second piece of infrastructure - see ADR-0047.
+    implementation(libs.shedlock.spring)
+    implementation(libs.shedlock.provider.jdbc.template)
     implementation(libs.flyway.database.postgresql)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.dataformat.xml)

@@ -66,12 +66,20 @@ class ConfigFileReloadService(
     private val fingerprints: MutableMap<Path, String> = watchedFiles().associateWith(::fingerprintOf).toMutableMap()
 
     /**
-     * The interval is a plain placeholder rather than a [TafelAdminProperties] field on purpose:
+     * The schedule is a plain placeholder rather than a [TafelAdminProperties] field on purpose:
      * `@Scheduled` fixes it when the bean is created, so a reloaded value could never take effect,
      * and listing it as configuration would advertise a liveness it doesn't have. The e2e profile
      * shortens it so the Cypress run doesn't have to wait out a production-sized interval.
+     *
+     * A cron rather than a fixed delay because this is the one scheduled job that deliberately runs
+     * on *every* instance - each has to re-read its own copy of the file - and they should therefore
+     * pick a change up together. A fixed delay is phased by whenever each instance happened to boot
+     * and drifts further with every tick, which would leave instances answering from different
+     * configuration for up to a whole interval after an operator's edit. A cron fires on the
+     * wall-clock boundary, so the spread is what their clocks differ by rather than where they are
+     * in their own polling cycle.
      */
-    @Scheduled(fixedDelayString = "\${tafeladmin.configReload.interval:5s}")
+    @Scheduled(cron = "\${tafeladmin.configReload.cron:*/5 * * * * *}")
     fun reloadChangedConfigFiles() {
         val changedFiles = watchedFiles().filter(::hasChanged)
         if (changedFiles.isEmpty()) {

@@ -165,12 +165,12 @@ class MailOutboxService(
         val properties = tafelAdminProperties.mailOutbox
         val now = LocalDateTime.now(clock)
 
-        mailOutboxRepository.deleteAllByStatusAndSentAtBefore(
-            MailOutboxStatus.SENT,
+        mailOutboxRepository.deleteAllByStatusAndSentAtBeforeSkipLocked(
+            MailOutboxStatus.SENT.name,
             now.minus(properties.sentRetention),
         )
-        mailOutboxRepository.deleteAllByStatusAndCreatedAtBefore(
-            MailOutboxStatus.FAILED,
+        mailOutboxRepository.deleteAllByStatusAndCreatedAtBeforeSkipLocked(
+            MailOutboxStatus.FAILED.name,
             now.minus(properties.failedRetention),
         )
     }

@@ -17,7 +17,7 @@ tafeladmin:
   configReload:
     # Shortened from the 5s default so the e2e run doesn't have to sit out a production-sized poll
     # interval to see a config edit take effect (see ConfigFileReloadService).
-    interval: 1s
+    cron: "* * * * * *"
 
 spring:
   # The file the Cypress run edits to prove config hot-reload end to end - optional because it only

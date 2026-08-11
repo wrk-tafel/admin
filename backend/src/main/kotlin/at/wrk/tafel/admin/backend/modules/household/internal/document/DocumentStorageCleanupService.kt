@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -38,8 +39,16 @@ class DocumentStorageCleanupService(
      * single scheduled-task thread (`spring.task.scheduling.pool.size` is left at its default of 1),
      * so they run one after the other rather than at once - which is fine, since neither is
      * time-critical and both have hours of headroom.
+     *
+     * Runs on one instance per night. Unlike the retention cleanups this has no rows to claim - it
+     * reconciles a folder against the database, and two instances walking the same mount would race
+     * over which of them deletes a file the other is still deciding about. `lockAtLeastFor` keeps a
+     * second instance's 05:00 from starting its own walk seconds after the first finished a short
+     * one; `lockAtMostFor` matches it because it may not be shorter, and an hour is well past the
+     * longest plausible walk of the documents folder anyway.
      */
     @Scheduled(cron = "0 0 5 * * *")
+    @SchedulerLock(name = "documentStorageCleanup", lockAtMostFor = "PT1H", lockAtLeastFor = "PT1H")
     fun cleanupOrphanedFiles() {
         val documentsRoot = Paths.get(tafelAdminProperties.storage.documentsPath)
         if (!Files.isDirectory(documentsRoot)) {

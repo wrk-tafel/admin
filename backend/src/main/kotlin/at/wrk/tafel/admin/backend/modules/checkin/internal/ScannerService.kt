@@ -72,6 +72,6 @@ class ScannerService(
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupScannerRegistrations() {
         val date = LocalDateTime.now().minus(tafelAdminProperties.checkin.scannerRegistrationRetention)
-        scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(date)
+        scannerRegisteredRepository.deleteAllByRegistrationTimeBeforeSkipLocked(date)
     }
 }

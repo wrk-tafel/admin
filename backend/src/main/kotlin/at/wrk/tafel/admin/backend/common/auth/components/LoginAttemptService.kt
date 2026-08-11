@@ -101,7 +101,7 @@ class LoginAttemptService(
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     @Transactional
     fun cleanupStaleEntries() {
-        loginAttemptRepository.deleteAllByLastFailureAtBefore(now().minusSeconds(lockoutDurationInSeconds()))
+        loginAttemptRepository.deleteAllByLastFailureAtBeforeSkipLocked(now().minusSeconds(lockoutDurationInSeconds()))
     }
 
     private fun mapToItem(entity: LoginAttemptEntity) = LoginAttemptItem(
