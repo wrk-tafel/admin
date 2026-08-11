@@ -16,7 +16,6 @@ import java.io.ByteArrayOutputStream
 import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 
 /**
  * Sending side of the mail outbox: a mail is written to `mail_outbox` inside the transaction that
@@ -150,11 +149,29 @@ class MailOutboxService(
             }
     }
 
-    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
-    fun cleanupSentMails() {
+    /**
+     * Empties the queue of what it no longer has to keep - both ways a mail can end.
+     *
+     * A [MailOutboxStatus.FAILED] row outlives a sent one because it is the record of a mail nobody
+     * received, and somebody may still come asking about it long after the incident. It does not
+     * outlive it *forever*, though: the row holds the whole message, report PDF or support
+     * screenshot included, so keeping it indefinitely would leave personal data in the queue that no
+     * retention rule and no erasure ever reaches. Its window is counted from when the mail was
+     * queued - the give-up follows within a couple of hours of that, and nothing records the exact
+     * moment.
+     */
+    @Scheduled(fixedDelayString = "\${tafeladmin.mailOutbox.cleanupInterval:1h}")
+    fun cleanupOldMails() {
+        val properties = tafelAdminProperties.mailOutbox
+        val now = LocalDateTime.now(clock)
+
         mailOutboxRepository.deleteAllByStatusAndSentAtBefore(
             MailOutboxStatus.SENT,
-            LocalDateTime.now(clock).minus(tafelAdminProperties.mailOutbox.sentRetention),
+            now.minus(properties.sentRetention),
+        )
+        mailOutboxRepository.deleteAllByStatusAndCreatedAtBefore(
+            MailOutboxStatus.FAILED,
+            now.minus(properties.failedRetention),
         )
     }
 

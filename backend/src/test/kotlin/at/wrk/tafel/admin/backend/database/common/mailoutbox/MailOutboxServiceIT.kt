@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import java.time.LocalDateTime
 import java.util.Properties
 
 /**
@@ -76,6 +77,33 @@ class MailOutboxServiceIT : TafelBaseIntegrationTest() {
         assertThat(storedMail.nextAttemptAt).isNotNull()
         assertThat(storedMail.sentAt).isNull()
         assertThat(storedMail.message).isEqualTo(expectedMessage)
+    }
+
+    /**
+     * The one retention rule counted from `createdAt` rather than `sentAt`, because a mail nobody
+     * received has no `sentAt` at all - which a mocked repository cannot show, since it is Spring
+     * Data that derives the query from that method name.
+     */
+    @Test
+    fun `a mail given up on is deleted once its window has passed, and kept until then`() {
+        val expiredMail = mailOutboxRepository.save(failedMail(createdAt = LocalDateTime.now().minusDays(31)))
+        val recentMail = mailOutboxRepository.save(failedMail(createdAt = LocalDateTime.now().minusDays(29)))
+
+        mailOutboxService.cleanupOldMails()
+
+        assertThat(mailOutboxRepository.findById(expiredMail.id!!)).isEmpty()
+        assertThat(mailOutboxRepository.findById(recentMail.id!!)).isPresent()
+    }
+
+    private fun failedMail(createdAt: LocalDateTime) = MailOutboxEntity().apply {
+        this.createdAt = createdAt
+        this.subject = "Tagesreport"
+        this.recipients = "report@localhost"
+        this.message = "raw message".toByteArray()
+        this.status = MailOutboxStatus.FAILED
+        this.attempts = 5
+        this.lastError = "MailSendException: smtp is down"
+        this.nextAttemptAt = createdAt
     }
 
     private fun MimeMessage.toByteArray() = java.io.ByteArrayOutputStream().also { writeTo(it) }.toByteArray()

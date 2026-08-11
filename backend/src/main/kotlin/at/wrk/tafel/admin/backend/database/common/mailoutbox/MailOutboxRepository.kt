@@ -34,4 +34,11 @@ interface MailOutboxRepository : JpaRepository<MailOutboxEntity, Long> {
 
     @Transactional
     fun deleteAllByStatusAndSentAtBefore(status: MailOutboxStatus, sentAt: LocalDateTime)
+
+    /**
+     * For the mails that never made it out: they have no `sentAt`, so their retention is counted
+     * from the moment they were queued.
+     */
+    @Transactional
+    fun deleteAllByStatusAndCreatedAtBefore(status: MailOutboxStatus, createdAt: LocalDateTime)
 }

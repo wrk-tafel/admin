@@ -328,10 +328,43 @@ class MailOutboxServiceTest {
     fun `cleanup removes sent mails older than the retention window`() {
         val service = service()
 
-        service.cleanupSentMails()
+        service.cleanupOldMails()
 
         verify {
             mailOutboxRepository.deleteAllByStatusAndSentAtBefore(MailOutboxStatus.SENT, now.minusDays(14))
+        }
+    }
+
+    /**
+     * A mail nobody received is kept longer than a sent one, and counted from when it was queued -
+     * it has no `sentAt`. But it is not kept forever: the row holds the whole message, attachments
+     * and all, and that copy is reached by no other retention rule (see the GDPR analysis, G10).
+     */
+    @Test
+    fun `cleanup removes mails that were given up on after their own longer window`() {
+        val service = service()
+
+        service.cleanupOldMails()
+
+        verify {
+            mailOutboxRepository.deleteAllByStatusAndCreatedAtBefore(MailOutboxStatus.FAILED, now.minusDays(30))
+        }
+    }
+
+    @Test
+    fun `the configured retention windows are what the cleanup applies`() {
+        val service = service(
+            properties = TafelAdminMailOutboxProperties().apply {
+                sentRetention = Duration.ofDays(3)
+                failedRetention = Duration.ofDays(7)
+            },
+        )
+
+        service.cleanupOldMails()
+
+        verify {
+            mailOutboxRepository.deleteAllByStatusAndSentAtBefore(MailOutboxStatus.SENT, now.minusDays(3))
+            mailOutboxRepository.deleteAllByStatusAndCreatedAtBefore(MailOutboxStatus.FAILED, now.minusDays(7))
         }
     }
 
