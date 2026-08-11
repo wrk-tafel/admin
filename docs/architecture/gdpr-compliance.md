@@ -30,7 +30,7 @@ Two things to be clear about before reading on:
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
-| `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` is **never** deleted (`MailOutboxService.cleanupSentMails` takes `SENT` only) |
+| `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | until a user imports or deletes them |
 | `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
@@ -268,15 +268,16 @@ retention [G6](#g6-read-access-to-a-case-file-is-not-recorded) lands on if a rea
 
 Deleting a household is thorough in the database, but copies outlive it: `audit_log` entries for up
 to 30 days (deliberate, and documented in ADR-0039), `sse_outbox` payloads for 14, `mail_outbox`
-rows — the composed mails, attachments included — for 14 after they were sent (ADR-0041), any
-Kundenliste PDF already printed or mailed, and every backup made before the deletion. Restoring a backup
-re-creates erased people, and nothing propagates the erasure into it.
+rows — the composed mails, attachments included — for 14 after they were sent (ADR-0041) or 30 after
+they were queued if delivery was given up on (ADR-0046), any Kundenliste PDF already printed or
+mailed, and every backup made before the deletion. Restoring a backup re-creates erased people, and
+nothing propagates the erasure into it.
 
-The one copy with no clock on it at all is a `mail_outbox` row parked as `FAILED`:
-`cleanupSentMails` deletes `SENT` rows only, so a mail that was given up on keeps its full MIME
-message — report PDF or support screenshot included — until somebody removes the row by hand. That
-is deliberate as an operational record (it is the mail nobody received), but it is personal data
-without a retention rule, and an erasure does not reach it.
+Every copy inside the application now has a clock on it, which was not true of a `mail_outbox` row
+parked as `FAILED`: it kept its full MIME message — report PDF or support screenshot included — until
+somebody removed the row by hand, which no screen ever prompted anyone to do.
+
+What is left is outside the application: a printed or mailed PDF, and the operator's backups.
 
 **Smallest useful step:** write down the actual erasure timeline — which store empties after how long
 — so a request can be answered honestly ("gelöscht, letzte technische Spuren nach 30 Tagen"), and

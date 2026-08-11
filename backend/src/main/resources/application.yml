@@ -245,11 +245,13 @@ tafeladmin:
   # Kept out of tafeladmin.mail above on purpose: that section is bound to a properties object, and
   # a key underneath it would make the section exist in every environment (see TafelAdminProperties).
   mailOutbox:
-    # How often the poller looks for mails to send. Read at startup only, for the same reason as
-    # tafeladmin.configReload.interval. Everything below it is re-read per use, so retries can be
+    # How often the poller looks for mails to send, and how often the queue is cleared of the mails
+    # it no longer has to keep. Both are read at startup only, for the same reason as
+    # tafeladmin.configReload.interval; everything below them is re-read per use, so retries can be
     # slowed down or a backlog drained faster on a running deployment - which is what you want during
     # a mail server incident, not a restart.
     interval: 10s
+    cleanupInterval: 1h
     # Delivery attempts before a mail is parked as FAILED and reported as a push notification to
     # administrators. With the backoff below, five attempts span roughly half an hour.
     maxAttempts: 5
@@ -259,8 +261,13 @@ tafeladmin:
     maxRetryBackoff: 30m
     # How long a sent mail's row is kept before it is deleted. It holds the finished message,
     # attachments and all, so this is the span in which somebody still asks "did the report go out on
-    # Saturday?" - not an archive. FAILED rows are never deleted; they are the mails nobody received.
+    # Saturday?" - not an archive.
     sentRetention: 14d
+    # The same for a mail that was given up on, counted from when it was queued. Longer, because it
+    # is the only record that somebody never got their mail and that question comes late - but not
+    # unlimited, because the row keeps the whole message including report PDFs and support
+    # screenshots.
+    failedRetention: 30d
   # Web Push (VAPID). Without a keypair the application runs normally and push notifications are
   # simply unavailable. Both keys must be the RAW key material, base64url-encoded - NOT the base64
   # inside a PEM file, which wraps DER/ASN.1 structure around the raw bytes and fails to decode; see

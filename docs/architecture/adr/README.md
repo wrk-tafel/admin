@@ -45,6 +45,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0005](0005-server-sent-events-with-a-transactional-outbox.md) | Real-time updates via SSE fed by a transactional outbox | accepted |
 | [0041](0041-mails-sent-through-an-outbox.md) | Mails queued in the database and sent by a poller | accepted |
 | [0045](0045-one-mail-per-transaction-taken-with-skip-locked.md) | One mail per transaction, taken with `FOR UPDATE SKIP LOCKED` | accepted |
+| [0046](0046-a-mail-given-up-on-is-kept-for-a-window-not-forever.md) | A mail given up on is kept for a window, not forever | accepted |
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |

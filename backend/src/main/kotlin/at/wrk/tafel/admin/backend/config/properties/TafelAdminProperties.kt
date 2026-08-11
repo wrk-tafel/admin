@@ -277,9 +277,11 @@ class TafelAdminMailProperties {
  * on a running deployment (`ConfigFileReloadService`). They are also the knobs worth having during an
  * incident: a mail server that is refusing connections is exactly when the defaults are wrong.
  *
- * `tafeladmin.mailOutbox.interval` - how often the poller looks, default 10s - is deliberately *not*
- * a field here: `@Scheduled` fixes its delay at bean creation, so it is startup-only. It lives in
- * `application.yml` as a plain placeholder, same as `tafeladmin.audit.cleanupCron`.
+ * `tafeladmin.mailOutbox.interval` (how often the poller looks, default 10s) and
+ * `tafeladmin.mailOutbox.cleanupInterval` (how often the queue is cleared, default 1h) are
+ * deliberately *not* fields here: `@Scheduled` fixes a delay at bean creation, so both are
+ * startup-only. They live in `application.yml` as plain placeholders, same as
+ * `tafeladmin.audit.cleanupCron`.
  */
 @ExcludeFromTestCoverage
 class TafelAdminMailOutboxProperties {
@@ -300,9 +302,19 @@ class TafelAdminMailOutboxProperties {
      * How long a sent mail's row is kept before the cleanup job deletes it. It is the record of what
      * this installation mailed out, including personal data in the attachments, so the window is the
      * span in which somebody still asks "did the report go out on Saturday?" - not an archive.
-     * `FAILED` rows are never deleted by that job; they are the mails nobody received.
      */
     var sentRetention: Duration = Duration.ofDays(14)
+
+    /**
+     * How long a mail that was given up on is kept - longer than a sent one, because it is the only
+     * record that somebody never got their mail and the question about it comes late. Not forever
+     * though: the row holds the whole message, attachments included, and personal data that no
+     * retention rule reaches is a gap of its own (see `docs/architecture/gdpr-compliance.md`).
+     *
+     * Counted from `createdAt`, since a mail nobody received has no `sentAt` - the give-up follows
+     * within a couple of hours of queuing, so the difference is nothing at this scale.
+     */
+    var failedRetention: Duration = Duration.ofDays(30)
 }
 
 @ExcludeFromTestCoverage

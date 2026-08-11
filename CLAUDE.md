@@ -203,7 +203,10 @@ choice on its own merits).
   a mail and queues the finished MIME message inside the caller's transaction; `MailOutboxService`
   polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts —
   publishing `MailDeliveryFailedEvent`, which `push` turns into a notification to administrators, so
-  a mail that was given up on is not just a row nobody reads. So a mail is never sent from a
+  a mail that was given up on is not just a row nobody reads. `cleanupOldMails` empties the queue of
+  both endings — `sentRetention` (14d) after a mail was sent, `failedRetention` (30d) after a parked
+  one was queued, since the row holds the whole message and nothing else would ever delete that copy
+  (ADR-0046). So a mail is never sent from a
   transaction that rolls back, and never lost when SMTP is down. `MailOutboxService` is the only
   class that holds a `JavaMailSender` — it is what "is a mail server configured?" means, which is
   why `enqueue` is also where a mail is dropped when none is (nothing to deliver to, so a queued row
@@ -308,7 +311,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `cars`: Vehicle management
 - `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
-- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept — it is the record of a mail nobody received
+- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept longer than a sent one — it is the record of a mail nobody received — but not indefinitely
 - `mail_addresses`: Email recipient configuration
 
 ## Testing

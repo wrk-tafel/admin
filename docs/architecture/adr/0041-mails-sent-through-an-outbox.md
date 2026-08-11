@@ -36,7 +36,8 @@ mail server afterwards by a scheduled poller.**
 - `MailOutboxService.sendPendingMails` polls every `tafeladmin.mailOutbox.interval` (default 10s),
   takes the due rows oldest-first and sends them. A failure is retried with a growing backoff and,
   after 5 attempts, the row is parked as `FAILED` **with the error kept**. Sent rows are deleted
-  after 14 days, like the SSE outbox's.
+  after 14 days, like the SSE outbox's; a parked one gets a longer window of its own
+  ([ADR-0046](0046-a-mail-given-up-on-is-kept-for-a-window-not-forever.md)).
 - Each mail's outcome is saved on its own, so one failing mail cannot roll back the outcome already
   recorded for the others in the batch.
 - With no mail server configured (dev, test, the e2e run) nothing is queued at all — the same
