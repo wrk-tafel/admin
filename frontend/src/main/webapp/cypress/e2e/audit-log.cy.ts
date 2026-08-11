@@ -81,9 +81,10 @@ describe('Änderungsprotokoll', () => {
       const customerId = response.body.data.id;
 
       cy.visit('/aenderungsprotokoll');
-      cy.byTestId('audit-filter-businessKey').type(String(customerId));
 
-      cy.byTestId('audit-entry-0-businessKey').click();
+      // The newest entry is the customer just created, so no filter is needed to reach it - and
+      // clicking through one would mean clicking a link a pending re-render can still replace.
+      cy.byTestId('audit-entry-0-businessKey').should('contain.text', String(customerId)).click();
 
       cy.url().should('include', `/kunden/detail/${customerId}`);
     });
