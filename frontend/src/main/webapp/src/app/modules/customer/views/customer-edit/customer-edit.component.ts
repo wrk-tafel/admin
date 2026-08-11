@@ -61,10 +61,18 @@ export class CustomerEditComponent {
       return;
     }
 
-    this.customerApiService.validate(this.customerUpdated()).subscribe((result) => {
-      this.dialog.open(ValidationResultDialogComponent, {
-        data: {validationResult: result}
-      }).afterClosed().subscribe();
+    this.customerApiService.validate(this.customerUpdated()).subscribe({
+      next: (result) => {
+        this.dialog.open(ValidationResultDialogComponent, {
+          data: {validationResult: result}
+        }).afterClosed().subscribe();
+      },
+      // the request opts into the interceptor's error toast, which is the whole presentation this
+      // needs - but without an error callback the rethrown HttpErrorResponse escapes as an uncaught
+      // application error, so a rejected validation (e.g. a household composition with no
+      // configured income limit) would blow up instead of just not opening the dialog
+      error: () => {
+      }
     });
   }
 

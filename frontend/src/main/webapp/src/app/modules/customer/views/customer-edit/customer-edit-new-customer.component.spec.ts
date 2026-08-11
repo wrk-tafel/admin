@@ -13,7 +13,7 @@ import {
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 import {MatDialog} from '@angular/material/dialog';
-import {provideHttpClient, withXhr} from '@angular/common/http';
+import {HttpErrorResponse, provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
@@ -278,6 +278,32 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     component.validate();
 
     expect(matDialog.open).toHaveBeenCalled();
+  });
+
+  // the interceptor presents the error itself - all this has to do is not let it escape as an
+  // uncaught application error, which is what a subscribe without an error callback would do
+  it('new customer validation rejected by the backend opens no dialog and throws nothing', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const customerFormComponentMock = {
+      markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
+      valid: vi.fn().mockName('CustomerFormComponent.valid')
+    } as any;
+    customerFormComponentMock.valid.mockReturnValue(true);
+
+    apiService.validate.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 400,
+      error: {detail: 'Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: 0, Kinder: 1)!'}
+    })));
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    Object.defineProperty(component, 'customerFormComponent', {
+      get: () => () => customerFormComponentMock
+    });
+    component.customerUpdated.set(testCustomerData);
+
+    expect(() => component.validate()).not.toThrow();
+    expect(matDialog.open).not.toHaveBeenCalled();
   });
 
   it('new customer save with 409 conflict shows confirmation dialog and retries with validation', async () => {
