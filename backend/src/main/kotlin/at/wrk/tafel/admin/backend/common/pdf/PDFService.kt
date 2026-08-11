@@ -75,17 +75,16 @@ class PDFService {
          * [Templates] is thread-safe and reusable - a [javax.xml.transform.Transformer] is not,
          * which is why [generatePdf] creates a fresh one per call instead of sharing one.
          */
-        internal fun compiledStylesheet(stylesheetPath: String): Templates =
-            compiledStylesheets.computeIfAbsent(stylesheetPath) { path ->
-                val stylesheet = checkNotNull(PDFService::class.java.getResourceAsStream(path)) {
-                    "PDF stylesheet not found: $path"
-                }
-                stylesheet.use {
-                    synchronized(transformerFactory) {
-                        transformerFactory.newTemplates(StreamSource(it))
-                    }
+        internal fun compiledStylesheet(stylesheetPath: String): Templates = compiledStylesheets.computeIfAbsent(stylesheetPath) { path ->
+            val stylesheet = checkNotNull(PDFService::class.java.getResourceAsStream(path)) {
+                "PDF stylesheet not found: $path"
+            }
+            stylesheet.use {
+                synchronized(transformerFactory) {
+                    transformerFactory.newTemplates(StreamSource(it))
                 }
             }
+        }
     }
 
     fun generatePdf(data: Any, stylesheetPath: String): ByteArray {

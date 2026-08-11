@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
+import org.apache.pdfbox.text.PDFTextStripper
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeAll
@@ -95,9 +96,11 @@ internal class PDFServiceTest {
         }
 
         assertThat(results).hasSize(threadCount)
-        results.forEach { pdfBytes ->
+        results.forEachIndexed { index, pdfBytes ->
             Loader.loadPDF(pdfBytes).use { document ->
                 assertThat(document.numberOfPages).isEqualTo(1)
+                // Each call has to come back with its own data, not another thread's.
+                assertThat(PDFTextStripper().getText(document)).contains("Test ${index + 1}")
             }
         }
     }

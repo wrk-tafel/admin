@@ -692,9 +692,9 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   silently won't be findable.
 - **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
 - **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are
-  generated via Apache FOP. `PDFService` holds three things per process, because building any of
-  them is expensive and their input is immutable: the `FopFactory` (extracting the bundled fonts to
-  disk), and one compiled `Templates` per stylesheet (parsing its whole `xsl:include` tree). The
+  generated via Apache FOP. `PDFService` holds two things per process, because building either is
+  expensive and their input is immutable: the `FopFactory` (extracting the bundled fonts to disk),
+  and one compiled `Templates` per stylesheet (parsing its whole `xsl:include` tree). The
   per-call parts are the `Transformer` created from those `Templates` and the `Fop` itself — neither
   is thread-safe, and the shared FOP configuration a `Fop` is built from is a DOM tree that caches
   its own traversal state, so that construction happens under a lock while the rendering does not.
