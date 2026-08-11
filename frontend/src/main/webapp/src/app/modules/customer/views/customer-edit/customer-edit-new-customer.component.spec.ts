@@ -4,7 +4,12 @@ import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import dayjs from 'dayjs';
-import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
+import {
+  CustomerApiService,
+  CustomerData,
+  Gender,
+  IncomeCalculationDetails
+} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 import {MatDialog} from '@angular/material/dialog';
@@ -13,6 +18,20 @@ import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
+
+  const testValidationDetails: IncomeCalculationDetails = {
+    incomeSum: 1000,
+    familyAllowanceSum: 0,
+    childTaxAllowanceSum: 0,
+    siblingAdditionSum: 0,
+    baseLimit: 900,
+    baseLimitCountAdults: 1,
+    baseLimitCountChildren: 0,
+    additionalAdultsCount: 0,
+    additionalAdultsSum: 0,
+    additionalChildrenCount: 0,
+    additionalChildrenSum: 0
+  };
 
   const testCountry = {
     id: 0,
@@ -214,7 +233,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       limit: 1000,
       amountExceededLimit: 0,
       toleranceValue: 100,
-      totalSum: 1000
+      totalSum: 1000,
+      details: testValidationDetails
     }));
 
     component.validate();
@@ -239,7 +259,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       limit: 1000,
       amountExceededLimit: 400,
       toleranceValue: 100,
-      totalSum: 1500
+      totalSum: 1500,
+      details: testValidationDetails
     }));
     const mockResponse = {
       data: testCustomerData,

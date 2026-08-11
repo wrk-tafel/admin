@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
+import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorDetails
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -156,6 +157,19 @@ class HouseholdControllerTest {
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
             amountExceededLimit = BigDecimal("4"),
+            details = IncomeValidatorDetails(
+                incomeSum = BigDecimal("5"),
+                familyAllowanceSum = BigDecimal("6"),
+                childTaxAllowanceSum = BigDecimal("7"),
+                siblingAdditionSum = BigDecimal("8"),
+                baseLimit = BigDecimal("9"),
+                baseLimitCountAdults = 2,
+                baseLimitCountChildren = 1,
+                additionalAdultsCount = 3,
+                additionalAdultsSum = BigDecimal("10"),
+                additionalChildrenCount = 4,
+                additionalChildrenSum = BigDecimal("11"),
+            ),
         )
 
         val response = controller.validate(testHouseholdRequest)
@@ -167,6 +181,19 @@ class HouseholdControllerTest {
                 limit = BigDecimal("2"),
                 toleranceValue = BigDecimal("3"),
                 amountExceededLimit = BigDecimal("4"),
+                details = IncomeCalculationDetails(
+                    incomeSum = BigDecimal("5"),
+                    familyAllowanceSum = BigDecimal("6"),
+                    childTaxAllowanceSum = BigDecimal("7"),
+                    siblingAdditionSum = BigDecimal("8"),
+                    baseLimit = BigDecimal("9"),
+                    baseLimitCountAdults = 2,
+                    baseLimitCountChildren = 1,
+                    additionalAdultsCount = 3,
+                    additionalAdultsSum = BigDecimal("10"),
+                    additionalChildrenCount = 4,
+                    additionalChildrenSum = BigDecimal("11"),
+                ),
             ),
         )
 

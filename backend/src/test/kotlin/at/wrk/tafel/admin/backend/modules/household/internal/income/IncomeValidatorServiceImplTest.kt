@@ -518,6 +518,70 @@ class IncomeValidatorServiceImplTest {
     }
 
     @Test
+    fun `details report every part the two totals were added up from`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("300"),
+                birthDate = LocalDate.now().minusYears(30),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(28),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(2),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(5),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(8),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(12),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(14),
+                receivesFamilyAllowance = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        val details = result.details
+        assertThat(details.incomeSum).isEqualTo(BigDecimal("800"))
+        // the tiers reached at ages 2/5/8/12/14: 10 + 30 + 30 + 90 + 90
+        assertThat(details.familyAllowanceSum).isEqualTo(BigDecimal("250"))
+        assertThat(details.childTaxAllowanceSum).isEqualTo(BigDecimal("75"))
+        // 5 children, so 4 each
+        assertThat(details.siblingAdditionSum).isEqualTo(BigDecimal("20"))
+
+        // 3 adults and 5 children, of which the base limit covers 2 and 3
+        assertThat(details.baseLimit).isEqualTo(BigDecimal("1800"))
+        assertThat(details.baseLimitCountAdults).isEqualTo(2)
+        assertThat(details.baseLimitCountChildren).isEqualTo(3)
+        assertThat(details.additionalAdultsCount).isEqualTo(1)
+        assertThat(details.additionalAdultsSum).isEqualTo(BigDecimal("200"))
+        assertThat(details.additionalChildrenCount).isEqualTo(2)
+        assertThat(details.additionalChildrenSum).isEqualTo(BigDecimal("200"))
+
+        // the parts are exactly the two totals, split up
+        assertThat(
+            details.incomeSum + details.familyAllowanceSum + details.childTaxAllowanceSum + details.siblingAdditionSum,
+        ).isEqualTo(result.totalSum)
+        assertThat(
+            details.baseLimit + details.additionalAdultsSum + details.additionalChildrenSum + result.toleranceValue,
+        ).isEqualTo(result.limit)
+    }
+
+    @Test
     fun `two persons below limit cause one is excluded from calculation`() {
         val persons = listOf(
             IncomeValidatorPerson(

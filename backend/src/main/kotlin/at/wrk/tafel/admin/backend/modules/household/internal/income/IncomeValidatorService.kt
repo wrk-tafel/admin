@@ -35,4 +35,31 @@ data class IncomeValidatorResult(
     val limit: BigDecimal,
     val toleranceValue: BigDecimal,
     val amountExceededLimit: BigDecimal,
+    val details: IncomeValidatorDetails = IncomeValidatorDetails(),
+)
+
+/**
+ * The parts [IncomeValidatorResult.totalSum] and `limit` were added up from, so a user can be told
+ * *why* a household is (not) eligible rather than just by how much. Every amount here is already
+ * contained in one of those two totals - this carries no additional rule, only the split.
+ *
+ * `totalSum` is [incomeSum] + [familyAllowanceSum] + [childTaxAllowanceSum] + [siblingAdditionSum];
+ * `limit` is [baseLimit] + [additionalAdultsSum] + [additionalChildrenSum] +
+ * [IncomeValidatorResult.toleranceValue].
+ */
+@ExcludeFromTestCoverage
+data class IncomeValidatorDetails(
+    val incomeSum: BigDecimal = BigDecimal.ZERO,
+    val familyAllowanceSum: BigDecimal = BigDecimal.ZERO,
+    val childTaxAllowanceSum: BigDecimal = BigDecimal.ZERO,
+    val siblingAdditionSum: BigDecimal = BigDecimal.ZERO,
+    val baseLimit: BigDecimal = BigDecimal.ZERO,
+    /** Adult/child count the [baseLimit] was looked up for - capped at the base household size. */
+    val baseLimitCountAdults: Int = 0,
+    val baseLimitCountChildren: Int = 0,
+    /** Persons beyond the base household size, and what they added to the limit. */
+    val additionalAdultsCount: Int = 0,
+    val additionalAdultsSum: BigDecimal = BigDecimal.ZERO,
+    val additionalChildrenCount: Int = 0,
+    val additionalChildrenSum: BigDecimal = BigDecimal.ZERO,
 )

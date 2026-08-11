@@ -35,6 +35,19 @@ class HouseholdController(
             limit = result.limit,
             toleranceValue = result.toleranceValue,
             amountExceededLimit = result.amountExceededLimit,
+            details = IncomeCalculationDetails(
+                incomeSum = result.details.incomeSum,
+                familyAllowanceSum = result.details.familyAllowanceSum,
+                childTaxAllowanceSum = result.details.childTaxAllowanceSum,
+                siblingAdditionSum = result.details.siblingAdditionSum,
+                baseLimit = result.details.baseLimit,
+                baseLimitCountAdults = result.details.baseLimitCountAdults,
+                baseLimitCountChildren = result.details.baseLimitCountChildren,
+                additionalAdultsCount = result.details.additionalAdultsCount,
+                additionalAdultsSum = result.details.additionalAdultsSum,
+                additionalChildrenCount = result.details.additionalChildrenCount,
+                additionalChildrenSum = result.details.additionalChildrenSum,
+            ),
         )
     }
 

@@ -54,26 +54,41 @@ class IncomeValidatorServiceImpl(
         val incomeSum = includedPersons.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
         val familyAllowanceRecipients = persons.filter { it.receivesFamilyAllowance }
-        val familyAllowanceSum = calculateFamilyAllowanceSum(familyAllowanceRecipients)
-
-        val totalIncome = incomeSum + familyAllowanceSum
+        val familyAllowance = calculateFamilyAllowance(familyAllowanceRecipients)
         val limit = calculateLimit(includedPersons)
 
-        return buildResult(totalIncome = totalIncome, limit = limit)
+        return buildResult(
+            totalIncome = incomeSum + familyAllowance.sum(),
+            limit = limit.sum(),
+            details = IncomeValidatorDetails(
+                incomeSum = incomeSum,
+                familyAllowanceSum = familyAllowance.familyAllowanceSum,
+                childTaxAllowanceSum = familyAllowance.childTaxAllowanceSum,
+                siblingAdditionSum = familyAllowance.siblingAdditionSum,
+                baseLimit = limit.baseLimit,
+                baseLimitCountAdults = limit.baseLimitCountAdults,
+                baseLimitCountChildren = limit.baseLimitCountChildren,
+                additionalAdultsCount = limit.additionalAdultsCount,
+                additionalAdultsSum = limit.additionalAdultsSum,
+                additionalChildrenCount = limit.additionalChildrenCount,
+                additionalChildrenSum = limit.additionalChildrenSum,
+            ),
+        )
     }
 
     /**
      * Familienbeihilfe (age-tiered) plus Kinderabsetzbetrag (flat, per child) for every person
-     * flagged as receiving family allowance, plus the Geschwisterstaffel sibling addition.
+     * flagged as receiving family allowance, plus the Geschwisterstaffel sibling addition. The
+     * three stay apart instead of being summed on the spot because the result reports each of them.
      */
-    private fun calculateFamilyAllowanceSum(recipients: List<IncomeValidatorPerson>): BigDecimal {
+    private fun calculateFamilyAllowance(recipients: List<IncomeValidatorPerson>): FamilyAllowance {
         val children = recipients.filter { it.isChildForFamilyAllowance() }
 
-        val perChildAllowanceSum = children.sumOf { child ->
-            familyAllowanceForAge(child.getAge()) + childTaxAllowance()
-        }
-
-        return perChildAllowanceSum + siblingAddition(countChildren = children.size)
+        return FamilyAllowance(
+            familyAllowanceSum = children.sumOf { familyAllowanceForAge(it.getAge()) },
+            childTaxAllowanceSum = children.sumOf { childTaxAllowance() },
+            siblingAdditionSum = siblingAddition(countChildren = children.size),
+        )
     }
 
     /**
@@ -113,9 +128,10 @@ class IncomeValidatorServiceImpl(
 
     /**
      * Base limit for the household's adult/child counts, plus ADDITIONAL_ADULT/ADDITIONAL_CHILD
-     * for every person beyond the base household size.
+     * for every person beyond the base household size. Like [calculateFamilyAllowance], the parts
+     * are returned rather than a total, since the result reports what the limit is made of.
      */
-    private fun calculateLimit(persons: List<IncomeValidatorPerson>): BigDecimal {
+    private fun calculateLimit(persons: List<IncomeValidatorPerson>): Limit {
         val countAdults = persons.count { !it.isChild() }
         val countChildren = persons.count { it.isChild() }
 
@@ -127,10 +143,13 @@ class IncomeValidatorServiceImpl(
         }
         val countAdditionalChildren = max(0, countChildren - baseChildrenLimit)
 
+        val baseLimitCountAdults = countAdults - countAdditionalAdults
+        val baseLimitCountChildren = countChildren - countAdditionalChildren
+
         val baseLimit = staticValueRepository.findLatestForPersonCount(
             currentDate = LocalDate.now(),
-            countAdults = countAdults - countAdditionalAdults,
-            countChildren = countChildren - countAdditionalChildren,
+            countAdults = baseLimitCountAdults,
+            countChildren = baseLimitCountChildren,
         )?.amount ?: BigDecimal.ZERO
 
         val additionalAdultLimit = staticValueRepository.findSingleValueOfType(
@@ -143,12 +162,22 @@ class IncomeValidatorServiceImpl(
             currentDate = LocalDate.now(),
         )?.amount ?: BigDecimal.ZERO
 
-        return baseLimit
-            .add(additionalAdultLimit.multiply(countAdditionalAdults.toBigDecimal()))
-            .add(additionalChildLimit.multiply(countAdditionalChildren.toBigDecimal()))
+        return Limit(
+            baseLimit = baseLimit,
+            baseLimitCountAdults = baseLimitCountAdults,
+            baseLimitCountChildren = baseLimitCountChildren,
+            additionalAdultsCount = countAdditionalAdults,
+            additionalAdultsSum = additionalAdultLimit.multiply(countAdditionalAdults.toBigDecimal()),
+            additionalChildrenCount = countAdditionalChildren,
+            additionalChildrenSum = additionalChildLimit.multiply(countAdditionalChildren.toBigDecimal()),
+        )
     }
 
-    private fun buildResult(totalIncome: BigDecimal, limit: BigDecimal): IncomeValidatorResult {
+    private fun buildResult(
+        totalIncome: BigDecimal,
+        limit: BigDecimal,
+        details: IncomeValidatorDetails,
+    ): IncomeValidatorResult {
         val toleranceValue = tolerance()
         val limitWithTolerance = limit.add(toleranceValue)
 
@@ -161,10 +190,31 @@ class IncomeValidatorServiceImpl(
             limit = limitWithTolerance,
             toleranceValue = toleranceValue,
             amountExceededLimit = if (valid) BigDecimal.ZERO else differenceFromLimit.abs(),
+            details = details,
         )
     }
 
     private fun tolerance(): BigDecimal = staticValueRepository
         .findSingleValueOfType(type = StaticValueType.TOLERANCE, currentDate = LocalDate.now())
         ?.amount ?: BigDecimal.ZERO
+
+    private data class FamilyAllowance(
+        val familyAllowanceSum: BigDecimal,
+        val childTaxAllowanceSum: BigDecimal,
+        val siblingAdditionSum: BigDecimal,
+    ) {
+        fun sum(): BigDecimal = familyAllowanceSum + childTaxAllowanceSum + siblingAdditionSum
+    }
+
+    private data class Limit(
+        val baseLimit: BigDecimal,
+        val baseLimitCountAdults: Int,
+        val baseLimitCountChildren: Int,
+        val additionalAdultsCount: Int,
+        val additionalAdultsSum: BigDecimal,
+        val additionalChildrenCount: Int,
+        val additionalChildrenSum: BigDecimal,
+    ) {
+        fun sum(): BigDecimal = baseLimit + additionalAdultsSum + additionalChildrenSum
+    }
 }
