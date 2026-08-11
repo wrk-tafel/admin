@@ -4,8 +4,9 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
 import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -43,51 +44,14 @@ class IncomeValidatorServiceImplTest {
         SiblingAdditionMockData(value = BigDecimal("6"), countChild = 7),
     )
 
-    @RelaxedMockK
+    @MockK
     private lateinit var staticValueRepository: StaticValueRepository
-
-    private lateinit var incomeTolerance100Entity: StaticValueEntity
 
     private lateinit var incomeValidatorService: IncomeValidatorService
 
     @BeforeEach
     fun beforeEach() {
-        every {
-            staticValueRepository.findLatestForPersonCount(
-                currentDate = any(),
-                countAdults = any(),
-                countChildren = any(),
-            )
-        } answers {
-            val countAdult = arg<Int>(2)
-            val countChild = arg<Int>(3)
-            mockIncomeLimits
-                .filter { it.countAdult == countAdult }
-                .filter { it.countChild == countChild }
-                .map { createStaticValueEntity(it.value) }
-                .first()
-        }
-        every { staticValueRepository.findSingleValueOfType(type = StaticValueType.ADDITIONAL_ADULT, currentDate = any()) } returns createAdditionalAdultLimitEntity()
-        every { staticValueRepository.findSingleValueOfType(type = StaticValueType.ADDITIONAL_CHILD, currentDate = any()) } returns createAdditionalChildLimitEntity()
-        every { staticValueRepository.findValuesOfType(type = StaticValueType.FAMILY_ALLOWANCE, currentDate = any()) } returns mockFamilyAllowance.map {
-            newStaticValueEntity(it.value).apply {
-                age = it.age
-            }
-        }
-
-        incomeTolerance100Entity = newStaticValueEntity(BigDecimal("100"))
-        every { staticValueRepository.findSingleValueOfType(type = StaticValueType.TOLERANCE, currentDate = any()) } returns null
-
-        val childTaxAllowanceEntity = newStaticValueEntity(BigDecimal("15"))
-        every { staticValueRepository.findSingleValueOfType(type = StaticValueType.CHILD_TAX_ALLOWANCE, currentDate = any()) } returns childTaxAllowanceEntity
-
-        every {
-            staticValueRepository.findValuesOfType(type = StaticValueType.SIBLING_ADDITION, currentDate = any())
-        } returns mockSiblingAddition.map {
-            newStaticValueEntity(it.value).apply {
-                countChildren = it.countChild
-            }
-        }
+        every { staticValueRepository.findAllValidAt(any()) } returns staticValues()
 
         incomeValidatorService = IncomeValidatorServiceImpl(staticValueRepository)
     }
@@ -150,7 +114,7 @@ class IncomeValidatorServiceImplTest {
 
     @Test
     fun `single person above limit within tolerance`() {
-        every { staticValueRepository.findSingleValueOfType(type = StaticValueType.TOLERANCE, currentDate = any()) } returns incomeTolerance100Entity
+        every { staticValueRepository.findAllValidAt(any()) } returns staticValues(tolerance = BigDecimal("100"))
 
         val persons = listOf(
             IncomeValidatorPerson(
@@ -169,7 +133,7 @@ class IncomeValidatorServiceImplTest {
 
     @Test
     fun `single person above limit exactly on tolerance`() {
-        every { staticValueRepository.findSingleValueOfType(type = StaticValueType.TOLERANCE, currentDate = any()) } returns incomeTolerance100Entity
+        every { staticValueRepository.findAllValidAt(any()) } returns staticValues(tolerance = BigDecimal("100"))
 
         val persons = listOf(
             IncomeValidatorPerson(
@@ -469,18 +433,88 @@ class IncomeValidatorServiceImplTest {
         assertThat(result.valid).isTrue()
     }
 
-    private fun newStaticValueEntity(amount: BigDecimal): StaticValueEntity = StaticValueEntity(
+    @Test
+    fun `validating many households reads the static values once`() {
+        val households = listOf(
+            listOf(
+                IncomeValidatorPerson(
+                    monthlyIncome = BigDecimal("500"),
+                    birthDate = LocalDate.now().minusYears(35),
+                ),
+            ),
+            listOf(
+                IncomeValidatorPerson(
+                    monthlyIncome = BigDecimal("1150"),
+                    birthDate = LocalDate.now().minusYears(35),
+                ),
+            ),
+        )
+
+        val results = incomeValidatorService.validateAll(households)
+
+        assertThat(results).hasSize(2)
+        assertThat(results[0].valid).isTrue
+        assertThat(results[1].valid).isFalse
+        assertThat(results[1].amountExceededLimit).isEqualTo(BigDecimal("150"))
+        verify(exactly = 1) { staticValueRepository.findAllValidAt(any()) }
+    }
+
+    @Test
+    fun `unconfigured static values are treated as zero`() {
+        every { staticValueRepository.findAllValidAt(any()) } returns emptyList()
+
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyAllowance = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        assertThat(result.totalSum).isEqualTo(BigDecimal("500"))
+        assertThat(result.limit).isEqualTo(BigDecimal.ZERO)
+        assertThat(result.toleranceValue).isEqualTo(BigDecimal.ZERO)
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("500"))
+        assertThat(result.valid).isFalse
+    }
+
+    private fun staticValues(tolerance: BigDecimal? = null): List<StaticValueEntity> {
+        val incomeLimits = mockIncomeLimits.map { mockData ->
+            staticValue(StaticValueType.INCOME_LIMIT, mockData.value).apply {
+                countAdults = mockData.countAdult
+                countChildren = mockData.countChild
+            }
+        }
+        val familyAllowances = mockFamilyAllowance.map { mockData ->
+            staticValue(StaticValueType.FAMILY_ALLOWANCE, mockData.value).apply {
+                age = mockData.age
+            }
+        }
+        val siblingAdditions = mockSiblingAddition.map { mockData ->
+            staticValue(StaticValueType.SIBLING_ADDITION, mockData.value).apply {
+                countChildren = mockData.countChild
+            }
+        }
+
+        return incomeLimits + familyAllowances + siblingAdditions + listOfNotNull(
+            staticValue(StaticValueType.ADDITIONAL_ADULT, BigDecimal("200")),
+            staticValue(StaticValueType.ADDITIONAL_CHILD, BigDecimal("100")),
+            staticValue(StaticValueType.CHILD_TAX_ALLOWANCE, BigDecimal("15")),
+            tolerance?.let { staticValue(StaticValueType.TOLERANCE, it) },
+        )
+    }
+
+    private fun staticValue(type: StaticValueType, amount: BigDecimal): StaticValueEntity = StaticValueEntity(
         validFrom = LocalDate.now(),
         validTo = LocalDate.now(),
-        type = StaticValueType.TOLERANCE,
+        type = type,
         amount = amount,
     )
-
-    private fun createStaticValueEntity(value: BigDecimal): StaticValueEntity = newStaticValueEntity(value)
-
-    private fun createAdditionalAdultLimitEntity(): StaticValueEntity = newStaticValueEntity(BigDecimal("200"))
-
-    private fun createAdditionalChildLimitEntity(): StaticValueEntity = newStaticValueEntity(BigDecimal("100"))
 }
 
 data class StaticValueMockData(

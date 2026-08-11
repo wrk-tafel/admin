@@ -206,8 +206,13 @@ class HouseholdService(
         val households = householdRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "id"))
             .map { householdConverter.mapEntityToHousehold(it) }
 
-        val itemsAboveLimit = households.mapNotNull { household ->
-            val result = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
+        // one snapshot of the static values for the whole run, so every household listed here was
+        // measured against the same limits even if an admin edits one while this is running
+        val results = incomeValidatorService.validateAll(
+            households.map { mapToValidationPersons(it.mainPerson(), it.additionalPersons()) },
+        )
+
+        val itemsAboveLimit = households.zip(results).mapNotNull { (household, result) ->
             if (!result.valid) {
                 HouseholdAboveLimitItem(
                     household = household,
