@@ -1,7 +1,9 @@
 package at.wrk.tafel.admin.backend.database.model.checkin
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
@@ -36,6 +38,25 @@ interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntit
 
     fun findByScannerId(scannerId: Int?): ScannerRegistrationEntity?
 
+    /**
+     * Drops the expired registrations, skipping any row another instance already holds - a scanner
+     * re-registering right now is left to that transaction rather than waited for. Native and
+     * set-based, because a derived `deleteAllBy...` loads every matching entity and removes it one
+     * by one, which costs a round trip per row and fails outright on the rows a concurrent cleanup
+     * already deleted.
+     */
+    @Modifying
     @Transactional
-    fun deleteAllByRegistrationTimeBefore(registrationTime: LocalDateTime)
+    @Query(
+        value = """
+            DELETE FROM scanner_registrations
+            WHERE id IN (
+                SELECT id FROM scanner_registrations
+                WHERE registration_time < :registrationTime
+                FOR UPDATE SKIP LOCKED
+            )
+        """,
+        nativeQuery = true,
+    )
+    fun deleteAllByRegistrationTimeBeforeSkipLocked(@Param("registrationTime") registrationTime: LocalDateTime): Int
 }

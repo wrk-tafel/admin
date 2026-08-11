@@ -227,6 +227,21 @@ choice on its own merits).
   one mail: a poller killed mid-send rolls back exactly that mail — which the next poll picks up
   seconds later, and which is what makes delivery at-least-once — while the ones already sent keep
   their outcome
+- **Scheduled jobs coordinate on their own rows first, and only take a scheduler lock when there are
+  none** (ADR-0047). A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` — the
+  five retention cleanups (`sse_outbox`, `mail_outbox`, `login_attempts`, `scanner_registrations`,
+  `audit_log`) and the mail poller all do — so two instances share the work out instead of one
+  standing idle. Note this is why those deletes are native `@Modifying` queries rather than derived
+  `deleteAllBy...` methods: a derived delete loads every matching entity and removes it one at a
+  time, which is both a round trip per row and a `StaleStateException` as soon as a second instance
+  is deleting the same rows. A job with nothing to claim — the still-open-distribution reminder, the
+  orphaned-document cleanup, the scanner-folder poll — takes a ShedLock instead (`@SchedulerLock`,
+  `config/SchedulerLockConfig.kt`, `shedlock` table). **`ConfigFileReloadService` is deliberately
+  excluded from both**: every instance has to re-read its own config file. Two things to remember
+  when adding a scheduled job: `lockAtLeastFor` may not exceed `lockAtMostFor` (ShedLock throws at
+  runtime if it does, which for a daily cron means you find out the next morning), and the daily jobs
+  need `lockAtLeastFor` at all because their risk is two instances firing seconds apart, not
+  overlapping. Advisory locks are *not* the tool here — see the advisory-lock README for why
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
@@ -312,6 +327,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
 - `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept longer than a sent one — it is the record of a mail nobody received — but not indefinitely
+- `shedlock`: one row per scheduled job that must run once per cluster rather than once per instance (ADR-0047). Written only by ShedLock itself; the retention cleanups are *not* in here, since they coordinate on the rows they delete instead
 - `mail_addresses`: Email recipient configuration
 
 ## Testing
@@ -723,7 +739,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     every open SSE stream. That connection closes itself and nothing else ever closes it, which is
     also why `SseOutboxListenerService.cleanup()` only cancels the job instead of waiting for it.
   - `tafeladmin.configReload.enabled: false` switches the whole mechanism off; it is read at startup
-    only. `tafeladmin.configReload.interval` (default 5s) is the poll interval.
+    only. `tafeladmin.configReload.cron` (default `*/5 * * * * *`) is the poll schedule. It is a cron
+    rather than an interval on purpose: this is the one scheduled job that must run on *every*
+    instance, and a wall-clock boundary is what makes them pick a change up together instead of each
+    on its own boot-time phase.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.

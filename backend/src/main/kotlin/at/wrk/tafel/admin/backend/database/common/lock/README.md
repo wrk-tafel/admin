@@ -38,6 +38,24 @@ Two consequences worth knowing before locking:
   held until *that* transaction ends, not until the locked block returns. Lock as late as possible in
   a long transaction, and keep the transaction itself short.
 
+## Not for scheduled jobs
+
+These locks serialize a short critical section inside a transaction that was going to exist anyway.
+They are the wrong tool for running a `@Scheduled` job once per cluster, and that is not a style
+preference:
+
+- Holding one for a job's duration means holding a transaction, and therefore a pooled connection,
+  for that duration. Hikari's `leak-detection-threshold` is 60s, so anything slower logs a warning
+  with a stack trace on every run - and the transaction pins the vacuum horizon while the job does
+  no database work at all.
+- The lock lives on a TCP connection. If that connection drops, Postgres releases the lock while the
+  job thread carries on, and a second instance starts the same work.
+- `tryWithLock` answers "is someone doing this right now?". A daily job's actual risk is two
+  instances firing seconds apart, each finding the lock free - which mutual exclusion does not cover.
+
+A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` instead; one with no rows of
+its own uses `@SchedulerLock` (see `config/SchedulerLockConfig.kt`). ADR-0047 has the full reasoning.
+
 ## Usage
 
 ### Basic Lock Usage (`withLock`)

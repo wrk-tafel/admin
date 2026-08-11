@@ -95,7 +95,7 @@ class TafelAdminFeaturesProperties {
  *
  * `tafeladmin.audit.cleanupCron` - when the retention job runs, default 05:00 daily - is deliberately
  * *not* a field here: `@Scheduled` fixes its expression at bean creation, so it is startup-only. It
- * lives in `application.yml` as a plain placeholder, same as `tafeladmin.configReload.interval`. See
+ * lives in `application.yml` as a plain placeholder, same as `tafeladmin.configReload.cron`. See
  * `AuditRetentionService`.
  */
 @ExcludeFromTestCoverage

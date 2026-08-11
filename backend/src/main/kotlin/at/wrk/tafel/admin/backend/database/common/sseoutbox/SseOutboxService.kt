@@ -41,7 +41,7 @@ class SseOutboxService(
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupOutbox() {
         val date = LocalDateTime.now().minus(tafelAdminProperties.sse.outboxRetention)
-        sseOutboxRepository.deleteAllByEventTimeBefore(date)
+        sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(date)
     }
 
     @Transactional

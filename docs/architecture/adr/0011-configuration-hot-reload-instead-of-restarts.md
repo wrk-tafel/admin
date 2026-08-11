@@ -23,7 +23,7 @@ the `settings` module and lives in the database, not in a file.
 **A background service watches the config files the application was started with and refreshes the
 whole configuration in place when they change.**
 
-- `ConfigFileReloadService` polls those files (default every 5s, `tafeladmin.configReload.interval`)
+- `ConfigFileReloadService` polls those files (default every 5s, `tafeladmin.configReload.cron`)
   and, on a change, runs Spring Cloud's `ContextRefresher` (`spring-cloud-context` — the only Spring
   Cloud artifact here: no config server, no client, no bus).
 - `ContextRefresher` re-runs Spring Boot's own config-data pipeline, so profile-specific documents,

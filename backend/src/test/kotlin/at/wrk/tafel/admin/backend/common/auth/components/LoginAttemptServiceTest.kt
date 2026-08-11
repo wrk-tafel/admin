@@ -81,9 +81,11 @@ internal class LoginAttemptServiceTest {
         every { loginAttemptRepository.deleteByUsername(any()) } answers {
             entries.remove(firstArg<String>())
         }
-        every { loginAttemptRepository.deleteAllByLastFailureAtBefore(any()) } answers {
+        every { loginAttemptRepository.deleteAllByLastFailureAtBeforeSkipLocked(any()) } answers {
             val date = firstArg<LocalDateTime>()
+            val sizeBefore = entries.size
             entries.values.removeIf { it.lastFailureAt!!.isBefore(date) }
+            sizeBefore - entries.size
         }
         every { loginAttemptRepository.existsById(any()) } answers {
             entries.values.any { it.id == firstArg<Long>() }

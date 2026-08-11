@@ -40,12 +40,12 @@ class AuditRetentionServiceTest {
     @Test
     fun `removes entries older than the configured retention window`() {
         properties.audit.retentionDays = 90
-        every { auditLogRepository.deleteAllByOccurredAtBefore(any()) } returns 7
+        every { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) } returns 7
 
         service.cleanupExpiredEntries()
 
         val cutoff = slot<LocalDateTime>()
-        verify { auditLogRepository.deleteAllByOccurredAtBefore(capture(cutoff)) }
+        verify { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(capture(cutoff)) }
         assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2026, 5, 11, 5, 0, 0))
     }
 
@@ -55,12 +55,12 @@ class AuditRetentionServiceTest {
      */
     @Test
     fun `keeps a month by default`() {
-        every { auditLogRepository.deleteAllByOccurredAtBefore(any()) } returns 0
+        every { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) } returns 0
 
         service.cleanupExpiredEntries()
 
         val cutoff = slot<LocalDateTime>()
-        verify { auditLogRepository.deleteAllByOccurredAtBefore(capture(cutoff)) }
+        verify { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(capture(cutoff)) }
         assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2026, 7, 10, 5, 0, 0))
     }
 
@@ -70,6 +70,6 @@ class AuditRetentionServiceTest {
 
         service.cleanupExpiredEntries()
 
-        verify(exactly = 0) { auditLogRepository.deleteAllByOccurredAtBefore(any()) }
+        verify(exactly = 0) { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) }
     }
 }

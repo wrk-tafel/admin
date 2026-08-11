@@ -62,7 +62,7 @@ class SseOutboxServiceTest {
     fun `cleanup outbox`() {
         service.cleanupOutbox()
 
-        verify { sseOutboxRepository.deleteAllByEventTimeBefore(any()) }
+        verify { sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(any()) }
     }
 
     /**
@@ -76,7 +76,7 @@ class SseOutboxServiceTest {
         service.cleanupOutbox()
 
         val cutoffSlot = slot<LocalDateTime>()
-        verify { sseOutboxRepository.deleteAllByEventTimeBefore(capture(cutoffSlot)) }
+        verify { sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(capture(cutoffSlot)) }
         assertThat(cutoffSlot.captured).isCloseTo(LocalDateTime.now().minusDays(3), within(1, ChronoUnit.MINUTES))
     }
 

@@ -113,7 +113,7 @@ internal class ScannerServiceTest {
         service.cleanupScannerRegistrations()
 
         verify {
-            scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(any())
+            scannerRegisteredRepository.deleteAllByRegistrationTimeBeforeSkipLocked(any())
         }
     }
 
@@ -129,7 +129,7 @@ internal class ScannerServiceTest {
         service.cleanupScannerRegistrations()
 
         val cutoffSlot = slot<LocalDateTime>()
-        verify { scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(capture(cutoffSlot)) }
+        verify { scannerRegisteredRepository.deleteAllByRegistrationTimeBeforeSkipLocked(capture(cutoffSlot)) }
         assertThat(cutoffSlot.captured).isCloseTo(LocalDateTime.now().minusDays(7), within(1, ChronoUnit.MINUTES))
     }
 }
