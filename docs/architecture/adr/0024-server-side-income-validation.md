@@ -22,9 +22,11 @@ what happens on failure depends on the caller's role.**
 - `IncomeValidatorService` reads its limits from `StaticValueRepository` per validation, so an
   administrator's change takes effect without a deploy.
 - Domain rules live in the service: a person is a child under 15, but counts as a child for family
-  allowance up to 24; persons flagged `excludeFromIncomeCalculation` are left out of the income sum
-  but can still receive family allowance; the base limit is looked up per (adult count, child count)
-  and a flat tolerance is added before comparing.
+  allowance up to 24; persons flagged `excludeFromIncomeCalculation` are left out of the calculation
+  altogether, income and family allowance alike; the base limit is looked up per (adult count, child count)
+  and a flat tolerance is added before comparing. A composition with no configured base limit — a
+  household with no adult, or a missing/lapsed `INCOME_LIMIT` row — is rejected rather than measured
+  against 0.00.
 - The frontend calls `validate()` ad hoc before submit. `createHousehold`/`updateHousehold` then run
   the **same** validation again server-side — the client-computed result is never trusted.
 - On failure, behaviour depends on the caller:
@@ -35,7 +37,8 @@ what happens on failure depends on the caller's role.**
   - **Supervisor with `force=true`:** saved as-is, validity untouched.
 - Households that end up over the limit surface in `GET /households/above-limit`, a review flow that
   loads valid households, evaluates each in memory and paginates the result — the criterion depends
-  on the validator, not on a stored column, so it cannot be expressed in SQL.
+  on the validator, not on a stored column, so it cannot be expressed in SQL. A household the
+  validator rejects is logged at WARN and left out, so one of them cannot cost the whole list.
 
 ## Consequences
 

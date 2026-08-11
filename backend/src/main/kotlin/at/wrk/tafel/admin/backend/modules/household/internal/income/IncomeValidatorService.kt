@@ -13,8 +13,13 @@ interface IncomeValidatorService {
      * Validates many households against **one** [IncomeRateCard], so every result - one per entry of
      * [personsPerHousehold], in the same order - is measured against the same limits and the same
      * date, even when an administrator edits a value while the run is in progress.
+     *
+     * A household the validator rejects (see `IncomeValidatorServiceImpl.calculateLimit`) yields a
+     * failed [Result] rather than aborting the run: a batch caller lists many households and must
+     * not lose all of them to one whose composition has no configured limit. The failure carries
+     * the reason, so the caller can log it against the household it belongs to.
      */
-    fun validateAll(personsPerHousehold: List<List<IncomeValidatorPerson>>): List<IncomeValidatorResult>
+    fun validateAll(personsPerHousehold: List<List<IncomeValidatorPerson>>): List<Result<IncomeValidatorResult>>
 }
 
 @ExcludeFromTestCoverage

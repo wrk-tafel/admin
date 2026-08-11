@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal.income
 
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -24,8 +25,16 @@ import kotlin.math.max
  *    counts, then add [IncomeRateCard.additionalAdultLimit] / [IncomeRateCard.additionalChildLimit]
  *    for persons beyond the base household size ([BASE_HOUSEHOLD_ADULTS] adults,
  *    [BASE_HOUSEHOLD_CHILDREN_SINGLE_ADULT] or [BASE_HOUSEHOLD_CHILDREN_MULTIPLE_ADULTS] children
- *    depending on adult count), plus a [IncomeRateCard.tolerance] buffer.
+ *    depending on adult count), plus a [IncomeRateCard.tolerance] buffer. A composition with no
+ *    configured limit at all is rejected rather than measured against zero.
  * 4. Valid when the income sum does not exceed the resulting limit.
+ *
+ * A person flagged `excludeFromIncomeCalculation` ("Nicht im selben Haushalt") is not part of the
+ * household for any of those steps: their income is left out, their family allowance is left out,
+ * they do not count towards the Geschwisterstaffel tier, and they do not raise the limit. Counting
+ * only some of that would move a household's answer in one direction only - a child living
+ * elsewhere would add their Familienbeihilfe and Kinderabsetzbetrag to an income limit they never
+ * raise. Hence steps 1-3 all work off the same `includedPersons` list.
  *
  * Both sums are reported split into their parts as well ([IncomeValidatorDetails]), which is why
  * steps 2 and 3 return their pieces rather than a total.
@@ -46,9 +55,9 @@ class IncomeValidatorServiceImpl(
 
     override fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult = validate(persons, currentRateCard())
 
-    override fun validateAll(personsPerHousehold: List<List<IncomeValidatorPerson>>): List<IncomeValidatorResult> {
+    override fun validateAll(personsPerHousehold: List<List<IncomeValidatorPerson>>): List<Result<IncomeValidatorResult>> {
         val rateCard = currentRateCard()
-        return personsPerHousehold.map { validate(it, rateCard) }
+        return personsPerHousehold.map { runCatching { validate(it, rateCard) } }
     }
 
     private fun currentRateCard(): IncomeRateCard {
@@ -62,7 +71,7 @@ class IncomeValidatorServiceImpl(
         val includedPersons = persons.filterNot { it.excludeFromIncomeCalculation }
         val incomeSum = includedPersons.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
-        val familyAllowanceRecipients = persons.filter { it.receivesFamilyAllowance }
+        val familyAllowanceRecipients = includedPersons.filter { it.receivesFamilyAllowance }
         val familyAllowance = calculateFamilyAllowance(familyAllowanceRecipients, rateCard)
         val limit = calculateLimit(includedPersons, rateCard)
 
@@ -106,6 +115,12 @@ class IncomeValidatorServiceImpl(
      * Base limit for the household's adult/child counts, plus ADDITIONAL_ADULT/ADDITIONAL_CHILD
      * for every person beyond the base household size. Like [calculateFamilyAllowance], the parts
      * are returned rather than a total, since the result reports what the limit is made of.
+     *
+     * The counts are capped at the base household size before the lookup, so every composition that
+     * can reach it has a configured row - except a household with no adult at all, which none
+     * covers. That, and an `INCOME_LIMIT` row that is missing or whose validity window has lapsed,
+     * is rejected with a [BusinessRuleException] naming the composition: unlike the allowances, a
+     * base limit of zero is a meaningful value and must not double as "not configured".
      */
     private fun calculateLimit(persons: List<IncomeValidatorPerson>, rateCard: IncomeRateCard): Limit {
         val countAdults = persons.count { !it.isChild(rateCard.referenceDate) }
@@ -122,11 +137,16 @@ class IncomeValidatorServiceImpl(
         val baseLimitCountAdults = countAdults - countAdditionalAdults
         val baseLimitCountChildren = countChildren - countAdditionalChildren
 
+        val baseLimit = rateCard.incomeLimit(
+            countAdults = baseLimitCountAdults,
+            countChildren = baseLimitCountChildren,
+        ) ?: throw BusinessRuleException(
+            "Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert " +
+                "(Erwachsene: $baseLimitCountAdults, Kinder: $baseLimitCountChildren)!",
+        )
+
         return Limit(
-            baseLimit = rateCard.incomeLimit(
-                countAdults = baseLimitCountAdults,
-                countChildren = baseLimitCountChildren,
-            ),
+            baseLimit = baseLimit,
             baseLimitCountAdults = baseLimitCountAdults,
             baseLimitCountChildren = baseLimitCountChildren,
             additionalAdultsCount = countAdditionalAdults,

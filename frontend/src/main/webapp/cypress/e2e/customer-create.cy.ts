@@ -38,13 +38,13 @@ describe('Customer Creation', () => {
       .within(() => {
         // the two adults' income; the 3-year-old has none and the 8-year-old is not in the household
         cy.byTestId('detail-income').should('contain.text', '1.000,00');
-        // both children receive family allowance and are in the "ab 3" tier, so 2x 148,00 plus
-        // 2x the flat child tax allowance
-        cy.byTestId('detail-familyallowance').should('contain.text', '296,00');
-        cy.byTestId('detail-childtaxallowance').should('contain.text', '141,80');
-        // two children, so the sibling addition applies at 8,60 each
-        cy.byTestId('detail-siblingaddition').should('contain.text', '17,20');
-        cy.byTestId('total-income').should('contain.text', '1.455,00');
+        // the 8-year-old is not in the household, so nothing of theirs is counted - only the
+        // 3-year-old's "ab 3" tier plus the flat child tax allowance
+        cy.byTestId('detail-familyallowance').should('contain.text', '148,00');
+        cy.byTestId('detail-childtaxallowance').should('contain.text', '70,90');
+        // one child in the household, and the sibling addition starts at two
+        cy.byTestId('detail-siblingaddition').should('contain.text', '0,00');
+        cy.byTestId('total-income').should('contain.text', '1.218,90');
 
         // 2 adults and 1 child in the household, none of them beyond the base household size
         cy.byTestId('detail-baselimit')
@@ -79,6 +79,20 @@ describe('Customer Creation', () => {
       .should('contain.text', 'Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet');
 
     cy.url().should('include', '/kunden/detail');
+  });
+
+  it('reports a household composition that has no configured income limit', () => {
+    // a household of one child and no adult - no income limit is configured for that composition,
+    // and reading that as a limit of 0,00 would deny the household its eligibility silently
+    enterCustomerData(10);
+    cy.byTestId('incomeInput').type('500');
+
+    cy.byTestId('validate-button').click();
+
+    cy.get('.toast-message')
+      .should('be.visible')
+      .should('contain.text', 'Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: 0, Kinder: 1)!');
+    cy.byTestId('validationresult-dialog').should('not.exist');
   });
 
   it('remains usable on mobile viewports', () => {
@@ -213,10 +227,10 @@ describe('Customer Creation', () => {
     cy.byTestId('validate-button').click();
   }
 
-  function enterCustomerData() {
+  function enterCustomerData(age = 25) {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
-    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(25)).format('YYYY-MM-DD'));
+    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(age)).format('YYYY-MM-DD'));
     cy.byTestId('genderInput').click();
     cy.byTestId('genderInput-option-MALE').click();
     cy.byTestId('countryInput').click();

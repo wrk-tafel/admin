@@ -47,7 +47,7 @@ Wurde bei einem Kunden zwischenzeitlich von anderer Stelle etwas geändert (z. B
 
 ### Weitere Personen
 
-Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. Kinder) mit Geburtsdatum, Nationalität, Arbeitgeber, Einkommen sowie den Angaben "Bezieht Familienbeihilfe" und "Im selben Haushalt". Personen, die als "Nicht im selben Haushalt" markiert sind, fließen nicht in die Berechnung von Haushaltsgröße und Einkommenslimit ein.
+Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. Kinder) mit Geburtsdatum, Nationalität, Arbeitgeber, Einkommen sowie den Angaben "Bezieht Familienbeihilfe" und "Im selben Haushalt". Personen, die als "Nicht im selben Haushalt" markiert sind, bleiben bei der Berechnung vollständig außen vor – weder ihr Einkommen noch ihre Familienbeihilfe zählen mit, und sie erhöhen weder Haushaltsgröße noch Einkommenslimit.
 
 ![Weitere Personen](images/kunden-detail-weitere-personen.jpg)
 
@@ -85,7 +85,7 @@ Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das
 - **Alleinerzieher**: Wird nur für die Statistik erfasst und beeinflusst die Einkommensgrenze nicht.
 - **Gültig bis**: Ende der Bezugsberechtigung; danach wird der Kunde bei der Annahme als ungültig angezeigt.
 - **Bezieht Familienbeihilfe** (bei weiteren Personen): Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel werden automatisch zum Haushaltseinkommen dazugerechnet.
-- **Nicht im selben Haushalt (keine Berechnung)**: Die Person bleibt beim Kunden erfasst, ihr Einkommen wird aber weder mitgezählt noch erhöht sie die Einkommensgrenze.
+- **Nicht im selben Haushalt (keine Berechnung)**: Die Person bleibt beim Kunden erfasst, fließt aber in die gesamte Berechnung nicht ein: Weder ihr Einkommen noch ihre Familienbeihilfe und ihr Kinderabsetzbetrag werden mitgezählt, sie zählt nicht für die Geschwisterstaffel und sie erhöht die Einkommensgrenze nicht.
 
 ![Kunde anlegen](images/kunden-anlegen.jpg)
 
@@ -99,6 +99,8 @@ Die Bearbeitungsmaske eines bestehenden Kunden zeigt zusätzlich die bereits erf
 - **Limit**: der Grundbetrag für die Haushaltsgröße (z. B. "Grundbetrag (2 Erw., 1 Kind)"), die Zuschläge für jede weitere erwachsene Person bzw. jedes weitere Kind darüber hinaus sowie die Toleranz – darunter das Gesamtlimit. Zuschlagszeilen erscheinen nur dann, wenn es solche weiteren Personen tatsächlich gibt.
 
 Abgeschlossen wird die Aufstellung mit **Einkommen über Limit**: Bei einem bezugsberechtigten Haushalt steht dort 0,00 €, andernfalls die rot hervorgehobene Differenz. Die Sätze, aus denen sich die Berechnung speist, werden unter [Einstellungen → Statische Werte](einstellungen.md) gepflegt.
+
+Gibt es für die Zusammensetzung eines Haushalts keinen hinterlegten Grundbetrag – etwa weil im Haushalt keine erwachsene Person erfasst ist oder ein Wert unter [Einstellungen → Statische Werte](einstellungen.md) fehlt bzw. abgelaufen ist – meldet die Anwendung "Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: X, Kinder: Y)!", statt mit einer Grenze von 0,00 € zu rechnen. Der Haushalt wird dann weder geprüft noch gespeichert; zuerst ist der fehlende Wert zu ergänzen bzw. die Personenerfassung zu korrigieren.
 
 ![Anspruch prüfen](images/kunden-anspruch-pruefen.jpg)
 

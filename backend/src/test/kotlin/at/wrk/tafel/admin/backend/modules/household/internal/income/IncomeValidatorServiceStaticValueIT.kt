@@ -79,7 +79,7 @@ class IncomeValidatorServiceStaticValueIT : TafelBaseIntegrationTest() {
         val results = incomeValidatorService.validateAll(listOf(household, household, household))
 
         assertThat(results).hasSize(3)
-        assertThat(results.map { it.limit }.distinct()).hasSize(1)
-        assertThat(results.map { it.toleranceValue }.distinct()).hasSize(1)
+        assertThat(results.map { it.getOrThrow().limit }.distinct()).hasSize(1)
+        assertThat(results.map { it.getOrThrow().toleranceValue }.distinct()).hasSize(1)
     }
 }

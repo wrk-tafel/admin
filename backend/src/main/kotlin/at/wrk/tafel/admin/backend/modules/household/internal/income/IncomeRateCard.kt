@@ -16,7 +16,10 @@ import java.time.LocalDate
  * results, and a run crossing midnight resolves against one date. See ADR-0048.
  *
  * A lookup with no matching row answers [BigDecimal.ZERO]: `static_values` is admin-maintained and
- * a validation must still produce a number when a value has not been configured.
+ * a validation must still produce a number when an allowance or the tolerance has not been
+ * configured - an unconfigured addition simply adds nothing. [incomeLimit] is the one exception and
+ * answers `null` instead, because 0.00 is a perfectly valid limit there and reading "not
+ * configured" as "this household may not earn anything" denies eligibility silently.
  */
 class IncomeRateCard(
     val referenceDate: LocalDate,
@@ -37,11 +40,12 @@ class IncomeRateCard(
     /**
      * Base limit for a household of exactly this composition - the caller reduces larger households
      * to a configured composition first and tops the result up with [additionalAdultLimit] /
-     * [additionalChildLimit].
+     * [additionalChildLimit]. `null` when no row covers the composition at all, which the caller has
+     * to treat as "this household cannot be validated" rather than as a limit of zero.
      */
-    fun incomeLimit(countAdults: Int, countChildren: Int): BigDecimal = ratesOf(StaticValueType.INCOME_LIMIT)
+    fun incomeLimit(countAdults: Int, countChildren: Int): BigDecimal? = ratesOf(StaticValueType.INCOME_LIMIT)
         .firstOrNull { it.countAdults == countAdults && it.countChildren == countChildren }
-        ?.amount ?: BigDecimal.ZERO
+        ?.amount
 
     fun additionalAdultLimit(): BigDecimal = singleAmount(StaticValueType.ADDITIONAL_ADULT)
 
