@@ -698,7 +698,17 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   codebase, and no `CacheManager` bean): a cache in front of this table meant an administrator's edit
   took effect on the editing instance only, with a silently wrong eligibility answer everywhere else
   — see ADR-0048 before reaching for `@Cacheable` here.
-- **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
+- **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are
+  generated via Apache FOP. `PDFService` holds two things per process, because building either is
+  expensive and their input is immutable: the `FopFactory` (extracting the bundled fonts to disk),
+  and one compiled `Templates` per stylesheet (parsing its whole `xsl:include` tree). The
+  per-call parts are the `Transformer` created from those `Templates` and the `Fop` itself — neither
+  is thread-safe, and the shared FOP configuration a `Fop` is built from is a DOM tree that caches
+  its own traversal state, so that construction happens under a lock while the rendering does not.
+  Note this is memoization of classpath resources, which cannot change while the application runs —
+  it needs no eviction, no TTL and nothing that reaches a second instance. It is not a precedent for
+  holding on to anything a user or operator can edit; that is what ADR-0048 rules out for
+  `static_values` above.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`. Golden
   reference files in `src/test/resources/mail-references/` are compared byte-for-byte by
   `MailTemplateRenderingTest`, so a new/changed template needs its reference regenerated — and keep
