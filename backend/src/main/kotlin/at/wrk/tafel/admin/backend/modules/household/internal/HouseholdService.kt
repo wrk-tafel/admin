@@ -206,6 +206,9 @@ class HouseholdService(
      * nothing to invalidate. The whole run shares one rate card ([IncomeValidatorService.validateAll]),
      * so every household is measured against the same limits and the same date.
      *
+     * A household the validator rejects - one whose composition has no configured income limit - is
+     * logged at WARN and left out, rather than failing the whole list along with it.
+     *
      * Validation therefore runs off the loaded entities (it only needs birth date, income and the
      * two flags), and only the requested page's households are mapped to a [HouseholdResponse] -
      * that mapping resolves each household's issuer, its `lockedBy` user and every person's country,
@@ -225,7 +228,15 @@ class HouseholdService(
         )
 
         val entitiesAboveLimit = households.zip(results).mapNotNull { (household, result) ->
-            if (!result.valid) household to result else null
+            result.fold(
+                onSuccess = { if (!it.valid) household to it else null },
+                onFailure = {
+                    // a household nobody can validate is not an answer this list can give - leaving
+                    // it out keeps the review usable for every other household
+                    log.warn("Household {} could not be income-validated: {}", household.householdId, it.message)
+                    null
+                },
+            )
         }
 
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))

@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal.income
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -564,6 +565,66 @@ class IncomeValidatorServiceImplTest {
     }
 
     @Test
+    fun `person excluded from the calculation contributes no family allowance either`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(12),
+                receivesFamilyAllowance = true,
+                excludeFromIncomeCalculation = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        val details = result.details
+        assertThat(details.incomeSum).isEqualTo(BigDecimal("500"))
+        assertThat(details.familyAllowanceSum).isEqualTo(BigDecimal.ZERO)
+        assertThat(details.childTaxAllowanceSum).isEqualTo(BigDecimal.ZERO)
+        assertThat(details.siblingAdditionSum).isEqualTo(BigDecimal.ZERO)
+        assertThat(result.totalSum).isEqualTo(BigDecimal("500"))
+        // the excluded child raises neither the income nor the limit
+        assertThat(result.limit).isEqualTo(BigDecimal("1000"))
+        assertThat(result.valid).isTrue
+    }
+
+    @Test
+    fun `excluded children do not count towards the sibling addition of the household's children`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyAllowance = true,
+                excludeFromIncomeCalculation = true,
+            ),
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        val details = result.details
+        // only the two children in the household: 2x the age-10 tier (180), 2x the flat child tax
+        // allowance (30) and the 2-children sibling addition (1 each) - not the 3-children one
+        assertThat(details.familyAllowanceSum).isEqualTo(BigDecimal("180"))
+        assertThat(details.childTaxAllowanceSum).isEqualTo(BigDecimal("30"))
+        assertThat(details.siblingAdditionSum).isEqualTo(BigDecimal("2"))
+        assertThat(result.totalSum).isEqualTo(BigDecimal("712"))
+    }
+
+    @Test
     fun `validating many households reads the static values once`() {
         val households = listOf(
             listOf(
@@ -583,15 +644,47 @@ class IncomeValidatorServiceImplTest {
         val results = incomeValidatorService.validateAll(households)
 
         assertThat(results).hasSize(2)
-        assertThat(results[0].valid).isTrue
-        assertThat(results[1].valid).isFalse
-        assertThat(results[1].amountExceededLimit).isEqualTo(BigDecimal("150"))
+        assertThat(results[0].getOrThrow().valid).isTrue
+        assertThat(results[1].getOrThrow().valid).isFalse
+        assertThat(results[1].getOrThrow().amountExceededLimit).isEqualTo(BigDecimal("150"))
         verify(exactly = 1) { staticValueRepository.findAllValidAt(any()) }
     }
 
     @Test
-    fun `unconfigured static values are treated as zero`() {
-        every { staticValueRepository.findAllValidAt(any()) } returns emptyList()
+    fun `a household that cannot be validated fails on its own without aborting the batch`() {
+        val households = listOf(
+            listOf(
+                IncomeValidatorPerson(
+                    monthlyIncome = BigDecimal("500"),
+                    birthDate = LocalDate.now().minusYears(35),
+                ),
+            ),
+            // nobody in this household is an adult, so no configured limit covers it
+            listOf(
+                IncomeValidatorPerson(
+                    birthDate = LocalDate.now().minusYears(10),
+                ),
+            ),
+            listOf(
+                IncomeValidatorPerson(
+                    monthlyIncome = BigDecimal("1150"),
+                    birthDate = LocalDate.now().minusYears(35),
+                ),
+            ),
+        )
+
+        val results = incomeValidatorService.validateAll(households)
+
+        assertThat(results).hasSize(3)
+        assertThat(results[0].getOrThrow().valid).isTrue
+        assertThat(results[1].exceptionOrNull()).isInstanceOf(BusinessRuleException::class.java)
+        assertThat(results[2].getOrThrow().valid).isFalse
+    }
+
+    @Test
+    fun `unconfigured allowances are treated as zero`() {
+        every { staticValueRepository.findAllValidAt(any()) } returns
+            staticValues().filter { it.type == StaticValueType.INCOME_LIMIT }
 
         val persons = listOf(
             IncomeValidatorPerson(
@@ -606,11 +699,52 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
+        // no family allowance, child tax allowance, sibling addition or tolerance is configured, so
+        // none of them adds anything
         assertThat(result.totalSum).isEqualTo(BigDecimal("500"))
-        assertThat(result.limit).isEqualTo(BigDecimal.ZERO)
+        assertThat(result.limit).isEqualTo(BigDecimal("1100"))
         assertThat(result.toleranceValue).isEqualTo(BigDecimal.ZERO)
-        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("500"))
-        assertThat(result.valid).isFalse
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
+        assertThat(result.valid).isTrue
+    }
+
+    @Test
+    fun `a lapsed or missing income limit configuration is rejected instead of read as a limit of zero`() {
+        every { staticValueRepository.findAllValidAt(any()) } returns
+            staticValues().filterNot { it.type == StaticValueType.INCOME_LIMIT }
+
+        // an ordinary single-adult household - what is missing is the configuration, as it would be
+        // when an INCOME_LIMIT row is deleted or its validity window has lapsed
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                birthDate = LocalDate.now().minusYears(35),
+            ),
+        )
+
+        val exception = assertThrows<BusinessRuleException> { incomeValidatorService.validate(persons) }
+
+        assertThat(exception.message)
+            .contains("Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: 1, Kinder: 0)!")
+    }
+
+    @Test
+    fun `household without any adult is rejected - no limit is configured for that composition`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyAllowance = true,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(8),
+                receivesFamilyAllowance = true,
+            ),
+        )
+
+        val exception = assertThrows<BusinessRuleException> { incomeValidatorService.validate(persons) }
+
+        assertThat(exception.message)
+            .contains("Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: 0, Kinder: 2)!")
     }
 
     private fun staticValues(tolerance: BigDecimal? = null): List<StaticValueEntity> {

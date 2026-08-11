@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
@@ -517,19 +518,23 @@ class HouseholdServiceTest {
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity2) } returns invalidHousehold
 
         every { incomeValidatorService.validateAll(any()) } returns listOf(
-            IncomeValidatorResult(
-                valid = true,
-                totalSum = BigDecimal("500"),
-                limit = BigDecimal("1000"),
-                toleranceValue = BigDecimal.ZERO,
-                amountExceededLimit = BigDecimal.ZERO,
+            Result.success(
+                IncomeValidatorResult(
+                    valid = true,
+                    totalSum = BigDecimal("500"),
+                    limit = BigDecimal("1000"),
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal.ZERO,
+                ),
             ),
-            IncomeValidatorResult(
-                valid = false,
-                totalSum = BigDecimal("1500"),
-                limit = BigDecimal("1000"),
-                toleranceValue = BigDecimal.ZERO,
-                amountExceededLimit = BigDecimal("500"),
+            Result.success(
+                IncomeValidatorResult(
+                    valid = false,
+                    totalSum = BigDecimal("1500"),
+                    limit = BigDecimal("1000"),
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal("500"),
+                ),
             ),
         )
 
@@ -548,6 +553,42 @@ class HouseholdServiceTest {
         // the household that turned out to be below the limit is never mapped to a response
         verify(exactly = 0) { householdConverter.mapEntityToHousehold(testHouseholdEntity1) }
         verify(exactly = 1) { householdConverter.mapEntityToHousehold(testHouseholdEntity2) }
+    }
+
+    @Test
+    fun `get households above limit - a household that cannot be validated is left out`() {
+        val unvalidatableEntity = mockk<HouseholdEntity>(relaxed = true)
+        val invalidEntity = mockk<HouseholdEntity>(relaxed = true)
+        val invalidHousehold = mockk<HouseholdResponse>(relaxed = true)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns listOf(
+            unvalidatableEntity,
+            invalidEntity,
+        )
+        every { householdConverter.mapEntityToHousehold(invalidEntity) } returns invalidHousehold
+
+        every { incomeValidatorService.validateAll(any()) } returns listOf(
+            Result.failure(
+                BusinessRuleException("Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: 0, Kinder: 2)!"),
+            ),
+            Result.success(
+                IncomeValidatorResult(
+                    valid = false,
+                    totalSum = BigDecimal("1500"),
+                    limit = BigDecimal("1000"),
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal("500"),
+                ),
+            ),
+        )
+
+        val result = service.getHouseholdsAboveLimit()
+
+        // the rejected household is skipped, the rest of the list is unaffected
+        assertThat(result.items).hasSize(1)
+        assertThat(result.items.first().household).isEqualTo(invalidHousehold)
+        assertThat(result.totalCount).isEqualTo(1)
+        verify(exactly = 0) { householdConverter.mapEntityToHousehold(unvalidatableEntity) }
     }
 
     @Test
@@ -573,12 +614,14 @@ class HouseholdServiceTest {
 
         val personsSlot = slot<List<List<IncomeValidatorPerson>>>()
         every { incomeValidatorService.validateAll(capture(personsSlot)) } returns listOf(
-            IncomeValidatorResult(
-                valid = true,
-                totalSum = BigDecimal("1250"),
-                limit = BigDecimal("2000"),
-                toleranceValue = BigDecimal.ZERO,
-                amountExceededLimit = BigDecimal.ZERO,
+            Result.success(
+                IncomeValidatorResult(
+                    valid = true,
+                    totalSum = BigDecimal("1250"),
+                    limit = BigDecimal("2000"),
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal.ZERO,
+                ),
             ),
         )
 
@@ -616,12 +659,14 @@ class HouseholdServiceTest {
 
         every { incomeValidatorService.validateAll(any()) } answers {
             firstArg<List<List<IncomeValidatorPerson>>>().map {
-                IncomeValidatorResult(
-                    valid = false,
-                    totalSum = BigDecimal("1500"),
-                    limit = BigDecimal("1000"),
-                    toleranceValue = BigDecimal.ZERO,
-                    amountExceededLimit = BigDecimal("500"),
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = BigDecimal("1500"),
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = BigDecimal("500"),
+                    ),
                 )
             }
         }

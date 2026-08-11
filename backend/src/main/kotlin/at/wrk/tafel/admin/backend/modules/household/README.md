@@ -272,12 +272,25 @@ the implementation:
   income/Familienbeihilfe/Kinderabsetzbetrag/Geschwisterstaffel, and the limit into base limit,
   per-person surcharges and tolerance. It adds no rule - the parts are exactly the totals, split up -
   and exists so the frontend's validation dialog can show how a result came about.
-- Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) are
-  excluded from the income sum entirely, but can still receive family allowance.
+- Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) count for
+  nothing: neither their income nor their Familienbeihilfe/Kinderabsetzbetrag is added, they are not
+  counted for the Geschwisterstaffel tier, and they do not raise the limit. The flag means "not part
+  of this household", so it has to apply to both sides of the comparison - counting a child's family
+  allowance while ignoring the child for the limit can only ever make a household look worse off
+  than it is.
 - The base limit is looked up per (adult count, child count) via `IncomeRateCard.incomeLimit`, then a
   flat `TOLERANCE` amount is added on top before comparing against the summed income -
   `IncomeValidatorResult.toleranceValue` reports how much tolerance was applied,
   `amountExceededLimit` how far over the (tolerance-inclusive) limit the household is.
+- **A composition with no configured base limit is rejected**, with a `BusinessRuleException` naming
+  the (adults, children) combination. Every lookup on the rate card answers zero when nothing is
+  configured - an allowance nobody maintains simply adds nothing - but a base limit of 0.00 is a
+  meaningful value, so `IncomeRateCard.incomeLimit` answers `null` instead and the validator refuses
+  rather than declaring the household ineligible by its entire income. Two things reach it: a
+  household with no adult at all (the counts are capped before the lookup, so every other reachable
+  combination is seeded), and an `INCOME_LIMIT` row that is missing or whose validity window has
+  lapsed. Because of that, `validateAll` hands back a `Result` per household instead of aborting the
+  whole batch - `getHouseholdsAboveLimit` logs the rejected household at WARN and leaves it out.
 
 `HouseholdService.mapToValidationPersons` is the adapter that turns a `Household`'s persons into
 `IncomeValidatorPerson`s before calling this service - both `validate()` (called ad-hoc by the
