@@ -9,6 +9,8 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.ConcurrentHashMap
+import javax.xml.transform.Templates
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -54,6 +56,36 @@ class PDFService {
 
             return targetDirectory
         }
+
+        /**
+         * A [TransformerFactory] is not thread-safe, and compiling a stylesheet is the only thing
+         * this one is ever used for, so [compiledStylesheets] does that under a lock on it. Its
+         * [ClasspathResourceURIResolver] is what pulls an `xsl:include` out of the classpath while
+         * compiling.
+         */
+        private val transformerFactory: TransformerFactory by lazy {
+            TransformerFactory.newInstance().apply { uriResolver = ClasspathResourceURIResolver() }
+        }
+
+        private val compiledStylesheets = ConcurrentHashMap<String, Templates>()
+
+        /**
+         * Compiling a stylesheet parses its whole `xsl:include` tree, so each one is compiled once
+         * and kept: they are classpath resources and cannot change while the application runs.
+         * [Templates] is thread-safe and reusable - a [javax.xml.transform.Transformer] is not,
+         * which is why [generatePdf] creates a fresh one per call instead of sharing one.
+         */
+        internal fun compiledStylesheet(stylesheetPath: String): Templates =
+            compiledStylesheets.computeIfAbsent(stylesheetPath) { path ->
+                val stylesheet = checkNotNull(PDFService::class.java.getResourceAsStream(path)) {
+                    "PDF stylesheet not found: $path"
+                }
+                stylesheet.use {
+                    synchronized(transformerFactory) {
+                        transformerFactory.newTemplates(StreamSource(it))
+                    }
+                }
+            }
     }
 
     fun generatePdf(data: Any, stylesheetPath: String): ByteArray {
@@ -66,20 +98,18 @@ class PDFService {
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
 
-            val foUserAgent = fopFactory.newFOUserAgent()
             val outStream = ByteArrayOutputStream()
 
             outStream.use { out ->
-                val fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out)
+                // Building the Fop reads the shared FOP configuration, which is a DOM tree that
+                // caches its own traversal state, so two threads doing it at once corrupt each
+                // other. Only the construction is serialized - the rendering below, which is where
+                // the time goes, stays concurrent.
+                val fop = synchronized(fopFactory) {
+                    fopFactory.newFop(MimeConstants.MIME_PDF, fopFactory.newFOUserAgent(), out)
+                }
 
-                val factory = TransformerFactory.newInstance()
-                factory.uriResolver = ClasspathResourceURIResolver()
-
-                val transformer = factory.newTransformer(
-                    StreamSource(
-                        javaClass.getResourceAsStream(stylesheetPath),
-                    ),
-                )
+                val transformer = compiledStylesheet(stylesheetPath).newTransformer()
 
                 val res = SAXResult(fop.defaultHandler)
                 transformer.transform(xmlSource, res)

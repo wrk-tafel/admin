@@ -9,9 +9,13 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 
 internal class PDFServiceTest {
@@ -55,6 +59,59 @@ internal class PDFServiceTest {
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
         document.close()
+    }
+
+    @Test
+    fun `stylesheet is compiled once and reused`() {
+        val stylesheetPath = "/pdf-references/distribution/sample.xsl"
+
+        val firstCompilation = PDFService.compiledStylesheet(stylesheetPath)
+        PDFService().generatePdf(data = DummyData(text = "Test 123"), stylesheetPath = stylesheetPath)
+
+        assertThat(PDFService.compiledStylesheet(stylesheetPath)).isSameAs(firstCompilation)
+    }
+
+    @Test
+    fun `concurrent generation produces one valid pdf per call`() {
+        val pdfService = PDFService()
+        val threadCount = 8
+        val allThreadsReady = CyclicBarrier(threadCount)
+
+        val executor = Executors.newFixedThreadPool(threadCount)
+        val results = try {
+            (1..threadCount)
+                .map { index ->
+                    executor.submit<ByteArray> {
+                        allThreadsReady.await(60, TimeUnit.SECONDS)
+                        pdfService.generatePdf(
+                            data = DummyData(text = "Test $index"),
+                            stylesheetPath = "/pdf-references/distribution/sample.xsl",
+                        )
+                    }
+                }
+                .map { it.get(60, TimeUnit.SECONDS) }
+        } finally {
+            executor.shutdownNow()
+        }
+
+        assertThat(results).hasSize(threadCount)
+        results.forEach { pdfBytes ->
+            Loader.loadPDF(pdfBytes).use { document ->
+                assertThat(document.numberOfPages).isEqualTo(1)
+            }
+        }
+    }
+
+    @Test
+    fun `unknown stylesheet fails with a readable message`() {
+        assertThatThrownBy {
+            PDFService().generatePdf(
+                data = DummyData(text = "Test 123"),
+                stylesheetPath = "/pdf-references/missing.xsl",
+            )
+        }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessage("PDF stylesheet not found: /pdf-references/missing.xsl")
     }
 }
 
