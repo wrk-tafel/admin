@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.audit
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
-import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.modules.audit.internal.AuditService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.access.prepost.PreAuthorize
@@ -49,10 +48,7 @@ class AuditController(
     )
 
     @GetMapping("/filter-options")
-    fun getFilterOptions(): AuditFilterOptionsResponse = AuditFilterOptionsResponse(
-        entityTypes = AuditScope.allEntityTypes,
-        operations = AuditOperation.entries,
-    )
+    fun getFilterOptions(): AuditFilterOptionsResponse = auditService.getFilterOptions()
 
     /**
      * Feeds the "Verlauf" tab. Sits under `/api/audit` rather than under

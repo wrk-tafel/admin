@@ -94,6 +94,17 @@ export interface AuditFieldChangeItem {
 export interface AuditFilterOptionsResponse {
   entityTypes: string[];
   operations: AuditOperation[];
+  /**
+   * The users the log actually holds entries for - the actor filter matches a username exactly,
+   * so it offers them rather than asking for one to be typed.
+   */
+  actors: AuditActorItem[];
+}
+
+export interface AuditActorItem {
+  username: string;
+  firstname?: string;
+  lastname?: string;
 }
 
 /** German labels for what the backend stores as stable, English entity/operation keys. */

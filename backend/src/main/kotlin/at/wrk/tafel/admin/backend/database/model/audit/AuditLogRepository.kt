@@ -26,6 +26,26 @@ interface AuditLogRepository :
     ): Page<AuditLogEntity>
 
     /**
+     * Every user the log actually holds an entry for, for the administration screen's actor filter.
+     * Read from the log rather than from `users` on purpose: the filter matches `actor_username`,
+     * so an account that never changed anything would be an option that can only ever return
+     * nothing, and an account since deleted still has to be offered as long as its entries are here.
+     *
+     * A user whose recorded name changed within the retention window yields one row per spelling -
+     * `AuditService` keeps the first. Scanning the whole log for this is bounded by that same
+     * retention window and happens once, when the screen opens.
+     */
+    @Query(
+        """
+            SELECT DISTINCT a.actorUsername AS username, a.actorFirstname AS firstname, a.actorLastname AS lastname
+            FROM AuditLog a
+            WHERE a.actorUsername IS NOT NULL
+            ORDER BY a.actorUsername ASC
+        """,
+    )
+    fun findDistinctActors(): List<AuditActorProjection>
+
+    /**
      * Drops the entries past their retention, skipping any row another instance already holds, and
      * returns how many this call actually removed - so two instances cleaning up at once report
      * what each of them did rather than both claiming the whole batch. Native and set-based,
@@ -47,4 +67,15 @@ interface AuditLogRepository :
         nativeQuery = true,
     )
     fun deleteAllByOccurredAtBeforeSkipLocked(@Param("cutoff") cutoff: LocalDateTime): Int
+}
+
+/**
+ * One acting user as [AuditLogRepository.findDistinctActors] reads them. The name parts are
+ * nullable for the same reasons they are on the entity - entries written before those columns
+ * existed, and accounts with no employee behind them.
+ */
+interface AuditActorProjection {
+    val username: String
+    val firstname: String?
+    val lastname: String?
 }

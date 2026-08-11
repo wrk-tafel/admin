@@ -119,3 +119,8 @@ Cypress.Commands.add('checkSelectAccessibility', (options?: Options) => {
   cy.get('.mat-mdc-select-panel').should('be.visible').and(expectFadedIn);
   cy.checkAccessibility('.mat-mdc-select-panel', options);
 });
+
+Cypress.Commands.add('checkAutocompleteAccessibility', (options?: Options) => {
+  cy.get('.mat-mdc-autocomplete-panel').should('be.visible').and(expectFadedIn);
+  cy.checkAccessibility('.mat-mdc-autocomplete-panel', options);
+});

@@ -2,11 +2,14 @@ package at.wrk.tafel.admin.backend.modules.audit.internal
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.modules.audit.AuditActorItem
 import at.wrk.tafel.admin.backend.modules.audit.AuditEntryItem
 import at.wrk.tafel.admin.backend.modules.audit.AuditFieldChangeItem
+import at.wrk.tafel.admin.backend.modules.audit.AuditFilterOptionsResponse
 import at.wrk.tafel.admin.backend.modules.audit.AuditSearchFilter
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -42,6 +45,20 @@ class AuditService(
         )
         return toPagedResponse(result, page)
     }
+
+    /**
+     * What the administration screen's filters offer. The entity types and operations are the
+     * complete sets the log can ever hold; the actors are only those it actually does - see
+     * [AuditLogRepository.findDistinctActors].
+     */
+    @Transactional(readOnly = true)
+    fun getFilterOptions(): AuditFilterOptionsResponse = AuditFilterOptionsResponse(
+        entityTypes = AuditScope.allEntityTypes,
+        operations = AuditOperation.entries,
+        actors = auditLogRepository.findDistinctActors()
+            .distinctBy { it.username }
+            .map { AuditActorItem(username = it.username, firstname = it.firstname, lastname = it.lastname) },
+    )
 
     /**
      * The administration screen. Every filter is optional; with none given this is simply the whole
