@@ -516,7 +516,7 @@ class HouseholdServiceTest {
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity1) } returns validHousehold
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity2) } returns invalidHousehold
 
-        every { incomeValidatorService.validate(any()) } returnsMany listOf(
+        every { incomeValidatorService.validateAll(any()) } returns listOf(
             IncomeValidatorResult(
                 valid = true,
                 totalSum = BigDecimal("500"),
@@ -571,19 +571,22 @@ class HouseholdServiceTest {
 
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns listOf(household)
 
-        val personsSlot = slot<List<IncomeValidatorPerson>>()
-        every { incomeValidatorService.validate(capture(personsSlot)) } returns IncomeValidatorResult(
-            valid = true,
-            totalSum = BigDecimal("1250"),
-            limit = BigDecimal("2000"),
-            toleranceValue = BigDecimal.ZERO,
-            amountExceededLimit = BigDecimal.ZERO,
+        val personsSlot = slot<List<List<IncomeValidatorPerson>>>()
+        every { incomeValidatorService.validateAll(capture(personsSlot)) } returns listOf(
+            IncomeValidatorResult(
+                valid = true,
+                totalSum = BigDecimal("1250"),
+                limit = BigDecimal("2000"),
+                toleranceValue = BigDecimal.ZERO,
+                amountExceededLimit = BigDecimal.ZERO,
+            ),
         )
 
         val result = service.getHouseholdsAboveLimit()
 
         assertThat(result.items).isEmpty()
-        assertThat(personsSlot.captured).containsExactly(
+        assertThat(personsSlot.captured).hasSize(1)
+        assertThat(personsSlot.captured.first()).containsExactly(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("50"),
                 birthDate = LocalDate.of(2020, 5, 5),
@@ -611,13 +614,17 @@ class HouseholdServiceTest {
             every { householdConverter.mapEntityToHousehold(entity) } returns invalidHouseholds[index]
         }
 
-        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
-            valid = false,
-            totalSum = BigDecimal("1500"),
-            limit = BigDecimal("1000"),
-            toleranceValue = BigDecimal.ZERO,
-            amountExceededLimit = BigDecimal("500"),
-        )
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().map {
+                IncomeValidatorResult(
+                    valid = false,
+                    totalSum = BigDecimal("1500"),
+                    limit = BigDecimal("1000"),
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal("500"),
+                )
+            }
+        }
 
         val firstPage = service.getHouseholdsAboveLimit(page = 1, pageSize = 25)
         assertThat(firstPage.items).hasSize(25)

@@ -159,6 +159,34 @@ module.exports = tseslint.config(
       // nobody's audit happens to load.
       ...angular.configs.templateAccessibility
     ],
-    rules: {}
+    rules: {
+      // The two spellings of this project's e2e hook are not interchangeable, and picking the
+      // wrong one fails silently rather than at compile time.
+      //   - `testid` is the DOM attribute. It is what `cy.byTestId()` and every Cypress/unit-spec
+      //     selector match (`[testid="..."]`), so it is the form every native and Material element
+      //     carries, statically or as `[attr.testid]`.
+      //   - `testId` is the name of the Angular `input()` on the `tafel-*` wrapper components that
+      //     render the attribute themselves (tafel-dialog, tafel-info-tooltip, tafel-counter-input,
+      //     tafel-reorder-handle, and `testIdPrefix` on tafel-employee-search-create).
+      // Angular input names are case-sensitive, so `<tafel-dialog testid="x">` never reaches the
+      // input, and `<input testId="x">` is a hook no selector looks for - neither is an error until
+      // an e2e spec can't find its element.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'Element:not([name=/^tafel-/]) > :matches(TextAttribute, BoundAttribute)[name=/^testId/]',
+          message:
+            'Use the lowercase DOM attribute `testid` (or `[attr.testid]`) here - that is what cy.byTestId() ' +
+            'and the spec selectors match. `testId` is only the Angular input name on the tafel-* components.'
+        },
+        {
+          selector: 'Element[name=/^tafel-/] > :matches(TextAttribute, BoundAttribute)[name=/^testid/]',
+          message:
+            'A tafel-* component takes its test hook through the case-sensitive Angular input `testId` ' +
+            '(e.g. testId="my-dialog" or [testId]="expr"); a lowercase `testid` never reaches it.'
+        }
+      ]
+    }
   }
 );

@@ -38,6 +38,9 @@ how often it runs.**
 - `HouseholdRepository.findAll(spec, sort)` fetches `persons` eagerly via `@EntityGraph`, so the run
   is one query rather than one per household. `HouseholdRepositoryIT` asserts that, because losing it
   changes nothing about the answer and everything about the cost.
+- The whole run is measured against one rate card (`IncomeValidatorService.validateAll`,
+  [ADR-0048](0048-static-values-resolved-from-a-per-run-snapshot.md)), so "live" means *live as of
+  the request*, not re-read per household.
 
 ## Consequences
 
@@ -80,5 +83,7 @@ how often it runs.**
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/database/model/household/HouseholdRepository.kt`
 - `backend/src/test/kotlin/at/wrk/tafel/admin/backend/database/model/household/HouseholdRepositoryIT.kt`
 - [ADR-0024](0024-server-side-income-validation.md) — income validation runs server-side, from data
+- [ADR-0048](0048-static-values-resolved-from-a-per-run-snapshot.md) — one rate card per validation
+  run, no cache in front of the static values
 - [#3198](https://github.com/wrk-tafel/admin/issues/3198), split out of
   [#3190](https://github.com/wrk-tafel/admin/issues/3190)

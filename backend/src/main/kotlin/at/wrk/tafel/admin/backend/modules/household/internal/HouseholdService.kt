@@ -203,7 +203,8 @@ class HouseholdService(
      * not on stored columns - so every valid household is loaded and income-validated on every page
      * view, and the result is paginated in memory. That is what keeps the list an answer about live
      * data: an income or a static value edited a second ago is reflected by the next request, with
-     * nothing to invalidate.
+     * nothing to invalidate. The whole run shares one rate card ([IncomeValidatorService.validateAll]),
+     * so every household is measured against the same limits and the same date.
      *
      * Validation therefore runs off the loaded entities (it only needs birth date, income and the
      * two flags), and only the requested page's households are mapped to a [HouseholdResponse] -
@@ -217,8 +218,13 @@ class HouseholdService(
         val spec = where(Specification.allOf(listOf(validHousehold(), Specification.not(postProcessingNecessary()))))
         val households = householdRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "id"))
 
-        val entitiesAboveLimit = households.mapNotNull { household ->
-            val result = incomeValidatorService.validate(mapEntityToValidationPersons(household))
+        // one snapshot of the static values for the whole run, so every household listed here was
+        // measured against the same limits even if an admin edits one while this is running
+        val results = incomeValidatorService.validateAll(
+            households.map { mapEntityToValidationPersons(it) },
+        )
+
+        val entitiesAboveLimit = households.zip(results).mapNotNull { (household, result) ->
             if (!result.valid) household to result else null
         }
 

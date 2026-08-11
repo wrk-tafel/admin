@@ -255,19 +255,27 @@ Validates a household's combined income against configurable limits stored in `S
 (`StaticValueType.ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_ALLOWANCE`,
 `SIBLING_ADDITION`, `CHILD_TAX_ALLOWANCE`, and a per-person-count base limit). Key rules baked into
 the implementation:
-- A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket).
+- **Every lookup is resolved from one `IncomeRateCard`** - the static values in effect on one date,
+  read with a single `StaticValueRepository.findAllValidAt` and answered from memory afterwards.
+  Nothing is cached, so an amount an administrator edits applies to the next validation on every
+  instance, and the arithmetic is a pure function of the persons and that card. `validateAll` shares
+  one card across every household it is given, which is what makes a `getHouseholdsAboveLimit` run
+  internally consistent (`docs/architecture/adr/0048-static-values-resolved-from-a-per-run-snapshot.md`).
+- A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket) -
+  both measured against the card's `referenceDate`, so a validation crossing midnight still resolves
+  against a single date.
 - Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) are
   excluded from the income sum entirely, but can still receive family allowance.
-- The base limit is looked up per (adult count, child count) via
-  `StaticValueRepository.findLatestForPersonCount`, then a flat `TOLERANCE` amount is added on top
-  before comparing against the summed income - `IncomeValidatorResult.toleranceValue` reports how
-  much tolerance was applied, `amountExceededLimit` how far over the (tolerance-inclusive) limit the
-  household is.
+- The base limit is looked up per (adult count, child count) via `IncomeRateCard.incomeLimit`, then a
+  flat `TOLERANCE` amount is added on top before comparing against the summed income -
+  `IncomeValidatorResult.toleranceValue` reports how much tolerance was applied,
+  `amountExceededLimit` how far over the (tolerance-inclusive) limit the household is.
 
 `HouseholdService.mapToValidationPersons` is the adapter that turns a `Household`'s persons into
 `IncomeValidatorPerson`s before calling this service - both `validate()` (called ad-hoc by the
 frontend before submit) and `createHousehold`/`updateHousehold` (called again server-side, since the
-client-computed result can't be trusted) go through it.
+client-computed result can't be trusted) go through it. `getHouseholdsAboveLimit` holds entities
+rather than DTOs and uses `mapEntityToValidationPersons` instead; the two must keep the same rules.
 
 **Supervisor/force gotcha:** if validation fails, `createHousehold`/`updateHousehold` behave
 differently depending on the caller's role:
