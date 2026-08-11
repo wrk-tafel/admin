@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.database.model.staticdata
 
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -9,36 +8,17 @@ import java.time.LocalDate
 interface StaticValueRepository : JpaRepository<StaticValueEntity, Long> {
 
     /**
-     * Static values are cached for the process lifetime (see `CacheConfig`) since
-     * `HouseholdService.getHouseholdsAboveLimit()` would otherwise re-query these same rows once
-     * per household validated. `SettingsService` evicts all three caches below on every
-     * static-value create/update, so this is safe despite values being editable at runtime
-     * through the settings UI - if you add another cached query method here, add its cache name
-     * to that eviction list too, or edits will appear to silently not take effect. Each method
-     * needs its *own* cache name because the default key generator only considers arguments, not
-     * the method itself, and [findSingleValueOfType]/[findValuesOfType] share the same argument
-     * shape and would otherwise collide.
+     * Every static value in effect on [currentDate] - a few dozen rows, read once per income
+     * validation run and resolved from memory afterwards (see `IncomeRateCard`). Nothing here is
+     * cached: an administrator's edit therefore applies to the next validation on every instance,
+     * without an eviction to broadcast (ADR-0048).
      */
-    @Cacheable("staticValueLatestForPersonCount")
-    @Query("select il from StaticValue il where il.type = :type and il.countAdults = :countAdults and il.countChildren = :countChildren and :currentDate between il.validFrom and il.validTo")
-    fun findLatestForPersonCount(
-        @Param("type") type: StaticValueType? = StaticValueType.INCOME_LIMIT,
-        @Param("currentDate") currentDate: LocalDate,
-        @Param("countAdults") countAdults: Int? = 0,
-        @Param("countChildren") countChildren: Int? = 0,
-    ): StaticValueEntity?
+    @Query("select sv from StaticValue sv where :currentDate between sv.validFrom and sv.validTo")
+    fun findAllValidAt(@Param("currentDate") currentDate: LocalDate): List<StaticValueEntity>
 
-    @Cacheable("staticValueSingle")
     @Query("select il from StaticValue il where il.type = :type and :currentDate between il.validFrom and il.validTo")
     fun findSingleValueOfType(
         @Param("type") type: StaticValueType,
         @Param("currentDate") currentDate: LocalDate,
     ): StaticValueEntity?
-
-    @Cacheable("staticValueList")
-    @Query("select il from StaticValue il where il.type = :type and :currentDate between il.validFrom and il.validTo")
-    fun findValuesOfType(
-        @Param("type") type: StaticValueType,
-        @Param("currentDate") currentDate: LocalDate,
-    ): List<StaticValueEntity>
 }
