@@ -172,7 +172,7 @@ jobs:
               /logistik/routen-navi,
               /logistik/warenerfassung,
               /statistiken/allgemein,
-              /statistiken/schulstartpakete,
+              /statistiken/auswertung-kinder,
               /aenderungsprotokoll
     services:
       postgres:

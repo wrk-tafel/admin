@@ -41,20 +41,36 @@ class StatisticsController(
         return csvResult.toResponseEntity()
     }
 
-    @GetMapping("/school-starter-package")
-    fun getSchoolStarterPackageData(
+    /**
+     * The children of currently entitled households within an age range ("Auswertung Kinder") -
+     * a generic count that several purposes read, ordering school starter packages among them.
+     *
+     * [referenceDate] is the date the age is measured on, defaulting to today - the "Stichtag" the
+     * frontend offers, since such an order is placed weeks before the day it is meant for.
+     */
+    @GetMapping("/children")
+    fun getChildrenData(
         @RequestParam ageMin: Int,
         @RequestParam ageMax: Int,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
-    ): PagedResponse<SchoolStarterPackageItem> = statisticsService.getSchoolStarterPackageData(ageMin, ageMax, page, pageSize)
+        @RequestParam referenceDate: LocalDate? = null,
+    ): PagedResponse<ChildItem> = statisticsService.getChildrenData(ageMin, ageMax, page, pageSize, referenceDate)
 
-    @GetMapping("/generate-school-starter-package-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
-    fun generateSchoolStarterPackageCsv(
+    @GetMapping("/children/age-distribution")
+    fun getChildrenAgeDistribution(
         @RequestParam ageMin: Int,
         @RequestParam ageMax: Int,
+        @RequestParam referenceDate: LocalDate? = null,
+    ): ChildrenAgeDistributionListResponse = statisticsService.getChildrenAgeDistribution(ageMin, ageMax, referenceDate)
+
+    @GetMapping("/generate-children-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
+    fun generateChildrenCsv(
+        @RequestParam ageMin: Int,
+        @RequestParam ageMax: Int,
+        @RequestParam referenceDate: LocalDate? = null,
     ): ResponseEntity<InputStreamResource> {
-        val csvResult = statisticsService.generateSchoolStarterPackageCsv(ageMin, ageMax)
+        val csvResult = statisticsService.generateChildrenCsv(ageMin, ageMax, referenceDate)
         return csvResult.toResponseEntity()
     }
 
@@ -103,9 +119,18 @@ data class StatisticsDetail(
     val dataPoints: List<Number>,
 )
 
-data class SchoolStarterPackageItem(
+data class ChildItem(
     val householdId: Long,
     val firstname: String,
     val lastname: String,
     val age: Int,
+)
+
+data class ChildrenAgeDistributionListResponse(
+    val items: List<ChildAgeCountItem>,
+)
+
+data class ChildAgeCountItem(
+    val age: Int,
+    val count: Int,
 )

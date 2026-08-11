@@ -60,7 +60,7 @@ code being wrong — see [G4](#g4-nothing-keeps-special-category-data-out-of-not
   names; the Stammdatenblatt is a household's complete master data. Once printed, the application
   has no further say in them.
 - **Direct SQL.** `_reporting/reporting.sql` is a set of hand-run queries, and the first one selects
-  `firstname, lastname, birth_date` for the school-starter-package report. Whatever it is run
+  `firstname, lastname, birth_date` for the children report. Whatever it is run
   against, that access passes no `@PreAuthorize` and produces no `audit_log` entry.
 
 ## 3. What the code already gets right

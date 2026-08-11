@@ -1,7 +1,14 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
-import {SchoolStarterPackageSearchResult, StatisticsApiService, StatisticsData, StatisticsSettings} from './statistics-api.service';
+import {
+  ChildrenAgeDistribution,
+  ChildrenFilter,
+  ChildrenSearchResult,
+  StatisticsApiService,
+  StatisticsData,
+  StatisticsSettings
+} from './statistics-api.service';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
@@ -10,6 +17,12 @@ dayjs.extend(customParseFormat);
 describe('StatisticsApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: StatisticsApiService;
+
+  const filter: ChildrenFilter = {
+    ageMin: 6,
+    ageMax: 10,
+    referenceDate: new Date('2026-09-01T00:00:00')
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -178,8 +191,8 @@ describe('StatisticsApiService', () => {
     httpMock.verify();
   });
 
-  it('get school starter package data', () => {
-    const testResponse: SchoolStarterPackageSearchResult = {
+  it('get children data', () => {
+    const testResponse: ChildrenSearchResult = {
       items: [
         {householdId: 1, firstname: 'Kind', lastname: 'Mustermann', age: 8}
       ],
@@ -189,16 +202,38 @@ describe('StatisticsApiService', () => {
       pageSize: 25
     };
 
-    apiService.getSchoolStarterPackageData(6, 10).subscribe((response) => {
+    apiService.getChildrenData(filter).subscribe((response) => {
       expect(response).toEqual(testResponse);
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: '/statistics/school-starter-package?ageMin=6&ageMax=10'});
+    const req = httpMock.expectOne({
+      method: 'GET',
+      url: '/statistics/children?ageMin=6&ageMax=10&referenceDate=2026-09-01'
+    });
     req.flush(testResponse);
   });
 
-  it('get school starter package data for a specific page', () => {
-    const testResponse: SchoolStarterPackageSearchResult = {
+  it('get children age distribution', () => {
+    const testResponse: ChildrenAgeDistribution = {
+      items: [
+        {age: 6, count: 2},
+        {age: 7, count: 0}
+      ]
+    };
+
+    apiService.getChildrenAgeDistribution(filter).subscribe((response) => {
+      expect(response).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({
+      method: 'GET',
+      url: '/statistics/children/age-distribution?ageMin=6&ageMax=10&referenceDate=2026-09-01'
+    });
+    req.flush(testResponse);
+  });
+
+  it('get children data for a specific page', () => {
+    const testResponse: ChildrenSearchResult = {
       items: [],
       totalCount: 30,
       currentPage: 2,
@@ -206,18 +241,24 @@ describe('StatisticsApiService', () => {
       pageSize: 25
     };
 
-    apiService.getSchoolStarterPackageData(6, 10, 2).subscribe((response) => {
+    apiService.getChildrenData(filter, 2).subscribe((response) => {
       expect(response).toEqual(testResponse);
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: '/statistics/school-starter-package?ageMin=6&ageMax=10&page=2'});
+    const req = httpMock.expectOne({
+      method: 'GET',
+      url: '/statistics/children?ageMin=6&ageMax=10&referenceDate=2026-09-01&page=2'
+    });
     req.flush(testResponse);
   });
 
-  it('generate school starter package csv', () => {
-    apiService.generateSchoolStarterPackageCsv(6, 10).subscribe();
+  it('generate children csv', () => {
+    apiService.generateChildrenCsv(filter).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/statistics/generate-school-starter-package-csv?ageMin=6&ageMax=10'});
+    const req = httpMock.expectOne({
+      method: 'GET',
+      url: '/statistics/generate-children-csv?ageMin=6&ageMax=10&referenceDate=2026-09-01'
+    });
     req.flush(null);
     httpMock.verify();
   });
