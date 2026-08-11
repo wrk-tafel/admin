@@ -17,7 +17,6 @@ import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import org.slf4j.LoggerFactory
-import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -106,10 +105,6 @@ class SettingsService(
     // created by an earlier edit made today), in which case that same-day row is updated in place
     // instead of stacking up multiple same-day history entries.
     @Transactional
-    @CacheEvict(
-        cacheNames = ["staticValueLatestForPersonCount", "staticValueSingle", "staticValueList"],
-        allEntries = true,
-    )
     fun updateStaticValue(staticValueId: Long, item: StaticValueRequest): StaticValueResponse {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
             ?: throw NotFoundException("Statischer Wert mit ID $staticValueId nicht gefunden")

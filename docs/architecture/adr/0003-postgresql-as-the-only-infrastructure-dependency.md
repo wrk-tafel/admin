@@ -11,7 +11,6 @@ infrastructure:
   starten*"
 - pushing state changes to open browser sessions in real time
 - typo-tolerant search over customer records
-- caching values that are read constantly and written rarely
 
 The counterweight is the operating environment: one small host per environment, one container,
 volunteer maintainers, no on-call rotation. Every additional server is one more thing to install,
@@ -29,7 +28,6 @@ mail aside). Each of the needs above is met with a Postgres feature rather than 
 | Real-time push | `sse_outbox` table + **`LISTEN`/`NOTIFY`**, forwarded to SSE emitters — see [ADR-0005](0005-server-sent-events-with-a-transactional-outbox.md) |
 | Fuzzy search | **`pg_trgm`** (`strict_word_similarity`, GIN-indexed) over a trigger-maintained `search_text` column |
 | Duplicate detection | **`fuzzystrmatch`** (`soundex`, `levenshtein`) in one hand-written SQL query |
-| Caching | In-process `ConcurrentMapCacheManager`, evicted by the writing service |
 | Scheduling | Spring's `@Scheduled` in the same process (outbox cleanup, stale login attempts) |
 
 `docker-compose.yml` for local development therefore starts PostgreSQL, pgAdmin and Mailpit — no
@@ -42,9 +40,9 @@ broker, no cache server, no search engine.
 - Two extensions are hard requirements: `pg_trgm` and `fuzzystrmatch`. The latter lives in
   `postgresql-contrib`, which is why the image's CDS-training stage installs it explicitly. A
   Postgres without them fails at migration time, not later.
-- The cache is per process and unreplicated. Correct today (one instance) and it fails loudly rather
-  than subtly if that ever changes — but it *is* an assumption of single-instance deployment, as is
-  every in-process `@Scheduled` job.
+- Reference data that is read constantly and written rarely is resolved from a snapshot per run
+  rather than cached, so no cache server was ever needed and none is emulated in process — see
+  [ADR-0048](0048-static-values-resolved-from-a-per-run-snapshot.md).
 - Advisory locks are transaction-scoped and released only by commit/rollback, so the enclosing
   transaction's runtime *is* the lock hold time. Lock late, keep the transaction short, and do slow
   work (mail, push fan-out) outside the locked block or on an async listener.
@@ -56,7 +54,7 @@ broker, no cache server, no search engine.
 
 ## Alternatives considered
 
-**Redis for caching, locks and pub/sub.** The natural fit for three of the four needs at once, and
+**Redis for caching, locks and pub/sub.** The natural fit for several of these needs at once, and
 rejected for exactly that reason: it would become a second stateful component that the application
 cannot start without, for workloads measured in single-digit events per second.
 
@@ -77,6 +75,5 @@ point every writer goes through, and it releases locks on crash for free.
   `AdvisoryLockService`, README)
 - `backend/src/main/resources/db-migration/R__00088_fulltext_search.sql` (`pg_trgm`, `search_text`
   triggers), `R__00031_duplication_detection.sql` (`fuzzystrmatch`)
-- `backend/src/main/kotlin/at/wrk/tafel/admin/backend/config/CacheConfig.kt`
 - `docker-compose.yml`, `_build/Dockerfile`
 </content>
