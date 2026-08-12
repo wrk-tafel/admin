@@ -246,31 +246,66 @@ class StatisticsControllerTest {
     }
 
     @Test
-    fun `getSchoolStarterPackageData delegates to service with given age range and page`() {
+    fun `getChildrenData delegates to service with given age range and page`() {
         val expectedData = PagedResponse(
-            items = listOf(SchoolStarterPackageItem(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8)),
+            items = listOf(ChildItem(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 8)),
             totalCount = 1L,
             currentPage = 2,
             totalPages = 1,
             pageSize = 25,
         )
-        every { service.getSchoolStarterPackageData(6, 10, 2) } returns expectedData
+        every { service.getChildrenData(6, 10, 2) } returns expectedData
 
-        val result = controller.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
+        val result = controller.getChildrenData(ageMin = 6, ageMax = 10, page = 2)
 
         assertThat(result).isEqualTo(expectedData)
-        verify(exactly = 1) { service.getSchoolStarterPackageData(6, 10, 2) }
+        verify(exactly = 1) { service.getChildrenData(6, 10, 2) }
     }
 
     @Test
-    fun `generate school starter package csv - result mapped`() {
-        val testFilename = "schulstartpakete_28.07.2026.csv"
-        every { service.generateSchoolStarterPackageCsv(6, 10) } returns StatisticsCsvResult(
+    fun `getChildrenData passes the reference date through to the service`() {
+        val referenceDate = LocalDate.of(2026, 9, 1)
+        val expectedData = PagedResponse(
+            items = listOf(ChildItem(householdId = 1L, firstname = "Kind", lastname = "Mustermann", age = 6)),
+            totalCount = 1L,
+            currentPage = 1,
+            totalPages = 1,
+            pageSize = 25,
+        )
+        every { service.getChildrenData(6, 15, null, null, referenceDate) } returns expectedData
+
+        val result = controller.getChildrenData(ageMin = 6, ageMax = 15, referenceDate = referenceDate)
+
+        assertThat(result).isEqualTo(expectedData)
+        verify(exactly = 1) { service.getChildrenData(6, 15, null, null, referenceDate) }
+    }
+
+    @Test
+    fun `getChildrenAgeDistribution delegates to service`() {
+        val referenceDate = LocalDate.of(2026, 9, 1)
+        val expectedDistribution = ChildrenAgeDistributionListResponse(
+            items = listOf(
+                ChildAgeCountItem(age = 6, count = 3),
+                ChildAgeCountItem(age = 7, count = 0),
+            ),
+        )
+        every { service.getChildrenAgeDistribution(6, 7, referenceDate) } returns expectedDistribution
+
+        val result = controller.getChildrenAgeDistribution(ageMin = 6, ageMax = 7, referenceDate = referenceDate)
+
+        assertThat(result).isEqualTo(expectedDistribution)
+        verify(exactly = 1) { service.getChildrenAgeDistribution(6, 7, referenceDate) }
+    }
+
+    @Test
+    fun `generate children csv - result mapped`() {
+        val testFilename = "auswertung_kinder_28.07.2026.csv"
+        every { service.generateChildrenCsv(6, 10) } returns StatisticsCsvResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
         )
 
-        val response = controller.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10)
+        val response = controller.generateChildrenCsv(ageMin = 6, ageMax = 10)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)

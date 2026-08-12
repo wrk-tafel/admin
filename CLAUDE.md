@@ -542,8 +542,8 @@ or the return type once `ResponseEntity<T>`/`PagedResponse<T>`/`XxxListResponse`
    `StatisticsResponse`, `DistributionCloseResponse`).
 3. **`Item`** — the type is *only* ever the element type of a `PagedResponse<T>` or an
    `XxxListResponse`'s `List<T>` — it never appears as a request body and is never itself returned
-   as a standalone single-resource response (`Route` → `RouteItem`, `SchoolStarterPackageEntry` →
-   `SchoolStarterPackageItem`). A type that already has a dedicated create/update response role
+   as a standalone single-resource response (`Route` → `RouteItem`, `Child` → `ChildItem`). A type
+   that already has a dedicated create/update response role
    (e.g. `HouseholdNoteItem`, created via `POST` and also listed via `PagedResponse`) keeps the
    `Item` suffix rather than splitting into `Request`/`Response` — the "is it ever a request body"
    test is what actually matters, not "does some endpoint return one instance of it directly."

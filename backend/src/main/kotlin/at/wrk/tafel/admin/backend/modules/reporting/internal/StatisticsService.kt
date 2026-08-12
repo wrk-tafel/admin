@@ -7,7 +7,10 @@ import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageItem
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.reporting.ChildAgeCountItem
+import at.wrk.tafel.admin.backend.modules.reporting.ChildItem
+import at.wrk.tafel.admin.backend.modules.reporting.ChildrenAgeDistributionListResponse
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetail
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsResponse
@@ -34,6 +37,9 @@ class StatisticsService(
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
+
+        private const val MIN_AGE = 0
+        private const val MAX_AGE = 120
     }
 
     fun getSettings(): StatisticsSettingsResponse {
@@ -396,51 +402,59 @@ class StatisticsService(
     }
 
     /**
-     * Ports the ad-hoc "Schulstartpakete" SQL (see `_reporting/reporting.sql`) into a real export:
-     * every additional (non-main) member of a currently valid household whose age falls in the
-     * given (inclusive) age range, one row per person, ordered by the household's business number.
-     * The original SQL hardcoded 6..10 but noted the age range should be configurable, hence the
-     * parameters here (frontend exposes them as editable fields) rather than fixed constants.
+     * The children of currently entitled households as a CSV: every additional (non-main) member of
+     * a valid household whose age falls in the given (inclusive) age range, one row per person,
+     * ordered by the household's business number. Ordering school starter packages is one thing the
+     * export is read for (it replaced that ad-hoc SQL, see `_reporting/reporting.sql`) - the age
+     * range is a parameter rather than a constant precisely because the question is asked with
+     * different ages for different purposes.
+     *
+     * Exports every match, never a page - the CSV is what gets acted on, the paginated
+     * [getChildrenData] only the on-screen evidence for it.
      */
     @Transactional(readOnly = true)
-    fun generateSchoolStarterPackageCsv(
+    fun generateChildrenCsv(
         ageMin: Int,
         ageMax: Int,
+        referenceDate: LocalDate? = null,
     ): StatisticsCsvResult {
-        val today = LocalDate.now()
-        val rows = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today))
-            .map { it.toSchoolStarterPackageEntry(today) }
+        validateAgeRange(ageMin, ageMax)
+        val ageDate = referenceDate ?: LocalDate.now()
+        val rows = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate))
+            .map { it.toChildItem(ageDate) }
 
         val csvRows: List<List<String>> = listOf(
             listOf("Haushalt", "Vorname", "Nachname", "Alter"),
         ) + rows.map { listOf(it.householdId.toString(), it.firstname, it.lastname, it.age.toString()) }
 
         return StatisticsCsvResult(
-            filename = "schulstartpakete_${DATE_TIME_FORMATTER.format(today)}.csv",
+            filename = "auswertung_kinder_${DATE_TIME_FORMATTER.format(LocalDate.now())}.csv",
             bytes = CsvUtil.writeRowsToByteArray(csvRows),
         )
     }
 
     /**
      * Filters and paginates at the DB level: "age in [ageMin, ageMax]" is expressed as a plain
-     * `birthDate` range (see [schoolStarterPackageSpec]) rather than computing age in the query
+     * `birthDate` range (see [childrenFilter]) rather than computing age in the query
      * (e.g. via Postgres' `age()`), so it stays a straightforward, index-friendly column
      * comparison that a JPA `Specification`/`Pageable` can paginate directly - no in-memory
      * slicing needed, unlike `HouseholdService.getHouseholdsAboveLimit()`.
      */
     @Transactional(readOnly = true)
-    fun getSchoolStarterPackageData(
+    fun getChildrenData(
         ageMin: Int,
         ageMax: Int,
         page: Int? = null,
         pageSize: Int? = null,
-    ): PagedResponse<SchoolStarterPackageItem> {
-        val today = LocalDate.now()
+        referenceDate: LocalDate? = null,
+    ): PagedResponse<ChildItem> {
+        validateAgeRange(ageMin, ageMax)
+        val ageDate = referenceDate ?: LocalDate.now()
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today), pageRequest)
+        val pagedResult = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate), pageRequest)
 
         return PagedResponse(
-            items = pagedResult.content.map { it.toSchoolStarterPackageEntry(today) },
+            items = pagedResult.content.map { it.toChildItem(ageDate) },
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
@@ -449,27 +463,93 @@ class StatisticsService(
     }
 
     /**
-     * age >= ageMin  <=>  birthDate <= today.minusYears(ageMin)
-     * age <= ageMax  <=>  birthDate >= today.minusYears(ageMax + 1).plusDays(1)
-     * (matches [java.time.temporal.ChronoUnit.YEARS]' truncation, used to compute the displayed
-     * age in [toSchoolStarterPackageEntry])
+     * How the matches of [getChildrenData] split up per age year - what is handed out per child
+     * usually differs by age group, so the split is what actually gets planned, not just the total.
+     *
+     * Covers the whole result set rather than the current page, and reports every age in the
+     * requested range including the empty ones, so the chart drawn from it keeps its gaps instead
+     * of silently closing them.
      */
-    private fun schoolStarterPackageSpec(ageMin: Int, ageMax: Int, today: LocalDate): Specification<PersonEntity> {
-        val maxBirthDate = today.minusYears(ageMin.toLong())
-        val minBirthDate = today.minusYears(ageMax + 1L).plusDays(1)
+    @Transactional(readOnly = true)
+    fun getChildrenAgeDistribution(
+        ageMin: Int,
+        ageMax: Int,
+        referenceDate: LocalDate? = null,
+    ): ChildrenAgeDistributionListResponse {
+        validateAgeRange(ageMin, ageMax)
+        val ageDate = referenceDate ?: LocalDate.now()
 
-        val spec = Specification.allOf(
+        val countsByAge = selectBirthDates(childrenFilter(ageMin, ageMax, ageDate))
+            .groupingBy { ChronoUnit.YEARS.between(it, ageDate).toInt() }
+            .eachCount()
+
+        return ChildrenAgeDistributionListResponse(
+            items = (ageMin..ageMax).map { age ->
+                ChildAgeCountItem(age = age, count = countsByAge[age] ?: 0)
+            },
+        )
+    }
+
+    /**
+     * Reads only the `birthDate` column of the matching persons - the ages are then counted in
+     * memory. One query for the whole distribution, rather than a `count(*)` per age year (which
+     * would be a query per bar), and no entities loaded for rows that are never rendered.
+     */
+    private fun selectBirthDates(spec: Specification<PersonEntity>): List<LocalDate> {
+        val criteriaBuilder = entityManager.criteriaBuilder
+        val query = criteriaBuilder.createQuery(LocalDate::class.java)
+        val root = query.from(PersonEntity::class.java)
+
+        query.select(root["birthDate"])
+        spec.toPredicate(root, query, criteriaBuilder)?.let { query.where(it) }
+
+        return entityManager.createQuery(query).resultList
+    }
+
+    /**
+     * Guards the age-to-`birthDate` math below against a range that can only be a mistake - an
+     * inverted range silently returns nothing, and an unbounded [ageMax] would blow up the
+     * per-age-year list of [getChildrenAgeDistribution]. The frontend rejects the same input before
+     * sending it; this is what makes the API itself safe to call directly.
+     */
+    private fun validateAgeRange(ageMin: Int, ageMax: Int) {
+        if (ageMin < MIN_AGE || ageMax > MAX_AGE) {
+            throw BusinessRuleException("Alter muss zwischen $MIN_AGE und $MAX_AGE Jahren liegen!")
+        }
+        if (ageMin > ageMax) {
+            throw BusinessRuleException("'Alter von' darf nicht größer als 'Alter bis' sein!")
+        }
+    }
+
+    /**
+     * age >= ageMin  <=>  birthDate <= referenceDate.minusYears(ageMin)
+     * age <= ageMax  <=>  birthDate >= referenceDate.minusYears(ageMax + 1).plusDays(1)
+     * (matches [java.time.temporal.ChronoUnit.YEARS]' truncation, used to compute the displayed
+     * age in [toChildItem])
+     *
+     * [referenceDate] is the date the *age* is measured on - what is planned from these numbers is
+     * ordered weeks ahead, so a child turning 6 in August has to be countable in June. Household
+     * validity deliberately stays "entitled today" (see [PersonEntity.Specs.householdIsValid]): a
+     * household whose entitlement runs out before the reference date is usually renewed, and
+     * leaving it out would undercount.
+     */
+    private fun childrenFilter(ageMin: Int, ageMax: Int, referenceDate: LocalDate): Specification<PersonEntity> {
+        val maxBirthDate = referenceDate.minusYears(ageMin.toLong())
+        val minBirthDate = referenceDate.minusYears(ageMax + 1L).plusDays(1)
+
+        return Specification.allOf(
             PersonEntity.Specs.isAdditionalPerson(),
             PersonEntity.Specs.householdIsValid(),
             PersonEntity.Specs.birthDateBetween(minBirthDate, maxBirthDate),
         )
-        return PersonEntity.Specs.orderByHouseholdId(spec)
     }
 
-    private fun PersonEntity.toSchoolStarterPackageEntry(today: LocalDate): SchoolStarterPackageItem {
-        val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
+    private fun childrenSpec(ageMin: Int, ageMax: Int, referenceDate: LocalDate): Specification<PersonEntity> = PersonEntity.Specs.orderByHouseholdId(childrenFilter(ageMin, ageMax, referenceDate))
 
-        return SchoolStarterPackageItem(
+    private fun PersonEntity.toChildItem(referenceDate: LocalDate): ChildItem {
+        val age = ChronoUnit.YEARS.between(birthDate, referenceDate).toInt()
+
+        return ChildItem(
             householdId = household.householdId,
             firstname = firstname.orEmpty(),
             lastname = lastname.orEmpty(),

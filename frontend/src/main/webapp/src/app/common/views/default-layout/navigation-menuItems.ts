@@ -154,8 +154,8 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/statistiken/allgemein'
       },
       {
-        name: 'Schulstartpakete',
-        url: '/statistiken/schulstartpakete'
+        name: 'Auswertung Kinder',
+        url: '/statistiken/auswertung-kinder'
       }
     ]
   },
