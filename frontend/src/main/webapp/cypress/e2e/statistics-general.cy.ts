@@ -95,11 +95,17 @@ describe('Statistics General', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.byTestId('statisticsPanel-beneficiaryPersons').click();
 
-    // the chart is the whole reason this dialog exists, so on a phone it takes what the viewport
-    // has rather than the width a dialog sized by its own text would settle on
-    cy.byTestId('statistics-detail-chart').should('be.visible').then(($canvas) => {
-      const viewportWidth = Cypress.config('viewportWidth');
-      expect($canvas[0].getBoundingClientRect().width).to.be.greaterThan(viewportWidth * 0.75);
+    // The chart is the whole reason this dialog exists, so on a phone it takes what the viewport
+    // has rather than the width a dialog sized by its own text would settle on. Measured against
+    // the window rather than Cypress.config('viewportWidth'), which keeps reporting the configured
+    // desktop width after cy.viewport(), and asserted through .and() so it retries: Chart.js sizes
+    // the canvas off the dialog surface, which is still scaling up while the dialog opens.
+    cy.window().then((win) => {
+      cy.byTestId('statistics-detail-chart')
+        .should('be.visible')
+        .and(($canvas) => {
+          expect($canvas[0].getBoundingClientRect().width).to.be.greaterThan(win.innerWidth * 0.75);
+        });
     });
   });
 

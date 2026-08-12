@@ -31,6 +31,40 @@ describe('StatisticsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('the periods named under the sparkline', () => {
+    /** Runs the x axis' tick callback over a whole course, the way Chart.js does. */
+    function axisLabels(labels: string[]): string[] {
+      const fixture = TestBed.createComponent(StatisticsPanelComponent);
+      fixture.componentRef.setInput('data', {...detail, labels: labels, dataPoints: labels.map(() => 1)});
+      fixture.detectChanges();
+
+      const callback = fixture.componentInstance.optionsDefault.scales.x.ticks.callback;
+      return labels.map((_label, index) => callback(index, index, labels));
+    }
+
+    it('names every period of a course that fits, without the year they share', () => {
+      const labels = ['2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];
+
+      expect(axisLabels(labels)).toEqual(['01', '02', '03', '04', '05', '06', '07', '08']);
+    });
+
+    it('keeps the year of a course measured in years - there it is what tells them apart', () => {
+      expect(axisLabels(['2023', '2024', '2025', '2026'])).toEqual(['2023', '2024', '2025', '2026']);
+    });
+
+    it('thins out a course too long to name in full, keeping its first and last period', () => {
+      const labels = Array.from({length: 30}, (_value, index) => `2026-KW${index + 1}`);
+
+      const named = axisLabels(labels);
+      expect(named[0]).toEqual('KW1');
+      expect(named[named.length - 1]).toEqual('KW30');
+      expect(named.filter(label => label !== '').length).toBeLessThan(labels.length);
+      // and never two names next to each other, which is what running out of room looked like
+      expect(named.some((label, index) => label !== '' && named[index + 1] !== '' && index + 2 < named.length))
+        .toBe(false);
+    });
+  });
+
   it('renders the chart canvas with data', () => {
     const fixture = TestBed.createComponent(StatisticsPanelComponent);
     fixture.componentRef.setInput('data', detail);
