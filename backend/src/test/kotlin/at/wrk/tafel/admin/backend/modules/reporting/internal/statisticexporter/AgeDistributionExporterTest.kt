@@ -120,6 +120,71 @@ class AgeDistributionExporterTest {
         assertThat(rows.first { it[0] == "31-40" }[1]).isEqualTo("0")
     }
 
+    /**
+     * A household is read as it is today, so re-exporting an old distribution sees the people added
+     * to it since - a child born after that day has a negative age on it, which has no age range.
+     */
+    @Test
+    fun `persons born after the distribution are left out`() {
+        val startedAt = LocalDateTime.now().minusYears(10)
+        val household = HouseholdEntity(householdId = 900, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = startedAt.toLocalDate().minusYears(25)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = startedAt.toLocalDate().minusYears(5)
+            },
+        )
+        household.persons.add(
+            // born two years after that distribution, i.e. not a member of the household back then
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = startedAt.toLocalDate().plusYears(2)
+            },
+        )
+
+        val testStatistic = statisticOf(startedAt, household)
+
+        val rows = AgeDistributionExporter().getRows(testStatistic)
+
+        assertThat(rows.first { it[0] == "0-20" }[3]).isEqualTo("1")
+        assertThat(rows.first { it[0] == "21-30" }[3]).isEqualTo("1")
+        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "2", "2"))
+    }
+
+    /**
+     * Only main persons can reach the buckets without an age - the additional persons are already
+     * filtered by the reference date - so the household stays counted and just lands in no range.
+     */
+    @Test
+    fun `a main person without a birth date does not end up in an age range`() {
+        val startedAt = LocalDateTime.now().minusYears(10)
+        val household = HouseholdEntity(householdId = 900, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true)
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+
+        val testStatistic = statisticOf(startedAt, household)
+
+        val rows = AgeDistributionExporter().getRows(testStatistic)
+
+        val ageRangeRows = rows.filter { row -> AgeRange.entries.any { it.rangeName == row[0] } }
+        assertThat(ageRangeRows.sumOf { it[1].toInt() }).isZero()
+        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "1", "1"))
+    }
+
+    private fun statisticOf(startedAt: LocalDateTime, household: HouseholdEntity): DistributionStatisticEntity {
+        val distribution = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            households = listOf(
+                DistributionHouseholdEntity(distribution = this, household = household, ticketNumber = 1),
+            )
+        }
+        return DistributionStatisticEntity(distribution = distribution).also { distribution.statistic = it }
+    }
+
     @Test
     fun `exported properly without data`() {
         val testStatisticDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
