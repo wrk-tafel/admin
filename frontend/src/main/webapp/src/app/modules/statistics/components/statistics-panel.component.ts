@@ -1,5 +1,4 @@
-import {Component, computed, inject, input} from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {Component, computed, inject, input, LOCALE_ID} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatDialog} from '@angular/material/dialog';
@@ -8,7 +7,7 @@ import {TooltipItem} from 'chart.js';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faArrowDown, faArrowUp, faMinus, faUpRightAndDownLeftFromCenter} from '@fortawesome/free-solid-svg-icons';
 import {StatisticsDetailData} from '../../../api/statistics-api.service';
-import {computeDelta} from './statistics-comparison';
+import {computeDelta, formatStatisticsValue} from './statistics-comparison';
 import {StatisticsDetailDialogComponent} from './statistics-detail-dialog.component';
 
 @Component({
@@ -16,8 +15,6 @@ import {StatisticsDetailDialogComponent} from './statistics-detail-dialog.compon
   templateUrl: 'statistics-panel.component.html',
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatCardModule,
     BaseChartDirective,
     FaIconComponent,
@@ -25,6 +22,7 @@ import {StatisticsDetailDialogComponent} from './statistics-detail-dialog.compon
 })
 export class StatisticsPanelComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly locale = inject(LOCALE_ID);
 
   data = input<StatisticsDetailData>();
   /**
@@ -69,14 +67,15 @@ export class StatisticsPanelComponent {
       return '';
     }
 
-    const direction = delta.direction === 'up' ? 'mehr' : delta.direction === 'down' ? 'weniger' : 'unverändert';
+    if (delta.direction === 'flat') {
+      return `unverändert ${this.comparisonLabel()}`;
+    }
+
     const amount = delta.percentage !== undefined
-      ? `${this.formatNumber(Math.abs(delta.percentage), 1)} %`
+      ? `${formatStatisticsValue(Math.abs(delta.percentage), undefined, this.locale, '1.0-1')} %`
       : this.formatValue(Math.abs(delta.difference));
 
-    return delta.direction === 'flat'
-      ? `unverändert ${this.comparisonLabel()}`
-      : `${amount} ${direction} ${this.comparisonLabel()}`;
+    return `${amount} ${delta.direction === 'up' ? 'mehr' : 'weniger'} ${this.comparisonLabel()}`;
   });
 
   detailsLabel = computed(() => `${this.data()?.subTitle ?? ''} vergrößert anzeigen`);
@@ -149,9 +148,13 @@ export class StatisticsPanelComponent {
     } as StatisticsPanelData;
   });
 
+  /**
+   * Not while the card is loading: what it holds then is the period before the one being fetched,
+   * and enlarging numbers the card itself no longer shows is worse than nothing happening.
+   */
   openDetails() {
     const detail = this.data();
-    if (!detail) {
+    if (!detail || this.loading()) {
       return;
     }
 
@@ -167,13 +170,7 @@ export class StatisticsPanelComponent {
   }
 
   private formatValue(value: number): string {
-    const formatted = this.formatNumber(value, 2);
-    const unit = this.data()?.unit;
-    return unit ? `${formatted} ${unit}` : formatted;
-  }
-
-  private formatNumber(value: number, maximumFractionDigits: number): string {
-    return new Intl.NumberFormat('de-AT', {maximumFractionDigits: maximumFractionDigits}).format(value);
+    return formatStatisticsValue(value, this.data()?.unit, this.locale);
   }
 
   protected readonly faArrowUp = faArrowUp;

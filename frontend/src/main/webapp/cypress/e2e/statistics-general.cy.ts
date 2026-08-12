@@ -124,7 +124,7 @@ describe('Statistics General', () => {
     cy.wait('@emptyRangeData');
 
     cy.byTestId('noDistributionsHint').should('be.visible');
-    cy.byTestId('rangeSummary').should('contain.text', '0 Ausgabe(n) im Zeitraum');
+    cy.byTestId('rangeSummary').should('contain.text', '0 Ausgaben im Zeitraum');
   });
 
   it('drives the date range from a selected past distribution', () => {

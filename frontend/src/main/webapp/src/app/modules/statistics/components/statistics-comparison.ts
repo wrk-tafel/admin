@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import {formatNumber} from '@angular/common';
 import {StatisticsDetailData, StatisticsDistribution} from '../../../api/statistics-api.service';
 
 /**
@@ -80,6 +81,21 @@ export function previousDateRange(
       return {from: previousTo.subtract(to.diff(from, 'day'), 'day').toDate(), to: previousTo.toDate()};
     }
   }
+}
+
+/**
+ * A number this screen computes itself - the min/max of a course, a difference between two periods,
+ * the value under a chart's pointer - formatted the way the `number` pipe formats the ones in the
+ * templates beside it, with the unit the key figure is measured in appended.
+ */
+export function formatStatisticsValue(
+  value: number,
+  unit: string | undefined,
+  locale: string,
+  digitsInfo = '1.0-2'
+): string {
+  const formatted = formatNumber(value, locale, digitsInfo);
+  return unit ? `${formatted} ${unit}` : formatted;
 }
 
 export const COMPARISON_LABELS: Record<DateRangeMode, string> = {

@@ -1,4 +1,4 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, computed, inject, LOCALE_ID} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {DecimalPipe} from '@angular/common';
@@ -6,7 +6,7 @@ import {BaseChartDirective} from 'ng2-charts';
 import {TooltipItem} from 'chart.js';
 import {StatisticsDetailData} from '../../../api/statistics-api.service';
 import {TafelDialogComponent} from '../../../common/components/tafel-dialog/tafel-dialog.component';
-import {computeDelta} from './statistics-comparison';
+import {computeDelta, formatStatisticsValue} from './statistics-comparison';
 
 export interface StatisticsDetailDialogData {
   detail: StatisticsDetailData;
@@ -29,6 +29,7 @@ export interface StatisticsDetailDialogData {
 export class StatisticsDetailDialogComponent {
   readonly dialogRef = inject(MatDialogRef<StatisticsDetailDialogComponent>);
   readonly data: StatisticsDetailDialogData = inject(MAT_DIALOG_DATA);
+  private readonly locale = inject(LOCALE_ID);
 
   delta = computed(() => computeDelta(this.data.detail, this.data.comparison));
 
@@ -89,7 +90,6 @@ export class StatisticsDetailDialogComponent {
   };
 
   private withUnit(value: number): string {
-    const formatted = new Intl.NumberFormat('de-AT', {maximumFractionDigits: 2}).format(value);
-    return this.data.detail.unit ? `${formatted} ${this.data.detail.unit}` : formatted;
+    return formatStatisticsValue(value, this.data.detail.unit, this.locale);
   }
 }

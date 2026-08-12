@@ -144,6 +144,20 @@ describe('StatisticsComponent', () => {
     });
   });
 
+  it('opens nothing while the shown period is being replaced', () => {
+    const fixture = TestBed.createComponent(StatisticsPanelComponent);
+    const dialog = TestBed.inject(MatDialog);
+    const openSpy = vi.spyOn(dialog, 'open').mockReturnValue({} as any);
+
+    fixture.componentRef.setInput('data', detail);
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('mat-card').click();
+
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
   it('opens nothing while there is no data yet', () => {
     const fixture = TestBed.createComponent(StatisticsPanelComponent);
     const dialog = TestBed.inject(MatDialog);

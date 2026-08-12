@@ -121,7 +121,11 @@
   </mat-card-header>
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600" testid="rangeSummary">
-      {{ distributionsInRange() }} Ausgabe(n) im Zeitraum.
+      @if (distributionsInRange() === 1) {
+        1 Ausgabe im Zeitraum.
+      } @else {
+        {{ distributionsInRange() }} Ausgaben im Zeitraum.
+      }
       @if (comparisonRangeLabel()) {
         Verglichen mit {{ comparisonRangeLabel() }} ({{ comparisonLabel() }}).
       } @else {
