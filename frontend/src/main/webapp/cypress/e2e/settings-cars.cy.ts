@@ -44,7 +44,9 @@ describe('Settings - Cars', () => {
     cy.byTestId('carDuplicateHint').should('be.visible').and('contain.text', 'deaktiviert');
     cy.byTestId('reactivateExistingCarButton').click();
 
-    cy.get('.toast-message').should('be.visible').and('contain.text', 'aktiviert');
+    // 'aktiviert' alone would also match 'deaktiviert', so the opposite outcome has to be ruled out
+    cy.get('.toast-message').should('be.visible')
+      .and('contain.text', 'aktiviert').and('not.contain.text', 'deaktiviert');
     cy.byTestId('cars-table').should('contain.text', 'W-NC-111');
 
     // back to how the other cases expect the list, deactivated again
