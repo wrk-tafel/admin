@@ -34,11 +34,22 @@ Neben Name und Adresse (inkl. optional Stiege/Tür) können ein freier **Hinweis
 
 ## Statische Werte (Grenzwerte)
 
-Unter **Einstellungen → Statische Werte** werden die Einkommensgrenzen gepflegt, die bestimmen, ab welchem Einkommen ein Haushalt (abhängig von Anzahl Erwachsener und Kinder) nicht mehr bezugsberechtigt ist. Zusätzlich werden hier Zuschläge für zusätzliche Erwachsene/Kinder, eine Toleranz-Grenze sowie die altersabhängigen Sätze der Familienbeihilfe gepflegt. Die Spalte "Alter" ist dabei jeweils die Altersuntergrenze: Der Satz gilt ab dem angegebenen Alter bis zum nächsthöheren Eintrag – für ein Kind wird also immer der Satz herangezogen, dessen Alter es bereits erreicht hat (z. B. der Satz "10" für ein zwölfjähriges Kind). Es handelt sich um eine fest vorgegebene Liste von Werten (kein Hinzufügen/Entfernen einzelner Zeilen möglich) – bearbeitbar ist ausschließlich der jeweilige Betrag über Stift-/Häkchen-Symbol.
+Unter **Einstellungen → Statische Werte** werden die Beträge gepflegt, die darüber entscheiden, wer bezugsberechtigt ist. Es handelt sich um eine fest vorgegebene Liste von Werten (kein Hinzufügen/Entfernen einzelner Zeilen möglich) – bearbeitbar ist ausschließlich der jeweilige Betrag über Stift-/Häkchen-Symbol.
+
+Die Werte sind in zwei Bereiche gegliedert, und zu jedem Wert steht direkt darüber, wofür er verwendet wird:
+
+- **Einkommensgrenze** – die Einkommensgrenze selbst (je nach Anzahl Erwachsener und Kinder im Haushalt), die Zuschläge für zusätzliche Erwachsene bzw. Kinder, die Toleranz sowie die Beihilfen (Familienbeihilfe, Kinderabsetzbetrag, Geschwisterstaffel), die dem Einkommen hinzugerechnet werden.
+- **Unkostenbeitrag** – der Betrag, den ein Haushalt pro Ausgabe beiträgt.
+
+Bei der Familienbeihilfe ist das angegebene Alter jeweils die Altersuntergrenze: Der Satz gilt ab dem angegebenen Alter bis zum nächsthöheren Eintrag – für ein Kind wird also immer der Satz herangezogen, dessen Alter es bereits erreicht hat (z. B. der Satz "ab 10 Jahren" für ein zwölfjähriges Kind).
 
 ![Statische Werte](images/einstellungen-statische-werte.jpg)
 
-Diese Werte sind die Grundlage für die Berechnung in [Kunden über Limit](kunden.md#kunden-über-limit).
+Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Bestätigung angezeigt. Das ist bewusst so: Die Änderung gilt sofort – jede weitere Anspruchsprüfung rechnet ab dem Speichern mit dem neuen Betrag.
+
+![Grenzwert ändern](images/einstellungen-statische-werte-bestaetigung.jpg)
+
+Über **Kunden über Limit ansehen** gelangt man direkt zu [Kunden über Limit](kunden.md#kunden-über-limit), also zu jenen Kunden, die mit diesen Werten aktuell über dem Limit liegen. **Wer hat zuletzt geändert?** öffnet das [Änderungsprotokoll](aenderungsprotokoll.md), gefiltert auf die Änderungen an diesen Werten. Beide Links sind nur mit der jeweiligen Berechtigung sichtbar.
 
 <a id="lebensmittelkategorien"></a>
 

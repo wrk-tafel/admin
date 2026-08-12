@@ -29,7 +29,9 @@ settings/
       dialogs/
         food-category-create-dialog.component.ts
     static-values/                 # route: einstellungen/statische-werte
-      static-value-type-labels.ts
+      static-value-types.ts
+      dialogs/
+        static-value-change-dialog.component.ts
     cars/                          # route: einstellungen/fahrzeuge
       dialogs/
         car-create-dialog.component.ts
@@ -68,7 +70,7 @@ itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent
   other list screens in the app. Labels for both enums are hardcoded as
   `Record<..., string>` maps on the component (`MailTypeLabels`,
   `RecipientTypeLabels`) rather than extracted to a separate labels file (contrast
-  with `static-value-type-labels.ts` below).
+  with `static-value-types.ts` below).
 - **`send-mails.component.ts`**: lets an admin pick a past distribution
   (`DistributionApiService.getDistributions()`) and re-trigger its mail
   post-processors via `DistributionApiService.sendMails(id)` — useful when the
@@ -164,16 +166,49 @@ Where it goes beyond that twin:
 
 ## `static-values` (`SettingsStaticValuesComponent`)
 
-Read-mostly table of numeric business constants (income limit, additional
-adult/child amounts, tolerance, family bonus, child tax allowance, sibling
+Read-mostly view of the numeric business constants (income limit, additional
+adult/child amounts, tolerance, family allowance, child tax allowance, sibling
 addition, cost contribution — the full `StaticValueTypeEnum` from
 `settings-api.service.ts`). Same inline-edit-with-autofocus pattern as
 food-categories (`editingId` signal + `viewChild`/`effect()` focus), but no
 create, delete, or reordering — only `amount` is editable per row via
-`updateStaticValue()`. Human-readable labels for the enum are centralized in
-`static-value-type-labels.ts` (`staticValueTypeLabels: Record<StaticValueTypeEnum, string>`)
+`updateStaticValue()`.
+
+These numbers decide who receives food, which is what the screen is shaped
+around:
+
+- **One section per type, under two group headings** ("Einkommensgrenze" and
+  "Unkostenbeitrag"), each with a sentence saying what the value does and where
+  it is applied — a `groups()` computed turns the flat API list into that
+  structure. A type with no row at all is left out rather than rendered empty.
+  Each group names one `headingType` whose section renders *without* a heading
+  of its own, since the group heading already is it; its `label` still names
+  that row's actions and its confirmation, where the group heading is out of
+  view. A group whose only type is that one carries no description either — the
+  type's own says it.
+- **A row is qualified only by the columns its type is looked up by**
+  (`qualifierFields`): the seeded tolerance row carries `countAdults`/
+  `countChildren` of `0` that no lookup reads, so "every column that is not
+  null" would show numbers that decide nothing. The qualifier column disappears
+  entirely for a type whose rows don't differ in one.
+- **A changed amount is confirmed as old → new** (`dialogs/static-value-change-dialog.component.ts`)
+  before it is sent, stating that it takes effect immediately; an amount left as
+  it was ends the edit without a request, so the audit trail records no
+  no-op change.
+- **Cross-links** to `/kunden/ueber-limit` (the direct consumer of these
+  numbers) and to `/aenderungsprotokoll?art=StaticValue` (who changed one last),
+  both behind `*tafelIfPermission`.
+
+Labels, descriptions, group membership and qualifier fields per enum value are
+centralized in `static-value-types.ts` (`staticValueTypeSpecs: Record<StaticValueTypeEnum, StaticValueTypeSpec>`)
 rather than inlined on the component, unlike `mail-recipients`' `MailTypeLabels`
-map — if you add a new static value type, update that file, not the component.
+map — if you add a new static value type, update that file, not the component;
+the screen renders nothing it has no entry for.
+
+Test hooks are numbered by the row's position in the list **as the API returns
+it** (`static-values-row-3`, `staticValueAmountInput-3`), not within its
+section, so grouping doesn't renumber them. The per-section table/card wrappers
+carry the type (`static-values-table-INCOME_LIMIT`).
 
 ## `cars` (`SettingsCarsComponent`)
 
