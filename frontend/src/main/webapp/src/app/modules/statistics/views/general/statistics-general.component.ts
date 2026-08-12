@@ -60,7 +60,7 @@ export class StatisticsGeneralComponent {
     to: this._dateRangeTo()
   }));
 
-  selectedMode = signal<DateRangeMode>('year');
+  selectedMode = signal<DateRangeMode>('currentYear');
   selectedYear = signal<number>(dayjs().year());
   selectedDistribution = signal<StatisticsDistribution | undefined>(undefined);
 
@@ -109,7 +109,8 @@ export class StatisticsGeneralComponent {
     return Array.from(years).sort((a, b) => b - a);
   });
 
-  previousYear = computed(() => dayjs().year() - 1);
+  currentYear = computed(() => dayjs().year());
+  previousYear = computed(() => this.currentYear() - 1);
 
   /**
    * The distributions the applied range covers. Shelters and logistics are recorded per
@@ -208,6 +209,8 @@ export class StatisticsGeneralComponent {
     this.selectedMode.set(mode);
     if (mode === 'year') {
       this.applyYear(this.selectedYear());
+    } else if (mode === 'currentYear') {
+      this.applyYear(this.currentYear());
     } else if (mode === 'previousYear') {
       this.applyYear(this.previousYear());
     } else if (mode === 'currentMonth') {

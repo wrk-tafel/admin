@@ -118,13 +118,19 @@ and every card correctly reads "±0" over a flat line — which looks exactly li
 
 ## Allgemein: the period picker
 
-The five periods, the control belonging to the picked one, and the CSV export share one block. From
-`lg` up it is a two-column grid with the export in the top right, beside the range it exports;
-below that it is a single column, so the export ends up where a form's confirming button belongs —
-full width, under the numbers it covers. The toggle group wraps onto a second line rather than
-scrolling sideways: a horizontal scrollbar hides two of the five periods behind an edge that
-nothing announces. Each period's own control is only as wide as its longest answer (a year is four
-characters); a field stretched across the card reads as if more were expected.
+The six periods, the control belonging to the picked one, and the CSV export share one block. From
+`lg` up it is a two-column grid with the export in the block's bottom right corner, beside the
+range it exports; below that it is a single column, so the export ends up where a form's confirming
+button belongs — full width, under the numbers it covers. The toggle group wraps onto further lines
+rather than scrolling sideways: a horizontal scrollbar hides periods behind an edge that nothing
+announces. `tafel-button-toggle-group-wrap` (`scss/components/mat-button-toggle.scss`) is what makes
+a wrapped group look like one control — Material styles a single line only.
+
+`currentYear` and `previousYear` are the running year and the one before it in a single click and
+need no control of their own; `year` is the same range for any other year and is the only one of the
+three with a select beside it. Each period's own control is only as wide as its longest answer (a
+year is four characters) from `sm` up; a field stretched across the card reads as if more were
+expected, and on a phone there is nothing to stretch it against.
 
 ## Charts: `StatisticsPanelComponent`
 
@@ -133,9 +139,13 @@ Each of the ten tiles rendered in `statistics-general.component.html` is one
 `<canvas baseChart>` line chart. `StatisticsPanelComponent` reshapes the incoming
 `StatisticsDetailData` (`title`, `subTitle`, `value`, `unit`, `labels`, `dataPoints`) into the
 Chart.js `data`/`options` shape via a `computed()` (`chartData`), and applies one fixed, shared
-`optionsDefault` object: no axes, no legend, no gridlines — these read as compact sparklines with a
-big number/title above them in plain HTML, not as analytical charts with tickable axes. What the
-line *does* offer on demand is its scale: the min/max/last values written out beside it, tooltips
+`optionsDefault` object: no y axis, no legend — these read as compact sparklines with a big
+number/title above them in plain HTML, not as analytical charts with tickable axes. The one axis
+they keep is the x one: which stretch of time a point stands for, as a thin gridline per period with
+its name under it. Which periods get named is `axisLabel`'s business — every one of them when they
+fit (which is what shortening `2026-03` to `03` is for), otherwise as many as do, but always the
+first and the last. What the line *also* offers on demand is its scale: the min/max/last values
+written out beside it, tooltips
 naming the value at the pointer's position, and the whole course with axes in an enlarged dialog
 (`StatisticsDetailDialogComponent`) the card opens on click. The card's own keyboard path to that
 dialog is the small button in its corner — the click on the card itself is a mouse convenience on

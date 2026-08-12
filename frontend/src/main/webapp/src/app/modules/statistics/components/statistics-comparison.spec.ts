@@ -51,8 +51,8 @@ describe('statistics comparison', () => {
 
   describe('previousDateRange', () => {
 
-    it('shifts a year back by a year', () => {
-      const previous = previousDateRange('year', {
+    it.each(['currentYear', 'year'] as const)('shifts a %s back by a year', (mode) => {
+      const previous = previousDateRange(mode, {
         from: new Date('2026-01-01'),
         to: new Date('2026-08-12')
       });

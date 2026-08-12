@@ -6,7 +6,7 @@ Der Bereich "Statistiken" liefert Auswertungen über die Kunden und Haushalte. D
 
 ## Allgemeine Statistik
 
-Unter **Statistiken → Allgemein** kann der Auswertungszeitraum über die Buttons **Jahr**, **Vorjahr**, **Aktuelles Monat**, **Ausgabe** (Auswahl einer konkreten, bereits erfassten Ausgabe aus einer Liste — mit Wochentag, damit die Ausgaben leichter auseinanderzuhalten sind) oder **Benutzerdefiniert** eingeschränkt werden. Bei "Jahr" kann zusätzlich das gewünschte Jahr gewählt werden; "Vorjahr" wählt mit einem Klick das gesamte vergangene Jahr. Der tatsächlich zugrunde gelegte Zeitraum wird oberhalb der Kennzahlen als "Zeitraum: TT.MM.JJJJ - TT.MM.JJJJ" angezeigt.
+Unter **Statistiken → Allgemein** kann der Auswertungszeitraum über die Buttons **Aktuelles Jahr**, **Vorjahr**, **Jahr**, **Aktuelles Monat**, **Ausgabe** (Auswahl einer konkreten, bereits erfassten Ausgabe aus einer Liste — mit Wochentag, damit die Ausgaben leichter auseinanderzuhalten sind) oder **Benutzerdefiniert** eingeschränkt werden. "Aktuelles Jahr" (die Voreinstellung) und "Vorjahr" brauchen keine weitere Eingabe; nur bei "Jahr" wird zusätzlich das gewünschte Jahr gewählt. Der tatsächlich zugrunde gelegte Zeitraum wird oberhalb der Kennzahlen als "Zeitraum: TT.MM.JJJJ - TT.MM.JJJJ" angezeigt.
 
 Bei **Benutzerdefiniert** muss "von" vor "bis" liegen. Ist das nicht der Fall oder fehlt ein Datum, erscheint ein Hinweis und die zuletzt gültige Auswertung bleibt stehen.
 
@@ -14,7 +14,7 @@ Bei **Benutzerdefiniert** muss "von" vor "bis" liegen. Ist das nicht der Fall od
 
 Unter dem Zeitraum steht, wie viele Ausgaben er umfasst und mit welchem Zeitraum er verglichen wird. Enthält der Zeitraum keine abgeschlossene Ausgabe, wird das ausdrücklich angezeigt: Notschlafstellen und Logistik werden je Ausgabe erfasst und bleiben dann leer, die Kundenzahlen zeigen den Stand am Ende des Zeitraums.
 
-Für den gewählten Zeitraum werden Kennzahlen in drei Gruppen angezeigt, jeweils als Kachel mit aktuellem Wert und einem interaktiven Liniendiagramm des Verlaufs (Werte pro Datenpunkt beim Überfahren mit der Maus):
+Für den gewählten Zeitraum werden Kennzahlen in drei Gruppen angezeigt, jeweils als Kachel mit aktuellem Wert und einem interaktiven Liniendiagramm des Verlaufs. Die einzelnen Zeitabschnitte des Verlaufs sind als dünne Linien mit ihrer Bezeichnung darunter eingezeichnet — je nach Länge des Zeitraums Wochen, Monate oder Jahre; beim Überfahren mit der Maus wird der Wert des jeweiligen Abschnitts angezeigt:
 
 - **Kunden und Personen**: Bezugsberechtigte Haushalte, Bezugsberechtigte Personen, Bezugsberechtigte Haushalte mit Kindern (Alter ≤ 15), Alleinerzieher (Haushalte).
 - **Notschlafstellen**: Notschlafstellen (Anzahl), Notschlafstellen (Durchschnitt pro Ausgabe), Versorgte Personen (Anzahl).

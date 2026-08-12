@@ -53,14 +53,14 @@
         an unlabelled graphic. The value it plots is the one written out above it; what the name has
         to add is that this is its course over the listed distributions.
       -->
-      <canvas baseChart class="mt-4 mx-4" height="80" role="img"
+      <canvas baseChart class="mt-4 mx-4" height="110" role="img"
               [attr.aria-label]="'Verlauf: ' + (data()?.subTitle ?? '')"
               [type]="'line'" [data]="chartData()" [options]="optionsDefault"></canvas>
 
       @if (scale(); as scale) {
         <!-- no dimming here: 12px text at less than full white misses the contrast minimum on this
              card's background -->
-        <div class="mt-1 flex justify-between text-xs" testid="panel-scale">
+        <div class="mt-3 flex justify-between text-xs" testid="panel-scale">
           <span>Min&nbsp;{{ scale.minimum }}</span>
           <span>Max&nbsp;{{ scale.maximum }}</span>
           <span>Zuletzt&nbsp;{{ scale.last }}</span>

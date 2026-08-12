@@ -11,21 +11,22 @@
     <div class="font-bold mb-2" id="dateRangeLabel">Zeitraum</div>
 
     <!-- The export covers the very range picked beside it, which is why it shares this block rather
-         than sitting in a card of its own. It is the block's last element, so on anything narrower
-         than a desktop it ends up where a form's confirming button belongs - full width, under the
-         range it exports - while from lg on the grid lifts it into the picker's own row. -->
-    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+         than sitting in a card of its own, and why it stays where a form's confirming button
+         belongs: the bottom right of what it acts on. Below lg that is under the picker at full
+         width; from lg on the grid moves it into a column of its own, still at the bottom. -->
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
       <div class="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
         <!-- The group wraps onto a second line rather than scrolling sideways: a horizontal
              scrollbar hides two of the five periods behind an edge that nothing announces, and
              they are the point of the control.
              Every control in this block is named by the visible text beside it: without the
              explicit association those are plain <div>s that name nothing. -->
-        <mat-button-toggle-group class="flex-wrap lg:self-start" testid="dateRangeModeInput" [value]="selectedMode()"
+        <mat-button-toggle-group class="tafel-button-toggle-group-wrap lg:self-start" testid="dateRangeModeInput" [value]="selectedMode()"
                                   aria-labelledby="dateRangeLabel"
                                   (change)="onModeChange($event.value)">
-          <mat-button-toggle value="year">Jahr</mat-button-toggle>
+          <mat-button-toggle value="currentYear">Aktuelles Jahr</mat-button-toggle>
           <mat-button-toggle value="previousYear">Vorjahr</mat-button-toggle>
+          <mat-button-toggle value="year">Jahr</mat-button-toggle>
           <mat-button-toggle value="currentMonth">Aktuelles Monat</mat-button-toggle>
           <mat-button-toggle value="distribution">Ausgabe</mat-button-toggle>
           <mat-button-toggle value="custom">Benutzerdefiniert</mat-button-toggle>
@@ -34,10 +35,16 @@
         <!-- each period's own control is only as wide as its longest answer - a year is four
              characters, and a field stretched across the card reads as if more were expected -->
         @switch (selectedMode()) {
+          @case ('currentYear') {
+            <div testid="currentYearHint">
+              Laufendes Jahr {{ currentYear() }} (01.01. bis heute), verglichen mit dem gleichen Zeitraum
+              {{ previousYear() }}.
+            </div>
+          }
           @case ('year') {
             <div class="flex items-center gap-3">
               <span id="yearLabel">Jahr</span>
-              <mat-form-field subscriptSizing="dynamic" class="w-32">
+              <mat-form-field subscriptSizing="dynamic" class="flex-1 sm:flex-none sm:w-32">
                 <mat-select testid="yearInput" [ngModel]="selectedYear()"
                             aria-labelledby="yearLabel"
                             (ngModelChange)="onYearSelected($event)">

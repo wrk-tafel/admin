@@ -111,6 +111,28 @@ describe('StatisticsGeneralComponent', () => {
     expect(fixture.nativeElement.querySelector('[testid="statisticsPanel-beneficiaryCustomers-skeleton"]')).toBeNull();
   });
 
+  it('returns to the running year from another mode in one click', () => {
+    const fixture = createComponent();
+    respond(fixture, 100, 80);
+
+    fixture.componentInstance.onModeChange('previousYear');
+    fixture.detectChanges();
+    httpMock.match(request => request.url === '/statistics/data')
+      .forEach(request => request.flush(statisticsData(1)));
+
+    fixture.componentInstance.onModeChange('currentYear');
+    fixture.detectChanges();
+
+    const requests = httpMock.match(request => request.url === '/statistics/data');
+    expect(requests[0].request.params.get('fromDate')).toEqual(dayjs().startOf('year').format('YYYY-MM-DD'));
+    expect(requests[0].request.params.get('toDate')).toEqual(dayjs().format('YYYY-MM-DD'));
+    expect(requests[1].request.params.get('fromDate'))
+      .toEqual(dayjs().startOf('year').subtract(1, 'year').format('YYYY-MM-DD'));
+
+    requests.forEach(request => request.flush(statisticsData(1)));
+    fixture.detectChanges();
+  });
+
   it('compares the previous year with the year before it', () => {
     const fixture = createComponent();
     respond(fixture, 100, 80);

@@ -10,6 +10,25 @@ import {StatisticsDetailData} from '../../../api/statistics-api.service';
 import {computeDelta, formatStatisticsValue} from './statistics-comparison';
 import {StatisticsDetailDialogComponent} from './statistics-detail-dialog.component';
 
+/**
+ * Roughly what a card's sparkline has to name its periods in: the width of its chart area, and what
+ * one character and the gap beside a 10px label take up in it. Together they decide how many of the
+ * periods get a name rather than only a gridline (see `axisLabel`).
+ */
+const SPARKLINE_LABEL_AREA_PX = 240;
+const AXIS_LABEL_CHARACTER_PX = 6;
+const AXIS_LABEL_GAP_PX = 8;
+
+/**
+ * A period label cut down to the part that tells it apart from its neighbours: the month of
+ * `2026-03`, the calendar week of `2026-KW12`. The year they share is already in the period
+ * heading above the cards, and dropping it is what lets every period on a course be named instead
+ * of every third one. A yearly course is left alone - there the year *is* the distinguishing part.
+ */
+function shortenPeriodLabel(label: string | undefined): string {
+  return (label ?? '').replace(/^\d{4}-/, '');
+}
+
 @Component({
   selector: 'tafel-statistics-panel',
   templateUrl: 'statistics-panel.component.html',
@@ -97,13 +116,32 @@ export class StatisticsPanelComponent {
     },
     maintainAspectRatio: true,
     scales: {
+      /**
+       * The one axis the sparkline keeps: which stretch of time a point stands for. Without it the
+       * line has a shape but no "when" - the same question the enlarged view answers with full
+       * axes, asked here in the space a card has. Every period is a gridline; which of them are
+       * named is [axisLabel]'s business, and the labels are full white because anything dimmer
+       * misses the contrast minimum on this card's background.
+       */
       x: {
         grid: {
-          display: false,
-          drawBorder: false
+          display: true,
+          color: 'rgba(255,255,255,.2)',
+          drawTicks: false
+        },
+        border: {
+          display: false
         },
         ticks: {
-          display: false
+          display: true,
+          color: '#ffffff',
+          font: {
+            size: 10
+          },
+          autoSkip: false,
+          maxRotation: 0,
+          padding: 2,
+          callback: (_value: string | number, index: number, ticks: unknown[]) => this.axisLabel(index, ticks.length)
         }
       },
       y: {
@@ -173,6 +211,33 @@ export class StatisticsPanelComponent {
         comparisonRangeLabel: this.comparisonRangeLabel()
       }
     });
+  }
+
+  /**
+   * Which of the course's periods get named under the sparkline. Every one of them when they fit -
+   * which is what shortening the label to the part that actually differs is for - and otherwise as
+   * many as do, but always the first and the last, so the line's span can be read off it whatever
+   * the resolution is. The one before the last is dropped when it would land right next to it.
+   *
+   * The full label stays on the tooltip, which reads the data's own labels rather than these.
+   */
+  private axisLabel(index: number, count: number): string {
+    const label = shortenPeriodLabel(this.data()?.labels?.[index]);
+    const last = count - 1;
+    if (index === 0 || index === last) {
+      return label;
+    }
+
+    const stride = Math.ceil(count / this.maxAxisLabels());
+    return index % stride === 0 && last - index >= stride ? label : '';
+  }
+
+  /** How many labels of this course's length fit side by side under a card's sparkline. */
+  private maxAxisLabels(): number {
+    const longest = (this.data()?.labels ?? [])
+      .reduce((max, label) => Math.max(max, shortenPeriodLabel(label).length), 1);
+
+    return Math.max(2, Math.floor(SPARKLINE_LABEL_AREA_PX / (longest * AXIS_LABEL_CHARACTER_PX + AXIS_LABEL_GAP_PX)));
   }
 
   private formatValue(value: number): string {

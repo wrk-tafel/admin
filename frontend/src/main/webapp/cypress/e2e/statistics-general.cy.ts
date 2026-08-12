@@ -10,9 +10,11 @@ describe('Statistics General', () => {
     cy.visit('/statistiken/allgemein');
   });
 
-  it('defaults to the current year and shows the aggregated data', () => {
+  it('defaults to the running year and shows the aggregated data', () => {
     const currentYear = dayjs().year();
-    cy.byTestId('yearInput').should('contain.text', currentYear.toString());
+    cy.byTestId('currentYearHint').should('contain.text', `Laufendes Jahr ${currentYear}`);
+    // the running year needs no control of its own - only "Jahr" does
+    cy.byTestId('yearInput').should('not.exist');
 
     const from = dayjs().startOf('year').format('DD.MM.YYYY');
     const to = dayjs().format('DD.MM.YYYY');
@@ -112,6 +114,21 @@ describe('Statistics General', () => {
     cy.byTestId('rangeSummary').should('contain.text', 'ggü. Vormonat');
   });
 
+  // "Jahr" is the only one of the three year modes with a control of its own - the toggle is
+  // matched exactly, since "Aktuelles Jahr" contains its label
+  const YEAR_TOGGLE = /^\s*Jahr\s*$/;
+
+  it('picks a specific year through the year mode', () => {
+    const previousYear = dayjs().year() - 1;
+    cy.byTestId('dateRangeModeInput').contains(YEAR_TOGGLE).click();
+
+    cy.byTestId('yearInput').should('be.visible').click();
+    cy.byTestId('yearInput-option-' + previousYear).click();
+
+    cy.contains(`Zeitraum: 01.01.${previousYear} - 31.12.${previousYear}`).should('be.visible');
+    cy.byTestId('rangeSummary').should('contain.text', 'ggü. Vorjahr');
+  });
+
   it('switches to the previous year in one click', () => {
     const previousYear = dayjs().year() - 1;
     cy.byTestId('dateRangeModeInput').contains('Vorjahr').click();
@@ -198,7 +215,8 @@ describe('Statistics General', () => {
   it('switches to a custom date range and updates the shown range on phone', () => {
     cy.viewport(PHONE_VIEWPORT);
 
-    // The Zeitraum toggle group (Jahr/Vorjahr/Aktuelles Monat/Ausgabe/Benutzerdefiniert) is wider
+    // The Zeitraum toggle group (Aktuelles Jahr/Vorjahr/Jahr/Aktuelles Monat/Ausgabe/
+    // Benutzerdefiniert) is wider
     // than a phone viewport, so it wraps onto a second line - every period stays on screen and the
     // page itself never scrolls sideways. Both halves are asserted: a plain .click() below would
     // still succeed if this regressed into a scrolling group (Cypress auto-scrolls whichever
@@ -228,13 +246,16 @@ describe('Statistics General', () => {
     cy.contains('Transport- / Logistik').scrollIntoView().should('be.visible');
   });
 
-  it('puts the export beside the period picker on a desktop', () => {
-    // the export covers the picked range, so it shares that row rather than sitting in a card of
-    // its own - "beside" as in: it starts before the picker's own row has ended
-    cy.byTestId('dateRangeModeInput').then(($group) => {
+  it('puts the export in the picker block\'s bottom right corner on a desktop', () => {
+    // the export covers the picked range, so it shares that block rather than sitting in a card of
+    // its own - in the corner a form's confirming button belongs in: beside the picker, level with
+    // its last line
+    cy.byTestId('exportHint').then(($hint) => {
       cy.byTestId('csvExportButton').then(($button) => {
-        expect($button[0].getBoundingClientRect().top)
-          .to.be.lessThan($group[0].getBoundingClientRect().bottom);
+        const hint = $hint[0].getBoundingClientRect();
+        const button = $button[0].getBoundingClientRect();
+        expect(button.left, 'beside the picker, not under it').to.be.at.least(hint.right);
+        expect(button.bottom, 'level with the block\'s last line').to.be.closeTo(hint.bottom, 5);
       });
     });
   });
@@ -242,8 +263,7 @@ describe('Statistics General', () => {
   it('moves the export under the period picker at tablet width', () => {
     cy.viewport(TABLET_VIEWPORT);
 
-    const currentYear = dayjs().year();
-    cy.byTestId('yearInput').should('be.visible').and('contain.text', currentYear.toString());
+    cy.byTestId('currentYearHint').should('be.visible');
 
     // there is no room for a second column here, so the export becomes what it reads as on a
     // narrow screen: the panel's closing, full-width action under the range it exports
@@ -263,11 +283,15 @@ describe('Statistics General', () => {
   describe('accessibility', () => {
 
     it('has no violations in any of the date range modes', () => {
-      cy.byTestId('yearInput').should('be.visible');
+      cy.byTestId('currentYearHint').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);
 
       cy.byTestId('dateRangeModeInput').contains('Vorjahr').click();
       cy.byTestId('previousYearHint').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('dateRangeModeInput').contains(YEAR_TOGGLE).click();
+      cy.byTestId('yearInput').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);
 
       cy.byTestId('dateRangeModeInput').contains('Aktuelles Monat').click();

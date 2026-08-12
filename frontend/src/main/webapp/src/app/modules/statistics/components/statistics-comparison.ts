@@ -3,10 +3,14 @@ import {formatNumber} from '@angular/common';
 import {StatisticsDetailData, StatisticsDistribution} from '../../../api/statistics-api.service';
 
 /**
- * The four ways the period is picked. Each one implies what "the period before this one" is - which
- * is what every key figure is compared against, see {@link previousDateRange}.
+ * The ways the period is picked. Each one implies what "the period before this one" is - which is
+ * what every key figure is compared against, see {@link previousDateRange}.
+ *
+ * `currentYear` and `previousYear` are the running year and the one before it in a single click;
+ * `year` is the same range for any other year, and is the only one of the three that needs a
+ * control of its own.
  */
-export type DateRangeMode = 'year' | 'previousYear' | 'currentMonth' | 'distribution' | 'custom';
+export type DateRangeMode = 'currentYear' | 'previousYear' | 'year' | 'currentMonth' | 'distribution' | 'custom';
 
 export interface DateRange {
   from: Date;
@@ -63,6 +67,7 @@ export function previousDateRange(
   const to = dayjs(range.to);
 
   switch (mode) {
+    case 'currentYear':
     case 'year':
     case 'previousYear':
       return {from: from.subtract(1, 'year').toDate(), to: to.subtract(1, 'year').toDate()};
@@ -99,8 +104,9 @@ export function formatStatisticsValue(
 }
 
 export const COMPARISON_LABELS: Record<DateRangeMode, string> = {
-  year: 'ggü. Vorjahr',
+  currentYear: 'ggü. Vorjahr',
   previousYear: 'ggü. Vorjahr',
+  year: 'ggü. Vorjahr',
   currentMonth: 'ggü. Vormonat',
   distribution: 'ggü. voriger Ausgabe',
   custom: 'ggü. Vorperiode'
