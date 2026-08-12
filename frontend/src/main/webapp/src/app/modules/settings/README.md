@@ -24,7 +24,6 @@ settings/
     shelters/                    # route: einstellungen/notschlafstellen
       dialogs/
         shelter-edit-dialog.component.ts
-        shelter-details-dialog.component.ts
     food-categories/              # route: einstellungen/lebensmittelkategorien
       dialogs/
         food-category-create-dialog.component.ts
@@ -78,22 +77,32 @@ itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent
 
 ## `shelters` (`SettingsSheltersComponent`)
 
-CRUD + drag-and-drop reordering for shelters (Notschlafstellen), added most
-recently (commit `77d1af19`, "Add sortOrder + drag-and-drop reordering to
-Shelters"). Loads via `ShelterApiService.getAllShelters()` into a signal
-(`_shelters`), with a Material table (`displayedColumns = ['drag', 'active',
-'name', 'address', 'persons', 'actions']`).
+CRUD + drag-and-drop reordering for shelters (Notschlafstellen). Loads via
+`ShelterApiService.getAllShelters()` into a signal (`_shelters`).
 
-- **Reordering** uses Angular CDK drag-and-drop directly on the table rows:
-  `CdkDropList` on the table body, `CdkDrag` per `<tr>`, `CdkDragHandle` on a
-  dedicated grip-icon column (`faGripVertical`) so the whole row isn't
-  draggable from anywhere. The `drop()` handler uses CDK's `moveItemInArray()`
-  helper to reorder the in-memory array **optimistically**, then POSTs the new
-  id order to `ShelterApiService.reorderShelters()`; on success the signal is
-  replaced with the server's authoritative response, on error it's reloaded
-  from scratch (`loadShelters()`) to undo the optimistic move. The
-  `food-categories` view below implements the identical pattern — if you
-  change one, check the other.
+- **An expandable card list**, like `shops`/`routes` below and unlike the other
+  reorderable screens: a shelter carries a whole contact list, which no table row
+  can hold. The collapsed header row is the overview (reorder handle, name,
+  address, persons count, "Inaktiv" badge), the expanded body holds the full
+  address, the persons count and the contacts, each contact's phone number a
+  `tel:` link. There is no read-only details dialog. The header row's own
+  nested-interactive constraint is the one described under `shops`/`routes`:
+  the summary is a plain `<button>` carrying `aria-expanded`/`aria-controls`,
+  and reorder handle, activate/deactivate and edit buttons are its **siblings**,
+  so all three work without expanding the record first. Expanded state is held
+  as a `Set` of shelter ids, not indices, so a reorder cannot carry it over to
+  whichever record moves into that position.
+- **Reordering** uses Angular CDK drag-and-drop on the cards: `CdkDropList` on
+  the list, `CdkDrag` per card, `CdkDragHandle` on the `tafel-reorder-handle`
+  so the whole card isn't draggable from anywhere. Both the `drop()` (pointer)
+  and the `moveShelter()` (keyboard) path go through the same `reorder()`, which
+  uses CDK's `moveItemInArray()` to reorder the in-memory array
+  **optimistically**, then POSTs the new id order to
+  `ShelterApiService.reorderShelters()`; on success the signal is replaced with
+  the server's authoritative response, on failure a toast says so and the list is
+  reloaded from scratch (`loadShelters()`) to undo the optimistic move. The
+  `food-categories` and `cars` views implement the identical pattern — if you
+  change one, check the others.
 - `sortOrder` itself is present on `ShelterItem` but explicitly **not editable**
   in `shelter-edit-dialog.component.ts` (see the comment there) — it's
   server-assigned on create and only changes via drag-and-drop afterwards.
@@ -101,14 +110,12 @@ Shelters"). Loads via `ShelterApiService.getAllShelters()` into a signal
   `contacts: FormArray` of `{ firstname, lastname, phone }` groups
   (`addContact()`/`removeContact()`), with manual `ChangeDetectorRef.detectChanges()`
   calls after array mutation — a sign this predates/coexists with signal-based
-  change detection elsewhere in the app.
-- **Details dialog** (`shelter-details-dialog.component.ts`) is a plain read-only
-  view, opened via the table's "view" action.
-- This `sortOrder` is also now respected outside this module: the dashboard
-  shelter listing and the daily-report PDF were updated in a follow-up commit
-  (`9b7dd281`, "Respect shelter sortOrder in dashboard and daily report PDF") to
-  use the same ordering — so reordering here has visible effects well beyond
-  this screen.
+  change detection elsewhere in the app. Only the phone number is required, so a
+  contact can be a bare number and the list renders it without a name.
+- This `sortOrder` is respected outside this module too: the dashboard shelter
+  listing and the daily-report PDF use the same ordering — so reordering here has
+  visible effects well beyond this screen, which is what the caption line above
+  the list tells the administrator.
 
 ## `food-categories` (`SettingsFoodCategoriesComponent`)
 
@@ -321,10 +328,11 @@ that reflect the domain:
 
 ## `shops` (`SettingsShopsComponent`) and `routes` (`SettingsRoutesComponent`)
 
-The two logistics master-data screens. Unlike every other view in this module they are **not**
-Material tables with a mobile card fallback: both render a list of expandable cards, because their
-records carry more detail than a row can hold (a shop's contact block, a route's whole list of
-stops). The collapsed header row is the overview — number badge, name, one line of summary
+The two logistics master-data screens. Like `shelters` above and unlike the remaining views in this
+module they are **not** Material tables with a mobile card fallback: both render a list of
+expandable cards, because their records carry more detail than a row can hold (a shop's contact
+block, a route's whole list of stops). The collapsed header row is the overview — number badge,
+name, one line of summary
 (`view.address` / `view.stopsSummary`) and an "Inaktiv" badge — the expanded body holds the
 details, so there is no separate read-only details dialog for either of them.
 
@@ -351,6 +359,12 @@ Both follow the same shape, and a change to one usually belongs in the other:
   body a `role="region"` that `[hidden]` collapses. A new control in that row goes beside them, not
   inside the summary button. Expanded state is held as a `Set` of record ids (not indices), so a
   search or filter change cannot transfer it to whichever record moves into that position.
+- **A record's surface is `.tafel-panel`** (`scss/components/tafel-panel.scss`), shared with
+  `shelters` and the place to change the look of all three at once: flat, white, with the same
+  `--tafel-border-color` outline and 12px radius an outlined `mat-card` has. The list sits inside a
+  white card, so the only thing separating one record from the surface behind it is that border —
+  which is why the panel carries no elevation shadow: a shadow fades outwards and blurs exactly the
+  edge that has to be legible.
 - `route-edit-dialog` manages the stops as a nested `stops: FormArray` of
   `{ time, shopId, description }` with `addStop()`/`removeStop()` plus manual
   `ChangeDetectorRef.detectChanges()` calls, structurally the twin of `shelter-edit-dialog`'s

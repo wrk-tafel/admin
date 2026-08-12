@@ -383,9 +383,9 @@ since it lives outside the code you're editing. On every update or regeneration,
   — so that a sidebar/header/theme change doesn't invalidate the whole set at once. The dashboard
   screenshot in `README.md` (`images/dashboard.jpg`) is the one deliberate exception, kept full-page
   to show the overall app layout with sidebar and header. A handful of other screenshots
-  (`benutzermenue.jpg`, `support-anfrage.jpg`, `kunden-anspruch-pruefen.jpg`,
-  `einstellungen-notschlafstellen-kontakte.jpg`) keep the header specifically because their subject
-  — a dropdown or dialog anchored to a header control — visually extends into that region; crop
+  (`benutzermenue.jpg`, `support-anfrage.jpg`, `kunden-anspruch-pruefen.jpg`) keep the header
+  specifically because their subject — a dropdown or dialog anchored to a header control —
+  visually extends into that region; crop
   those to the sidebar only, not the header. When taking a new screenshot, crop it the same way
   before adding it.
 - **Cross-chapter markdown links** (e.g. `[Kunden](kunden.md)`) must stay as plain file links in the

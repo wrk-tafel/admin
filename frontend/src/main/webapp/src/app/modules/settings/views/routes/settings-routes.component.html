@@ -52,7 +52,7 @@
          actions are its siblings rather than controls nested inside a button (#3137). -->
     <div class="block" testid="routes-list">
       @for (view of visibleRoutes(); track view.route.id; let i = $index) {
-        <div class="mb-2 rounded-xl bg-white shadow-sm" [attr.testid]="'routes-row-' + i">
+        <div class="tafel-panel mb-2" [attr.testid]="'routes-row-' + i">
           <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
             <button type="button" class="flex flex-1 cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 text-start"
                     [id]="'routes-toggle-' + i" [attr.testid]="'routes-toggle-' + i"

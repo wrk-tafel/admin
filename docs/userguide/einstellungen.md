@@ -4,7 +4,7 @@
 
 Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar.
 
-Die Tabellen dieses Bereichs werden auf schmalen Bildschirmen als Kartenliste dargestellt – eine Karte je Eintrag, mit denselben Angaben und denselben Aktionen wie in der Tabelle, inklusive Drag-Handle (⋮⋮) zum Sortieren (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)). [Filialen](#filialen) und [Routen](#routen) sind keine Tabellen, sondern aufklappbare Listen und funktionieren daher auf jeder Bildschirmbreite gleich. Am Beispiel der Fahrzeuge:
+Die Tabellen dieses Bereichs werden auf schmalen Bildschirmen als Kartenliste dargestellt – eine Karte je Eintrag, mit denselben Angaben und denselben Aktionen wie in der Tabelle, inklusive Drag-Handle (⋮⋮) zum Sortieren (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)). [Notschlafstellen](#notschlafstellen), [Filialen](#filialen) und [Routen](#routen) sind keine Tabellen, sondern aufklappbare Listen und funktionieren daher auf jeder Bildschirmbreite gleich. Am Beispiel der Fahrzeuge:
 
 ![Einstellungen auf schmalen Bildschirmen](images/einstellungen-fahrzeuge-mobil.jpg)
 
@@ -20,15 +20,23 @@ Auf schmalen Bildschirmen stehen An, CC und BCC nicht nebeneinander, sondern dur
 
 Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Dropdown, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
 
+<a id="notschlafstellen"></a>
+
 ## Notschlafstellen
 
-Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwaltet, deren Personenzahl in die Tagesstatistik einfließt. Notschlafstellen können aktiviert/deaktiviert, angesehen, bearbeitet und per Drag-Handle (⋮⋮) in der Reihenfolge sortiert werden. Eine deaktivierte Notschlafstelle kann erst wieder bearbeitet werden, nachdem sie reaktiviert wurde (der Stift-Button ist so lange deaktiviert).
+Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwaltet, deren Personenzahl in die Tagesstatistik einfließt.
+
+Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden". Die Überschrift zeigt, wie viele der Notschlafstellen aktiv sind.
 
 ![Notschlafstellen](images/einstellungen-notschlafstellen.jpg)
 
-Neben Name und Adresse (inkl. optional Stiege/Tür) können ein freier **Hinweis**-Text sowie beliebig viele **Kontakte** (Vorname, Nachname, Telefonnummer als Pflichtfeld) über **Kontakt hinzufügen**/**Entfernen** erfasst werden. In der Ansehen-Ansicht werden alle Kontakte aufgelistet bzw. "Keine Kontakte vorhanden" angezeigt, falls keine erfasst sind.
+Rechts in jeder Zeile stehen der **Augen-Button** zum Aktivieren/Deaktivieren und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Notschlafstelle nicht aufgeklappt werden. Eine deaktivierte Notschlafstelle steht bei der Statistik nicht mehr zur Auswahl, ist in der Liste als "Inaktiv" gekennzeichnet und kann erst wieder bearbeitet werden, nachdem sie reaktiviert wurde (der Stift-Button ist so lange deaktiviert).
 
-![Notschlafstellen-Kontakte](images/einstellungen-notschlafstellen-kontakte.jpg)
+Links in jeder Zeile sortiert das Drag-Handle (⋮⋮) die Liste. Diese Reihenfolge gilt nicht nur hier: Sie bestimmt auch die Reihenfolge der Notschlafstellen in der [Übersicht](README.md#übersicht-dashboard) und im Tagesbericht — deshalb steht dieser Hinweis auch über der Liste.
+
+Im Bearbeiten-Dialog werden neben Name und Adresse (inkl. optional Stiege/Tür) ein freier **Hinweis**-Text sowie beliebig viele **Kontakte** (Vorname, Nachname, Telefonnummer als Pflichtfeld) über **Kontakt hinzufügen**/**Entfernen** erfasst.
+
+![Notschlafstellen bearbeiten](images/einstellungen-notschlafstellen-kontakte.jpg)
 
 <a id="statische-werte-grenzwerte"></a>
 
