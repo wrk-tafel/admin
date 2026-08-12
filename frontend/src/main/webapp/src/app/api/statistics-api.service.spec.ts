@@ -73,6 +73,7 @@ describe('StatisticsApiService', () => {
       beneficiaryCustomers: {
         title: '5',
         subTitle: 'Bezugsberechtigte Haushalte',
+        value: 5,
         labels: [
           '2026-01',
           '2026-02',
@@ -83,6 +84,7 @@ describe('StatisticsApiService', () => {
       beneficiaryPersons: {
         title: '20',
         subTitle: 'Bezugsberechtigte Personen',
+        value: 20,
         labels: [
           '2026-01',
           '2026-02',
@@ -93,6 +95,7 @@ describe('StatisticsApiService', () => {
       beneficiaryCustomersWithChildren: {
         title: '2',
         subTitle: 'Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)',
+        value: 2,
         labels: [
           '2026-01',
           '2026-02',
@@ -103,6 +106,7 @@ describe('StatisticsApiService', () => {
       singleParentHouseholds: {
         title: '1',
         subTitle: 'Alleinerzieher (Haushalte)',
+        value: 1,
         labels: [
           '2026-01',
           '2026-02',
@@ -113,6 +117,7 @@ describe('StatisticsApiService', () => {
       sheltersCount: {
         title: '0',
         subTitle: 'Notschlafstellen (Anzahl)',
+        value: 0,
         labels: [
           '2026-01',
           '2026-02',
@@ -123,6 +128,7 @@ describe('StatisticsApiService', () => {
       sheltersAverage: {
         title: '0',
         subTitle: 'Notschlafstellen (Durchschnitt pro Ausgabe)',
+        value: 0,
         labels: [
           '2026-01',
           '2026-02',
@@ -133,6 +139,7 @@ describe('StatisticsApiService', () => {
       sheltersPersonsCount: {
         title: '0',
         subTitle: 'Spender (Anzahl)',
+        value: 0,
         labels: [
           '2026-01',
           '2026-02',
@@ -143,6 +150,7 @@ describe('StatisticsApiService', () => {
       shopsCount: {
         title: '0',
         subTitle: 'Spender (Anzahl)',
+        value: 0,
         labels: [
           '2026-01',
           '2026-02',
@@ -153,6 +161,8 @@ describe('StatisticsApiService', () => {
       shopItemsTotal: {
         title: '0',
         subTitle: 'Warenmenge (Gesamt)',
+        value: 0,
+        unit: 'kg',
         labels: [
           '2026-01',
           '2026-02',
@@ -163,6 +173,8 @@ describe('StatisticsApiService', () => {
       shopItemsAverage: {
         title: '0',
         subTitle: 'Warenmenge (Durchschnitt pro Spender)',
+        value: 0,
+        unit: 'kg',
         labels: [
           '2026-01',
           '2026-02',

@@ -40,6 +40,8 @@ class StatisticsService(
 
         private const val MIN_AGE = 0
         private const val MAX_AGE = 120
+
+        private const val UNIT_KILOGRAM = "kg"
     }
 
     fun getSettings(): StatisticsSettingsResponse {
@@ -62,107 +64,111 @@ class StatisticsService(
     }
 
     @Transactional(readOnly = true)
-    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse {
-        val countBeneficiaryCustomers = countBeneficiaryCustomers(fromDate, toDate)
-        val countBeneficiaryCustomersData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countBeneficiaryCustomers.lastOrNull()?.value?.toLong() ?: 0L),
+    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse = StatisticsResponse(
+        beneficiaryCustomers = lastValueDetail(
             subTitle = "Bezugsberechtigte Haushalte",
-            labels = countBeneficiaryCustomers.map { it.label },
-            dataPoints = countBeneficiaryCustomers.map { it.value },
-        )
-
-        val countBeneficiaryPersons = countBeneficiaryPersons(fromDate, toDate)
-        val countBeneficiaryPersonsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countBeneficiaryPersons.lastOrNull()?.value?.toLong() ?: 0L),
+            results = countBeneficiaryCustomers(fromDate, toDate),
+        ),
+        beneficiaryPersons = lastValueDetail(
             subTitle = "Bezugsberechtigte Personen",
-            labels = countBeneficiaryPersons.map { it.label },
-            dataPoints = countBeneficiaryPersons.map { it.value },
-        )
-
-        val countBeneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildren(fromDate, toDate)
-        val countBeneficiaryCustomersWithChildrenData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toLong() ?: 0L),
+            results = countBeneficiaryPersons(fromDate, toDate),
+        ),
+        beneficiaryCustomersWithChildren = lastValueDetail(
             subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
-            labels = countBeneficiaryCustomersWithChildren.map { it.label },
-            dataPoints = countBeneficiaryCustomersWithChildren.map { it.value },
-        )
-
-        val countSingleParentHouseholds = countSingleParentHouseholds(fromDate, toDate)
-        val countSingleParentHouseholdsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countSingleParentHouseholds.lastOrNull()?.value?.toLong() ?: 0L),
+            results = countBeneficiaryCustomersWithChildren(fromDate, toDate),
+        ),
+        singleParentHouseholds = lastValueDetail(
             subTitle = "Alleinerzieher (Haushalte)",
-            labels = countSingleParentHouseholds.map { it.label },
-            dataPoints = countSingleParentHouseholds.map { it.value },
-        )
-
-        val countShelters = countShelters(fromDate, toDate)
-        val countSheltersData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countShelters.sumOf { it.value.toLong() }),
+            results = countSingleParentHouseholds(fromDate, toDate),
+        ),
+        sheltersCount = sumDetail(
             subTitle = "Notschlafstellen (Anzahl)",
-            labels = countShelters.map { it.label },
-            dataPoints = countShelters.map { it.value },
-        )
-
-        val averageShelters = averageShelters(fromDate, toDate)
-        val averageSheltersDivisor = max(averageShelters.count { it.value.toDouble() > 0 }, 1)
-        val averageSheltersTotalAverage = (averageShelters.sumOf { it.value.toDouble() } / averageSheltersDivisor)
-            .let { String.format("%.2f", it) }
-        val averageSheltersData = StatisticsDetail(
-            title = averageSheltersTotalAverage,
+            results = countShelters(fromDate, toDate),
+        ),
+        sheltersAverage = averageDetail(
             subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
-            labels = averageShelters.map { it.label },
-            dataPoints = averageShelters.map { it.value },
-        )
-
-        val countSheltersPersons = countSheltersPersons(fromDate, toDate)
-        val countSheltersPersonsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countSheltersPersons.sumOf { it.value.toLong() }),
+            results = averageShelters(fromDate, toDate),
+        ),
+        sheltersPersonsCount = sumDetail(
             subTitle = "Versorgte Personen (Anzahl)",
-            labels = countSheltersPersons.map { it.label },
-            dataPoints = countSheltersPersons.map { it.value },
-        )
-
-        val countShops = countShops(fromDate, toDate)
-        val countShopsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countShops.sumOf { it.value.toLong() }),
+            results = countSheltersPersons(fromDate, toDate),
+        ),
+        shopsCount = sumDetail(
             subTitle = "Spender (Anzahl)",
-            labels = countShops.map { it.label },
-            dataPoints = countShops.map { it.value },
-        )
-
-        val totalShopItems = totalShopItems(fromDate, toDate)
-        val totalShopItemsData = StatisticsDetail(
-            title = "${INTEGER_FORMATTER.format(totalShopItems.sumOf { it.value.toLong() })} kg",
+            results = countShops(fromDate, toDate),
+        ),
+        shopItemsTotal = sumDetail(
             subTitle = "Warenmenge (Gesamt)",
-            labels = totalShopItems.map { it.label },
-            dataPoints = totalShopItems.map { it.value },
-        )
-
-        val averageShopItems = averageShopItems(fromDate, toDate)
-        val averageShopItemsDivisor = max(averageShopItems.count { it.value.toDouble() > 0 }, 1)
-        val averageShopItemsTotalAverage =
-            (averageShopItems.sumOf { it.value.toDouble() } / averageShopItemsDivisor)
-                .let { String.format("%.2f", it) }
-        val averageShopItemsData = StatisticsDetail(
-            title = "$averageShopItemsTotalAverage kg",
+            results = totalShopItems(fromDate, toDate),
+            unit = UNIT_KILOGRAM,
+        ),
+        shopItemsAverage = averageDetail(
             subTitle = "Warenmenge (Durchschnitt pro Spender)",
-            labels = averageShopItems.map { it.label },
-            dataPoints = averageShopItems.map { it.value },
-        )
+            results = averageShopItems(fromDate, toDate),
+            unit = UNIT_KILOGRAM,
+        ),
+    )
 
-        return StatisticsResponse(
-            beneficiaryCustomers = countBeneficiaryCustomersData,
-            beneficiaryPersons = countBeneficiaryPersonsData,
-            beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
-            singleParentHouseholds = countSingleParentHouseholdsData,
-            sheltersCount = countSheltersData,
-            sheltersAverage = averageSheltersData,
-            sheltersPersonsCount = countSheltersPersonsData,
-            shopsCount = countShopsData,
-            shopItemsTotal = totalShopItemsData,
-            shopItemsAverage = averageShopItemsData,
+    /**
+     * A key figure whose headline is the *state* at the end of the period (how many households were
+     * entitled), so the last point of the course is what it reads - not a total over the period.
+     */
+    private fun lastValueDetail(subTitle: String, results: List<StatisticsResult>): StatisticsDetail = countDetail(subTitle, results, results.lastOrNull()?.value?.toLong() ?: 0L)
+
+    /**
+     * A key figure that accumulates over the period (shelters served, kilograms collected), so its
+     * headline is the total of the whole course.
+     */
+    private fun sumDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail = countDetail(subTitle, results, results.sumOf { it.value.toLong() }, unit)
+
+    private fun countDetail(
+        subTitle: String,
+        results: List<StatisticsResult>,
+        value: Long,
+        unit: String? = null,
+    ): StatisticsDetail = detail(
+        title = INTEGER_FORMATTER.format(value).withUnit(unit),
+        subTitle = subTitle,
+        value = value.toDouble(),
+        unit = unit,
+        results = results,
+    )
+
+    /**
+     * The average per data point that actually happened: periods without any distribution
+     * (a bucket of the timeline with no data at all) would otherwise pull the average towards zero,
+     * which is why the divisor only counts the non-zero ones - and never drops below 1, since
+     * dividing by zero is what an entirely empty period would do.
+     */
+    private fun averageDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail {
+        val divisor = max(results.count { it.value.toDouble() > 0 }, 1)
+        val average = results.sumOf { it.value.toDouble() } / divisor
+
+        return detail(
+            title = String.format("%.2f", average).withUnit(unit),
+            subTitle = subTitle,
+            value = average,
+            unit = unit,
+            results = results,
         )
     }
+
+    private fun detail(
+        title: String,
+        subTitle: String,
+        value: Double,
+        unit: String?,
+        results: List<StatisticsResult>,
+    ) = StatisticsDetail(
+        title = title,
+        subTitle = subTitle,
+        value = value,
+        unit = unit,
+        labels = results.map { it.label },
+        dataPoints = results.map { it.value },
+    )
+
+    private fun String.withUnit(unit: String?): String = unit?.let { "$this $it" } ?: this
 
     fun countBeneficiaryCustomers(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """

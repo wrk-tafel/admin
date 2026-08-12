@@ -112,9 +112,22 @@ data class StatisticsResponse(
     val shopItemsAverage: StatisticsDetail,
 )
 
+/**
+ * One key figure of the general statistics: the headline both as the string it is displayed as
+ * ([title], already formatted for de-AT) and as the plain number behind it ([value]), plus the
+ * course over the period's distributions ([labels]/[dataPoints]).
+ *
+ * [value] is what the frontend compares two periods with - reading the delta back out of the
+ * formatted [title] would mean parsing thousands separators and the unit out of it again. [unit] is
+ * the unit that same number is measured in (`kg` for the collected amounts, `null` for a plain
+ * count), so a value the frontend formats itself - the min/max of the chart, a difference between
+ * two periods - can carry it too.
+ */
 data class StatisticsDetail(
     val title: String,
     val subTitle: String,
+    val value: Double,
+    val unit: String? = null,
     val labels: List<String>,
     val dataPoints: List<Number>,
 )

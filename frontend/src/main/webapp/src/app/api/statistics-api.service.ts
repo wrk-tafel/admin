@@ -99,9 +99,17 @@ export interface StatisticsData {
   shopItemsAverage: StatisticsDetailData
 }
 
+/**
+ * One key figure: the headline as the backend formatted it (`title`) plus the plain number behind
+ * it (`value`) and the unit it is measured in (`unit`, absent for a plain count). `value`/`unit`
+ * are what a value computed here - the difference between two periods, the min/max of the course -
+ * is derived and formatted from; `title` is only ever displayed as it arrives.
+ */
 export interface StatisticsDetailData {
   title: string;
   subTitle: string;
+  value: number;
+  unit?: string;
   labels: string[];
   dataPoints: number[];
 }
