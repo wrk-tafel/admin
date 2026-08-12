@@ -128,8 +128,5 @@ class DistributionController(
 
     @PostMapping("/{distributionId}/send-mails")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun sendMails(@PathVariable distributionId: Long): ResponseEntity<Unit> {
-        service.sendMails(distributionId)
-        return ResponseEntity.ok().build()
-    }
+    fun sendMails(@PathVariable distributionId: Long): ResponseEntity<DistributionSendMailsResponse> = ResponseEntity.ok(service.sendMails(distributionId))
 }

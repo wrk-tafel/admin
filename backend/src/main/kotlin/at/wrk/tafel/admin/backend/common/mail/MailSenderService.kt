@@ -47,7 +47,7 @@ class MailSenderService(
         content: String,
         attachments: List<MailAttachment> = emptyList(),
     ) {
-        sendMail(resolveRecipients(mailType), subject, content, attachments, isHtmlMail = false)
+        sendMail(resolveRecipients(mailType), subject, content, attachments, isHtmlMail = false, mailType = mailType)
     }
 
     fun sendHtmlMail(
@@ -57,7 +57,7 @@ class MailSenderService(
         templateName: String,
         context: Context,
     ) {
-        sendMail(resolveRecipients(mailType), subject, renderHtml(templateName, context), attachments, isHtmlMail = true)
+        sendMail(resolveRecipients(mailType), subject, renderHtml(templateName, context), attachments, isHtmlMail = true, mailType = mailType)
     }
 
     /**
@@ -98,6 +98,7 @@ class MailSenderService(
         content: String,
         attachments: List<MailAttachment>,
         isHtmlMail: Boolean = false,
+        mailType: MailType? = null,
     ) {
         val mailProperties = tafelAdminProperties.mail
         if (mailProperties == null) {
@@ -127,6 +128,7 @@ class MailSenderService(
             mimeMessage = messageHelper.mimeMessage,
             subject = fullSubject,
             recipients = recipients.map { it.address },
+            mailType = mailType,
         )
     }
 

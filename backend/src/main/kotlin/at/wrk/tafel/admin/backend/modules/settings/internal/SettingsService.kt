@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -13,6 +14,8 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.MailStatusItem
+import at.wrk.tafel.admin.backend.modules.settings.model.MailStatusListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
@@ -26,6 +29,7 @@ import java.time.LocalDate
 class SettingsService(
     private val mailRecipientRepository: MailRecipientRepository,
     private val staticValueRepository: StaticValueRepository,
+    private val mailOutboxRepository: MailOutboxRepository,
 ) {
 
     companion object {
@@ -61,6 +65,30 @@ class SettingsService(
                 )
             },
         )
+    }
+
+    /**
+     * How the last mail of every type ended - "did yesterday's report actually go out?", answered
+     * from the outbox rather than from a log file.
+     *
+     * Only the *last* one per type: the screen's question is whether the current recipients are
+     * receiving anything, not a delivery history, and every earlier mail leaves the queue once its
+     * retention has passed anyway (see `MailOutboxService.cleanupOldMails`).
+     */
+    fun getMailStatus(): MailStatusListResponse {
+        val mailStatus = MailType.entries.map { mailType ->
+            val lastMail = mailOutboxRepository.findFirstByMailTypeOrderByIdDesc(mailType)
+
+            MailStatusItem(
+                mailType = mailType.name,
+                status = lastMail?.status,
+                queuedAt = lastMail?.createdAt,
+                sentAt = lastMail?.sentAt,
+                lastError = lastMail?.lastError,
+            )
+        }
+
+        return MailStatusListResponse(mailStatus = mailStatus)
     }
 
     @Transactional

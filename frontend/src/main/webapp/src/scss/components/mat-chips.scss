@@ -1,0 +1,12 @@
+// An address that does not parse can only have come from the database - the input rejects anything
+// else before it becomes a chip. It is marked so it can be found and removed, with the outline and
+// the warning icon in the chip carrying the meaning rather than the colour alone.
+.mat-mdc-chip.chip-invalid {
+  --mdc-chip-outline-color: var(--tafel-severity-danger);
+  --mdc-chip-outline-width: 2px;
+  --mdc-chip-label-text-color: var(--tafel-severity-danger);
+
+  .mat-mdc-chip-action-label {
+    color: var(--tafel-severity-danger);
+  }
+}

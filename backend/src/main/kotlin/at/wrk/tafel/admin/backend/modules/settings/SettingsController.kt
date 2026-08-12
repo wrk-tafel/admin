@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.settings
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.MailStatusListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
@@ -29,6 +30,9 @@ class SettingsController(
     fun updateMailRecipientSettings(@Valid @RequestBody settings: MailRecipientsRequest) {
         settingsService.updateMailRecipients(settings)
     }
+
+    @GetMapping("/mail-status")
+    fun getMailStatus(): MailStatusListResponse = settingsService.getMailStatus()
 
     @GetMapping("/static-values")
     fun getStaticValues(): StaticValueListResponse = settingsService.getStaticValues()

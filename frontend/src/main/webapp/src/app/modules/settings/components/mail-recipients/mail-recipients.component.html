@@ -10,86 +10,132 @@
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
       Empfänger je Mail-Art. Diese Mails werden beim Beenden eines Ausgabetags automatisch versendet.
+      Adresse eintippen und mit Enter übernehmen.
     </p>
 
-    <form [formGroup]="form" autocomplete="off">
-      <mat-tab-group animationDuration="0ms" formArrayName="mailRecipients">
-        @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <!-- red-700 rather than the red-600 used on white elsewhere: the tab header's own
-                   background is grey, where red-600 only reaches 3.75:1 -->
-              <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
-                    [class.text-red-700]="isControlInvalid(recipientOfMailType)">
-                {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
-              </span>
-            </ng-template>
-            <div class="py-4" [formGroupName]="i">
-              <div formArrayName="recipients" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                @for (recipient of getRecipientsForMailTypeIndex(i).controls; track recipient; let j = $index; ) {
-                  <div [formGroupName]="j">
-                    <div class="flex items-center flex-nowrap">
-                      <div class="font-bold grow">
-                        {{ getRecipientTypeLabel(recipient.get('recipientType')!.value) }}
-                      </div>
-                      <div class="text-right">
-                        <button type="button" matButton="filled"
-                                class="button-success"
-                                [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
-                                (click)="addAddress(i, j)"
-                                [attr.aria-label]="'Weitere E-Mail Adresse hinzufügen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
-                                matTooltip="Weitere E-Mail Adresse hinzufügen"
-                                matTooltipPosition="above">
-                          <fa-icon [icon]="faPlus"></fa-icon>
-                        </button>
-                      </div>
-                    </div>
-                    <div formArrayName="addresses">
-                      @for (address of getAddressesOfRecipientTypeIndex(i, j).controls; track address; let
-                        k = $index; ) {
-                        <div class="mt-2 flex items-center flex-nowrap">
-                          <div class="grow">
-                            <input
-                              [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
-                              type="email"
-                              [attr.aria-label]="getRecipientTypeLabel(recipient.get('recipientType')!.value) + ' - E-Mail Adresse ' + (k + 1)"
-                              [formControlName]="k"
-                              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                              [class.border-red-500]="isControlInvalid(address)"
-                              [class.border-green-500]="isControlValid(address)"
-                            >
-                            @if (isControlInvalid(address)) {
-                              <div class="mt-1 text-sm text-red-600">
-                                Ungültige E-Mail Adresse
-                              </div>
-                            }
-                          </div>
-                          <div class="text-right ml-2">
-                            <button type="button" matButton="filled"
-                                    class="button-danger"
-                                    [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
-                                    (click)="removeAddress(i, j, k)"
-                                    [attr.aria-label]="'E-Mail Adresse ' + (k + 1) + ' entfernen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
-                                    matTooltip="E-Mail Adresse entfernen">
-                              <fa-icon [icon]="faTrashCan"></fa-icon>
-                            </button>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                    @if (j < 2) {
-                      <hr class="md:hidden mt-6 mb-4">
-                    }
-                  </div>
+    <mat-tab-group animationDuration="0ms">
+      @for (tab of tabs(); track tab.mailType) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <!-- red-700 rather than the red-600 used on white elsewhere: the tab header's own
+                 background is grey, where red-600 only reaches 3.75:1 -->
+            <span [attr.testid]="'mailtype-tab-' + tab.mailType"
+                  [class.text-red-700]="tab.hasInvalidAddress">
+              {{ tab.label }}
+            </span>
+            @if (tab.hasNoRecipients) {
+              <!-- The warning has to be readable from any tab, so it is on the tab header too - the
+                   icon alone would be colour-only, hence the text for screen readers. -->
+              <fa-icon class="ml-2 text-red-700" [icon]="faTriangleExclamation"
+                       [attr.testid]="'mailtype-tab-warning-' + tab.mailType" />
+              <span class="sr-only">, keine Empfänger hinterlegt</span>
+            }
+          </ng-template>
+
+          <div class="py-4">
+            <p class="mb-3 text-sm text-slate-600" [attr.testid]="'mailtype-description-' + tab.mailType">
+              {{ tab.description }}
+            </p>
+
+            @if (statusOf(tab.mailType); as status) {
+              <p class="mb-4 text-sm" [attr.testid]="'mail-status-' + tab.mailType">
+                @switch (status.severity) {
+                  @case ('success') {
+                    <fa-icon class="mr-1 text-green-700" [icon]="faCircleCheck" />
+                  }
+                  @case ('danger') {
+                    <fa-icon class="mr-1 text-red-700" [icon]="faTriangleExclamation" />
+                  }
+                  @case ('warning') {
+                    <fa-icon class="mr-1 text-amber-700" [icon]="faTriangleExclamation" />
+                  }
+                  @case ('info') {
+                    <fa-icon class="mr-1 text-slate-600" [icon]="faClock" />
+                  }
                 }
+                <span [class.text-red-700]="status.severity === 'danger'"
+                      [class.text-amber-700]="status.severity === 'warning'"
+                      [class.text-slate-600]="status.severity !== 'danger' && status.severity !== 'warning'">
+                  {{ status.text }}
+                  @if (statusItemOf(tab.mailType); as item) {
+                    @if (item.sentAt ?? item.queuedAt; as timestamp) {
+                      {{ timestamp | date: 'dd.MM.yyyy HH:mm' }}
+                    }
+                    @if (item.lastError) {
+                      <span class="block">{{ item.lastError }}</span>
+                    }
+                  }
+                </span>
+              </p>
+            }
+
+            @if (tab.hasNoRecipients) {
+              <div class="tafel-banner-error mb-4" role="alert"
+                   [attr.testid]="'no-recipients-warning-' + tab.mailType">
+                <span>
+                  <fa-icon class="mr-2" [icon]="faTriangleExclamation" />
+                  Keine Empfänger — diese Mail wird an niemanden versendet.
+                </span>
               </div>
+            }
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              @for (slot of tab.slots; track slot.recipientType) {
+                <div>
+                  <mat-form-field class="w-full" subscriptSizing="dynamic">
+                    <mat-label>{{ slot.label }}</mat-label>
+                    <mat-chip-grid #chipGrid [attr.aria-label]="tab.label + ' - ' + slot.label">
+                      @for (address of slot.addresses; track address.address) {
+                        <mat-chip-row [attr.testid]="'email-chip-' + tab.mailType + '-' + slot.recipientType"
+                                      [class.chip-invalid]="!address.valid"
+                                      (removed)="removeAddress(tab.mailType, slot.recipientType, address.address)">
+                          @if (!address.valid) {
+                            <fa-icon class="mr-1" [icon]="faTriangleExclamation" />
+                            <span class="sr-only">Ungültige Adresse: </span>
+                          }
+                          {{ address.address }}
+                          <button matChipRemove type="button"
+                                  [attr.testid]="'remove-recipient-button-' + tab.mailType + '-' + slot.recipientType + '-' + $index"
+                                  [attr.aria-label]="address.address + ' entfernen - ' + slot.label">
+                            <fa-icon [icon]="faXmark" />
+                          </button>
+                        </mat-chip-row>
+                      }
+                    </mat-chip-grid>
+                    <input [matChipInputFor]="chipGrid"
+                           [matChipInputAddOnBlur]="true"
+                           (matChipInputTokenEnd)="addAddress($event, tab.mailType, slot.recipientType)"
+                           [attr.testid]="'email-input-' + tab.mailType + '-' + slot.recipientType"
+                           [attr.aria-label]="'E-Mail Adresse hinzufügen - ' + tab.label + ' - ' + slot.label"
+                           [attr.aria-invalid]="inputError(tab.mailType, slot.recipientType) !== null"
+                           [attr.aria-describedby]="inputError(tab.mailType, slot.recipientType) ? slotKey(tab.mailType, slot.recipientType) + '-error' : null"
+                           type="email"
+                           autocomplete="off">
+                  </mat-form-field>
+
+                  @if (inputError(tab.mailType, slot.recipientType); as error) {
+                    <div class="mt-1 text-sm text-red-600" role="alert"
+                         [id]="slotKey(tab.mailType, slot.recipientType) + '-error'"
+                         [attr.testid]="'email-error-' + tab.mailType + '-' + slot.recipientType">
+                      {{ error }}
+                    </div>
+                  }
+                </div>
+              }
             </div>
-          </mat-tab>
-        }
-      </mat-tab-group>
-    </form>
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
   </mat-card-content>
   <mat-card-footer>
-    <button matButton="filled" testid="save-button" (click)="save()">Speichern</button>
+    <div class="flex items-center gap-3">
+      <button matButton="filled" testid="save-button" (click)="save()">Speichern</button>
+      @if (hasUnsavedChanges()) {
+        <span class="badge badge-warning" role="status" testid="unsaved-changes-indicator">
+          Nicht gespeicherte Änderungen
+        </span>
+      }
+    </div>
   </mat-card-footer>
 </mat-card>

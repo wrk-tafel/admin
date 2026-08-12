@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.mailoutbox
 
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -80,4 +81,20 @@ interface MailOutboxRepository : JpaRepository<MailOutboxEntity, Long> {
         @Param("status") status: String,
         @Param("createdAt") createdAt: LocalDateTime,
     ): Int
+
+    /**
+     * The most recently queued mail of one type - how it ended is what the e-mail settings screen
+     * reports. Ordered by id rather than by `createdAt`: the mails of one distribution are queued
+     * within the same moment, and the id is what still puts them in the order they were written in.
+     */
+    fun findFirstByMailTypeOrderByIdDesc(mailType: MailType): MailOutboxEntity?
+
+    /**
+     * The highest id in the queue, or `0` when it is empty - taken before an action that queues
+     * mails so [countByIdGreaterThan] can say afterwards how many it queued.
+     */
+    @Query("SELECT COALESCE(MAX(mail.id), 0) FROM MailOutbox mail")
+    fun findMaxId(): Long
+
+    fun countByIdGreaterThan(id: Long): Long
 }

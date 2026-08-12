@@ -17,8 +17,11 @@ opposed to just *read*, which happens in `logistics`), it's here.
 ```
 settings/
   components/
-    mail-recipients/    # recipient address matrix, used by views/email
+    mail-recipients/     # recipient chips per mail type + delivery status, used by views/email
+      mail-types.ts      # per-mail-type label/description + the address validation rule
     send-mails/          # re-send mails for a past distribution, used by views/email
+      dialogs/
+        send-mails-dialog.component.ts
   views/
     email/                       # route: einstellungen/email
     shelters/                    # route: einstellungen/notschlafstellen
@@ -57,24 +60,39 @@ is reserved for the two pieces shared by the `email` view specifically.
 
 ## `email` (`SettingsEmailComponent`)
 
-A thin composition of two independent, self-contained components — the view
-itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent]`.
+A composition of two independent components. The view itself holds no state; it
+wires the two together for the two things that cross between them: it answers
+`hasUnsavedChanges()` for the route's `unsavedChangesGuard` from the recipients
+card, and it tells that card to re-read its delivery status after a resend.
 
-- **`mail-recipients.component.ts`**: builds a nested reactive form —
-  `mailRecipients: FormArray` of `{ mailType, recipients: FormArray of { recipientType, addresses: FormArray<string> } }` —
-  from the cross product of `MailTypeEnum` (`DAILY_REPORT`, `STATISTICS`,
-  `RETURN_BOXES`) and `RecipientTypeEnum` (`TO`, `CC`, `BCC`), both from
-  `settings-api.service.ts`. It's populated inside an `effect()` in the
-  constructor that fetches `getMailRecipients()` once and manually pushes
-  `FormGroup`s into the array — there's no resolver for this one, unlike most
-  other list screens in the app. Labels for both enums are hardcoded as
-  `Record<..., string>` maps on the component (`MailTypeLabels`,
-  `RecipientTypeLabels`) rather than extracted to a separate labels file (contrast
-  with `static-value-types.ts` below).
+- **`mail-recipients.component.ts`**: signal-based, no reactive form. State is a
+  `MailTypeRecipients[]` — one entry per `MailTypeEnum` (`DAILY_REPORT`,
+  `STATISTICS`, `RETURN_BOXES`), each with a slot per `RecipientTypeEnum` (`TO`,
+  `CC`, `BCC`) — and the `tabs` computed derives everything the template renders
+  from it. There's no resolver for this one, unlike most other list screens.
+  - Addresses are a `mat-chip-grid` per slot: what is typed is validated
+    (`isValidMailAddress` in `mail-types.ts`) *before* it becomes a chip, and
+    rejected input stays in the field with a message under it. An invalid chip
+    can therefore only come from the database — it is rendered as such
+    (`chip-invalid`, `scss/components/mat-chips.scss`) and marks its tab, which
+    is what makes a stored bad address findable.
+  - `hasUnsavedChanges()` compares the current state against a snapshot of what
+    was last loaded or saved, so an edit that is undone leaves the screen clean.
+  - `getMailStatus()` fills the per-tab line saying how the last mail of that
+    type ended. Its failure is deliberately silent — it is extra information
+    about the mails, not the recipients the screen is for.
+  - Labels *and the per-type descriptions the tabs show* live in `mail-types.ts`
+    (`mailTypeSpecs`, `recipientTypeLabels`), the same way `static-value-types.ts`
+    holds them for the static values screen.
 - **`send-mails.component.ts`**: lets an admin pick a past distribution
-  (`DistributionApiService.getDistributions()`) and re-trigger its mail
-  post-processors via `DistributionApiService.sendMails(id)` — useful when the
-  automatic send after closing a distribution failed or needs to go out again.
+  (`DistributionApiService.getDistributions()`) and re-trigger its mails via
+  `DistributionApiService.sendMails(id)` — useful when the automatic send after
+  closing a distribution failed or needs to go out again. It confirms first
+  (`dialogs/send-mails-dialog.component.ts`, naming the distribution and the TO
+  addresses per mail type, read fresh so the summary matches what the send will
+  actually use rather than unsaved edits next to it), and reports the
+  `queuedMails` count afterwards — zero is a real outcome and is reported as a
+  warning, not as success.
 
 ## `shelters` (`SettingsSheltersComponent`)
 
@@ -201,8 +219,8 @@ around:
 
 Labels, descriptions, group membership and qualifier fields per enum value are
 centralized in `static-value-types.ts` (`staticValueTypeSpecs: Record<StaticValueTypeEnum, StaticValueTypeSpec>`)
-rather than inlined on the component, unlike `mail-recipients`' `MailTypeLabels`
-map — if you add a new static value type, update that file, not the component;
+rather than inlined on the component — the same split `mail-types.ts` uses for the
+mail types. If you add a new static value type, update that file, not the component;
 the screen renders nothing it has no entry for.
 
 Test hooks are numbered by the row's position in the list **as the API returns
@@ -364,8 +382,10 @@ Both follow the same shape, and a change to one usually belongs in the other:
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
 
-- `settings-api.service.ts` — mail recipients, static values, and their
-  `MailTypeEnum`/`RecipientTypeEnum`/`StaticValueTypeEnum` definitions.
+- `settings-api.service.ts` — mail recipients, the per-mail-type delivery status
+  (`getMailStatus()`), static values, and their
+  `MailTypeEnum`/`RecipientTypeEnum`/`MailOutboxStatusEnum`/`StaticValueTypeEnum`
+  definitions.
 - `shelter-api.service.ts` — `ShelterApiService`, including `reorderShelters()`.
 - `car-api.service.ts` — `CarApiService`, including `reorderCars()`; also used
   by `logistics`' `CarDataResolver` for the read-only `getActiveCars()` side.

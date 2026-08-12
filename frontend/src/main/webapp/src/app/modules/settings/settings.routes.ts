@@ -10,12 +10,14 @@ import {SettingsCarsComponent} from './views/cars/settings-cars.component';
 import {SettingsEmployeesComponent} from './views/employees/settings-employees.component';
 import {SettingsRoutesComponent} from './views/routes/settings-routes.component';
 import {SettingsShopsComponent} from './views/shops/settings-shops.component';
+import {unsavedChangesGuard} from '../../common/util/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
     path: 'email',
     title: 'E-Mail',
     component: SettingsEmailComponent,
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'notschlafstellen',

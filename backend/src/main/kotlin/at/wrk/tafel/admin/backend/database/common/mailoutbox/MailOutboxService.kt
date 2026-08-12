@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.common.mailoutbox
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailOutboxProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import jakarta.mail.internet.MimeMessage
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -74,7 +75,7 @@ class MailOutboxService(
      * server exists.
      */
     @Transactional
-    fun enqueue(mimeMessage: MimeMessage, subject: String, recipients: List<String>) {
+    fun enqueue(mimeMessage: MimeMessage, subject: String, recipients: List<String>, mailType: MailType? = null) {
         if (mailSender == null) {
             logger.debug("Mail '{}' not queued - no mail server configured", subject)
             return
@@ -92,6 +93,7 @@ class MailOutboxService(
             this.message = mimeMessage.toByteArray()
             this.status = MailOutboxStatus.PENDING
             this.nextAttemptAt = LocalDateTime.now(clock)
+            this.mailType = mailType
         }
 
         mailOutboxRepository.save(entity)

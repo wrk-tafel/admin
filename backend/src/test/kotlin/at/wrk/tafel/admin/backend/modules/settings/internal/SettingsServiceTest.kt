@@ -1,5 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxEntity
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxStatus
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
 import at.wrk.tafel.admin.backend.database.model.base.MailType
@@ -19,6 +22,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.MailStatusItem
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import ch.qos.logback.classic.Level
@@ -40,6 +44,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 class SettingsServiceTest {
@@ -49,6 +54,9 @@ class SettingsServiceTest {
 
     @RelaxedMockK
     private lateinit var staticValueRepository: StaticValueRepository
+
+    @RelaxedMockK
+    private lateinit var mailOutboxRepository: MailOutboxRepository
 
     @InjectMockKs
     private lateinit var service: SettingsService
@@ -96,6 +104,51 @@ class SettingsServiceTest {
                         ),
                     ),
                 ),
+            ),
+        )
+    }
+
+    @Test
+    fun `mail status reports how the last mail of every type ended`() {
+        val sent = MailOutboxEntity().apply {
+            status = MailOutboxStatus.SENT
+            createdAt = LocalDateTime.of(2026, 8, 11, 18, 0)
+            sentAt = LocalDateTime.of(2026, 8, 11, 18, 0, 10)
+        }
+        val failed = MailOutboxEntity().apply {
+            status = MailOutboxStatus.FAILED
+            createdAt = LocalDateTime.of(2026, 8, 11, 18, 0)
+            lastError = "MailSendException: connection refused"
+        }
+        every { mailOutboxRepository.findFirstByMailTypeOrderByIdDesc(MailType.DAILY_REPORT) } returns sent
+        every { mailOutboxRepository.findFirstByMailTypeOrderByIdDesc(MailType.STATISTICS) } returns failed
+        every { mailOutboxRepository.findFirstByMailTypeOrderByIdDesc(MailType.RETURN_BOXES) } returns null
+
+        val result = service.getMailStatus()
+
+        assertThat(result.mailStatus).containsExactly(
+            MailStatusItem(
+                mailType = MailType.DAILY_REPORT.name,
+                status = MailOutboxStatus.SENT,
+                queuedAt = LocalDateTime.of(2026, 8, 11, 18, 0),
+                sentAt = LocalDateTime.of(2026, 8, 11, 18, 0, 10),
+                lastError = null,
+            ),
+            MailStatusItem(
+                mailType = MailType.STATISTICS.name,
+                status = MailOutboxStatus.FAILED,
+                queuedAt = LocalDateTime.of(2026, 8, 11, 18, 0),
+                sentAt = null,
+                lastError = "MailSendException: connection refused",
+            ),
+            // Reported all the same - a type nothing was ever queued for is exactly what someone
+            // whose report never arrived is looking at.
+            MailStatusItem(
+                mailType = MailType.RETURN_BOXES.name,
+                status = null,
+                queuedAt = null,
+                sentAt = null,
+                lastError = null,
             ),
         )
     }

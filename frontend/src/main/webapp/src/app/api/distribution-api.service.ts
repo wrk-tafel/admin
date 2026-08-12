@@ -54,14 +54,19 @@ export class DistributionApiService {
       });
   }
 
-  sendMails(distributionId: number): Observable<void> {
-    return this.http.post<void>(`/distributions/${distributionId}/send-mails`, undefined);
+  sendMails(distributionId: number): Observable<DistributionSendMailsResponse> {
+    return this.http.post<DistributionSendMailsResponse>(`/distributions/${distributionId}/send-mails`, undefined);
   }
 
 }
 
 export interface DistributionListResponse {
   items: DistributionItem[];
+}
+
+/** How many mails a resend put in the queue - none, when no recipients are configured. */
+export interface DistributionSendMailsResponse {
+  queuedMails: number;
 }
 
 export interface DistributionItemUpdate {

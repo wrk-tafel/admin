@@ -11,13 +11,15 @@
     <mat-card-content>
       <p class="mb-4 text-sm text-slate-600">
         Versendet die Mails eines bereits beendeten Ausgabetags noch einmal an die oben
-        hinterlegten Empfänger.
+        hinterlegten Empfänger. Vor dem Senden wird angezeigt, wer sie erhält.
       </p>
 
       <mat-form-field class="w-full" subscriptSizing="dynamic">
         <mat-label>Ausgabe vom:</mat-label>
-        <mat-select [value]="selectedDistribution()" (selectionChange)="selectedDistribution.set($event.value)">
-          @for (distribution of distributions(); track distribution) {
+        <mat-select testid="distribution-select"
+                    [value]="selectedDistribution()"
+                    (selectionChange)="selectedDistribution.set($event.value)">
+          @for (distribution of distributions(); track distribution.id) {
             <mat-option [value]="distribution">
               {{ distribution.startedAt | date : 'dd.MM.yyyy' }}
             </mat-option>
@@ -27,8 +29,9 @@
     </mat-card-content>
     <mat-card-footer>
       <button matButton="filled"
+              testid="send-mails-button"
               [disabled]="!selectedDistribution()"
-              (click)="sendMails()">
+              (click)="confirmSendMails()">
         E-Mails erneut senden
       </button>
     </mat-card-footer>

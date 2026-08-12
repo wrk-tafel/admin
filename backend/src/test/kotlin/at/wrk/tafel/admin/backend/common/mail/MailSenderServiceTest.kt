@@ -54,7 +54,7 @@ internal class MailSenderServiceTest {
 
         service.sendTextMail(MailType.DAILY_REPORT, "subject", "text", emptyList())
 
-        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any()) }
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any(), any()) }
     }
 
     @Test
@@ -85,7 +85,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, subject, text, listOf(attachment))
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -113,6 +113,17 @@ internal class MailSenderServiceTest {
     }
 
     @Test
+    fun `queued mail carries its mail type, so its delivery can be reported per type`() {
+        every { properties.mail!!.from } returns "from-address"
+        every { properties.mail!!.subjectPrefix } returns null
+        every { mailRecipientRepository.findAllByMailType(MailType.STATISTICS) } returns emptyList()
+
+        service.sendTextMail(MailType.STATISTICS, "subj", "txt")
+
+        verify { mailOutboxService.enqueue(any(), "subj", emptyList(), MailType.STATISTICS) }
+    }
+
+    @Test
     fun `sendTextMail successfully - no subject prefix configured`() {
         val fromAddress = "from-address"
         every { properties.mail!!.from } returns fromAddress
@@ -124,7 +135,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         // Regression guard: an unset prefix must not leave a stray leading space in the subject.
         assertThat(mailMessageSlot.captured.subject).isEqualTo(subject)
@@ -142,7 +153,7 @@ internal class MailSenderServiceTest {
             context = Context(),
         )
 
-        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any()) }
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any(), any()) }
     }
 
     @Test
@@ -181,7 +192,7 @@ internal class MailSenderServiceTest {
         assertThat(context.getVariable("subTemplate")).isEqualTo(subTemplateName)
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -244,7 +255,7 @@ internal class MailSenderServiceTest {
         verify(exactly = 0) { mailRecipientRepository.findAllByMailType(any()) }
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage.subject).isEqualTo("[PREFIX] subj")
@@ -260,6 +271,9 @@ internal class MailSenderServiceTest {
                 any(),
                 "[PREFIX] subj",
                 listOf("support1@localhost", "support2@localhost"),
+                // The support mail's recipients do not come from mail_recipients, so it belongs to
+                // none of the maintained mail types - and the settings screen must not report on it.
+                null,
             )
         }
     }
@@ -283,7 +297,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, "", "")
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull

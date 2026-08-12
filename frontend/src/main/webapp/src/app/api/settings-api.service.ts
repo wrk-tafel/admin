@@ -14,6 +14,10 @@ export class SettingsApiService {
     return this.http.put<void>('/settings/mail-recipients', data);
   }
 
+  getMailStatus(): Observable<MailStatusListResponse> {
+    return this.http.get<MailStatusListResponse>('/settings/mail-status');
+  }
+
   getStaticValues(): Observable<StaticValueListResponse> {
     return this.http.get<StaticValueListResponse>('/settings/static-values');
   }
@@ -48,6 +52,25 @@ export enum RecipientTypeEnum {
   TO = 'TO',
   CC = 'CC',
   BCC = 'BCC'
+}
+
+export interface MailStatusListResponse {
+  mailStatus: MailStatusItem[];
+}
+
+/** How the last mail of one type ended. `status` is null when none was ever queued. */
+export interface MailStatusItem {
+  mailType: MailTypeEnum;
+  status: MailOutboxStatusEnum | null;
+  queuedAt: string | null;
+  sentAt: string | null;
+  lastError: string | null;
+}
+
+export enum MailOutboxStatusEnum {
+  PENDING = 'PENDING',
+  SENT = 'SENT',
+  FAILED = 'FAILED'
 }
 
 export interface StaticValueListResponse {

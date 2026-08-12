@@ -12,13 +12,25 @@ Das Drag-Handle (⋮⋮) lässt sich nicht nur mit der Maus ziehen: Wird es mit 
 
 ## E-Mail-Empfänger
 
-Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Über die grünen **+**-Buttons können weitere Empfänger hinzugefügt, über die roten Buttons einzelne Empfänger entfernt werden. Jede Adresse muss ein gültiges E-Mail-Format haben; ungültige Einträge werden rot markiert (auch der jeweilige Reiter), zusätzlich erscheint die Meldung "Ungültige E-Mail Adresse".
+Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Jeder Reiter erklärt einleitend, was die jeweilige Mail enthält und wann sie versendet wird.
+
+Adressen werden als **Chips** erfasst: Adresse in das jeweilige Feld tippen und mit **Enter** übernehmen – die Adresse wird dann als Chip angezeigt. Ein Klick auf das **×** im Chip entfernt sie wieder. Eine ungültige oder bereits hinterlegte Adresse wird nicht übernommen; sie bleibt zur Korrektur im Eingabefeld stehen und es erscheint die Meldung "Ungültige E-Mail Adresse" bzw. "Diese Adresse ist bereits hinterlegt". Eine bereits gespeicherte Adresse, die kein gültiges E-Mail-Format hat, wird als rot umrandeter Chip mit Warnsymbol dargestellt und markiert zusätzlich den jeweiligen Reiter rot.
 
 ![E-Mail-Empfänger](images/einstellungen-email.jpg)
 
-Auf schmalen Bildschirmen stehen An, CC und BCC nicht nebeneinander, sondern durch Trennlinien getrennt untereinander.
+Über den Empfängerfeldern steht, wie die letzte Mail dieser Art ausgegangen ist – "Zuletzt versendet" mit Zeitpunkt, "Wartet auf Versand seit", "Versand fehlgeschlagen" samt Fehlermeldung, oder der Hinweis, dass bisher keine Mail dieser Art versendet wurde.
 
-Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Dropdown, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
+Ist für eine Mail-Art **keine An-Adresse** hinterlegt, wird die Mail zwar erzeugt, aber an niemanden zugestellt. Darauf weist ein Warnsymbol beim Reiter sowie ein roter Hinweis im Reiter selbst hin ("Keine Empfänger — diese Mail wird an niemanden versendet.").
+
+Änderungen werden erst mit **Speichern** übernommen. Solange sie das nicht sind, steht neben dem Button der Hinweis "Nicht gespeicherte Änderungen"; beim Verlassen der Seite wird nachgefragt, ob die Änderungen verworfen werden sollen.
+
+Auf schmalen Bildschirmen stehen An, CC und BCC nicht nebeneinander, sondern untereinander.
+
+Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Dropdown, standardmäßig die aktuellste) der zugehörige Tagesreport samt Statistiken und Retourkisten-Mail erneut versendet werden. Vor dem Senden zeigt eine Rückfrage, um welche Ausgabe es geht und welche Adressen die einzelnen Mails erhalten würden:
+
+![E-Mails erneut senden](images/einstellungen-email-erneut-senden.jpg)
+
+Nach dem Senden wird gemeldet, wie viele Mails tatsächlich zum Versand eingereiht wurden. Wurde keine einzige eingereiht, sind entweder keine Empfänger hinterlegt oder es ist kein Mailserver konfiguriert.
 
 ## Notschlafstellen
 

@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
@@ -20,6 +21,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStarte
 import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionSendMailsResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
@@ -51,6 +53,7 @@ class DistributionService(
     private val routeRepository: RouteRepository,
     private val advisoryLockService: AdvisoryLockService,
     private val eventPublisher: ApplicationEventPublisher,
+    private val mailOutboxRepository: MailOutboxRepository,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -500,9 +503,16 @@ class DistributionService(
      * and no lazy association is touched. Same shape as the automatic path, where
      * `DistributionEndedEventListener` publishes the event after its transaction has committed.
      */
-    fun sendMails(distributionId: Long) {
+    fun sendMails(distributionId: Long): DistributionSendMailsResponse {
         distributionRepository.findByIdOrNull(distributionId)
             ?: throw NotFoundException("Ausgabe nicht gefunden!")
+
+        // What the listeners queue is counted rather than assumed: a mail type with no recipients
+        // produces no mail, and a deployment without a mail server queues nothing at all - both of
+        // which the caller is told about instead of being shown a bare success. The listeners run
+        // synchronously on this thread, so everything they queued is in the queue by the time the
+        // publish returns.
+        val queuedBefore = mailOutboxRepository.findMaxId()
 
         try {
             eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
@@ -510,5 +520,7 @@ class DistributionService(
             logger.error("Publishing DistributionClosedEvent failed", e)
             throw e
         }
+
+        return DistributionSendMailsResponse(queuedMails = mailOutboxRepository.countByIdGreaterThan(queuedBefore))
     }
 }

@@ -299,8 +299,12 @@ internal class DistributionControllerTest {
     @Test
     fun `send mails`() {
         val distributionId = 123L
-        controller.sendMails(distributionId)
+        every { service.sendMails(distributionId) } returns DistributionSendMailsResponse(queuedMails = 3)
+
+        val response = controller.sendMails(distributionId)
 
         verify { service.sendMails(distributionId) }
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body!!.queuedMails).isEqualTo(3)
     }
 }

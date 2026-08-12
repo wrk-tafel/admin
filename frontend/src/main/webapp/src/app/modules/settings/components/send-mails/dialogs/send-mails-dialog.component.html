@@ -1,0 +1,28 @@
+<tafel-dialog testId="send-mails-dialog" type="warning" title="E-Mails erneut senden?">
+  <div tafel-dialog-content>
+    <p class="mb-4" testid="send-mails-distribution">
+      Ausgabe vom <span class="font-semibold">{{ data.distributionDate }}</span>
+    </p>
+
+    <dl class="mb-4">
+      @for (mailType of data.mailTypes; track mailType.mailType) {
+        <dt class="font-semibold">{{ mailType.label }}</dt>
+        <dd class="mb-3 ml-0 text-sm" [attr.testid]="'send-mails-recipients-' + mailType.mailType">
+          @if (mailType.recipients.length > 0) {
+            {{ mailType.recipients.join(', ') }}
+          } @else {
+            <span class="text-red-700">Keine Empfänger — wird nicht versendet</span>
+          }
+        </dd>
+      }
+    </dl>
+
+    <p class="text-sm text-slate-600" testid="send-mails-hint">
+      Die Mails werden neu erstellt und noch einmal an alle oben genannten Adressen zugestellt.
+    </p>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="confirmButton" matButton="filled" (click)="dialogRef.close(true)">Senden</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close(false)">Abbrechen</button>
+  </div>
+</tafel-dialog>

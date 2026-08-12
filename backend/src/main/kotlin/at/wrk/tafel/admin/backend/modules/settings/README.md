@@ -18,7 +18,8 @@ Confirmed — the only declared cross-module dependency is `base::exception`
 **Why nothing else needs to be declared:** the entities this module manages —
 `MailRecipientEntity`/`MailRecipientRepository`/`MailType`/`RecipientType` (in
 `database.model.base`) and `StaticValueEntity`/`StaticValueRepository`/`StaticValueType` (in
-`database.model.staticdata`) — live outside the `modules/*` package tree that Spring Modulith
+`database.model.staticdata`) — plus the `MailOutboxRepository` it reads the delivery status from
+(`database.common.mailoutbox`) live outside the `modules/*` package tree that Spring Modulith
 enforces boundaries on. So `SettingsService` reaches directly into shared `database/model`
 repositories without that counting as a `modules`-to-`modules` dependency at all. This also means
 **`settings` doesn't own these tables exclusively** — see "who actually reads this data" below.
@@ -26,14 +27,16 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
 ## Components
 
 - **`SettingsController`** — two independent endpoint groups:
-  - `GET`/`POST /api/settings/mail-recipients`
-  - `GET /api/settings/static-values`, `POST /api/settings/static-values/{staticValueId}`
+  - `GET`/`PUT /api/settings/mail-recipients`, `GET /api/settings/mail-status`
+  - `GET /api/settings/static-values`, `PUT /api/settings/static-values/{staticValueId}`
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).
 - **`model/SettingsResponseModel.kt`** — `MailRecipientsRequest` / `MailRecipientsResponse` /
   `MailRecipientsPerMailType` / `MailRecipientAdresses` (note the model's own `MailRecipientType`
   enum duplicates `database.model.base.RecipientType` value-for-value: `TO`/`CC`/`BCC` — the
-  service converts between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse).
+  service converts between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse),
+  plus `MailStatusListResponse`/`MailStatusItem`, which do reuse
+  `database.common.mailoutbox.MailOutboxStatus` directly rather than duplicating it.
 - **`model/StaticValueSettingsModel.kt`** — `StaticValueListResponse` / `StaticValueRequest` /
   `StaticValueResponse`.
 
@@ -50,6 +53,14 @@ Modeled as flat rows in `mail_recipients`: `(mailType, recipientType, address)`,
   request. Blank/whitespace-only addresses are filtered out before insert. There is no history —
   saving is destructive and unconditional; if two admins edit concurrently, the last save wins and
   silently discards the other's changes.
+- **`getMailStatus()` reports how the last mail of each type ended** — `SENT`, `PENDING`, `FAILED`
+  with its error, or nothing at all — read from `mail_outbox` via
+  `findFirstByMailTypeOrderByIdDesc`. That is only answerable because `MailSenderService` passes the
+  `MailType` down to `MailOutboxService.enqueue`, which stores it on the row; a mail with no mail
+  type (the support request, whose recipients don't come from this table) is deliberately not
+  reported on here. Only the *last* mail per type: the question is whether the configured recipients
+  are receiving anything, not a delivery history — and older rows leave the queue with their
+  retention anyway.
 - **The settings module never sends mail itself.** The actual consumer is
   `common.mail.MailSenderService`, which calls `mailRecipientRepository.findAllByMailType(mailType)`
   directly (bypassing `SettingsService`/this module entirely) to build the to/cc/bcc lists when

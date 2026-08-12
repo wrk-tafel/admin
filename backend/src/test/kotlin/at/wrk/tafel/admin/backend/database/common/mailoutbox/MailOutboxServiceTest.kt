@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.common.mailoutbox
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailOutboxProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -88,6 +89,20 @@ class MailOutboxServiceTest {
         // due immediately - the poller decides when it actually goes out
         assertThat(entity.nextAttemptAt).isEqualTo(now)
         assertThat(String(entity.message!!)).contains("Subject: subject")
+        // no mail type given - the queue does not invent one, and nothing reports on this mail
+        assertThat(entity.mailType).isNull()
+    }
+
+    @Test
+    fun `enqueue records the mail type it was given`() {
+        val service = service()
+
+        service.enqueue(mimeMessage("subject"), "subject", listOf("to@localhost"), MailType.DAILY_REPORT)
+
+        val entitySlot = slot<MailOutboxEntity>()
+        verify { mailOutboxRepository.save(capture(entitySlot)) }
+
+        assertThat(entitySlot.captured.mailType).isEqualTo(MailType.DAILY_REPORT)
     }
 
     @Test

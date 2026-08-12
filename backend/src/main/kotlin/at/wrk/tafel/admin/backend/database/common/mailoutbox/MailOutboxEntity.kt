@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.common.mailoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.base.BaseEntity
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -34,6 +35,15 @@ class MailOutboxEntity : BaseEntity() {
 
     @Column(name = "message")
     var message: ByteArray? = null
+
+    /**
+     * Which of the maintained mail types this message is, so the e-mail settings screen can report
+     * how the last one of each type ended. `null` for a mail whose recipients do not come from
+     * `mail_recipients` at all - the support request.
+     */
+    @Column(name = "mail_type")
+    @Enumerated(EnumType.STRING)
+    var mailType: MailType? = null
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)

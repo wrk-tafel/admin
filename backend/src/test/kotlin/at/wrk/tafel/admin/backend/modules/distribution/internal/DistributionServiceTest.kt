@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
+import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -109,6 +110,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var eventPublisher: ApplicationEventPublisher
+
+    @RelaxedMockK
+    private lateinit var mailOutboxRepository: MailOutboxRepository
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -1398,12 +1402,26 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `send mails`() {
+    fun `send mails reports the mails the listeners queued`() {
         every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns testDistributionEntity
+        every { mailOutboxRepository.findMaxId() } returns 42
+        every { mailOutboxRepository.countByIdGreaterThan(42) } returns 3
 
-        service.sendMails(testDistributionEntity.id!!)
+        val result = service.sendMails(testDistributionEntity.id!!)
 
         verify { eventPublisher.publishEvent(DistributionClosedEvent(testDistributionEntity.id!!)) }
+        assertThat(result.queuedMails).isEqualTo(3)
+    }
+
+    @Test
+    fun `send mails reports zero when nothing was queued at all`() {
+        every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns testDistributionEntity
+        every { mailOutboxRepository.findMaxId() } returns 0
+        every { mailOutboxRepository.countByIdGreaterThan(0) } returns 0
+
+        val result = service.sendMails(testDistributionEntity.id!!)
+
+        assertThat(result.queuedMails).isZero()
     }
 
     @Test

@@ -1,0 +1,12 @@
+<tafel-dialog testId="unsaved-changes-dialog" type="warning" title="Änderungen verwerfen?">
+  <div tafel-dialog-content>
+    <p testid="unsaved-changes-text">
+      Auf dieser Seite gibt es Änderungen, die noch nicht gespeichert wurden. Wenn du die Seite
+      jetzt verlässt, gehen sie verloren.
+    </p>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="confirmButton" matButton="filled" (click)="dialogRef.close(true)">Verwerfen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close(false)">Auf der Seite bleiben</button>
+  </div>
+</tafel-dialog>
