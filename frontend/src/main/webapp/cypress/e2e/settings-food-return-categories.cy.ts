@@ -12,6 +12,35 @@ describe('Settings - Food Return Categories', () => {
     cy.byTestId('food-return-categories-row-0').should('contain.text', 'Graue Kisten');
   });
 
+  it('names both screens the categories drive', () => {
+    cy.byTestId('food-return-categories-summary').should('contain.text', 'aktiv');
+    cy.contains('Retourware').should('be.visible');
+    cy.contains('Routen-Navigation').should('be.visible');
+  });
+
+  it('links to the food categories screen so a mix-up is caught before editing', () => {
+    cy.byTestId('food-return-categories-distinction').should('contain.text', 'Waren-Kategorien');
+    cy.byTestId('food-return-categories-distinction').find('a').click();
+
+    cy.url().should('include', '/einstellungen/lebensmittelkategorien');
+    cy.byTestId('food-categories-distinction').should('contain.text', 'Retour-Kategorien');
+  });
+
+  // Asserted through the two toggles rather than by row count: an active category renders the
+  // "deactivate" button, an inactive one the "activate" button, so this holds whatever the other
+  // cases left behind - and it changes no data of its own.
+  it('filters the list by status', () => {
+    cy.byTestId('food-return-categories-filter-enabled').click();
+    cy.byTestId('enableFoodReturnCategoryButton').should('exist');
+    cy.byTestId('disableFoodReturnCategoryButton').should('not.exist');
+
+    cy.byTestId('food-return-categories-filter-disabled').click();
+    cy.byTestId('enableFoodReturnCategoryButton').should('not.exist');
+
+    cy.byTestId('food-return-categories-filter-all').click();
+    cy.byTestId('food-return-categories-row-0').should('be.visible');
+  });
+
   it('creates a new return category', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       cy.byTestId('addFoodReturnCategoryButton').click();

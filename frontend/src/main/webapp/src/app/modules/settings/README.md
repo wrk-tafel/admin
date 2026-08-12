@@ -28,7 +28,9 @@ settings/
       dialogs/
         food-category-create-dialog.component.ts
     static-values/                 # route: einstellungen/statische-werte
-      static-value-type-labels.ts
+      static-value-types.ts
+      dialogs/
+        static-value-change-dialog.component.ts
     cars/                          # route: einstellungen/fahrzeuge
       dialogs/
         car-create-dialog.component.ts
@@ -44,7 +46,7 @@ settings/
     routes/                        # route: einstellungen/routen
       dialogs/
         route-edit-dialog.component.ts
-    enabled-filter.ts              # Alle/Aktiv/Inaktiv filter shared by shops + routes
+    enabled-filter.ts              # Alle/Aktiv/Inaktiv filter shared by shops + routes + return categories
   settings.routes.ts
 ```
 
@@ -67,7 +69,7 @@ itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent
   other list screens in the app. Labels for both enums are hardcoded as
   `Record<..., string>` maps on the component (`MailTypeLabels`,
   `RecipientTypeLabels`) rather than extracted to a separate labels file (contrast
-  with `static-value-type-labels.ts` below).
+  with `static-value-types.ts` below).
 - **`send-mails.component.ts`**: lets an admin pick a past distribution
   (`DistributionApiService.getDistributions()`) and re-trigger its mail
   post-processors via `DistributionApiService.sendMails(id)` — useful when the
@@ -145,18 +147,75 @@ Differences worth knowing:
   list. The edit button is disabled for disabled categories (commit
   `909ca265`) to avoid editing something that's effectively archived.
 
+## `food-return-categories` (`SettingsFoodReturnCategoriesComponent`)
+
+The crate types offered as counters in the Warenerfassung's Retourware section — the twin of
+`food-categories`, minus the weight (return crates are counted, never weighed) and minus the
+`returnItem` flag, and with the same inline-edit + dialog-create + optimistic-reorder pattern
+against `FoodReturnCategoriesApiService.reorderFoodReturnCategories()`.
+
+Where it goes beyond that twin:
+
+- **A status filter** (`EnabledFilter` from `views/enabled-filter.ts`, same three-way toggle as
+  shops/routes) drives a `visibleFoodReturnCategories()` `computed()` that both layouts and the
+  drop lists render. A category is only ever deactivated, never deleted, so without it the working
+  list grows forever.
+- **Reordering therefore counts displayed positions, not stored ones.** `reorder()` translates both
+  indices through the visible list into the full one before `moveItemInArray`, so a filtered-out
+  category keeps its place and a move past it jumps over it. The handle testids
+  (`dragFoodReturnCategoryHandle-<i>`) are keyed by the *displayed* index — that is what
+  `ReorderFeedbackService.refocusHandle` must be given, not the index in the full list.
+- **The screen says what it drives**: the category order is the counter order in the
+  Warenerfassung, and the names appear in the route guidance's "Retourware mitnehmen/abgeben"
+  hints. Both this screen and `food-categories` also carry a note distinguishing them from each
+  other, since they look alike and are one nav entry apart — the two notes link to one another and
+  belong together.
+
 ## `static-values` (`SettingsStaticValuesComponent`)
 
-Read-mostly table of numeric business constants (income limit, additional
-adult/child amounts, tolerance, family bonus, child tax allowance, sibling
+Read-mostly view of the numeric business constants (income limit, additional
+adult/child amounts, tolerance, family allowance, child tax allowance, sibling
 addition, cost contribution — the full `StaticValueTypeEnum` from
 `settings-api.service.ts`). Same inline-edit-with-autofocus pattern as
 food-categories (`editingId` signal + `viewChild`/`effect()` focus), but no
 create, delete, or reordering — only `amount` is editable per row via
-`updateStaticValue()`. Human-readable labels for the enum are centralized in
-`static-value-type-labels.ts` (`staticValueTypeLabels: Record<StaticValueTypeEnum, string>`)
+`updateStaticValue()`.
+
+These numbers decide who receives food, which is what the screen is shaped
+around:
+
+- **One section per type, under two group headings** ("Einkommensgrenze" and
+  "Unkostenbeitrag"), each with a sentence saying what the value does and where
+  it is applied — a `groups()` computed turns the flat API list into that
+  structure. A type with no row at all is left out rather than rendered empty.
+  Each group names one `headingType` whose section renders *without* a heading
+  of its own, since the group heading already is it; its `label` still names
+  that row's actions and its confirmation, where the group heading is out of
+  view. A group whose only type is that one carries no description either — the
+  type's own says it.
+- **A row is qualified only by the columns its type is looked up by**
+  (`qualifierFields`): the seeded tolerance row carries `countAdults`/
+  `countChildren` of `0` that no lookup reads, so "every column that is not
+  null" would show numbers that decide nothing. The qualifier column disappears
+  entirely for a type whose rows don't differ in one.
+- **A changed amount is confirmed as old → new** (`dialogs/static-value-change-dialog.component.ts`)
+  before it is sent, stating that it takes effect immediately; an amount left as
+  it was ends the edit without a request, so the audit trail records no
+  no-op change.
+- **Cross-links** to `/kunden/ueber-limit` (the direct consumer of these
+  numbers) and to `/aenderungsprotokoll?art=StaticValue` (who changed one last),
+  both behind `*tafelIfPermission`.
+
+Labels, descriptions, group membership and qualifier fields per enum value are
+centralized in `static-value-types.ts` (`staticValueTypeSpecs: Record<StaticValueTypeEnum, StaticValueTypeSpec>`)
 rather than inlined on the component, unlike `mail-recipients`' `MailTypeLabels`
-map — if you add a new static value type, update that file, not the component.
+map — if you add a new static value type, update that file, not the component;
+the screen renders nothing it has no entry for.
+
+Test hooks are numbered by the row's position in the list **as the API returns
+it** (`static-values-row-3`, `staticValueAmountInput-3`), not within its
+section, so grouping doesn't renumber them. The per-section table/card wrappers
+carry the type (`static-values-table-INCOME_LIMIT`).
 
 ## `cars` (`SettingsCarsComponent`)
 
@@ -166,18 +225,35 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
 
 - Loads via `CarApiService.getAllCars()` into a signal (`_cars`), table
   columns `['drag', 'active', 'licensePlate', 'name', 'actions']`.
+- **Active and deactivated cars are listed apart.** The table (and its card
+  fallback) shows `activeCars()` only; `inactiveCars()` sit in a collapsed
+  section below it, as a plain list with a "Wieder aktivieren" button and no
+  drag handle or inline edit — a deactivated car is kept because recorded food
+  collections point at it, not to be maintained. Deactivating one unfolds that
+  section, so the row that just vanished from the working list is visibly
+  somewhere rather than deleted.
 - **Inline editing**: clicking edit (`startEdit()`) sets an `editingId` signal
   and swaps that row's `licensePlate`/`name` cells for a `licensePlateControl`/
   `nameControl` pair; `saveEdit()`/`cancelEdit()` exit the mode (Enter saves,
   Escape cancels, same as food-categories). A `viewChild` + `effect()`
-  auto-focuses the license-plate input whenever it appears. The edit button is
-  disabled for disabled cars, same as food-categories.
-- **Creation still uses a dialog** (`car-create-dialog.component.ts`), which
+  auto-focuses the license-plate input whenever it appears.
+- **License plates are normalized** to trimmed upper case by
+  `normalizeLicensePlate()` (`views/cars/license-plate.ts`) while the admin
+  types, and again by `CarService` server-side — the food-collection dropdown
+  lists plates verbatim, so `w-12345x` beside `W-12345X` reads as two vehicles.
+- **Creation uses a dialog** (`car-create-dialog.component.ts`), which
   only exposes `licensePlate`/`name` — `sortOrder`/`enabled` are hidden form
   fields with fixed defaults (`0`/`true`), same convention as
-  `food-category-create-dialog.component.ts`.
+  `food-category-create-dialog.component.ts`. It receives every car via
+  `MAT_DIALOG_DATA` to recognize a plate that already exists: for an active one
+  it blocks the save, for a deactivated one it offers re-activating that car
+  instead, and closes with `{reactivate: car}` rather than `{create: car}`.
 - Same optimistic-drag-then-reconcile reordering pattern as shelters/food
-  categories, against `CarApiService.reorderCars()`.
+  categories, against `CarApiService.reorderCars()` — but only the active cars
+  are sortable. The request still carries every id (active ones first,
+  deactivated ones appended), because the backend numbers the ids it is given
+  from 1 and omitted cars would keep sort orders that interleave with the new
+  ones.
 - Disabling a car here excludes it from `CarApiService.getActiveCars()`,
   which feeds the `logistics` module's food-collection-recording car
   dropdown (`CarDataResolver`) — same relationship as food categories'
@@ -194,9 +270,14 @@ that reflect the domain:
 
 - **No drag-and-drop reordering** — employees have no `sortOrder` field, so
   unlike shelters/food-categories/cars there's nothing to reorder here.
-- **Paginated + searchable**, unlike the reorderable CRUD views above (which
-  load their full unpaginated list in one call; the `user` module's
-  `login-attempts` view is paginated too). `EmployeeController`/`EmployeeService` (in
+- **Paginated + searched as the search box is typed** (400 ms debounce), unlike
+  the reorderable CRUD views above (which load their full unpaginated list in
+  one call; the `user` module's `login-attempts` view is paginated too). There
+  is no "Suchen" button: the search is server-side either way, and a name
+  lookup is refined by typing rather than by pressing a button after every
+  correction — same reasoning, and the same `sr-only role="status"`
+  result-count announcement, as the `audit` module's change log.
+  `EmployeeController`/`EmployeeService` (in
   `modules/base/employee`, pre-existing, shared with the `logistics` module's
   create-employee flow) implement `GET /api/employees?searchInput=&page=&pageSize=`
   server-side (`PaginationDefaults`: 10 by default, selectable via
@@ -209,7 +290,26 @@ that reflect the domain:
   change page; both instances are bound to the same signal and stay in sync.
 - Employees also have no `enabled` flag and no delete endpoint — same
   "no hard delete" convention as the rest of the app, but here there isn't
-  even a soft-disable toggle, so the edit button is never disabled.
+  even a soft-disable toggle, so the edit button is never disabled. The card's
+  caption says so, because the alternative is an admin hunting for a delete
+  button that was never left out by accident.
+- **The linked user account is a column of its own.** `EmployeeItem.userAccount`
+  carries the account referencing the employee, rendered as a chip that links
+  to `/benutzer/detail/:id` for a viewer holding `USER_MANAGEMENT` and reads
+  "Benutzerkonto vorhanden" for everyone else. The personnel number is the join
+  key between this screen and the user administration, and it used to be
+  invisible from both sides.
+- **A personnel-number collision is shown while the number is typed**, in the
+  create dialog and in an inline edit alike (`GET
+  /api/employees/personnel-number-availability`, 400 ms debounce, the edited
+  employee passed as `excludedEmployeeId` so its own number is not a collision
+  with itself). It sets a `duplicateEmployee` error on the control — hence a
+  validator reading the signal rather than `setErrors`, which would drop the
+  `required`/`maxlength` errors — and offers the employee already holding the
+  number: `openEmployee()` narrows the list to it and opens it for editing,
+  which is what the create dialog's `openExisting` result asks the view to do.
+  The backend still rejects a taken number with a 409; this only means an admin
+  finds out before typing the rest of the record.
 - `EmployeeController` was widened from `@PreAuthorize("hasAuthority('LOGISTICS')")`
   to `hasAuthority('LOGISTICS') or hasAuthority('SETTINGS')` at the class level
   so this view's `SETTINGS`-only users can reach it too, without changing
@@ -222,6 +322,9 @@ that reflect the domain:
   for the "employee not found while recording a food collection" flow (fixed
   dialog title, calls the API itself and closes with the saved entity) rather
   than a generic create dialog — reusing it here would have been misleading.
+  The two ask for the same three fields under the same rules and produce the
+  same record, which is what the dialog's opening line tells the admin, so the
+  driver created on the fly during a collection doesn't look like a lesser one.
 
 ## `shops` (`SettingsShopsComponent`) and `routes` (`SettingsRoutesComponent`)
 

@@ -1,4 +1,5 @@
 import {TestBed} from '@angular/core/testing';
+import {provideRouter} from '@angular/router';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {CdkDragDrop} from '@angular/cdk/drag-drop';
@@ -46,6 +47,7 @@ describe('SettingsFoodCategoriesComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: FoodCategoriesApiService, useValue: foodCategoriesApiMock},

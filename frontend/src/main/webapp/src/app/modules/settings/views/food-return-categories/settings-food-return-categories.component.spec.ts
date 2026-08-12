@@ -1,4 +1,5 @@
 import {TestBed} from '@angular/core/testing';
+import {provideRouter} from '@angular/router';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {CdkDragDrop} from '@angular/cdk/drag-drop';
@@ -44,6 +45,7 @@ describe('SettingsFoodReturnCategoriesComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: FoodReturnCategoriesApiService, useValue: foodReturnCategoriesApiMock},
@@ -147,6 +149,61 @@ describe('SettingsFoodReturnCategoriesComponent', () => {
 
     expect(toastrMock.error).toHaveBeenCalled();
     expect(foodReturnCategoriesApiMock.getAllFoodReturnCategories).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows only the categories matching the status filter and counts the active ones', () => {
+    const disabledCategory: FoodReturnCategory = {id: 13, name: 'Alte Kisten', sortOrder: 3, enabled: false};
+    foodReturnCategoriesApiMock.getAllFoodReturnCategories =
+      vi.fn(() => of<FoodReturnCategory[]>([testCategory, testCategory2, disabledCategory]));
+
+    const fixture = TestBed.createComponent(SettingsFoodReturnCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['visibleFoodReturnCategories']().map(c => c.id)).toEqual([11, 12, 13]);
+    expect(component['enabledCount']()).toBe(2);
+    expect(component['totalCount']()).toBe(3);
+
+    component['enabledFilter'].set('ENABLED');
+    expect(component['visibleFoodReturnCategories']().map(c => c.id)).toEqual([11, 12]);
+
+    component['enabledFilter'].set('DISABLED');
+    expect(component['visibleFoodReturnCategories']().map(c => c.id)).toEqual([13]);
+  });
+
+  it('reorders within the full list when a filter hides categories in between', () => {
+    // enabled, disabled, enabled - so moving the first active one down has to jump the hidden one
+    const hiddenCategory: FoodReturnCategory = {id: 13, name: 'Alte Kisten', sortOrder: 2, enabled: false};
+    foodReturnCategoriesApiMock.getAllFoodReturnCategories =
+      vi.fn(() => of<FoodReturnCategory[]>([testCategory, hiddenCategory, testCategory2]));
+    foodReturnCategoriesApiMock.reorderFoodReturnCategories =
+      vi.fn(() => of<FoodReturnCategory[]>([hiddenCategory, testCategory2, testCategory]));
+
+    const fixture = TestBed.createComponent(SettingsFoodReturnCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['enabledFilter'].set('ENABLED');
+
+    component['moveFoodReturnCategory'](0, 1);
+
+    expect(foodReturnCategoriesApiMock.reorderFoodReturnCategories)
+      .toHaveBeenCalledWith([hiddenCategory.id, testCategory2.id, testCategory.id]);
+    expect(component['visibleFoodReturnCategories']().map(c => c.id)).toEqual([testCategory2.id, testCategory.id]);
+  });
+
+  it('ignores a keyboard move past the end of the filtered list', () => {
+    const hiddenCategory: FoodReturnCategory = {id: 13, name: 'Alte Kisten', sortOrder: 3, enabled: false};
+    foodReturnCategoriesApiMock.getAllFoodReturnCategories =
+      vi.fn(() => of<FoodReturnCategory[]>([testCategory, testCategory2, hiddenCategory]));
+
+    const fixture = TestBed.createComponent(SettingsFoodReturnCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['enabledFilter'].set('ENABLED');
+
+    component['moveFoodReturnCategory'](1, 1);
+
+    expect(foodReturnCategoriesApiMock.reorderFoodReturnCategories).not.toHaveBeenCalled();
   });
 
   it('addFoodReturnCategory() creates the category returned by the dialog', () => {

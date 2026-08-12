@@ -43,12 +43,31 @@ describe('Settings - Employees', () => {
     });
   });
 
-  it('searches for an employee', () => {
+  it('searches while the search input is typed, without a search button', () => {
+    cy.byTestId('searchEmployeeButton').should('not.exist');
+
     cy.byTestId('employeeSearchInput').type('Driver');
-    cy.byTestId('searchEmployeeButton').click();
 
     cy.byTestId('employees-table').should('contain.text', 'Driver');
     cy.byTestId('employees-table').should('not.contain.text', 'Scanner');
+    cy.byTestId('employeesSearchAnnouncement').should('contain.text', 'Mitarbeiter gefunden');
+  });
+
+  it('says that employees are neither deleted nor disabled', () => {
+    cy.byTestId('employeesCaption').should('contain.text', 'weder gelöscht noch deaktiviert');
+  });
+
+  it('shows which employees a user account references', () => {
+    // '00000' is the e2e login user's own employee record (user 100), '02000' a driver with no
+    // account of their own - the two states the column has to tell apart.
+    cy.byTestId('employeeSearchInput').type('00000');
+    cy.byTestId('employees-table').should('contain.text', 'E2E');
+    cy.byTestId('employeeUserAccountLink-0').should('contain.text', 'e2etest')
+      .and('have.attr', 'href', '/benutzer/detail/100');
+
+    cy.byTestId('employeeSearchInput').clear().type('02000');
+    cy.byTestId('employees-table').should('contain.text', 'Driver');
+    cy.byTestId('employeeNoUserAccount-0').should('be.visible');
   });
 
   it('creates a new employee', () => {
@@ -61,6 +80,47 @@ describe('Settings - Employees', () => {
       cy.byTestId('employeeCreateSaveButton').click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+    });
+  });
+
+  it('reports a personnel number already given out and opens the employee holding it', () => {
+    cy.byTestId('addEmployeeButton').click();
+
+    cy.byTestId('employeeCreateHint').should('contain.text', 'Warenerfassung');
+    cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type('02000');
+    cy.byTestId('employeeCreateFirstnameInput').type('Duplicate');
+    cy.byTestId('employeeCreateLastnameInput').type('Attempt');
+
+    cy.byTestId('employeeCreateDuplicateHint').should('contain.text', 'Driver 1');
+    cy.byTestId('employeeCreateSaveButton').click();
+    cy.byTestId('employee-create-dialog').should('be.visible');
+
+    cy.byTestId('employeeCreateOpenDuplicateButton').click();
+
+    cy.byTestId('employee-create-dialog').should('not.exist');
+    cy.byTestId('employeeSearchInput').should('have.value', '02000');
+    cy.byTestId('employeePersonnelNumberInput-0').should('have.value', '02000');
+  });
+
+  it('refuses to save an inline edit onto an already given out personnel number', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const personnelNumber = 'DUP-' + randomId;
+
+      cy.byTestId('addEmployeeButton').click();
+      cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type(personnelNumber);
+      cy.byTestId('employeeCreateFirstnameInput').type('Duplicate');
+      cy.byTestId('employeeCreateLastnameInput').type('Edit');
+      cy.byTestId('employeeCreateSaveButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+
+      cy.byTestId('employeeSearchInput').type(personnelNumber);
+      cy.byTestId('employees-row-0').should('contain.text', personnelNumber);
+
+      cy.byTestId('editEmployeeButton-0').click();
+      cy.byTestId('employeePersonnelNumberInput-0').should('be.visible').clear().type('02000');
+
+      cy.byTestId('employeeDuplicateHint-0').should('contain.text', 'Driver 1');
+      cy.byTestId('saveEmployeeButton-0').should('be.disabled');
     });
   });
 
@@ -94,7 +154,6 @@ describe('Settings - Employees', () => {
       cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
 
       cy.byTestId('employeeSearchInput').type(personnelNumber);
-      cy.byTestId('searchEmployeeButton').click();
       cy.byTestId('employees-row-0').should('contain.text', personnelNumber);
 
       cy.byTestId('editEmployeeButton-0').click();
@@ -148,7 +207,6 @@ describe('Settings - Employees', () => {
       cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
 
       cy.byTestId('employeeSearchInput').type(personnelNumber);
-      cy.byTestId('searchEmployeeButton').click();
       cy.byTestId('employees-cards').should('contain.text', personnelNumber);
 
       const newLastname = 'Updated On Phone ' + randomId;
@@ -176,6 +234,14 @@ describe('Settings - Employees', () => {
 
     it('has no violations while the create dialog is open', () => {
       cy.byTestId('addEmployeeButton').click();
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the create dialog reports a duplicate', () => {
+      cy.byTestId('addEmployeeButton').click();
+      cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type('02000');
+      cy.byTestId('employeeCreateDuplicateHint').should('be.visible');
 
       cy.checkDialogAccessibility();
     });
