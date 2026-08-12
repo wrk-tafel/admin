@@ -104,12 +104,16 @@ access, and the log spans users and settings too.
 | Endpoint | Serves |
 |---|---|
 | `GET /api/audit` | the administration screen — the whole log, newest first, optionally filtered by entity type, operation, actor, business key and date range |
-| `GET /api/audit/filter-options` | the entity types and operations the filter dropdowns offer, so adding an entity to `AuditScope` shows up in the UI without a frontend edit |
+| `GET /api/audit/filter-options` | what the filters offer: the entity types and operations, so adding an entity to `AuditScope` shows up in the UI without a frontend edit, plus the users the log holds entries for |
 | `GET /api/audit/households/{householdId}` | the customer detail screen's "Verlauf" tab |
 
 The household endpoint sits under `/api/audit` rather than under `/api/households/...` so the whole
 feature stays behind one permission and one controller, and the household module keeps knowing
 nothing about the audit trail.
+
+The actor list comes from the log itself rather than from `users`, because the filter matches
+`actor_username`: an account that never changed anything would be an option that can only return
+nothing, and one since deleted still has to be offered for as long as its entries are here.
 
 There is no endpoint that writes, edits or deletes an entry, and adding one would make the trail
 worth less than not having it.

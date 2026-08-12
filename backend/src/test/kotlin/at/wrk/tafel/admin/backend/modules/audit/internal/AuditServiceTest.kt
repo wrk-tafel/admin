@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.audit.internal
 
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
+import at.wrk.tafel.admin.backend.database.model.audit.AuditActorProjection
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.modules.audit.AuditSearchFilter
@@ -127,6 +128,42 @@ class AuditServiceTest {
         assertThat(result.items).hasSize(1)
         assertThat(result.items.single().changes).isEmpty()
         verify { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) }
+    }
+
+    @Test
+    fun `filter options offer every entity type and operation, and the users the log holds entries for`() {
+        every { auditLogRepository.findDistinctActors() } returns listOf(
+            actor("test-user", "Max", "Mustermann"),
+            actor("system-job", null, null),
+        )
+
+        val result = service.getFilterOptions()
+
+        assertThat(result.entityTypes).isEqualTo(AuditScope.allEntityTypes)
+        assertThat(result.operations).isEqualTo(AuditOperation.entries)
+        assertThat(result.actors.map { it.username }).containsExactly("test-user", "system-job")
+        assertThat(result.actors.first().firstname).isEqualTo("Max")
+        assertThat(result.actors.last().firstname).isNull()
+    }
+
+    // A user whose recorded name changed within the retention window is one option, not two.
+    @Test
+    fun `filter options list a user once even when the log holds two spellings of the name`() {
+        every { auditLogRepository.findDistinctActors() } returns listOf(
+            actor("test-user", "Max", "Mustermann"),
+            actor("test-user", "Max", "Musterfrau"),
+        )
+
+        val result = service.getFilterOptions()
+
+        assertThat(result.actors).hasSize(1)
+        assertThat(result.actors.single().lastname).isEqualTo("Mustermann")
+    }
+
+    private fun actor(name: String, first: String?, last: String?) = object : AuditActorProjection {
+        override val username = name
+        override val firstname = first
+        override val lastname = last
     }
 
     private fun auditEntry(changedFields: String?) = AuditLogEntity(

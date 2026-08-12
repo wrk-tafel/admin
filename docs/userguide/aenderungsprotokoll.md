@@ -23,27 +23,35 @@ Beim Öffnen ist die Ansicht bereits auf die häufigste Frage eingestellt: **Dat
 
 ![Änderungsprotokoll](images/aenderungsprotokoll.jpg)
 
+Die Einträge sind nach Tagen gruppiert: Über jedem Tag steht eine Überschrift wie **Heute**, **Gestern**, **vor 3 Tagen** oder – bei länger zurückliegenden Tagen – nur das Datum. Beim Blättern durch eine lange Liste bleibt diese Überschrift am oberen Rand stehen, sodass immer klar ist, welchen Tag man gerade ansieht. Bei den einzelnen Einträgen steht deshalb nur noch die Uhrzeit; das vollständige Datum erscheint, wenn man mit der Maus darüber stehen bleibt.
+
 Jeder Eintrag besteht aus:
 
 - **Art der Änderung**: *Angelegt* (grün), *Geändert* (grau) oder *Gelöscht* (rot)
 - **Datensatz-Art**: Kunde, Person, Notiz, Dokument, Benutzer, Berechtigung, Grenzwert oder E-Mail-Empfänger
-- **Nummer**: die Kunden- bzw. Benutzernummer, zu der der Datensatz gehört. Sie bleibt auch dann aussagekräftig, wenn der Datensatz selbst nicht mehr existiert – etwa nach einer Löschung oder einer Zusammenführung.
+- **Nummer**: die Kunden- bzw. Benutzernummer, zu der der Datensatz gehört. Sie bleibt auch dann aussagekräftig, wenn der Datensatz selbst nicht mehr existiert – etwa nach einer Löschung oder einer Zusammenführung. Wo der Datensatz noch geöffnet werden kann und die nötige Berechtigung vorhanden ist, führt die Nummer direkt zum Kunden bzw. Benutzer.
 - **Zeitpunkt und Benutzer**: wann die Änderung passiert ist und wer sie vorgenommen hat – der Benutzername und in Klammern der Vor- und Nachname dazu, z. B. `e2etest (E2E Test)`. Bei sehr alten Einträgen steht nur der Benutzername, weil der Name damals noch nicht mitprotokolliert wurde. Steht dort *System*, war kein angemeldeter Benutzer beteiligt (z. B. bei automatischen Abläufen).
-- **Feldänderungen**: eine Tabelle mit dem geänderten Feld sowie dem Wert davor und danach. Ein Strich (–) bedeutet, dass das Feld leer war.
+- **Feldänderungen**: eine Tabelle mit dem geänderten Feld sowie dem Wert davor und danach. Der bisherige Wert ist rot, der neue grün hinterlegt. Ein Strich (–) bedeutet, dass das Feld leer war.
 
 Aus Sicherheitsgründen wird das Passwort eines Benutzers zwar als geändert protokolliert, jedoch niemals mit einem Wert – dort steht in beiden Spalten `***`.
 
 ## Filtern
 
-Über die Filter oberhalb der Liste lässt sich das Protokoll eingrenzen. Alle Filter lassen sich beliebig kombinieren; mit **Suchen** wird die Liste aktualisiert, mit **Filter zurücksetzen** kehrt man zur oben beschriebenen Vorauswahl (Kunden, letztes Monat) zurück – nicht zu einem leeren Filter.
+Über die Filter oberhalb der Liste lässt sich das Protokoll eingrenzen. Alle Filter lassen sich beliebig kombinieren und wirken **sofort** – es gibt keinen eigenen Suchen-Schritt. Bei den Textfeldern wird kurz abgewartet, bis man zu Ende getippt hat. Mit **Filter zurücksetzen** kehrt man zur oben beschriebenen Vorauswahl (Kunden, letztes Monat) zurück – nicht zu einem leeren Filter.
 
 | Filter | Bedeutung |
 | --- | --- |
 | Datensatz-Art | Nur Änderungen an z. B. Kunden oder Benutzern |
 | Art der Änderung | Nur angelegte, geänderte oder gelöschte Datensätze |
-| Benutzer | Nur Änderungen eines bestimmten Benutzers (Benutzername) |
+| Benutzer | Nur Änderungen eines bestimmten Benutzers – zur Auswahl stehen genau jene Benutzer, zu denen das Protokoll auch Einträge enthält |
 | Kunden-/Benutzernummer | Alle Änderungen rund um eine bestimmte Kunden- oder Benutzernummer |
 | Von / Bis | Nur Änderungen in einem Zeitraum (der Bis-Tag ist eingeschlossen) |
+
+Beim Benutzer wird bewusst nur aus der Liste ausgewählt und nicht frei getippt: Der Filter sucht den Benutzernamen exakt, ein Tippfehler würde also eine leere Liste ergeben – und die sähe so aus, als hätte dieser Benutzer nie etwas geändert.
+
+Für die häufigsten Zeiträume gibt es unterhalb der Filter die Schaltflächen **Heute**, **Letzte 7 Tage** und **Dieser Monat**. Die aktuell gewählte ist hervorgehoben; die Felder Von/Bis lassen sich weiterhin frei befüllen.
+
+Die gesetzten Filter stehen in der Adresszeile des Browsers. Ein solcher Link lässt sich daher weitergeben oder als Lesezeichen speichern und öffnet das Protokoll wieder mit genau denselben Filtern.
 
 Findet sich zu den gewählten Filtern nichts, wird "Keine Einträge gefunden." angezeigt.
 

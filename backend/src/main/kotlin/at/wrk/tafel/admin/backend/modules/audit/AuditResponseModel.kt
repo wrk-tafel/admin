@@ -58,9 +58,25 @@ data class AuditSearchFilter(
  * The values the administration screen's filter dropdowns offer. Served from the backend rather
  * than hard-coded in the frontend so adding an entity to `AuditScope` shows up in the UI without a
  * second edit.
+ *
+ * [actors] is what turns the actor filter from free text into a choice: the filter matches the
+ * username exactly, so a typo used to return an empty list that reads like "nothing was changed" -
+ * the one misreading an audit screen must not invite.
  */
 @ExcludeFromTestCoverage
 data class AuditFilterOptionsResponse(
     val entityTypes: List<String>,
     val operations: List<AuditOperation>,
+    val actors: List<AuditActorItem>,
+)
+
+/**
+ * A user the log holds entries for. Carries the name next to the username for the same reason
+ * [AuditEntryItem] does: the username is what the filter matches, the name is who that is.
+ */
+@ExcludeFromTestCoverage
+data class AuditActorItem(
+    val username: String,
+    val firstname: String?,
+    val lastname: String?,
 )

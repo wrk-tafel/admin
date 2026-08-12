@@ -1,6 +1,8 @@
-import {Component, input} from '@angular/core';
+import {Component, computed, inject, input} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
+import {RouterLink} from '@angular/router';
+import dayjs from 'dayjs';
 import {
   AuditEntryItem,
   auditEntityTypeLabel,
@@ -8,18 +10,36 @@ import {
   AuditOperation,
   auditOperationLabel
 } from '../../../api/audit-api.service';
+import {AuthenticationService} from '../../security/authentication.service';
+
+/** The entity types whose business key is a household number - the backend's `AuditScope.householdScoped`. */
+const HOUSEHOLD_SCOPED_ENTITY_TYPES = ['Household', 'Person', 'HouseholdNote', 'Document'];
+
+/** One day's entries, as the list renders them under a single heading. */
+interface AuditEntryDayGroup {
+  /** `yyyy-MM-dd` - what the entries were grouped on, and the `@for` track key. */
+  key: string;
+  date: Date;
+  /** "Heute", "Gestern", "vor 3 Tagen" - absent once a date is old enough that only the date itself still says anything. */
+  relativeLabel: string | null;
+  /** Where this group starts in the flat list, so an entry's test hooks keep numbering across the whole page. */
+  startIndex: number;
+  entries: AuditEntryItem[];
+}
 
 /**
- * Renders a list of audit entries. Purely presentational - loading and paging belong to whoever
- * uses it, which is both the customer detail screen's "Verlauf" tab and the administration-wide
- * "Änderungsprotokoll", so the two can never drift into showing a change differently.
+ * Renders a list of audit entries, grouped by the day they happened on. Purely presentational -
+ * loading and paging belong to whoever uses it, which is both the customer detail screen's
+ * "Verlauf" tab and the administration-wide "Änderungsprotokoll", so the two can never drift into
+ * showing a change differently.
  */
 @Component({
   selector: 'tafel-audit-entry-list',
   templateUrl: 'audit-entry-list.component.html',
   imports: [
     DatePipe,
-    MatCardModule
+    MatCardModule,
+    RouterLink
   ]
 })
 export class AuditEntryListComponent {
@@ -27,6 +47,66 @@ export class AuditEntryListComponent {
 
   /** Whether to name the affected record - off inside one household's own history, where it is given. */
   showSubject = input<boolean>(false);
+
+  private readonly authenticationService = inject(AuthenticationService);
+
+  /**
+   * The entries as the template walks them: one heading per day, the entries below it in the order
+   * they arrived (newest first). Grouping is done on consecutive entries rather than by collecting
+   * them into a map, because the backend already sorts them - a day that appeared twice would mean
+   * the sort broke, and silently merging the two halves would hide that.
+   */
+  protected readonly dayGroups = computed<AuditEntryDayGroup[]>(() => {
+    const groups: AuditEntryDayGroup[] = [];
+
+    this.entries().forEach((entry, index) => {
+      const day = dayjs(entry.occurredAt);
+      const key = day.format('YYYY-MM-DD');
+      const currentGroup = groups[groups.length - 1];
+
+      if (currentGroup?.key === key) {
+        currentGroup.entries.push(entry);
+      } else {
+        groups.push({
+          key,
+          date: day.toDate(),
+          relativeLabel: this.relativeDayLabel(day),
+          startIndex: index,
+          entries: [entry]
+        });
+      }
+    });
+
+    return groups;
+  });
+
+  private readonly canViewCustomers = computed(() => this.authenticationService.hasPermission('CUSTOMER'));
+  private readonly canViewUsers = computed(() => this.authenticationService.hasPermission('USER_MANAGEMENT'));
+
+  /**
+   * Where the record an entry is about can be looked at, or null when it cannot be: the viewer
+   * lacks the permission for that screen, the entry carries nothing to address the record by, or
+   * the entry *is* the record's deletion and there is nothing left to open.
+   *
+   * A record deleted later still gets a link - the entry cannot know about a change that came after
+   * it. Following one leads to the "not found" the screen already handles.
+   */
+  protected subjectLink(entry: AuditEntryItem): string[] | null {
+    if (HOUSEHOLD_SCOPED_ENTITY_TYPES.includes(entry.entityType)) {
+      const householdDeleted = entry.entityType === 'Household' && entry.operation === 'DELETE';
+      if (!householdDeleted && this.canViewCustomers() && entry.businessKey && /^\d+$/.test(entry.businessKey)) {
+        return ['/kunden/detail', entry.businessKey];
+      }
+      return null;
+    }
+
+    // Only the user record itself: an authority entry's id is the authority row's, not the user's.
+    if (entry.entityType === 'User' && entry.operation !== 'DELETE' && this.canViewUsers() && entry.entityId) {
+      return ['/benutzer/detail', String(entry.entityId)];
+    }
+
+    return null;
+  }
 
   protected entityTypeLabel(entityType: string): string {
     return auditEntityTypeLabel[entityType] ?? entityType;
@@ -63,6 +143,15 @@ export class AuditEntryListComponent {
     return value === undefined || value === null || value === '' ? '–' : value;
   }
 
+  /**
+   * Whether a value is one of the two sides of an actual change, and therefore gets the colour that
+   * says so. An empty side is only the absence of a value - painting it red or green would claim
+   * something was removed or added where nothing was there to begin with.
+   */
+  protected hasValue(value?: string): boolean {
+    return value !== undefined && value !== null && value !== '';
+  }
+
   protected operationClasses(operation: AuditOperation): string {
     switch (operation) {
       case 'INSERT':
@@ -72,5 +161,21 @@ export class AuditEntryListComponent {
       default:
         return 'bg-slate-600 text-white';
     }
+  }
+
+  /**
+   * How long ago a day was, in the terms someone scanning a page actually thinks in. Only for the
+   * last week - beyond that "vor 23 Tagen" says less than the date next to it already does, and a
+   * day in the future (a clock skew between instances) says nothing at all.
+   */
+  private relativeDayLabel(day: dayjs.Dayjs): string | null {
+    const days = dayjs().startOf('day').diff(day.startOf('day'), 'day');
+    if (days === 0) {
+      return 'Heute';
+    }
+    if (days === 1) {
+      return 'Gestern';
+    }
+    return days > 1 && days < 7 ? `vor ${days} Tagen` : null;
   }
 }

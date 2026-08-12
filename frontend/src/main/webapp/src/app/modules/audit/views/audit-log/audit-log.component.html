@@ -14,7 +14,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4" testid="audit-filter">
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>Datensatz-Art</mat-label>
-        <mat-select testid="audit-filter-entityType" [ngModel]="entityType()" (ngModelChange)="entityType.set($event)">
+        <mat-select testid="audit-filter-entityType" [ngModel]="entityType()"
+                    (ngModelChange)="entityType.set($event); applyFilter()">
           <mat-option [value]="null">Alle</mat-option>
           @for (type of entityTypes(); track type) {
             <mat-option [value]="type">{{ entityTypeLabel(type) }}</mat-option>
@@ -24,7 +25,8 @@
 
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>Art der Änderung</mat-label>
-        <mat-select testid="audit-filter-operation" [ngModel]="operation()" (ngModelChange)="operation.set($event)">
+        <mat-select testid="audit-filter-operation" [ngModel]="operation()"
+                    (ngModelChange)="operation.set($event); applyFilter()">
           <mat-option [value]="null">Alle</mat-option>
           @for (op of operations(); track op) {
             <mat-option [value]="op">{{ operationLabel(op) }}</mat-option>
@@ -32,30 +34,56 @@
         </mat-select>
       </mat-form-field>
 
+      <!--
+        A choice rather than free text: the filter matches a username exactly, so a typo used to
+        return an empty list that reads like "nothing was changed here" - on a log, the one wrong
+        answer worth designing against. `requireSelection` is what keeps a half-typed name from
+        staying in the box as if it were in effect.
+      -->
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>Benutzer</mat-label>
-        <input matInput testid="audit-filter-actor" [ngModel]="actorUsername()" (ngModelChange)="actorUsername.set($event)">
+        <input matInput testid="audit-filter-actor" [matAutocomplete]="actorAutocomplete"
+               [ngModel]="actorInput()" (ngModelChange)="onActorInput($event)">
+        <mat-autocomplete #actorAutocomplete requireSelection
+                          (optionSelected)="onActorSelected($event.option.value)">
+          @for (actor of filteredActors(); track actor.username) {
+            <mat-option [value]="actor.username">{{ actorLabel(actor) }}</mat-option>
+          }
+        </mat-autocomplete>
       </mat-form-field>
 
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>Kunden-/Benutzernummer</mat-label>
-        <input matInput testid="audit-filter-businessKey" [ngModel]="businessKey()" (ngModelChange)="businessKey.set($event)">
+        <input matInput testid="audit-filter-businessKey" [ngModel]="businessKey()"
+               (ngModelChange)="onBusinessKeyInput($event)">
       </mat-form-field>
 
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>Von</mat-label>
-        <input matInput type="date" testid="audit-filter-from" [ngModel]="from()" (ngModelChange)="from.set($event)">
+        <input matInput type="date" testid="audit-filter-from" [ngModel]="from()"
+               (ngModelChange)="from.set($event); applyFilter()">
       </mat-form-field>
 
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>Bis</mat-label>
-        <input matInput type="date" testid="audit-filter-to" [ngModel]="to()" (ngModelChange)="to.set($event)">
+        <input matInput type="date" testid="audit-filter-to" [ngModel]="to()"
+               (ngModelChange)="to.set($event); applyFilter()">
       </mat-form-field>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-2 mb-4">
-      <button matButton="filled" testid="audit-search-button" (click)="search()">Suchen</button>
-      <button matButton="filled" testid="audit-reset-button" (click)="resetFilter()">Filter zurücksetzen</button>
+    <div class="flex flex-col md:flex-row md:items-center gap-2 mb-4">
+      <!-- aria-pressed rather than colour alone: which range is in effect has to be readable without seeing it. -->
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Zeitraum" testid="audit-filter-presets">
+        @for (preset of datePresets; track preset.key) {
+          <button [matButton]="activePreset() === preset.key ? 'filled' : 'outlined'" type="button"
+                  [attr.testid]="'audit-filter-preset-' + preset.key"
+                  [attr.aria-pressed]="activePreset() === preset.key"
+                  (click)="applyDatePreset(preset)">{{ preset.label }}</button>
+        }
+      </div>
+
+      <button matButton="filled" type="button" class="md:ml-auto" testid="audit-reset-button"
+              (click)="resetFilter()">Filter zurücksetzen</button>
     </div>
 
     <p class="sr-only" role="status" testid="audit-search-announcement">{{ searchAnnouncement() }}</p>
