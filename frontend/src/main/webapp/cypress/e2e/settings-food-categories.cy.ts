@@ -12,6 +12,13 @@ describe('Settings - Food Categories', () => {
     cy.byTestId('food-categories-row-0').should('contain.text', 'Backwaren');
   });
 
+  it('links to the return categories screen so a mix-up is caught before editing', () => {
+    cy.byTestId('food-categories-distinction').should('contain.text', 'Retour-Kategorien');
+    cy.byTestId('food-categories-distinction').find('a').click();
+
+    cy.url().should('include', '/einstellungen/retourkategorien');
+  });
+
   it('creates a new food category', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       cy.byTestId('addFoodCategoryButton').click();

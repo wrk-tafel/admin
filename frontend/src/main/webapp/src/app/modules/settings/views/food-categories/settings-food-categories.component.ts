@@ -19,7 +19,7 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faBoxOpen, faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   TafelReorderHandleComponent
@@ -30,6 +30,7 @@ import {
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'tafel-settings-food-categories',
@@ -59,7 +60,8 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     CdkDrag,
     CdkDragHandle,
     TafelReorderHandleComponent,
-    MatTooltipModule
+    MatTooltipModule,
+    RouterLink
   ]
 })
 export class SettingsFoodCategoriesComponent {
@@ -214,6 +216,7 @@ export class SettingsFoodCategoriesComponent {
     });
   }
 
+  protected readonly faBoxOpen = faBoxOpen;
   protected readonly faPencil = faPencil;
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
