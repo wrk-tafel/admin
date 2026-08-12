@@ -221,11 +221,17 @@ class UserController(
     @GetMapping("/login-attempts")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getLoginAttempts(
+        @RequestParam searchInput: String? = null,
+        @RequestParam lockedOnly: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<LoginAttemptItem> {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = loginAttemptService.findAll(pageRequest)
+        val pagedResult = loginAttemptService.findAll(
+            pageRequest = pageRequest,
+            searchInput = searchInput,
+            lockedOnly = lockedOnly ?: false,
+        )
 
         return PagedResponse(
             items = pagedResult.content,
@@ -235,6 +241,10 @@ class UserController(
             pageSize = pageRequest.pageSize,
         )
     }
+
+    @GetMapping("/login-attempts/settings")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getLoginAttemptSettings(): ResponseEntity<LoginAttemptSettingsResponse> = ResponseEntity.ok(loginAttemptService.getSettings())
 
     @DeleteMapping("/login-attempts/{loginAttemptId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")

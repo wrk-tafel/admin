@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.LoginAttemptItem
+import at.wrk.tafel.admin.backend.common.auth.model.LoginAttemptSettingsResponse
 import at.wrk.tafel.admin.backend.common.auth.model.UserLockedOutEvent
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
@@ -8,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit
 @Service
 class LoginAttemptService(
     private val loginAttemptRepository: LoginAttemptRepository,
+    private val userRepository: UserRepository,
     private val advisoryLockService: AdvisoryLockService,
     private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
@@ -86,7 +89,23 @@ class LoginAttemptService(
     // directly from UserController (a @RestController), and an ArchUnit rule
     // (ProjectSpecificRulesTest) forbids controllers from depending on database entities.
     @Transactional(readOnly = true)
-    fun findAll(pageRequest: PageRequest): Page<LoginAttemptItem> = loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(pageRequest).map { mapToItem(it) }
+    fun findAll(pageRequest: PageRequest, searchInput: String? = null, lockedOnly: Boolean = false): Page<LoginAttemptItem> {
+        val page = loginAttemptRepository.findAllFiltered(
+            usernamePattern = "%${searchInput?.trim()?.lowercase().orEmpty()}%",
+            lockedOnly = lockedOnly,
+            now = now(),
+            pageRequest = pageRequest,
+        )
+
+        val userIdsByUsername = findUserIdsByUsername(page.content.map { it.username })
+        return page.map { mapToItem(it, userIdsByUsername[it.username]) }
+    }
+
+    /** The lockout rule the screen states, so a failure count is shown against the limit it counts towards. */
+    fun getSettings() = LoginAttemptSettingsResponse(
+        maxFailures = maxFailures(),
+        lockoutDurationInSeconds = lockoutDurationInSeconds(),
+    )
 
     @Transactional
     fun deleteById(id: Long) {
@@ -104,13 +123,25 @@ class LoginAttemptService(
         loginAttemptRepository.deleteAllByLastFailureAtBeforeSkipLocked(now().minusSeconds(lockoutDurationInSeconds()))
     }
 
-    private fun mapToItem(entity: LoginAttemptEntity) = LoginAttemptItem(
+    private fun mapToItem(entity: LoginAttemptEntity, userId: Long?) = LoginAttemptItem(
         id = entity.id!!,
         username = entity.username,
         failureCount = entity.failureCount,
         lastFailureAt = entity.lastFailureAt,
         lockedUntil = entity.lockedUntil,
+        userId = userId,
     )
+
+    /**
+     * A failed login names no account: the username typed at the login screen is recorded whether it
+     * exists or not, which is exactly why a typo'd one has to stay unlinked instead of guessed at.
+     */
+    private fun findUserIdsByUsername(usernames: List<String>): Map<String, Long> =
+        if (usernames.isEmpty()) {
+            emptyMap()
+        } else {
+            userRepository.findIdsByUsernames(usernames).associate { it.username to it.userId }
+        }
 
     private fun isStale(entry: LoginAttemptEntity): Boolean = entry.lastFailureAt.plusSeconds(lockoutDurationInSeconds()).isBefore(now())
 

@@ -37,5 +37,33 @@ interface LoginAttemptRepository : JpaRepository<LoginAttemptEntity, Long> {
     )
     fun deleteAllByLastFailureAtBeforeSkipLocked(@Param("date") date: LocalDateTime): Int
 
-    fun findAllByOrderByLastFailureAtDescIdDesc(pageRequest: PageRequest): Page<LoginAttemptEntity>
+    /**
+     * The attempts a filtered page of the administration screen shows, currently locked ones first:
+     * an operator opens that screen because somebody is locked out, not to browse the failures that
+     * expired on their own.
+     *
+     * [usernamePattern] is a lower-cased `like` pattern - `%` alone for "no filter", so the query
+     * never has to compare a null parameter. [now] is passed in rather than taken from the database,
+     * so the ordering and the lock state the caller reports come from the same clock.
+     */
+    @Query(
+        """
+            SELECT l FROM LoginAttempt l
+            WHERE LOWER(l.username) LIKE :usernamePattern
+              AND (:lockedOnly = FALSE OR (l.lockedUntil IS NOT NULL AND l.lockedUntil > :now))
+            ORDER BY CASE WHEN l.lockedUntil IS NOT NULL AND l.lockedUntil > :now THEN 0 ELSE 1 END,
+                     l.lastFailureAt DESC, l.id DESC
+        """,
+        countQuery = """
+            SELECT COUNT(l) FROM LoginAttempt l
+            WHERE LOWER(l.username) LIKE :usernamePattern
+              AND (:lockedOnly = FALSE OR (l.lockedUntil IS NOT NULL AND l.lockedUntil > :now))
+        """,
+    )
+    fun findAllFiltered(
+        @Param("usernamePattern") usernamePattern: String,
+        @Param("lockedOnly") lockedOnly: Boolean,
+        @Param("now") now: LocalDateTime,
+        pageRequest: PageRequest,
+    ): Page<LoginAttemptEntity>
 }
