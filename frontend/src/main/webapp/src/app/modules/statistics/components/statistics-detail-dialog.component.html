@@ -29,7 +29,7 @@
     @if (dataPoints().length > 0) {
       <!-- Chart.js sizes the canvas from this box and only keeps it bounded when the box is its own
            positioned container - without `relative` the canvas outgrows the height on a tall dialog. -->
-      <div class="relative mt-4 h-64 w-full sm:w-[32rem]">
+      <div class="relative mt-4 h-72 w-full sm:h-80">
         <canvas baseChart testid="statistics-detail-chart"
                 role="img" [attr.aria-label]="chartLabel()"
                 [type]="'line'" [data]="chartData()" [options]="chartOptions"></canvas>

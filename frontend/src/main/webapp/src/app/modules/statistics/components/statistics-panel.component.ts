@@ -159,6 +159,12 @@ export class StatisticsPanelComponent {
     }
 
     this.dialog.open(StatisticsDetailDialogComponent, {
+      // A dialog is sized by its content by default, which on a phone left the enlarged chart
+      // barely wider than the sparkline it was opened from - and reading the course off it is the
+      // whole reason the dialog exists. It takes what the viewport has instead, and stops growing
+      // once the chart is comfortably readable on a desktop.
+      width: '95vw',
+      maxWidth: '42rem',
       data: {
         detail: detail,
         comparison: this.comparison(),

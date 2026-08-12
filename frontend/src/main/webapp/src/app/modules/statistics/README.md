@@ -110,6 +110,22 @@ the resolver already fetched. A range without any is called out explicitly: shel
 are recorded per distribution and stay zero then, while the customer counts still report the state
 at the end of the range — ten empty cards otherwise read as a defect.
 
+Whether the comparison is *worth* looking at depends on the data behind it, which is why the
+`testdata` fixture carries three years of weekly distributions and a household base that grows and
+lapses over the same window (`db-migration-testdata/testdata.sql`). Against a database that holds a
+single distribution and households whose validity never ends, both periods answer the same number
+and every card correctly reads "±0" over a flat line — which looks exactly like a broken screen.
+
+## Allgemein: the period picker
+
+The five periods, the control belonging to the picked one, and the CSV export share one block. From
+`lg` up it is a two-column grid with the export in the top right, beside the range it exports;
+below that it is a single column, so the export ends up where a form's confirming button belongs —
+full width, under the numbers it covers. The toggle group wraps onto a second line rather than
+scrolling sideways: a horizontal scrollbar hides two of the five periods behind an edge that
+nothing announces. Each period's own control is only as wide as its longest answer (a year is four
+characters); a field stretched across the card reads as if more were expected.
+
 ## Charts: `StatisticsPanelComponent`
 
 Each of the ten tiles rendered in `statistics-general.component.html` is one
@@ -123,7 +139,9 @@ line *does* offer on demand is its scale: the min/max/last values written out be
 naming the value at the pointer's position, and the whole course with axes in an enlarged dialog
 (`StatisticsDetailDialogComponent`) the card opens on click. The card's own keyboard path to that
 dialog is the small button in its corner — the click on the card itself is a mouse convenience on
-top of it, not a second tab stop.
+top of it, not a second tab stop. That dialog is opened with an explicit `width`/`maxWidth`: sized
+by its content it comes out barely wider than the sparkline it was opened from on a phone, and
+reading the course off the chart is the whole reason it exists.
 
 While a period is loading, a panel renders a placeholder in place of its numbers rather than
 keeping the previous period's on screen; the page announces the state once for all ten cards, so a

@@ -35,6 +35,27 @@ describe('Statistics General', () => {
     });
   });
 
+  // The three years of weekly distributions in the testdata are what make this assertable: against
+  // a fixture whose households never expire and that holds one distribution, both periods answer
+  // the same number and every card reads "0". See db-migration-testdata/testdata.sql.
+  it('states a real change per key figure, not a flat zero', () => {
+    // logistics is recorded per distribution, so this one moves whenever the compared years hold
+    // different collections - which the seeded history makes sure they do
+    cy.byTestId('statisticsPanel-shopItemsTotal').within(() => {
+      cy.byTestId('panel-delta')
+        .invoke('text')
+        .should('match', /[+-]\d/);
+    });
+
+    cy.byTestId('statisticsPanel-shopItemsTotal').within(() => {
+      // a course rather than one repeated value: its lowest and highest point differ
+      cy.byTestId('panel-scale').invoke('text').then((text) => {
+        const [minimum, maximum] = text.match(/[\d.,]+/g)!;
+        expect(minimum).not.to.equal(maximum);
+      });
+    });
+  });
+
   it('shows a placeholder on the cards while the numbers are loading', () => {
     cy.intercept('GET', '/api/statistics/data*', request => {
       request.on('response', response => {
@@ -66,6 +87,18 @@ describe('Statistics General', () => {
 
     cy.byTestId('statistics-detail-dialog').within(() => cy.byTestId('closeButton').click());
     cy.byTestId('statistics-detail-dialog').should('not.exist');
+  });
+
+  it('gives the enlarged chart the phone screen it needs', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('statisticsPanel-beneficiaryPersons').click();
+
+    // the chart is the whole reason this dialog exists, so on a phone it takes what the viewport
+    // has rather than the width a dialog sized by its own text would settle on
+    cy.byTestId('statistics-detail-chart').should('be.visible').then(($canvas) => {
+      const viewportWidth = Cypress.config('viewportWidth');
+      expect($canvas[0].getBoundingClientRect().width).to.be.greaterThan(viewportWidth * 0.75);
+    });
   });
 
   it('switches to current month mode and updates the shown range', () => {
@@ -166,14 +199,18 @@ describe('Statistics General', () => {
     cy.viewport(PHONE_VIEWPORT);
 
     // The Zeitraum toggle group (Jahr/Vorjahr/Aktuelles Monat/Ausgabe/Benutzerdefiniert) is wider
-    // than a phone viewport - it scrolls horizontally within its own wrapper (overflow-x-auto)
-    // instead of pushing the whole page into horizontal scroll. Assert that explicitly, since a
-    // plain .click() below would still succeed even if this regressed (Cypress auto-scrolls
-    // whichever ancestor is scrollable to reach the target, so it wouldn't otherwise catch the
-    // page-level overflow).
+    // than a phone viewport, so it wraps onto a second line - every period stays on screen and the
+    // page itself never scrolls sideways. Both halves are asserted: a plain .click() below would
+    // still succeed if this regressed into a scrolling group (Cypress auto-scrolls whichever
+    // ancestor is scrollable to reach the target), and nothing else notices an option that can
+    // only be reached by dragging.
     cy.document().then((doc) => {
       expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth);
     });
+    cy.byTestId('dateRangeModeInput').then(($group) => {
+      expect($group[0].scrollWidth).to.be.at.most($group[0].clientWidth);
+    });
+    cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').should('be.visible');
 
     // below the sm: breakpoint the date range card and the "von"/"bis" label+input pairs stack in a single column
     cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').click();
@@ -191,13 +228,31 @@ describe('Statistics General', () => {
     cy.contains('Transport- / Logistik').scrollIntoView().should('be.visible');
   });
 
-  it('shows the period picker and the export side by side at tablet width', () => {
+  it('puts the export beside the period picker on a desktop', () => {
+    // the export covers the picked range, so it shares that row rather than sitting in a card of
+    // its own - "beside" as in: it starts before the picker's own row has ended
+    cy.byTestId('dateRangeModeInput').then(($group) => {
+      cy.byTestId('csvExportButton').then(($button) => {
+        expect($button[0].getBoundingClientRect().top)
+          .to.be.lessThan($group[0].getBoundingClientRect().bottom);
+      });
+    });
+  });
+
+  it('moves the export under the period picker at tablet width', () => {
     cy.viewport(TABLET_VIEWPORT);
 
-    // the export covers the picked range, so it sits in that row rather than in a card of its own
     const currentYear = dayjs().year();
     cy.byTestId('yearInput').should('be.visible').and('contain.text', currentYear.toString());
-    cy.byTestId('csvExportButton').should('be.visible');
+
+    // there is no room for a second column here, so the export becomes what it reads as on a
+    // narrow screen: the panel's closing, full-width action under the range it exports
+    cy.byTestId('exportHint').then(($hint) => {
+      cy.byTestId('csvExportButton').should('be.visible').then(($button) => {
+        expect($button[0].getBoundingClientRect().top)
+          .to.be.at.least($hint[0].getBoundingClientRect().bottom);
+      });
+    });
 
     cy.contains('Kunden und Personen').should('be.visible');
   });

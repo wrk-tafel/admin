@@ -134,6 +134,8 @@ describe('StatisticsComponent', () => {
     fixture.nativeElement.querySelector('mat-card').click();
 
     expect(openSpy).toHaveBeenCalledWith(StatisticsDetailDialogComponent, {
+      width: '95vw',
+      maxWidth: '42rem',
       data: {
         detail: detail,
         comparison: {...detail, value: 40},

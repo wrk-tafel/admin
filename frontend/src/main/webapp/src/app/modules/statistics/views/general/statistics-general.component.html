@@ -9,11 +9,19 @@
     </p>
 
     <div class="font-bold mb-2" id="dateRangeLabel">Zeitraum</div>
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div class="overflow-x-auto">
-        <!-- every control in this block is named by the visible text beside it: without the
-             explicit association those are plain <div>s that name nothing -->
-        <mat-button-toggle-group testid="dateRangeModeInput" [value]="selectedMode()"
+
+    <!-- The export covers the very range picked beside it, which is why it shares this block rather
+         than sitting in a card of its own. It is the block's last element, so on anything narrower
+         than a desktop it ends up where a form's confirming button belongs - full width, under the
+         range it exports - while from lg on the grid lifts it into the picker's own row. -->
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+      <div class="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
+        <!-- The group wraps onto a second line rather than scrolling sideways: a horizontal
+             scrollbar hides two of the five periods behind an edge that nothing announces, and
+             they are the point of the control.
+             Every control in this block is named by the visible text beside it: without the
+             explicit association those are plain <div>s that name nothing. -->
+        <mat-button-toggle-group class="flex-wrap lg:self-start" testid="dateRangeModeInput" [value]="selectedMode()"
                                   aria-labelledby="dateRangeLabel"
                                   (change)="onModeChange($event.value)">
           <mat-button-toggle value="year">Jahr</mat-button-toggle>
@@ -22,96 +30,90 @@
           <mat-button-toggle value="distribution">Ausgabe</mat-button-toggle>
           <mat-button-toggle value="custom">Benutzerdefiniert</mat-button-toggle>
         </mat-button-toggle-group>
+
+        <!-- each period's own control is only as wide as its longest answer - a year is four
+             characters, and a field stretched across the card reads as if more were expected -->
+        @switch (selectedMode()) {
+          @case ('year') {
+            <div class="flex items-center gap-3">
+              <span id="yearLabel">Jahr</span>
+              <mat-form-field subscriptSizing="dynamic" class="w-32">
+                <mat-select testid="yearInput" [ngModel]="selectedYear()"
+                            aria-labelledby="yearLabel"
+                            (ngModelChange)="onYearSelected($event)">
+                  @for (year of yearOptions(); track year) {
+                    <mat-option [value]="year" [attr.testid]="'yearInput-option-' + year">{{ year }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+          @case ('previousYear') {
+            <div testid="previousYearHint">
+              Gesamtes Jahr {{ previousYear() }} (01.01. - 31.12.), verglichen mit {{ previousYear() - 1 }}.
+            </div>
+          }
+          @case ('distribution') {
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <span id="distributionLabel">Ausgabe</span>
+              <mat-form-field subscriptSizing="dynamic" class="w-full sm:w-64">
+                <mat-select testid="distributionDateInput"
+                            aria-labelledby="distributionLabel"
+                            [ngModel]="selectedDistribution()"
+                            (ngModelChange)="onDistributionSelected($event)">
+                  <mat-option [value]="undefined"></mat-option>
+                  @for (distribution of settings()?.distributions; track distribution.startDate) {
+                    <!-- the weekday tells the distributions apart at a glance: which of them a number
+                         belongs to is usually remembered as "der Samstag", not as a date -->
+                    <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distribution.startDate | date : 'EEEE, dd.MM.yyyy' }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+          @case ('custom') {
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div class="flex items-center gap-3">
+                <span id="dateRangeFromLabel">von</span>
+                <mat-form-field subscriptSizing="dynamic" class="flex-1 sm:flex-none sm:w-44">
+                  <input matInput testid="dataRangeFromInput" type="date" aria-labelledby="dateRangeFromLabel"
+                         [(ngModel)]="dateRangeFrom">
+                </mat-form-field>
+              </div>
+              <div class="flex items-center gap-3">
+                <span id="dateRangeToLabel">bis</span>
+                <mat-form-field subscriptSizing="dynamic" class="flex-1 sm:flex-none sm:w-44">
+                  <input matInput testid="dataRangeToInput" type="date" aria-labelledby="dateRangeToLabel"
+                         [(ngModel)]="dateRangeTo">
+                </mat-form-field>
+              </div>
+            </div>
+          }
+        }
+
+        @if (dateRangeInvalid()) {
+          <p class="m-0 text-sm text-red-700" role="alert" testid="dateRangeError">
+            @if (dateRangeInverted()) {
+              "von" darf nicht nach "bis" liegen - die zuletzt gültige Auswertung bleibt angezeigt.
+            } @else {
+              Bitte ein "von"- und ein "bis"-Datum angeben - die zuletzt gültige Auswertung bleibt angezeigt.
+            }
+          </p>
+        }
+
+        <p class="m-0 text-sm text-slate-600" testid="exportHint">
+          Der CSV-Export enthält die angezeigten Kennzahlen des Zeitraums {{ rangeLabel() }} - eine Zeile je Kennzahl,
+          mit dem Wert für den gesamten Zeitraum.
+        </p>
       </div>
-      <!-- the export covers the very range picked beside it, which is why it sits in this row
-           rather than in a card of its own -->
-      <div class="shrink-0">
-        <button matButton="filled" testid="csvExportButton" [disabled]="dateRangeInvalid()" (click)="generateCsv()">
+
+      <div class="lg:col-start-2 lg:row-start-1">
+        <button matButton="filled" class="w-full lg:w-auto" testid="csvExportButton"
+                [disabled]="dateRangeInvalid()" (click)="generateCsv()">
           <fa-icon [icon]="faSave"></fa-icon>&nbsp;CSV-Export
         </button>
       </div>
     </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-4">
-      @switch (selectedMode()) {
-        @case ('year') {
-          <div class="sm:col-span-2">
-            <div class="mb-2" id="yearLabel">Jahr</div>
-          </div>
-          <div class="sm:col-span-5">
-            <mat-form-field subscriptSizing="dynamic" class="w-full">
-              <mat-select testid="yearInput" [ngModel]="selectedYear()"
-                          aria-labelledby="yearLabel"
-                          (ngModelChange)="onYearSelected($event)">
-                @for (year of yearOptions(); track year) {
-                  <mat-option [value]="year" [attr.testid]="'yearInput-option-' + year">{{ year }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        }
-        @case ('previousYear') {
-          <div class="sm:col-span-7" testid="previousYearHint">
-            Gesamtes Jahr {{ previousYear() }} (01.01. - 31.12.), verglichen mit {{ previousYear() - 1 }}.
-          </div>
-        }
-        @case ('distribution') {
-          <div class="sm:col-span-2">
-            <div class="mb-2" id="distributionLabel">Ausgabe</div>
-          </div>
-          <div class="sm:col-span-5">
-            <mat-form-field subscriptSizing="dynamic" class="w-full">
-              <mat-select testid="distributionDateInput"
-                          aria-labelledby="distributionLabel"
-                          [ngModel]="selectedDistribution()"
-                          (ngModelChange)="onDistributionSelected($event)">
-                <mat-option [value]="undefined"></mat-option>
-                @for (distribution of settings()?.distributions; track distribution.startDate) {
-                  <!-- the weekday tells the distributions apart at a glance: which of them a number
-                       belongs to is usually remembered as "der Samstag", not as a date -->
-                  <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distribution.startDate | date : 'EEEE, dd.MM.yyyy' }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        }
-        @case ('custom') {
-          <div class="sm:col-span-2">
-            <div class="mb-2" id="dateRangeFromLabel">von</div>
-          </div>
-          <div class="sm:col-span-5">
-            <mat-form-field subscriptSizing="dynamic" class="w-full">
-              <input matInput testid="dataRangeFromInput" type="date" aria-labelledby="dateRangeFromLabel"
-                     [(ngModel)]="dateRangeFrom">
-            </mat-form-field>
-          </div>
-          <div class="sm:col-span-2 mt-2 sm:mt-0">
-            <div class="mb-2" id="dateRangeToLabel">bis</div>
-          </div>
-          <div class="sm:col-span-5 mt-2 sm:mt-0">
-            <mat-form-field subscriptSizing="dynamic" class="w-full">
-              <input matInput testid="dataRangeToInput" type="date" aria-labelledby="dateRangeToLabel"
-                     [(ngModel)]="dateRangeTo">
-            </mat-form-field>
-          </div>
-        }
-      }
-    </div>
-
-    @if (dateRangeInvalid()) {
-      <p class="mt-2 mb-0 text-sm text-red-700" role="alert" testid="dateRangeError">
-        @if (dateRangeInverted()) {
-          "von" darf nicht nach "bis" liegen - die zuletzt gültige Auswertung bleibt angezeigt.
-        } @else {
-          Bitte ein "von"- und ein "bis"-Datum angeben - die zuletzt gültige Auswertung bleibt angezeigt.
-        }
-      </p>
-    }
-
-    <p class="mt-4 mb-0 text-sm text-slate-600" testid="exportHint">
-      Der CSV-Export enthält die angezeigten Kennzahlen des Zeitraums {{ rangeLabel() }} - eine Zeile je Kennzahl,
-      mit dem Wert für den gesamten Zeitraum.
-    </p>
   </mat-card-content>
 </mat-card>
 

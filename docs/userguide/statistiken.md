@@ -31,7 +31,7 @@ Ein Klick auf eine Kachel öffnet das Diagramm vergrößert, mit Achsen, allen D
 
 ![Kennzahl im Detail](images/statistiken-kennzahl-detail.jpg)
 
-Über **CSV-Export** — direkt neben der Zeitraumauswahl — werden die angezeigten Kennzahlen des gewählten Zeitraums heruntergeladen (eine Zeile je Kennzahl, mit dem Wert für den gesamten Zeitraum).
+Über **CSV-Export** werden die angezeigten Kennzahlen des gewählten Zeitraums heruntergeladen (eine Zeile je Kennzahl, mit dem Wert für den gesamten Zeitraum). Die Schaltfläche steht auf breiten Bildschirmen rechts neben der Zeitraumauswahl, auf schmalen Bildschirmen unterhalb davon am Ende des Blocks.
 
 ## Auswertung Kinder
 
