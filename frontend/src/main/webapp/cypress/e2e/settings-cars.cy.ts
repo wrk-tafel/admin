@@ -12,17 +12,46 @@ describe('Settings - Cars', () => {
     cy.byTestId('cars-row-0').should('contain.text', 'Nice Car');
   });
 
-  it('creates a new car', () => {
+  it('creates a new car and stores its license plate in upper case', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       cy.byTestId('addCarButton').click();
 
       // Dialog fields are rendered in an overlay; target visible inputs instead of the host element
-      cy.get('input[formControlName="licensePlate"]').should('be.visible').type('W-NEW-' + randomId);
+      cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-new-' + randomId);
       cy.get('input[formControlName="name"]').type('New Car ' + randomId);
+      cy.get('input[formControlName="licensePlate"]').should('have.value', 'W-NEW-' + randomId);
       cy.contains('Speichern').click();
 
       cy.byTestId('cars-table').should('contain.text', 'New Car ' + randomId);
+      cy.byTestId('cars-table').should('contain.text', 'W-NEW-' + randomId);
     });
+  });
+
+  it('warns about an existing license plate instead of creating it twice', () => {
+    cy.byTestId('addCarButton').click();
+
+    // lower case on purpose - the plate of an existing car is recognized regardless of its case
+    cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-nc-456');
+
+    cy.byTestId('carDuplicateHint').should('be.visible').and('contain.text', 'W-NC-456');
+    cy.byTestId('saveNewCarButton').should('be.disabled');
+  });
+
+  it('offers to re-activate a deactivated car instead of creating it again', () => {
+    cy.byTestId('addCarButton').click();
+    cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-nc-111');
+
+    cy.byTestId('carDuplicateHint').should('be.visible').and('contain.text', 'deaktiviert');
+    cy.byTestId('reactivateExistingCarButton').click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'aktiviert');
+    cy.byTestId('cars-table').should('contain.text', 'W-NC-111');
+
+    // back to how the other cases expect the list, deactivated again
+    cy.byTestId('cars-table').contains('tr', 'W-NC-111').within(() => {
+      cy.byTestId('deactivateCarButton').click();
+    });
+    cy.byTestId('inactive-cars').should('contain.text', 'W-NC-111');
   });
 
   it('shows validation errors and does not submit an invalid new car', () => {
@@ -90,10 +119,27 @@ describe('Settings - Cars', () => {
     });
   });
 
-  it('toggles car visibility', () => {
-    cy.byTestId('enableCarButton').first().click();
-    cy.get('.toast-message')
-      .should('be.visible');
+  it('moves a deactivated car into the deactivated section and back', () => {
+    // The plate survives the renames the inline-edit cases above do, so it identifies the row
+    // regardless of where sorting by name has put it by now.
+    cy.byTestId('cars-row-0').invoke('text').then((rowText) => {
+      const plate = /W-[A-Z0-9-]+/.exec(rowText)![0];
+
+      cy.byTestId('cars-table').contains('tr', plate).within(() => {
+        cy.byTestId('deactivateCarButton').click();
+      });
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'deaktiviert');
+
+      // unfolded on its own - a car that just left the working list must not look deleted
+      cy.byTestId('inactive-cars').should('be.visible').and('contain.text', plate);
+      cy.byTestId('cars-table').should('not.contain.text', plate);
+
+      cy.byTestId('inactive-cars').contains('li', plate).within(() => {
+        cy.byTestId('reactivateCarButton').click();
+      });
+      cy.get('.toast-message').should('be.visible');
+      cy.byTestId('cars-table').should('contain.text', plate);
+    });
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -103,15 +149,6 @@ describe('Settings - Cars', () => {
     cy.byTestId('cars-table').should('not.be.visible');
     cy.byTestId('cars-cards').should('be.visible');
     cy.byTestId('addCarButton').should('be.visible');
-
-    // The 'toggles car visibility' test above may have left row 0 disabled (its edit button is
-    // disabled for disabled cars) - re-enable it first if needed so editing below can proceed.
-    cy.byTestId('editCarButtonMobile-0').then(($btn) => {
-      if ($btn.is(':disabled')) {
-        cy.byTestId('disableCarButton').filterDisplayed().first().click();
-        cy.get('.toast-message').should('be.visible');
-      }
-    });
 
     cy.getAnyRandomNumber().then((randomId) => {
       const newName = 'Car Updated On Phone ' + randomId;
@@ -142,6 +179,21 @@ describe('Settings - Cars', () => {
       cy.byTestId('addCarButton').click();
 
       cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the create dialog warns about an existing plate', () => {
+      cy.byTestId('addCarButton').click();
+      cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-nc-111');
+      cy.byTestId('carDuplicateHint').should('be.visible');
+
+      cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the deactivated section is unfolded', () => {
+      cy.byTestId('toggleInactiveCarsButton').click();
+      cy.byTestId('inactive-cars').should('be.visible');
+
+      cy.checkAccessibility('[testid="inactive-cars"]');
     });
 
     it('has no violations while a row is edited inline', () => {

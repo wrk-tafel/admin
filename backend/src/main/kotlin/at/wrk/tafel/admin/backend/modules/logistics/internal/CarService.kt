@@ -32,11 +32,11 @@ class CarService(
 
     fun createCar(car: CarRequest): CarResponse {
         val carEntity = CarEntity(
-            licensePlate = car.licensePlate,
+            licensePlate = normalizeLicensePlate(car.licensePlate),
             sortOrder = nextSortOrder(),
             enabled = car.enabled,
         ).apply {
-            name = car.name
+            name = car.name.trim()
         }
 
         val savedEntity = carRepository.save(carEntity)
@@ -48,8 +48,8 @@ class CarService(
         val carEntity = carRepository.findByIdOrNull(carId)
             ?: throw NotFoundException("Car with id $carId not found")
 
-        carEntity.licensePlate = updatedCar.licensePlate
-        carEntity.name = updatedCar.name
+        carEntity.licensePlate = normalizeLicensePlate(updatedCar.licensePlate)
+        carEntity.name = updatedCar.name.trim()
         carEntity.enabled = updatedCar.enabled
         carEntity.sortOrder = updatedCar.sortOrder
 
@@ -71,6 +71,13 @@ class CarService(
     }
 
     private fun nextSortOrder(): Int = (carRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1
+
+    /**
+     * A license plate is stored in exactly one shape, whoever writes it: the food-collection car
+     * dropdown lists the plates verbatim, so `w-12345x` next to `W-12345X` reads as two vehicles.
+     * The screen normalizes as the admin types - this is what makes that hold for every caller.
+     */
+    private fun normalizeLicensePlate(licensePlate: String): String = licensePlate.trim().uppercase()
 
     private fun mapCar(carEntity: CarEntity): CarResponse = CarResponse(
         id = carEntity.id!!,
