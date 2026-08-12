@@ -32,6 +32,8 @@ Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlic
 
 ![Passwort ändern](images/passwort-aendern.jpg)
 
+Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlicher Login ist nicht nötig. Die Anwendung kehrt dabei automatisch auf jene Seite zurück, von der aus das Benutzermenü geöffnet wurde, und bestätigt die Änderung mit einem kurzen Hinweis. Über **Abbrechen** kommt man ohne Änderung wieder auf dieselbe Seite zurück.
+
 <a id="benachrichtigungen"></a>
 
 Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde. Solche Benachrichtigungen erreichen das Gerät auch dann, wenn die Anwendung gerade nicht geöffnet ist. Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
