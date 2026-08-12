@@ -64,6 +64,29 @@ describe('PushNotificationService', () => {
     expect(service.isSupported()).toBe(true);
   });
 
+  describe('permissionState', () => {
+    it('returns null in a browser without the Notification API', () => {
+      expect(service.permissionState()).toBeNull();
+    });
+
+    it('returns the browser permission', () => {
+      (mockWindow as { Notification?: unknown }).Notification = {permission: 'denied'};
+
+      expect(service.permissionState()).toEqual('denied');
+    });
+
+    // The user can change it in the site settings while the page stays open, with nothing telling
+    // the page about it - so it must not be read once and remembered.
+    it('re-reads the permission on every call', () => {
+      const notification = {permission: 'default'};
+      (mockWindow as { Notification?: unknown }).Notification = notification;
+      expect(service.permissionState()).toEqual('default');
+
+      notification.permission = 'granted';
+      expect(service.permissionState()).toEqual('granted');
+    });
+  });
+
   it('syncSubscription is false when unsupported', async () => {
     mockSwPush.isEnabled = false;
 

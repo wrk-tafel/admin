@@ -71,7 +71,17 @@ class DocumentScannerWatcherService(
      * Also called right after a scanner file is imported into a household ([HouseholdDocumentService]),
      * so the importer's own UI (and anyone else watching) sees the file disappear immediately
      * instead of waiting for the next poll tick.
+     *
+     * Synchronized because that second caller is what makes two threads run this at once, and
+     * listing the folder has to be inside the same critical section as the comparison: a poll that
+     * read the folder just before an import deleted a file from it would otherwise publish that
+     * stale listing *after* the import published the current one, putting the imported file back on
+     * everyone's screen until the next tick corrected it. Both callers therefore compare a listing
+     * no one could have invalidated in between. The scheduler lock in [pollForChanges] is a
+     * different lock for a different job - it keeps two *instances* off the share, and deliberately
+     * doesn't cover the import.
      */
+    @Synchronized
     fun publishIfChanged() {
         val current = scannerFileService.listFiles()
         if (current != lastKnownListing) {

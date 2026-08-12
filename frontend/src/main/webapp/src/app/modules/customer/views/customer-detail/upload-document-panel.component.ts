@@ -144,9 +144,20 @@ export class UploadDocumentPanelComponent {
     this.upload.emit(result);
   }
 
+  /** Puts the panel back into the state it starts in, once an upload it handed over has gone through. */
   reset() {
     this.documentType.set(null);
     this.selectedFile.set(null);
     this.selectedScannerFileName.set(null);
+
+    // An import takes the file it imported out of the scanner folder, and the backend announces
+    // that on this panel's SSE stream. That stream is only opened when the scanner source is
+    // picked, though, and an import that is through before it has connected misses the
+    // announcement - after which nothing republishes the listing until the folder changes again,
+    // leaving a file on screen that is no longer there. Re-reading it closes that gap for the one
+    // browser that must not miss it: the one that just did the import.
+    if (this.source() === 'scanner') {
+      this.refreshScannerFiles();
+    }
   }
 }

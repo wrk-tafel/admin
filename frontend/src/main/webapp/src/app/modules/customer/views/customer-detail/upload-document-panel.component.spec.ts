@@ -107,4 +107,29 @@ describe('UploadDocumentPanelComponent', () => {
     expect(documentScannerApiService.getScannerFiles).toHaveBeenCalled();
     expect(documentScannerApiService.listenForScannerFileChanges).toHaveBeenCalled();
   });
+
+  // An import removes the file it took from the scanner folder. Waiting for the announcement of
+  // that on the SSE stream would leave the file on screen whenever the stream is not connected yet.
+  it('re-reads the scanner file list once an import it handed over went through', () => {
+    const documentScannerApiService = TestBed.inject(DocumentScannerApiService) as MockedObject<DocumentScannerApiService>;
+    const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.selectSource('scanner');
+    documentScannerApiService.getScannerFiles.mockClear();
+
+    fixture.componentInstance.reset();
+
+    expect(documentScannerApiService.getScannerFiles).toHaveBeenCalled();
+  });
+
+  it('does not read the scanner file list after an upload from the file picker', () => {
+    const documentScannerApiService = TestBed.inject(DocumentScannerApiService) as MockedObject<DocumentScannerApiService>;
+    const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.reset();
+
+    expect(documentScannerApiService.getScannerFiles).not.toHaveBeenCalled();
+  });
 });

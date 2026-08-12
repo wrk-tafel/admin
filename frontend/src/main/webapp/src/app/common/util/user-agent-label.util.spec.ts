@@ -1,4 +1,4 @@
-import {userAgentLabel} from './user-agent-label.util';
+import {userAgentDeviceType, userAgentLabel} from './user-agent-label.util';
 
 describe('user-agent-label.util', () => {
 
@@ -49,6 +49,36 @@ describe('user-agent-label.util', () => {
 
     it('falls back to a generic label for an unrecognized user agent', () => {
       expect(userAgentLabel('some-bot/1.0')).toEqual('Unbekannter Browser unter unbekanntem System');
+    });
+  });
+
+  describe('userAgentDeviceType', () => {
+    it('returns unknown when the user agent is missing or unrecognized', () => {
+      expect(userAgentDeviceType(null)).toEqual('unknown');
+      expect(userAgentDeviceType(undefined)).toEqual('unknown');
+      expect(userAgentDeviceType('some-bot/1.0')).toEqual('unknown');
+    });
+
+    it('recognizes a desktop browser', () => {
+      const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+      expect(userAgentDeviceType(ua)).toEqual('desktop');
+    });
+
+    it('recognizes an iPhone', () => {
+      const ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) '
+        + 'Version/17.5 Mobile/15E148 Safari/604.1';
+      expect(userAgentDeviceType(ua)).toEqual('mobile');
+    });
+
+    // An Android user agent carries "Linux" too, so the mobile tokens have to win.
+    it('recognizes an Android phone rather than reading it as a Linux desktop', () => {
+      const ua = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36';
+      expect(userAgentDeviceType(ua)).toEqual('mobile');
+    });
+
+    it('counts a tablet as mobile', () => {
+      const ua = 'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/604.1';
+      expect(userAgentDeviceType(ua)).toEqual('mobile');
     });
   });
 });

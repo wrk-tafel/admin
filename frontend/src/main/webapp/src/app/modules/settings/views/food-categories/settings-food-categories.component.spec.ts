@@ -153,6 +153,24 @@ describe('SettingsFoodCategoriesComponent', () => {
     expect(foodCategoriesApiMock.getAllFoodCategories).toHaveBeenCalledTimes(2);
   });
 
+  // The number scales every warehouse statistic, so a bare figure would be one unit mix-up away
+  // from a wrong report - and a category without a weight contributes 0 kg without saying so.
+  it('renders the weight with its unit and flags a category that has none', () => {
+    const withoutWeight: FoodCategory = {id: 3, name: 'Konserven', weightPerUnit: null, sortOrder: 3, enabled: true};
+    foodCategoriesApiMock.getAllFoodCategories =
+      vi.fn(() => of<FoodCategory[]>([testCategory, withoutWeight]));
+
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+
+    const weightCell = (index: number) => fixture.nativeElement
+      .querySelector(`[testid="foodCategoryWeightPerUnit-${index}"]`)
+      .textContent.replace(/\s+/g, ' ').trim();
+
+    expect(weightCell(0)).toBe('9 kg');
+    expect(weightCell(1)).toBe('kein Gewicht - zählt mit 0 kg');
+  });
+
   it('shows only the categories matching the status filter and counts the active ones', () => {
     const disabledCategory: FoodCategory = {id: 3, name: 'Konserven', weightPerUnit: 5, sortOrder: 3, enabled: false};
     foodCategoriesApiMock.getAllFoodCategories =

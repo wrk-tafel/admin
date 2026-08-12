@@ -12,6 +12,26 @@ describe('Settings - Food Categories', () => {
     cy.byTestId('food-categories-row-0').should('contain.text', 'Backwaren');
   });
 
+  it('names what the categories drive', () => {
+    cy.byTestId('food-categories-summary').should('contain.text', 'aktiv');
+    cy.contains('in der Reihenfolge, in der sie hier stehen').should('be.visible');
+    cy.contains('verschwindet sofort aus der Warenerfassung').should('be.visible');
+  });
+
+  it('shows the weight with its unit and explains what it drives', () => {
+    cy.get('[testid="food-categories-table"] [testid="foodCategoryWeightPerUnit-0"]')
+      .should('contain.text', 'kg');
+    cy.byTestId('food-categories-weight-info')
+      .should('have.attr', 'aria-label')
+      .and('contain', 'Warenmenge jeder Statistik');
+  });
+
+  it('says how the inline edit is confirmed and discarded', () => {
+    cy.byTestId('editFoodCategoryButton-0').click();
+
+    cy.contains('Enter speichert, Esc bricht ab').should('be.visible');
+  });
+
   it('links to the return categories screen so a mix-up is caught before editing', () => {
     cy.byTestId('food-categories-distinction').should('contain.text', 'Retour-Kategorien');
     cy.byTestId('food-categories-distinction').find('a').click();
