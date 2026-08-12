@@ -41,7 +41,7 @@ class AgeDistributionExporter : StatisticExporter {
         // distribution reproduces the buckets it had back then instead of shifting everyone forward
         val referenceDate = statistic.distribution.startedAt.toLocalDate()
         val households = statistic.distribution.households.map { it.household }
-        val persons = households.flatMap { it.additionalPersons() }
+        val persons = households.flatMap { it.additionalPersonsAsOf(referenceDate) }
         val householdsBirthDates = households.map { household ->
             (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.birthDate
         }
@@ -85,7 +85,16 @@ class AgeDistributionExporter : StatisticExporter {
         return rows
     }
 
+    /**
+     * A birth date that has no age band as of [referenceDate] is skipped instead of bucketed: an
+     * unknown one cannot be placed at all, and one after that day belongs to somebody who was not a
+     * member of the household back then (see [additionalPersonsAsOf]) - the negative age it produces
+     * is what [AgeRange.fromAge] rejects. Both are main persons here, so their household still counts
+     * towards the `Haushalte` and `Personen` totals; it just appears in no age range.
+     */
     private fun countByAgeRange(birthDates: List<LocalDate?>, referenceDate: LocalDate) = birthDates
+        .filterNotNull()
+        .filterNot { it.isAfter(referenceDate) }
         .map { birthDate ->
             val age = ChronoUnit.YEARS.between(birthDate, referenceDate).toInt()
             AgeRange.fromAge(age)

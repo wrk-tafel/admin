@@ -78,6 +78,14 @@ Because `AgeDistributionExporter`/`CountryDistributionExporter`/`HouseholdSizeDi
 at `currentStatistic.distribution.households`, they silently report empty/zero data if that relation isn't
 populated on the entity passed in — they do not requery the database for it.
 
+Those three read each household **as it is now** — nothing snapshots a household's members per distribution —
+so re-exporting a past distribution would otherwise report people who joined the household after that day.
+`additionalPersonsAsOf(referenceDate)` (`HouseholdMembersAsOf.kt`) is what all three go through: a member born
+after `distribution.startedAt` is left out of the buckets *and* of the counts, a member whose birth date is
+unknown is kept. `AgeDistributionExporter` additionally skips a main person it cannot place — an unknown birth
+date, or one after the reference date — from the age ranges while still counting their household, since
+`AgeRange.fromAge` has no band for either.
+
 ## Module dependency: `reporting` depends on `distribution`, only for one event
 
 `reporting`'s `package-info.java`:
