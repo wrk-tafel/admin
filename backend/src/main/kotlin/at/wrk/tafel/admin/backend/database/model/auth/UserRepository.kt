@@ -32,4 +32,22 @@ interface UserRepository :
         @Param("authority") authority: String,
         @Param("excludedUserId") excludedUserId: Long,
     ): Long
+
+    /**
+     * The accounts linked to [employeeIds] - one query for a whole page of employees rather than a
+     * lookup per row. A projection rather than the entities, because the only thing read of an
+     * account here is which employee it belongs to and how to address it.
+     */
+    @Query(
+        "select u.employee.id as employeeId, u.id as userId, u.username as username " +
+            "from User u where u.employee.id in :employeeIds",
+    )
+    fun findAccountsByEmployeeIds(@Param("employeeIds") employeeIds: Collection<Long>): List<EmployeeUserAccountProjection>
+}
+
+/** One user account, as [UserRepository.findAccountsByEmployeeIds] reads them. */
+interface EmployeeUserAccountProjection {
+    val employeeId: Long
+    val userId: Long
+    val username: String
 }

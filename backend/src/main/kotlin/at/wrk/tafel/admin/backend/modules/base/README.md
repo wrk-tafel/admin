@@ -41,16 +41,29 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
 
 ### `employee` — `@NamedInterface("employee")`
 - [`EmployeeController`](employee/EmployeeController.kt): `GET /api/employees` (paginated search by
-  name/personnel number), `POST /api/employees` (create), and `PUT /api/employees/{employeeId}`
-  (update). Class-level `@PreAuthorize("hasAuthority('LOGISTICS') or hasAuthority('SETTINGS')")` —
-  originally `LOGISTICS`-only (employee management was treated purely as a logistics concern, since
-  employees are mainly used to track who staffed a distribution/collection), widened to also accept
-  `SETTINGS` for the employee admin/maintenance screen added under the frontend's `settings` module
-  (`SettingsEmployeesComponent`, #2868) without narrowing the original `logistics` call site's access.
-- [`EmployeeModel.kt`](employee/EmployeeModel.kt): `EmployeeResponse(id, personnelNumber,
-  firstname, lastname)`, `EmployeeListResponse`, `EmployeeRequest` (used for both create and
-  update).
-- Backed by `EmployeeRepository`/`EmployeeEntity` in `database/model/base` (table `employees`).
+  name/personnel number), `GET /api/employees/personnel-number-availability` (is a number still
+  free, and who holds it if not), `POST /api/employees` (create), and `PUT
+  /api/employees/{employeeId}` (update). Class-level `@PreAuthorize("hasAuthority('LOGISTICS') or
+  hasAuthority('SETTINGS')")` — originally `LOGISTICS`-only (employee management was treated purely
+  as a logistics concern, since employees are mainly used to track who staffed a
+  distribution/collection), widened to also accept `SETTINGS` for the employee admin/maintenance
+  screen under the frontend's `settings` module (`SettingsEmployeesComponent`, #2868) without
+  narrowing the original `logistics` call site's access.
+- [`EmployeeModel.kt`](employee/EmployeeModel.kt): `EmployeeItem(id, personnelNumber, firstname,
+  lastname, userAccount)` as the element of `EmployeeListResponse`, `EmployeeResponse(id,
+  personnelNumber, firstname, lastname)` for the create/update responses,
+  `PersonnelNumberAvailabilityResponse`, and `EmployeeRequest` (used for both create and update).
+  The list element is its own type because only it carries `userAccount`: the account referencing
+  an employee is what the admin screen shows next to the row, and there is no reason for a food
+  collection's driver to drag one along.
+- The availability check is advisory - `saveEmployee`/`updateEmployee` reject a taken personnel
+  number with a `ConflictException` regardless, since a number can be given out between the check
+  and the save. It exists so the collision can be shown next to the field being typed into,
+  together with the employee already holding the number.
+- Backed by `EmployeeRepository`/`EmployeeEntity` in `database/model/base` (table `employees`) plus
+  `UserRepository.findAccountsByEmployeeIds` for the linked accounts — one query per page, not one
+  per row. Reaching `database/model/auth` straight from here is the ambient-lower-layer pattern
+  described below, not a `base`→`auth` module dependency (there is no `auth` module).
 - **Backend consumer:** the `logistics` module (`FoodCollectionService`, `FoodCollectionsModel`),
   which declares `base::employee` in its `allowedDependencies` — this is a Spring Modulith
   named-interface dependency between backend modules, not the same thing as "who calls the REST
