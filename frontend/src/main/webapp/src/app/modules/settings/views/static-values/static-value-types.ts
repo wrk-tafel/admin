@@ -10,7 +10,16 @@ export type StaticValueGroupKey = 'income' | 'costContribution';
 export interface StaticValueGroupSpec {
   key: StaticValueGroupKey;
   title: string;
-  description: string;
+  /**
+   * What the group as a whole is for. Left out where the group holds a single type, whose own
+   * description already says it - two paragraphs saying the same thing under one heading.
+   */
+  description?: string;
+  /**
+   * The type the group's heading already names. Its rows render directly under that heading rather
+   * than under a second one repeating it ("Einkommensgrenze" > "Einkommensgrenze").
+   */
+  headingType: StaticValueTypeEnum;
 }
 
 export const staticValueGroups: StaticValueGroupSpec[] = [
@@ -19,12 +28,13 @@ export const staticValueGroups: StaticValueGroupSpec[] = [
     title: 'Einkommensgrenze',
     description: 'Aus diesen Werten ergibt sich, ab welchem Einkommen ein Haushalt nicht mehr ' +
       'bezugsberechtigt ist: die Grenze selbst, die Zuschläge für größere Haushalte, die Toleranz ' +
-      'sowie die Beihilfen, die dem Einkommen hinzugerechnet werden.'
+      'sowie die Beihilfen, die dem Einkommen hinzugerechnet werden.',
+    headingType: StaticValueTypeEnum.INCOME_LIMIT
   },
   {
     key: 'costContribution',
     title: 'Unkostenbeitrag',
-    description: 'Der Betrag, den ein Haushalt pro Ausgabe beiträgt.'
+    headingType: StaticValueTypeEnum.COST_CONTRIBUTION
   }
 ];
 
@@ -111,9 +121,9 @@ export const staticValueTypeSpecs: Record<StaticValueTypeEnum, StaticValueTypeSp
     qualifierHeader: 'Kinder im Haushalt'
   },
   [StaticValueTypeEnum.COST_CONTRIBUTION]: {
-    label: 'Kostenbeitrag',
-    description: 'Wird einem Haushalt nach jeder Ausgabe als offener Unkostenbeitrag angeschrieben, ' +
-      'bei der er nicht bezahlt hat.',
+    label: 'Unkostenbeitrag',
+    description: 'Der Betrag, den ein Haushalt pro Ausgabe beiträgt. Wurde er bei einer Ausgabe ' +
+      'nicht bezahlt, wird er dem Haushalt als offener Unkostenbeitrag angeschrieben.',
     group: 'costContribution',
     qualifierFields: [],
     qualifierHeader: null

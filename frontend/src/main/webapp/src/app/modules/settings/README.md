@@ -157,6 +157,11 @@ around:
   "Unkostenbeitrag"), each with a sentence saying what the value does and where
   it is applied — a `groups()` computed turns the flat API list into that
   structure. A type with no row at all is left out rather than rendered empty.
+  Each group names one `headingType` whose section renders *without* a heading
+  of its own, since the group heading already is it; its `label` still names
+  that row's actions and its confirmation, where the group heading is out of
+  view. A group whose only type is that one carries no description either — the
+  type's own says it.
 - **A row is qualified only by the columns its type is looked up by**
   (`qualifierFields`): the seeded tolerance row carries `countAdults`/
   `countChildren` of `0` that no lookup reads, so "every column that is not

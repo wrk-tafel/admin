@@ -130,6 +130,28 @@ describe('SettingsStaticValuesComponent', () => {
     expect(sectionOf(component, StaticValueTypeEnum.TOLERANCE).columns).toEqual(['amount', 'actions']);
   });
 
+  it('gives no heading of its own to the type the group heading already names', () => {
+    const component = createComponent();
+
+    expect(sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT).showHeading).toBe(false);
+    expect(sectionOf(component, StaticValueTypeEnum.COST_CONTRIBUTION).showHeading).toBe(false);
+    expect(sectionOf(component, StaticValueTypeEnum.TOLERANCE).showHeading).toBe(true);
+  });
+
+  it('keeps naming a row by its type where the group heading is out of view', () => {
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    expect(component['rowLabel'](section, section.rows[0])).toBe('Einkommensgrenze - 2 Erwachsene, 1 Kind');
+  });
+
+  it('describes a single-type group once, on the type itself', () => {
+    const component = createComponent();
+
+    expect(component['groups']()[1].description).toBeUndefined();
+    expect(sectionOf(component, StaticValueTypeEnum.COST_CONTRIBUTION).description).toContain('pro Ausgabe beiträgt');
+  });
+
   it('leaves out a type that has no value at all', () => {
     const component = createComponent();
 

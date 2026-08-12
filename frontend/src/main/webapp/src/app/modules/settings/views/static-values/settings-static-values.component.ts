@@ -57,6 +57,12 @@ export interface StaticValueRowView {
 export interface StaticValueSectionView {
   type: StaticValueTypeEnum;
   label: string;
+  /**
+   * Whether the section carries a heading of its own. The one type the group's heading already
+   * names does not - it would repeat it word for word. The [label] stays either way; it names the
+   * row's actions and its confirmation, where the group heading is not in view.
+   */
+  showHeading: boolean;
   description: string;
   qualifierHeader: string | null;
   /** The table's columns - the qualifier only where the rows differ in one. */
@@ -67,7 +73,7 @@ export interface StaticValueSectionView {
 export interface StaticValueGroupView {
   key: StaticValueGroupKey;
   title: string;
-  description: string;
+  description?: string;
   sections: StaticValueSectionView[];
 }
 
@@ -139,6 +145,7 @@ export class SettingsStaticValuesComponent {
           .map(([type, spec]) => ({
             type: type as StaticValueTypeEnum,
             label: spec.label,
+            showHeading: type !== group.headingType,
             description: spec.description,
             qualifierHeader: spec.qualifierHeader,
             columns: spec.qualifierHeader ? ['qualifier', 'amount', 'actions'] : ['amount', 'actions'],

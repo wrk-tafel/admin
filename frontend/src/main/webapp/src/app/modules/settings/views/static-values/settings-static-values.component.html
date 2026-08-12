@@ -29,11 +29,15 @@
             </a>
           }
         </div>
-        <p class="mb-6 mt-2 text-sm text-slate-600">{{ group.description }}</p>
+        @if (group.description) {
+          <p class="mb-4 mt-2 text-sm text-slate-600">{{ group.description }}</p>
+        }
 
         @for (section of group.sections; track section.type) {
-          <section class="mb-6" [attr.testid]="'static-values-section-' + section.type">
-            <h4 class="mb-1 text-base font-semibold">{{ section.label }}</h4>
+          <section class="mb-6 mt-2" [attr.testid]="'static-values-section-' + section.type">
+            @if (section.showHeading) {
+              <h4 class="mb-1 text-base font-semibold">{{ section.label }}</h4>
+            }
             <p class="mb-2 text-sm text-slate-600" [attr.testid]="'static-values-description-' + section.type">
               {{ section.description }}
             </p>
