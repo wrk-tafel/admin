@@ -1,129 +1,154 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
-    <mat-card-title>
-      <h2 class="tafel-h5 mb-0 mt-1">Grenzwerte</h2>
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="tafel-h5 mb-0 mt-1">Grenzwerte</h2>
+        <a *tafelIfPermission="'AUDIT_LOG'" matButton="outlined" testid="static-values-audit-link"
+           routerLink="/aenderungsprotokoll" [queryParams]="auditLogQueryParams">
+          <fa-icon [icon]="faClockRotateLeft" class="me-2"></fa-icon>
+          Wer hat zuletzt geändert?
+        </a>
+      </div>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <p class="mb-4 text-sm text-slate-600">
-      Einkommensgrenzen, Zuschläge und Familienbeihilfe-Sätze. Sie sind die Grundlage für die
-      Anspruchsprüfung bei Kunden.
+    <p class="mb-6 text-sm text-slate-600">
+      Diese Beträge entscheiden, wer Lebensmittel bekommt. Bearbeitbar ist ausschließlich der Betrag
+      einer Zeile; jede Änderung gilt sofort für alle weiteren Anspruchsprüfungen.
     </p>
 
-    <div class="hidden md:block">
-    <table mat-table [dataSource]="staticValues()?.staticValues ?? []" testid="static-values-table">
-      <ng-container matColumnDef="type">
-        <th mat-header-cell *matHeaderCellDef>Typ</th>
-        <td mat-cell *matCellDef="let staticValue">{{ typeLabel(staticValue.type) }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="countAdults">
-        <th mat-header-cell *matHeaderCellDef>Anz. Erwachsene</th>
-        <td mat-cell *matCellDef="let staticValue">{{ staticValue.countAdults }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="countChildren">
-        <th mat-header-cell *matHeaderCellDef>Anz. Kinder</th>
-        <td mat-cell *matCellDef="let staticValue">{{ staticValue.countChildren }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="age">
-        <th mat-header-cell *matHeaderCellDef>Alter</th>
-        <td mat-cell *matCellDef="let staticValue">{{ staticValue.age }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="amount">
-        <th mat-header-cell *matHeaderCellDef>Betrag</th>
-        <td mat-cell *matCellDef="let staticValue; let i = index">
-          @if (editingId() === staticValue.id) {
-            <mat-form-field subscriptSizing="dynamic">
-              <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
-                   inside it, and a visible label here would repeat the column header in every row -->
-              <input #amountInput matInput type="number" step="0.01" [formControl]="amountControl"
-                     [attr.testid]="'staticValueAmountInput-' + i" aria-label="Betrag"
-                     (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
-              <span matTextSuffix>&nbsp;€</span>
-            </mat-form-field>
-          } @else {
-            {{ staticValue.amount !== null ? (staticValue.amount | currency) : '' }}
+    @for (group of groups(); track group.key) {
+      <section class="mb-10" [attr.testid]="'static-values-group-' + group.key">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-2">
+          <h3 class="tafel-h6 mb-0">{{ group.title }}</h3>
+          @if (group.key === 'income') {
+            <a *tafelIfPermission="'CUSTOMERS_ABOVE_LIMIT'" matButton="outlined"
+               testid="static-values-above-limit-link" routerLink="/kunden/ueber-limit">
+              <fa-icon [icon]="faArrowUpRightFromSquare" class="me-2"></fa-icon>
+              Auswirkung ansehen
+            </a>
           }
-        </td>
-      </ng-container>
+        </div>
+        <p class="mb-6 mt-2 text-sm text-slate-600">{{ group.description }}</p>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Aktionen</th>
-        <td mat-cell *matCellDef="let staticValue; let i = index">
-          @if (editingId() === staticValue.id) {
-            <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' speichern'">
-              <fa-icon [icon]="faCheck"></fa-icon>
-            </button>
-            <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(staticValue) + ' abbrechen'">
-              <fa-icon [icon]="faXmark"></fa-icon>
-            </button>
-          } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + i" matTooltip="Betrag bearbeiten"
-                    (click)="startEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' bearbeiten'">
-              <fa-icon [icon]="faPencil"></fa-icon>
-            </button>
-          }
-        </td>
-      </ng-container>
+        @for (section of group.sections; track section.type) {
+          <section class="mb-6" [attr.testid]="'static-values-section-' + section.type">
+            <h4 class="mb-1 text-base font-semibold">{{ section.label }}</h4>
+            <p class="mb-2 text-sm text-slate-600" [attr.testid]="'static-values-description-' + section.type">
+              {{ section.description }}
+            </p>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
-          [attr.testid]="'static-values-row-' + i"></tr>
-    </table>
-    </div>
+            <div class="hidden md:block">
+              <table mat-table [dataSource]="section.rows" [attr.testid]="'static-values-table-' + section.type">
+                <ng-container matColumnDef="qualifier">
+                  <th mat-header-cell *matHeaderCellDef>{{ section.qualifierHeader }}</th>
+                  <td mat-cell *matCellDef="let row">{{ row.qualifier }}</td>
+                </ng-container>
 
-    <div class="block md:hidden">
-      <div class="flex flex-col gap-4" testid="static-values-cards">
-        @for (staticValue of staticValues()?.staticValues ?? []; track staticValue.id; let i = $index) {
-          <mat-card class="shadow-sm" [attr.testid]="'static-values-row-' + i">
-            <mat-card-header class="mb-2">
-              <mat-card-title class="text-base font-semibold">{{ typeLabel(staticValue.type) }}</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="grid grid-cols-2 gap-2 items-center">
-                <div class="font-bold">Anz. Erwachsene:</div>
-                <div>{{ staticValue.countAdults }}</div>
-                <div class="font-bold">Anz. Kinder:</div>
-                <div>{{ staticValue.countChildren }}</div>
-                <div class="font-bold">Alter:</div>
-                <div>{{ staticValue.age }}</div>
-                <div class="font-bold">Betrag:</div>
-                <div>
-                  @if (editingId() === staticValue.id) {
-                    <mat-form-field subscriptSizing="dynamic">
-                      <!-- the card's own "Betrag:" text sits in a sibling cell and names nothing -->
-                      <input #amountInputMobile matInput type="number" step="0.01" [formControl]="amountControl"
-                             [attr.testid]="'staticValueAmountInputMobile-' + i" aria-label="Betrag"
-                             (keydown.enter)="saveEdit(staticValue)" (keydown.escape)="cancelEdit()"/>
-                      <span matTextSuffix>&nbsp;€</span>
-                    </mat-form-field>
-                  } @else {
-                    {{ staticValue.amount !== null ? (staticValue.amount | currency) : '' }}
-                  }
-                </div>
+                <ng-container matColumnDef="amount">
+                  <th mat-header-cell *matHeaderCellDef>Betrag</th>
+                  <td mat-cell *matCellDef="let row">
+                    @if (editingId() === row.staticValue.id) {
+                      <mat-form-field subscriptSizing="dynamic">
+                        <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
+                             inside it, and a visible label here would repeat the column header in every row -->
+                        <input #amountInput matInput type="number" step="0.01" inputmode="decimal"
+                               [formControl]="amountControl"
+                               [attr.testid]="'staticValueAmountInput-' + row.index" aria-label="Betrag"
+                               (keydown.enter)="saveEdit(section, row)" (keydown.escape)="cancelEdit()"/>
+                        <span matTextSuffix>&nbsp;€</span>
+                      </mat-form-field>
+                    } @else {
+                      {{ row.staticValue.amount !== null ? (row.staticValue.amount | currency) : '' }}
+                    }
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+                  <td mat-cell *matCellDef="let row">
+                    @if (editingId() === row.staticValue.id) {
+                      <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + row.index"
+                              matTooltip="Änderungen speichern" (click)="saveEdit(section, row)"
+                              [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' speichern'">
+                        <fa-icon [icon]="faCheck"></fa-icon>
+                      </button>
+                      <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + row.index"
+                              matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()"
+                              [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(section, row) + ' abbrechen'">
+                        <fa-icon [icon]="faXmark"></fa-icon>
+                      </button>
+                    } @else {
+                      <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + row.index"
+                              matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
+                              [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">
+                        <fa-icon [icon]="faPencil"></fa-icon>
+                      </button>
+                    }
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="section.columns"></tr>
+                <tr mat-row *matRowDef="let row; columns: section.columns;"
+                    [attr.testid]="'static-values-row-' + row.index"></tr>
+              </table>
+            </div>
+
+            <div class="block md:hidden">
+              <div class="flex flex-col gap-4" [attr.testid]="'static-values-cards-' + section.type">
+                @for (row of section.rows; track row.staticValue.id) {
+                  <mat-card class="shadow-sm" [attr.testid]="'static-values-row-' + row.index">
+                    <mat-card-content>
+                      <div class="grid grid-cols-2 gap-2 items-center">
+                        @if (row.qualifier) {
+                          <div class="font-bold">{{ section.qualifierHeader }}:</div>
+                          <div>{{ row.qualifier }}</div>
+                        }
+                        <div class="font-bold">Betrag:</div>
+                        <div>
+                          @if (editingId() === row.staticValue.id) {
+                            <mat-form-field subscriptSizing="dynamic">
+                              <!-- the card's own "Betrag:" text sits in a sibling cell and names nothing -->
+                              <input #amountInputMobile matInput type="number" step="0.01" inputmode="decimal"
+                                     [formControl]="amountControl"
+                                     [attr.testid]="'staticValueAmountInputMobile-' + row.index" aria-label="Betrag"
+                                     (keydown.enter)="saveEdit(section, row)" (keydown.escape)="cancelEdit()"/>
+                              <span matTextSuffix>&nbsp;€</span>
+                            </mat-form-field>
+                          } @else {
+                            {{ row.staticValue.amount !== null ? (row.staticValue.amount | currency) : '' }}
+                          }
+                        </div>
+                      </div>
+                    </mat-card-content>
+                    <mat-card-actions class="flex gap-2">
+                      @if (editingId() === row.staticValue.id) {
+                        <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + row.index"
+                                matTooltip="Änderungen speichern" (click)="saveEdit(section, row)"
+                                [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' speichern'">
+                          <fa-icon [icon]="faCheck"></fa-icon>
+                        </button>
+                        <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + row.index"
+                                matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()"
+                                [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(section, row) + ' abbrechen'">
+                          <fa-icon [icon]="faXmark"></fa-icon>
+                        </button>
+                      } @else {
+                        <button matButton="filled" class="button-danger"
+                                [attr.testid]="'editStaticValueButtonMobile-' + row.index"
+                                matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
+                                [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">
+                          <fa-icon [icon]="faPencil"></fa-icon>
+                        </button>
+                      }
+                    </mat-card-actions>
+                  </mat-card>
+                }
               </div>
-            </mat-card-content>
-            <mat-card-actions class="flex gap-2">
-              @if (editingId() === staticValue.id) {
-                <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' speichern'">
-                  <fa-icon [icon]="faCheck"></fa-icon>
-                </button>
-                <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(staticValue) + ' abbrechen'">
-                  <fa-icon [icon]="faXmark"></fa-icon>
-                </button>
-              } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButtonMobile-' + i" matTooltip="Betrag bearbeiten"
-                        (click)="startEdit(staticValue)" [attr.aria-label]="'Betrag für ' + rowLabel(staticValue) + ' bearbeiten'">
-                  <fa-icon [icon]="faPencil"></fa-icon>
-                </button>
-              }
-            </mat-card-actions>
-          </mat-card>
+            </div>
+          </section>
         }
-      </div>
-    </div>
+      </section>
+    }
   </mat-card-content>
 </mat-card>
