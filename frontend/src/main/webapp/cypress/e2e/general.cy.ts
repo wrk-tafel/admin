@@ -14,7 +14,7 @@ describe('General', () => {
     cy.url().should('include', '/login');
   });
 
-  it('status 404 page visible', () => {
+  it('status 404 page visible with recovery actions', () => {
     cy.visit('/invalidpath');
 
     cy.byTestId('status').should('have.text', '404');
@@ -22,16 +22,33 @@ describe('General', () => {
     cy.byTestId('subtitle').should('have.text', 'Diese Bananenkiste ist wohl leer');
 
     cy.url().should('include', '/invalidpath');
+
+    // unauthenticated: the overview link exists, but the auth guard sends it on to the login page
+    cy.byTestId('backToOverviewButton').should('be.visible').and('have.text', 'Zur Übersicht').click();
+    cy.url().should('include', '/login');
   });
 
-  it('status 500 page visible', () => {
+  it('status 500 page visible with recovery actions', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
     cy.visit('/500');
 
     cy.byTestId('status').should('have.text', '500');
     cy.byTestId('title').should('have.text', 'Houston, wir haben ein Problem!');
-    cy.byTestId('subtitle').should('have.text', 'Interner Server Fehler');
+    cy.byTestId('subtitle').should('have.text', 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+    cy.byTestId('supportHint').should('contain.text', 'Support-Anfrage');
 
     cy.url().should('include', '/500');
+
+    cy.byTestId('backButton').should('be.visible').and('have.text', 'Zurück').click();
+    cy.url().should('include', '/uebersicht');
+
+    cy.visit('/500');
+    cy.byTestId('backToOverviewButton').should('have.text', 'Zur Übersicht').click();
+    cy.url().should('include', '/uebersicht');
+
+    cy.visit('/500');
+    cy.byTestId('reloadButton').should('have.text', 'Neu laden');
   });
 
   it('remains usable on mobile viewports', () => {

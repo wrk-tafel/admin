@@ -204,11 +204,11 @@ Zusätzlich wird immer ein **Screenshot der Seite** angehängt, die beim Öffnen
 
 ## Fehlerseiten
 
-Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite:
+Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite mit den Schaltflächen **Zur Übersicht** und **Zurück**, um ohne Umweg über die Adressleiste weiterzuarbeiten:
 
 ![404 – Seite nicht gefunden](images/fehlerseite-404.jpg)
 
-Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. In diesem Fall über **Support-Anfrage** (siehe oben) melden.
+Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. Neben **Zur Übersicht** und **Zurück** steht hier zusätzlich **Neu laden** zur Verfügung; tritt der Fehler weiterhin auf, kann er über **Support-Anfrage** im Hauptmenü gemeldet werden (siehe oben).
 
 ![500 – Interner Server Fehler](images/fehlerseite-500.jpg)
 
