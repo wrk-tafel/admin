@@ -76,9 +76,13 @@ Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Best�
 
 ## Lebensmittelkategorien
 
-Unter **Einstellungen → Lebensmittelkategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt, inklusive des durchschnittlichen Gewichts pro Einheit (kg), das für die Hochrechnung der Gesamtwarenmenge verwendet wird. Kategorien können bearbeitet und sortiert werden; eine deaktivierte Kategorie steht bei der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+Unter **Einstellungen → Lebensmittelkategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt. Die Reihenfolge in dieser Liste ist die Reihenfolge, in der die Kategorien dort erscheinen; eine deaktivierte Kategorie verschwindet sofort aus der Warenerfassung, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+
+Das **Gewicht pro Einheit** rechnet die erfassten Einheiten (z. B. Kisten) in Kilogramm um und bestimmt damit die Warenmenge in allen Statistiken. Es steht in der Liste immer mit seiner Einheit ("9 kg"), und bei der Eingabe hängt "kg" am Eingabefeld — eine Kategorie ohne Gewicht wird eigens als "kein Gewicht - zählt mit 0 kg" ausgewiesen. Das **i**-Symbol neben der Spaltenüberschrift erklärt, was der Wert bewirkt: Eine Änderung wirkt ab der nächsten Erfassung, bereits erfasste Mengen behalten das Gewicht, mit dem sie erfasst wurden — abgeschlossene Ausgabetage und deren Statistiken bleiben also unverändert.
 
 Ein Hinweis über der Tabelle grenzt den Bildschirm gegen die [Retour-Kategorien](#retourkategorien) ab, die auf den ersten Blick gleich aussehen: Hier werden die abgeholten Waren samt Gewicht gepflegt, dort nur die leeren Kisten, die an die Filiale zurückgehen. Der Link im Hinweis führt direkt auf den jeweils anderen Bildschirm.
+
+Beim Bearbeiten weist ein Hinweis unter dem Namensfeld darauf hin, dass **Enter** speichert und **Esc** abbricht; dasselbe steht in den Tooltips der beiden Buttons.
 
 ![Lebensmittelkategorien](images/einstellungen-lebensmittelkategorien.jpg)
 

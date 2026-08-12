@@ -98,13 +98,20 @@ describe('Statistics General', () => {
     // The chart is the whole reason this dialog exists, so on a phone it takes what the viewport
     // has rather than the width a dialog sized by its own text would settle on. Measured against
     // the window rather than Cypress.config('viewportWidth'), which keeps reporting the configured
-    // desktop width after cy.viewport(), and asserted through .and() so it retries: Chart.js sizes
-    // the canvas off the dialog surface, which is still scaling up while the dialog opens.
+    // desktop width after cy.viewport(). `offsetWidth` rather than `getBoundingClientRect()`: the
+    // dialog grows in with a `transform: scale()`, which the rect reports and the layout width
+    // ignores - so this is the width the chart settles at, not the frame it was caught in.
     cy.window().then((win) => {
       cy.byTestId('statistics-detail-chart')
         .should('be.visible')
         .and(($canvas) => {
-          expect($canvas[0].getBoundingClientRect().width).to.be.greaterThan(win.innerWidth * 0.75);
+          const canvas = $canvas[0];
+          expect(canvas.offsetWidth, 'the chart takes the phone\'s width')
+            .to.be.greaterThan(win.innerWidth * 0.75);
+          // and takes all of it: a canvas Chart.js sized off a box other than the one it sits in
+          // clears the threshold above on a wide enough dialog while still leaving a gap beside it
+          expect(canvas.offsetWidth, 'and fills the box it was given')
+            .to.be.closeTo(canvas.parentElement!.clientWidth, 1);
         });
     });
   });

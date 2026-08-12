@@ -48,6 +48,7 @@ describe('PushNotificationSettingsComponent', () => {
           provide: PushNotificationService,
           useValue: {
             isSupported: vi.fn().mockReturnValue(true),
+            permissionState: vi.fn().mockReturnValue('granted'),
             syncSubscription: vi.fn().mockResolvedValue(false),
             enable: vi.fn().mockResolvedValue(undefined),
             disable: vi.fn().mockResolvedValue(undefined),
@@ -167,6 +168,54 @@ describe('PushNotificationSettingsComponent', () => {
     expect(pushNotificationService.disable).toHaveBeenCalled();
     expect(fixture.componentInstance.enabled()).toBe(false);
     expect(toastr.success).toHaveBeenCalled();
+  });
+
+  describe('notification permission', () => {
+    it('reads the browser permission on init and reports it as not blocked when granted', async () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges(); // Trigger effect in constructor
+      await flushAsync();
+
+      expect(fixture.componentInstance.notificationPermission()).toEqual('granted');
+      expect(fixture.componentInstance.permissionBlocked()).toBe(false);
+    });
+
+    it('reports a denied permission as blocked', async () => {
+      pushNotificationService.permissionState.mockReturnValue('denied');
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges(); // Trigger effect in constructor
+      await flushAsync();
+
+      expect(fixture.componentInstance.permissionBlocked()).toBe(true);
+    });
+
+    // An undecided permission still gets the browser's own prompt when the toggle is switched on,
+    // so it must not be treated like a block.
+    it('does not report an undecided permission as blocked', async () => {
+      pushNotificationService.permissionState.mockReturnValue('default');
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges(); // Trigger effect in constructor
+      await flushAsync();
+
+      expect(fixture.componentInstance.permissionBlocked()).toBe(false);
+    });
+
+    // The prompt is what the enable ran into, so the block is only visible after it failed.
+    it('picks up a permission denied in the prompt and explains it instead of failing generically', async () => {
+      pushNotificationService.enable.mockRejectedValue(new Error('denied'));
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges(); // Trigger effect in constructor
+      await flushAsync();
+
+      pushNotificationService.permissionState.mockReturnValue('denied');
+      await fixture.componentInstance.onToggle({checked: true, source: {checked: true}} as MatSlideToggleChange);
+
+      expect(fixture.componentInstance.permissionBlocked()).toBe(true);
+      expect(toastr.error).toHaveBeenCalledWith(expect.stringContaining('blockiert'));
+    });
   });
 
   it('onToggle reverts the switch and shows an error when the backend call fails', async () => {
@@ -307,6 +356,94 @@ describe('PushNotificationSettingsComponent', () => {
       expect(toastr.error).toHaveBeenCalled();
       expect(fixture.componentInstance.testedDeviceId()).toBeNull();
     });
+
+    describe('status shown next to the device', () => {
+      it('marks the device as pending while the send is in flight and as successful afterwards', async () => {
+        let resolveSend: (result: PushTestResult) => void = () => undefined;
+        pushNotificationService.sendTestNotification.mockReturnValue(new Promise<PushTestResult>(resolve => {
+          resolveSend = resolve;
+        }));
+
+        const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+        fixture.detectChanges();
+        await flushAsync();
+
+        const inFlight = fixture.componentInstance.sendTestNotification(testDevice);
+        expect((fixture.componentInstance as any).testStatus(testDevice).state).toEqual('pending');
+
+        resolveSend(PushTestResult.SENT);
+        await inFlight;
+
+        expect((fixture.componentInstance as any).testStatus(testDevice)).toEqual({
+          state: 'success',
+          text: expect.stringContaining('Test gesendet')
+        });
+      });
+
+      it('marks the device as failed when the server has no push configuration', async () => {
+        pushNotificationService.sendTestNotification.mockResolvedValue(PushTestResult.NOT_CONFIGURED);
+
+        const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+        fixture.detectChanges();
+        await flushAsync();
+
+        await fixture.componentInstance.sendTestNotification(testDevice);
+
+        expect((fixture.componentInstance as any).testStatus(testDevice).state).toEqual('error');
+      });
+
+      it('marks the device as failed when the request itself fails', async () => {
+        pushNotificationService.sendTestNotification.mockRejectedValue(new Error('fail'));
+
+        const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+        fixture.detectChanges();
+        await flushAsync();
+
+        await fixture.componentInstance.sendTestNotification(testDevice);
+
+        expect((fixture.componentInstance as any).testStatus(testDevice).state).toEqual('error');
+      });
+
+      // An expired device leaves the list, so a status left behind under its id would resurface on
+      // the next device that happens to get the same id.
+      it('drops the status of a device that turned out to be expired', async () => {
+        pushNotificationService.sendTestNotification.mockResolvedValue(PushTestResult.EXPIRED);
+        pushNotificationService.getDevices.mockResolvedValue([]);
+
+        const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+        fixture.detectChanges();
+        await flushAsync();
+
+        await fixture.componentInstance.sendTestNotification(testDevice);
+
+        expect((fixture.componentInstance as any).testStatus(testDevice)).toBeUndefined();
+      });
+
+      it('drops the status of a removed device', async () => {
+        const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+        fixture.detectChanges();
+        await flushAsync();
+
+        await fixture.componentInstance.sendTestNotification(testDevice);
+        await fixture.componentInstance.removeDevice(testDevice);
+
+        expect((fixture.componentInstance as any).testStatus(testDevice)).toBeUndefined();
+      });
+
+      // Testing one device must not relabel the others.
+      it('keeps the status per device', async () => {
+        const otherDevice: PushDeviceItem = {...testDevice, id: 2, isCurrentDevice: false};
+
+        const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+        fixture.detectChanges();
+        await flushAsync();
+
+        await fixture.componentInstance.sendTestNotification(testDevice);
+
+        expect((fixture.componentInstance as any).testStatus(testDevice).state).toEqual('success');
+        expect((fixture.componentInstance as any).testStatus(otherDevice)).toBeUndefined();
+      });
+    });
   });
 
   describe('removeDevice', () => {
@@ -362,6 +499,37 @@ describe('PushNotificationSettingsComponent', () => {
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
       const label = (fixture.componentInstance as any).deviceLabel(testDevice);
       expect(label).toContain('Chrome');
+    });
+  });
+
+  describe('device kind', () => {
+    // A renamed device shows nothing of its user agent any more, so the icon is what still says
+    // what kind of device it is.
+    it('picks a phone icon for a mobile device and a computer icon otherwise', () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      const component = fixture.componentInstance as any;
+      const mobile = {...testDevice, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Mobile/15E148 Safari/604.1'};
+      const desktop = {...testDevice, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0.0.0 Safari/537.36'};
+
+      expect(component.deviceIcon(mobile)).not.toEqual(component.deviceIcon(desktop));
+      expect(component.deviceTypeLabel(mobile)).toEqual('Mobiles Gerät');
+      expect(component.deviceTypeLabel(desktop)).toEqual('Computer');
+    });
+
+    it('falls back to an unknown kind without a user agent', () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      const component = fixture.componentInstance as any;
+
+      expect(component.deviceTypeLabel({...testDevice, userAgent: null})).toEqual('Unbekannter Gerätetyp');
+    });
+  });
+
+  describe('registeredAgo', () => {
+    it('describes how long ago the device was registered', () => {
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      const createdAt = new Date(Date.now() - 3 * 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      expect((fixture.componentInstance as any).registeredAgo({...testDevice, createdAt})).toEqual('vor 3 Wochen');
     });
   });
 

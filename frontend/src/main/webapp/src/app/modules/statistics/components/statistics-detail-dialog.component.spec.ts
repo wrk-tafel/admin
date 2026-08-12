@@ -1,11 +1,13 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
+import {Subject} from 'rxjs';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import {StatisticsDetailDialogComponent, StatisticsDetailDialogData} from './statistics-detail-dialog.component';
 
 describe('StatisticsDetailDialogComponent', () => {
   let dialogRef: MockedObject<MatDialogRef<StatisticsDetailDialogComponent>>;
+  let dialogOpened: Subject<void>;
 
   const dialogData: StatisticsDetailDialogData = {
     detail: {
@@ -28,8 +30,10 @@ describe('StatisticsDetailDialogComponent', () => {
   };
 
   function configure(data: StatisticsDetailDialogData) {
+    dialogOpened = new Subject<void>();
     dialogRef = {
-      close: vi.fn().mockName('MatDialogRef.close')
+      close: vi.fn().mockName('MatDialogRef.close'),
+      afterOpened: vi.fn().mockName('MatDialogRef.afterOpened').mockReturnValue(dialogOpened)
     } as any;
 
     TestBed.configureTestingModule({
@@ -56,11 +60,27 @@ describe('StatisticsDetailDialogComponent', () => {
   it('summarizes the course of the whole period', () => {
     configure(dialogData);
     const fixture = TestBed.createComponent(StatisticsDetailDialogComponent);
+    dialogOpened.next();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.summary()).toEqual({minimum: 10, maximum: 30, average: 20});
     expect(fixture.componentInstance.chartLabel())
       .toEqual('Bezugsberechtigte Haushalte im Zeitverlauf - Jänner: 10, Februar: 20, März: 30');
+    expect(fixture.nativeElement.querySelector('[testid="statistics-detail-chart"]')).toBeTruthy();
+  });
+
+  // Chart.js takes its size from the box it is created in, and a dialog that is still growing is
+  // not yet the size it will be - so the chart is created once the dialog has finished opening.
+  it('draws the chart only once the dialog has finished opening', () => {
+    configure(dialogData);
+    const fixture = TestBed.createComponent(StatisticsDetailDialogComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[testid="statistics-detail-chart"]')).toBeNull();
+
+    dialogOpened.next();
+    fixture.detectChanges();
+
     expect(fixture.nativeElement.querySelector('[testid="statistics-detail-chart"]')).toBeTruthy();
   });
 
