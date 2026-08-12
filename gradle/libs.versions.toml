@@ -22,7 +22,7 @@ springdoc-openapi = "3.1.0"
 spring-retry = "2.0.13"
 # Runs the scheduled jobs that are not row-based once per cluster. Stores its lock in the same
 # PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
-shedlock = "6.6.0"
+shedlock = "7.7.0"
 
 # Test dependency versions
 archunit = "1.5.0"
