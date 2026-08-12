@@ -163,9 +163,9 @@ export class SettingsEmployeesComponent {
       tap({
         next: data => {
           this._employees.set(data);
-          this.searchAnnouncement.set(
-            data.totalCount === 1 ? '1 Mitarbeiter gefunden' : `${data.totalCount} Mitarbeiter gefunden`
-          );
+          // No singular/plural split, unlike the change log's "Eintrag"/"Einträge": "Mitarbeiter"
+          // reads the same either way.
+          this.searchAnnouncement.set(`${data.totalCount} Mitarbeiter gefunden`);
         },
         error: () => this.toastr.error('Fehler beim Laden der Mitarbeiter', 'Fehler')
       }),
