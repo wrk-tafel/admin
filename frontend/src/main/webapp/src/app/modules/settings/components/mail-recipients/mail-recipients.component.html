@@ -81,7 +81,10 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               @for (slot of tab.slots; track slot.recipientType) {
-                <div>
+                <!-- flex-col rather than a plain block: a mat-form-field is inline-flex, so the
+                     three of them would sit on a shared text baseline and a slot holding more
+                     chips than its neighbours would start higher than they do. -->
+                <div class="flex flex-col">
                   <mat-form-field class="w-full" subscriptSizing="dynamic">
                     <mat-label>{{ slot.label }}</mat-label>
                     <mat-chip-grid #chipGrid [attr.aria-label]="tab.label + ' - ' + slot.label">

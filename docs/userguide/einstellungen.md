@@ -18,7 +18,7 @@ Adressen werden als **Chips** erfasst: Adresse in das jeweilige Feld tippen und 
 
 ![E-Mail-Empfänger](images/einstellungen-email.jpg)
 
-Über den Empfängerfeldern steht, wie die letzte Mail dieser Art ausgegangen ist – "Zuletzt versendet" mit Zeitpunkt, "Wartet auf Versand seit", "Versand fehlgeschlagen" samt Fehlermeldung, oder der Hinweis, dass bisher keine Mail dieser Art versendet wurde.
+Über den Empfängerfeldern steht, wie die letzte Mail dieser Art ausgegangen ist – "Zuletzt versendet" mit Zeitpunkt, "Wartet auf Versand seit", "Versand fehlgeschlagen, wird erneut versucht" oder "Versand endgültig fehlgeschlagen", die letzten beiden samt Fehlermeldung. Ist zu einer Mail-Art nichts aufgezeichnet, entfällt die Zeile.
 
 Ist für eine Mail-Art **keine An-Adresse** hinterlegt, wird die Mail zwar erzeugt, aber an niemanden zugestellt. Darauf weist ein Warnsymbol beim Reiter sowie ein roter Hinweis im Reiter selbst hin ("Keine Empfänger — diese Mail wird an niemanden versendet.").
 

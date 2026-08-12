@@ -318,11 +318,10 @@ describe('MailRecipients', () => {
       .toEqual({text: 'Versand fehlgeschlagen, wird erneut versucht — eingereiht', severity: 'warning'});
   });
 
-  it('says so when no mail of a type was ever queued', () => {
+  it('shows no status line at all when no mail of a type was ever queued', () => {
     const component = createComponent();
 
-    expect(component['statusOf'](MailTypeEnum.DAILY_REPORT))
-      .toEqual({text: 'Bisher wurde keine Mail dieser Art versendet.', severity: 'unknown'});
+    expect(component['statusOf'](MailTypeEnum.DAILY_REPORT)).toBeNull();
   });
 
   it('re-reads the status on request, without disturbing the recipients', () => {

@@ -54,7 +54,7 @@ export interface MailTypeTabView {
 /** How the last mail of a type ended, in the words and colour the tab shows it in. */
 export interface MailStatusView {
   text: string;
-  severity: 'success' | 'danger' | 'warning' | 'info' | 'unknown';
+  severity: 'success' | 'danger' | 'warning' | 'info';
 }
 
 const RECIPIENT_TYPE_ORDER = [RecipientTypeEnum.TO, RecipientTypeEnum.CC, RecipientTypeEnum.BCC];
@@ -129,7 +129,12 @@ export class MailRecipientsComponent {
 
   protected readonly statusPerMailType = computed<Record<string, MailStatusView>>(() => {
     const views: Record<string, MailStatusView> = {};
-    this.mailStatus().forEach(status => views[status.mailType] = this.toStatusView(status));
+    this.mailStatus().forEach(status => {
+      const view = this.toStatusView(status);
+      if (view) {
+        views[status.mailType] = view;
+      }
+    });
     return views;
   });
 
@@ -267,8 +272,12 @@ export class MailRecipientsComponent {
    * A queued mail that already carries an error is one the outbox is retrying, not one that is
    * simply waiting - told apart because "wartet seit gestern" is what an unnoticed delivery
    * problem looks like from here.
+   *
+   * A type nothing was ever queued for gets no line at all (`null`): the row is missing on a fresh
+   * installation, after the retention emptied the queue, and for a mail type that has simply not
+   * been due yet - so its absence says nothing worth taking up a line for.
    */
-  private toStatusView(status: MailStatusItem): MailStatusView {
+  private toStatusView(status: MailStatusItem): MailStatusView | null {
     switch (status.status) {
       case MailOutboxStatusEnum.SENT:
         return {text: 'Zuletzt versendet', severity: 'success'};
@@ -279,7 +288,7 @@ export class MailRecipientsComponent {
       case MailOutboxStatusEnum.FAILED:
         return {text: 'Versand endgültig fehlgeschlagen', severity: 'danger'};
       default:
-        return {text: 'Bisher wurde keine Mail dieser Art versendet.', severity: 'unknown'};
+        return null;
     }
   }
 

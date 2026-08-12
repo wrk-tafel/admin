@@ -60,11 +60,47 @@ describe('Settings - E-Mail', () => {
   });
 
   it('explains each mail type and reports how its last mail ended', () => {
+    // The one thing here that cannot be produced by driving the UI: this backend has no mail
+    // server, so its outbox stays empty and no real send ever reaches a terminal state. Stubbing
+    // the status is what lets all three renderings - sent, failed, nothing recorded - be asserted.
+    cy.intercept('GET', '/api/settings/mail-status', {
+      body: {
+        mailStatus: [
+          {
+            mailType: 'DAILY_REPORT',
+            status: 'SENT',
+            queuedAt: '2026-08-11T18:00:00',
+            sentAt: '2026-08-11T18:00:10',
+            lastError: null
+          },
+          {
+            mailType: 'STATISTICS',
+            status: 'FAILED',
+            queuedAt: '2026-08-11T18:00:00',
+            sentAt: null,
+            lastError: 'MailSendException: connection refused'
+          },
+          {mailType: 'RETURN_BOXES', status: null, queuedAt: null, sentAt: null, lastError: null}
+        ]
+      }
+    }).as('mailStatus');
+    cy.visit('/einstellungen/email');
+    cy.wait('@mailStatus');
+
     cy.byTestId('mailtype-description-DAILY_REPORT').should('contain.text', 'Tagesreport');
-    cy.byTestId('mail-status-DAILY_REPORT').should('be.visible');
+    cy.byTestId('mail-status-DAILY_REPORT')
+      .should('contain.text', 'Zuletzt versendet')
+      .and('contain.text', '11.08.2026 18:00');
+
+    cy.byTestId('mailtype-tab-STATISTICS').click();
+    cy.byTestId('mail-status-STATISTICS')
+      .should('contain.text', 'Versand endgültig fehlgeschlagen')
+      .and('contain.text', 'connection refused');
 
     cy.byTestId('mailtype-tab-RETURN_BOXES').click();
     cy.byTestId('mailtype-description-RETURN_BOXES').should('contain.text', 'Kisten');
+    // a mail type nothing is recorded for gets no line at all, rather than one saying so
+    cy.byTestId('mail-status-RETURN_BOXES').should('not.exist');
   });
 
   // Removing a chip re-renders the list, so the buttons cannot be collected up front and clicked
