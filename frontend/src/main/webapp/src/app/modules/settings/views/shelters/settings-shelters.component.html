@@ -35,7 +35,7 @@
            from the response - and rebuilding the rows would throw away the handle the keyboard is
            currently on. -->
       @for (shelter of shelters(); track shelter.id; let i = $index) {
-        <div class="mb-2 rounded-xl bg-white shadow-sm" cdkDrag [cdkDragData]="shelter"
+        <div class="tafel-panel mb-2" cdkDrag [cdkDragData]="shelter"
              [class.tafel-inactive]="!shelter.enabled" [attr.testid]="'shelters-row-' + i">
           <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
             <tafel-reorder-handle cdkDragHandle [label]="'Notschlafstelle ' + shelter.name"

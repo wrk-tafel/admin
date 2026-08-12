@@ -1,0 +1,13 @@
+@layer components {
+  // One expandable record in the card lists (shelters, shops, routes). Those lists sit inside a
+  // white mat-card, so a white panel on a white surface has nothing but its own edge to separate it
+  // - and an elevation shadow is the wrong edge: it fades outwards, which reads as a floating tile
+  // and leaves the boundary itself blurry. The panel is flat instead and draws the same 1px
+  // --tafel-border-color outline an outlined mat-card draws, at the same 12px radius Material's
+  // card shape token uses, so a panel inside a card looks like the same family of surface.
+  .tafel-panel {
+    background-color: white;
+    border: 1px solid var(--tafel-border-color);
+    border-radius: 12px;
+  }
+}

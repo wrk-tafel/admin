@@ -359,6 +359,12 @@ Both follow the same shape, and a change to one usually belongs in the other:
   body a `role="region"` that `[hidden]` collapses. A new control in that row goes beside them, not
   inside the summary button. Expanded state is held as a `Set` of record ids (not indices), so a
   search or filter change cannot transfer it to whichever record moves into that position.
+- **A record's surface is `.tafel-panel`** (`scss/components/tafel-panel.scss`), shared with
+  `shelters` and the place to change the look of all three at once: flat, white, with the same
+  `--tafel-border-color` outline and 12px radius an outlined `mat-card` has. The list sits inside a
+  white card, so the only thing separating one record from the surface behind it is that border —
+  which is why the panel carries no elevation shadow: a shadow fades outwards and blurs exactly the
+  edge that has to be legible.
 - `route-edit-dialog` manages the stops as a nested `stops: FormArray` of
   `{ time, shopId, description }` with `addStop()`/`removeStop()` plus manual
   `ChangeDetectorRef.detectChanges()` calls, structurally the twin of `shelter-edit-dialog`'s
