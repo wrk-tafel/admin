@@ -77,9 +77,19 @@ Neben der Überschrift steht, wie viele der angelegten Kategorien aktiv sind ("3
 
 ## Fahrzeuge
 
-Unter **Einstellungen → Fahrzeuge** werden die für die Warenerfassung verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können aktiviert/deaktiviert, bearbeitet und sortiert werden.
+Unter **Einstellungen → Fahrzeuge** werden die für die [Warenerfassung](logistik.md) verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können aktiviert/deaktiviert, bearbeitet und sortiert werden; die Reihenfolge dieser Liste ist die Reihenfolge der Fahrzeug-Auswahl in der Warenerfassung. Der **Name** ist die Bezeichnung, die dem Routen-Team dort hinter dem Kennzeichen angezeigt wird (z. B. "W-NC-123 (Kleinbus)").
+
+Das **Kennzeichen** wird immer in Großbuchstaben gespeichert, damit dasselbe Fahrzeug nicht in mehreren Schreibweisen in der Auswahl landet.
 
 ![Fahrzeuge](images/einstellungen-fahrzeuge.jpg)
+
+Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fenster darauf hin und lässt sich nicht speichern — ist das vorhandene Fahrzeug deaktiviert, kann es direkt über **Stattdessen wieder aktivieren** reaktiviert werden, statt es ein zweites Mal anzulegen.
+
+![Bereits vorhandenes Kennzeichen](images/einstellungen-fahrzeuge-duplikat.jpg)
+
+Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Sie werden nicht gelöscht (bereits erfasste Warenerfassungen verweisen darauf), sondern unterhalb der Liste im zugeklappten Abschnitt **Deaktivierte Fahrzeuge** gesammelt und können dort jederzeit wieder aktiviert werden.
+
+![Deaktivierte Fahrzeuge](images/einstellungen-fahrzeuge-deaktiviert.jpg)
 
 <a id="filialen"></a>
 

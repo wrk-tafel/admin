@@ -218,18 +218,35 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
 
 - Loads via `CarApiService.getAllCars()` into a signal (`_cars`), table
   columns `['drag', 'active', 'licensePlate', 'name', 'actions']`.
+- **Active and deactivated cars are listed apart.** The table (and its card
+  fallback) shows `activeCars()` only; `inactiveCars()` sit in a collapsed
+  section below it, as a plain list with a "Wieder aktivieren" button and no
+  drag handle or inline edit — a deactivated car is kept because recorded food
+  collections point at it, not to be maintained. Deactivating one unfolds that
+  section, so the row that just vanished from the working list is visibly
+  somewhere rather than deleted.
 - **Inline editing**: clicking edit (`startEdit()`) sets an `editingId` signal
   and swaps that row's `licensePlate`/`name` cells for a `licensePlateControl`/
   `nameControl` pair; `saveEdit()`/`cancelEdit()` exit the mode (Enter saves,
   Escape cancels, same as food-categories). A `viewChild` + `effect()`
-  auto-focuses the license-plate input whenever it appears. The edit button is
-  disabled for disabled cars, same as food-categories.
-- **Creation still uses a dialog** (`car-create-dialog.component.ts`), which
+  auto-focuses the license-plate input whenever it appears.
+- **License plates are normalized** to trimmed upper case by
+  `normalizeLicensePlate()` (`views/cars/license-plate.ts`) while the admin
+  types, and again by `CarService` server-side — the food-collection dropdown
+  lists plates verbatim, so `w-12345x` beside `W-12345X` reads as two vehicles.
+- **Creation uses a dialog** (`car-create-dialog.component.ts`), which
   only exposes `licensePlate`/`name` — `sortOrder`/`enabled` are hidden form
   fields with fixed defaults (`0`/`true`), same convention as
-  `food-category-create-dialog.component.ts`.
+  `food-category-create-dialog.component.ts`. It receives every car via
+  `MAT_DIALOG_DATA` to recognize a plate that already exists: for an active one
+  it blocks the save, for a deactivated one it offers re-activating that car
+  instead, and closes with `{reactivate: car}` rather than `{create: car}`.
 - Same optimistic-drag-then-reconcile reordering pattern as shelters/food
-  categories, against `CarApiService.reorderCars()`.
+  categories, against `CarApiService.reorderCars()` — but only the active cars
+  are sortable. The request still carries every id (active ones first,
+  deactivated ones appended), because the backend numbers the ids it is given
+  from 1 and omitted cars would keep sort orders that interleave with the new
+  ones.
 - Disabling a car here excludes it from `CarApiService.getActiveCars()`,
   which feeds the `logistics` module's food-collection-recording car
   dropdown (`CarDataResolver`) — same relationship as food categories'

@@ -1,20 +1,42 @@
-<tafel-dialog title="Auto erstellen" testId="car-create-dialog">
+<tafel-dialog title="Fahrzeug anlegen" testId="car-create-dialog">
   <div tafel-dialog-content>
-    <form [formGroup]="form" class="grid grid-cols-1">
+    <!-- the gap is what keeps a hint that wraps from running into the next field's label -->
+    <form [formGroup]="form" class="grid grid-cols-1 gap-4">
       <mat-form-field>
         <mat-label>Kennzeichen</mat-label>
-        <input matInput formControlName="licensePlate"/>
+        <input matInput formControlName="licensePlate" maxlength="20" (input)="uppercaseLicensePlate()"/>
+        <mat-hint>Wird in Großbuchstaben gespeichert</mat-hint>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Name</mat-label>
-        <input matInput formControlName="name"/>
+        <input matInput formControlName="name" maxlength="50"/>
+        <mat-hint>Bezeichnung, wie sie dem Routen-Team in der Warenerfassung angezeigt wird</mat-hint>
       </mat-form-field>
     </form>
+
+    @if (duplicate(); as existing) {
+      @if (existing.enabled) {
+        <div class="tafel-banner-error mb-0 mt-2" role="alert" testid="carDuplicateHint">
+          Das Kennzeichen {{ existing.licensePlate }} ist bereits als "{{ existing.name }}" angelegt.
+        </div>
+      } @else {
+        <div class="tafel-banner-info mb-0 mt-2 flex-col items-start gap-2" role="alert" testid="carDuplicateHint">
+          <span>
+            Das Kennzeichen {{ existing.licensePlate }} ist bereits als "{{ existing.name }}" angelegt,
+            aber deaktiviert.
+          </span>
+          <button matButton="filled" class="button-success" testid="reactivateExistingCarButton"
+                  (click)="reactivate()">
+            Stattdessen wieder aktivieren
+          </button>
+        </div>
+      }
+    }
   </div>
 
   <div tafel-dialog-actions>
-    <button matButton="filled" (click)="save()">Speichern</button>
+    <button matButton="filled" testid="saveNewCarButton" [disabled]="!!duplicate()" (click)="save()">Speichern</button>
     <button matButton="outlined" (click)="cancel()">Abbrechen</button>
   </div>
 </tafel-dialog>

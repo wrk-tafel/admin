@@ -1,6 +1,10 @@
-import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {CarCreateDialogComponent} from './dialogs/car-create-dialog.component';
+import {
+  CarCreateDialogComponent,
+  CarCreateDialogData,
+  CarCreateDialogResult
+} from './dialogs/car-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
@@ -19,7 +23,15 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {CarApiService, CarData, CarList} from '../../../../api/car-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheck,
+  faChevronDown,
+  faChevronRight,
+  faEye,
+  faPencil,
+  faPlus,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   TafelReorderHandleComponent
@@ -30,6 +42,10 @@ import {
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {
+  TafelInfoTooltipComponent
+} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {normalizeLicensePlate} from './license-plate';
 
 @Component({
   selector: 'tafel-settings-cars',
@@ -59,7 +75,8 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     CdkDrag,
     CdkDragHandle,
     MatTooltipModule,
-    TafelReorderHandleComponent
+    TafelReorderHandleComponent,
+    TafelInfoTooltipComponent
   ]
 })
 export class SettingsCarsComponent {
@@ -71,6 +88,15 @@ export class SettingsCarsComponent {
   private _cars = signal<CarList | null>(null);
   protected cars = this._cars;
   displayedColumns = ['drag', 'active', 'licensePlate', 'name', 'actions'];
+
+  /**
+   * A deactivated car is kept forever - it is what an already recorded food collection points at -
+   * so the two are listed apart: the working list holds the cars the Warenerfassung actually
+   * offers, and the deactivated ones sit behind a collapsed section instead of padding it out.
+   */
+  protected activeCars = computed(() => (this.cars()?.cars ?? []).filter(car => car.enabled));
+  protected inactiveCars = computed(() => (this.cars()?.cars ?? []).filter(car => !car.enabled));
+  protected showInactive = signal(false);
 
   protected editingId = signal<number | null>(null);
   protected licensePlateControl = new FormControl<string>('', {nonNullable: true});
@@ -90,8 +116,20 @@ export class SettingsCarsComponent {
   private loadCars() {
     this.carApiService.getAllCars().subscribe({
       next: data => this._cars.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Autos', 'Fehler')
+      error: () => this.toastr.error('Fehler beim Laden der Fahrzeuge', 'Fehler')
     });
+  }
+
+  protected toggleInactive() {
+    this.showInactive.set(!this.showInactive());
+  }
+
+  /** Uppercases while typing rather than on save, so what is stored is what the admin saw. */
+  protected uppercaseLicensePlate() {
+    const uppercased = this.licensePlateControl.value.toUpperCase();
+    if (uppercased !== this.licensePlateControl.value) {
+      this.licensePlateControl.setValue(uppercased);
+    }
   }
 
   protected startEdit(car: CarData) {
@@ -107,13 +145,13 @@ export class SettingsCarsComponent {
   protected saveEdit(car: CarData) {
     const updated: CarData = {
       ...car,
-      licensePlate: this.licensePlateControl.value,
-      name: this.nameControl.value
+      licensePlate: normalizeLicensePlate(this.licensePlateControl.value),
+      name: this.nameControl.value.trim()
     };
 
     this.carApiService.updateCar(updated.id, updated).subscribe({
       next: () => {
-        this.toastr.success('Auto gespeichert', 'Erfolgreich');
+        this.toastr.success('Fahrzeug gespeichert', 'Erfolgreich');
         this.editingId.set(null);
         this.loadCars();
       },
@@ -129,7 +167,12 @@ export class SettingsCarsComponent {
 
     const observer = {
       next: () => {
-        this.toastr.success(`Auto ${car.name} geändert`, 'Erfolgreich');
+        this.toastr.success(`Fahrzeug ${car.name} ${enabled ? 'aktiviert' : 'deaktiviert'}`, 'Erfolgreich');
+        // A deactivated car leaves the list it was in - unfolding the inactive section shows where
+        // it went, rather than letting it look deleted.
+        if (!enabled) {
+          this.showInactive.set(true);
+        }
         this.loadCars();
       },
       error: () => {
@@ -140,15 +183,19 @@ export class SettingsCarsComponent {
   }
 
   protected addCar() {
+    const data: CarCreateDialogData = {existingCars: this.cars()?.cars ?? []};
     const dialogRef = this.dialog.open(CarCreateDialogComponent, {
-      width: '600px'
+      width: '600px',
+      data
     });
 
-    dialogRef.afterClosed().subscribe((created: CarData | undefined) => {
-      if (created) {
-        this.carApiService.createCar(created).subscribe({
+    dialogRef.afterClosed().subscribe((result: CarCreateDialogResult | undefined) => {
+      if (result?.reactivate) {
+        this.toggleCarVisibility(result.reactivate, true);
+      } else if (result?.create) {
+        this.carApiService.createCar(result.create).subscribe({
           next: () => {
-            this.toastr.success('Auto erstellt', 'Erfolgreich');
+            this.toastr.success('Fahrzeug erstellt', 'Erfolgreich');
             this.loadCars();
           },
           error: () => this.toastr.error('Erstellen fehlgeschlagen', 'Fehler')
@@ -177,7 +224,7 @@ export class SettingsCarsComponent {
     const car = this.reorder(index, targetIndex, true);
 
     if (car) {
-      this.reorderFeedback.announce(`Fahrzeug ${car.name}`, targetIndex, (this.cars()?.cars ?? []).length);
+      this.reorderFeedback.announce(`Fahrzeug ${car.name}`, targetIndex, this.activeCars().length);
     }
   }
 
@@ -186,18 +233,22 @@ export class SettingsCarsComponent {
    * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
    */
   private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): CarData | undefined {
-    const reordered = [...(this.cars()?.cars ?? [])];
+    const reordered = [...this.activeCars()];
     if (toIndex < 0 || toIndex >= reordered.length) {
       return undefined;
     }
 
     moveItemInArray(reordered, fromIndex, toIndex);
-    this._cars.set({cars: reordered}); // optimistic, updates in the background
+    // Only the active cars are sortable, but the whole list is sent: the backend numbers the ids
+    // it is given from 1, so leaving the inactive ones out would let them keep sort orders that
+    // interleave with the new ones.
+    const ordered = [...reordered, ...this.inactiveCars()];
+    this._cars.set({cars: ordered}); // optimistic, updates in the background
     if (keepFocusOnHandle) {
       this.reorderFeedback.refocusHandle(`dragCarHandle-${toIndex}`);
     }
 
-    this.carApiService.reorderCars(reordered.map(car => car.id)).subscribe({
+    this.carApiService.reorderCars(ordered.map(car => car.id)).subscribe({
       next: data => {
         this._cars.set(data);
         // The response replaces every record, so the focused handle is a new element by now.
@@ -214,9 +265,10 @@ export class SettingsCarsComponent {
     return reordered[toIndex];
   }
 
+  protected readonly faChevronDown = faChevronDown;
+  protected readonly faChevronRight = faChevronRight;
   protected readonly faPencil = faPencil;
   protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;
