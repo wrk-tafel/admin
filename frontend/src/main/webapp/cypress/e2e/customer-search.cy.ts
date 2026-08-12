@@ -132,7 +132,7 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('searchInputText').type(customer.lastname);
-      cy.byTestId('search-button').click();
+      clickSearchAndWaitForResult();
 
       // below md: the table row is hidden and the card list is shown instead
       cy.byTestId('searchresult-row').should('exist').and('not.be.visible');
@@ -186,11 +186,26 @@ describe('Customer Search', () => {
   // other that a second, entirely correct row can show up for any of these terms (see #3102).
   // The row of the customer under test is picked by its id instead, which is unambiguous no matter
   // what else the fuzzy match surfaced.
+  /**
+   * Clicks "Suchen" and waits for that search's own answer.
+   *
+   * The screen loads the unfiltered first page on arrival and leaves it on screen while a search is
+   * in flight. That list is sorted newest first, so the customer a spec just created is on it - it
+   * satisfies the result assertions below before the search has answered, and is then torn out of
+   * the DOM when the filtered result replaces the table, which is what a `cy.click()` on it fails
+   * on. Waiting for the response ties everything after it to the result the spec asked for.
+   */
+  function clickSearchAndWaitForResult() {
+    cy.intercept('GET', /\/api\/households(\?|$)/).as('customerSearch');
+    cy.byTestId('search-button').click();
+    cy.wait('@customerSearch');
+  }
+
   function clickSearchAndOpenExpectedResult(expectedCustomerId: number, options: { alreadySearched?: boolean } = {}) {
     const {alreadySearched = false} = options;
 
     if (!alreadySearched) {
-      cy.byTestId('search-button').click();
+      clickSearchAndWaitForResult();
     }
 
     cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
