@@ -118,9 +118,17 @@ Eine Legende auf der Seite erklärt die Bedeutung der einzelnen Icons. Wurden ke
 
 ### Kunden zusammenführen
 
-Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen werden nach der Zusammenführung gelöscht. Für Felder, die sich zwischen den Kunden unterscheiden (z. B. Adresse, Vorname), kann ausgewählt werden, welcher Wert übernommen wird; über **Identische Felder anzeigen/ausblenden** lässt sich die Ansicht auf die abweichenden Felder reduzieren. Personen, die nur beim zusammenzuführenden Kunden vorhanden sind, werden automatisch übernommen; die Anzahl der zu übernehmenden Notizen und Dokumente wird angezeigt. Haben beide Kunden ein aktives Ticket der laufenden Ausgabe, weist ein Hinweis darauf hin, welches Ticket beim Zusammenführen erhalten bleibt und welches verworfen wird.
+Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen werden nach der Zusammenführung gelöscht. Die Zusammenführung führt in drei Schritten durch den Abgleich; über **Abbrechen** kehrt man jederzeit zu der Stelle in der Duplikat-Liste zurück, von der aus die Zusammenführung geöffnet wurde.
+
+**Schritt 1 – Felder abgleichen:** Die beteiligten Kunden stehen nebeneinander, jeder in einer eigenen Spalte – der Ziel-Kunde zuerst und mit **bleibt bestehen** gekennzeichnet, die übrigen mit **wird gelöscht**. Pro Zeile (z. B. Adresse, Telefonnummer) wird der Wert ausgewählt, der beim Ziel-Kunden bestehen bleibt; vorausgewählt ist immer der Wert des Ziel-Kunden. Trägt ein Kunde denselben Wert wie der Ziel-Kunde, ist dieses Feld nicht auswählbar und mit "identisch mit dem Ziel-Kunden" beschriftet. Angezeigt werden nur die abweichenden Felder; über **Identische Felder anzeigen/ausblenden** lassen sich die übereinstimmenden Werte einblenden.
 
 ![Kunden zusammenführen](images/kunden-zusammenfuehren.jpg)
+
+**Schritt 2 – Personen & Tickets:** Hier ist nichts auszuwählen, sondern nur zu prüfen: Je Quell-Kunde ist aufgelistet, welche Personen übernommen werden und welche beim Ziel-Kunden bereits vorhanden sind und deshalb verworfen werden. Haben beide Kunden ein Ticket derselben Ausgabe, steht darunter, welche Ticketnummer erhalten bleibt und welche verworfen wird.
+
+**Schritt 3 – Prüfen & Bestätigen:** Ein rot hinterlegter Hinweis nennt die Kunden, die endgültig gelöscht werden – die Zusammenführung kann nicht rückgängig gemacht werden. Darunter steht der Kunde so, wie er nach der Zusammenführung aussieht: Felder, die durch einen Wert eines anderen Kunden überschrieben werden, sind mit **geändert** hervorgehoben und zeigen zusätzlich den bisherigen Wert; alle übrigen bleiben unverändert und sind blass dargestellt. Ergänzt wird die Aufstellung um die Anzahl der Personen, Notizen und Dokumente, die übernommen werden. Erst wenn das Kontrollkästchen bestätigt wurde, lässt sich **Endgültig zusammenführen** auslösen.
+
+![Kunden zusammenführen bestätigen](images/kunden-zusammenfuehren-bestaetigen.jpg)
 
 <a id="kunden-über-limit"></a>
 

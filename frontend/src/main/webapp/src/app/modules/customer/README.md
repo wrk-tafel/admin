@@ -135,7 +135,7 @@ to this module) rather than a class with an `@Injectable()`-style suffix.
 | `detail/:id` | `CustomerDetailComponent` | `CustomerDataResolver`, `CustomerNotesResolver` |
 | `bearbeiten/:id` | `CustomerEditComponent` (edit mode) | `CustomerDataResolver` |
 | `suchen` | `CustomerSearchComponent` | — |
-| `duplikate` | `CustomerDuplicatesComponent` | `CustomerDuplicatesDataResolver` |
+| `duplikate` | `CustomerDuplicatesComponent` | `CustomerDuplicatesDataResolver` (reads `?seite=` too) |
 | `zusammenfuehren/:id` | `CustomerMergeComponent` | `CustomerMergePreviewResolver` (reads `?quellen=` too) |
 | `ueber-limit` | `CustomerAboveLimitComponent` | `CustomerAboveLimitDataResolver` |
 
@@ -168,21 +168,35 @@ similarCustomers}` mapping as everything else.
 
 Merging is **not** a one-click delete-the-others action. Clicking the green button on
 `customer-duplicates.component.ts` (`startMerge()`) doesn't call the API at all - it just
-navigates to `/kunden/zusammenfuehren/:id?quellen=<comma-separated source ids>`, with the
-clicked customer as `:id` (the target) and everyone else in the pair as sources (the same
+navigates to `/kunden/zusammenfuehren/:id?quellen=<comma-separated source ids>&seite=<queue page>`,
+with the clicked customer as `:id` (the target) and everyone else in the pair as sources (the same
 `items[0]`-and-page-size-1 assumption `startMerge` inherited from the old `mergeCustomers`
-still applies - see the comment on that method).
+still applies - see the comment on that method). `seite` is the duplicates queue's current page,
+which the merge screen's "Abbrechen" hands back to `/kunden/duplikate` (and
+`CustomerDuplicatesDataResolver` reads) so an abandoned merge resumes at the same candidate
+instead of at the first one - the queue shows exactly one pair per page.
 
 `CustomerMergePreviewResolver` reads both route params and calls
 `CustomerApiService.getMergePreview(targetId, sourceIds)` →
 `GET /households/{id}/merge-preview`, which returns a `CustomerMergePreview`: the target
 and source customers, which fields conflict between them (`fieldConflicts`), a
 reconciled/deduplicated `persons` list, any same-distribution ticket collisions, and
-note/document counts. `CustomerMergeComponent` renders this as three sections - a
-field-by-field picker (radios: target vs. each conflicting source; non-conflicting fields
-collapsed behind a toggle), a read-only person reconciliation list (dedup is automatic,
-nothing to pick), and a review/confirm step showing the resulting values plus what gets
-moved/deleted. Confirming calls
+note/document counts. `CustomerMergeComponent` renders this as a `mat-stepper` (horizontal on
+desktop, vertical below the 768px breakpoint via `BreakpointObserver`) with three steps:
+
+1. **Felder abgleichen** - the conflicting fields as a grid with one *column per customer* (target
+   first), each cell a radio styled as a card so a value is compared down its column. A source that
+   carries the target's value has nothing to decide, so its cell renders as plain content instead of
+   a disabled radio (out of the tab order, and not greyed below the contrast the a11y gates require).
+   Non-conflicting fields stay collapsed behind a toggle.
+2. **Personen & Tickets** - read-only: the person reconciliation grouped by source customer (dedup is
+   automatic, nothing to pick) plus any same-distribution ticket collisions.
+3. **Prüfen & Bestätigen** - the resolved record, with the fields a source value *overwrites* marked
+   `geändert` (plus their previous value) and the untouched ones muted, a danger banner naming the
+   customers that get deleted, and a checkbox that gates the confirm button - the merge is
+   irreversible, and `confirm()` refuses both an unacknowledged and a second, in-flight call.
+
+Confirming calls
 `CustomerApiService.mergeCustomers(targetId, sourceIds, fieldSelections)` →
 `POST /households/{id}/merge`, then navigates to the target's detail page.
 

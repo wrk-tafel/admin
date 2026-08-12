@@ -7,8 +7,14 @@ import {Observable} from 'rxjs';
 export class CustomerDuplicatesDataResolver {
   private readonly customerApiService = inject(CustomerApiService);
 
-  public resolve(_route: ActivatedRouteSnapshot): Observable<CustomerDuplicatesResponse> {
-    return this.customerApiService.getCustomerDuplicates();
+  /**
+   * `?seite=` is what the merge screen's "Abbrechen" comes back with (see
+   * `CustomerDuplicatesComponent.startMerge`), so an abandoned merge returns to the candidate it
+   * was started from rather than to the first page of the queue.
+   */
+  public resolve(route: ActivatedRouteSnapshot): Observable<CustomerDuplicatesResponse> {
+    const page = +route.queryParams?.['seite'];
+    return this.customerApiService.getCustomerDuplicates(page > 0 ? page : undefined);
   }
 
 }

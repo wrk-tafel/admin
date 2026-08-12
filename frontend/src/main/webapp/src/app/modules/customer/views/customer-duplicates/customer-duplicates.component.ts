@@ -99,6 +99,10 @@ export class CustomerDuplicatesComponent {
    * of 1 (`HouseholdDuplicationService.findDuplicates`), so a page's `items` array never holds more
    * than one pair. If that page size ever changes, this needs to look up the specific item `customer`
    * belongs to instead of always taking `items[0]`.
+   *
+   * `seite` carries the queue position along so the merge screen's "Abbrechen" comes back to this
+   * candidate instead of to the first one - with one pair per page, that is the difference between
+   * resuming the review and paging through everything already looked at again.
    */
   startMerge(customer: CustomerData) {
     const duplicatesData = this.customerDuplicatesData()!.items[0];
@@ -106,7 +110,12 @@ export class CustomerDuplicatesComponent {
       .filter((filterCustomer) => filterCustomer.id !== customer.id)
       .map(mapCustomer => mapCustomer.id!);
 
-    this.router.navigate(['/kunden/zusammenfuehren', customer.id], {queryParams: {quellen: sourceCustomerIds.join(',')}});
+    this.router.navigate(['/kunden/zusammenfuehren', customer.id], {
+      queryParams: {
+        quellen: sourceCustomerIds.join(','),
+        seite: this.customerDuplicatesData()!.currentPage
+      }
+    });
   }
 
   trackByDuplicateItemId(index: number, item: any): number {
