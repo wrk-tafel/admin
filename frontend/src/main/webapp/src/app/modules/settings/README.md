@@ -45,7 +45,7 @@ settings/
     routes/                        # route: einstellungen/routen
       dialogs/
         route-edit-dialog.component.ts
-    enabled-filter.ts              # Alle/Aktiv/Inaktiv filter shared by shops + routes
+    enabled-filter.ts              # Alle/Aktiv/Inaktiv filter shared by shops + routes + return categories
   settings.routes.ts
 ```
 
@@ -137,6 +137,30 @@ Differences worth knowing:
   so disabling a category here immediately removes it from that form's category
   list. The edit button is disabled for disabled categories (commit
   `909ca265`) to avoid editing something that's effectively archived.
+
+## `food-return-categories` (`SettingsFoodReturnCategoriesComponent`)
+
+The crate types offered as counters in the Warenerfassung's Retourware section — the twin of
+`food-categories`, minus the weight (return crates are counted, never weighed) and minus the
+`returnItem` flag, and with the same inline-edit + dialog-create + optimistic-reorder pattern
+against `FoodReturnCategoriesApiService.reorderFoodReturnCategories()`.
+
+Where it goes beyond that twin:
+
+- **A status filter** (`EnabledFilter` from `views/enabled-filter.ts`, same three-way toggle as
+  shops/routes) drives a `visibleFoodReturnCategories()` `computed()` that both layouts and the
+  drop lists render. A category is only ever deactivated, never deleted, so without it the working
+  list grows forever.
+- **Reordering therefore counts displayed positions, not stored ones.** `reorder()` translates both
+  indices through the visible list into the full one before `moveItemInArray`, so a filtered-out
+  category keeps its place and a move past it jumps over it. The handle testids
+  (`dragFoodReturnCategoryHandle-<i>`) are keyed by the *displayed* index — that is what
+  `ReorderFeedbackService.refocusHandle` must be given, not the index in the full list.
+- **The screen says what it drives**: the category order is the counter order in the
+  Warenerfassung, and the names appear in the route guidance's "Retourware mitnehmen/abgeben"
+  hints. Both this screen and `food-categories` also carry a note distinguishing them from each
+  other, since they look alike and are one nav entry apart — the two notes link to one another and
+  belong together.
 
 ## `static-values` (`SettingsStaticValuesComponent`)
 
