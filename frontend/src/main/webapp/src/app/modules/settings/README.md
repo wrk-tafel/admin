@@ -246,9 +246,14 @@ that reflect the domain:
 
 - **No drag-and-drop reordering** — employees have no `sortOrder` field, so
   unlike shelters/food-categories/cars there's nothing to reorder here.
-- **Paginated + searchable**, unlike the reorderable CRUD views above (which
-  load their full unpaginated list in one call; the `user` module's
-  `login-attempts` view is paginated too). `EmployeeController`/`EmployeeService` (in
+- **Paginated + searched as the search box is typed** (400 ms debounce), unlike
+  the reorderable CRUD views above (which load their full unpaginated list in
+  one call; the `user` module's `login-attempts` view is paginated too). There
+  is no "Suchen" button: the search is server-side either way, and a name
+  lookup is refined by typing rather than by pressing a button after every
+  correction — same reasoning, and the same `sr-only role="status"`
+  result-count announcement, as the `audit` module's change log.
+  `EmployeeController`/`EmployeeService` (in
   `modules/base/employee`, pre-existing, shared with the `logistics` module's
   create-employee flow) implement `GET /api/employees?searchInput=&page=&pageSize=`
   server-side (`PaginationDefaults`: 10 by default, selectable via
@@ -261,7 +266,26 @@ that reflect the domain:
   change page; both instances are bound to the same signal and stay in sync.
 - Employees also have no `enabled` flag and no delete endpoint — same
   "no hard delete" convention as the rest of the app, but here there isn't
-  even a soft-disable toggle, so the edit button is never disabled.
+  even a soft-disable toggle, so the edit button is never disabled. The card's
+  caption says so, because the alternative is an admin hunting for a delete
+  button that was never left out by accident.
+- **The linked user account is a column of its own.** `EmployeeItem.userAccount`
+  carries the account referencing the employee, rendered as a chip that links
+  to `/benutzer/detail/:id` for a viewer holding `USER_MANAGEMENT` and reads
+  "Benutzerkonto vorhanden" for everyone else. The personnel number is the join
+  key between this screen and the user administration, and it used to be
+  invisible from both sides.
+- **A personnel-number collision is shown while the number is typed**, in the
+  create dialog and in an inline edit alike (`GET
+  /api/employees/personnel-number-availability`, 400 ms debounce, the edited
+  employee passed as `excludedEmployeeId` so its own number is not a collision
+  with itself). It sets a `duplicateEmployee` error on the control — hence a
+  validator reading the signal rather than `setErrors`, which would drop the
+  `required`/`maxlength` errors — and offers the employee already holding the
+  number: `openEmployee()` narrows the list to it and opens it for editing,
+  which is what the create dialog's `openExisting` result asks the view to do.
+  The backend still rejects a taken number with a 409; this only means an admin
+  finds out before typing the rest of the record.
 - `EmployeeController` was widened from `@PreAuthorize("hasAuthority('LOGISTICS')")`
   to `hasAuthority('LOGISTICS') or hasAuthority('SETTINGS')` at the class level
   so this view's `SETTINGS`-only users can reach it too, without changing
@@ -274,6 +298,9 @@ that reflect the domain:
   for the "employee not found while recording a food collection" flow (fixed
   dialog title, calls the API itself and closes with the saved entity) rather
   than a generic create dialog — reusing it here would have been misleading.
+  The two ask for the same three fields under the same rules and produce the
+  same record, which is what the dialog's opening line tells the admin, so the
+  driver created on the fly during a collection doesn't look like a lesser one.
 
 ## `shops` (`SettingsShopsComponent`) and `routes` (`SettingsRoutesComponent`)
 

@@ -24,7 +24,7 @@ class EmployeeControllerTest {
     fun `find employees`() {
         val response = EmployeeListResponse(
             items = listOf(
-                EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+                EmployeeItem(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
             ),
             totalCount = 1,
             currentPage = 1,
@@ -34,6 +34,19 @@ class EmployeeControllerTest {
         every { employeeService.findEmployees("test-input", 1) } returns response
 
         val result = employeeController.findEmployees(searchInput = "test-input", page = 1)
+
+        assertThat(result).isEqualTo(response)
+    }
+
+    @Test
+    fun `check personnel number availability`() {
+        val response = PersonnelNumberAvailabilityResponse(
+            available = false,
+            existingEmployee = EmployeeResponse(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1"),
+        )
+        every { employeeService.checkPersonnelNumberAvailability("00001", 2) } returns response
+
+        val result = employeeController.checkPersonnelNumberAvailability(personnelNumber = "00001", excludedEmployeeId = 2)
 
         assertThat(result).isEqualTo(response)
     }

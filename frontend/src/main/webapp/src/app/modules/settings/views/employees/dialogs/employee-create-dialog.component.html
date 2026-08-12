@@ -1,5 +1,10 @@
 <tafel-dialog title="Mitarbeiter erstellen" testId="employee-create-dialog">
   <div tafel-dialog-content>
+    <p class="mb-4 text-sm text-slate-600" testid="employeeCreateHint">
+      Fahrer und Beifahrer können auch direkt in der Warenerfassung angelegt werden — mit denselben
+      Feldern und Regeln, es entsteht derselbe Mitarbeiter-Datensatz.
+    </p>
+
     <form [formGroup]="form" class="grid grid-cols-1" autocomplete="off">
       <mat-form-field>
         <mat-label>Personalnummer</mat-label>
@@ -10,7 +15,18 @@
         @if (personnelNumber.errors?.maxlength && personnelNumber.touched) {
           <mat-error>Personalnummer zu lang (Limit: {{ personnelNumber.errors?.maxlength.requiredLength }})</mat-error>
         }
+        @if (personnelNumber.errors?.duplicateEmployee) {
+          <mat-error>Personalnummer bereits vergeben</mat-error>
+        }
       </mat-form-field>
+
+      @if (duplicate(); as existingEmployee) {
+        <p class="mb-4 text-sm" testid="employeeCreateDuplicateHint">
+          Vergeben an {{ existingEmployee.firstname }} {{ existingEmployee.lastname }}.
+          <button matButton type="button" testid="employeeCreateOpenDuplicateButton"
+                  (click)="openDuplicate(existingEmployee)">Mitarbeiter öffnen</button>
+        </p>
+      }
 
       <mat-form-field>
         <mat-label>Vorname</mat-label>

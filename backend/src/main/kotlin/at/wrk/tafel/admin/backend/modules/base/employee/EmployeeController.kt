@@ -28,6 +28,12 @@ class EmployeeController(
         @RequestParam pageSize: Int? = null,
     ): EmployeeListResponse = employeeService.findEmployees(searchInput, page, pageSize)
 
+    @GetMapping("/personnel-number-availability")
+    fun checkPersonnelNumberAvailability(
+        @RequestParam personnelNumber: String,
+        @RequestParam excludedEmployeeId: Long? = null,
+    ): PersonnelNumberAvailabilityResponse = employeeService.checkPersonnelNumberAvailability(personnelNumber, excludedEmployeeId)
+
     @PostMapping
     fun saveEmployee(
         @Valid @RequestBody employeeRequest: EmployeeRequest,
