@@ -8,8 +8,9 @@
 
       <mat-form-field>
         <mat-label>Gewicht pro Einheit</mat-label>
-        <input matInput type="number" formControlName="weightPerUnit"/>
+        <input matInput type="number" min="0" formControlName="weightPerUnit"/>
         <span matTextSuffix>&nbsp;kg</span>
+        <mat-hint>Rechnet die erfassten Einheiten in Kilogramm um</mat-hint>
       </mat-form-field>
     </form>
   </div>
