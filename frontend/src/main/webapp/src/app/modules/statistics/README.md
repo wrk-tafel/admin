@@ -151,7 +151,11 @@ naming the value at the pointer's position, and the whole course with axes in an
 dialog is the small button in its corner — the click on the card itself is a mouse convenience on
 top of it, not a second tab stop. That dialog is opened with an explicit `width`/`maxWidth`: sized
 by its content it comes out barely wider than the sparkline it was opened from on a phone, and
-reading the course off the chart is the whole reason it exists.
+reading the course off the chart is the whole reason it exists. Its canvas is created once the
+dialog has finished opening (`afterOpened()`), not with the rest of the content: Chart.js measures
+the box it has to fill with `getBoundingClientRect()`, which includes the `transform: scale()` the
+dialog grows in with, so a chart created any earlier sizes itself off a box smaller than the one it
+ends up in — and only grows out of it when Chart.js' resize observer gets a frame to correct it in.
 
 While a period is loading, a panel renders a placeholder in place of its numbers rather than
 keeping the previous period's on screen; the page announces the state once for all ten cards, so a
