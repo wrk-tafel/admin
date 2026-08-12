@@ -12,8 +12,6 @@ import {
   faChevronDown,
   faChevronUp,
   faCircleInfo,
-  faEye,
-  faEyeSlash,
   faHouseChimney,
   faPencil,
   faPlus
@@ -25,6 +23,16 @@ import {
 import {
   ReorderFeedbackService
 } from '../../../../common/components/tafel-reorder-handle/reorder-feedback.service';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 
 @Component({
   selector: 'tafel-settings-shelters',
@@ -41,6 +49,8 @@ import {
     CdkDrag,
     CdkDragHandle,
     TafelReorderHandleComponent,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
     MatTooltipModule
   ]
 })
@@ -59,6 +69,15 @@ export class SettingsSheltersComponent {
 
   protected readonly totalCount = computed(() => this._shelters().length);
   protected readonly enabledCount = computed(() => this._shelters().filter(shelter => shelter.enabled).length);
+
+  protected readonly enabledFilter = signal<EnabledFilter>('ALL');
+  /**
+   * A deactivated shelter is never deleted, so the list only ever grows - the filter is what keeps
+   * the working list to the shelters the statistics screen actually offers.
+   */
+  protected readonly visibleShelters = computed(() =>
+    this._shelters().filter(shelter => matchesEnabledFilter(shelter.enabled, this.enabledFilter()))
+  );
 
   // which records are expanded, by shelter id rather than by index, so a reorder does not carry the
   // expanded state over to whichever record now sits at that position
@@ -159,24 +178,34 @@ export class SettingsSheltersComponent {
     const moved = this.reorder(index, targetIndex, true);
 
     if (moved) {
-      this.reorderFeedback.announce(`Notschlafstelle ${moved.name}`, targetIndex, this._shelters().length);
+      this.reorderFeedback.announce(`Notschlafstelle ${moved.name}`, targetIndex, this.visibleShelters().length);
     }
   }
 
   /**
+   * Both indices count the *displayed* shelters, which under an active filter are only some of them
+   * - they are translated into the full list before the move, so a shelter filtered out of view
+   * keeps its place instead of being reordered by a move it isn't part of. Moving past such a
+   * shelter therefore jumps over it, which is exactly what the visible list shows afterwards.
+   *
    * `keepFocusOnHandle` only for the keyboard path: after a drag the pointer, not the keyboard, is
    * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
    */
-  private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): ShelterItem | undefined {
-    const reordered = [...this._shelters()];
-    if (toIndex < 0 || toIndex >= reordered.length) {
+  private reorder(fromVisibleIndex: number, toVisibleIndex: number, keepFocusOnHandle: boolean): ShelterItem | undefined {
+    const visible = this.visibleShelters();
+    if (toVisibleIndex < 0 || toVisibleIndex >= visible.length) {
       return undefined;
     }
 
+    const reordered = [...this._shelters()];
+    const fromIndex = reordered.findIndex(shelter => shelter.id === visible[fromVisibleIndex].id);
+    const toIndex = reordered.findIndex(shelter => shelter.id === visible[toVisibleIndex].id);
+
     moveItemInArray(reordered, fromIndex, toIndex);
     this._shelters.set(reordered); // optimistic, updates in the background
+    // The handles are keyed by the position in the displayed list, not in the full one.
     if (keepFocusOnHandle) {
-      this.reorderFeedback.refocusHandle(`dragShelterHandle-${toIndex}`);
+      this.reorderFeedback.refocusHandle(`dragShelterHandle-${toVisibleIndex}`);
     }
 
     this.shelterApiService.reorderShelters(reordered.map(shelter => shelter.id)).subscribe({
@@ -184,7 +213,7 @@ export class SettingsSheltersComponent {
         this._shelters.set(data.shelters);
         // The response replaces every record, so the focused handle is a new element by now.
         if (keepFocusOnHandle) {
-          this.reorderFeedback.refocusHandle(`dragShelterHandle-${toIndex}`);
+          this.reorderFeedback.refocusHandle(`dragShelterHandle-${toVisibleIndex}`);
         }
       },
       error: () => {
@@ -196,9 +225,11 @@ export class SettingsSheltersComponent {
     return reordered[toIndex];
   }
 
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
+  }
+
   protected readonly faPencil = faPencil;
-  protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
   protected readonly faChevronDown = faChevronDown;
   protected readonly faChevronUp = faChevronUp;

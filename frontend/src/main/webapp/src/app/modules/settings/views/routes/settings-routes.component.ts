@@ -4,8 +4,6 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
-import {MatSlideToggleChange, MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {
@@ -26,7 +24,16 @@ import {ShopApiService, ShopItem} from '../../../../api/shop-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {formatShopAddress} from '../../../../common/util/format-shop-address.util';
-import {EnabledFilter, matchesEnabledFilter} from '../enabled-filter';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 import {RouteEditDialogComponent} from './dialogs/route-edit-dialog.component';
 
 interface RouteStopView {
@@ -56,8 +63,8 @@ interface RouteView {
     MatCardTitle,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonToggleModule,
-    MatSlideToggleModule,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
     ReactiveFormsModule,
     FaIconComponent,
     MatButton,
@@ -161,10 +168,6 @@ export class SettingsRoutesComponent {
     });
   }
 
-  protected onEnabledToggled(route: RouteData, event: MatSlideToggleChange) {
-    this.setRouteEnabled(route, event.checked);
-  }
-
   protected setRouteEnabled(route: RouteData, enabled: boolean) {
     this.routeApiService.updateRoute(route.id, {...route, enabled}).subscribe({
       next: () => {
@@ -191,8 +194,8 @@ export class SettingsRoutesComponent {
     this.expandedIds.set(expanded);
   }
 
-  protected onFilterChanged(event: MatButtonToggleChange) {
-    this.enabledFilter.set(event.value as EnabledFilter);
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   protected clearSearch() {

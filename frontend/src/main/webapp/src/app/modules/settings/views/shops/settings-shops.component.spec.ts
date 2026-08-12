@@ -176,10 +176,10 @@ describe('SettingsShopsComponent', () => {
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('onEnabledToggled() persists the state of the toggle', () => {
+  it('setShopEnabled() re-enables a deactivated shop', () => {
     const fixture = TestBed.createComponent(SettingsShopsComponent);
     fixture.detectChanges();
-    fixture.componentInstance['onEnabledToggled'](testShop2, {checked: true} as any);
+    fixture.componentInstance['setShopEnabled'](testShop2, true);
 
     expect(shopApiMock.updateShop).toHaveBeenCalledWith(testShop2.id, {...testShop2, enabled: true});
   });

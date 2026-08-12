@@ -36,12 +36,8 @@
         }
       </mat-form-field>
 
-      <mat-button-toggle-group class="ms-auto" [value]="enabledFilter()" (change)="onFilterChanged($event)"
-                               aria-label="Nach Status filtern" testid="shops-status-filter">
-        <mat-button-toggle value="ALL" testid="shops-filter-all">Alle</mat-button-toggle>
-        <mat-button-toggle value="ENABLED" testid="shops-filter-enabled">Aktiv</mat-button-toggle>
-        <mat-button-toggle value="DISABLED" testid="shops-filter-disabled">Inaktiv</mat-button-toggle>
-      </mat-button-toggle-group>
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="shops"
+                            (valueChange)="onFilterChanged($event)"/>
     </div>
 
     <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
@@ -50,7 +46,8 @@
          actions are its siblings rather than controls nested inside a button (#3137). -->
     <div class="block" testid="shops-list">
       @for (view of visibleShops(); track view.shop.id; let i = $index) {
-        <div class="tafel-panel mb-2" [attr.testid]="'shops-row-' + i">
+        <div class="tafel-panel mb-2" [class.tafel-inactive]="!view.shop.enabled"
+             [attr.testid]="'shops-row-' + i">
           <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
             <button type="button" class="flex flex-1 cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 text-start"
                     [id]="'shops-toggle-' + i" [attr.testid]="'shops-toggle-' + i"
@@ -60,19 +57,15 @@
               <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
                 {{ view.shop.number }}
               </span>
-              <span class="font-medium" [class.text-slate-400]="!view.shop.enabled">{{ view.shop.name }}</span>
+              <span class="font-medium">{{ view.shop.name }}</span>
               <span class="text-sm text-slate-500">{{ view.address }}</span>
               <span [class]="view.foodUnitClass">{{ view.foodUnitLabel }}</span>
-              @if (!view.shop.enabled) {
-                <span class="badge badge-danger" testid="shops-inactive-badge">Inaktiv</span>
-              }
               <fa-icon class="ms-auto text-slate-500" [icon]="isExpanded(view.shop.id) ? faChevronUp : faChevronDown"></fa-icon>
             </button>
             <!-- both actions stay reachable without expanding the shop first -->
-            <mat-slide-toggle [checked]="view.shop.enabled" [attr.testid]="'shops-enabled-toggle-' + i"
-                              (change)="onEnabledToggled(view.shop, $event)">
-              Aktiv
-            </mat-slide-toggle>
+            <tafel-enabled-toggle [enabled]="view.shop.enabled" [label]="'Filiale ' + view.shop.name"
+                                  [testId]="'shops-enabled-toggle-' + i"
+                                  (enabledChange)="setShopEnabled(view.shop, $event)"/>
             <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
                     [disabled]="!view.shop.enabled" [attr.aria-label]="'Filiale ' + view.shop.name + ' bearbeiten'"
                     (click)="editShop(view.shop)">

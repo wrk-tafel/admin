@@ -1,8 +1,11 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
-    <mat-card-title>
-      <div class="flex items-center gap-2">
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center gap-2">
         <h2 class="tafel-h5 mb-0 mt-1">Fahrzeuge</h2>
+        <span class="text-sm font-normal text-slate-500" testid="cars-summary">
+          {{ enabledCount() }} von {{ totalCount() }} aktiv
+        </span>
         <button matButton="filled" class="button-success" testid="addCarButton" matTooltip="Neues Fahrzeug anlegen" (click)="addCar()" aria-label="Neues Fahrzeug anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
@@ -12,17 +15,24 @@
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
       Fahrzeuge, die bei der Warenerfassung einer Route zugeordnet werden können. Die Reihenfolge
-      dieser Liste ist die Reihenfolge der Auswahlliste in der Warenerfassung.
+      dieser Liste ist die Reihenfolge der Auswahlliste in der Warenerfassung. Ein deaktiviertes
+      Fahrzeug steht dort nicht mehr zur Auswahl, wird aber nicht gelöscht - bereits erfasste
+      Warenerfassungen verweisen darauf.
     </p>
 
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="cars"
+                            (valueChange)="onFilterChanged($event)"/>
+    </div>
+
     <div class="hidden md:block">
-    <table mat-table [dataSource]="activeCars()" testid="cars-table" [trackBy]="trackById"
-           cdkDropList [cdkDropListData]="activeCars()" (cdkDropListDropped)="drop($event)">
+    <table mat-table [dataSource]="visibleCars()" testid="cars-table" [trackBy]="trackById"
+           cdkDropList [cdkDropListData]="visibleCars()" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
         <td mat-cell *matCellDef="let car; let i = index">
           <tafel-reorder-handle cdkDragHandle [label]="'Fahrzeug ' + car.name"
-                                [position]="i + 1" [count]="activeCars().length"
+                                [position]="i + 1" [count]="visibleCars().length"
                                 [testId]="'dragCarHandle-' + i"
                                 (move)="moveCar(i, $event)"/>
         </td>
@@ -31,10 +41,9 @@
       <ng-container matColumnDef="active">
         <th mat-header-cell *matHeaderCellDef>Aktiv</th>
         <td mat-cell *matCellDef="let car; let i = index">
-          <button matButton="filled" class="button-success ms-2" testid="deactivateCarButton" matTooltip="Fahrzeug deaktivieren - es steht in der Waren-Eingabe nicht mehr zur Auswahl"
-                  (click)="toggleCarVisibility(car, false)" [attr.aria-label]="'Fahrzeug ' + car.name + ' deaktivieren - es steht in der Waren-Eingabe nicht mehr zur Auswahl'">
-            <fa-icon [icon]="faEye"></fa-icon>
-          </button>
+          <tafel-enabled-toggle [enabled]="car.enabled" [label]="'Fahrzeug ' + car.name"
+                                [showLabel]="false" [testId]="'cars-enabled-toggle-' + i"
+                                (enabledChange)="toggleCarVisibility(car, $event)"/>
         </td>
       </ng-container>
 
@@ -89,7 +98,7 @@
             </button>
           } @else {
             <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i" matTooltip="Fahrzeug bearbeiten"
-                    (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
+                    [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
           }
@@ -99,18 +108,20 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
           cdkDrag [cdkDragData]="row"
+          [class.tafel-inactive]="!row.enabled"
           [attr.testid]="'cars-row-' + i"></tr>
     </table>
     </div>
 
     <div class="block md:hidden">
-      <div class="flex flex-col gap-4" testid="cars-cards" cdkDropList [cdkDropListData]="activeCars()" (cdkDropListDropped)="drop($event)">
-        @for (car of activeCars(); track car.id; let i = $index) {
-          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [attr.testid]="'cars-row-' + i">
+      <div class="flex flex-col gap-4" testid="cars-cards" cdkDropList [cdkDropListData]="visibleCars()" (cdkDropListDropped)="drop($event)">
+        @for (car of visibleCars(); track car.id; let i = $index) {
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [class.tafel-inactive]="!car.enabled"
+                    [attr.testid]="'cars-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
                 <tafel-reorder-handle cdkDragHandle [label]="'Fahrzeug ' + car.name"
-                                      [position]="i + 1" [count]="activeCars().length"
+                                      [position]="i + 1" [count]="visibleCars().length"
                                       [testId]="'dragCarHandle-' + i"
                                       (move)="moveCar(i, $event)"/>
                 @if (editingId() === car.id) {
@@ -144,11 +155,10 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex gap-2">
-              <button matButton="filled" class="button-success" testid="deactivateCarButton" matTooltip="Fahrzeug deaktivieren - es steht in der Waren-Eingabe nicht mehr zur Auswahl"
-                      (click)="toggleCarVisibility(car, false)" [attr.aria-label]="'Fahrzeug ' + car.name + ' deaktivieren - es steht in der Waren-Eingabe nicht mehr zur Auswahl'">
-                <fa-icon [icon]="faEye"></fa-icon>
-              </button>
+            <mat-card-actions class="flex items-center gap-2">
+              <tafel-enabled-toggle [enabled]="car.enabled" [label]="'Fahrzeug ' + car.name"
+                                    [testId]="'cars-enabled-toggle-mobile-' + i"
+                                    (enabledChange)="toggleCarVisibility(car, $event)"/>
               @if (editingId() === car.id) {
                 <button matButton="filled" [attr.testid]="'saveCarButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(car)" [attr.aria-label]="'Änderungen an Fahrzeug ' + car.name + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
@@ -158,7 +168,7 @@
                 </button>
               } @else {
                 <button matButton="filled" class="button-danger" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
-                        (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
+                        [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
               }
@@ -168,34 +178,18 @@
       </div>
     </div>
 
-    @if (inactiveCars().length > 0) {
-      <div class="mt-6">
-        <button matButton="outlined" testid="toggleInactiveCarsButton" (click)="toggleInactive()"
-                [attr.aria-expanded]="showInactive()" aria-controls="inactiveCars">
-          <fa-icon [icon]="showInactive() ? faChevronDown : faChevronRight" class="me-2"></fa-icon>
-          Deaktivierte Fahrzeuge ({{ inactiveCars().length }})
-        </button>
-
-        <div id="inactiveCars" role="region" aria-label="Deaktivierte Fahrzeuge"
-             testid="inactive-cars" [hidden]="!showInactive()">
-          <p class="mt-3 mb-2 text-sm text-slate-600">
-            Diese Fahrzeuge stehen in der Waren-Eingabe nicht zur Auswahl. Sie bleiben erhalten,
-            weil bereits erfasste Warenerfassungen auf sie verweisen.
-          </p>
-          <ul class="flex flex-col gap-2 list-none p-0">
-            @for (car of inactiveCars(); track car.id; let i = $index) {
-              <li class="tafel-inactive flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2"
-                  [attr.testid]="'inactive-cars-row-' + i">
-                <span><span class="font-bold">{{ car.licensePlate }}</span> ({{ car.name }})</span>
-                <button matButton="filled" class="button-success" testid="reactivateCarButton"
-                        (click)="toggleCarVisibility(car, true)"
-                        [attr.aria-label]="'Fahrzeug ' + car.name + ' wieder aktivieren'">
-                  Wieder aktivieren
-                </button>
-              </li>
-            }
-          </ul>
-        </div>
+    <!-- One block for both layouts: the table renders its header even with no rows, and the card
+         list nothing at all, so neither can carry this on its own. -->
+    @if (loaded() && visibleCars().length === 0) {
+      <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="cars-empty">
+        <fa-icon [icon]="faTruck" size="2x"></fa-icon>
+        @if (enabledFilter() === 'DISABLED') {
+          <span>Kein Fahrzeug ist deaktiviert.</span>
+        } @else if (enabledFilter() === 'ENABLED') {
+          <span>Kein Fahrzeug ist aktiv.</span>
+        } @else {
+          <span>Noch keine Fahrzeuge angelegt.</span>
+        }
       </div>
     }
   </mat-card-content>

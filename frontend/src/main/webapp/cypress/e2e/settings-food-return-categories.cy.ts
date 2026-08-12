@@ -26,16 +26,18 @@ describe('Settings - Food Return Categories', () => {
     cy.byTestId('food-categories-distinction').should('contain.text', 'Retour-Kategorien');
   });
 
-  // Asserted through the two toggles rather than by row count: an active category renders the
-  // "deactivate" button, an inactive one the "activate" button, so this holds whatever the other
-  // cases left behind - and it changes no data of its own.
+  // Asserted through the state of the Aktiv switches rather than by row count: it then holds
+  // whatever the other cases left behind, including a filter that matches nothing at all - and it
+  // changes no data of its own.
   it('filters the list by status', () => {
+    const switches = (state: 'true' | 'false') =>
+      cy.get(`[testid^="food-return-categories-enabled-toggle-"] button[aria-checked="${state}"]`);
+
     cy.byTestId('food-return-categories-filter-enabled').click();
-    cy.byTestId('enableFoodReturnCategoryButton').should('exist');
-    cy.byTestId('disableFoodReturnCategoryButton').should('not.exist');
+    switches('false').should('not.exist');
 
     cy.byTestId('food-return-categories-filter-disabled').click();
-    cy.byTestId('enableFoodReturnCategoryButton').should('not.exist');
+    switches('true').should('not.exist');
 
     cy.byTestId('food-return-categories-filter-all').click();
     cy.byTestId('food-return-categories-row-0').should('be.visible');
@@ -114,8 +116,10 @@ describe('Settings - Food Return Categories', () => {
   });
 
   it('toggles return category visibility', () => {
-    cy.byTestId('enableFoodReturnCategoryButton').first().click();
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button').click();
     cy.get('.toast-message').should('be.visible');
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button')
+      .should('have.attr', 'aria-checked', 'false');
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -130,7 +134,7 @@ describe('Settings - Food Return Categories', () => {
     // button is disabled for disabled categories) - re-enable it first if needed.
     cy.byTestId('editFoodReturnCategoryButtonMobile-0').then(($btn) => {
       if ($btn.is(':disabled')) {
-        cy.byTestId('disableFoodReturnCategoryButton').filterDisplayed().first().click();
+        cy.byTestId('food-return-categories-enabled-toggle-mobile-0').find('button').click();
         cy.get('.toast-message').should('be.visible');
       }
     });

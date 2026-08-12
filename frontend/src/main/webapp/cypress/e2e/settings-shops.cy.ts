@@ -110,7 +110,8 @@ describe('Settings - Shops', () => {
       shopPanel(name).find('[testid^="shops-enabled-toggle-"]').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 
-      shopPanel(name).should('contain.text', 'Inaktiv');
+      shopPanel(name).find('[testid^="shops-enabled-toggle-"] button')
+        .should('have.attr', 'aria-checked', 'false');
       shopPanel(name).find('[testid^="editShopButton-"]').should('be.disabled');
 
       cy.byTestId('shops-filter-enabled').click();

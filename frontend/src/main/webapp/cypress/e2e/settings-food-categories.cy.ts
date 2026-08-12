@@ -95,9 +95,27 @@ describe('Settings - Food Categories', () => {
   });
 
   it('toggles food category visibility', () => {
-    cy.byTestId('enableFoodCategoryButton').first().click();
-    cy.get('.toast-message')
-      .should('be.visible');
+    cy.byTestId('food-categories-enabled-toggle-0').find('button').click();
+    cy.get('.toast-message').should('be.visible');
+    cy.byTestId('food-categories-enabled-toggle-0').find('button')
+      .should('have.attr', 'aria-checked', 'false');
+  });
+
+  // Asserted through the state of the Aktiv switches rather than by row count: it then holds
+  // whatever the other cases left behind, including a filter that matches nothing at all.
+  it('filters the list by status', () => {
+    const switches = (state: 'true' | 'false') =>
+      cy.get(`[testid^="food-categories-enabled-toggle-"] button[aria-checked="${state}"]`);
+
+    cy.byTestId('food-categories-filter-enabled').click();
+    switches('false').should('not.exist');
+
+    cy.byTestId('food-categories-filter-disabled').click();
+    switches('true').should('not.exist');
+
+    cy.byTestId('food-categories-filter-all').click();
+    cy.byTestId('food-categories-row-0').should('be.visible');
+    cy.byTestId('food-categories-summary').should('contain.text', 'aktiv');
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -112,7 +130,7 @@ describe('Settings - Food Categories', () => {
     // button is disabled for disabled categories) - re-enable it first if needed.
     cy.byTestId('editFoodCategoryButtonMobile-0').then(($btn) => {
       if ($btn.is(':disabled')) {
-        cy.byTestId('disableFoodCategoryButton').filterDisplayed().first().click();
+        cy.byTestId('food-categories-enabled-toggle-mobile-0').find('button').click();
         cy.get('.toast-message').should('be.visible');
       }
     });

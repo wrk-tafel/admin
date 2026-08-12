@@ -10,6 +10,19 @@ Die Tabellen dieses Bereichs werden auf schmalen Bildschirmen als Kartenliste da
 
 Das Drag-Handle (⋮⋮) lässt sich nicht nur mit der Maus ziehen: Wird es mit der Tabulator-Taste angesprungen, verschieben die Tasten **Pfeil nach oben** und **Pfeil nach unten** den Eintrag jeweils um eine Position. Das gilt für Fahrzeuge, Notschlafstellen, Waren-Kategorien und Retour-Kategorien gleichermaßen (siehe auch [Bedienung mit der Tastatur](README.md#bedienung-mit-der-tastatur)).
 
+<a id="aktiv-inaktiv"></a>
+
+## Aktiv und inaktiv
+
+Gelöscht wird in diesem Bereich nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen) und [Routen](#routen) werden nur deaktiviert, weil bereits erfasste Ausgabetage und Warenerfassungen darauf verweisen. Alle sechs Listen zeigen und schalten diesen Zustand gleich:
+
+- In jeder Zeile steht der Schalter **Aktiv**. Er zeigt den Zustand und ändert ihn — eine eigene Kennzeichnung daneben gibt es nicht.
+- Ein deaktivierter Eintrag bleibt in der Liste stehen, wird aber grau dargestellt, und sein **Bearbeiten**-Button ist gesperrt: Er muss zuerst wieder aktiviert werden.
+- Über der Liste schränkt der Filter **Alle / Aktiv / Inaktiv** die Anzeige ein. Sortieren bleibt dabei möglich — verschobene Einträge springen über die ausgeblendeten hinweg, deren Position unverändert bleibt.
+- Neben der Überschrift steht, wie viele der angelegten Einträge aktiv sind ("3 von 4 aktiv").
+
+Was ein deaktivierter Eintrag konkret bedeutet — wo er nicht mehr zur Auswahl steht und was von ihm erhalten bleibt — steht im Text über der jeweiligen Liste.
+
 ## E-Mail-Empfänger
 
 Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Über die grünen **+**-Buttons können weitere Empfänger hinzugefügt, über die roten Buttons einzelne Empfänger entfernt werden. Jede Adresse muss ein gültiges E-Mail-Format haben; ungültige Einträge werden rot markiert (auch der jeweilige Reiter), zusätzlich erscheint die Meldung "Ungültige E-Mail Adresse".
@@ -26,11 +39,11 @@ Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Dropdo
 
 Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwaltet, deren Personenzahl in die Tagesstatistik einfließt.
 
-Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden". Die Überschrift zeigt, wie viele der Notschlafstellen aktiv sind.
+Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden".
 
 ![Notschlafstellen](images/einstellungen-notschlafstellen.jpg)
 
-Rechts in jeder Zeile stehen der **Augen-Button** zum Aktivieren/Deaktivieren und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Notschlafstelle nicht aufgeklappt werden. Eine deaktivierte Notschlafstelle steht bei der Statistik nicht mehr zur Auswahl, ist in der Liste als "Inaktiv" gekennzeichnet und kann erst wieder bearbeitet werden, nachdem sie reaktiviert wurde (der Stift-Button ist so lange deaktiviert).
+Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Notschlafstelle nicht aufgeklappt werden. Eine deaktivierte Notschlafstelle steht bei der Statistik nicht mehr zur Auswahl; im Übrigen gilt [Aktiv und inaktiv](#aktiv-inaktiv).
 
 Links in jeder Zeile sortiert das Drag-Handle (⋮⋮) die Liste. Diese Reihenfolge gilt nicht nur hier: Sie bestimmt auch die Reihenfolge der Notschlafstellen in der [Übersicht](README.md#übersicht-dashboard) und im Tagesbericht — deshalb steht dieser Hinweis auch über der Liste.
 
@@ -63,7 +76,7 @@ Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Best�
 
 ## Lebensmittelkategorien
 
-Unter **Einstellungen → Lebensmittelkategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt, inklusive des durchschnittlichen Gewichts pro Einheit (kg), das für die Hochrechnung der Gesamtwarenmenge verwendet wird. Kategorien können aktiviert/deaktiviert, bearbeitet und sortiert werden.
+Unter **Einstellungen → Lebensmittelkategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt, inklusive des durchschnittlichen Gewichts pro Einheit (kg), das für die Hochrechnung der Gesamtwarenmenge verwendet wird. Kategorien können bearbeitet und sortiert werden; eine deaktivierte Kategorie steht bei der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 Ein Hinweis über der Tabelle grenzt den Bildschirm gegen die [Retour-Kategorien](#retourkategorien) ab, die auf den ersten Blick gleich aussehen: Hier werden die abgeholten Waren samt Gewicht gepflegt, dort nur die leeren Kisten, die an die Filiale zurückgehen. Der Link im Hinweis führt direkt auf den jeweils anderen Bildschirm.
 
@@ -73,19 +86,21 @@ Ein Hinweis über der Tabelle grenzt den Bildschirm gegen die [Retour-Kategorien
 
 ## Retour-Kategorien
 
-Unter **Einstellungen → Retour-Kategorien** werden die geläufigen Kistenarten gepflegt, die im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung als Zähler vorgegeben werden. Sie haben — anders als Lebensmittelkategorien — kein Gewicht: Retourkisten werden nur gezählt, nie gewogen, und fließen daher auch nicht in die Warenmengen-Statistik ein. Kategorien können aktiviert/deaktiviert, bearbeitet und sortiert werden; die Reihenfolge bestimmt sowohl die Reihenfolge der Zähler in der Warenerfassung als auch die Reihenfolge in der Retourkisten-E-Mail.
+Unter **Einstellungen → Retour-Kategorien** werden die geläufigen Kistenarten gepflegt, die im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung als Zähler vorgegeben werden. Sie haben — anders als Lebensmittelkategorien — kein Gewicht: Retourkisten werden nur gezählt, nie gewogen, und fließen daher auch nicht in die Warenmengen-Statistik ein. Kategorien können bearbeitet und sortiert werden (zum Deaktivieren siehe [Aktiv und inaktiv](#aktiv-inaktiv)); die Reihenfolge bestimmt sowohl die Reihenfolge der Zähler in der Warenerfassung als auch die Reihenfolge in der Retourkisten-E-Mail.
 
 Die Kategorien wirken auf zwei Bildschirme: Sie bestimmen die Zähler im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung, und ihre Namen erscheinen im [Routen-Navi](logistik.md#routen-navi) in den Hinweisen "Retourware mitnehmen" bzw. "Retourware abgeben". Eine Änderung hier ist also an beiden Stellen zu sehen. Ein Hinweis über der Tabelle grenzt den Bildschirm außerdem gegen die [Lebensmittelkategorien](#lebensmittelkategorien) ab und verlinkt dorthin.
 
 Kisten, die hier nicht gelistet sind, müssen nicht angelegt werden — sie können in der Warenerfassung jederzeit als "Sonstige Retourware" mit freier Beschreibung erfasst werden.
 
-Neben der Überschrift steht, wie viele der angelegten Kategorien aktiv sind ("3 von 4 aktiv"). Da eine Kategorie nie gelöscht, sondern nur deaktiviert wird, wächst die Liste mit der Zeit: Über die Umschalter **Alle / Aktiv / Inaktiv** wird sie auf die gerade interessanten Einträge eingeschränkt. Die Sortierung bleibt dabei möglich — verschobene Einträge springen über die ausgeblendeten hinweg, deren Position unverändert bleibt. Beim Bearbeiten eines Namens weist ein Hinweis unter dem Eingabefeld darauf hin, dass **Enter** speichert und **Esc** abbricht.
+Beim Bearbeiten eines Namens weist ein Hinweis unter dem Eingabefeld darauf hin, dass **Enter** speichert und **Esc** abbricht.
 
 ![Retour-Kategorien](images/einstellungen-retourkategorien.jpg)
 
+<a id="fahrzeuge"></a>
+
 ## Fahrzeuge
 
-Unter **Einstellungen → Fahrzeuge** werden die für die [Warenerfassung](logistik.md) verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können aktiviert/deaktiviert, bearbeitet und sortiert werden; die Reihenfolge dieser Liste ist die Reihenfolge der Fahrzeug-Auswahl in der Warenerfassung. Der **Name** ist die Bezeichnung, die dem Routen-Team dort hinter dem Kennzeichen angezeigt wird (z. B. "W-NC-123 (Kleinbus)").
+Unter **Einstellungen → Fahrzeuge** werden die für die [Warenerfassung](logistik.md) verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können bearbeitet und sortiert werden; die Reihenfolge dieser Liste ist die Reihenfolge der Fahrzeug-Auswahl in der Warenerfassung. Der **Name** ist die Bezeichnung, die dem Routen-Team dort hinter dem Kennzeichen angezeigt wird (z. B. "W-NC-123 (Kleinbus)").
 
 Das **Kennzeichen** wird immer in Großbuchstaben gespeichert, damit dasselbe Fahrzeug nicht in mehreren Schreibweisen in der Auswahl landet.
 
@@ -95,7 +110,7 @@ Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fens
 
 ![Bereits vorhandenes Kennzeichen](images/einstellungen-fahrzeuge-duplikat.jpg)
 
-Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Sie werden nicht gelöscht (bereits erfasste Warenerfassungen verweisen darauf), sondern unterhalb der Liste im zugeklappten Abschnitt **Deaktivierte Fahrzeuge** gesammelt und können dort jederzeit wieder aktiviert werden.
+Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Sie werden nicht gelöscht (bereits erfasste Warenerfassungen verweisen darauf), sondern bleiben ausgegraut in der Liste stehen und können dort jederzeit wieder aktiviert werden — mit dem Filter **Inaktiv** zeigt die Liste genau diese Fahrzeuge (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 ![Deaktivierte Fahrzeuge](images/einstellungen-fahrzeuge-deaktiviert.jpg)
 
@@ -105,7 +120,7 @@ Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Sie 
 
 Unter **Einstellungen → Filialen** werden die Geschäfte gepflegt, bei denen Ware abgeholt wird. Neben Nummer, Name und Adresse werden Telefonnummer, Ansprechperson und ein freier **Hinweis**-Text erfasst.
 
-Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Telefonnummer (als Link direkt wählbar), Ansprechperson und Hinweis. Über der Liste stehen ein **Suchfeld** (durchsucht Nummer, Name, Adresse, Ansprechperson und Hinweis) sowie der Filter **Alle / Aktiv / Inaktiv**; die Überschrift zeigt, wie viele der Filialen aktiv sind.
+Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Telefonnummer (als Link direkt wählbar), Ansprechperson und Hinweis. Über der Liste steht neben dem Filter **Alle / Aktiv / Inaktiv** zusätzlich ein **Suchfeld**, das Nummer, Name, Adresse, Ansprechperson und Hinweis durchsucht.
 
 Die **Einheit** legt fest, wie die Menge dieser Filiale in der [Warenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Lebensmittelkategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieser Filiale. Filialen, die in Kilogramm zählen, sind in der Liste farbig hervorgehoben.
 
@@ -113,7 +128,7 @@ Die **Nummer** muss eindeutig sein; ist sie bereits vergeben, erscheint beim Spe
 
 ![Filialen](images/einstellungen-filialen.jpg)
 
-Rechts in jeder Zeile stehen der Schalter **Aktiv** zum Aktivieren/Deaktivieren und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Filiale nicht aufgeklappt werden. Eine deaktivierte Filiale steht in der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion. Sie ist in der Liste als "Inaktiv" gekennzeichnet und kann erst wieder bearbeitet werden, nachdem sie reaktiviert wurde (der Bearbeiten-Button ist so lange deaktiviert).
+Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Filiale nicht aufgeklappt werden. Eine deaktivierte Filiale steht in der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 <a id="routen"></a>
 

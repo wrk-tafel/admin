@@ -4,8 +4,6 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
-import {MatSlideToggleChange, MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {
@@ -24,7 +22,16 @@ import {ShopApiService, ShopItem} from '../../../../api/shop-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {formatShopAddress} from '../../../../common/util/format-shop-address.util';
-import {EnabledFilter, matchesEnabledFilter} from '../enabled-filter';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 import {ShopEditDialogComponent} from './dialogs/shop-edit-dialog.component';
 
 interface ShopView {
@@ -47,8 +54,8 @@ const FOOD_UNIT_BADGE_BASE = 'rounded-md border px-2 py-0.5 text-xs font-medium'
     MatCardTitle,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonToggleModule,
-    MatSlideToggleModule,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
     ReactiveFormsModule,
     FaIconComponent,
     MatButton,
@@ -143,10 +150,6 @@ export class SettingsShopsComponent {
     });
   }
 
-  protected onEnabledToggled(shop: ShopItem, event: MatSlideToggleChange) {
-    this.setShopEnabled(shop, event.checked);
-  }
-
   protected setShopEnabled(shop: ShopItem, enabled: boolean) {
     this.shopApiService.updateShop(shop.id, {...shop, enabled}).subscribe({
       next: () => {
@@ -173,8 +176,8 @@ export class SettingsShopsComponent {
     this.expandedIds.set(expanded);
   }
 
-  protected onFilterChanged(event: MatButtonToggleChange) {
-    this.enabledFilter.set(event.value as EnabledFilter);
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   protected clearSearch() {

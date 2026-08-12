@@ -23,15 +23,7 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {CarApiService, CarData, CarList} from '../../../../api/car-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {
-  faCheck,
-  faChevronDown,
-  faChevronRight,
-  faEye,
-  faPencil,
-  faPlus,
-  faXmark
-} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faPencil, faPlus, faTruck, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   TafelReorderHandleComponent
@@ -45,6 +37,16 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {
   TafelInfoTooltipComponent
 } from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 import {normalizeLicensePlate} from './license-plate';
 
 @Component({
@@ -76,7 +78,9 @@ import {normalizeLicensePlate} from './license-plate';
     CdkDragHandle,
     MatTooltipModule,
     TafelReorderHandleComponent,
-    TafelInfoTooltipComponent
+    TafelInfoTooltipComponent,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent
   ]
 })
 export class SettingsCarsComponent {
@@ -89,14 +93,18 @@ export class SettingsCarsComponent {
   protected cars = this._cars;
   displayedColumns = ['drag', 'active', 'licensePlate', 'name', 'actions'];
 
+  protected readonly loaded = signal(false);
+  protected readonly enabledFilter = signal<EnabledFilter>('ALL');
   /**
    * A deactivated car is kept forever - it is what an already recorded food collection points at -
-   * so the two are listed apart: the working list holds the cars the Warenerfassung actually
-   * offers, and the deactivated ones sit behind a collapsed section instead of padding it out.
+   * so the list only ever grows. The filter is what keeps the working list to the cars the
+   * Warenerfassung actually offers.
    */
-  protected activeCars = computed(() => (this.cars()?.cars ?? []).filter(car => car.enabled));
-  protected inactiveCars = computed(() => (this.cars()?.cars ?? []).filter(car => !car.enabled));
-  protected showInactive = signal(false);
+  protected readonly visibleCars = computed(() =>
+    (this.cars()?.cars ?? []).filter(car => matchesEnabledFilter(car.enabled, this.enabledFilter()))
+  );
+  protected readonly enabledCount = computed(() => (this.cars()?.cars ?? []).filter(car => car.enabled).length);
+  protected readonly totalCount = computed(() => (this.cars()?.cars ?? []).length);
 
   protected editingId = signal<number | null>(null);
   protected licensePlateControl = new FormControl<string>('', {nonNullable: true});
@@ -115,13 +123,19 @@ export class SettingsCarsComponent {
 
   private loadCars() {
     this.carApiService.getAllCars().subscribe({
-      next: data => this._cars.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Fahrzeuge', 'Fehler')
+      next: data => {
+        this._cars.set(data);
+        this.loaded.set(true);
+      },
+      error: () => {
+        this.loaded.set(true);
+        this.toastr.error('Fehler beim Laden der Fahrzeuge', 'Fehler');
+      }
     });
   }
 
-  protected toggleInactive() {
-    this.showInactive.set(!this.showInactive());
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   /** Uppercases while typing rather than on save, so what is stored is what the admin saw. */
@@ -168,11 +182,6 @@ export class SettingsCarsComponent {
     const observer = {
       next: () => {
         this.toastr.success(`Fahrzeug ${car.name} ${enabled ? 'aktiviert' : 'deaktiviert'}`, 'Erfolgreich');
-        // A deactivated car leaves the list it was in - unfolding the inactive section shows where
-        // it went, rather than letting it look deleted.
-        if (!enabled) {
-          this.showInactive.set(true);
-        }
         this.loadCars();
       },
       error: () => {
@@ -224,36 +233,44 @@ export class SettingsCarsComponent {
     const car = this.reorder(index, targetIndex, true);
 
     if (car) {
-      this.reorderFeedback.announce(`Fahrzeug ${car.name}`, targetIndex, this.activeCars().length);
+      this.reorderFeedback.announce(`Fahrzeug ${car.name}`, targetIndex, this.visibleCars().length);
     }
   }
 
   /**
+   * Both indices count the *displayed* cars, which under an active filter are only some of them -
+   * they are translated into the full list before the move, so a car filtered out of view keeps its
+   * place instead of being reordered by a move it isn't part of. Moving past such a car therefore
+   * jumps over it, which is exactly what the visible list shows afterwards.
+   *
    * `keepFocusOnHandle` only for the keyboard path: after a drag the pointer, not the keyboard, is
    * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
    */
-  private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): CarData | undefined {
-    const reordered = [...this.activeCars()];
-    if (toIndex < 0 || toIndex >= reordered.length) {
+  private reorder(fromVisibleIndex: number, toVisibleIndex: number, keepFocusOnHandle: boolean): CarData | undefined {
+    const visible = this.visibleCars();
+    if (toVisibleIndex < 0 || toVisibleIndex >= visible.length) {
       return undefined;
     }
 
+    const reordered = [...(this.cars()?.cars ?? [])];
+    const fromIndex = reordered.findIndex(car => car.id === visible[fromVisibleIndex].id);
+    const toIndex = reordered.findIndex(car => car.id === visible[toVisibleIndex].id);
+
     moveItemInArray(reordered, fromIndex, toIndex);
-    // Only the active cars are sortable, but the whole list is sent: the backend numbers the ids
-    // it is given from 1, so leaving the inactive ones out would let them keep sort orders that
-    // interleave with the new ones.
-    const ordered = [...reordered, ...this.inactiveCars()];
-    this._cars.set({cars: ordered}); // optimistic, updates in the background
+    // The whole list is sent: the backend numbers the ids it is given from 1, so leaving the ones
+    // currently filtered out would let them keep sort orders that interleave with the new ones.
+    this._cars.set({cars: reordered}); // optimistic, updates in the background
+    // The handles are keyed by the position in the displayed list, not in the full one.
     if (keepFocusOnHandle) {
-      this.reorderFeedback.refocusHandle(`dragCarHandle-${toIndex}`);
+      this.reorderFeedback.refocusHandle(`dragCarHandle-${toVisibleIndex}`);
     }
 
-    this.carApiService.reorderCars(ordered.map(car => car.id)).subscribe({
+    this.carApiService.reorderCars(reordered.map(car => car.id)).subscribe({
       next: data => {
         this._cars.set(data);
         // The response replaces every record, so the focused handle is a new element by now.
         if (keepFocusOnHandle) {
-          this.reorderFeedback.refocusHandle(`dragCarHandle-${toIndex}`);
+          this.reorderFeedback.refocusHandle(`dragCarHandle-${toVisibleIndex}`);
         }
       },
       error: () => {
@@ -265,11 +282,9 @@ export class SettingsCarsComponent {
     return reordered[toIndex];
   }
 
-  protected readonly faChevronDown = faChevronDown;
-  protected readonly faChevronRight = faChevronRight;
   protected readonly faPencil = faPencil;
-  protected readonly faEye = faEye;
   protected readonly faPlus = faPlus;
+  protected readonly faTruck = faTruck;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;
 }

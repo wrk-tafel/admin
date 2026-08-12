@@ -109,7 +109,8 @@ describe('Settings - Routes', () => {
       routePanel(name).find('[testid^="routes-enabled-toggle-"]').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 
-      routePanel(name).should('contain.text', 'Inaktiv');
+      routePanel(name).find('[testid^="routes-enabled-toggle-"] button')
+        .should('have.attr', 'aria-checked', 'false');
       routePanel(name).find('[testid^="editRouteButton-"]').should('be.disabled');
 
       cy.byTestId('routes-filter-enabled').click();

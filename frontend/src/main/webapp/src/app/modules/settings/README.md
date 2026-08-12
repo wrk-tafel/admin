@@ -46,13 +46,49 @@ settings/
     routes/                        # route: einstellungen/routen
       dialogs/
         route-edit-dialog.component.ts
-    enabled-filter.ts              # Alle/Aktiv/Inaktiv filter shared by shops + routes + return categories
   settings.routes.ts
 ```
 
 Note the `views/` folders here nest their own `dialogs/` subfolders directly
 (rather than a top-level `components/` shared across all views) — `components/`
 is reserved for the two pieces shared by the `email` view specifically.
+
+## Active/inactive is the same on every screen here
+
+No record in this module is ever deleted — `shelters`, `food-categories`,
+`food-return-categories`, `cars`, `shops` and `routes` all deactivate instead,
+because recorded distributions and food collections point at what they hold.
+Every one of those six screens therefore shows and switches that state the same
+way, and a screen that gains an `enabled` flag follows suit:
+
+- **The switch is the status.** One `tafel-enabled-toggle`
+  (`common/components/tafel-enabled-toggle/`) per record, labelled "Aktiv",
+  sitting in the record's action row — in a table, in the `active` column, with
+  `[showLabel]="false"` since the column header is the label already. Its
+  position is what says whether the record is active, so nothing carries a
+  second "Inaktiv" marker beside it; the row or card additionally takes
+  `tafel-inactive`, which mutes its text. Test hook:
+  `<screen>-enabled-toggle-<i>`, `-mobile-<i>` in the card fallback.
+- **A status filter above the list**: one `tafel-enabled-filter`
+  (`common/components/tafel-enabled-filter/`, `EnabledFilter` +
+  `matchesEnabledFilter` beside it), Alle/Aktiv/Inaktiv, feeding a
+  `visibleXxx()` `computed()` that both layouts and the drop lists render.
+  Without it the working list would grow forever. Test hooks:
+  `<screen>-status-filter`, `<screen>-filter-all|-enabled|-disabled`.
+- **`{{ enabledCount() }} von {{ totalCount() }} aktiv` beside the heading**
+  (testid `<screen>-summary`), counted over the full list, not the filtered one.
+- **Reordering counts displayed positions, not stored ones** on the four
+  sortable screens: `reorder()` translates both indices through the visible list
+  into the full one before `moveItemInArray`, so a filtered-out record keeps its
+  place and a move past it jumps over it. The whole list of ids is still sent —
+  the backend numbers what it is given from 1. The handle testids are keyed by
+  the *displayed* index, which is what `ReorderFeedbackService.refocusHandle`
+  must be given.
+- **The edit button is disabled while a record is inactive**, on every screen —
+  an archived record is not maintained, it is reactivated first.
+- **What deactivating costs is said once, in the screen's intro paragraph**
+  (where the category/car/shelter no longer appears, and what it stays part of),
+  not per row.
 
 ## `email` (`SettingsEmailComponent`)
 
@@ -83,12 +119,12 @@ CRUD + drag-and-drop reordering for shelters (Notschlafstellen). Loads via
 - **An expandable card list**, like `shops`/`routes` below and unlike the other
   reorderable screens: a shelter carries a whole contact list, which no table row
   can hold. The collapsed header row is the overview (reorder handle, name,
-  address, persons count, "Inaktiv" badge), the expanded body holds the full
+  address, persons count), the expanded body holds the full
   address, the persons count and the contacts, each contact's phone number a
   `tel:` link. There is no read-only details dialog. The header row's own
   nested-interactive constraint is the one described under `shops`/`routes`:
   the summary is a plain `<button>` carrying `aria-expanded`/`aria-controls`,
-  and reorder handle, activate/deactivate and edit buttons are its **siblings**,
+  and reorder handle, Aktiv switch and edit button are its **siblings**,
   so all three work without expanding the record first. Expanded state is held
   as a `Set` of shelter ids, not indices, so a reorder cannot carry it over to
   whichever record moves into that position.
@@ -144,8 +180,7 @@ Differences worth knowing:
   category is excluded from `FoodCategoriesApiService.getActiveFoodCategories()`,
   which is what feeds the `logistics` module's food-collection-recording form —
   so disabling a category here immediately removes it from that form's category
-  list. The edit button is disabled for disabled categories (commit
-  `909ca265`) to avoid editing something that's effectively archived.
+  list. Switch, filter and summary are the module-wide ones described at the top.
 
 ## `food-return-categories` (`SettingsFoodReturnCategoriesComponent`)
 
@@ -156,15 +191,6 @@ against `FoodReturnCategoriesApiService.reorderFoodReturnCategories()`.
 
 Where it goes beyond that twin:
 
-- **A status filter** (`EnabledFilter` from `views/enabled-filter.ts`, same three-way toggle as
-  shops/routes) drives a `visibleFoodReturnCategories()` `computed()` that both layouts and the
-  drop lists render. A category is only ever deactivated, never deleted, so without it the working
-  list grows forever.
-- **Reordering therefore counts displayed positions, not stored ones.** `reorder()` translates both
-  indices through the visible list into the full one before `moveItemInArray`, so a filtered-out
-  category keeps its place and a move past it jumps over it. The handle testids
-  (`dragFoodReturnCategoryHandle-<i>`) are keyed by the *displayed* index — that is what
-  `ReorderFeedbackService.refocusHandle` must be given, not the index in the full list.
 - **The screen says what it drives**: the category order is the counter order in the
   Warenerfassung, and the names appear in the route guidance's "Retourware mitnehmen/abgeben"
   hints. Both this screen and `food-categories` also carry a note distinguishing them from each
@@ -225,13 +251,6 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
 
 - Loads via `CarApiService.getAllCars()` into a signal (`_cars`), table
   columns `['drag', 'active', 'licensePlate', 'name', 'actions']`.
-- **Active and deactivated cars are listed apart.** The table (and its card
-  fallback) shows `activeCars()` only; `inactiveCars()` sit in a collapsed
-  section below it, as a plain list with a "Wieder aktivieren" button and no
-  drag handle or inline edit — a deactivated car is kept because recorded food
-  collections point at it, not to be maintained. Deactivating one unfolds that
-  section, so the row that just vanished from the working list is visibly
-  somewhere rather than deleted.
 - **Inline editing**: clicking edit (`startEdit()`) sets an `editingId` signal
   and swaps that row's `licensePlate`/`name` cells for a `licensePlateControl`/
   `nameControl` pair; `saveEdit()`/`cancelEdit()` exit the mode (Enter saves,
@@ -249,15 +268,13 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
   it blocks the save, for a deactivated one it offers re-activating that car
   instead, and closes with `{reactivate: car}` rather than `{create: car}`.
 - Same optimistic-drag-then-reconcile reordering pattern as shelters/food
-  categories, against `CarApiService.reorderCars()` — but only the active cars
-  are sortable. The request still carries every id (active ones first,
-  deactivated ones appended), because the backend numbers the ids it is given
-  from 1 and omitted cars would keep sort orders that interleave with the new
-  ones.
+  categories, against `CarApiService.reorderCars()`, over the displayed cars as
+  described at the top of this file.
 - Disabling a car here excludes it from `CarApiService.getActiveCars()`,
   which feeds the `logistics` module's food-collection-recording car
   dropdown (`CarDataResolver`) — same relationship as food categories'
-  enabled/active split.
+  enabled/active split. The car itself stays in this list, greyed and with its
+  Aktiv switch off: recorded food collections point at it, so it is kept.
 
 ## `employees` (`SettingsEmployeesComponent`)
 
@@ -332,8 +349,8 @@ The two logistics master-data screens. Like `shelters` above and unlike the rema
 module they are **not** Material tables with a mobile card fallback: both render a list of
 expandable cards, because their records carry more detail than a row can hold (a shop's contact
 block, a route's whole list of stops). The collapsed header row is the overview — number badge,
-name, one line of summary
-(`view.address` / `view.stopsSummary`) and an "Inaktiv" badge — the expanded body holds the
+name and one line of summary
+(`view.address` / `view.stopsSummary`) — the expanded body holds the
 details, so there is no separate read-only details dialog for either of them.
 
 Both follow the same shape, and a change to one usually belongs in the other:
@@ -342,11 +359,12 @@ Both follow the same shape, and a change to one usually belongs in the other:
   to a `ShopView`/`RouteView` that pre-renders everything the template shows (address string, unit
   label, resolved shop name per stop, `HH:mm` times, stops summary) plus a lowercased
   `searchIndex`. The template only interpolates — no method calls, no pipes per row.
-- **Search + status filter.** A `FormControl` fed through `toSignal()` and an `enabledFilter`
-  signal (`EnabledFilter` from `views/enabled-filter.ts`) drive a `visibleShops()`/`visibleRoutes()`
-  `computed()`. Filtering is purely client-side; both endpoints return the full list anyway.
-- **Enabling/disabling** happens with a `mat-slide-toggle`. On a failed update the list is
-  reloaded, because the toggle has already moved on its own and only fresh data puts it back.
+- **Search on top of the status filter.** A `FormControl` fed through `toSignal()` and the
+  `enabledFilter` signal together drive a `visibleShops()`/`visibleRoutes()` `computed()`.
+  Filtering is purely client-side; both endpoints return the full list anyway. These two screens
+  are the only ones here with a search box — their lists are the long ones.
+- **Enabling/disabling** happens with the module-wide Aktiv switch. On a failed update the list is
+  reloaded, because the switch has already moved on its own and only fresh data puts it back.
 - **Editing** stays dialog-based (`shop-edit-dialog`, `route-edit-dialog`), and the edit button is
   disabled while the record is inactive, same convention as cars/food-categories.
 - **Both controls sit in the record's header row**, not in the expanded body, so a record can be
