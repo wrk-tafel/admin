@@ -37,6 +37,12 @@ ad-hoc CSV/chart statistics export used by the settings/statistics screen in the
   households were entitled), a total accumulated over it (kilograms collected), or the average per data point
   that actually happened. Each `StatisticsDetail` carries that headline twice — formatted as `title`, and as
   the plain `value`/`unit` the frontend computes its period-over-period delta from.
+  Two rules make a period comparable with the one before it, and both are easy to undo by accident:
+  `get_timeline` clamps every bucket to the requested range (`R__00101`), so a range ending today is not
+  measured against a compared range whose final bucket runs to the end of its month; and the four household
+  key figures bound their count by `households.created_at`, so a household is not counted for the years
+  before it registered — without it those four series can only fall, and every delta is negative by
+  construction.
   Note the explicit `Locale.ROOT` formatting call in `executeStatsQuery` — deliberately avoids the JVM default
   `de-DE` locale (comma decimal separator) because the value round-trips through `String.toDouble()`, which
   is locale-independent and would throw on a comma-formatted string.

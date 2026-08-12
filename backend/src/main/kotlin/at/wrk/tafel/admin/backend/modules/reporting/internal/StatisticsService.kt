@@ -170,6 +170,16 @@ class StatisticsService(
 
     private fun String.withUnit(unit: String?): String = unit?.let { "$this $it" } ?: this
 
+    /**
+     * The four key figures below all read "the households entitled during this stretch of the
+     * timeline": still valid when it began, and already registered by the time it ended. The second
+     * half is what `h.created_at` is doing there - without it every household ever registered would
+     * be counted for every point of the timeline, including the years before it existed, so the
+     * curve could only ever fall and a period always looked worse than the one before it.
+     *
+     * `created_at` is measured against the bucket's *end* rather than its start so the newest point
+     * - the one the headline is read off - includes a household registered today.
+     */
     fun countBeneficiaryCustomers(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
             SELECT
@@ -178,6 +188,7 @@ class StatisticsService(
                     SELECT COUNT(*)
                     FROM households h
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked is not true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
@@ -197,6 +208,7 @@ class StatisticsService(
                     -- every household member is a row in persons, including the main person
                     JOIN persons p ON p.household_id = h.id
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked is not true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
@@ -215,9 +227,12 @@ class StatisticsService(
                     FROM households h
                     JOIN persons p ON p.household_id = h.id
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked IS NOT TRUE
                     AND p.is_main_person = false
-                    AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) <= 15
+                    -- at least 0, so a member born after this point of the timeline - whose AGE()
+                    -- is negative there - is not counted as a child back then
+                    AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) BETWEEN 0 AND 15
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -234,6 +249,7 @@ class StatisticsService(
                     SELECT COUNT(*)
                     FROM households h
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked is not true
                     AND h.single_parent is true
                 ) as value

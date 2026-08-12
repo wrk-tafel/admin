@@ -2,9 +2,12 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createDistribution
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
@@ -16,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.IsoFields
 
 /**
  * Exercises the real `PersonEntity.Specs` birthDate-range/pagination query against Postgres -
@@ -169,6 +174,100 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         val result = statisticsService.getChildrenAgeDistribution(ageMin = 8, ageMax = 8)
 
         assertThat(result.items).containsExactly(ChildAgeCountItem(age = 8, count = 1))
+    }
+
+    /**
+     * A household counts from the period it was registered in onwards, not for every period the
+     * database has ever covered - measured as the difference the household makes to each bucket,
+     * so the assertion holds whatever else the schema already contains.
+     */
+    @Test
+    fun `a household is counted only from the period it was registered in`() {
+        val fromDate = LocalDate.now().minusMonths(5).withDayOfMonth(1)
+        val toDate = LocalDate.now()
+        val before = statisticsService.countBeneficiaryCustomers(fromDate, toDate)
+
+        val household = persistHousehold()
+        setRegisteredAt(household, LocalDate.now().minusMonths(2).atStartOfDay())
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val after = statisticsService.countBeneficiaryCustomers(fromDate, toDate)
+        val addedPerBucket = after.zip(before).map { (now, then) -> now.value.toInt() - then.value.toInt() }
+
+        assertThat(addedPerBucket).hasSize(before.size)
+        // the buckets before it registered are untouched, the ones from that month on carry it
+        assertThat(addedPerBucket.take(before.size - 3)).containsOnly(0)
+        assertThat(addedPerBucket.takeLast(3)).containsOnly(1)
+    }
+
+    /**
+     * The timeline buckets whole weeks and months, but the series it makes of them has to describe
+     * the range that was asked for and nothing besides: it reaches the last day of the range, and
+     * no bucket collects a distribution that lies outside it. Both are what makes a period
+     * comparable with the one before it - see `R__00101_statistics_timeline_bounds.sql`.
+     */
+    @Test
+    fun `the timeline covers the requested range up to its last day`() {
+        val toDate = LocalDate.now()
+        val results = statisticsService.countBeneficiaryCustomers(toDate.withDayOfMonth(1), toDate)
+
+        val expectedLastLabel = "%d-KW%02d".format(
+            toDate.get(IsoFields.WEEK_BASED_YEAR),
+            toDate.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR),
+        )
+        assertThat(results.last().label).isEqualTo(expectedLastLabel)
+    }
+
+    @Test
+    fun `a distribution after the requested range is not counted towards its last bucket`() {
+        // a range ending mid-month, and a distribution held later in that same month
+        val fromDate = LocalDate.now().withDayOfMonth(1).minusMonths(4)
+        val toDate = LocalDate.now().withDayOfMonth(10)
+        val before = statisticsService.countShelters(fromDate, toDate)
+
+        persistShelterStatistic(distributionDate = toDate.plusDays(5))
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(statisticsService.countShelters(fromDate, toDate)).isEqualTo(before)
+
+        // the very same distribution does count once the range reaches it
+        val widerRange = statisticsService.countShelters(fromDate, toDate.plusDays(6))
+        assertThat(widerRange.sumOf { it.value.toInt() }).isEqualTo(before.sumOf { it.value.toInt() } + 1)
+    }
+
+    private fun persistShelterStatistic(distributionDate: LocalDate) {
+        val distribution = createDistribution(testUser)
+        distribution.startedAt = distributionDate.atTime(13, 0)
+        distribution.endedAt = distributionDate.atTime(18, 0)
+        testEntityManager.persist(distribution)
+
+        val statistic = DistributionStatisticEntity(distribution = distribution)
+        statistic.shelters = mutableListOf(
+            DistributionStatisticShelterEntity(
+                statistic = statistic,
+                name = "Notschlafstelle",
+                addressStreet = "Erdberg",
+                addressHouseNumber = "1",
+                addressPostalCode = 1030,
+                addressCity = "Wien",
+                personsCount = 40,
+            ),
+        )
+        testEntityManager.persist(statistic)
+    }
+
+    /**
+     * `createdAt` is filled by JPA auditing on insert, so a household that registered in the past
+     * can only be written by updating the column afterwards.
+     */
+    private fun setRegisteredAt(household: HouseholdEntity, registeredAt: LocalDateTime) {
+        testEntityManager.entityManager
+            .createNativeQuery("UPDATE households SET created_at = :createdAt WHERE id = :id")
+            .setParameter("createdAt", registeredAt)
+            .setParameter("id", household.id)
+            .executeUpdate()
     }
 
     private fun persistHousehold(
