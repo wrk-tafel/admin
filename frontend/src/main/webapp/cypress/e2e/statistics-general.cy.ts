@@ -37,7 +37,9 @@ describe('Statistics General', () => {
 
   it('shows a placeholder on the cards while the numbers are loading', () => {
     cy.intercept('GET', '/api/statistics/data*', request => {
-      request.on('response', response => response.setDelay(1000));
+      request.on('response', response => {
+        response.setDelay(1000);
+      });
     }).as('slowData');
 
     cy.reload();
