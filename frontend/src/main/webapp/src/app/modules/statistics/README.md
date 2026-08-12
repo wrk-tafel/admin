@@ -5,8 +5,9 @@ the `dashboard` module's live, per-distribution cockpit. The nav item is a paren
 sub-pages:
 
 - **Allgemein** (`/statistiken/allgemein`) — pick a date range (or a specific past distribution,
-  or "current month", or a whole year), fetch aggregated counters for that range from the
-  backend, render them as small Chart.js line charts, and offer a CSV export of the same range.
+  or "current month", or a whole year, or the previous one), fetch aggregated counters for that
+  range *and for the period before it* from the backend, render them as small Chart.js line charts
+  with the delta between the two, and offer a CSV export of the same range.
 - **Auswertung Kinder** (`/statistiken/auswertung-kinder`) — how many children of entitled
   households fall into an age range, with the split per age year, the matching list and a CSV
   export. Not date-range-driven like Allgemein: it is measured against an age range and a reference
@@ -32,6 +33,8 @@ statistics/
     statistics-settings-resolver.component.ts  # StatisticsSettingsResolver -> StatisticsSettings (Allgemein only)
   components/
     statistics-panel.component.ts / .html / .spec.ts  # one Chart.js line-chart "tile" (used by Allgemein)
+    statistics-detail-dialog.component.ts / .html / .spec.ts  # a tile's course enlarged, with axes
+    statistics-comparison.ts / .spec.ts        # what "the period before this one" is, and the delta to it
 ```
 
 The two pages are deliberately separate components/routes, not tabs inside one component - they
@@ -42,39 +45,118 @@ nav renders them as `Statistiken > Allgemein / Auswertung Kinder` sub-items (see
 ## Allgemein: how the date range drives data
 
 `StatisticsGeneralComponent` keeps the range as two signals, `_dateRangeFrom` / `_dateRangeTo`,
-exposed as a combined `computed()` called `dateRange`. Four mutually exclusive input modes
-(`year` / `currentMonth` / `distribution` / `custom`, a `mat-button-toggle-group` in the template)
-all funnel into setting those two signals — e.g. picking a year computes Jan 1–now (current year)
-or Jan 1–Dec 31 (past year) via `dayjs`; picking a past distribution copies its
+exposed as a combined `computed()` called `dateRange`. Five mutually exclusive input modes
+(`year` / `previousYear` / `currentMonth` / `distribution` / `custom`, a `mat-button-toggle-group`
+in the template) all funnel into setting those two signals — e.g. picking a year computes Jan 1–now
+(current year) or Jan 1–Dec 31 (past year) via `dayjs`; picking a past distribution copies its
 `startDate`/`endDate` straight from `StatisticsSettings.distributions` (supplied by the resolver).
+`previousYear` is the same whole-year range as picking last year from the dropdown, one click away,
+because "how does this compare to last year" is the question the screen is opened for.
+
+An incomplete or inverted range (a date input cleared mid-edit, "von 30.06. bis 01.01.") is not
+sent: `dateRangeInvalid` blocks the request and the last valid answer stays on screen with a hint
+beside the inputs — the backend would only answer an empty range with an error nobody can act on.
 
 The actual data fetch is reactive, not imperative — no manual `.subscribe()` call on range change:
 
 ```ts
-statisticsData = toSignal(
-  toObservable(this.dateRange).pipe(
-    switchMap(range => this.statisticsApiService.getData(range.from, range.to))
+toObservable(computed(() => ({range: this.dateRange(), comparison: this.comparisonRange()})))
+  .pipe(
+    filter(() => !this.dateRangeInvalid()),
+    tap(() => this.loading.set(true)),
+    switchMap(query => this.loadData(query.range, query.comparison)),
+    takeUntilDestroyed()
   )
-);
+  .subscribe(...);
 ```
 
-`toObservable(this.dateRange)` re-emits whenever any of the mode-switching methods above updates
-`_dateRangeFrom`/`_dateRangeTo`, `switchMap` cancels any in-flight request for the previous range,
-and `toSignal()` turns the result back into a signal the template reads directly with
-`statisticsData()`. There is no SSE involved anywhere in this module — everything here is a plain
+The stream is keyed on the compared range as well as the shown one, not on the dates alone:
+switching from `year` to `custom` can leave the dates untouched while changing what they are
+measured against, and that has to refetch too. `switchMap` cancels any in-flight request for the
+previous range. There is no SSE involved anywhere in this module — everything here is a plain
 resolved HTTP `GET` (`/statistics/data`, `/statistics/settings`, `/statistics/generate-csv`), since
 it reports on data that has already settled (past or closing distributions), unlike `dashboard`'s
 live counters.
 
+`appliedRange` (and `appliedComparisonRange`) is what every label on screen describes — the range
+the numbers actually belong to. Reading the picker instead would relabel them the moment someone
+changes it, before the matching response has arrived.
+
+## Allgemein: the comparison
+
+A number without a reference point is not an insight, so every key figure is shown together with
+its delta against the equivalent period before it. What "equivalent" means is the mode's business
+and lives in `components/statistics-comparison.ts` (`previousDateRange`, `COMPARISON_LABELS`):
+a year against the year before, the running month against the same days of the month before, a
+distribution against the distribution recorded before it, a custom range against the same number of
+days directly in front of it. There is no second endpoint for this — `/statistics/data` is asked
+twice with shifted dates, both requests fired at once via `forkJoin`.
+
+Two consequences worth knowing:
+
+- The comparison is allowed to fail on its own. A failing comparison request leaves the key figures
+  themselves standing (they are what the screen is for); only a failing *current* request is
+  reported as an error.
+- Not every period has a predecessor — the oldest recorded distribution has none — and then the
+  cards simply show no delta, with the summary line saying why.
+
+The delta is computed from `StatisticsDetailData.value`, the plain number the backend sends
+alongside the formatted `title`; `unit` is what a value formatted here (a min/max, a difference)
+carries. Parsing the delta back out of `title` would mean undoing thousands separators and a unit
+suffix again.
+
+`distributionsInRange` counts the closed distributions the applied range covers, from the settings
+the resolver already fetched. A range without any is called out explicitly: shelters and logistics
+are recorded per distribution and stay zero then, while the customer counts still report the state
+at the end of the range — ten empty cards otherwise read as a defect.
+
+Whether the comparison is *worth* looking at depends on the data behind it, which is why the
+`testdata` fixture carries three years of weekly distributions and a household base that grows and
+lapses over the same window (`db-migration-testdata/testdata.sql`). Against a database that holds a
+single distribution and households whose validity never ends, both periods answer the same number
+and every card correctly reads "±0" over a flat line — which looks exactly like a broken screen.
+
+## Allgemein: the period picker
+
+The six periods, the control belonging to the picked one, and the CSV export share one block. From
+`lg` up it is a two-column grid with the export in the block's bottom right corner, beside the
+range it exports; below that it is a single column, so the export ends up where a form's confirming
+button belongs — full width, under the numbers it covers. The toggle group wraps onto further lines
+rather than scrolling sideways: a horizontal scrollbar hides periods behind an edge that nothing
+announces. `tafel-button-toggle-group-wrap` (`scss/components/mat-button-toggle.scss`) is what makes
+a wrapped group look like one control — Material styles a single line only.
+
+`currentYear` and `previousYear` are the running year and the one before it in a single click and
+need no control of their own; `year` is the same range for any other year and is the only one of the
+three with a select beside it. Each period's own control is only as wide as its longest answer (a
+year is four characters) from `sm` up; a field stretched across the card reads as if more were
+expected, and on a phone there is nothing to stretch it against.
+
 ## Charts: `StatisticsPanelComponent`
 
-Each of the nine tiles rendered in `statistics-general.component.html` is one
-`<tafel-statistics-panel [data]="...">`, wrapping a single `ng2-charts` `<canvas baseChart>` line
-chart. `StatisticsPanelComponent` just reshapes the incoming `StatisticsDetailData` (`title`,
-`subTitle`, `labels`, `dataPoints`) into the Chart.js `data`/`options` shape via a `computed()`
-(`chartData`), and applies one fixed, shared `optionsDefault` object: no axes, no legend, no
-gridlines — these are meant to read as compact sparklines with a big number/title overlaid via
-plain HTML (`data()?.title` / `data()?.subTitle`), not as analytical charts with tickable axes.
+Each of the ten tiles rendered in `statistics-general.component.html` is one
+`<tafel-statistics-panel [data]="..." [comparison]="...">`, wrapping a single `ng2-charts`
+`<canvas baseChart>` line chart. `StatisticsPanelComponent` reshapes the incoming
+`StatisticsDetailData` (`title`, `subTitle`, `value`, `unit`, `labels`, `dataPoints`) into the
+Chart.js `data`/`options` shape via a `computed()` (`chartData`), and applies one fixed, shared
+`optionsDefault` object: no y axis, no legend — these read as compact sparklines with a big
+number/title above them in plain HTML, not as analytical charts with tickable axes. The one axis
+they keep is the x one: which stretch of time a point stands for, as a thin gridline per period with
+its name under it. Which periods get named is `axisLabel`'s business — every one of them when they
+fit (which is what shortening `2026-03` to `03` is for), otherwise as many as do, but always the
+first and the last. What the line *also* offers on demand is its scale: the min/max/last values
+written out beside it, tooltips
+naming the value at the pointer's position, and the whole course with axes in an enlarged dialog
+(`StatisticsDetailDialogComponent`) the card opens on click. The card's own keyboard path to that
+dialog is the small button in its corner — the click on the card itself is a mouse convenience on
+top of it, not a second tab stop. That dialog is opened with an explicit `width`/`maxWidth`: sized
+by its content it comes out barely wider than the sparkline it was opened from on a phone, and
+reading the course off the chart is the whole reason it exists.
+
+While a period is loading, a panel renders a placeholder in place of its numbers rather than
+keeping the previous period's on screen; the page announces the state once for all ten cards, so a
+screen reader is not told about it ten times.
+
 `ng2-charts`' `provideCharts(withDefaultRegisterables())` is registered as a route-level provider on
 each chart-bearing route in `statistics.routes.ts` (`allgemein` and `auswertung-kinder`) rather than
 app-wide, so Chart.js is only pulled in when such a route is actually navigated to. The
@@ -82,18 +164,19 @@ Auswertung Kinder bar chart doesn't go through `StatisticsPanelComponent`: it dr
 `<canvas baseChart>` with visible axes, because there the split per age year *is* the information,
 not a trend line behind a headline number.
 
-`StatisticsGeneralComponent`'s template feeds all nine `StatisticsData` fields from the
-`/statistics/data` response into panels, grouped under three headings:
+`StatisticsGeneralComponent.panelGroups` maps all ten `StatisticsData` fields of the
+`/statistics/data` response - together with the same fields of the compared period - onto the three
+headings they are read under:
 
 - **Kunden und Personen** (customers/persons): `beneficiaryCustomers`, `beneficiaryPersons`,
-  `beneficiaryCustomersWithChildren`
+  `beneficiaryCustomersWithChildren`, `singleParentHouseholds`
 - **Notschlafstellen** (shelters): `sheltersCount`, `sheltersAverage`, `sheltersPersonsCount`
 - **Transport- / Logistik**: `shopsCount`, `shopItemsTotal`, `shopItemsAverage`
 
-All nine are typed in `app/api/statistics-api.service.ts` as `StatisticsDetailData` — the same
-shape for every panel (`title`/`subTitle`/`labels`/`dataPoints`), so adding a tenth metric on the
-backend just means adding one more field to `StatisticsData` and one more
-`<tafel-statistics-panel>` in the template; `StatisticsPanelComponent` needs no changes.
+All ten are typed in `app/api/statistics-api.service.ts` as `StatisticsDetailData` — the same shape
+for every panel — so adding an eleventh metric on the backend means one more field on
+`StatisticsData` and one more key in `panelGroups`; neither the template nor
+`StatisticsPanelComponent` needs changing.
 
 ## `resolver/`
 
@@ -210,10 +293,9 @@ and route alongside `children/`, rather than growing this one into a multi-repor
   `dateRange` `computed()` and the API calls expect `Date` objects.
 - Switching to `'custom'` mode doesn't reset `_dateRangeFrom`/`_dateRangeTo` — it keeps whatever
   the previous mode left behind, so the date inputs start prefilled with the last active range.
-- `statisticsData()` is `undefined` until the first response arrives; the results card
-  (`@if (statisticsData())`) is entirely absent from the DOM until then — there's no loading
-  spinner, so a slow `/statistics/data` response just shows nothing below the range picker. Same
-  applies to `childrenData()` on the Auswertung Kinder page.
+- `statisticsData()` is `undefined` until the first response arrives; the cards are rendered from
+  the start regardless and show their loading placeholder until then. `childrenData()` on the
+  Auswertung Kinder page has no such placeholder — a slow response there simply shows nothing yet.
 - The nav item "Statistiken" has no `url` of its own anymore (see `navigation-menuItems.ts`) — it
   only renders as an expandable group with the two children, matching the existing
   `Benutzer`/`Einstellungen` pattern. Navigating straight to `/statistiken` still works via the

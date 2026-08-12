@@ -1,4 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {catchError, EMPTY, map, Subject, switchMap} from 'rxjs';
 import {Router, RouterLink} from '@angular/router';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
@@ -65,7 +67,35 @@ export class CustomerSearchComponent {
   // signal rather than derived from searchResult(), because the empty result clears that signal.
   searchAnnouncement = signal('');
 
+  /**
+   * Every search goes through this subject instead of subscribing per call, so that a newer search
+   * cancels the one still in flight. Without it the answers race and the last one to *arrive* wins:
+   * the unfiltered list this screen loads on arrival is the slowest query it has, so a search
+   * started while it is still on its way would be silently replaced by everything again.
+   */
+  private readonly searches = new Subject<CustomerSearchRequest>();
+
   constructor() {
+    this.searches
+      .pipe(
+        switchMap(request => this.customerApiService.searchCustomer(
+          this.searchInput.value ?? undefined,
+          this.postProcessing.value ?? undefined,
+          this.costContribution.value ?? undefined,
+          this.valid.value ?? undefined,
+          request.page,
+          request.pageSize,
+        ).pipe(
+          map(response => ({response: response, announceOutcome: request.announceOutcome})),
+          // Caught inside the inner observable, so a failed search ends only itself: let it reach
+          // the subject's stream and that stream terminates, and the screen stops searching
+          // altogether until it is reloaded. The interceptor has already reported the error.
+          catchError(() => EMPTY),
+        )),
+        takeUntilDestroyed(),
+      )
+      .subscribe(result => this.applySearchResult(result.response, result.announceOutcome));
+
     // Land on the first page of customers rather than an empty form. The unfiltered list is what
     // most visits are after anyway, and showing it makes the screen explain itself instead of
     // leaving the impression that there is nothing here until something is typed.
@@ -100,29 +130,24 @@ export class CustomerSearchComponent {
    * to a screen reader on arrival is noise about something nobody asked for.
    */
   searchForDetails(page?: number, pageSize?: number, announceOutcome = true) {
-    this.customerApiService.searchCustomer(
-      this.searchInput.value ?? undefined,
-      this.postProcessing.value ?? undefined,
-      this.costContribution.value ?? undefined,
-      this.valid.value ?? undefined,
-      page,
-      pageSize)
-      .subscribe((response: CustomerSearchResult) => {
-        if (response.items.length === 0) {
-          this.searchResult.set(undefined);
-          if (announceOutcome) {
-            this.toastr.info('Keine Kunden gefunden!');
-            this.searchAnnouncement.set('Keine Kunden gefunden');
-          }
-        } else {
-          this.searchResult.set(response);
-          if (announceOutcome) {
-            this.searchAnnouncement.set(
-              response.totalCount === 1 ? '1 Kunde gefunden' : `${response.totalCount} Kunden gefunden`
-            );
-          }
-        }
-      });
+    this.searches.next({page: page, pageSize: pageSize, announceOutcome: announceOutcome});
+  }
+
+  private applySearchResult(response: CustomerSearchResult, announceOutcome: boolean) {
+    if (response.items.length === 0) {
+      this.searchResult.set(undefined);
+      if (announceOutcome) {
+        this.toastr.info('Keine Kunden gefunden!');
+        this.searchAnnouncement.set('Keine Kunden gefunden');
+      }
+    } else {
+      this.searchResult.set(response);
+      if (announceOutcome) {
+        this.searchAnnouncement.set(
+          response.totalCount === 1 ? '1 Kunde gefunden' : `${response.totalCount} Kunden gefunden`
+        );
+      }
+    }
   }
 
   navigateToCustomer(customerId: number) {
@@ -164,4 +189,11 @@ export class CustomerSearchComponent {
   protected readonly faUser = faUser;
   protected readonly faSearch = faSearch;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
+}
+
+/** One queued search - the filters themselves are read off the form when the request is sent. */
+interface CustomerSearchRequest {
+  page?: number;
+  pageSize?: number;
+  announceOutcome: boolean;
 }

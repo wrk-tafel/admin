@@ -19,7 +19,9 @@ ad-hoc CSV/chart statistics export used by the settings/statistics screen in the
   (needed because `ByteArray` doesn't get structural equality for free from a data class).
 - **`StatisticsController`** – `GET /api/statistics/*`, guarded by `@PreAuthorize("hasAuthority('STATISTICS')")`.
   Serves `/settings` (years + list of closed distributions available to pick from), `/data` (chart data for a
-  date range), and `/generate-csv` (single combined CSV export for a date range). This is the API the
+  date range), and `/generate-csv` (single combined CSV export for a date range). The frontend compares two
+  periods by asking `/data` twice with shifted dates — there is no separate comparison endpoint, and none is
+  needed: the previous period is the same question asked of another range. This is the API the
   frontend's **statistics** feature module (Chart.js panels) talks to — unrelated to the daily-report/CSV
   files emailed after closing a distribution.
 
@@ -30,6 +32,17 @@ ad-hoc CSV/chart statistics export used by the settings/statistics screen in the
   migrations if you need to change bucketing/resolution behavior). Produces beneficiary
   household/person counts, shelter counts/averages, and shop/food totals, each as a labeled timeseries
   (`StatisticsResult`), then also flattens the latest data point into `/generate-csv`'s single-row CSV export.
+  Which data point a key figure's headline is depends on what it measures, which is what the three
+  `lastValueDetail`/`sumDetail`/`averageDetail` helpers stand for: a state at the end of the period (how many
+  households were entitled), a total accumulated over it (kilograms collected), or the average per data point
+  that actually happened. Each `StatisticsDetail` carries that headline twice — formatted as `title`, and as
+  the plain `value`/`unit` the frontend computes its period-over-period delta from.
+  Two rules make a period comparable with the one before it, and both are easy to undo by accident:
+  `get_timeline` clamps every bucket to the requested range (`R__00101`), so a range ending today is not
+  measured against a compared range whose final bucket runs to the end of its month; and the four household
+  key figures bound their count by `households.created_at`, so a household is not counted for the years
+  before it registered — without it those four series can only fall, and every delta is negative by
+  construction.
   Note the explicit `Locale.ROOT` formatting call in `executeStatsQuery` — deliberately avoids the JVM default
   `de-DE` locale (comma decimal separator) because the value round-trips through `String.toDouble()`, which
   is locale-independent and would throw on a comma-formatted string.
