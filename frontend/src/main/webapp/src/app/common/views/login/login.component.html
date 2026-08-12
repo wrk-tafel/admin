@@ -1,80 +1,110 @@
-<main class="min-h-dvh flex items-center justify-center bg-[var(--tafel-background-secondary)] p-6">
-  <div class="w-full max-w-md">
-    <mat-card class="shadow-md">
-      <mat-card-content class="p-8 md:p-10">
-        <div class="flex flex-col items-center mb-8 text-center">
-          <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="mb-4 h-[54px] w-[200px] object-contain"/>
-          <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Tafel Admin</h1>
-          @if (environmentLabel()) {
-            <div testid="environmentLabel" class="text-xs font-semibold uppercase tracking-wide text-slate-500 mt-1">
-              {{ environmentLabel() }}
+<main class="min-h-dvh flex flex-col bg-[var(--tafel-background-secondary)]">
+  @if (environmentLabel()) {
+    <!--
+      A full-width banner rather than a small line under the title: an unnoticed test/prod mix-up
+      on otherwise identical-looking systems is a real operational hazard, so this has to be
+      impossible to miss - not just present. role="status" rather than "alert": it's a standing
+      fact about the deployment, not a one-off notification.
+    -->
+    <div testid="environmentLabel" role="status"
+         class="w-full py-2 px-4 flex items-center justify-center gap-2 bg-amber-100 text-amber-900 border-b border-amber-300 text-sm font-semibold uppercase tracking-wide">
+      <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+      <span>{{ environmentLabel() }}</span>
+    </div>
+  }
+
+  <div class="flex-1 flex items-center justify-center p-6">
+    <div class="w-full max-w-md">
+      <mat-card class="shadow-md">
+        <mat-card-content class="p-8 md:p-10">
+          <div class="flex flex-col items-center mb-8 text-center">
+            <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="mb-4 h-[54px] w-[200px] object-contain"/>
+            <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Tafel Admin</h1>
+          </div>
+
+          @if (errorMessage()) {
+            <!-- Announced rather than only shown: a rejected login is otherwise silent for a screen reader. -->
+            <div testid="errorMessage" class="tafel-banner-error" role="alert">
+              <div>{{ errorMessage() }}</div>
             </div>
           }
-        </div>
 
-        @if (errorMessage()) {
-          <!-- Announced rather than only shown: a rejected login is otherwise silent for a screen reader. -->
-          <div testid="errorMessage" class="tafel-banner-error" role="alert">
-            <div>{{ errorMessage() }}</div>
-          </div>
-        }
-
-        <form (submit)="onSubmit($event)" class="flex flex-col">
-          <div class="mb-4">
-            <mat-form-field class="w-full">
-              <mat-label>Benutzername</mat-label>
-              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                <fa-icon [icon]="faUser"></fa-icon>
-              </mat-icon>
-              <input [formField]="loginForm.username" matInput testid="username" type="text"
-                     autocomplete="username" tafelAutofocus
-                     (animationstart)="onAutofill($event, 'username')">
-              @for (message of visibleErrorMessages(loginForm.username()); track message) {
-                <mat-error class="block">{{ message }}</mat-error>
-              }
-            </mat-form-field>
-          </div>
-
-          <div class="mb-4">
-            <mat-form-field class="w-full">
-              <mat-label>Passwort</mat-label>
-              <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                <fa-icon [icon]="faKey"></fa-icon>
-              </mat-icon>
-              <input [formField]="loginForm.password" matInput testid="password"
-                     [type]="passwordVisible() ? 'text' : 'password'"
-                     autocomplete="current-password"
-                     (animationstart)="onAutofill($event, 'password')">
-              <!--
-                The toggle is a real button rather than a bare `mat-icon` with a click handler: an
-                icon element is neither focusable nor named, which made showing the password a
-                mouse-only action. The icon keeps its own markup so the field looks unchanged.
-              -->
-              <button matSuffix type="button" class="cursor-pointer"
-                      (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle"
-                      [attr.aria-label]="passwordVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
-                      [attr.aria-pressed]="passwordVisible()">
-                <!--
-                  `box-content` restores what Material's `.mat-mdc-form-field-icon-suffix > .mat-icon`
-                  rule used to give this icon while it was a direct child of the suffix container -
-                  without it the padding eats into the 20px box instead of adding to it.
-                -->
-                <mat-icon class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 box-content">
-                  <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
+          <form (submit)="onSubmit($event)" class="flex flex-col">
+            <div class="mb-4">
+              <mat-form-field class="w-full">
+                <mat-label>Benutzername</mat-label>
+                <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                  <fa-icon [icon]="faUser"></fa-icon>
                 </mat-icon>
-              </button>
-              @for (message of visibleErrorMessages(loginForm.password()); track message) {
-                <mat-error class="block">{{ message }}</mat-error>
-              }
-            </mat-form-field>
-          </div>
+                <input #usernameInput [formField]="loginForm.username" matInput testid="username" type="text"
+                       autocomplete="username" tafelAutofocus
+                       (animationstart)="onAutofill($event, 'username')">
+                @for (message of visibleErrorMessages(loginForm.username()); track message) {
+                  <mat-error class="block">{{ message }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
 
-          <button testid="loginButton" matButton="filled" type="submit" class="w-full mt-4"
-                  [disabled]="!loginForm().valid() || submitting()">
-            {{ submitting() ? 'Anmeldung läuft…' : 'Anmelden' }}
-          </button>
-        </form>
-      </mat-card-content>
-    </mat-card>
+            <div class="mb-4">
+              <mat-form-field class="w-full">
+                <mat-label>Passwort</mat-label>
+                <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                  <fa-icon [icon]="faKey"></fa-icon>
+                </mat-icon>
+                <input [formField]="loginForm.password" matInput testid="password"
+                       [type]="passwordVisible() ? 'text' : 'password'"
+                       autocomplete="current-password"
+                       (animationstart)="onAutofill($event, 'password')"
+                       (keydown)="onPasswordKeyEvent($event)" (keyup)="onPasswordKeyEvent($event)">
+                <!--
+                  The toggle is a real button rather than a bare `mat-icon` with a click handler: an
+                  icon element is neither focusable nor named, which made showing the password a
+                  mouse-only action. The icon keeps its own markup so the field looks unchanged.
+                -->
+                <button matSuffix type="button" class="cursor-pointer"
+                        (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle"
+                        [attr.aria-label]="passwordVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
+                        [attr.aria-pressed]="passwordVisible()">
+                  <!--
+                    `box-content` restores what Material's `.mat-mdc-form-field-icon-suffix > .mat-icon`
+                    rule used to give this icon while it was a direct child of the suffix container -
+                    without it the padding eats into the 20px box instead of adding to it.
+                  -->
+                  <mat-icon class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 box-content">
+                    <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
+                  </mat-icon>
+                </button>
+                @for (message of visibleErrorMessages(loginForm.password()); track message) {
+                  <mat-error class="block">{{ message }}</mat-error>
+                }
+              </mat-form-field>
+              @if (capsLockActive()) {
+                <!--
+                  Outside the mat-form-field rather than a matHint: with no ngModel/formControlName on
+                  this signal-forms input, mat-form-field has no errorState of its own to switch a hint
+                  and an error against, so a matHint here would race the mat-error list above instead
+                  of ever reliably coexisting with it.
+                -->
+                <div testid="capsLockWarning" role="status" class="mt-1 flex items-center gap-1 text-xs text-amber-700">
+                  <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+                  <span>Feststelltaste ist aktiviert</span>
+                </div>
+              }
+            </div>
+
+            <!--
+              Never [disabled] for form-validity reasons: that fights browser autofill and gives no
+              feedback on why nothing happens. Validation runs on submit instead (see login()), and
+              the mat-errors plus the banner above do the explaining. Only the in-flight request
+              still disables it, so a double-click can't fire two logins at once.
+            -->
+            <button testid="loginButton" matButton="filled" type="submit" class="w-full mt-4"
+                    [disabled]="submitting()">
+              {{ submitting() ? 'Anmeldung läuft…' : 'Anmelden' }}
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </main>

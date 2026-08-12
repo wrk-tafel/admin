@@ -16,11 +16,11 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 
 ## Anmeldung
 
-Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt man automatisch zur Übersicht (Dashboard).
+Der Login erfolgt über Benutzername und Passwort. Die Schaltfläche "Anmelden" ist dabei immer aktiv – eine Prüfung auf ausgefüllte Felder erfolgt erst beim Klick, damit vom Browser automatisch ausgefüllte Felder nicht zu einer scheinbar funktionslosen Schaltfläche führen. Fehlt ein Feld, wird das direkt am Feld angezeigt. Ist beim Tippen des Passworts die Feststelltaste aktiv, erscheint darunter ein Hinweis darauf, da das auf gemeinsam genutzten Geräten und externen Tastaturen eine häufige, leicht zu übersehende Ursache für ein falsches Passwort ist. Nach der Anmeldung gelangt man automatisch zur Übersicht (Dashboard).
 
 ![Login](images/login.jpg)
 
-Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlich eine Umgebungskennzeichnung (z. B. "DEV" oder "TEST") angezeigt, damit diese optisch klar von der Produktivumgebung unterscheidbar sind. Auf der Produktivumgebung bleibt diese Kennzeichnung wie oben abgebildet ausgeblendet.
+Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich ein durchgehendes, farblich hervorgehobenes Banner mit der Umgebungskennzeichnung (z. B. "DEV" oder "TEST") angezeigt, damit diese optisch klar von der Produktivumgebung unterscheidbar sind – gerade an baugleichen Geräten eine wichtige Absicherung gegen Verwechslungen. Auf der Produktivumgebung bleibt dieses Banner wie oben abgebildet ausgeblendet.
 
 ![Login mit Umgebungskennzeichnung](images/login-umgebungskennzeichnung.jpg)
 
@@ -98,7 +98,7 @@ Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login
 
 In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten.
 
-Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.", nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden." und bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!".
+Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es in ca. 5 Minuten erneut oder wenden Sie sich an eine Administratorin/einen Administrator." (die genannte Wartezeit entspricht der tatsächlich konfigurierten Sperrdauer), nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden.", bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!" und wenn der Server nicht erreichbar ist (z. B. bei einer Störung) "Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut." – letzteres damit eine Störung nicht mit einem falschen Passwort verwechselt und unnötig ein Passwort zurückgesetzt wird. Bei jedem fehlgeschlagenen Anmeldeversuch springt der Cursor automatisch zurück ins Benutzername-Feld, dessen Inhalt markiert ist, sodass der nächste Versuch mit einem einzigen Tastendruck beginnen kann.
 
 ![Sitzung abgelaufen](images/login-sitzung-abgelaufen.jpg)
 

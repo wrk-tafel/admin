@@ -79,7 +79,7 @@ describe('LoginComponent', () => {
     });
 
     it('login successful', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: false, locked: false };
+        const loginResult = { successful: true, passwordChangeRequired: false, locked: false, serverUnreachable: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -101,11 +101,12 @@ describe('LoginComponent', () => {
     });
 
     it('login failed', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false };
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
         const component = fixture.componentInstance;
+        fixture.detectChanges();
 
         component.loginFormModel.set({
             username: 'user',
@@ -117,12 +118,14 @@ describe('LoginComponent', () => {
         expect(component.errorMessage()).toBe('Anmeldung fehlgeschlagen!');
     });
 
-    it('login failed - account locked', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: true };
+    it('login failed - account locked, no configured duration known', async () => {
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
+        configApiService.getPublicConfig.mockReturnValue(of(null));
 
         const fixture = TestBed.createComponent(LoginComponent);
         const component = fixture.componentInstance;
+        fixture.detectChanges();
 
         component.loginFormModel.set({
             username: 'user',
@@ -131,11 +134,76 @@ describe('LoginComponent', () => {
 
         await component.login();
 
-        expect(component.errorMessage()).toBe('Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.');
+        expect(component.errorMessage()).toBe(
+            'Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut oder wenden Sie sich an eine'
+            + ' Administratorin/einen Administrator.'
+        );
+    });
+
+    it('login failed - account locked mentions the configured lockout duration', async () => {
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false };
+        authService.login.mockReturnValue(Promise.resolve(loginResult));
+        configApiService.getPublicConfig.mockReturnValue(of({ environmentLabel: '', accountLockoutDurationInSeconds: 300 }));
+
+        const fixture = TestBed.createComponent(LoginComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
+        });
+
+        await component.login();
+
+        expect(component.errorMessage()).toBe(
+            'Konto vorübergehend gesperrt! Bitte versuchen Sie es in ca. 5 Minuten erneut oder wenden Sie sich an eine'
+            + ' Administratorin/einen Administrator.'
+        );
+    });
+
+    it('login failed - server unreachable shows a distinct message from a plain credentials failure', async () => {
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: true };
+        authService.login.mockReturnValue(Promise.resolve(loginResult));
+
+        const fixture = TestBed.createComponent(LoginComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
+        });
+
+        await component.login();
+
+        expect(component.errorMessage()).toContain('Server nicht erreichbar');
+    });
+
+    it('login failure moves focus back to the username field and selects its content', async () => {
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        authService.login.mockReturnValue(Promise.resolve(loginResult));
+
+        const fixture = TestBed.createComponent(LoginComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const usernameInput: HTMLInputElement = fixture.nativeElement.querySelector('[testid="username"]');
+        const selectSpy = vi.spyOn(usernameInput, 'select');
+
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
+        });
+
+        await component.login();
+
+        expect(document.activeElement).toBe(usernameInput);
+        expect(selectSpy).toHaveBeenCalled();
     });
 
     it('login but passwordchange required', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: true, locked: false };
+        const loginResult = { successful: true, passwordChangeRequired: true, locked: false, serverUnreachable: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -162,7 +230,7 @@ describe('LoginComponent', () => {
         });
 
         it('is hidden when the deployment has no environment label', () => {
-            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: ''}));
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: '', accountLockoutDurationInSeconds: 300}));
 
             const fixture = TestBed.createComponent(LoginComponent);
             fixture.detectChanges();
@@ -170,17 +238,58 @@ describe('LoginComponent', () => {
             expect(fixture.nativeElement.querySelector('[testid="environmentLabel"]')).toBeNull();
         });
 
-        it('is read from the public config and shown beneath the title', () => {
-            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: 'DEV'}));
+        it('is read from the public config and shown as a full-width banner above the card', () => {
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: 'DEV', accountLockoutDurationInSeconds: 300}));
 
             const fixture = TestBed.createComponent(LoginComponent);
             const component = fixture.componentInstance;
             fixture.detectChanges();
 
             expect(component.environmentLabel()).toBe('DEV');
-            const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="environmentLabel"]');
-            expect(badge.textContent?.trim()).toBe('DEV');
+            const banner: HTMLElement = fixture.nativeElement.querySelector('[testid="environmentLabel"]');
+            expect(banner.textContent?.trim()).toBe('DEV');
+            expect(banner.getAttribute('role')).toBe('status');
         });
     });
+
+    describe('capsLockActive', () => {
+        it('is set when Caps Lock is on and cleared again once it is turned off', () => {
+            const fixture = TestBed.createComponent(LoginComponent);
+            const component = fixture.componentInstance;
+            fixture.detectChanges();
+
+            const passwordInput: HTMLInputElement = fixture.nativeElement.querySelector('[testid="password"]');
+            passwordInput.dispatchEvent(capsLockKeyEvent('keydown', true));
+            expect(component.capsLockActive()).toBe(true);
+
+            passwordInput.dispatchEvent(capsLockKeyEvent('keyup', false));
+            expect(component.capsLockActive()).toBe(false);
+        });
+
+        it('shows a visible hint next to the password field while active', () => {
+            const fixture = TestBed.createComponent(LoginComponent);
+            fixture.detectChanges();
+
+            const passwordInput: HTMLInputElement = fixture.nativeElement.querySelector('[testid="password"]');
+            passwordInput.dispatchEvent(capsLockKeyEvent('keydown', true));
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('[testid="capsLockWarning"]')).toBeTruthy();
+        });
+    });
+
+    it('the submit button is never disabled for empty/invalid fields, only while a request is in flight', () => {
+        const fixture = TestBed.createComponent(LoginComponent);
+        fixture.detectChanges();
+
+        const loginButton: HTMLButtonElement = fixture.nativeElement.querySelector('[testid="loginButton"]');
+        expect(loginButton.disabled).toBe(false);
+    });
+
+    function capsLockKeyEvent(type: 'keydown' | 'keyup', capsLockOn: boolean): KeyboardEvent {
+        const event = new KeyboardEvent(type, {key: 'a', bubbles: true});
+        vi.spyOn(event, 'getModifierState').mockReturnValue(capsLockOn);
+        return event;
+    }
 
 });

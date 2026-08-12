@@ -1,4 +1,4 @@
-import {Component, computed, inject, linkedSignal, signal} from '@angular/core';
+import {Component, computed, ElementRef, inject, linkedSignal, signal, viewChild} from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {form, FormField, required} from '@angular/forms/signals';
 import {ActivatedRoute, Params, Router} from '@angular/router';
@@ -10,7 +10,7 @@ import {MatButton} from '@angular/material/button';
 import {MatError, MatFormField, MatInput, MatLabel, MatPrefix, MatSuffix} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faEye, faEyeSlash, faKey, faUser} from '@fortawesome/free-solid-svg-icons';
+import {faEye, faEyeSlash, faKey, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
 import {ConfigApiService} from '../../../api/config-api.service';
 
@@ -70,6 +70,9 @@ export class LoginComponent {
 
   passwordVisible = signal(false);
   submitting = signal(false);
+  capsLockActive = signal(false);
+
+  private readonly usernameInput = viewChild<ElementRef<HTMLInputElement>>('usernameInput');
 
   // Empty on production, set per deployment elsewhere. The only config this page can read: it runs
   // before anyone is logged in, so it goes to the public endpoint rather than /api/config.
@@ -80,9 +83,9 @@ export class LoginComponent {
     this.passwordVisible.update(value => !value);
   }
 
-  // Browser autofill doesn't dispatch an `input` event, so the signal-forms model (and the
-  // submit button's disabled state) would otherwise never learn a field got filled in. See
-  // login.component.scss for the :-webkit-autofill animation this reacts to.
+  // Browser autofill doesn't dispatch an `input` event, so the signal-forms model (which the
+  // submit handler reads the entered values from) would otherwise never learn a field got filled
+  // in. See login.component.scss for the :-webkit-autofill animation this reacts to.
   //
   // Chrome also withholds the autofilled value from `input.value` until the user makes a
   // genuine gesture anywhere on the page (a privacy measure), so reading it immediately here
@@ -99,6 +102,15 @@ export class LoginComponent {
     };
     document.addEventListener('pointerdown', sync, {capture: true});
     document.addEventListener('keydown', sync, {capture: true});
+  }
+
+  // Shared terminals and external keyboards make an active Caps Lock a frequent, silent cause of a
+  // "wrong" password - both keydown and keyup are wired to this so the hint also disappears the
+  // moment Caps Lock is turned back off, not just when it's turned on.
+  public onPasswordKeyEvent(event: KeyboardEvent) {
+    if (typeof event.getModifierState === 'function') {
+      this.capsLockActive.set(event.getModifierState('CapsLock'));
+    }
   }
 
   public onSubmit(event: Event) {
@@ -125,14 +137,39 @@ export class LoginComponent {
         } else {
           this.router.navigate(['uebersicht']);
         }
-      } else if (loginResult.locked) {
-        this.errorMessage.set('Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.');
+        return;
+      }
+
+      if (loginResult.locked) {
+        this.errorMessage.set(this.buildLockedMessage());
+      } else if (loginResult.serverUnreachable) {
+        this.errorMessage.set('Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.');
       } else {
         this.errorMessage.set('Anmeldung fehlgeschlagen!');
       }
+
+      // The role="alert" banner announces the error on its own; moving focus back to the
+      // username field and selecting its content means the next attempt starts with one
+      // keystroke instead of several clicks/tabs.
+      const input = this.usernameInput()?.nativeElement;
+      input?.focus();
+      input?.select();
     }).finally(() => {
       this.submitting.set(false);
     });
+  }
+
+  // Tells a locked-out user what to actually do (wait, or ask an administrator) instead of just
+  // naming the state - and, since the wait is however long the backend is actually configured for
+  // (`security.loginAttempts.lockoutDurationInSeconds`, served as accountLockoutDurationInSeconds
+  // on the public config), never quotes a duration that has drifted from the real one.
+  private buildLockedMessage(): string {
+    const durationInSeconds = this.publicConfig()?.accountLockoutDurationInSeconds;
+    const waitHint = durationInSeconds
+      ? `in ca. ${formatDurationInMinutes(durationInSeconds)} erneut`
+      : 'später erneut';
+    return `Konto vorübergehend gesperrt! Bitte versuchen Sie es ${waitHint} oder wenden Sie sich an eine`
+      + ' Administratorin/einen Administrator.';
   }
 
   protected readonly visibleErrorMessages = visibleErrorMessages;
@@ -140,4 +177,10 @@ export class LoginComponent {
   protected readonly faKey = faKey;
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
+  protected readonly faTriangleExclamation = faTriangleExclamation;
+}
+
+function formatDurationInMinutes(durationInSeconds: number): string {
+  const minutes = Math.max(1, Math.ceil(durationInSeconds / 60));
+  return minutes === 1 ? '1 Minute' : `${minutes} Minuten`;
 }
