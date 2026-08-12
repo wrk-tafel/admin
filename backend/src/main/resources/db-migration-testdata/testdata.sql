@@ -559,9 +559,14 @@ VALUES (4, NOW(), NOW(), 100, 103, 4, true, true);
 
 -- a closed, recent distribution + one new and one renewed household so "Kunden-Übersicht" isn't
 -- empty by default - the window is bracketed tightly around "now" so none of this script's other
--- households (which all share this transaction's NOW() as their own created_at) spill into it
+-- households (which all share this transaction's NOW() as their own created_at) spill into it.
+--
+-- Its id is the highest of any distribution this script writes, and deliberately so: with no
+-- distribution picked, "Kunden-Übersicht" shows the one with the highest id (see
+-- HouseholdService.getHouseholdsOverview), which has to be this one rather than one of the
+-- three years of past distributions further down.
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
-VALUES (105, NOW(), NOW(), NOW() - interval '3 hours', NOW() - interval '1 hour', 300, 300, 'Für Kunden-Übersicht Demo-Daten');
+VALUES (9000, NOW(), NOW(), NOW() - interval '3 hours', NOW() - interval '1 hour', 300, 300, 'Für Kunden-Übersicht Demo-Daten');
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
@@ -1113,3 +1118,275 @@ VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'E2E', 'Test', 'Househo
         '{"validUntil": ["2026-06-30", "2026-12-31"], "prolongedAt": [null, "2026-07-18T10:12:00"]}'::jsonb),
        (212, NOW() - interval '26 days', 100, 'e2etest', 'E2E', 'Test', 'Household', 132, '132', 'INSERT',
         '{"addressStreet": [null, "Erdberg"], "addressCity": [null, "Wien"], "validUntil": [null, "2026-06-30"]}'::jsonb);
+
+-- statistics history: three years of weekly distributions, and a household base that grows and
+-- lapses over the same window
+--
+-- The general statistics screen answers every key figure twice - once for the picked period, once
+-- for the period before it - so without a history there is nothing to compare against: households
+-- whose validity never ends and a handful of distributions produce the very same number for every
+-- year, month and range, and every delta reads "+/-0" over a flat sparkline.
+--
+-- Every date here is relative to the moment the script runs, never a fixed one - the fixture has to
+-- still describe "the last three years" whenever it is loaded. The numbers are derived from each
+-- row's index instead of random(), so the same import on the same day always produces the same
+-- history.
+
+-- 160 households: a base of 120 that were already registered before this window opens, plus 40 that
+-- registered during it. Four fifths of them were renewed and are entitled into the coming year, the
+-- rest stopped coming and lapsed somewhere in the last three and a half years - so the customer key
+-- figures drift, slightly upwards, instead of holding one number, and the oldest point of a
+-- three-year range is a going concern rather than an empty database.
+--
+-- First and last names are drawn from two lists by index, so every household gets a distinct
+-- combination whose soundex differs from every other household's in this file - otherwise
+-- HouseholdDuplicationService would report a few hundred fresh duplicate candidates.
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door,
+                        address_postalcode, address_city, telephone_number, email, valid_until,
+                        pending_cost_contribution, single_parent, prolonged_at)
+SELECT 2000 + i,
+       registered_at,
+       registered_at,
+       2000 + i,
+       100,
+       null,
+       (ARRAY ['Simmeringer Hauptstraße','Quellenstraße','Triester Straße','Gudrunstraße',
+           'Laxenburger Straße','Wienerbergstraße','Absberggasse','Hardtmuthgasse',
+           'Puchsbaumgasse','Fernkorngasse'])[1 + (i % 10)],
+       (1 + (i % 60))::text,
+       null,
+       null,
+       (ARRAY [1030,1100,1110,1120])[1 + (i % 4)],
+       'Wien',
+       null,
+       null,
+       CASE
+           WHEN i % 5 <> 0 THEN (CURRENT_DATE + interval '1 month' * (1 + (i % 11)))::date
+           ELSE GREATEST(registered_at + interval '1 year', NOW() - interval '1 month' * (1 + (i % 42)))::date
+           END,
+       0,
+       i % 7 = 0,
+       CASE
+           WHEN i % 5 <> 0 AND registered_at < NOW() - interval '1 year'
+               THEN (CURRENT_DATE + interval '1 month' * (1 + (i % 11)) - interval '1 year')::timestamp
+           END
+FROM (SELECT i,
+             CASE
+                 -- a base of long-standing households, registered before the window this history
+                 -- covers, so the oldest point of a timeline is a going concern rather than zero
+                 WHEN i < 120 THEN NOW() - interval '3 years' - interval '4 years' * ((120 - i) / 120.0)
+                 -- and the ones that registered during it
+                 ELSE NOW() - interval '3 years' * ((160 - i) / 40.0)
+                 END AS registered_at
+      FROM generate_series(0, 159) AS i) seed;
+
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
+                     birth_date, gender, country_id, employer, income, income_due,
+                     exclude_household, receives_family_allowance)
+SELECT 3000 + s.i,
+       h.created_at,
+       h.created_at,
+       h.id,
+       true,
+       (ARRAY ['Anna','Bernd','Clara','David','Elena','Fatima','Goran','Hanna','Igor','Jasmin',
+           'Katrin','Lukas','Milan','Nadja','Omar','Petra','Quirin','Ruslan','Selma','Tomas'])[1 + (s.i % 20)],
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + (s.i / 20)],
+       (CURRENT_DATE - interval '1 year' * (25 + (s.i % 40)))::date,
+       CASE WHEN s.i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
+       1 + (s.i % 5),
+       (ARRAY ['Stadt Wien','Rotes Kreuz Wien','Firma Beispiel',null])[1 + (s.i % 4)],
+       -- comfortably below every income limit, so none of these households turns up in
+       -- "Kunden über Limit" (the two households seeded for that screen are the only ones there)
+       800 + (s.i % 12) * 60,
+       (CURRENT_DATE + interval '1 month' * (1 + (s.i % 9)))::date,
+       false,
+       false
+FROM households h
+         CROSS JOIN LATERAL (SELECT (h.id - 2000)::int AS i) s
+WHERE h.id BETWEEN 2000 AND 2159;
+
+UPDATE households SET main_person_id = 3000 + (id - 2000) WHERE id BETWEEN 2000 AND 2159;
+
+-- The demo households further up all carry this script's own NOW() as their registration date,
+-- which would drop every one of them into the newest bucket of every statistics timeline at once -
+-- a step at the right-hand end of each curve that nothing in the data explains. Spread them over
+-- the past few years instead. Households 140 and 141 are left alone on purpose: the
+-- "Kunden-Übersicht" fixture reads exactly their timestamps.
+UPDATE households
+SET created_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0),
+    updated_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0)
+WHERE id BETWEEN 100 AND 139;
+
+-- 0 to 3 children per household, aged 2 to 18. The ages straddle the 15-year mark on purpose:
+-- "Haushalte mit Kindern (Alter <= 15)" measures the age at each point of the timeline, so a child
+-- who is 17 today still counted two years ago - which is what makes that key figure move.
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
+                     birth_date, gender, country_id, income, income_due, exclude_household,
+                     receives_family_allowance)
+SELECT 3200 + (row_number() OVER (ORDER BY h.id, k))::int,
+       h.created_at,
+       h.created_at,
+       h.id,
+       false,
+       'Kind ' || k,
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((h.id - 2000) / 20)],
+       (CURRENT_DATE - interval '1 year' * (2 + ((h.id + k) % 17)))::date,
+       CASE WHEN (h.id + k) % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
+       1 + (h.id % 5),
+       null,
+       null,
+       false,
+       true
+FROM households h
+         CROSS JOIN LATERAL generate_series(1, (h.id - 2000) % 4) AS k
+WHERE h.id BETWEEN 2000 AND 2159;
+
+-- one distribution every Saturday for the last three years, the most recent one a week ago -
+-- today itself is covered by the "Kunden-Übersicht" distribution above
+WITH last_saturday AS (SELECT ((CURRENT_DATE - 1) - ((EXTRACT(dow FROM (CURRENT_DATE - 1))::int + 1) % 7)) AS day),
+     history AS (SELECT (row_number() OVER (ORDER BY d))::int AS idx,
+                        d::date                              AS distribution_date
+                 FROM last_saturday,
+                      generate_series(last_saturday.day - 159 * 7, last_saturday.day, interval '7 days') AS d)
+INSERT
+INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
+SELECT 1000 + idx,
+       distribution_date + time '08:00',
+       distribution_date + time '23:30',
+       distribution_date + time '13:00',
+       distribution_date + time '18:30',
+       300,
+       300
+FROM history;
+
+-- what each of those distributions handed out. The counts follow a slow upward trend with a
+-- seasonal swing (demand peaks in winter) and a deterministic jitter, so consecutive periods
+-- genuinely differ instead of repeating one number.
+INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
+                                      count_persons, count_infants, average_persons_per_customer,
+                                      count_customers_new, count_persons_new,
+                                      count_customers_prolonged, count_persons_prolonged,
+                                      count_customers_updated, count_single_parent_households,
+                                      employee_count, routes_length_km)
+SELECT 1000 + s.idx,
+       d.created_at,
+       d.updated_at,
+       d.id,
+       c.customers,
+       p.persons,
+       round(c.customers * 0.09),
+       round(p.persons::numeric / c.customers, 2),
+       n.customers_new,
+       round(n.customers_new * 2.3),
+       r.customers_prolonged,
+       round(r.customers_prolonged * 2.3),
+       5 + (s.idx % 11),
+       round(c.customers * 0.17),
+       30 + (s.idx % 12),
+       180 + (s.idx % 40)
+FROM distributions d
+         CROSS JOIN LATERAL (SELECT (d.id - 1000)::int AS idx) s
+         CROSS JOIN LATERAL (SELECT (310 + 0.35 * s.idx
+             + 28 * sin(2 * pi() * (s.idx + 6) / 52.0)
+             + ((s.idx * 7919) % 19) - 9)::int AS customers) c
+         CROSS JOIN LATERAL (SELECT round(c.customers * 2.35 + (s.idx % 7))::int AS persons) p
+         CROSS JOIN LATERAL (SELECT 3 + (s.idx % 9) AS customers_new) n
+         CROSS JOIN LATERAL (SELECT 8 + (s.idx % 13) AS customers_prolonged) r
+WHERE d.id BETWEEN 1001 AND 1160;
+
+-- the shelters each distribution supplied, frozen onto the statistic the way the application
+-- freezes them when a distribution closes
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id,
+                                               name, address_street, address_housenumber,
+                                               address_stairway, address_door, address_postalcode,
+                                               address_city, persons_count, sort_order)
+SELECT 3000 + (row_number() OVER (ORDER BY ds.id, s.id))::int,
+       ds.created_at,
+       ds.updated_at,
+       ds.id,
+       s.name,
+       s.address_street,
+       s.address_housenumber,
+       s.address_stairway,
+       s.address_door,
+       s.address_postalcode,
+       s.address_city,
+       35 + ((ds.id * 13 + s.id * 29) % 60),
+       s.id
+FROM distributions_statistics ds
+         JOIN shelters s ON s.id <= 2 + ((ds.distribution_id - 1000) % 3)
+WHERE ds.distribution_id BETWEEN 1001 AND 1160;
+
+-- the trips those distributions were stocked from. Routes 1, 4 and 5 only: route 2 and route 3
+-- carry the seeded return boxes the route guidance screen hands back, and the screen shows the
+-- boxes of a route's *newest* collection - a newer, empty collection here would take them away.
+--
+-- The routes start at different points of the history, so the number of donors grows over the
+-- years and "Spender (Anzahl)" has something to compare year over year.
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
+                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+SELECT 2000 + (row_number() OVER (ORDER BY d.id, r.route_id))::int,
+       d.created_at,
+       d.updated_at,
+       d.id,
+       r.route_id,
+       1 + ((d.id + r.route_id) % 3),
+       2000,
+       2100,
+       213000 + (d.id - 1000) * 60,
+       213000 + (d.id - 1000) * 60 + r.km
+FROM distributions d
+         JOIN (VALUES (1, 0, 55), (4, 40, 35), (5, 90, 18)) AS r(route_id, active_from, km)
+              ON (d.id - 1000) >= r.active_from
+WHERE d.id BETWEEN 1001 AND 1160;
+
+-- what came back from each donor. `weight` is stored rather than derived on read (see
+-- FoodCollectionItemEntity), so it is computed here exactly as the application would.
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
+SELECT food_collection_id,
+       shop_id,
+       food_category_id,
+       amount,
+       CASE WHEN food_unit = 'KG' THEN amount ELSE amount * COALESCE(weight_per_unit, 0) END
+FROM (SELECT fc.id                                                                       AS food_collection_id,
+             sh.id                                                                       AS shop_id,
+             cat.id                                                                      AS food_category_id,
+             sh.food_unit,
+             cat.weight_per_unit,
+             GREATEST(1, 14 + ((s.idx * 3 + sh.id * 7 + cat.id * 11) % 15)
+                 + round(5 * sin(2 * pi() * s.idx / 52.0))
+                 + (s.idx / 40))::int                                                    AS amount
+      FROM food_collections fc
+               CROSS JOIN LATERAL (SELECT (fc.distribution_id - 1000)::int AS idx) s
+               JOIN routes_stops rs ON rs.route_id = fc.route_id AND rs.shop_id IS NOT NULL
+               JOIN shops sh ON sh.id = rs.shop_id
+               JOIN food_categories cat ON cat.id IN (1, 2, 3, 6)
+      WHERE fc.distribution_id BETWEEN 1001 AND 1160
+        -- not every donor has something to give every week
+        AND (s.idx + sh.id) % 9 <> 0) items;
+
+-- the per-distribution totals the application freezes when a distribution closes, computed from
+-- the items above so the two cannot disagree
+UPDATE distributions_statistics ds
+SET shops_total_count     = totals.shops_total,
+    shops_with_food_count = totals.shops_with_food,
+    food_total_amount     = totals.total_amount,
+    food_per_shop_average = round(totals.total_amount::numeric / totals.shops_with_food, 2)
+FROM (SELECT stops.distribution_id,
+             stops.shops_total,
+             items.shops_with_food,
+             items.total_amount
+      FROM (SELECT fc.distribution_id, count(DISTINCT rs.shop_id) AS shops_total
+            FROM food_collections fc
+                     JOIN routes_stops rs ON rs.route_id = fc.route_id AND rs.shop_id IS NOT NULL
+            WHERE fc.distribution_id BETWEEN 1001 AND 1160
+            GROUP BY fc.distribution_id) stops
+               JOIN (SELECT fc.distribution_id,
+                            count(DISTINCT fci.shop_id) AS shops_with_food,
+                            sum(fci.amount)             AS total_amount
+                     FROM food_collections fc
+                              JOIN food_collections_items fci ON fci.food_collection_id = fc.id
+                     WHERE fc.distribution_id BETWEEN 1001 AND 1160
+                     GROUP BY fc.distribution_id) items ON items.distribution_id = stops.distribution_id) totals
+WHERE ds.distribution_id = totals.distribution_id;
