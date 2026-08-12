@@ -80,7 +80,8 @@
                  [class.text-gray-400]="item.attributes?.disabled"
                  [attr.aria-disabled]="item.attributes?.disabled ? true : null"
                  [attr.tabindex]="item.attributes?.disabled ? -1 : null"
-                 [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
+                 [matTooltip]="item.attributes?.disabled ? 'Keine Verteilung aktiv' : (collapsed() ? item.name : '')"
+                 matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
@@ -95,14 +96,22 @@
             @if (item.children && !collapsed() && expandedItems().has(item.name)) {
               <div [id]="'nav-group-' + $index">
                 @for (child of item.children; track child.name) {
-                  <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                     (click)="isMobile() && sidenav.close()"
-                     class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
-                    @if (child.icon) {
-                      <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
-                    }
-                    <span>{{ child.name }}</span>
-                  </a>
+                  <!--
+                    A sub-group label rather than a link - splits a long flat submenu (e.g.
+                    "Einstellungen") into labeled sections without a second collapsible level.
+                  -->
+                  @if (child.title) {
+                    <div class="px-9 pt-2 pb-1 text-[10px] uppercase tracking-wide text-gray-500 font-semibold">{{ child.name }}</div>
+                  } @else {
+                    <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                       (click)="isMobile() && sidenav.close()"
+                       class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
+                      @if (child.icon) {
+                        <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
+                      }
+                      <span>{{ child.name }}</span>
+                    </a>
+                  }
                 }
               </div>
             }

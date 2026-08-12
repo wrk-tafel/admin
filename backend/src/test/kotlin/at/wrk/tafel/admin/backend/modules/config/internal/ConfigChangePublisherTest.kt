@@ -35,7 +35,12 @@ internal class ConfigChangePublisherTest {
         verifySequence {
             sseOutboxService.saveOutboxEntry(
                 ConfigChangePublisher.NOTIFICATION_NAME,
-                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = false),
+                ConfigResponse(
+                    version = "1.2.3",
+                    buildTime = "2026-07-28T15:30:00Z",
+                    scannerFolderEnabled = false,
+                    environmentLabel = "",
+                ),
             )
         }
     }
@@ -67,11 +72,21 @@ internal class ConfigChangePublisherTest {
         verifySequence {
             sseOutboxService.saveOutboxEntry(
                 ConfigChangePublisher.NOTIFICATION_NAME,
-                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = false),
+                ConfigResponse(
+                    version = "1.2.3",
+                    buildTime = "2026-07-28T15:30:00Z",
+                    scannerFolderEnabled = false,
+                    environmentLabel = "",
+                ),
             )
             sseOutboxService.saveOutboxEntry(
                 ConfigChangePublisher.NOTIFICATION_NAME,
-                ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = true),
+                ConfigResponse(
+                    version = "1.2.3",
+                    buildTime = "2026-07-28T15:30:00Z",
+                    scannerFolderEnabled = true,
+                    environmentLabel = "",
+                ),
             )
         }
     }

@@ -24,9 +24,10 @@ class ConfigController(
 
     /**
      * The environment label alone, for the login page - the one screen that has to show a
-     * deployment fact before anyone has logged in (see #3032). Everything else this module serves
-     * stays behind [getConfig]'s `isAuthenticated()`: which release is running and which optional
-     * features exist are details an anonymous caller has no business reading.
+     * deployment fact before anyone has logged in (see #3032). [getConfig] also carries the same
+     * value once a session exists (the shell renders it as a banner), but everything else this
+     * module serves stays behind its `isAuthenticated()`: which release is running and which
+     * optional features exist are details an anonymous caller has no business reading.
      *
      * A separate endpoint rather than [getConfig] answering with less to an anonymous caller,
      * because `TafelJwtAuthConverter` rejects any request under `/api` that carries no JWT cookie

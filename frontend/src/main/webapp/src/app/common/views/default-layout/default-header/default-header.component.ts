@@ -1,9 +1,10 @@
-import {Component, inject, output} from '@angular/core';
+import {Component, computed, inject, output} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog} from '@angular/material/dialog';
-import {NgClass, NgOptimizedImage} from '@angular/common';
+import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faBars, faBell, faKey, faLink, faLinkSlash, faLock} from '@fortawesome/free-solid-svg-icons';
 import {AuthenticationService} from '../../../security/authentication.service';
@@ -14,6 +15,8 @@ import {ScreenshotService} from '../../../support/screenshot.service';
 import {TafelToastrService} from '../../../components/tafel-toastr/tafel-toastr.service';
 import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dialog.component';
 import {MatButton} from '@angular/material/button';
+import {ConfigApiService} from '../../../../api/config-api.service';
+import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
 
 @Component({
   selector: 'tafel-default-header',
@@ -25,7 +28,8 @@ import {MatButton} from '@angular/material/button';
     NgClass,
     NgOptimizedImage,
     FaIconComponent,
-    MatButton
+    MatButton,
+    DatePipe
   ]
 })
 export class DefaultHeaderComponent {
@@ -38,8 +42,29 @@ export class DefaultHeaderComponent {
   private readonly screenshotService = inject(ScreenshotService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
+  private readonly configApiService = inject(ConfigApiService);
 
   readonly sseConnected = this.globalStateService.getConnectionState();
+
+  /**
+   * So much of the app switches behavior on whether a distribution is active that the shell shows
+   * it permanently, next to the Live-Verbindung badge, rather than only on the dashboard.
+   */
+  readonly distribution = this.globalStateService.getCurrentDistribution();
+  readonly distributionActive = computed(() => {
+    const distribution = this.distribution();
+    return !!distribution && !distribution.endedAt;
+  });
+
+  /** The page's own title (`h1` on desktop, also shown visibly in the header on mobile). */
+  readonly pageTitle = inject(TafelTitleStrategy).routeTitle;
+
+  private readonly appConfig = toSignal(this.configApiService.observeConfig(), {initialValue: null});
+  /**
+   * Empty on production. Rendered as a banner so an already-logged-in session stays visibly
+   * distinguishable from production too, not just the login page.
+   */
+  readonly environmentLabel = computed(() => this.appConfig()?.environmentLabel ?? '');
 
   public logout() {
     this.authenticationService.logout().subscribe();

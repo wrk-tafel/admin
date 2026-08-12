@@ -19,7 +19,12 @@ class ConfigControllerTest {
         val response = controller.getConfig()
 
         assertThat(response).isEqualTo(
-            ConfigResponse(version = "1.2.3", buildTime = "2026-07-28T15:30:00Z", scannerFolderEnabled = true),
+            ConfigResponse(
+                version = "1.2.3",
+                buildTime = "2026-07-28T15:30:00Z",
+                scannerFolderEnabled = true,
+                environmentLabel = "",
+            ),
         )
     }
 
@@ -56,8 +61,20 @@ class ConfigControllerTest {
         properties.storage.scannerPath = "/mnt/scanner"
 
         assertThat(controller.getConfig()).isEqualTo(
-            ConfigResponse(version = "1.2.3", buildTime = "unknown", scannerFolderEnabled = true),
+            ConfigResponse(
+                version = "1.2.3",
+                buildTime = "unknown",
+                scannerFolderEnabled = true,
+                environmentLabel = "",
+            ),
         )
+    }
+
+    @Test
+    fun `get config trims and reports the configured environment label`() {
+        val controller = ConfigController(TafelAdminProperties().apply { environmentLabel = " DEV " })
+
+        assertThat(controller.getConfig().environmentLabel).isEqualTo("DEV")
     }
 
     @Test
