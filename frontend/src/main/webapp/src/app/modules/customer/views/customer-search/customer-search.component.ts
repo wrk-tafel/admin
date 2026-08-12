@@ -1,6 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {map, Subject, switchMap} from 'rxjs';
+import {catchError, EMPTY, map, Subject, switchMap} from 'rxjs';
 import {Router, RouterLink} from '@angular/router';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
@@ -85,7 +85,13 @@ export class CustomerSearchComponent {
           this.valid.value ?? undefined,
           request.page,
           request.pageSize,
-        ).pipe(map(response => ({response: response, announceOutcome: request.announceOutcome})))),
+        ).pipe(
+          map(response => ({response: response, announceOutcome: request.announceOutcome})),
+          // Caught inside the inner observable, so a failed search ends only itself: let it reach
+          // the subject's stream and that stream terminates, and the screen stops searching
+          // altogether until it is reloaded. The interceptor has already reported the error.
+          catchError(() => EMPTY),
+        )),
         takeUntilDestroyed(),
       )
       .subscribe(result => this.applySearchResult(result.response, result.announceOutcome));
