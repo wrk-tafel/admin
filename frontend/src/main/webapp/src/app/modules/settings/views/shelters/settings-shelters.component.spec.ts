@@ -189,4 +189,56 @@ describe('SettingsSheltersComponent', () => {
     expect(liveAnnouncerMock.announce).not.toHaveBeenCalled();
   });
 
+  it('toggleShelterVisibility() persists the new enabled state', () => {
+    shelterApiMock.updateShelter = vi.fn(() => of(testShelter1));
+
+    const fixture = TestBed.createComponent(SettingsSheltersComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['toggleShelterVisibility'](testShelter1, false);
+
+    expect(shelterApiMock.updateShelter).toHaveBeenCalledWith(testShelter1.id, {...testShelter1, enabled: false});
+    expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('shows only the shelters matching the status filter', () => {
+    const disabledShelter: ShelterItem = {...testShelter2, id: 3, name: 'Shelter 3', enabled: false};
+    shelterApiMock.getAllShelters =
+      vi.fn(() => of<ShelterListResponse>({shelters: [testShelter1, testShelter2, disabledShelter]}));
+
+    const fixture = TestBed.createComponent(SettingsSheltersComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['visibleShelters']().map(s => s.id)).toEqual([1, 2, 3]);
+    expect(component['enabledCount']()).toBe(2);
+
+    component['onFilterChanged']('ENABLED');
+    expect(component['visibleShelters']().map(s => s.id)).toEqual([1, 2]);
+
+    component['onFilterChanged']('DISABLED');
+    expect(component['visibleShelters']().map(s => s.id)).toEqual([3]);
+  });
+
+  it('reorders within the full list when a filter hides shelters in between', () => {
+    // enabled, disabled, enabled - so moving the first active one down has to jump the hidden one
+    const hiddenShelter: ShelterItem = {...testShelter2, id: 3, name: 'Shelter 3', enabled: false};
+    shelterApiMock.getAllShelters =
+      vi.fn(() => of<ShelterListResponse>({shelters: [testShelter1, hiddenShelter, testShelter2]}));
+    shelterApiMock.reorderShelters =
+      vi.fn(() => of<ShelterListResponse>({shelters: [hiddenShelter, testShelter2, testShelter1]}));
+
+    const fixture = TestBed.createComponent(SettingsSheltersComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['onFilterChanged']('ENABLED');
+
+    component['moveShelter'](0, 1);
+
+    expect(shelterApiMock.reorderShelters)
+      .toHaveBeenCalledWith([hiddenShelter.id, testShelter2.id, testShelter1.id]);
+    expect(component['visibleShelters']().map(s => s.id)).toEqual([testShelter2.id, testShelter1.id]);
+  });
+
 });

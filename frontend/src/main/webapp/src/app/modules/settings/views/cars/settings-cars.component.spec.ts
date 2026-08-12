@@ -178,40 +178,37 @@ describe('SettingsCarsComponent', () => {
     expect(liveAnnouncerMock.announce).not.toHaveBeenCalled();
   });
 
-  it('lists the deactivated cars apart from the ones the Warenerfassung offers', () => {
+  it('the status filter narrows the list to the active or the deactivated cars', () => {
     carApiMock.getAllCars = vi.fn(() => of<CarList>({cars: [testCar1, disabledCar, testCar2]}));
 
     const fixture = TestBed.createComponent(SettingsCarsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    expect(component['activeCars']().map(car => car.id)).toEqual([testCar1.id, testCar2.id]);
-    expect(component['inactiveCars']().map(car => car.id)).toEqual([disabledCar.id]);
+    expect(component['visibleCars']().map(car => car.id)).toEqual([testCar1.id, disabledCar.id, testCar2.id]);
+    expect(component['enabledCount']()).toBe(2);
+    expect(component['totalCount']()).toBe(3);
+
+    component['onFilterChanged']('ENABLED');
+    expect(component['visibleCars']().map(car => car.id)).toEqual([testCar1.id, testCar2.id]);
+
+    component['onFilterChanged']('DISABLED');
+    expect(component['visibleCars']().map(car => car.id)).toEqual([disabledCar.id]);
   });
 
-  it('reorders the active cars and keeps the deactivated ones at the end of the saved order', () => {
+  it('moveCar() counts the displayed positions and jumps over a car the filter hides', () => {
     carApiMock.getAllCars = vi.fn(() => of<CarList>({cars: [testCar1, disabledCar, testCar2]}));
 
     const fixture = TestBed.createComponent(SettingsCarsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
+    component['onFilterChanged']('ENABLED');
 
     component['moveCar'](0, 1);
 
-    expect(carApiMock.reorderCars).toHaveBeenCalledWith([testCar2.id, testCar1.id, disabledCar.id]);
+    // the hidden car keeps its place, and the whole list is sent so the backend renumbers all of it
+    expect(carApiMock.reorderCars).toHaveBeenCalledWith([disabledCar.id, testCar2.id, testCar1.id]);
     expect(liveAnnouncerMock.announce).toHaveBeenCalledWith('Fahrzeug Car 123 ist jetzt an Position 2 von 2.', 'assertive');
-  });
-
-  it('unfolds the deactivated section when a car is deactivated', () => {
-    const fixture = TestBed.createComponent(SettingsCarsComponent);
-    fixture.detectChanges();
-    const component = fixture.componentInstance;
-
-    expect(component['showInactive']()).toBe(false);
-
-    component['toggleCarVisibility'](testCar1, false);
-
-    expect(component['showInactive']()).toBe(true);
   });
 
   it('uppercaseLicensePlate() normalizes the case of an inline edit while typing', () => {

@@ -1,8 +1,11 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
-    <mat-card-title>
-      <div class="flex items-center gap-2">
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center gap-2">
         <h2 class="tafel-h5 mb-0 mt-1">Waren-Kategorien</h2>
+        <span class="text-sm font-normal text-slate-500" testid="food-categories-summary">
+          {{ enabledCount() }} von {{ totalCount() }} aktiv
+        </span>
         <button matButton="filled" class="button-success" testid="addFoodCategoryButton" matTooltip="Neue Lebensmittelkategorie anlegen" (click)="addFoodCategory()" aria-label="Neue Lebensmittelkategorie anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
@@ -12,7 +15,8 @@
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
       Warenkategorien für die Warenerfassung. Das Gewicht pro Einheit wird für die Hochrechnung der
-      erfassten Warenmenge verwendet.
+      erfassten Warenmenge verwendet. Eine deaktivierte Kategorie steht bei der Warenerfassung nicht
+      mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten.
     </p>
 
     <p class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
@@ -26,14 +30,19 @@
       </span>
     </p>
 
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="food-categories"
+                            (valueChange)="onFilterChanged($event)"/>
+    </div>
+
     <div class="hidden md:block">
-    <table mat-table [dataSource]="foodCategories()" testid="food-categories-table" [trackBy]="trackById"
-           cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
+    <table mat-table [dataSource]="visibleFoodCategories()" testid="food-categories-table" [trackBy]="trackById"
+           cdkDropList [cdkDropListData]="visibleFoodCategories()" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
         <td mat-cell *matCellDef="let category; let i = index">
           <tafel-reorder-handle cdkDragHandle [label]="'Waren-Kategorie ' + category.name"
-                                [position]="i + 1" [count]="foodCategories().length"
+                                [position]="i + 1" [count]="visibleFoodCategories().length"
                                 [testId]="'dragFoodCategoryHandle-' + i"
                                 (move)="moveFoodCategory(i, $event)"/>
         </td>
@@ -42,17 +51,9 @@
       <ng-container matColumnDef="active">
         <th mat-header-cell *matHeaderCellDef>Aktiv</th>
         <td mat-cell *matCellDef="let category; let i = index">
-          @if (category.enabled) {
-            <button matButton="filled" class="button-success ms-2" testid="enableFoodCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                    (click)="toggleFoodCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl'">
-              <fa-icon [icon]="faEye"></fa-icon>
-            </button>
-          } @else {
-            <button matButton="filled" class="button-danger ms-2" testid="disableFoodCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                    (click)="toggleFoodCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            </button>
-          }
+          <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Waren-Kategorie ' + category.name"
+                                [showLabel]="false" [testId]="'food-categories-enabled-toggle-' + i"
+                                (enabledChange)="toggleFoodCategoryVisibility(category, $event)"/>
         </td>
       </ng-container>
 
@@ -119,14 +120,14 @@
 
     <div class="block md:hidden">
       <div class="flex flex-col gap-4" testid="food-categories-cards"
-           cdkDropList [cdkDropListData]="foodCategories()" (cdkDropListDropped)="drop($event)">
-        @for (category of foodCategories(); track category.id; let i = $index) {
+           cdkDropList [cdkDropListData]="visibleFoodCategories()" (cdkDropListDropped)="drop($event)">
+        @for (category of visibleFoodCategories(); track category.id; let i = $index) {
           <mat-card class="shadow-sm" cdkDrag [cdkDragData]="category" [class.tafel-inactive]="!category.enabled"
                     [attr.testid]="'food-categories-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
                 <tafel-reorder-handle cdkDragHandle [label]="'Waren-Kategorie ' + category.name"
-                                      [position]="i + 1" [count]="foodCategories().length"
+                                      [position]="i + 1" [count]="visibleFoodCategories().length"
                                       [testId]="'dragFoodCategoryHandle-' + i"
                                       (move)="moveFoodCategory(i, $event)"/>
                 @if (editingId() === category.id) {
@@ -159,18 +160,10 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex gap-2">
-              @if (category.enabled) {
-                <button matButton="filled" class="button-success" testid="enableFoodCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                        (click)="toggleFoodCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl'">
-                  <fa-icon [icon]="faEye"></fa-icon>
-                </button>
-              } @else {
-                <button matButton="filled" class="button-danger" testid="disableFoodCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                        (click)="toggleFoodCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
-                  <fa-icon [icon]="faEyeSlash"></fa-icon>
-                </button>
-              }
+            <mat-card-actions class="flex items-center gap-2">
+              <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Waren-Kategorie ' + category.name"
+                                    [testId]="'food-categories-enabled-toggle-mobile-' + i"
+                                    (enabledChange)="toggleFoodCategoryVisibility(category, $event)"/>
               @if (editingId() === category.id) {
                 <button matButton="filled" [attr.testid]="'saveFoodCategoryButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(category)" [attr.aria-label]="'Änderungen an Kategorie ' + category.name + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
@@ -189,5 +182,20 @@
         }
       </div>
     </div>
+
+    <!-- One block for both layouts: the table renders its header even with no rows, and the card
+         list nothing at all, so neither can carry this on its own. -->
+    @if (loaded() && visibleFoodCategories().length === 0) {
+      <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="food-categories-empty">
+        <fa-icon [icon]="faBoxOpen" size="2x"></fa-icon>
+        @if (enabledFilter() === 'DISABLED') {
+          <span>Keine Kategorie ist deaktiviert.</span>
+        } @else if (enabledFilter() === 'ENABLED') {
+          <span>Keine Kategorie ist aktiv.</span>
+        } @else {
+          <span>Noch keine Waren-Kategorien angelegt.</span>
+        }
+      </div>
+    }
   </mat-card-content>
 </mat-card>

@@ -36,12 +36,8 @@
     </p>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <mat-button-toggle-group class="ms-auto" [value]="enabledFilter()" (change)="onFilterChanged($event)"
-                               aria-label="Nach Status filtern" testid="food-return-categories-status-filter">
-        <mat-button-toggle value="ALL" testid="food-return-categories-filter-all">Alle</mat-button-toggle>
-        <mat-button-toggle value="ENABLED" testid="food-return-categories-filter-enabled">Aktiv</mat-button-toggle>
-        <mat-button-toggle value="DISABLED" testid="food-return-categories-filter-disabled">Inaktiv</mat-button-toggle>
-      </mat-button-toggle-group>
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="food-return-categories"
+                            (valueChange)="onFilterChanged($event)"/>
     </div>
 
     <div class="hidden md:block">
@@ -60,17 +56,10 @@
         <ng-container matColumnDef="active">
           <th mat-header-cell *matHeaderCellDef>Aktiv</th>
           <td mat-cell *matCellDef="let category; let i = index">
-            @if (category.enabled) {
-              <button matButton="filled" class="button-success ms-2" testid="enableFoodReturnCategoryButton" matTooltip="Kategorie deaktivieren - ihr Zähler verschwindet sofort aus der Warenerfassung"
-                      (click)="toggleFoodReturnCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - ihr Zähler verschwindet sofort aus der Warenerfassung'">
-                <fa-icon [icon]="faEye"></fa-icon>
-              </button>
-            } @else {
-              <button matButton="filled" class="button-danger ms-2" testid="disableFoodReturnCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                      (click)="toggleFoodReturnCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
-                <fa-icon [icon]="faEyeSlash"></fa-icon>
-              </button>
-            }
+            <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Retour-Kategorie ' + category.name"
+                                  [showLabel]="false"
+                                  [testId]="'food-return-categories-enabled-toggle-' + i"
+                                  (enabledChange)="toggleFoodReturnCategoryVisibility(category, $event)"/>
           </td>
         </ng-container>
 
@@ -146,18 +135,10 @@
                 }
               </mat-card-title>
             </mat-card-header>
-            <mat-card-actions class="flex gap-2">
-              @if (category.enabled) {
-                <button matButton="filled" class="button-success" testid="enableFoodReturnCategoryButton" matTooltip="Kategorie deaktivieren - ihr Zähler verschwindet sofort aus der Warenerfassung"
-                        (click)="toggleFoodReturnCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - ihr Zähler verschwindet sofort aus der Warenerfassung'">
-                  <fa-icon [icon]="faEye"></fa-icon>
-                </button>
-              } @else {
-                <button matButton="filled" class="button-danger" testid="disableFoodReturnCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                        (click)="toggleFoodReturnCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
-                  <fa-icon [icon]="faEyeSlash"></fa-icon>
-                </button>
-              }
+            <mat-card-actions class="flex items-center gap-2">
+              <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Retour-Kategorie ' + category.name"
+                                    [testId]="'food-return-categories-enabled-toggle-mobile-' + i"
+                                    (enabledChange)="toggleFoodReturnCategoryVisibility(category, $event)"/>
               @if (editingId() === category.id) {
                 <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButtonMobile-' + i" matTooltip="Änderungen speichern (Enter)"
                         (click)="saveEdit(category)" [attr.aria-label]="'Änderungen an Kategorie ' + category.name + ' speichern'">

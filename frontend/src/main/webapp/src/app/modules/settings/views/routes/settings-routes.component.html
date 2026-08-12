@@ -38,12 +38,8 @@
         }
       </mat-form-field>
 
-      <mat-button-toggle-group class="ms-auto" [value]="enabledFilter()" (change)="onFilterChanged($event)"
-                               aria-label="Nach Status filtern" testid="routes-status-filter">
-        <mat-button-toggle value="ALL" testid="routes-filter-all">Alle</mat-button-toggle>
-        <mat-button-toggle value="ENABLED" testid="routes-filter-enabled">Aktiv</mat-button-toggle>
-        <mat-button-toggle value="DISABLED" testid="routes-filter-disabled">Inaktiv</mat-button-toggle>
-      </mat-button-toggle-group>
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="routes"
+                            (valueChange)="onFilterChanged($event)"/>
     </div>
 
     <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
@@ -52,7 +48,8 @@
          actions are its siblings rather than controls nested inside a button (#3137). -->
     <div class="block" testid="routes-list">
       @for (view of visibleRoutes(); track view.route.id; let i = $index) {
-        <div class="tafel-panel mb-2" [attr.testid]="'routes-row-' + i">
+        <div class="tafel-panel mb-2" [class.tafel-inactive]="!view.route.enabled"
+             [attr.testid]="'routes-row-' + i">
           <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
             <button type="button" class="flex flex-1 cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 text-start"
                     [id]="'routes-toggle-' + i" [attr.testid]="'routes-toggle-' + i"
@@ -62,18 +59,14 @@
               <span class="min-w-10 rounded-md bg-slate-100 px-2 py-1 text-center text-sm font-semibold text-slate-700">
                 {{ view.route.number }}
               </span>
-              <span class="font-medium" [class.text-slate-400]="!view.route.enabled">{{ view.route.name }}</span>
+              <span class="font-medium">{{ view.route.name }}</span>
               <span class="text-sm text-slate-500">{{ view.stopsSummary }}</span>
-              @if (!view.route.enabled) {
-                <span class="badge badge-danger" testid="routes-inactive-badge">Inaktiv</span>
-              }
               <fa-icon class="ms-auto text-slate-500" [icon]="isExpanded(view.route.id) ? faChevronUp : faChevronDown"></fa-icon>
             </button>
             <!-- both actions stay reachable without expanding the route first -->
-            <mat-slide-toggle [checked]="view.route.enabled" [attr.testid]="'routes-enabled-toggle-' + i"
-                              (change)="onEnabledToggled(view.route, $event)">
-              Aktiv
-            </mat-slide-toggle>
+            <tafel-enabled-toggle [enabled]="view.route.enabled" [label]="'Route ' + view.route.name"
+                                  [testId]="'routes-enabled-toggle-' + i"
+                                  (enabledChange)="setRouteEnabled(view.route, $event)"/>
             <button matButton="filled" class="button-danger" [attr.testid]="'editRouteButton-' + i"
                     [disabled]="!view.route.enabled" [attr.aria-label]="'Route ' + view.route.name + ' bearbeiten'"
                     (click)="editRoute(view.route)">

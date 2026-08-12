@@ -1,6 +1,8 @@
 /**
- * Active/inactive filter shared by the routes and shops screens, which both list records that are
- * disabled instead of deleted and therefore need a way to hide the archived ones.
+ * Which records of a list a status filter lets through - the value `tafel-enabled-filter` carries.
+ *
+ * Every settings list whose records are deactivated instead of deleted needs one, because such a
+ * list only ever grows and the working set is the active part of it.
  */
 export type EnabledFilter = 'ALL' | 'ENABLED' | 'DISABLED';
 

@@ -236,10 +236,10 @@ describe('SettingsRoutesComponent', () => {
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('onEnabledToggled() persists the state of the toggle', () => {
+  it('setRouteEnabled() re-enables a deactivated route', () => {
     const fixture = TestBed.createComponent(SettingsRoutesComponent);
     fixture.detectChanges();
-    fixture.componentInstance['onEnabledToggled'](testRoute2, {checked: true} as any);
+    fixture.componentInstance['setRouteEnabled'](testRoute2, true);
 
     expect(routeApiMock.updateRoute).toHaveBeenCalledWith(testRoute2.id, {...testRoute2, enabled: true});
   });

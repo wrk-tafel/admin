@@ -65,10 +65,29 @@ describe('Settings - Shelters', () => {
     });
   });
 
-  it('toggles shelter visibility', () => {
-    cy.byTestId('enableShelterButton').first().click();
-    cy.get('.toast-message')
-      .should('be.visible');
+  it('deactivates a shelter and finds it again through the status filter', () => {
+    const activeToggle = () =>
+      cy.get('[testid^="shelters-enabled-toggle-"] button[aria-checked="true"]').first();
+
+    // whichever shelter the cases above left active first - its switch is what names it
+    activeToggle().invoke('attr', 'aria-label').then((label) => {
+      const name = label!.replace('Aktiv - Notschlafstelle ', '');
+
+      activeToggle().click();
+      cy.get('.toast-message').should('be.visible');
+
+      cy.byTestId('shelters-filter-enabled').click();
+      cy.byTestId('shelters-list').should('not.contain.text', name);
+
+      cy.byTestId('shelters-filter-disabled').click();
+      cy.byTestId('shelters-list').should('contain.text', name);
+
+      // back to active, so the following cases still find a shelter they may edit
+      cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name)
+        .find('[testid^="shelters-enabled-toggle-"] button').click();
+      cy.get('.toast-message').should('be.visible');
+      cy.byTestId('shelters-filter-all').click();
+    });
   });
 
   it('shows validation errors and does not submit invalid shelter', () => {

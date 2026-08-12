@@ -153,4 +153,59 @@ describe('SettingsFoodCategoriesComponent', () => {
     expect(foodCategoriesApiMock.getAllFoodCategories).toHaveBeenCalledTimes(2);
   });
 
+  it('shows only the categories matching the status filter and counts the active ones', () => {
+    const disabledCategory: FoodCategory = {id: 3, name: 'Konserven', weightPerUnit: 5, sortOrder: 3, enabled: false};
+    foodCategoriesApiMock.getAllFoodCategories =
+      vi.fn(() => of<FoodCategory[]>([testCategory, testCategory2, disabledCategory]));
+
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['visibleFoodCategories']().map(c => c.id)).toEqual([1, 2, 3]);
+    expect(component['enabledCount']()).toBe(2);
+    expect(component['totalCount']()).toBe(3);
+
+    component['onFilterChanged']('ENABLED');
+    expect(component['visibleFoodCategories']().map(c => c.id)).toEqual([1, 2]);
+
+    component['onFilterChanged']('DISABLED');
+    expect(component['visibleFoodCategories']().map(c => c.id)).toEqual([3]);
+  });
+
+  it('reorders within the full list when a filter hides categories in between', () => {
+    // enabled, disabled, enabled - so moving the first active one down has to jump the hidden one
+    const hiddenCategory: FoodCategory = {id: 3, name: 'Konserven', weightPerUnit: 5, sortOrder: 2, enabled: false};
+    foodCategoriesApiMock.getAllFoodCategories =
+      vi.fn(() => of<FoodCategory[]>([testCategory, hiddenCategory, testCategory2]));
+    foodCategoriesApiMock.reorderFoodCategories =
+      vi.fn(() => of<FoodCategory[]>([hiddenCategory, testCategory2, testCategory]));
+
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['onFilterChanged']('ENABLED');
+
+    component['moveFoodCategory'](0, 1);
+
+    expect(foodCategoriesApiMock.reorderFoodCategories)
+      .toHaveBeenCalledWith([hiddenCategory.id, testCategory2.id, testCategory.id]);
+    expect(component['visibleFoodCategories']().map(c => c.id)).toEqual([testCategory2.id, testCategory.id]);
+  });
+
+  it('ignores a keyboard move past the end of the filtered list', () => {
+    const hiddenCategory: FoodCategory = {id: 3, name: 'Konserven', weightPerUnit: 5, sortOrder: 3, enabled: false};
+    foodCategoriesApiMock.getAllFoodCategories =
+      vi.fn(() => of<FoodCategory[]>([testCategory, testCategory2, hiddenCategory]));
+
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['onFilterChanged']('ENABLED');
+
+    component['moveFoodCategory'](1, 1);
+
+    expect(foodCategoriesApiMock.reorderFoodCategories).not.toHaveBeenCalled();
+  });
+
 });

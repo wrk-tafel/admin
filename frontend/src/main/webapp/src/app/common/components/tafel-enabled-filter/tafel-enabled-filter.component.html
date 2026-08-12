@@ -1,0 +1,6 @@
+<mat-button-toggle-group [value]="value()" (change)="onChange($event)"
+                         aria-label="Nach Status filtern" [attr.testid]="testIdPrefix() + '-status-filter'">
+  <mat-button-toggle value="ALL" [attr.testid]="testIdPrefix() + '-filter-all'">Alle</mat-button-toggle>
+  <mat-button-toggle value="ENABLED" [attr.testid]="testIdPrefix() + '-filter-enabled'">Aktiv</mat-button-toggle>
+  <mat-button-toggle value="DISABLED" [attr.testid]="testIdPrefix() + '-filter-disabled'">Inaktiv</mat-button-toggle>
+</mat-button-toggle-group>

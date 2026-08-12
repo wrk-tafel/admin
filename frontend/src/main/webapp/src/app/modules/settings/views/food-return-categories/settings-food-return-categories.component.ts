@@ -19,7 +19,7 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {FoodReturnCategoriesApiService, FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faBoxOpen, faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faBoxOpen, faCheck, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   TafelReorderHandleComponent
@@ -30,9 +30,17 @@ import {
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {RouterLink} from '@angular/router';
-import {EnabledFilter, matchesEnabledFilter} from '../enabled-filter';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 
 @Component({
   selector: 'tafel-settings-food-return-categories',
@@ -63,7 +71,8 @@ import {EnabledFilter, matchesEnabledFilter} from '../enabled-filter';
     CdkDragHandle,
     TafelReorderHandleComponent,
     MatTooltipModule,
-    MatButtonToggleModule,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
     RouterLink
   ]
 })
@@ -116,8 +125,8 @@ export class SettingsFoodReturnCategoriesComponent {
     });
   }
 
-  protected onFilterChanged(event: MatButtonToggleChange) {
-    this.enabledFilter.set(event.value as EnabledFilter);
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   protected startEdit(category: FoodReturnCategory) {
@@ -250,8 +259,6 @@ export class SettingsFoodReturnCategoriesComponent {
 
   protected readonly faBoxOpen = faBoxOpen;
   protected readonly faPencil = faPencil;
-  protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;

@@ -51,9 +51,9 @@ describe('Settings - Cars', () => {
 
     // back to how the other cases expect the list, deactivated again
     cy.byTestId('cars-table').contains('tr', 'W-NC-111').within(() => {
-      cy.byTestId('deactivateCarButton').click();
+      cy.get('[testid^="cars-enabled-toggle-"] button').click();
     });
-    cy.byTestId('inactive-cars').should('contain.text', 'W-NC-111');
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'deaktiviert');
   });
 
   it('shows validation errors and does not submit an invalid new car', () => {
@@ -121,27 +121,40 @@ describe('Settings - Cars', () => {
     });
   });
 
-  it('moves a deactivated car into the deactivated section and back', () => {
+  it('deactivates a car with the Aktiv switch and activates it again', () => {
     // The plate survives the renames the inline-edit cases above do, so it identifies the row
     // regardless of where sorting by name has put it by now.
     cy.byTestId('cars-row-0').invoke('text').then((rowText) => {
       const plate = /W-[A-Z0-9-]+/.exec(rowText)![0];
 
       cy.byTestId('cars-table').contains('tr', plate).within(() => {
-        cy.byTestId('deactivateCarButton').click();
+        cy.get('[testid^="cars-enabled-toggle-"] button').click();
       });
       cy.get('.toast-message').should('be.visible').and('contain.text', 'deaktiviert');
 
-      // unfolded on its own - a car that just left the working list must not look deleted
-      cy.byTestId('inactive-cars').should('be.visible').and('contain.text', plate);
+      // the car stays in the list - it is kept, not deleted - and the edit button is barred
+      cy.byTestId('cars-table').contains('tr', plate).within(() => {
+        cy.get('[testid^="cars-enabled-toggle-"] button').should('have.attr', 'aria-checked', 'false');
+        cy.get('[testid^="editCarButton-"]').should('be.disabled');
+      });
+
+      cy.byTestId('cars-filter-enabled').click();
       cy.byTestId('cars-table').should('not.contain.text', plate);
 
-      cy.byTestId('inactive-cars').contains('li', plate).within(() => {
-        cy.byTestId('reactivateCarButton').click();
+      cy.byTestId('cars-filter-disabled').click();
+      cy.byTestId('cars-table').contains('tr', plate).within(() => {
+        cy.get('[testid^="cars-enabled-toggle-"] button').click();
       });
       cy.get('.toast-message').should('be.visible');
+
+      // back in the active list, which is what the filter now shows on its own
+      cy.byTestId('cars-filter-all').click();
       cy.byTestId('cars-table').should('contain.text', plate);
     });
+  });
+
+  it('counts the active cars beside the heading', () => {
+    cy.byTestId('cars-summary').should('contain.text', 'von').and('contain.text', 'aktiv');
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -191,11 +204,11 @@ describe('Settings - Cars', () => {
       cy.checkDialogAccessibility();
     });
 
-    it('has no violations while the deactivated section is unfolded', () => {
-      cy.byTestId('toggleInactiveCarsButton').click();
-      cy.byTestId('inactive-cars').should('be.visible');
+    it('has no violations while the list is filtered to the deactivated cars', () => {
+      cy.byTestId('cars-filter-disabled').click();
+      cy.byTestId('cars-table').should('contain.text', 'W-NC-111');
 
-      cy.checkAccessibility('[testid="inactive-cars"]');
+      cy.checkAccessibility('[testid="cars-table"]');
     });
 
     it('has no violations while a row is edited inline', () => {
