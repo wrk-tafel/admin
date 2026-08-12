@@ -166,15 +166,28 @@ Differences worth knowing:
   `editingId` signal and swaps that row's cells for a `nameControl`/
   `weightPerUnitControl` pair; `saveEdit()`/`cancelEdit()` exit the mode. A
   `viewChild` + `effect()` auto-focuses the name input whenever it appears —
-  the same focus-on-appear trick is reused in `static-values` below. This
-  replaced an earlier dialog-based editor (commits `907d9cb8`, `80a53516`,
-  `a30b6a36` progressively moved edit inline, dropped the return-item toggle
-  from inline editing, and swapped a manual "Sortierung" number input for
-  drag-and-drop).
-- **Creation still uses a dialog** (`food-category-create-dialog.component.ts`),
-  which does expose `returnItem` (Pfandartikel/deposit-return flag) as a
-  checkbox — inline editing intentionally does not let you touch `returnItem`
-  or `sortOrder` after creation.
+  the same focus-on-appear trick is reused in `static-values` below. Enter saves
+  and Escape cancels, which a `mat-hint` under the name field and the
+  "(Enter)"/"(Esc)" suffixes on the save/cancel tooltips are what make
+  discoverable, same as `food-return-categories`.
+- **Creation uses a dialog** (`food-category-create-dialog.component.ts`), which
+  asks for the name and the weight and nothing else: `sortOrder` is
+  server-assigned (a new category goes last) and changes only by dragging
+  afterwards.
+- **The weight carries its unit wherever it is shown** — `| number: '1.0-3'`
+  plus a `kg` suffix in the cell, a `kg` `matTextSuffix` on both the inline and
+  the dialog input — and a category without a weight says so in its place
+  instead of leaving the cell blank: the backend reads a null `weightPerUnit`
+  as 0 kg (`FoodCollectionItemEntity.calculateWeight`), so such a category
+  contributes nothing to any warehouse statistic.
+- **The screen says what it drives**: the paragraph above the list carries the
+  two facts about the list as a whole — the order here is the category order in
+  the Warenerfassung, and deactivating removes a category from that form at once
+  — while what the weight does is a `tafel-info-tooltip` at the weight column
+  itself (`weightExplanation` on the component, one tooltip per layout). It
+  belongs there rather than in a third sentence of the intro: on a phone every
+  extra line of intro pushes the list below the fold, which the e2e spec's
+  card-list case catches.
 - `enabled`/disabled categories: `toggleFoodCategoryVisibility()` flips
   `enabled` via the same update endpoint used for name/weight edits. A disabled
   category is excluded from `FoodCategoriesApiService.getActiveFoodCategories()`,

@@ -1,3 +1,5 @@
+import {MAIN_CONTENT} from '../support/accessibility';
+
 describe('PushNotifications', () => {
 
   beforeEach(() => {
@@ -47,6 +49,12 @@ describe('PushNotifications', () => {
 
       cy.byTestId('push-device').should('have.length', 1);
       cy.byTestId('push-device-label').should('contain.text', 'Chrome');
+      // Registration is stated as an age first - the exact timestamp stays next to it.
+      cy.byTestId('push-device-registered').should('contain.text', 'Registriert gerade eben');
+      cy.byTestId('push-device-icon').should('be.visible');
+
+      // Renaming is reversible, so it must not be dressed up like the remove button next to it.
+      cy.byTestId('push-device-rename').should('not.have.class', 'button-danger');
 
       cy.byTestId('push-device-rename').click();
       // the dialog exists only after this click, so no other accessibility gate sees it -
@@ -91,6 +99,11 @@ describe('PushNotifications', () => {
       cy.byTestId('push-device-test').click();
       cy.get('.toast-message').should('be.visible').and('contain.text', 'nicht konfiguriert');
 
+      // The toast is gone by the time the user has looked at their notification centre, so the
+      // outcome also stays next to the device it was sent to.
+      cy.byTestId('push-device-test-status').should('be.visible').and('have.attr', 'data-state', 'error');
+      cy.byTestId('push-device-test-status').should('contain.text', 'Am Server nicht eingerichtet');
+
       // A device that merely couldn't be reached must stay in the list - only an expired one gets
       // pruned.
       cy.byTestId('push-device').should('have.length', 1);
@@ -112,10 +125,20 @@ describe('PushNotifications', () => {
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
-    cy.byTestId('push-type-preference').should('not.exist');
+
+    // Switching the master off overrules the per-type settings rather than discarding them, so they
+    // stay on screen and inert - hiding them read as "my settings are gone".
+    cy.byTestId('push-master-disabled-hint').should('be.visible');
+    cy.byTestId('push-type-preference').should('have.length', 10);
+    cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('be.disabled');
+    // The hint and the disabled section exist only after this click, so no other accessibility gate
+    // sees them - see cypress/support/accessibility.ts
+    cy.checkAccessibility(MAIN_CONTENT);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
+    cy.byTestId('push-master-disabled-hint').should('not.exist');
+    cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('not.be.disabled');
 
     cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     cy.byTestId('push-type-preference-toggle').first().click();

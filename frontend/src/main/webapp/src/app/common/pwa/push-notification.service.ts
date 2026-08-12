@@ -34,6 +34,24 @@ export class PushNotificationService {
   }
 
   /**
+   * The browser's own notification permission for this origin, which is decided outside the
+   * application entirely (the browser's own prompt, or its site settings) and can therefore differ
+   * from anything the app knows. `denied` is the case worth reading: `requestSubscription()` then
+   * rejects immediately and without a prompt, so a toggle offered as if it worked is a dead
+   * control - see the settings screen, which explains the block instead.
+   *
+   * Read per call rather than cached: the user can change it in the site settings while the screen
+   * is open, and nothing notifies the page when they do.
+   */
+  permissionState(): NotificationPermission | null {
+    // `Notification` is declared on the global scope rather than on the `Window` interface, so it
+    // has to be read off the injected window explicitly - which also covers the browsers (iOS
+    // Safari without a home-screen install) that don't have it at all.
+    const notificationApi = (this.window as {Notification?: {permission: NotificationPermission}}).Notification;
+    return notificationApi?.permission ?? null;
+  }
+
+  /**
    * The browser's own PushManager subscription and the backend's `push_subscriptions` row for it
    * can drift apart independently of the user ever touching the toggle - e.g. the backend's table
    * gets wiped (a dev/test data reset), or the row was pruned after a push service answered

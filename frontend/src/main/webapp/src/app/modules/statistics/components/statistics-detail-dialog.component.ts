@@ -1,4 +1,6 @@
 import {Component, computed, inject, LOCALE_ID} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {map} from 'rxjs';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {DecimalPipe} from '@angular/common';
@@ -30,6 +32,17 @@ export class StatisticsDetailDialogComponent {
   readonly dialogRef = inject(MatDialogRef<StatisticsDetailDialogComponent>);
   readonly data: StatisticsDetailDialogData = inject(MAT_DIALOG_DATA);
   private readonly locale = inject(LOCALE_ID);
+
+  /**
+   * Whether the dialog has finished opening - which is what the chart waits for. Chart.js measures
+   * the box it has to fill with `getBoundingClientRect()`, and that includes the `transform:
+   * scale()` a Material dialog grows in with: a chart created while the dialog is still growing
+   * sizes itself off a box smaller than the one it ends up in, and stays that size. Chart.js' own
+   * resize observer corrects it, but only on the next frame the browser produces - so on a machine
+   * that is slow to produce one, the chart keeps a width it never grows out of. Measuring once the
+   * animation is over takes it out of the measurement instead of relying on that correction.
+   */
+  protected readonly opened = toSignal(this.dialogRef.afterOpened().pipe(map(() => true)), {initialValue: false});
 
   delta = computed(() => computeDelta(this.data.detail, this.data.comparison));
 

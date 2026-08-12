@@ -26,7 +26,9 @@ export class FoodCategoryCreateDialogComponent {
 
   form = this.fb.group({
     name: ['', [Validators.required]],
-    weightPerUnit: [null as number | null, [Validators.required]],
+    // The backend rejects a negative weight (@PositiveOrZero); caught here so it never becomes a
+    // bare "Erstellen fehlgeschlagen" toast with the dialog's content already gone.
+    weightPerUnit: [null as number | null, [Validators.required, Validators.min(0)]],
     // Not user-editable here - the backend auto-assigns the actual sort order on create,
     // placing new categories last; reordering afterwards happens via drag-and-drop.
     sortOrder: [0],

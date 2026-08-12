@@ -1,4 +1,5 @@
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {DecimalPipe} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {FoodCategoryCreateDialogComponent} from './dialogs/food-category-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -41,6 +42,9 @@ import {
 import {
   TafelEnabledToggleComponent
 } from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
+import {
+  TafelInfoTooltipComponent
+} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-settings-food-categories',
@@ -73,7 +77,9 @@ import {
     MatTooltipModule,
     TafelEnabledFilterComponent,
     TafelEnabledToggleComponent,
-    RouterLink
+    TafelInfoTooltipComponent,
+    RouterLink,
+    DecimalPipe
   ]
 })
 export class SettingsFoodCategoriesComponent {
@@ -97,6 +103,16 @@ export class SettingsFoodCategoriesComponent {
   );
   protected readonly enabledCount = computed(() => this._foodCategories().filter(category => category.enabled).length);
   protected readonly totalCount = computed(() => this._foodCategories().length);
+
+  /**
+   * Shown at the weight column of both layouts: the number turns recorded units into the kilograms
+   * every warehouse statistic is built from, and a food collection item keeps the weight it was
+   * recorded with - so an edit here never rewrites a distribution that is already closed.
+   */
+  protected readonly weightExplanation =
+    'Rechnet die erfassten Einheiten in Kilogramm um und bestimmt damit die Warenmenge jeder ' +
+    'Statistik. Eine Änderung wirkt ab der nächsten Erfassung - bereits erfasste Mengen behalten ' +
+    'das Gewicht, mit dem sie erfasst wurden.';
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});

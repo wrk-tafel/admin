@@ -2,14 +2,28 @@ import {Component, computed, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatSlideToggle, MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faBell, faBellSlash, faPaperPlane, faPen, faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {
+  IconDefinition,
+  faBell,
+  faBellSlash,
+  faCircleCheck,
+  faDesktop,
+  faMobileScreen,
+  faPaperPlane,
+  faPen,
+  faQuestion,
+  faSpinner,
+  faTrashCan,
+  faTriangleExclamation
+} from '@fortawesome/free-solid-svg-icons';
 import {DatePipe} from '@angular/common';
 import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {PushDeviceItem, PushNotificationService} from '../../../../common/pwa/push-notification.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {userAgentLabel} from '../../../../common/util/user-agent-label.util';
+import {userAgentDeviceType, userAgentLabel} from '../../../../common/util/user-agent-label.util';
+import {relativeTimeLabel} from '../../../../common/util/relative-time.util';
 import {
   PushNotificationType,
   PushPreferencesResponse,
@@ -21,6 +35,19 @@ import {
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
 
 const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types: []};
+
+/**
+ * What became of the last test notification sent to one device, shown next to that device rather
+ * than only as a toast: "the test never arrived" is the moment this button exists for, and a toast
+ * is gone by the time the user has looked at their notification centre.
+ */
+export interface PushDeviceTestStatus {
+  state: 'pending' | 'success' | 'error';
+  text: string;
+}
+
+const PERMISSION_BLOCKED_HINT = 'Benachrichtigungen sind in diesem Browser blockiert - bitte in den '
+  + 'Seiteneinstellungen des Browsers erlauben.';
 
 @Component({
   selector: 'tafel-push-notification-settings',
@@ -51,6 +78,15 @@ export class PushNotificationSettingsComponent {
   // Id of the device whose test notification is currently in flight - per-device rather than a
   // single flag so testing one device doesn't disable the button on all the others.
   readonly testedDeviceId = signal<number | null>(null);
+  // Outcome of the last test per device, keyed by device id for the same reason.
+  readonly testStatuses = signal<Record<number, PushDeviceTestStatus>>({});
+  readonly notificationPermission = signal<NotificationPermission | null>(null);
+
+  /**
+   * `denied` is the only state worth acting on here: `default` still shows the browser's prompt when
+   * the toggle is switched on, and `granted` needs no explanation at all.
+   */
+  readonly permissionBlocked = computed(() => this.notificationPermission() === 'denied');
 
   constructor() {
     effect(() => {
@@ -66,6 +102,7 @@ export class PushNotificationSettingsComponent {
    */
   private async initialize() {
     this.loadPreferences();
+    this.readPermissionState();
 
     if (this.supported) {
       this.enabled.set(await this.pushNotificationService.syncSubscription());
@@ -90,11 +127,22 @@ export class PushNotificationSettingsComponent {
       }
       await this.loadDevices();
     } catch {
+      // The browser's prompt is what the failed enable ran into, so its outcome is only known now -
+      // a user who just pressed "Blockieren" gets the explanation rather than a generic failure.
+      this.readPermissionState();
       event.source.checked = this.enabled();
-      this.toastr.error('Push-Benachrichtigungen konnten nicht aktualisiert werden.');
+      this.toastr.error(
+        this.permissionBlocked()
+          ? PERMISSION_BLOCKED_HINT
+          : 'Push-Benachrichtigungen konnten nicht aktualisiert werden.'
+      );
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private readPermissionState() {
+    this.notificationPermission.set(this.pushNotificationService.permissionState());
   }
 
   renameDevice(device: PushDeviceItem) {
@@ -123,12 +171,14 @@ export class PushNotificationSettingsComponent {
    */
   async sendTestNotification(device: PushDeviceItem) {
     this.testedDeviceId.set(device.id);
+    this.setTestStatus(device.id, {state: 'pending', text: 'Test wird gesendet …'});
 
     try {
       const result = await this.pushNotificationService.sendTestNotification(device.id);
 
       switch (result) {
         case PushTestResult.SENT:
+          this.setTestStatus(device.id, {state: 'success', text: 'Test gesendet - sollte gleich am Gerät erscheinen'});
           this.toastr.success('Test-Benachrichtigung wurde gesendet und sollte gleich am Gerät erscheinen.');
           break;
         case PushTestResult.EXPIRED:
@@ -141,22 +191,42 @@ export class PushNotificationSettingsComponent {
           if (device.isCurrentDevice) {
             this.enabled.set(false);
           }
+          this.clearTestStatus(device.id);
           await this.loadDevices();
           break;
         case PushTestResult.NOT_CONFIGURED:
+          this.setTestStatus(device.id, {state: 'error', text: 'Am Server nicht eingerichtet'});
           this.toastr.error(
             'Push-Benachrichtigungen sind am Server nicht konfiguriert, es kann derzeit keine Benachrichtigung zugestellt werden.'
           );
           break;
         default:
+          this.setTestStatus(device.id, {state: 'error', text: 'Nicht zugestellt'});
           this.toastr.error('Test-Benachrichtigung konnte nicht zugestellt werden.');
           break;
       }
     } catch {
+      this.setTestStatus(device.id, {state: 'error', text: 'Senden fehlgeschlagen'});
       this.toastr.error('Test-Benachrichtigung konnte nicht gesendet werden.');
     } finally {
       this.testedDeviceId.set(null);
     }
+  }
+
+  protected testStatus(device: PushDeviceItem): PushDeviceTestStatus | undefined {
+    return this.testStatuses()[device.id];
+  }
+
+  private setTestStatus(deviceId: number, status: PushDeviceTestStatus) {
+    this.testStatuses.update(statuses => ({...statuses, [deviceId]: status}));
+  }
+
+  private clearTestStatus(deviceId: number) {
+    this.testStatuses.update(statuses => {
+      const rest = {...statuses};
+      delete rest[deviceId];
+      return rest;
+    });
   }
 
   async removeDevice(device: PushDeviceItem) {
@@ -165,6 +235,7 @@ export class PushNotificationSettingsComponent {
       if (device.isCurrentDevice) {
         this.enabled.set(false);
       }
+      this.clearTestStatus(device.id);
       await this.loadDevices();
       this.toastr.success('Gerät wurde entfernt.');
     } catch {
@@ -174,6 +245,40 @@ export class PushNotificationSettingsComponent {
 
   protected deviceLabel(device: PushDeviceItem): string {
     return device.label ?? userAgentLabel(device.userAgent);
+  }
+
+  /**
+   * A custom label replaces the browser/OS text, so the icon is what still says what kind of device
+   * an entry is once someone has named it "Tafel Ausgabe 1".
+   */
+  protected deviceIcon(device: PushDeviceItem): IconDefinition {
+    switch (userAgentDeviceType(device.userAgent)) {
+      case 'mobile':
+        return faMobileScreen;
+      case 'desktop':
+        return faDesktop;
+      default:
+        return faQuestion;
+    }
+  }
+
+  protected deviceTypeLabel(device: PushDeviceItem): string {
+    switch (userAgentDeviceType(device.userAgent)) {
+      case 'mobile':
+        return 'Mobiles Gerät';
+      case 'desktop':
+        return 'Computer';
+      default:
+        return 'Unbekannter Gerätetyp';
+    }
+  }
+
+  /**
+   * "Registriert vor 3 Wochen" answers the question this list is actually scanned for; the exact
+   * timestamp stays available as the row's tooltip.
+   */
+  protected registeredAgo(device: PushDeviceItem): string | null {
+    return relativeTimeLabel(device.createdAt);
   }
 
   /**
@@ -244,9 +349,14 @@ export class PushNotificationSettingsComponent {
     this.preferencesLoading.set(false);
   }
 
+  protected readonly permissionBlockedHint = PERMISSION_BLOCKED_HINT;
+
   protected readonly faBell = faBell;
   protected readonly faBellSlash = faBellSlash;
   protected readonly faTrashCan = faTrashCan;
   protected readonly faPen = faPen;
   protected readonly faPaperPlane = faPaperPlane;
+  protected readonly faSpinner = faSpinner;
+  protected readonly faCircleCheck = faCircleCheck;
+  protected readonly faTriangleExclamation = faTriangleExclamation;
 }
