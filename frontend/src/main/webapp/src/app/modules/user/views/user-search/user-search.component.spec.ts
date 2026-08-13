@@ -202,6 +202,21 @@ describe('UserSearchComponent', () => {
 
       expect(apiService.searchUser).toHaveBeenLastCalledWith('m', true, undefined, undefined);
     });
+
+    it('an explicit search absorbs the debounced search still pending for the same input', () => {
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      const {component} = createComponent();
+      expect(apiService.searchUser).toHaveBeenCalledTimes(1);
+
+      component.onQueryInput('muster');
+      component.search();
+      expect(apiService.searchUser).toHaveBeenCalledTimes(2);
+
+      // the debounce from typing fires afterwards - it must not re-run the identical search and
+      // replace the result list underneath the user a moment after the explicit one answered
+      vi.advanceTimersByTime(1000);
+      expect(apiService.searchUser).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('the status filter', () => {
