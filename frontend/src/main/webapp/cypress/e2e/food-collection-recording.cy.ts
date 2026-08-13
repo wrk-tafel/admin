@@ -331,13 +331,15 @@ describe('Food Collection Recording', () => {
       cy.byTestId('select-items-tab').click();
       cy.byTestId('waren-tab-status-complete').should('not.exist');
       enterKmData();
-      cy.byTestId('waren-tab-status-unsaved').should('be.visible');
+      // the km inputs sit at the bottom of the items tab, so entering them scrolls the tab header
+      // (which carries the badges) out of the scrollport - scroll back up like a user would
+      cy.byTestId('waren-tab-status-unsaved').scrollIntoView().should('be.visible');
 
       saveAndConfirmKmDiff();
       assertSavedToast();
 
-      cy.byTestId('route-tab-status-complete').should('be.visible');
-      cy.byTestId('waren-tab-status-complete').should('be.visible');
+      cy.byTestId('route-tab-status-complete').scrollIntoView().should('be.visible');
+      cy.byTestId('waren-tab-status-complete').scrollIntoView().should('be.visible');
     });
   });
 
@@ -348,7 +350,8 @@ describe('Food Collection Recording', () => {
     cy.byTestId('select-items-tab').click();
     cy.byTestId('category-1-shop-20-input').clear().type('3');
 
-    cy.byTestId('basedata-missing-warning').should('be.visible');
+    // the warning renders above the tab content, which typing in the grid has scrolled past
+    cy.byTestId('basedata-missing-warning').scrollIntoView().should('be.visible');
   });
 
   it('shows the live computed distance next to the mileage inputs', () => {
