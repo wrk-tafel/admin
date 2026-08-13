@@ -286,6 +286,26 @@ describe('LoginComponent', () => {
         expect(loginButton.disabled).toBe(false);
     });
 
+    // A real button click, not a dispatched submit event: [formField] reflects the schema's
+    // `required` onto the native inputs, so without novalidate on the <form> the browser's own
+    // constraint validation swallows the click before the submit handler (and with it the
+    // touched-marking that makes the mat-errors visible) ever runs.
+    it('clicking submit on an empty form shows both required mat-errors instead of logging in', async () => {
+        const fixture = TestBed.createComponent(LoginComponent);
+        fixture.detectChanges();
+
+        const loginButton: HTMLButtonElement = fixture.nativeElement.querySelector('[testid="loginButton"]');
+        loginButton.click();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const errorMessages = Array.from(fixture.nativeElement.querySelectorAll('mat-error'))
+            .map((error) => (error as HTMLElement).textContent?.trim());
+        expect(errorMessages).toContain('Benutzername ist erforderlich');
+        expect(errorMessages).toContain('Passwort ist erforderlich');
+        expect(authService.login).not.toHaveBeenCalled();
+    });
+
     function capsLockKeyEvent(type: 'keydown' | 'keyup', capsLockOn: boolean): KeyboardEvent {
         const event = new KeyboardEvent(type, {key: 'a', bubbles: true});
         vi.spyOn(event, 'getModifierState').mockReturnValue(capsLockOn);

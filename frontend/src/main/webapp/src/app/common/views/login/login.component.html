@@ -29,7 +29,13 @@
             </div>
           }
 
-          <form (submit)="onSubmit($event)" class="flex flex-col">
+          <!--
+            `novalidate` because the [formField] directive reflects the schema's `required` onto the
+            native inputs: without it the browser's own constraint validation swallows the submit
+            event for an empty form (login() never runs, no field gets marked touched) and shows its
+            native bubble instead of the mat-errors this form explains itself with.
+          -->
+          <form (submit)="onSubmit($event)" novalidate class="flex flex-col">
             <div class="mb-4">
               <mat-form-field class="w-full">
                 <mat-label>Benutzername</mat-label>
