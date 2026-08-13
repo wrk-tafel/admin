@@ -104,11 +104,11 @@
                           [ngClass]="user.enabled ? 'bg-green-700' : 'bg-slate-500'"
                           [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
                     @if (user.passwordChangeRequired) {
-                      <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-600"
+                      <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-700"
                             [attr.testid]="'searchresult-passwordchangerequired-' + i">Passwortänderung erforderlich</span>
                     }
                     @if (isLocked(user)) {
-                      <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-red-600"
+                      <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-red-700"
                             [attr.testid]="'searchresult-lockeduntil-' + i">Gesperrt bis {{user.lockedUntil | date : 'dd.MM.yyyy HH:mm'}}</span>
                     }
                   </div>
@@ -158,10 +158,10 @@
                         <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white"
                               [ngClass]="user.enabled ? 'bg-green-700' : 'bg-slate-500'">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
                         @if (user.passwordChangeRequired) {
-                          <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-600">Passwortänderung erforderlich</span>
+                          <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-700">Passwortänderung erforderlich</span>
                         }
                         @if (isLocked(user)) {
-                          <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-red-600">Gesperrt bis {{user.lockedUntil | date : 'dd.MM.yyyy HH:mm'}}</span>
+                          <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-red-700">Gesperrt bis {{user.lockedUntil | date : 'dd.MM.yyyy HH:mm'}}</span>
                         }
                       </div>
                     </div>
