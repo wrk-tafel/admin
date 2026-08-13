@@ -71,17 +71,21 @@
         <div class="mb-3 flex items-center gap-1.5 overflow-x-auto py-1" testid="guidance-stepper"
              role="list" aria-label="Stopp-Übersicht">
           @for (view of stopViews(); track view.stop.stopId; let i = $index) {
-            <!-- the button itself is a full touch target (h-6 w-6); the small dot inside is only the
-                 visual indicator, so the tappable area stays large enough on a phone screen -->
-            <button type="button" testid="guidance-stepper-dot" role="listitem"
-                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                    [attr.aria-current]="i === currentIndex() ? 'step' : null"
-                    [attr.aria-label]="'Stopp ' + (i + 1) + ' von ' + stops().length + ': ' + view.timeLabel + ' ' + view.title
-                      + (view.pending ? ', Änderung ausstehend' : (view.stop.completed ? ', erledigt' : ', offen'))
-                      + (i === currentIndex() ? ', aktuell angezeigt' : '')"
-                    (click)="goToStop(i)">
-              <span [class]="stepperDotClasses(view, i)"></span>
-            </button>
+            <!-- `listitem` sits on a wrapper because a `<button>` may not carry that role
+                 (axe: aria-allowed-role); the button itself is a full touch target (h-6 w-6),
+                 the small dot inside only the visual indicator, so the tappable area stays
+                 large enough on a phone screen -->
+            <div role="listitem" class="shrink-0">
+              <button type="button" testid="guidance-stepper-dot"
+                      class="flex h-6 w-6 items-center justify-center rounded-full"
+                      [attr.aria-current]="i === currentIndex() ? 'step' : null"
+                      [attr.aria-label]="'Stopp ' + (i + 1) + ' von ' + stops().length + ': ' + view.timeLabel + ' ' + view.title
+                        + (view.pending ? ', Änderung ausstehend' : (view.stop.completed ? ', erledigt' : ', offen'))
+                        + (i === currentIndex() ? ', aktuell angezeigt' : '')"
+                      (click)="goToStop(i)">
+                <span [class]="stepperDotClasses(view, i)"></span>
+              </button>
+            </div>
           }
         </div>
 
