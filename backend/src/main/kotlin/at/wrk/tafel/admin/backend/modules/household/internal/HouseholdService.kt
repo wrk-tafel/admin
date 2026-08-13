@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -15,6 +16,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
+import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdCreationResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdOverviewItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdOverviewResponse
@@ -38,8 +40,10 @@ import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Service
 class HouseholdService(
@@ -54,6 +58,7 @@ class HouseholdService(
 
     companion object {
         private val log = LoggerFactory.getLogger(HouseholdService::class.java)
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -213,9 +218,88 @@ class HouseholdService(
      * two flags), and only the requested page's households are mapped to a [HouseholdResponse] -
      * that mapping resolves each household's issuer, its `lockedBy` user and every person's country,
      * which for the vast majority of households the response throws away again.
+     *
+     * [sortBy]/[sortDirection] sort the already-computed, still unpaginated list of households above
+     * the limit (see [loadHouseholdsAboveLimit]) before the page is sliced off it - there is no
+     * SQL-level sort to add, since the whole list already lives in memory by the time a sort order
+     * can be applied. [sortBy] takes the same column ids the frontend's `mat-sort-header`s use
+     * (`totalSum`/`limit`/`amountExceededLimit`/`percentageExceededLimit`); anything else, including
+     * `null`, sorts by `amountExceededLimit` - descending by default, which is what opens the review
+     * queue with its worst cases first.
      */
     @Transactional(readOnly = true)
-    fun getHouseholdsAboveLimit(page: Int? = null, pageSize: Int? = null): HouseholdAboveLimitSearchResult {
+    fun getHouseholdsAboveLimit(
+        page: Int? = null,
+        pageSize: Int? = null,
+        sortBy: String? = null,
+        sortDirection: String? = null,
+    ): HouseholdAboveLimitSearchResult {
+        val entitiesAboveLimit = loadHouseholdsAboveLimit(sortBy, sortDirection)
+
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val fromIndex = pageRequest.offset.toInt().coerceAtMost(entitiesAboveLimit.size)
+        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(entitiesAboveLimit.size)
+
+        val items = entitiesAboveLimit.subList(fromIndex, toIndex).map { it.toItem() }
+        val pagedResult = PageImpl(items, pageRequest, entitiesAboveLimit.size.toLong())
+
+        return HouseholdAboveLimitSearchResult(
+            items = pagedResult.content,
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize,
+        )
+    }
+
+    /**
+     * The CSV export exports every household above the limit, not just the current page - like
+     * [at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsService.generateChildrenCsv],
+     * the CSV is what gets acted on, the paginated [getHouseholdsAboveLimit] only the on-screen
+     * evidence for it. Sorted the same way the list on screen was, so the export matches what a
+     * reviewer was looking at.
+     */
+    @Transactional(readOnly = true)
+    fun generateAboveLimitCsv(
+        sortBy: String? = null,
+        sortDirection: String? = null,
+    ): HouseholdAboveLimitCsvResult {
+        val items = loadHouseholdsAboveLimit(sortBy, sortDirection).map { it.toItem() }
+
+        val rows: List<List<String>> = listOf(
+            listOf("Nr.", "Name", "Adresse", "Gültig bis", "Einkommen gesamt", "Limit", "Über Limit", "% über Limit"),
+        ) + items.map { item ->
+            val household = item.household
+            listOf(
+                household.id?.toString() ?: "",
+                listOfNotNull(household.mainPerson()?.lastname, household.mainPerson()?.firstname).joinToString(" "),
+                formatAddress(household.address),
+                household.validUntil?.let { DATE_FORMATTER.format(it) } ?: "",
+                item.totalSum.toPlainString(),
+                item.limit.toPlainString(),
+                item.amountExceededLimit.toPlainString(),
+                item.percentageExceededLimit.toPlainString(),
+            )
+        }
+
+        return HouseholdAboveLimitCsvResult(
+            filename = "kunden_ueber_limit_${DATE_FORMATTER.format(LocalDate.now())}.csv",
+            bytes = CsvUtil.writeRowsToByteArray(rows),
+        )
+    }
+
+    /**
+     * Matches `FormatCustomerAddressPipe` (comma-joined, "Stiege"/"Top" for stairway/door) so the
+     * export reads the same as the address column shown everywhere else in the app.
+     */
+    private fun formatAddress(address: HouseholdAddress): String = listOfNotNull(
+        listOfNotNull(address.street, address.houseNumber).joinToString(" ").trim().ifBlank { null },
+        address.stairway?.trim()?.takeIf { it.isNotEmpty() }?.let { "Stiege $it" },
+        address.door?.trim()?.takeIf { it.isNotEmpty() }?.let { "Top $it" },
+        listOfNotNull(address.postalCode?.toString(), address.city).joinToString(" ").trim().ifBlank { null },
+    ).joinToString(", ")
+
+    private fun loadHouseholdsAboveLimit(sortBy: String?, sortDirection: String?): List<HouseholdAboveLimitEntry> {
         // households needing post-processing (missing birthDate/gender/country/address/... - see
         // HouseholdEntity.Specs.postProcessingNecessary()) can't be income-validated
         val spec = where(Specification.allOf(listOf(validHousehold(), Specification.not(postProcessingNecessary()))))
@@ -229,7 +313,7 @@ class HouseholdService(
 
         val entitiesAboveLimit = households.zip(results).mapNotNull { (household, result) ->
             result.fold(
-                onSuccess = { if (!it.valid) household to it else null },
+                onSuccess = { if (!it.valid) HouseholdAboveLimitEntry(household, it) else null },
                 onFailure = {
                     // a household nobody can validate is not an answer this list can give - leaving
                     // it out keeps the review usable for every other household
@@ -239,28 +323,28 @@ class HouseholdService(
             )
         }
 
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val fromIndex = pageRequest.offset.toInt().coerceAtMost(entitiesAboveLimit.size)
-        val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(entitiesAboveLimit.size)
-
-        val items = entitiesAboveLimit.subList(fromIndex, toIndex).map { (household, result) ->
-            HouseholdAboveLimitItem(
-                household = householdConverter.mapEntityToHousehold(household),
-                totalSum = result.totalSum,
-                limit = result.limit,
-                amountExceededLimit = result.amountExceededLimit,
-            )
+        val comparator: Comparator<HouseholdAboveLimitEntry> = when (sortBy) {
+            "totalSum" -> compareBy { it.result.totalSum }
+            "limit" -> compareBy { it.result.limit }
+            "percentageExceededLimit" -> compareBy { it.percentageExceededLimit() }
+            else -> compareBy { it.result.amountExceededLimit }
         }
-        val pagedResult = PageImpl(items, pageRequest, entitiesAboveLimit.size.toLong())
-
-        return HouseholdAboveLimitSearchResult(
-            items = pagedResult.content,
-            totalCount = pagedResult.totalElements,
-            currentPage = page ?: 1,
-            totalPages = pagedResult.totalPages,
-            pageSize = pageRequest.pageSize,
-        )
+        // largest-first is the useful default for a review queue, so anything but an explicit
+        // ascending request sorts descending
+        return if ("asc".equals(sortDirection, ignoreCase = true)) {
+            entitiesAboveLimit.sortedWith(comparator)
+        } else {
+            entitiesAboveLimit.sortedWith(comparator.reversed())
+        }
     }
+
+    private fun HouseholdAboveLimitEntry.toItem() = HouseholdAboveLimitItem(
+        household = householdConverter.mapEntityToHousehold(household),
+        totalSum = result.totalSum,
+        limit = result.limit,
+        amountExceededLimit = result.amountExceededLimit,
+        percentageExceededLimit = percentageExceededLimit(),
+    )
 
     /**
      * "New" and "renewed" households of a distribution, keyed off the same timestamps
@@ -455,6 +539,47 @@ data class HouseholdAboveLimitSearchResult(
     val totalPages: Int,
     val pageSize: Int,
 )
+
+/**
+ * One household above the limit together with the [IncomeValidatorResult] that put it there - the
+ * intermediate shape [HouseholdService.loadHouseholdsAboveLimit] sorts and slices, before either the
+ * requested page or the CSV export map it into the public [HouseholdAboveLimitItem].
+ */
+private data class HouseholdAboveLimitEntry(
+    val household: HouseholdEntity,
+    val result: IncomeValidatorResult,
+) {
+    fun percentageExceededLimit(): BigDecimal = if (result.limit.compareTo(BigDecimal.ZERO) == 0) {
+        BigDecimal.ZERO
+    } else {
+        result.amountExceededLimit
+            .divide(result.limit, 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal(100))
+            .setScale(1, RoundingMode.HALF_UP)
+    }
+}
+
+@ExcludeFromTestCoverage
+data class HouseholdAboveLimitCsvResult(
+    val filename: String,
+    val bytes: ByteArray,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as HouseholdAboveLimitCsvResult
+
+        if (filename != other.filename) return false
+        return bytes.contentEquals(other.bytes)
+    }
+
+    override fun hashCode(): Int {
+        var result = filename.hashCode()
+        result = 31 * result + bytes.contentHashCode()
+        return result
+    }
+}
 
 @ExcludeFromTestCoverage
 data class HouseholdPdfResult(
