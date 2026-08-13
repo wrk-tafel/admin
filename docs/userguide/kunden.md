@@ -76,7 +76,7 @@ Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhan
 
 ## Kunden anlegen / bearbeiten
 
-Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein, die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor.
+Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
 
 Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das ihre Wirkung erklärt (siehe [Kurzhinweise](README.md#tooltips-und-erklaerungen)):
 
@@ -89,7 +89,9 @@ Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das
 
 ![Kunde anlegen](images/kunden-anlegen.jpg)
 
-Die Bearbeitungsmaske eines bestehenden Kunden zeigt zusätzlich die bereits erfassten weiteren Personen inklusive der Möglichkeit, einzelne Personen zu entfernen (**Löschen**) oder neue hinzuzufügen (**Hinzufügen**).
+Sobald beim Anlegen eines neuen Kunden Nachname, Vorname und Geburtsdatum des Hauptbeziehers ausgefüllt sind, prüft die Anwendung im Hintergrund, ob bereits ein Kunde mit denselben Angaben existiert, und zeigt gegebenenfalls einen Hinweis "Möglicherweise bereits vorhanden" mit einem Link auf den betroffenen Kunden – noch bevor das restliche Formular ausgefüllt wurde. Dieser frühe Hinweis ersetzt nicht die Duplikatsprüfung beim Speichern (siehe [Kunden-Duplikate](#kunden-duplikate) unten), er macht sie nur früher sichtbar.
+
+Die Bearbeitungsmaske eines bestehenden Kunden zeigt zusätzlich die bereits erfassten weiteren Personen. Jede weitere Person wird als aufklappbare Karte mit einer Zusammenfassungszeile (Name, Alter, Einkommen sowie Kennzeichen wie "Familienbeihilfe") dargestellt; ein Klick auf die Kopfzeile öffnet oder schließt die Detailfelder. Eine neu hinzugefügte Person (**Hinzufügen**) öffnet sich automatisch und erhält den Eingabefokus, alle anderen bleiben eingeklappt. Innerhalb der aufgeklappten Karte kann die Person wieder entfernt werden (**Löschen**).
 
 ![Kunde bearbeiten](images/kunden-bearbeiten.jpg)
 
@@ -103,6 +105,10 @@ Abgeschlossen wird die Aufstellung mit **Einkommen über Limit**: Bei einem bezu
 Gibt es für die Zusammensetzung eines Haushalts keinen hinterlegten Grundbetrag – etwa weil im Haushalt keine erwachsene Person erfasst ist oder ein Wert unter [Einstellungen → Statische Werte](einstellungen.md) fehlt bzw. abgelaufen ist – meldet die Anwendung "Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: X, Kinder: Y)!", statt mit einer Grenze von 0,00 € zu rechnen. Der Haushalt wird dann weder geprüft noch gespeichert; zuerst ist der fehlende Wert zu ergänzen bzw. die Personenerfassung zu korrigieren.
 
 ![Anspruch prüfen](images/kunden-anspruch-pruefen.jpg)
+
+Damit die Anspruchsfrage nicht erst hinter diesem Button verschwindet, blendet die Anwendung zusätzlich eine kompakte Zusammenfassung oberhalb des Formulars ein, sobald die dafür nötigen Pflichtfelder (Hauptbezieher und Adresse) ausgefüllt sind: Anzahl der berücksichtigten Personen, Einkommen gesamt, Limit sowie – falls über dem Limit – die Differenz. Diese Zusammenfassung aktualisiert sich automatisch während der Eingabe (kurz nach der letzten Änderung) und bleibt beim Scrollen sichtbar; der Button **Anspruch prüfen** öffnet weiterhin die vollständige Aufschlüsselung als Dialog.
+
+Die Buttons **Anspruch prüfen** und **Speichern** sitzen in einer Leiste am unteren Bildschirmrand, die auch bei einem langen Formular immer erreichbar bleibt. Solange das Formular ungespeicherte Änderungen enthält, zeigt diese Leiste zusätzlich den Hinweis "Ungespeicherte Änderungen". Wird versucht, die Seite mit ungespeicherten Änderungen zu verlassen (z. B. über die Navigation), fragt die Anwendung vorher nach, ob die Änderungen verworfen werden sollen.
 
 ## Kunden-Duplikate
 

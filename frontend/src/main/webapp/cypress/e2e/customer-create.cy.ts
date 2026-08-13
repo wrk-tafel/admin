@@ -105,6 +105,135 @@ describe('Customer Creation', () => {
     });
   });
 
+  it('shows a live eligibility summary that updates without clicking Anspruch prüfen', () => {
+    enterCustomerData();
+
+    cy.byTestId('eligibility-summary').should('be.visible');
+    cy.byTestId('eligibility-status').should('contain.text', 'Anspruch vorhanden');
+    cy.byTestId('eligibility-personcount').should('contain.text', '1');
+
+    cy.byTestId('incomeInput').type('10000');
+    // the debounced /households/validate call needs a moment before the summary catches up
+    cy.byTestId('eligibility-status', {timeout: 8000}).should('contain.text', 'Kein Anspruch vorhanden');
+    cy.byTestId('eligibility-amount').should('be.visible');
+  });
+
+  it('shows an early duplicate warning once lastname, firstname and birthdate match an existing customer', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const birthDate = getBirthDateForAge(40);
+      const lastname = 'Mustermann' + randomNumber;
+      const firstname = 'Max' + randomNumber;
+
+      cy.createCustomer({
+        firstname,
+        lastname,
+        birthDate,
+        gender: Gender.MALE,
+        country: {id: 165, code: 'AT', name: 'Österreich'},
+        telephoneNumber: '0123456789',
+        email: 'existing.customer@test.com',
+        employer: 'employer',
+        income: 500,
+        address: {street: 'Teststraße', houseNumber: '1', city: 'Wien', postalCode: 1010},
+        validUntil: dayjs().add(1, 'year').toDate()
+      }).then((response) => {
+        const existingCustomerId = response.body.data.id;
+
+        cy.byTestId('possible-duplicates-warning').should('not.exist');
+
+        cy.byTestId('lastnameInput').type(lastname);
+        cy.byTestId('firstnameInput').type(firstname);
+        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('YYYY-MM-DD'));
+
+        cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('be.visible');
+        cy.byTestId('possible-duplicate-' + existingCustomerId)
+          .should('be.visible')
+          .and('contain.text', lastname)
+          .and('contain.text', firstname);
+
+        cy.byTestId('possible-duplicate-' + existingCustomerId).find('a').click();
+        cy.url().should('include', '/kunden/detail/' + existingCustomerId);
+      });
+    });
+  });
+
+  it('renders additional persons as expansion panels, auto-expanding only the newly-added one', () => {
+    enterAdditionalPersonData(0, {
+      id: 0,
+      key: 0,
+      receivesFamilyAllowance: false,
+      lastname: 'Add',
+      firstname: 'Adult 1',
+      birthDate: getBirthDateForAge(30),
+      gender: Gender.MALE,
+      employer: 'test employer',
+      income: 500,
+      country: {id: 1, code: 'AF', name: 'Afghanistan'},
+      excludeFromHousehold: false
+    });
+    cy.byTestId('personform-0').should('be.visible');
+    cy.byTestId('personform-header-0').should('contain.text', 'Add Adult 1');
+
+    enterAdditionalPersonData(1, {
+      id: 1,
+      key: 1,
+      receivesFamilyAllowance: true,
+      lastname: 'Add',
+      firstname: 'Child 1',
+      birthDate: getBirthDateForAge(3),
+      gender: Gender.FEMALE,
+      income: 0,
+      country: {id: 2, code: 'EG', name: 'Ägypten'},
+      excludeFromHousehold: false
+    });
+
+    // only the newly-added person (index 1) stays open - the first one collapses back into its summary line
+    cy.byTestId('personform-1').should('be.visible');
+    cy.byTestId('personform-0').should('not.be.visible');
+    cy.byTestId('personform-header-1').should('contain.text', 'Add Child 1').and('contain.text', 'Familienbeihilfe');
+
+    // clicking a collapsed header re-opens it
+    cy.byTestId('personform-header-0').click();
+    cy.byTestId('personform-0').should('be.visible');
+  });
+
+  it('"Gültig bis" quick-picks add the given number of months from today', () => {
+    cy.byTestId('validUntilQuickPick-6m').click();
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').format('YYYY-MM-DD'));
+
+    cy.byTestId('validUntilQuickPick-12m').click();
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').add(12, 'months').format('YYYY-MM-DD'));
+  });
+
+  it('shows the unsaved-changes indicator once the form is dirty, and Speichern is never styled as danger while merely disabled', () => {
+    cy.byTestId('unsaved-changes-indicator').should('not.exist');
+    cy.byTestId('save-button').should('be.disabled').and('not.have.class', 'button-danger');
+
+    cy.byTestId('lastnameInput').type('a');
+    cy.byTestId('unsaved-changes-indicator').should('be.visible').and('contain.text', 'Ungespeicherte Änderungen');
+  });
+
+  it('warns before leaving with unsaved changes and lets the operator cancel or confirm', () => {
+    cy.byTestId('lastnameInput').type('Mustermann');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.byTestId('unsavedchanges-dialog').should('be.visible');
+    // the dialog exists only after this click, so no other accessibility gate sees it -
+    // see cypress/support/accessibility.ts
+    cy.checkDialogAccessibility();
+
+    cy.byTestId('unsavedchanges-dialog').within(() => {
+      cy.byTestId('cancel-button').click();
+    });
+    cy.url().should('include', '/kunden/anlegen');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.byTestId('unsavedchanges-dialog').within(() => {
+      cy.byTestId('ok-button').click();
+    });
+    cy.url().should('include', '/kunden/suchen');
+  });
+
   describe('Supervisor', () => {
 
     beforeEach(() => {
