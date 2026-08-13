@@ -173,6 +173,11 @@ export class RouteEditDialogComponent {
     this.stops.updateValueAndValidity();
     this.form.updateValueAndValidity();
     this.cd.detectChanges();
+
+    // The new stop is appended below the dialog's scroll fold, where its empty inputs would sit
+    // hidden under the action bar - looking like the click did nothing. Reveal it once rendered.
+    const newStopIndex = this.stops.length - 1;
+    setTimeout(() => document.querySelector(`[testid="route-stop-${newStopIndex}"]`)?.scrollIntoView({block: 'nearest'}));
   }
 
   removeStop(index: number) {

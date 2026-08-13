@@ -57,7 +57,8 @@
           </div>
         }
 
-        @if (orderedStopsPreview().length > 0) {
+        <!-- only once there is an order to show: a "preview" of a single stop says nothing -->
+        @if (orderedStopsPreview().length > 1) {
           <div class="mb-4 rounded-md border border-slate-200 bg-slate-50 p-3" testid="route-stop-order-preview">
             <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Gefahrene Reihenfolge
