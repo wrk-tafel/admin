@@ -179,15 +179,28 @@ describe('Dashboard', () => {
     cy.byTestId('customers-count').should('be.visible');
     cy.byTestId('dashboard-stale-overlay').should('not.exist');
 
-    cy.then(() => {
-      // The last captured instance, not the first: `SseService` may already have reconnected once
-      // by now (a first connection that dropped leaves its dead instance in `streams`), and its
-      // error handler ignores an event when the stream it currently holds is still open - killing
-      // an older instance is a no-op it never notices.
+    const currentDashboardStream = () => {
+      // The last captured instance, not the first: `SseService` may already have reconnected by
+      // now (a dropped connection leaves its dead instance in `streams`), and its error handler
+      // ignores an event when the stream it currently holds is still open.
       const dashboardStreams = streams.filter(
         stream => new URL(stream.url).pathname.endsWith('/api/sse/dashboard')
       );
-      const dashboardStream = dashboardStreams[dashboardStreams.length - 1]!;
+      return dashboardStreams[dashboardStreams.length - 1];
+    };
+
+    // The stream has to have actually OPENED before it is killed: during page load the SSE request
+    // can sit queued behind the browser's per-origin connection budget for seconds, and killing a
+    // still-connecting stream exercises the initial-connect path - which the overlay deliberately
+    // ignores (`hasConnectedEver` exists exactly so the overlay doesn't flash before first connect).
+    cy.wrap(null, {timeout: 15000}).should(() => {
+      const stream = currentDashboardStream();
+      expect(stream, 'a dashboard stream').to.not.eq(undefined);
+      expect(stream!.readyState, 'dashboard stream open').to.eq(1);
+    });
+
+    cy.then(() => {
+      const dashboardStream = currentDashboardStream()!;
       // `EventSource.close()` alone fires no event - `SseService` reacts to `onerror` seeing
       // `readyState === CLOSED`, so both are driven by hand to simulate the drop it would see.
       dashboardStream.close();
