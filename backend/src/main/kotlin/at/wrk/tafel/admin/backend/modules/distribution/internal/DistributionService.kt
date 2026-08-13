@@ -214,10 +214,9 @@ class DistributionService(
      * directly, see `ProjectSpecificRulesTest`.
      */
     @Transactional(readOnly = true)
-    fun getCurrentTicketScreenTicket(): TicketScreenTicketResponse = if (hasCurrentDistribution()) {
-        mapToTicketScreenTicket(getCurrentTicketNumber())
-    } else {
-        mapToTicketScreenTicket(null)
+    fun getCurrentTicketScreenTicket(): TicketScreenTicketResponse {
+        val distribution = getCurrentDistribution() ?: return mapToTicketScreenTicket(null, null)
+        return mapToTicketScreenTicket(getCurrentTicketNumber(), distribution)
     }
 
     @Transactional
@@ -235,7 +234,7 @@ class DistributionService(
             )
         }
 
-        return mapToTicketScreenTicket(getCurrentTicketNumber())
+        return mapToTicketScreenTicket(getCurrentTicketNumber(), distribution)
     }
 
     @Transactional
@@ -279,15 +278,27 @@ class DistributionService(
                 )
             }
 
-            return mapToTicketScreenTicket(nextTicket)
+            return mapToTicketScreenTicket(nextTicket, distribution)
         }
-        return mapToTicketScreenTicket(null)
+        return mapToTicketScreenTicket(null, distribution)
     }
 
-    private fun mapToTicketScreenTicket(distributionHouseholdEntity: DistributionHouseholdEntity?) = TicketScreenTicketResponse(
+    /**
+     * [distribution] is passed in separately (rather than read off [distributionHouseholdEntity])
+     * because the queue counts below must still be available when nothing is currently being
+     * called - e.g. every household already served, or the "no active distribution" case where
+     * both are null.
+     */
+    private fun mapToTicketScreenTicket(
+        distributionHouseholdEntity: DistributionHouseholdEntity?,
+        distribution: DistributionEntity?,
+    ) = TicketScreenTicketResponse(
         ticketNumber = distributionHouseholdEntity?.ticketNumber,
         householdId = distributionHouseholdEntity?.household?.householdId,
+        householdName = distributionHouseholdEntity?.household?.mainPerson?.let { "${it.firstname} ${it.lastname}" },
         pendingCostContribution = distributionHouseholdEntity?.household?.pendingCostContribution,
+        processedTicketsCount = distribution?.households?.count { it.processed == true },
+        totalTicketsCount = distribution?.households?.size,
     )
 
     @Transactional

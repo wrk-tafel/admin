@@ -7,41 +7,55 @@
 
     <mat-divider class="!my-6"></mat-divider>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div>
-        <form autocomplete="off">
-          <div class="flex items-center gap-6 mb-6">
-            <mat-form-field class="flex-1" subscriptSizing="dynamic">
-              <mat-label>Startzeit</mat-label>
-              <input matInput type="time" testid="starttime-input" [formField]="startTimeForm.startTime" (keydown.enter)="showStartTime()">
-            </mat-form-field>
-            <button testid="show-starttime-button" matButton="filled" type="button" class="ml-4" (click)="showStartTime()" [disabled]="isShowingStartTime()">Anzeigen</button>
+    <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
+      <!-- The call loop: current ticket, queue context, the two advance actions, and (attached to
+           the same household) any pre-existing pending cost contribution. This is what the
+           operator uses hundreds of times per distribution, so it comes first and largest. -->
+      <div class="rounded-lg border border-black/10 p-4 sm:p-6 text-center" testid="current-ticket-card">
+        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+          <div>
+            <div class="text-sm uppercase tracking-wide text-gray-500">Aktuelles Ticket</div>
+            <div class="text-7xl sm:text-8xl font-bold leading-none" testid="current-ticket-number">{{ currentTicket()?.ticketNumber ?? '-' }}</div>
           </div>
-        </form>
 
-        <mat-divider></mat-divider>
-
-        <div class="flex items-center mt-6">
-          <div class="w-32">Tickets:</div>
-          <div class="flex flex-wrap gap-2">
-            <button testid="show-currentticket-button" matButton="filled" (click)="showCurrentTicket()" [disabled]="isShowingCurrentTicket()">Aktuelles Ticket</button>
-            <button testid="show-previousticket-button" matButton="filled" class="ml-2" (click)="showPreviousTicket()" [disabled]="isShowingPreviousTicket() || currentDistribution() === null">Vorheriges Ticket</button>
-          </div>
+          @if (queueRemaining() !== null) {
+            <div class="text-sm text-gray-500" testid="ticket-queue-context">
+              {{ currentTicket()?.processedTicketsCount }} / {{ currentTicket()?.totalTicketsCount }} verarbeitet<br>
+              {{ queueRemaining() }} verbleibend
+            </div>
+          }
         </div>
 
-        <div class="text-center mt-6">
-          <h3 class="tafel-h4 text-lg">Aktuelles Ticket</h3>
-          <div class="mt-2">Unkostenbeitrag entrichtet ?</div>
-          <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
-            <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success" (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (bezahlt)</button>
-            <button testid="costcontribution-paid-no-button" matButton="filled" class="button-danger" (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (nicht bezahlt)</button>
+        @if (currentTicket()?.householdId) {
+          <div class="mt-2 text-gray-600" testid="current-ticket-household">
+            Haushalt Nr. {{ currentTicket()?.householdId }}
+            @if (currentTicket()?.householdName) {
+              &ndash; {{ currentTicket()?.householdName }}
+            }
           </div>
+        }
+
+        <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 sm:gap-10">
+          <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success !text-lg !py-3 !px-8"
+                  (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() === null">
+            <fa-icon [icon]="faCheck"></fa-icon>
+            <fa-icon [icon]="faEuroSign"></fa-icon>
+            Weiter (bezahlt)
+          </button>
+          <button testid="costcontribution-paid-no-button" matButton="outlined" class="button-danger !text-lg !py-3 !px-8"
+                  (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() === null">
+            <fa-icon [icon]="faXmark"></fa-icon>
+            Weiter (nicht bezahlt)
+          </button>
+        </div>
+        <div class="mt-2 text-xs text-gray-500" testid="keyboard-shortcut-legend">
+          Tastenkürzel: <kbd>Enter</kbd> = bezahlt &middot; <kbd>N</kbd> = nicht bezahlt
         </div>
 
         @if (currentTicket()?.householdId) {
           <mat-divider class="!my-6"></mat-divider>
 
-          <div class="text-center">
+          <div testid="pendingCostContributionPanel">
             <h3 class="tafel-h4 text-lg">Unkostenbeitrag (bestehend)</h3>
             <div class="mt-2" testid="pendingCostContributionText">{{ currentTicket()?.pendingCostContribution | currency }}</div>
             <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
@@ -55,13 +69,44 @@
         }
       </div>
 
-      <div>
-        <div class="text-center">
-          <h2 class="tafel-h3 text-xl font-semibold">Live-Ansicht</h2>
+      <!-- Everything occasional: what the monitor shows (as one segmented control instead of
+           scattered buttons) and a faithful live preview of it. -->
+      <div class="flex flex-col gap-6">
+        <div>
+          <div class="mb-2 text-sm font-medium text-gray-600">Monitor zeigt:</div>
+          <mat-button-toggle-group aria-label="Monitor zeigt" testid="monitor-mode-group" class="w-full flex">
+            <mat-button-toggle testid="show-starttime-toggle" class="flex-1" [checked]="monitorMode() === 'startTime'" (click)="selectStartTimeMode()">Startzeit</mat-button-toggle>
+            <mat-button-toggle testid="show-currentticket-button" class="flex-1" [checked]="monitorMode() === 'current'" [disabled]="isShowingCurrentTicket()" (click)="showCurrentTicket()">Aktuelles</mat-button-toggle>
+            <mat-button-toggle testid="show-previousticket-button" class="flex-1" [checked]="monitorMode() === 'previous'" [disabled]="isShowingPreviousTicket() || currentDistribution() === null" (click)="showPreviousTicket()">Vorheriges</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          @if (monitorMode() === 'startTime') {
+            <form autocomplete="off" class="mt-4">
+              <div class="flex items-center gap-4">
+                <mat-form-field class="flex-1" subscriptSizing="dynamic">
+                  <mat-label>Startzeit</mat-label>
+                  <input matInput type="time" testid="starttime-input" [formField]="startTimeForm.startTime" (keydown.enter)="showStartTime()">
+                </mat-form-field>
+                <button testid="show-starttime-button" matButton="filled" type="button" (click)="showStartTime()" [disabled]="isShowingStartTime()">Anzeigen</button>
+              </div>
+            </form>
+          }
         </div>
-        <div class="mt-4 flex justify-center">
-          <div class="h-[30vh] w-[30vw] text-[2pt]">
-            <tafel-ticket-screen></tafel-ticket-screen>
+
+        <div>
+          <div class="mb-2 text-sm font-medium text-gray-600">Live-Ansicht</div>
+          <!-- @container makes the 16:9 miniature below scale itself off this element's own
+               rendered width (via `cqw`), so it stays faithful to the real monitor at any
+               viewport instead of the old vh/vw-based squeeze. -->
+          <div class="relative mx-auto w-full max-w-sm aspect-video overflow-hidden rounded-lg border border-black/10 @container" testid="preview-container">
+            <div class="origin-top-left" style="width: 1280px; height: 720px; transform: scale(calc(100cqw / 1280));">
+              <tafel-ticket-screen></tafel-ticket-screen>
+            </div>
+            <span class="badge absolute top-2 right-2" role="status" testid="preview-connection-state"
+                  [class.badge-success]="previewConnected()" [class.badge-danger]="!previewConnected()">
+              <fa-icon [icon]="previewConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
+              Monitor<span class="sr-only"> {{ previewConnected() ? 'verbunden' : 'getrennt' }}</span>
+            </span>
           </div>
         </div>
       </div>

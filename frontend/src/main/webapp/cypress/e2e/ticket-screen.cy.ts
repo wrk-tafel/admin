@@ -9,11 +9,37 @@ describe('TicketScreen', () => {
   it('start time set and shown correctly', () => {
     cy.visit('/anmeldung/ticketmonitor-steuerung');
 
+    // The start-time field only appears once that segment of "Monitor zeigt" is picked - see the
+    // segmented control test below for the full switching behavior.
+    cy.byTestId('show-starttime-toggle').click();
     cy.byTestId('starttime-input').type('12:34');
     cy.byTestId('show-starttime-button').click();
 
     cy.byTestId('title').should('have.text', 'Startzeit');
     cy.byTestId('text').should('have.text', '12:34');
+  });
+
+  it('"Monitor zeigt" segmented control mirrors the monitor\'s current mode', () => {
+    createDistributionWithTickets();
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+
+    // Defaults to "Aktuelles" - the ticket already fetched automatically on load.
+    cy.byTestId('show-currentticket-button').should('have.class', 'mat-button-toggle-checked');
+    cy.byTestId('starttime-input').should('not.exist');
+
+    cy.byTestId('show-starttime-toggle').click();
+    cy.byTestId('show-starttime-toggle').should('have.class', 'mat-button-toggle-checked');
+    cy.byTestId('starttime-input').should('be.visible');
+
+    cy.byTestId('show-previousticket-button').click();
+    cy.byTestId('show-previousticket-button').should('have.class', 'mat-button-toggle-checked');
+    cy.byTestId('starttime-input').should('not.exist');
+
+    // Advancing the loop (not touching the segmented control) switches it back to "Aktuelles".
+    cy.byTestId('costcontribution-paid-yes-button').click();
+    cy.byTestId('show-currentticket-button').should('have.class', 'mat-button-toggle-checked');
+
+    cy.closeDistribution();
   });
 
   it('monitor opened correctly', () => {
@@ -112,6 +138,25 @@ describe('TicketScreen', () => {
 
       cy.byTestId('costcontribution-paid-yes-button').click();
       assertTicketText('2');
+    });
+
+    it('shows queue context (processed/remaining) next to the current ticket', () => {
+      cy.byTestId('show-currentticket-button').click();
+      cy.byTestId('ticket-queue-context').should('contain.text', '0 / 3').and('contain.text', '3');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      cy.byTestId('ticket-queue-context').should('contain.text', '1 / 3').and('contain.text', '2');
+    });
+
+    it('advances the ticket via keyboard shortcuts (Enter = bezahlt, N = nicht bezahlt)', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.get('body').type('{enter}');
+      assertTicketText('2');
+
+      cy.get('body').type('n');
+      assertTicketText('3');
     });
 
   });

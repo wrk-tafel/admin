@@ -1,4 +1,5 @@
 import type {MockedObject} from 'vitest';
+import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenControlComponent} from './ticket-screen-control.component';
@@ -81,7 +82,8 @@ describe('TicketScreenControlComponent', () => {
         {
           provide: MatDialog,
           useValue: {
-            open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})
+            open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)}),
+            openDialogs: []
           }
         }
       ]
@@ -322,6 +324,158 @@ describe('TicketScreenControlComponent', () => {
       component.payCostContributionAll();
 
       expect(toastr.error).toHaveBeenCalledWith('boom', 'Aktualisierung fehlgeschlagen!');
+    });
+  });
+
+  describe('queue context (remaining/processed tickets)', () => {
+    it('is null while the backend has not sent counts (e.g. no active distribution)', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentTicket.set({ticketNumber: null, householdId: null, pendingCostContribution: null});
+
+      expect(component.queueRemaining()).toBeNull();
+    });
+
+    it('is the difference between total and processed once the backend sends both', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentTicket.set({
+        ticketNumber: 5,
+        householdId: 100,
+        pendingCostContribution: 0,
+        processedTicketsCount: 3,
+        totalTicketsCount: 10
+      });
+
+      expect(component.queueRemaining()).toEqual(7);
+    });
+  });
+
+  describe('"Monitor zeigt" segmented control', () => {
+    it('defaults to "current" - matching the ticket fetched automatically on load', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+
+      expect(component.monitorMode()).toEqual('current');
+    });
+
+    it('switches to "startTime" without showing anything yet when that segment is picked', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+
+      component.selectStartTimeMode();
+
+      expect(component.monitorMode()).toEqual('startTime');
+      expect(distributionTicketScreenApiService.showText).not.toHaveBeenCalled();
+    });
+
+    it('switches to "previous" once "Vorheriges Ticket" succeeds', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(emptyTicket));
+
+      component.showPreviousTicket();
+
+      expect(component.monitorMode()).toEqual('previous');
+    });
+
+    it('switches back to "current" once "Weiter" (next ticket) succeeds', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.monitorMode.set('previous');
+      distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
+
+      component.showNextTicket(true);
+
+      expect(component.monitorMode()).toEqual('current');
+    });
+
+    it('switches to "startTime" once the start time is shown successfully', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.monitorMode.set('current');
+      distributionTicketScreenApiService.showText.mockReturnValue(of(undefined));
+      component.startTimeFormModel.set({startTime: '19:00'});
+
+      component.showStartTime();
+
+      expect(component.monitorMode()).toEqual('startTime');
+    });
+  });
+
+  describe('keyboard shortcuts (Enter = bezahlt, N = nicht bezahlt)', () => {
+    function keydown(key: string, target?: EventTarget, extra: Partial<KeyboardEventInit> = {}): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', {key, cancelable: true, ...extra});
+      if (target) {
+        Object.defineProperty(event, 'target', {value: target});
+      }
+      return event;
+    }
+
+    it('Enter shows the next ticket as paid', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+      distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
+
+      component.handleKeyboardShortcut(keydown('Enter'));
+
+      expect(distributionTicketScreenApiService.showNextTicket).toHaveBeenCalledWith(true);
+    });
+
+    it('"n" shows the next ticket as not paid', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+      distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
+
+      component.handleKeyboardShortcut(keydown('n'));
+
+      expect(distributionTicketScreenApiService.showNextTicket).toHaveBeenCalledWith(false);
+    });
+
+    it('is ignored while a form field has focus, so typing is not hijacked', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+      const input = document.createElement('input');
+
+      component.handleKeyboardShortcut(keydown('Enter', input));
+      component.handleKeyboardShortcut(keydown('n', input));
+
+      expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
+    });
+
+    it('is ignored while a dialog is open', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+      const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+      (matDialog as any).openDialogs = [{}];
+
+      component.handleKeyboardShortcut(keydown('Enter'));
+
+      expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
+    });
+
+    it('is ignored with a modifier key held, so browser/OS shortcuts are not hijacked', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+
+      component.handleKeyboardShortcut(keydown('n', undefined, {ctrlKey: true}));
+
+      expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
+    });
+
+    it('is ignored while there is no active distribution', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal(null);
+
+      component.handleKeyboardShortcut(keydown('Enter'));
+
+      expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
     });
   });
 

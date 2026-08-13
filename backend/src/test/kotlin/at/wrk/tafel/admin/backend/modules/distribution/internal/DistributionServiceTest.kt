@@ -800,11 +800,18 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `get current ticket-screen ticket maps householdId and pending cost contribution`() {
+    fun `get current ticket-screen ticket maps householdId, householdName, pending cost contribution and queue counts`() {
         val ticketScreenHousehold = HouseholdEntity(householdId = 500, validUntil = LocalDate.now()).apply {
             id = 1
             pendingCostContribution = BigDecimal("42.00")
         }
+        val mainPersonEntity = PersonEntity(household = ticketScreenHousehold, country = testCountry1, isMainPerson = true).apply {
+            id = 501
+            firstname = "Erika"
+            lastname = "Musterfrau"
+        }
+        ticketScreenHousehold.mainPerson = mainPersonEntity
+
         val testDistributionHouseholdEntity = DistributionHouseholdEntity(
             distribution = testDistributionEntity,
             household = ticketScreenHousehold,
@@ -814,11 +821,20 @@ internal class DistributionServiceTest {
             id = 1
             createdAt = LocalDateTime.now()
         }
+        val otherProcessedDistributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity2,
+            ticketNumber = 4,
+            processed = true,
+        ).apply {
+            id = 2
+            createdAt = LocalDateTime.now()
+        }
 
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
-            households = listOf(testDistributionHouseholdEntity)
+            households = listOf(testDistributionHouseholdEntity, otherProcessedDistributionHouseholdEntity)
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
@@ -826,7 +842,10 @@ internal class DistributionServiceTest {
 
         assertThat(ticket.ticketNumber).isEqualTo(5)
         assertThat(ticket.householdId).isEqualTo(500)
+        assertThat(ticket.householdName).isEqualTo("Erika Musterfrau")
         assertThat(ticket.pendingCostContribution).isEqualTo(BigDecimal("42.00"))
+        assertThat(ticket.processedTicketsCount).isEqualTo(1)
+        assertThat(ticket.totalTicketsCount).isEqualTo(2)
     }
 
     @Test

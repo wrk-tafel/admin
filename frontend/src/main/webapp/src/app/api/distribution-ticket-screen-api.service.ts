@@ -46,4 +46,7 @@ export interface TicketScreenTicketResponse {
   ticketNumber: number | null;
   householdId: number | null;
   pendingCostContribution: number | null;
+  householdName?: string | null;
+  processedTicketsCount?: number | null;
+  totalTicketsCount?: number | null;
 }

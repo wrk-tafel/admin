@@ -85,4 +85,7 @@ data class TicketScreenTicketResponse(
     val ticketNumber: Int?,
     val householdId: Long?,
     val pendingCostContribution: BigDecimal?,
+    val householdName: String? = null,
+    val processedTicketsCount: Int? = null,
+    val totalTicketsCount: Int? = null,
 )
