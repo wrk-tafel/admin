@@ -217,6 +217,21 @@ describe('CustomerSearchComponent', () => {
 
       expect(apiService.searchCustomer).toHaveBeenLastCalledWith('m', undefined, undefined, undefined, undefined, undefined);
     });
+
+    it('an explicit search absorbs the debounced search still pending for the same input', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      const {component} = createComponent();
+      expect(apiService.searchCustomer).toHaveBeenCalledTimes(1);
+
+      component.onQueryInput('muster');
+      component.search();
+      expect(apiService.searchCustomer).toHaveBeenCalledTimes(2);
+
+      // the debounce from typing fires afterwards - it must not re-run the identical search and
+      // replace the result list underneath the user a moment after the explicit one answered
+      vi.advanceTimersByTime(1000);
+      expect(apiService.searchCustomer).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('filters', () => {

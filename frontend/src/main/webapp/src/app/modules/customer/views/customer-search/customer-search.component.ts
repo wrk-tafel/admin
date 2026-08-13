@@ -102,6 +102,14 @@ export class CustomerSearchComponent {
   /** Drives the debounced search-as-you-type; a raw keystroke does not by itself trigger a request. */
   private readonly queryInput = new Subject<string>();
 
+  /**
+   * The query the latest dispatched search ran with. The debounced search-as-you-type checks
+   * against it so an explicit search (button/Enter) absorbs the debounce still pending for the
+   * same input - otherwise every explicit search right after typing fired a second, identical
+   * request whose response replaced the result list a moment later (same fix as the user search).
+   */
+  private lastDispatchedQuery: string | null = null;
+
   constructor() {
     this.searches
       .pipe(
@@ -115,6 +123,7 @@ export class CustomerSearchComponent {
         debounceTime(SEARCH_DEBOUNCE_MS),
         distinctUntilChanged(),
         filter(value => value.trim().length === 0 || value.trim().length >= MIN_LIVE_SEARCH_CHARS),
+        filter(value => value.trim() !== this.lastDispatchedQuery),
         takeUntilDestroyed(),
       )
       .subscribe(() => this.search());
@@ -148,6 +157,7 @@ export class CustomerSearchComponent {
   }
 
   private dispatchSearch(request: CustomerSearchRequest) {
+    this.lastDispatchedQuery = this.query().trim();
     this.searches.next(request);
   }
 
