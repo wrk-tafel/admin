@@ -152,6 +152,10 @@ describe('Customer Creation', () => {
           .and('contain.text', firstname);
 
         cy.byTestId('possible-duplicate-' + existingCustomerId).find('a').click();
+        // the typed identity fields count as unsaved changes, so the guard asks before leaving
+        cy.byTestId('unsavedchanges-dialog').within(() => {
+          cy.byTestId('ok-button').click();
+        });
         cy.url().should('include', '/kunden/detail/' + existingCustomerId);
       });
     });
