@@ -1,4 +1,5 @@
-import {Component, effect, inject, input, model, signal, untracked} from '@angular/core';
+import {Component, computed, DestroyRef, effect, inject, input, model, signal, untracked} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
@@ -6,6 +7,7 @@ import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Val
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faPlus, faRemove} from '@fortawesome/free-solid-svg-icons';
 import {
@@ -32,6 +34,11 @@ import {
   RETURN_ITEM_DESCRIPTION_MAX_LENGTH
 } from '../../services/food-collection-return-items';
 import {Observable} from 'rxjs';
+import {TabStatus} from '../../services/food-collection-tab-status';
+
+// How long the "Synchronisiert ✓" confirmation stays up once the offline queue has emptied out -
+// long enough to notice, short enough not to linger once it's no longer news.
+const SYNC_CONFIRMATION_DURATION_MS = 4000;
 
 @Component({
   selector: 'tafel-food-collection-recording-items-responsive',
@@ -42,6 +49,7 @@ import {Observable} from 'rxjs';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     FaIconComponent,
     TafelCounterInputComponent
   ]
@@ -60,6 +68,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   private readonly offlineQueueService = inject(FoodCollectionOfflineQueueService);
   private readonly connectivityService = inject(ConnectivityService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly isOnline = this.connectivityService.isOnline();
   protected readonly pendingSyncCount = this.offlineQueueService.pendingCount;
@@ -68,6 +77,34 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   // handed to the offline queue - they are sent for the shop being left in selectShop() and by the
   // screen's save button.
   returnItems: FormArray = this.fb.array([]);
+
+  // Recompute trigger for returnItems.dirty below - a plain FormArray property, not a signal.
+  private readonly returnItemsChangeTick = toSignal(this.returnItems.valueChanges, {initialValue: null});
+
+  // The predefined return-category counters are signals, not a reactive form, so unlike returnItems
+  // they need their own explicit dirty flag: set on every user edit, cleared once a shop's data has
+  // been (re)loaded or successfully sent - see onReturnCategoryValueChange/applyReturnItems/markAsSaved.
+  private readonly returnCategoryValuesDirty = signal(false);
+
+  private syncConfirmationTimeoutId?: ReturnType<typeof setTimeout>;
+  private previousPendingSyncCount = this.pendingSyncCount();
+  /** True for a few seconds right after the offline queue has flushed, for a "Synchronisiert ✓" hint. */
+  readonly justSynced = signal(false);
+
+  constructor() {
+    // Only a transition from "something was pending" to "nothing is" counts as a sync just having
+    // happened - a route that has always had nothing queued must not show this on load.
+    effect(() => {
+      const pending = this.pendingSyncCount();
+      if (this.previousPendingSyncCount > 0 && pending === 0) {
+        this.justSynced.set(true);
+        clearTimeout(this.syncConfirmationTimeoutId);
+        this.syncConfirmationTimeoutId = setTimeout(() => this.justSynced.set(false), SYNC_CONFIRMATION_DURATION_MS);
+      }
+      this.previousPendingSyncCount = pending;
+    });
+    this.destroyRef.onDestroy(() => clearTimeout(this.syncConfirmationTimeoutId));
+  }
 
   // attached lazily rather than at construction: the validator reads `foodCategories`, which is a
   // required model input and therefore not available while the form array is being built
@@ -117,6 +154,60 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     return shops[shops.length - 1];
   }
 
+  /** 1-based position of the shop on screen, for the "Filiale 3 von 8" progress label. */
+  readonly currentShopIndex = computed(() => {
+    const shops = this.selectedRouteData()?.shops ?? [];
+    const current = this.currentShop();
+    return current ? shops.indexOf(current) : -1;
+  });
+
+  readonly shopCount = computed(() => this.selectedRouteData()?.shops?.length ?? 0);
+
+  /** One entry per shop of the route, for the jump list and the per-shop "erfasst" checkmark. */
+  readonly shopProgress = computed(() => {
+    const shops = this.selectedRouteData()?.shops ?? [];
+    const current = this.currentShop();
+    // dependencies of isShopRecorded() that aren't read through a parameter of it
+    this.categoryValues();
+    return shops.map((shop, index) => ({
+      shop,
+      position: index + 1,
+      isCurrent: shop.id === current?.id,
+      isRecorded: this.isShopRecorded(shop)
+    }));
+  });
+
+  /**
+   * A shop counts as recorded once every food category has an amount greater than 0 for it - the
+   * same rule {@link findNextUnfilledShop} uses to jump to the next open one, reused here for the
+   * per-shop "erfasst" mark. Prefers whatever is currently known for the shop in this session
+   * (the live counters for the shop on screen, the session cache for any other) over the
+   * route-level snapshot, which goes stale the moment a shop is edited.
+   */
+  private isShopRecorded(shop: Shop): boolean {
+    const sessionValues = this.currentShop()?.id === shop.id ? this.categoryValues() : this.shopValuesCache.get(shop.id);
+    if (sessionValues) {
+      return this.foodCategories().every(category => (sessionValues[category.id] ?? 0) > 0);
+    }
+
+    const items = (this.selectedRouteData()?.foodCollectionData?.items ?? []).filter(item => item.shopId === shop.id);
+    if (items.length === 0) {
+      return false;
+    }
+    return this.foodCategories().every(category => this.getCurrentValue(items, category, shop) > 0);
+  }
+
+  /** Whether the shop currently on screen already has an amount for every food category. */
+  readonly currentShopRecorded = computed(() => this.shopProgress().find(entry => entry.isCurrent)?.isRecorded ?? false);
+
+  /** Jumps directly to any shop of the route, from the position dropdown. */
+  jumpToShop(shopId: number) {
+    const shop = this.selectedRouteData()?.shops?.find(candidate => candidate.id === shopId);
+    if (shop) {
+      this.selectShop(shop);
+    }
+  }
+
   onValueChange(valueChange: TafelCounterInputValueChange) {
     if (!this.selectedRouteData() || !this.currentShop()) {
       return;
@@ -143,6 +234,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       ...values,
       [valueChange.key as string]: valueChange.value
     }));
+    this.returnCategoryValuesDirty.set(true);
   }
 
   addReturnItem(description = '', amount = 1) {
@@ -196,6 +288,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     const request = this.returnItemsSaveRequest();
     if (request) {
       request.subscribe({
+        next: () => this.markAsSaved(),
         error: () => {
           this.toastr.error('Retourware konnte nicht gespeichert werden!');
         }
@@ -249,6 +342,9 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     returnItems
       .filter(item => !returnCategoryNames.includes(item.description))
       .forEach(item => this.addReturnItem(item.description, item.amount));
+
+    // freshly (re)loaded from the server/cache, so nothing here is an unsent local change yet
+    this.markAsSaved();
   }
 
   private mergePendingValues(shop: Shop, values: Record<number, number>) {
@@ -285,6 +381,36 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   markAllAsTouched() {
     this.returnItems.markAllAsTouched();
   }
+
+  /**
+   * Called once a section's own return data has actually gone out (shop switch or the main
+   * "Speichern" button) - flips its badge back to "complete". The Warenmenge counters are not
+   * reset here: they auto-save through the offline queue, so `pendingSyncCount` alone already
+   * tracks whether they're sent.
+   */
+  markAsSaved() {
+    this.returnCategoryValuesDirty.set(false);
+    this.returnItems.markAsPristine();
+  }
+
+  /** Badge shown on the "Waren" tab label - see {@link TabStatus}. */
+  readonly tabStatus = computed<TabStatus | undefined>(() => {
+    this.returnItemsChangeTick();
+
+    const pending = this.pendingSyncCount();
+    const hasCategoryData = Object.values(this.categoryValues()).some(value => value > 0);
+    const hasReturnData = Object.values(this.returnCategoryValues()).some(value => value > 0) || this.returnItems.length > 0;
+    if (!hasCategoryData && !hasReturnData && pending === 0) {
+      return undefined;
+    }
+    if (this.returnItems.invalid) {
+      return 'invalid';
+    }
+    if (pending > 0 || this.returnItems.dirty || this.returnCategoryValuesDirty()) {
+      return 'unsaved';
+    }
+    return 'complete';
+  });
 
   saveRequests(): Observable<void>[] {
     if (!this.selectedRouteData() || !this.currentShop()) {
