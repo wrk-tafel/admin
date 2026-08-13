@@ -405,6 +405,8 @@ describe('Food Collection Recording', () => {
     cy.byTestId('shop-jump-option-21').click();
     cy.byTestId('shop-progress-label').should('have.text', 'Filiale 2 von 2');
     cy.byTestId('shop-title').should('contain.text', 'Denns BioMarkt');
+
+    completeRouteViaApi();
   });
 
   it('mobile: shows a brief confirmation once a queued change has synced', () => {
@@ -424,6 +426,8 @@ describe('Food Collection Recording', () => {
     goOnline();
     cy.wait('@patchItem');
     cy.byTestId('sync-confirmation').should('contain.text', 'Synchronisiert');
+
+    completeRouteViaApi();
   });
 
   it('mobile: holding a counter button down repeats past what a single tap would give', () => {
@@ -438,6 +442,8 @@ describe('Food Collection Recording', () => {
     cy.byTestId('category-1-increment-button').trigger('pointerup');
 
     cy.byTestId('category-1-input').invoke('val').then(Number).should('be.greaterThan', 1);
+
+    completeRouteViaApi();
   });
 
   // Nothing below exists on the route the Lighthouse `pages` sweep loads: with no route selected
@@ -604,6 +610,16 @@ describe('Food Collection Recording', () => {
   // `targets` has been seen at least once, regardless of order or how many requests it takes -
   // the offline queue only guarantees the final value per field eventually gets sent, not one
   // request per interaction.
+  // The phone layout auto-saves every change, which marks route 2 as started for this
+  // distribution; a started-but-incomplete route blocks closing the distribution in afterEach, and
+  // there is no way to un-start one - so finish it the way a driver would, through the same
+  // endpoints the app uses. Food collections live per distribution, so nothing leaks into the next
+  // test's freshly created one. Testdata ids: car 1 (W-NC-123), employees 200/500.
+  function completeRouteViaApi() {
+    cy.request('POST', '/api/food-collections/routes/2', {carId: 1, driverId: 200, coDriverId: 500});
+    cy.request('POST', '/api/food-collections/routes/2/km', {kmStart: 1000, kmEnd: 2000});
+  }
+
   function waitForFinalPatches(targets: { categoryId: number; shopId: number; amount: number }[]) {
     const seen: string[] = [];
     const remaining = () => targets.filter(t => !seen.includes(JSON.stringify(t)));
