@@ -92,11 +92,11 @@ Bei deaktiviertem Hauptschalter sieht derselbe Bereich so aus:
 
 ![Benachrichtigungsarten bei deaktiviertem Hauptschalter](images/benachrichtigungen-arten-deaktiviert.jpg)
 
-Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login oder nach einem von der Verwaltung erzwungenen Passwortwechsel), zeigt das System stattdessen direkt nach der Anmeldung automatisch eine eigene, davon unabhängige Seite – noch bevor die eigentliche Anwendung geöffnet wird:
+Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login oder nach einem von der Verwaltung erzwungenen Passwortwechsel), zeigt das System stattdessen direkt nach der Anmeldung automatisch eine eigene, davon unabhängige Seite – noch bevor die eigentliche Anwendung geöffnet wird. Ein Hinweistext direkt unter dem Titel erklärt, warum diese Seite erscheint. Die Schaltfläche zum Verlassen der Seite heißt hier bewusst **Abmelden** statt "Abbrechen": Ein Klick darauf beendet tatsächlich die Sitzung, man gelangt also nicht ohne Passwortänderung in die Anwendung.
 
 ![Passwort ändern nach erzwungenem Login](images/login-passwort-aendern.jpg)
 
-In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten.
+In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
 
 Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.", nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden." und bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!".
 
