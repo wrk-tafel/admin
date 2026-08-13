@@ -43,6 +43,11 @@ Unter **Anmeldung → Ticket-Monitor** wird der Ablauf der Ticket-Ausgabe gesteu
 
 ## Ticket-Monitor – Vollbildansicht
 
-Die Vollbildansicht (`/anmeldung/ticketmonitor`) zeigt ausschließlich die aktuelle Ticket-Nummer in großer Schrift und ist für die Anzeige auf einem separaten Kundenbildschirm gedacht.
+Die Vollbildansicht (`/anmeldung/ticketmonitor`) zeigt ausschließlich die aktuelle Ticket-Nummer in großer Schrift und ist für die Anzeige auf einem separaten Kundenbildschirm (z. B. einem Fernseher im Warteraum) gedacht.
 
 ![Ticket-Monitor Vollbild](images/anmeldung-ticketmonitor-fullscreen.jpg)
+
+- **Vollbild-Button**: Unten rechts blendet ein Button die Browser-Oberfläche komplett aus (Vollbildmodus); nach dem Klick verschwindet er wieder von selbst, erscheint aber erneut, sobald der Vollbildmodus (z. B. über Esc) wieder verlassen wird.
+- Solange die Seite geöffnet ist, verhindert die Anwendung, dass der Bildschirm des Anzeigegeräts automatisch in den Ruhezustand wechselt (sofern der Browser dies unterstützt) – auch nach einem Tab-Wechsel wird das beim Zurückkehren automatisch erneut sichergestellt.
+- Wechselt die angezeigte Ticket-Nummer, wird sie kurz animiert (Skalierung/Aufblitzen), damit ein Wechsel auch im Augenwinkel auffällt; darunter erscheint zusätzlich klein die zuvor aufgerufene Nummer (z. B. "Zuvor: 41"), falls jemand den Wechsel verpasst hat. Über den Link-Parameter `?sound=1` (z. B. `/anmeldung/ticketmonitor?sound=1`) lässt sich zusätzlich ein kurzer Ton bei jedem Ticketwechsel aktivieren – nützlich für Räume, in denen der Monitor außerhalb des direkten Sichtfelds hängt.
+- Bricht die Verbindung zum Server ab, wird das anstelle eines kleinen Hinweises groß und zentriert mit "Verbindung getrennt" sowie dem Zeitpunkt der letzten Anzeige angezeigt, damit das auch aus einiger Entfernung auffällt; sobald die Verbindung wiederhergestellt ist, aktualisiert sich die Anzeige automatisch.
