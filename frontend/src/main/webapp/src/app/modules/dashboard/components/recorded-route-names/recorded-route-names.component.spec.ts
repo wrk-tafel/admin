@@ -14,30 +14,48 @@ describe('RecordedRouteNamesComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('recorded route names rendered when present', () => {
+  it('renders every active route as a chip, recorded ones marked apart from outstanding ones', () => {
     const fixture = TestBed.createComponent(RecordedRouteNamesComponent);
     const componentRef = fixture.componentRef;
+    componentRef.setInput('allRouteNames', ['Route 1', 'Route 2', 'Route 3']);
     componentRef.setInput('recordedRouteNames', ['Route 1', 'Route 3']);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-route-names"]')).nativeElement.textContent.trim())
-      .toBe('Route 1, Route 3');
+
+    const chips = fixture.debugElement.queryAll(By.css('mat-chip'));
+    expect(chips.length).toBe(3);
+    expect(chips[0].nativeElement.textContent.trim()).toContain('Route 1');
+    expect(chips[0].nativeElement.classList).toContain('!bg-green-700');
+    expect(chips[1].nativeElement.textContent.trim()).toContain('Route 2');
+    expect(chips[1].nativeElement.classList).not.toContain('!bg-green-700');
+    expect(chips[2].nativeElement.classList).toContain('!bg-green-700');
   });
 
-  it('placeholder rendered when no route names present', () => {
+  it('placeholder rendered when no active routes exist', () => {
     const fixture = TestBed.createComponent(RecordedRouteNamesComponent);
     const componentRef = fixture.componentRef;
+    componentRef.setInput('allRouteNames', []);
+
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[testid="recorded-route-names"]')).nativeElement.textContent.trim()).toBe('-');
+  });
+
+  it('placeholder rendered when allRouteNames is null', () => {
+    const fixture = TestBed.createComponent(RecordedRouteNamesComponent);
+
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[testid="recorded-route-names"]')).nativeElement.textContent.trim()).toBe('-');
+  });
+
+  it('a route not yet in recordedRouteNames is outstanding, not recorded', () => {
+    const fixture = TestBed.createComponent(RecordedRouteNamesComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('allRouteNames', ['Route 1']);
     componentRef.setInput('recordedRouteNames', []);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-route-names"]')).nativeElement.textContent.trim()).toBe('-');
-  });
 
-  it('placeholder rendered when route names is null', () => {
-    const fixture = TestBed.createComponent(RecordedRouteNamesComponent);
-
-    fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-route-names"]')).nativeElement.textContent.trim()).toBe('-');
+    expect(fixture.componentInstance['routes']()).toEqual([{name: 'Route 1', recorded: false}]);
   });
 
 });

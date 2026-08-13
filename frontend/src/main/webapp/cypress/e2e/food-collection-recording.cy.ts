@@ -49,10 +49,14 @@ describe('Food Collection Recording', () => {
       assertNoEmployeeModalsOpen();
 
       // Route 2 now has both base data and food items entered, so the dashboard panel should
-      // count it as fully recorded and list it by name - other routes (untouched) must not count.
+      // count it as fully recorded and mark its chip apart from the other (untouched) routes,
+      // which must stay outstanding.
       cy.visit('/');
       cy.byTestId('recorded-food-collections-count').should('have.text', '1 / 5');
-      cy.byTestId('recorded-route-names').should('have.text', 'Route 2');
+      // index 1: routes are rendered in number order (Route 1, 2, 3, 4, 5) and Route 2 is the
+      // second of the five active routes seeded by testdata.sql.
+      cy.byTestId('recorded-route-chip-1').should('contain.text', 'Route 2').and('have.class', '!bg-green-700');
+      cy.byTestId('recorded-route-chip-0').should('contain.text', 'Route 1').and('not.have.class', '!bg-green-700');
     });
   });
 

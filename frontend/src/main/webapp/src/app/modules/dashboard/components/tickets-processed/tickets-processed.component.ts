@@ -26,4 +26,16 @@ export class TicketsProcessedComponent {
     }
   });
 
+  // "34/120" is a ratio, and a ratio reads faster as a filled-in bar than as two numbers someone
+  // has to divide themselves - especially at a glance from across the room. Only rendered once a
+  // total is known; a bar stuck at 0% before the first ticket exists would say nothing useful.
+  percentProcessed = computed<number | null>(() => {
+    const processed = this.countProcessedTickets();
+    const total = this.countTotalTickets();
+    if (!total) {
+      return null;
+    }
+    return Math.min(100, Math.round(((processed ?? 0) / total) * 100));
+  });
+
 }

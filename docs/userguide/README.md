@@ -170,21 +170,29 @@ Auf Touch-Geräten erscheinen die Kurzhinweise, wenn man das Symbol kurz gedrüc
 
 ## Übersicht (Dashboard)
 
-Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages.
+Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages. Sie ist bewusst zweigeteilt: oben die live aktualisierten Kennzahlen zum Ablesen aus der Distanz, unten mit eigener "Eingabe"-Überschrift die beiden Formulare, in denen tatsächlich etwas eingetippt wird.
 
 ![Übersicht](images/dashboard.jpg)
 
-- **Status**: Zeigt an, ob der Ausgabetag "Geöffnet" oder "Geschlossen" ist. Mit **Tag starten** wird eine neue Ausgabe begonnen, mit **Tag beenden** wird sie abgeschlossen (dabei werden u. a. die Mitarbeiterzahl und die genutzten Notschlafstellen abgefragt).
+Ist an diesem Tag noch keine Ausgabe gestartet, zeigt die Übersicht statt der (dann ohnehin leeren) Kennzahlen nur den großen Hinweis "Keine Verteilung aktiv" mit der Schaltfläche **Tag starten**:
+
+![Übersicht ohne aktive Ausgabe](images/dashboard-idle.jpg)
+
+- **Status**: Zeigt an, ob der Ausgabetag geöffnet ist. Mit **Tag starten** (hervorgehoben in Grün) wird eine neue Ausgabe begonnen, mit **Tag beenden** (hervorgehoben in Rot, da diese Aktion nicht rückgängig gemacht werden kann) wird sie abgeschlossen (dabei werden u. a. die Mitarbeiterzahl und die genutzten Notschlafstellen abgefragt).
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
-- **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt).
-- **Erfasste Routen (Anzahl/Details)** und **Erfasste Warenmenge**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)).
+- **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.
+- **Erfasste Routen (Anzahl)**: Fortschritt der Warenerfassung aus der Logistik als Zahl und Balken (siehe [Logistik](logistik.md)).
+- **Erfasste Routen**: Alle heute noch zu fahrenden Routen als kleine Kacheln (Chips) – bereits vollständig erfasste sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
+- **Erfasste Warenmenge**: Gesamtgewicht der bisher erfassten Warenmengen.
 - **Routen unterwegs**: Zeigt je Route, wie viele Stopps die Fahrer heute bereits abgehakt haben (z. B. "2 / 7"). Der Balken daneben besteht aus einem Abschnitt je Stopp, die erledigten sind grün — so ist auf einen Blick erkennbar, wie viele Stopps eine Route überhaupt hat und wie viele davon schon hinter ihr liegen. Grundlage ist das [Routen-Navi](logistik.md#routen-navi); die Anzeige aktualisiert sich automatisch, sobald unterwegs ein Stopp abgehakt wird — so ist in der Zentrale ohne Anruf ersichtlich, wo eine Route gerade steht. Der Bereich erscheint erst, sobald an diesem Tag der erste Stopp abgehakt wurde: Wird das Routen-Navi nicht verwendet, bleibt er ganz aus. Ab dann werden alle Routen angeführt, auch die noch bei "0 / 15" stehenden; Routen ohne hinterlegte Stopps werden nicht angeführt.
-- **Statistik**: Eingabe der Mitarbeiteranzahl und der Personen in den ausgewählten Notschlafstellen für den Tagesreport. Die Anzahl der Personen in Notschlafstellen wird über den Rechner-Button neben dem Feld ermittelt, indem die genutzten Notschlafstellen ausgewählt werden.
-- **Anmerkungen**: Freitext-Notizen zum aktuellen Ausgabetag, die z. B. im Tagesreport per E-Mail versendet werden.
+- **Statistik** (Eingabe): Eingabe der Mitarbeiteranzahl und der Personen in den ausgewählten Notschlafstellen für den Tagesreport. Die Anzahl der Personen in Notschlafstellen wird über den Rechner-Button neben dem Feld ermittelt, indem die genutzten Notschlafstellen ausgewählt werden.
+- **Anmerkungen** (Eingabe): Freitext-Notizen zum aktuellen Ausgabetag, die z. B. im Tagesreport per E-Mail versendet werden.
 
 Vor dem Beenden des Ausgabetags sollten Statistik und Anmerkungen vollständig ausgefüllt sein, da diese Angaben in den Tagesreport einfließen:
 
 ![Übersicht vor Tagesabschluss](images/dashboard-tagabschluss.jpg)
+
+Bricht die Live-Verbindung zur Übersicht ab (z. B. bei einem kurzen Netzwerkausfall), werden die Kennzahlen-Kacheln abgedunkelt und mit dem Hinweis "Live-Verbindung unterbrochen" samt Zeitpunkt der letzten Aktualisierung überlagert – die zuletzt bekannten Zahlen stehen also nicht mehr aktuell. Sobald die Verbindung wiederhergestellt ist, verschwindet der Hinweis von selbst.
 
 ## Support-Anfrage
 

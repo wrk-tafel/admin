@@ -1,20 +1,41 @@
-<mat-card class="h-full mat-card-primary">
-  <mat-card-content class="!p-4">
-    <h2 class="tafel-h4 mb-1">Status</h2>
-    <div testid="distribution-state-text" class="text-4xl font-bold leading-none">{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</div>
-  </mat-card-content>
-  <mat-card-footer>
-    @if (!isDistributionActive()) {
-      <button testid="distribution-start-button"
-              mat-raised-button
-              (click)="createNewDistribution()">Tag starten
-      </button>
-    }
-    @if (isDistributionActive()) {
+@if (isDistributionActive()) {
+  <mat-card class="h-full mat-card-primary">
+    <mat-card-content class="!p-4">
+      <h2 class="tafel-h4 mb-1">Status</h2>
+      <div testid="distribution-state-text" class="text-4xl font-bold leading-none">Geöffnet</div>
+    </mat-card-content>
+    <mat-card-footer>
+      <!-- "Tag beenden" is one of the two most consequential clicks in the app (the other being
+           "Tag starten" below), so it carries the danger colour rather than looking like any other
+           raised button - the confirmation dialog it opens is the other half of that guardrail.
+           `button-danger` (mat-button.scss), not Material's own `color="warn"`: this app's theme
+           never wires the `mat-warn`/`mat-primary` host class to a visible style for a raised
+           button - every one of them, coloured or not, falls back to the same `--mat-sys-primary`
+           text on an near-white background, so `color="warn"` here would be invisible. -->
       <button testid="distribution-close-button"
               mat-raised-button
+              class="button-danger"
               (click)="openCloseDistributionDialog()">Tag beenden
       </button>
-    }
-  </mat-card-footer>
-</mat-card>
+    </mat-card-footer>
+  </mat-card>
+} @else {
+  <!-- The idle hero: outside a distribution this is the only thing on the dashboard (see
+       dashboard.component.html), so it is deliberately big and centred rather than squeezed into
+       the same one-third-width card the active state uses. -->
+  <mat-card class="mat-card-primary" testid="distribution-idle-card">
+    <mat-card-content class="!p-8 flex flex-col items-center gap-3 text-center">
+      <h2 testid="distribution-state-text" class="tafel-h2 font-bold">Keine Verteilung aktiv</h2>
+      <p class="text-lg opacity-90">Starte den Tag, um Kundinnen und Kunden anzumelden und die Statistik zu erfassen.</p>
+      <!-- `button-success`, not `color="primary"` - see the comment on `button-danger` above:
+           every raised button in this app already renders with the same primary-blue text by
+           default, `color` input or not, so an explicit "primary" would look identical to the
+           plain "Speichern" button next to it instead of standing apart as the day's main action. -->
+      <button testid="distribution-start-button"
+              mat-raised-button
+              class="button-success !mt-2 !px-8 !py-2 !text-lg"
+              (click)="createNewDistribution()">Tag starten
+      </button>
+    </mat-card-content>
+  </mat-card>
+}

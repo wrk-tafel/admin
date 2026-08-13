@@ -76,6 +76,9 @@ class DashboardService(
             recordedRouteNames = doneFoodCollections
                 .sortedWith(compareBy({ it.route.number }, { it.route.name }))
                 .map { it.route.name },
+            allRouteNames = enabledRoutes
+                .sortedWith(compareBy({ it.number }, { it.name }))
+                .map { it.name },
             foodAmountTotal = currentDistribution.foodCollections
                 .flatMap { it.items ?: emptyList() }
                 .map { it.weight }

@@ -1,10 +1,19 @@
 <mat-card class="h-full mat-card-primary" testid="recorded-route-names-panel">
   <mat-card-content class="!p-4">
-    <h2 class="tafel-h4 mb-1">Erfasste Routen (Details)</h2>
-    @if (recordedRouteNames() && recordedRouteNames()!.length > 0) {
-      <!-- smaller than the figures on the neighbouring panels: this one holds a list of names,
-           which at their size would wrap the panel into several lines -->
-      <div testid="recorded-route-names" class="text-xl">{{ recordedRouteNames()!.join(', ') }}</div>
+    <h2 class="tafel-h4 mb-1">Erfasste Routen</h2>
+    @if (routes().length > 0) {
+      <mat-chip-set testid="recorded-route-chips" aria-label="Erfassungsstatus je Route">
+        @for (route of routes(); track route.name; let i = $index) {
+          <mat-chip [class.!bg-green-700]="route.recorded" [class.!text-white]="route.recorded"
+                    [attr.testid]="'recorded-route-chip-' + i"
+                    [attr.aria-label]="route.name + (route.recorded ? ' erfasst' : ' ausstehend')">
+            @if (route.recorded) {
+              <fa-icon [icon]="faCheck" aria-hidden="true" class="mr-1"></fa-icon>
+            }
+            {{ route.name }}
+          </mat-chip>
+        }
+      </mat-chip-set>
     } @else {
       <div testid="recorded-route-names" class="text-4xl leading-none">-</div>
     }

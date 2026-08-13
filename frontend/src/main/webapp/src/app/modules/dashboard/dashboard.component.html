@@ -3,43 +3,81 @@
      title and its figure in a single padded block instead of a Material card header above a
      centred number, and the dividers between the rows are narrow. A new panel has to earn its
      height the same way. -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
-  <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
-  <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
-  <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets ?? null"
-                           [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
-  </tafel-tickets-processed>
-</div>
-<mat-divider class="!my-3"></mat-divider>
-<div class="grid grid-cols-1 lg:grid-cols-5 gap-2">
-  <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
-                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
-  </tafel-recorded-food-collections>
-  <tafel-recorded-route-names class="lg:col-span-2"
-                              [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
-  </tafel-recorded-route-names>
-  <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
-  </tafel-food-amount>
-</div>
-<!-- Only once a driver has actually ticked a stop off today. The route guidance screen is optional,
-     and a deployment that doesn't use it would otherwise carry a panel of permanent zeroes on a
-     dashboard that has to fit on one screen. The backend decides that, not this template: it sends
-     an empty list until the first stop of the day is done (see DashboardService.getRouteProgress). -->
-@if (routeProgress(); as progress) {
-  <div class="mt-2">
-    <tafel-route-progress [routeProgress]="progress"></tafel-route-progress>
+@if (isDistributionActive()) {
+  <!-- `relative` is the positioning root for the staleness overlay below; the inner wrapper keeps
+       the same flex-column sizing the host used to apply directly, so "the last row fills whatever
+       is left" still works with this branch in between. -->
+  <div class="relative flex min-h-0 flex-1 flex-col">
+    @if (isStale()) {
+      <!-- The dashboard is trusted from across the room - if the stream drops, the figures below
+           freeze silently and the tiny connection badge in the header is invisible at distance.
+           `pointer-events-none` lets the still-live "Statistik"/"Notizen" save buttons underneath
+           stay clickable; only the glance panels are visually dead. -->
+      <div class="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-1
+                  rounded-lg bg-slate-900/70 text-center text-white"
+           role="status" testid="dashboard-stale-overlay">
+        <span class="tafel-h3 font-bold">Live-Verbindung unterbrochen</span>
+        @if (lastUpdate(); as updatedAt) {
+          <span testid="dashboard-stale-overlay-updated-at">Letzte Aktualisierung: {{ updatedAt | date: 'HH:mm:ss' }}</span>
+        }
+      </div>
+    }
+    <div class="flex min-h-0 flex-1 flex-col" [class.opacity-30]="isStale()">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+        <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
+        <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
+        <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets ?? null"
+                                 [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
+        </tafel-tickets-processed>
+      </div>
+      <mat-divider class="!my-3"></mat-divider>
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-2">
+        <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
+                                         [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
+        </tafel-recorded-food-collections>
+        <tafel-recorded-route-names class="lg:col-span-2"
+                                    [allRouteNames]="data()?.logistics?.allRouteNames ?? null"
+                                    [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
+        </tafel-recorded-route-names>
+        <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
+        </tafel-food-amount>
+      </div>
+      <!-- Only once a driver has actually ticked a stop off today. The route guidance screen is optional,
+           and a deployment that doesn't use it would otherwise carry a panel of permanent zeroes on a
+           dashboard that has to fit on one screen. The backend decides that, not this template: it sends
+           an empty list until the first stop of the day is done (see DashboardService.getRouteProgress). -->
+      @if (routeProgress(); as progress) {
+        <div class="mt-2">
+          <tafel-route-progress [routeProgress]="progress"></tafel-route-progress>
+        </div>
+      }
+      <mat-divider class="!my-3"></mat-divider>
+      <!-- Everything above is read-only "glance" state; the two cards below are the dashboard's only
+           data-entry surfaces. This header - plus the plain outlined (not colour-filled) card style
+           on both of them - is what makes that split legible instead of a uniform grid of look-alike
+           panels. -->
+      <div class="mb-1 flex items-center gap-2" testid="dashboard-input-section-header">
+        <span class="tafel-h6 mb-0 font-semibold uppercase tracking-wide text-slate-500">Eingabe</span>
+        <mat-divider class="flex-1"></mat-divider>
+      </div>
+      <!-- The last row takes whatever the rows above it left over, so the screen is exactly full whether
+           or not "Routen unterwegs" is there. Only from lg: up: below that breakpoint the panels are
+           stacked in one column and there is more of them than a phone screen holds, so squeezing them
+           into it would leave every field unusably short. -->
+      <div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
+        <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
+                                             [employeeCountInput]="data()?.statistics?.employeeCount"
+                                             [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">
+        </tafel-distribution-statistics-input>
+        <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
+        </tafel-distribution-notes-input>
+      </div>
+    </div>
   </div>
+} @else {
+  <!-- Outside a distribution almost every glance figure is zero/empty, so the normal grid above
+       would just be a wall of dashes. Showing only the (permission-gated) status/start card instead
+       keeps the idle screen purposeful rather than noisy - see DistributionStateComponent for the
+       "Keine Verteilung aktiv" hero itself. -->
+  <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
 }
-<mat-divider class="!my-3"></mat-divider>
-<!-- The last row takes whatever the rows above it left over, so the screen is exactly full whether
-     or not "Routen unterwegs" is there. Only from lg: up: below that breakpoint the panels are
-     stacked in one column and there is more of them than a phone screen holds, so squeezing them
-     into it would leave every field unusably short. -->
-<div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
-  <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
-                                       [employeeCountInput]="data()?.statistics?.employeeCount"
-                                       [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">
-  </tafel-distribution-statistics-input>
-  <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
-  </tafel-distribution-notes-input>
-</div>
