@@ -86,9 +86,22 @@ describe('Customer Duplicates', () => {
       cy.byTestId('duplicate-dismiss-button-' + customer2.id).click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'kein Duplikat');
+      // The pair itself disappearing is the assertion here - the list as a whole is usually NOT
+      // empty at this point, since the other tests' pairs accumulate in the shared e2e database.
       cy.byTestId('duplicate-group-' + customer1.id).should('not.exist');
-      cy.byTestId('no-duplicates-message').should('be.visible').and('contain.text', 'Keine Duplikate gefunden!');
     });
+  });
+
+  it('shows the empty state once no duplicates are left', () => {
+    // Stubbed: the shared e2e database accumulates duplicate pairs from the other tests here, so a
+    // really-empty list cannot be arranged through the UI alone.
+    cy.intercept('GET', '**/api/households/duplicates*', {
+      statusCode: 200,
+      body: {items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 10},
+    });
+    cy.visit('/kunden/duplikate');
+
+    cy.byTestId('no-duplicates-message').should('be.visible').and('contain.text', 'Keine Duplikate gefunden!');
   });
 
   it('the "kein Duplikat" action is only offered on the similar candidates, not the anchor itself', () => {
