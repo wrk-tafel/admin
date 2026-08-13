@@ -626,6 +626,131 @@ describe('Customer Detail', () => {
     });
   });
 
+  describe('identity header', () => {
+
+    it('shows the customer name, number, validity and household size chips', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('identity-name').should('be.visible').invoke('text').should('not.be.empty');
+        cy.byTestId('identity-number').should('contain.text', String(customerId));
+        cy.byTestId('validity-chip').should('be.visible').and('contain.text', 'Gültig');
+        cy.byTestId('household-size-chip').should('be.visible').and('contain.text', '1 Person');
+        cy.byTestId('lock-chip').should('not.exist');
+        cy.byTestId('cost-contribution-chip').should('not.exist');
+      });
+    });
+
+    it('shows the lock chip once the customer is locked, and removes it once unlocked', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('lock-chip').should('not.exist');
+
+        openEditMenu();
+        cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-input-text').type('dummy lockreason');
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('lock-chip').should('be.visible').and('contain.text', 'Gesperrt');
+
+        openEditMenu();
+        cy.byTestId('unlockCustomerButton').click();
+
+        cy.byTestId('lock-chip').should('not.exist');
+      });
+    });
+
+    it('shows and badges the pending cost contribution once debt is open', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id!;
+        cy.accrueCostContributionDebt(customerId);
+
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('cost-contribution-chip').should('be.visible').and('contain.text', 'Unkostenbeitrag offen');
+        cy.byTestId('cost-contribution-badge').should('be.visible');
+
+        // belt-and-suspenders, same as the "cost contribution debt" specs above
+        cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+      });
+    });
+
+    // Testdata customer 101's "Kind 3" (person id 1013) is the one additional person seeded with
+    // exclude_household = true, so it - and only it - must not count toward the household size chip
+    // and must carry the "not in the household" chip on the persons tab.
+    it('excludes a person flagged "not in the household" from the size chip and marks them with a chip', () => {
+      cy.visit('/kunden/detail/101');
+
+      cy.byTestId('household-size-chip').should('contain.text', '3 Personen');
+
+      cy.byTestId('additionalpersons-tab-label').click();
+      cy.byTestId('addperson-2-lastnameText').should('have.text', 'Musterfrau');
+      cy.byTestId('addperson-2-excludedChip').should('be.visible').and('contain.text', 'Nicht im Haushalt');
+      cy.byTestId('addperson-0-excludedChip').should('not.exist');
+      cy.byTestId('addperson-1-excludedChip').should('not.exist');
+    });
+
+    it('shows the resulting date on each prolong menu item', () => {
+      cy.visit('/kunden/detail/100');
+
+      cy.byTestId('validUntilText').then(($value) => {
+        const validDateString = $value.text();
+        const expectedThreeMonths = dayjs(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
+
+        cy.byTestId('prolongButton').click();
+        cy.byTestId('prolongThreeMonthsButton')
+          .should('contain.text', '3 Monate')
+          .and('contain.text', expectedThreeMonths);
+      });
+    });
+
+    it('links phone and email as tel:/mailto: and copies the address to the clipboard', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('telephoneNumberText').should('have.attr', 'href').and('match', /^tel:/);
+        cy.byTestId('emailText').should('have.attr', 'href').and('match', /^mailto:/);
+
+        cy.byTestId('copy-address-button').click();
+        cy.get('.toast-message').should('be.visible').and('contain.text', 'Zwischenablage');
+      });
+    });
+
+    it('shows a busy state on the print button while a PDF is being generated', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.intercept('/api/households/*/generate-pdf**', (req) => {
+          req.on('response', (res) => {
+            res.setDelay(500);
+          });
+        }).as('generatePdf');
+
+        cy.byTestId('printMenuButton').click();
+        cy.byTestId('printMasterdataButton').click();
+
+        cy.byTestId('printMenuButton').should('contain.text', 'Wird erstellt').and('be.disabled');
+        cy.wait('@generatePdf');
+        cy.byTestId('printMenuButton').should('contain.text', 'Daten ausdrucken');
+      });
+    });
+
+    it('shows a note count and relative time on the "Aktuellste Notiz" card', () => {
+      cy.visit('/kunden/detail/103');
+
+      cy.byTestId('notes-count').should('be.visible');
+      cy.byTestId('note-relative-time').should('be.visible');
+    });
+
+  });
+
   describe('Supervisor', () => {
     beforeEach(() => {
       cy.loginDefault();
