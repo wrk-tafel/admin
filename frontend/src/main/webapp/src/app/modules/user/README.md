@@ -111,18 +111,37 @@ navigation would trip the guard over changes that were, in fact, just saved.
 
 ### UserSearchComponent
 
-Two independent search paths in one screen:
+One omnibox (`query` signal) instead of a personnel-number field plus a separate text field, mirroring the
+customer search screen's rework (`modules/customer/views/customer-search/`) — read that component before
+diverging from the patterns below:
 
-- **Direct lookup**: `searchForPersonnelNumber()` → `UserApiService.getUserForPersonnelNumber(...)` →
-  navigates straight to `/benutzer/detail/:id` on a hit, toasts "Benutzer nicht gefunden!" on 404.
-- **Filtered/paginated search**: `searchForDetails(page?)` → `UserApiService.searchUser(username, enabled,
-  lastname, firstname, page)` → renders a `mat-table` on desktop and a card list below the `md` breakpoint, both
-  driven by the same `mat-paginator`.
+- **The omnibox resolves in `resolveSearch$`**: a query that is a pure number is tried first as an exact
+  personnel-number jump (`UserApiService.getUserForPersonnelNumber(...)`) straight to `/benutzer/detail/:id`;
+  a 404 falls back to the fuzzy search with the same digits as search text (the personnel number is part of
+  `search_text` too), any other query goes straight to the fuzzy search. A non-404 error is toasted instead of
+  falling back.
+- **Search-as-you-type**: `onQueryInput()` feeds a 300ms-debounced subject (`queryInput`), gated to 2+ characters
+  or an empty query; the explicit "Suchen" button and Enter bypass both the debounce and the threshold.
+- **Status is a tri-state chip toggle** (`statusFilter` signal: `'alle' | 'aktiv' | 'deaktiviert'`), a single-select
+  `mat-chip-listbox` rather than the former "Aktiv" checkbox — a checkbox's unchecked state read as "all", which a
+  checkbox does not communicate. `'aktiv'` is the default landing state (same default the checkbox used to start
+  at); selecting a chip re-searches without attempting the exact-match jump (`tryExactMatch: false`), same as a
+  paginator click.
+- **The whole state lives in the URL** (`suche`, `status`, `seite`, `anzahl` query params — `QUERY_PARAMS`), so
+  navigating to a user's detail and back restores the same result list instead of forcing a re-search. The default
+  `'aktiv'` status and the first page/default page size are omitted from the URL to keep it clean.
+- **Row semantics**: the result table/cards have no separate "view" button — a `RouterLink` on the name (desktop)
+  or the whole card (mobile), stretched via `after:absolute after:inset-0`, is the row's link to
+  `/benutzer/detail/:id`; only the edit action remains as a button (`searchresult-edituser-button-<id>`, filled and
+  neutral — not `button-danger`, see #3280).
+- **Status chips per row**: "Aktiv"/"Deaktiviert" (green/grey), plus "Passwortänderung erforderlich" when
+  `passwordChangeRequired` and "Gesperrt bis <Datum>" when `UserData.lockedUntil` (server-computed by
+  `LoginAttemptService.getLockedUntil`, see `UserController.mapToResponse`) is still in the future — `isLocked()`
+  compares it against `Date.now()` client-side, same pattern as the login-attempts screen's own status column.
+- **Empty state**: "Keine Benutzer gefunden" plus a "Benutzer anlegen" CTA linking to `/benutzer/erstellen`.
 
-The filter fields also use `@angular/forms/signals`' `form()`, but with no validators — it's a query, not
-data entry. Minor naming nit if you go digging: `editUser(personnelNumber: number | undefined)` is actually called
-with `user.id` from the template (`editUser(user.id)`), and both `detail/:id` and `bearbeiten/:id` route on the
-numeric user id — the parameter name is just misleading, there's no functional bug.
+The status filter has no validators — it is a query, not data entry — so it is plain component signals rather
+than `@angular/forms/signals`' `form()`.
 
 ### UserDetailComponent
 
