@@ -9,16 +9,21 @@
     </div>
   }
 
-  <div class="flex items-center justify-between px-6 h-16">
+  <div class="flex items-center justify-between px-3 sm:px-6 h-16">
     <div class="flex items-center gap-2 min-w-0">
       <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
         <fa-icon [icon]="faBars"></fa-icon>
       </button>
 
+      <!--
+        Icon-only below `sm` - the header has to leave room for the mobile page title next to it,
+        and the `aria-label` names the button either way.
+      -->
       <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
               class="!h-7 !px-2 !text-xs sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium shrink-0">
-        Support-Anfrage
+        <fa-icon [icon]="faCircleQuestion" class="sm:hidden" aria-hidden="true"></fa-icon>
+        <span class="hidden sm:inline">Support-Anfrage</span>
       </button>
 
       <!--
@@ -44,7 +49,8 @@
       <span class="badge" role="status" [ngClass]="distributionActive() ? 'badge-success' : 'badge-info'" testid="distribution-state-badge">
         {{ distributionActive() ? 'Geöffnet' : 'Geschlossen' }}
         @if (distributionActive() && distribution()?.startedAt) {
-          <span> · {{ distribution()!.startedAt | date: 'HH:mm' }}</span>
+          <!-- hidden below `sm`: the state itself is what matters, the header has no room for the time there -->
+          <span class="hidden sm:inline"> · {{ distribution()!.startedAt | date: 'HH:mm' }}</span>
         }
       </span>
 
@@ -57,7 +63,8 @@
       -->
       <span class="badge" role="status" testid="connection-state-badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">
         <fa-icon [icon]="sseConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
-        Live-Verbindung<span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
+        <!-- icon-only below `sm` (room for the mobile page title); the sr-only state text stays either way -->
+        <span class="hidden sm:inline">Live-Verbindung</span><span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
       </span>
 
       <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"

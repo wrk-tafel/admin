@@ -181,7 +181,8 @@ export class DefaultLayoutComponent {
     return resultNavItems;
   }
 
-  toggleExpanded(name: string) {
+  toggleExpanded(name: string, event?: Event) {
+    const expanding = !this.expandedItems().has(name);
     this.expandedItems.update(current => {
       const updated = new Set(current);
       if (updated.has(name)) {
@@ -191,6 +192,14 @@ export class DefaultLayoutComponent {
       }
       return updated;
     });
+
+    // Expanding a group sitting at the bottom of the nav scrollport would otherwise change nothing
+    // visible - the submenu renders entirely below the fold. Scroll the group (button + submenu,
+    // their common parent div) into view once the submenu exists in the DOM.
+    if (expanding && event?.currentTarget) {
+      const group = (event.currentTarget as HTMLElement).parentElement;
+      setTimeout(() => group?.scrollIntoView({block: 'nearest'}));
+    }
   }
 
   private loadCollapsedFromStorage(): boolean {

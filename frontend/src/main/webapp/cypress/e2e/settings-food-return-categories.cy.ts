@@ -120,6 +120,12 @@ describe('Settings - Food Return Categories', () => {
     cy.get('.toast-message').should('be.visible');
     cy.byTestId('food-return-categories-enabled-toggle-0').find('button')
       .should('have.attr', 'aria-checked', 'false');
+
+    // toggle back on - a disabled row 0 would leak into the later tests, whose edit button is
+    // disabled for disabled categories
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button').click();
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button')
+      .should('have.attr', 'aria-checked', 'true');
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -127,8 +133,10 @@ describe('Settings - Food Return Categories', () => {
     cy.reload();
 
     cy.byTestId('food-return-categories-table').should('not.be.visible');
-    cy.byTestId('food-return-categories-cards').should('be.visible');
     cy.byTestId('addFoodReturnCategoryButton').should('be.visible');
+    // The screen's intro text fills a phone viewport, so the card list starts below the fold -
+    // scroll to it the way a user would before asserting on it.
+    cy.byTestId('food-return-categories-cards').scrollIntoView().should('be.visible');
 
     // The 'toggles return category visibility' test above may have left row 0 disabled (its edit
     // button is disabled for disabled categories) - re-enable it first if needed.

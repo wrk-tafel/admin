@@ -50,7 +50,7 @@
                 rendered at all in that state, so there is nothing for the button to control and
                 nothing its expanded state could describe.
               -->
-              <button type="button" (click)="toggleExpanded(item.name)"
+              <button type="button" (click)="toggleExpanded(item.name, $event)"
                       [attr.aria-expanded]="collapsed() ? null : expandedItems().has(item.name)"
                       [attr.aria-controls]="collapsed() ? null : 'nav-group-' + $index"
                       [disabled]="!!item.attributes?.disabled"
@@ -69,14 +69,16 @@
               </button>
             } @else {
               <!--
-                `pointer-events-none` alone only disables the mouse - a disabled entry stayed in the
-                tab order and still navigated on Enter, so it needs to leave the tab order too.
+                Disabled via a nulled `routerLink` (no `href`, so neither click nor Enter navigates)
+                plus `tabindex="-1"` to leave the tab order - NOT via `pointer-events: none`, which
+                would also swallow the hover that shows the tooltip explaining *why* the entry is
+                disabled.
               -->
-              <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                 (click)="isMobile() && sidenav.close()"
-                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+              <a [routerLink]="item.attributes?.disabled ? null : item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                 (click)="!item.attributes?.disabled && isMobile() && sidenav.close()"
+                 class="flex items-center gap-3 px-4 py-3"
+                 [ngClass]="item.attributes?.disabled ? 'cursor-default' : 'hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer'"
                  [class.justify-center]="collapsed()"
-                 [class.pointer-events-none]="item.attributes?.disabled"
                  [class.text-gray-400]="item.attributes?.disabled"
                  [attr.aria-disabled]="item.attributes?.disabled ? true : null"
                  [attr.tabindex]="item.attributes?.disabled ? -1 : null"
