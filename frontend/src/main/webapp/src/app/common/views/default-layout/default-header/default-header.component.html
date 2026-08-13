@@ -34,9 +34,10 @@
         title twice.
       -->
       @if (pageTitle()) {
-        <span aria-hidden="true" testid="mobile-page-title" class="lg:hidden truncate text-sm font-semibold text-slate-700">
-          {{ pageTitle() }}
-        </span>
+        <!-- text tight against the tags: the indentation would otherwise collapse into leading/
+             trailing spaces, and the e2e spec asserts this title's exact text -->
+        <span aria-hidden="true" testid="mobile-page-title"
+              class="lg:hidden truncate text-sm font-semibold text-slate-700">{{ pageTitle() }}</span>
       }
     </div>
 
