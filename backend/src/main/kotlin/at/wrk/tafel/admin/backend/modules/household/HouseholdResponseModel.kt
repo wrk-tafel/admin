@@ -175,6 +175,14 @@ data class HouseholdDuplicationItem(
 )
 
 @ExcludeFromTestCoverage
+data class HouseholdDuplicateDismissRequest(
+    @field:NotNull
+    val householdId: Long? = null,
+    @field:NotNull
+    val otherHouseholdId: Long? = null,
+)
+
+@ExcludeFromTestCoverage
 data class HouseholdCostContributionPaymentRequest(
     @field:Positive
     val amount: BigDecimal? = null,

@@ -106,15 +106,21 @@ Gibt es für die Zusammensetzung eines Haushalts keinen hinterlegten Grundbetrag
 
 ## Kunden-Duplikate
 
-Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und zeigt sie paarweise gegenüber.
+Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und stellt sie als direkten Vergleich gegenüber: Geburtsdatum, Adresse, Personenanzahl und Gültigkeit stehen zeilenweise nebeneinander, abweichende Werte sind hervorgehoben, übereinstimmende Werte blass dargestellt – auf einen Blick ist so erkennbar, worin sich die beiden Kunden unterscheiden. Die Gesamtzahl der noch zu prüfenden Duplikat-Gruppen steht rechts über der Liste (z. B. "6 mögliche Duplikate").
 
 ![Kunden-Duplikate](images/kunden-duplikate.jpg)
 
-Eine Legende auf der Seite erklärt die Bedeutung der einzelnen Icons. Wurden keine Duplikate gefunden, erscheint die Meldung "Keine Duplikate gefunden!". Für jedes gefundene Duplikat-Paar stehen folgende Aktionen zur Verfügung:
+Für jeden Kandidaten eines Duplikat-Paares stehen folgende Aktionen zur Verfügung:
 
-- **Kunden zusammenführen** (grüner Haken): Öffnet den Datenabgleich zur Zusammenführung.
-- **Kunden-Details ansehen** (Lupe): Wechselt zur Detailansicht des jeweiligen Kunden.
-- **Kunden löschen** (Papierkorb): Löscht ausschließlich den ausgewählten Kunden, der andere bleibt bestehen.
+- **Zusammenführen** (grün hervorgehoben): Öffnet den Datenabgleich zur Zusammenführung für diesen Kunden.
+- **Details**: Wechselt zur Detailansicht des jeweiligen Kunden.
+- Über die Schaltfläche mit den weiteren Aktionen (▾) stehen zusätzlich zur Verfügung:
+  - **Kein Duplikat**: Markiert dieses Paar als geprüft und keine Duplikate – es wird danach nicht mehr in der Liste angezeigt.
+  - **Kunde löschen**: Löscht ausschließlich diesen Kunden, der andere bleibt bestehen. Der Bestätigungsdialog nennt dabei ausdrücklich den Namen des zu löschenden Kunden.
+
+Nach dem Löschen oder Markieren als "Kein Duplikat" bleibt die Liste an derselben Position stehen – die geprüfte Gruppe verschwindet einfach aus der Warteschlange. Wurden alle möglichen Duplikate geprüft, erscheint eine positive Bestätigung:
+
+![Keine Duplikate mehr](images/kunden-duplikate-keine.jpg)
 
 ### Kunden zusammenführen
 

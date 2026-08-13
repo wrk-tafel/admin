@@ -192,6 +192,12 @@ class HouseholdController(
         )
     }
 
+    @PostMapping("/duplicates/dismiss")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    fun dismissDuplicate(@Valid @RequestBody request: HouseholdDuplicateDismissRequest) {
+        householdDuplicationService.dismiss(request.householdId!!, request.otherHouseholdId!!)
+    }
+
     @GetMapping("/{householdId}/merge-preview")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getMergePreview(

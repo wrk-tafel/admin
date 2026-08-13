@@ -548,6 +548,15 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `dismiss duplicate`() {
+        val request = HouseholdDuplicateDismissRequest(householdId = 100L, otherHouseholdId = 200L)
+
+        controller.dismissDuplicate(request)
+
+        verify { householdDuplicationService.dismiss(100L, 200L) }
+    }
+
+    @Test
     fun `merge into household`() {
         val householdId = 100L
         val request = HouseholdMergeRequest(sourceHouseholdIds = listOf(200L, 300L))
