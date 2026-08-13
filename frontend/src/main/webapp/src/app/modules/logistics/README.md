@@ -38,6 +38,7 @@ logistics/
     food-return-categories-data-resolver.component.ts    # GET /food-return-categories/active
   services/
     food-collection-offline-queue.service.ts      # localStorage-backed item auto-save queue
+    route-guidance-offline-queue.service.ts       # localStorage-backed stop-completion queue
     food-collection-return-items.ts               # free-text return-item validation helpers
   views/
     route-guidance/                               # route picker + one stop at a time + map deep links
@@ -60,15 +61,37 @@ the screen needs no second request and no shop lookup of its own.
 
 A few things about it are worth knowing before changing it:
 
-- **One stop is on screen at a time**, and the screen is two buttons: `Erledigt & weiter` and
-  `Zurück`. It is read at the wheel on a phone, where a scrollable list of fifteen stops is the
-  wrong shape and every extra control is one to get wrong.
-- **Moving is what records the progress.** Forward ticks the stop off and shows the next one
-  (`Erledigt` on the last stop, which has nowhere to move on to, and disabled once it is done);
-  back shows the previous stop and takes its tick out again. There is deliberately no separate
-  "done" or "undo" control — an earlier revision had both alongside a pager and nobody could tell
-  the two forward buttons apart. The tick is applied only after the server confirms it, so a driver
-  is never moved past a stop that was not recorded.
+- **One stop is on screen at a time**, read at the wheel on a phone, where a scrollable list of
+  fifteen stops is the wrong shape and every extra control is one to get wrong. A compact row of
+  dots above the stop card (`guidance-stepper`) gives the overview a full list would otherwise be
+  needed for — done/current/still-open at a glance, tappable to jump straight to any stop.
+- **Browsing and completion are two independent actions.** `Zurück`/`Weiter` (`goToPreviousStop`/
+  `goToNextStop`) only page through stops and never touch completion; `Stopp erledigt`/`Rückgängig
+  machen` (`completeCurrentStop`/`undoCurrentStop`) only ever act on the stop currently shown. This
+  is deliberate: with a single "Erledigt & weiter" pair, going back to re-read a gate code silently
+  un-ticked the previous stop. The completion button is the most prominent control on the screen —
+  full-width, high-contrast, `sticky bottom-0` so it never needs a scroll to reach — since it is
+  what a driver's thumb reaches for at every stop; see the driver-mode ergonomics notes in the
+  linked issue for the reasoning.
+- **A completion tick tries the server first and only queues when there's no connection.** Online,
+  the tick is applied to the screen only once the server confirms it (`pendingStopId` disables the
+  buttons meanwhile), so a driver is never moved past a stop that wasn't actually recorded. Offline,
+  it's applied to the screen immediately (optimistically, with no `completedAt`/`completedBy` yet)
+  and handed to `RouteGuidanceOfflineQueueService`, which persists it in `localStorage` and retries
+  once connectivity returns — a driver in a loading dock with no signal must not be blocked from
+  recording progress. The stop shows an "Ausstehend" badge/label until the queued write actually
+  lands; `RouteGuidanceOfflineQueueService.stopSynced$` is what replaces the optimistic guess with
+  the server's real answer once it does. The service mirrors `FoodCollectionOfflineQueueService`'s
+  shape (queue signal, `localStorage`-backed, retries on connectivity/focus) but is a separate
+  class — the two work on structurally different payloads and different endpoints.
+- **The screen keeps the device awake** (`ScreenWakeLockService`, `common/wake-lock/`) for as long
+  as the selected route has stops on screen, released again once the route is cleared or the
+  component is destroyed. It re-requests the lock on `visibilitychange` — the OS releases a wake
+  lock whenever the tab is backgrounded, so a driver switching to the map app and back would
+  otherwise silently lose it.
+- **The last selected route is remembered per device** (`localStorage`, not tied to a user) and
+  preselected on the next visit — the same team usually drives the same route, and re-picking it
+  from the dropdown every morning added nothing.
 - **The map link is only a link.** Starting the navigation changes no progress; it opens in its own
   window and the same stop stays on screen.
 - **Navigation is a link, not a map.** Each stop renders an `<a href>` to
@@ -79,11 +102,10 @@ A few things about it are worth knowing before changing it:
   (`docs/architecture/adr/0040-route-navigation-by-map-app-deep-link.md`).
 - **Ticking a stop is a `PUT` per stop**, and the response replaces that one stop in the
   signal rather than triggering a reload — the list must not jump under a driver's thumb.
-  `pendingStopId` disables the buttons while a request is out.
 - **Progress is per calendar day and shared**, so a second person opening the same route
-  sees the same ticks; the completion's timestamp and the employee who set it are shown. The
-  counter in the card header and the bar below it both render `progressLabel()`, so the figure a
-  screen reader hears off the bar is the one on screen.
+  sees the same ticks; the completion's timestamp and the employee who set it are shown once
+  synced. The counter in the card header and the bar below it both render `progressLabel()`, so the
+  figure a screen reader hears off the bar is the one on screen.
 - **Reaching the last stop is announced**, once per route per day: the backend publishes
   `RouteAtLastStopEvent` when everything but the final stop is ticked off, and the `push` module
   turns it into a notification naming the route. Nothing in this component is involved.
