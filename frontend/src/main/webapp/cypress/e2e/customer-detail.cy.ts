@@ -217,7 +217,8 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/100');
 
     cy.byTestId('customerIdText').should('be.visible');
-    cy.byTestId('latest-customer-note-none').should('be.visible');
+    // the notes panel sits below the fold at tablet height - scroll to it the way a user would
+    cy.byTestId('latest-customer-note-none').scrollIntoView().should('be.visible');
 
     let validDateString;
     cy.byTestId('validUntilText').then(($value) => {
@@ -656,7 +657,8 @@ describe('Customer Detail', () => {
           cy.byTestId('okButton').click();
         });
 
-        cy.byTestId('lock-chip').should('be.visible').and('contain.text', 'Gesperrt');
+        // the chip appears in the identity header, which the menu interaction has scrolled past
+        cy.byTestId('lock-chip').scrollIntoView().should('be.visible').and('contain.text', 'Gesperrt');
 
         openEditMenu();
         cy.byTestId('unlockCustomerButton').click();
