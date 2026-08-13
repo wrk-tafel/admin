@@ -124,7 +124,7 @@ Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Sie 
 
 Unter **Einstellungen → Filialen** werden die Geschäfte gepflegt, bei denen Ware abgeholt wird. Neben Nummer, Name und Adresse werden Telefonnummer, Ansprechperson und ein freier **Hinweis**-Text erfasst.
 
-Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Telefonnummer (als Link direkt wählbar), Ansprechperson und Hinweis. Über der Liste steht neben dem Filter **Alle / Aktiv / Inaktiv** zusätzlich ein **Suchfeld**, das Nummer, Name, Adresse, Ansprechperson und Hinweis durchsucht.
+Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Adresse mit **Kartenlink**, Telefonnummer (als Link direkt wählbar), Ansprechperson, Hinweis und die Liste der **Stopps** — jede Route, die hier hält, samt Uhrzeit (z. B. "Route 3 (08:15), Route 7 (09:40)"), verlinkt auf [Routen](#routen). Hält keine Route an der Filiale, steht dort "Wird derzeit von keiner Route angefahren". Über der Liste steht neben dem Filter **Alle / Aktiv / Inaktiv** ein **Suchfeld**, das Nummer, Name, Adresse, Ansprechperson und Hinweis durchsucht, sowie eine **Sortierung** nach Nummer oder Name. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl (z. B. "14 von 62 Filialen"); passt nichts zur Suche, benennt die Meldung den aktiven Filter (z. B. "Keine inaktiven Filialen gefunden").
 
 Die **Einheit** legt fest, wie die Menge dieser Filiale in der [Warenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Lebensmittelkategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieser Filiale. Filialen, die in Kilogramm zählen, sind in der Liste farbig hervorgehoben.
 
@@ -133,6 +133,8 @@ Die **Nummer** muss eindeutig sein; ist sie bereits vergeben, erscheint beim Spe
 ![Filialen](images/einstellungen-filialen.jpg)
 
 Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Filiale nicht aufgeklappt werden. Eine deaktivierte Filiale steht in der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+
+Hält mindestens eine aktive Route an der zu deaktivierenden Filiale, erscheint vor dem Deaktivieren eine Sicherheitsabfrage, die diese Routen namentlich nennt: Die Route behält den Stopp zwar bei, zeigt an ihm aber im [Routen-Navi](logistik.md#routen-navi) "Filiale inaktiv" an, worauf die Sicherheitsabfrage hinweist.
 
 <a id="routen"></a>
 

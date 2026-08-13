@@ -30,13 +30,12 @@ import {
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {buildSingleDestinationMapsUrl, MAPS_DIRECTIONS_URL} from '../../../../common/util/maps-url.util';
 
 // Google's directions URL takes an origin, a destination and at most 9 waypoints, so a single link
 // can cover 10 stops. Longer routes are opened in the map app in one chunk and the rest is driven
 // stop by stop from the list.
 const MAX_MAP_STOPS = 10;
-
-const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
 
 // What the screen would otherwise have to explain in a paragraph above the stop. It sits in a
 // tooltip instead: on a phone in a van the stop itself has to be the first thing on the screen.
@@ -294,7 +293,7 @@ export class RouteGuidanceComponent {
   }
 
   private navigationUrl(shop: RouteGuidanceShop): string {
-    return `${MAPS_DIRECTIONS_URL}&destination=${encodeURIComponent(shop.address)}&travelmode=driving`;
+    return buildSingleDestinationMapsUrl(shop.address);
   }
 
   protected readonly faBoxesStacked = faBoxesStacked;
