@@ -23,8 +23,9 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatOption, MatSelect} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {faNoteSticky, faRotateLeft, faTrashCan, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
@@ -63,6 +64,7 @@ export class CheckinComponent {
   private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
@@ -80,6 +82,7 @@ export class CheckinComponent {
   customerNotes = signal<CustomerNoteItem[] | undefined>(undefined);
   ticketNumber = signal<number | undefined>(undefined);
   ticketNumberEdit = signal<boolean | undefined>(false);
+  lastAcceptedCheckin = signal<LastAcceptedCheckin | undefined>(undefined);
 
   customerStateColor = computed<string | null>(() => {
     switch (this.customerState()) {
@@ -109,6 +112,23 @@ export class CheckinComponent {
         return null;
     }
   });
+
+  // The decisive fact next to the big verdict word in the banner - "seit" for an already-expired
+  // validity, "bis" for one that's still running (whether or not it's about to end). Null for
+  // LOCKED, whose decisive fact is the lock reason (see the template) rather than a date.
+  customerStateDatePrefix = computed<string | null>(() => {
+    switch (this.customerState()) {
+      case CustomerState.INVALID:
+        return 'seit';
+      case CustomerState.VALID_WARN:
+      case CustomerState.VALID:
+        return 'bis';
+      default:
+        return null;
+    }
+  });
+
+  householdSize = computed<number>(() => (this.customer()?.additionalPersons?.length ?? 0) + 1);
 
   formattedName = computed<string | undefined>(() => {
     const customer = this.customer();
@@ -277,12 +297,17 @@ export class CheckinComponent {
 
   assignCustomer() {
     const ticketNumber = this.ticketNumber();
-    if (ticketNumber !== undefined && ticketNumber > 0) {
+    const customerId = this.customer()?.id;
+    if (ticketNumber !== undefined && ticketNumber > 0 && customerId !== undefined) {
 
       const observer = {
-        next: (_response: void) => this.cancel()
+        next: (_response: void) => {
+          this.lastAcceptedCheckin.set({customerId, ticketNumber});
+          this.showUndoToast(customerId, ticketNumber);
+          this.cancel();
+        }
       };
-      this.distributionApiService.assignCustomer(this.customer()!.id!, ticketNumber).subscribe(observer);
+      this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe(observer);
       this.customerIdInputRef()?.nativeElement?.focus?.();
     }
   }
@@ -299,7 +324,42 @@ export class CheckinComponent {
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);
   }
 
+  /**
+   * The delete-ticket API doubles as "undo the last check-in" - a mistyped ticket number is
+   * otherwise only fixable by re-searching the customer. Available both from the confirmation
+   * toast's action button and from the persistent "zuletzt angenommen" line, so it stays reachable
+   * even after the toast has auto-dismissed and the operator has already moved on to the next
+   * customer.
+   */
+  undoLastCheckin() {
+    const last = this.lastAcceptedCheckin();
+    if (!last) {
+      return;
+    }
+
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId).subscribe(() => {
+      this.lastAcceptedCheckin.set(undefined);
+      this.toastr.success(`Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
+    });
+  }
+
+  private showUndoToast(customerId: number, ticketNumber: number) {
+    const snackBarRef = this.snackBar.open(
+      `Kunde Nr. ${customerId} → Ticket ${ticketNumber} angenommen.`,
+      'Rückgängig',
+      {
+        duration: 8000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+      }
+    );
+    snackBarRef.onAction().subscribe(() => this.undoLastCheckin());
+  }
+
   protected readonly faTrashCan = faTrashCan;
+  protected readonly faRotateLeft = faRotateLeft;
+  protected readonly faTriangleExclamation = faTriangleExclamation;
+  protected readonly faNoteSticky = faNoteSticky;
 }
 
 export enum CustomerState {
@@ -308,4 +368,9 @@ export enum CustomerState {
 
 export interface ScanResult {
   value: number;
+}
+
+export interface LastAcceptedCheckin {
+  customerId: number;
+  ticketNumber: number;
 }

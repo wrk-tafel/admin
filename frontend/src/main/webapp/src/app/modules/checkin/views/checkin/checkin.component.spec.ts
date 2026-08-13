@@ -28,6 +28,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {MatSnackBar, MatSnackBarRef} from '@angular/material/snack-bar';
+import {Subject} from 'rxjs';
 
 describe('CheckinComponent', () => {
     let customerApiService: MockedObject<CustomerApiService>;
@@ -39,6 +41,8 @@ describe('CheckinComponent', () => {
     let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
     let router: MockedObject<Router>;
     let toastr: MockedObject<TafelToastrService>;
+    let snackBar: { open: ReturnType<typeof vi.fn> };
+    let snackBarOnAction: Subject<void>;
 
     beforeEach(() => {
         const customerApiServiceSpy = {
@@ -78,6 +82,13 @@ describe('CheckinComponent', () => {
             info: vi.fn().mockName('TafelToastrService.info'),
             success: vi.fn().mockName('TafelToastrService.success'),
             warning: vi.fn().mockName('TafelToastrService.warning')
+        };
+        snackBarOnAction = new Subject<void>();
+        const snackBarRefSpy = {
+            onAction: vi.fn().mockName('MatSnackBarRef.onAction').mockReturnValue(snackBarOnAction)
+        };
+        const snackBarSpy = {
+            open: vi.fn().mockName('MatSnackBar.open').mockReturnValue(snackBarRefSpy as unknown as MatSnackBarRef<unknown>)
         };
 
         TestBed.configureTestingModule({
@@ -133,6 +144,10 @@ describe('CheckinComponent', () => {
                 {
                     provide: TafelToastrService,
                     useValue: toastrSpy
+                },
+                {
+                    provide: MatSnackBar,
+                    useValue: snackBarSpy
                 }
             ]
         }).compileComponents();
@@ -146,6 +161,7 @@ describe('CheckinComponent', () => {
         distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+        snackBar = TestBed.inject(MatSnackBar) as unknown as { open: ReturnType<typeof vi.fn> };
     });
 
     it('component can be created', () => {
@@ -726,6 +742,123 @@ describe('CheckinComponent', () => {
         expect(component.customerNotes()).toBeDefined();
         expect(component.customerNotes()!.length).toBe(0);
         expect(component.ticketNumber()).toBeUndefined();
+
+        expect(component.lastAcceptedCheckin()).toEqual({customerId: mockCustomer.id, ticketNumber});
+        expect(snackBar.open).toHaveBeenCalledWith(
+            `Kunde Nr. ${mockCustomer.id} → Ticket ${ticketNumber} angenommen.`,
+            'Rückgängig',
+            expect.objectContaining({horizontalPosition: 'right', verticalPosition: 'top'})
+        );
+    });
+
+    it('undo action from the confirmation toast deletes the ticket again', async () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        fixture.detectChanges();
+
+        const mockCustomer = {
+            id: 133,
+            lastname: 'Mustermann',
+            firstname: 'Max',
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
+            gender: Gender.MALE,
+            address: {
+                street: 'Teststraße',
+                houseNumber: '123A',
+                door: '21',
+                postalCode: 1020,
+                city: 'Wien',
+            },
+            employer: 'test employer',
+            income: 1000,
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
+            additionalPersons: []
+        };
+        component.processCustomer(mockCustomer);
+        component.ticketNumber.set(55);
+        distributionApiService.assignCustomer.mockReturnValue(of(undefined));
+        distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(of(undefined));
+
+        component.assignCustomer();
+        await fixture.whenStable();
+
+        snackBarOnAction.next();
+
+        expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
+        expect(component.lastAcceptedCheckin()).toBeUndefined();
+        expect(toastr.success).toHaveBeenCalledWith('Ticket 55 von Kunde Nr. 133 wurde rückgängig gemacht.');
+    });
+
+    it('undoLastCheckin does nothing without a prior check-in', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        component.undoLastCheckin();
+
+        expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).not.toHaveBeenCalled();
+    });
+
+    it('undoLastCheckin from the persistent line deletes the ticket again', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        component.lastAcceptedCheckin.set({customerId: 133, ticketNumber: 55});
+        distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(of(undefined));
+
+        component.undoLastCheckin();
+
+        expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(133);
+        expect(component.lastAcceptedCheckin()).toBeUndefined();
+        expect(toastr.success).toHaveBeenCalledWith('Ticket 55 von Kunde Nr. 133 wurde rückgängig gemacht.');
+    });
+
+    it('householdSize counts the main person plus additional persons', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        component.processCustomer({
+            id: 133,
+            gender: Gender.MALE,
+            address: {street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien'},
+            validUntil: dayjs().add(3, 'months').toDate(),
+            additionalPersons: [{} as any, {} as any]
+        });
+
+        expect(component.householdSize()).toBe(3);
+    });
+
+    it('customerStateDatePrefix distinguishes an expired from a running validity', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        component.processCustomer({
+            id: 133,
+            gender: Gender.MALE,
+            address: {street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien'},
+            validUntil: dayjs().subtract(2, 'weeks').toDate()
+        });
+        expect(component.customerStateDatePrefix()).toBe('seit');
+
+        component.processCustomer({
+            id: 133,
+            gender: Gender.MALE,
+            address: {street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien'},
+            validUntil: dayjs().add(3, 'months').toDate()
+        });
+        expect(component.customerStateDatePrefix()).toBe('bis');
+
+        component.processCustomer({
+            id: 133,
+            gender: Gender.MALE,
+            address: {street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien'},
+            locked: true,
+            validUntil: dayjs().add(3, 'months').toDate()
+        });
+        expect(component.customerStateDatePrefix()).toBeNull();
     });
 
     it('assign customer ignored without proper value', async () => {

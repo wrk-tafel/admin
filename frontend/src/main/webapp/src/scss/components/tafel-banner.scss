@@ -10,4 +10,20 @@
   .tafel-banner-info {
     @apply flex items-center p-4 text-blue-800 bg-blue-50 border border-blue-200 rounded-lg mb-8;
   }
+
+  // A saturated, full-bleed severity block meant to be readable in peripheral vision (the check-in
+  // screen's verdict) - deliberately louder than .tafel-banner-* above, which stays subtle for
+  // inline form-level messages. Background only: the severity palette is white-on-every-colour by
+  // design (see _theme.scss), so callers add `text-white` themselves instead of this setting it.
+  .tafel-verdict-banner-danger {
+    background-color: var(--tafel-severity-danger);
+  }
+
+  .tafel-verdict-banner-warning {
+    background-color: var(--tafel-severity-warning);
+  }
+
+  .tafel-verdict-banner-success {
+    background-color: var(--tafel-severity-success);
+  }
 }

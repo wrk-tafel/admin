@@ -1,12 +1,11 @@
 <mat-card>
-  <mat-card-header class="mb-2">
-    <h2 class="text-2xl font-semibold">Kunden-Annahme</h2>
-  </mat-card-header>
   <mat-card-content>
-    <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
-      <div class="md:col-span-1">Scanner</div>
-      <mat-form-field class="md:col-span-2" subscriptSizing="dynamic">
-        <mat-label>Scanner auswählen</mat-label>
+    <!-- Scanner pairing is a once-per-shift setup, not something read on every check-in - kept as a
+         compact toolbar row instead of the top-of-page grid row it used to occupy, so the work order
+         below (input -> verdict -> context -> ticket -> actions) starts right away. -->
+    <div class="flex flex-wrap items-center justify-end gap-3 text-sm mb-4" testid="scannerToolbar">
+      <span>Scanner:</span>
+      <mat-form-field subscriptSizing="dynamic" class="w-40">
         <mat-select testid="scannerIdInput" [(ngModel)]="selectedScannerId">
           <mat-option [value]="undefined">Nicht aktiv</mat-option>
           @for (scannerId of scannerIds(); track trackByScannerId(scannerId)) {
@@ -14,11 +13,9 @@
           }
         </mat-select>
       </mat-form-field>
-      <!-- Not a heading: it holds the scanner's state badge, which names no section of the page.
-           text-2xl keeps the badge at the size it sizes itself from. -->
       <!-- role="status": the badge flips on its own when a scanner connects or drops, with nothing
            else on the screen changing to give that away -->
-      <div class="text-2xl m-0 md:col-span-1" role="status">
+      <div role="status">
         <div class="badge"
              [ngClass]="{'badge-success': scannerReadyState(), 'badge-danger': !scannerReadyState()}"
              testid="state-camera">
@@ -27,143 +24,168 @@
       </div>
     </div>
 
-    <mat-divider class="!my-6"></mat-divider>
+    <h2 class="tafel-h4 mb-4">Kunden-Annahme</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
-      <div class="md:col-span-1">Kundennummer</div>
-      <mat-form-field class="md:col-span-2" subscriptSizing="dynamic">
+    <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+      <mat-form-field subscriptSizing="dynamic" class="sm:w-64">
         <mat-label>Kundennummer</mat-label>
         <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
                [ngModel]="customerId()" (ngModelChange)="customerId.set($event)" tafelAutofocus
                (keydown.enter)="searchForCustomerId()"
                (wheel)="$event.preventDefault()">
       </mat-form-field>
-      <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton" class="md:col-span-1">
+      <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton">
         Anzeigen
       </button>
     </div>
+    <div class="text-xs opacity-70 mt-1">Eingabetaste: Kunde suchen</div>
+
+    @if (lastAcceptedCheckin(); as last) {
+      <div class="flex flex-wrap items-center gap-3 text-sm mt-4 px-3 py-2 rounded border"
+           style="border-color: var(--tafel-border-color);" testid="lastAcceptedCheckin">
+        <span>Zuletzt angenommen: Kunde Nr. {{ last.customerId }} → Ticket {{ last.ticketNumber }}</span>
+        <button matButton (click)="undoLastCheckin()" testid="undoLastCheckinButton">
+          <fa-icon [icon]="faRotateLeft"></fa-icon>
+          Rückgängig
+        </button>
+      </div>
+    }
   </mat-card-content>
+
   @if (customer() !== undefined) {
-    <mat-card class="mt-6 md:m-4" testid="customerDetailPanel">
-      <mat-card-header>
-        <!-- Not a heading: it holds the customer's state badges, which name no section of the page.
-             text-xl keeps the badges at the size they size themselves from. -->
-        <div class="flex gap-2 text-xl font-semibold">
-          <div class="badge"
-               [ngClass]="{'badge-danger': customerStateColor() === 'danger',
-                                   'badge-warning': customerStateColor() === 'warning',
-                                   'badge-success': customerStateColor() === 'success'}">
-            {{ customerStateText() }}
+    <mat-card class="mt-6 md:m-4 !p-0 overflow-hidden" testid="customerDetailPanel">
+
+      <!-- Full-width verdict banner: the dominant visual on the screen, readable in peripheral
+           vision. The decisive fact (date or lock reason) sits right under the verdict word rather
+           than one navigation away, and the pending-cost-contribution chip lives here too so it
+           can't be missed while eyes are on the ticket field below. -->
+      <div class="w-full px-6 py-5 rounded-t-lg text-white"
+           [ngClass]="{'tafel-verdict-banner-danger': customerStateColor() === 'danger',
+                       'tafel-verdict-banner-warning': customerStateColor() === 'warning',
+                       'tafel-verdict-banner-success': customerStateColor() === 'success'}"
+           testid="verdictBanner">
+        <div class="text-3xl md:text-4xl font-extrabold" testid="verdictHeadline">{{ customerStateText() }}</div>
+        @if (customerStateDatePrefix()) {
+          <div class="text-lg mt-1" testid="verdictDateDetail">
+            {{ customerStateDatePrefix() }} {{ customer()!.validUntil! | date : 'dd.MM.yyyy' }}
           </div>
-          @if ((customer()?.pendingCostContribution ?? 0) > 0) {
-            <div class="badge badge-danger">
-              Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
+        }
+        @if (customerState() === 0 && customer()?.lockReason) {
+          <div class="text-lg mt-1" testid="verdictLockReason">Grund: {{ customer()!.lockReason }}</div>
+        }
+        @if ((customer()?.pendingCostContribution ?? 0) > 0) {
+          <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1.5 rounded mt-3"
+               style="color: var(--tafel-severity-danger);" testid="pendingCostContributionChip">
+            <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+            Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
+          </div>
+        }
+      </div>
+
+      <mat-card-content class="!pt-6">
+        <h3 class="text-lg font-semibold mb-4">
+          Nr. {{ customer()!.id! }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
+
+        <!-- The latest note lives directly under the verdict in the main column instead of a
+             side card, and is visually flagged whenever one exists - notes carry exactly the
+             "watch out" context that matters for check-in. -->
+        <div class="mb-6 px-4 py-3 rounded border"
+             [ngClass]="{'border-l-4': (customerNotes()?.length ?? 0) > 0}"
+             [style.border-left-color]="(customerNotes()?.length ?? 0) > 0 ? 'var(--tafel-severity-warning)' : null"
+             style="border-color: var(--tafel-border-color);"
+             testid="latestNotePanel">
+          <div class="font-semibold flex items-center gap-2 mb-1">
+            @if ((customerNotes()?.length ?? 0) > 0) {
+              <fa-icon [icon]="faNoteSticky" style="color: var(--tafel-severity-warning);"></fa-icon>
+            }
+            Aktuellste Notiz
+          </div>
+          @if (customerNotes()?.length === 0) {
+            <div class="font-semibold">
+              <h4 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h4>
+            </div>
+          }
+          @if (customerNotes() && customerNotes()?.length !== 0) {
+            <div>
+              <div class="mb-2 font-semibold" testid="note-title">
+                {{ customerNotes()![0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()![0].author }}
+              </div>
+              <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()![0].note }}</div>
             </div>
           }
         </div>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2">
-            <div class="mb-2">
-              <h3 class="text-lg font-semibold">
-                Nr. {{ customer()!.id! }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
-            </div>
-            <div class="mb-6">
-              <div class="flex justify-between">
-                <div class="font-bold">Gültig bis:</div>
-                <div>{{ customer()!.validUntil! | date : 'dd.MM.yyyy' }}</div>
-              </div>
-            </div>
 
-            <mat-tab-group animationDuration="0ms">
-              <mat-tab label="Details">
-                <div class="mt-6 space-y-4 lg:space-y-2">
-                  <div class="flex flex-col md:flex-row md:justify-between">
-                    <strong>Adresse:</strong>
-                    <div>{{ formattedAddress() }}</div>
-                  </div>
-                  <div class="flex flex-col md:flex-row md:justify-between">
-                    <strong>Personen im Haushalt (insgesamt):</strong>
-                    <div>{{ (customer()?.additionalPersons?.length ?? 0) + 1 }}</div>
-                  </div>
-                  <div class="flex flex-col md:flex-row md:justify-between">
-                    <strong>Personen unter 3 Jahren:</strong>
-                    <div>{{ infantCount() }}</div>
-                  </div>
-                </div>
-              </mat-tab>
-              <mat-tab [label]="'Personen (' + (customer()?.additionalPersons?.length ?? 0) + ')'">
-                @if ((customer()?.additionalPersons?.length ?? 0) === 0) {
-                  <div testid="nopersons-label" class="font-semibold mt-6">Keine Personen vorhanden</div>
-                }
-                @if ((customer()?.additionalPersons?.length ?? 0) > 0) {
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    @for (addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
-                      <mat-card>
-                        <mat-card-content>
-                          <div class="flex justify-between">
-                            <div class="font-semibold"
-                                 [attr.testid]="'addperson-' + i + '-lastnameText'">{{ addPerson?.lastname }}
-                            </div>
-                            <div class="font-semibold"
-                                 [attr.testid]="'addperson-' + i + '-firstnameText'">{{ addPerson?.firstname }}
-                            </div>
-                          </div>
-                          <div class="flex justify-between">
-                            <div
-                              [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}
-                            </div>
-                            <div [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}
-                            </div>
-                          </div>
-                          <div>
-                            <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}
-                            </div>
-                          </div>
-                          <mat-divider class="!my-2"></mat-divider>
-                          <div class="flex justify-between items-end">
-                            <div>Im selben Haushalt:</div>
-                            <div class="align-bottom"
-                                 [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{ addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja' }}
-                            </div>
-                          </div>
-                        </mat-card-content>
-                      </mat-card>
-                    }
-                  </div>
-                }
-              </mat-tab>
-            </mat-tab-group>
+        <!-- Big stat chips: household size and infants under 3 drive food allocation and are read
+             on every single check-in, so they're large numbers instead of label/value rows. -->
+        <div class="flex gap-4 mb-6">
+          <div class="flex-1 rounded border px-4 py-3" style="border-color: var(--tafel-border-color);"
+               testid="householdSizeChip">
+            <div class="text-4xl font-bold leading-none">{{ householdSize() }}</div>
+            <div class="mt-1">Personen im Haushalt</div>
           </div>
-          <div>
-            <mat-card>
-              <mat-card-header>
-                <div class="font-semibold">Aktuellste Notiz</div>
-              </mat-card-header>
-              <mat-card-content>
-                @if (customerNotes()?.length === 0) {
-                  <div class="font-semibold">
-                    <h4 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h4>
-                  </div>
-                }
-                @if (customerNotes() && customerNotes()?.length !== 0) {
-                  <div>
-                    <div class="mb-2 font-semibold" testid="note-title">
-                      {{ customerNotes()![0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()![0].author }}
-                    </div>
-                    <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()![0].note }}</div>
-                  </div>
-                }
-              </mat-card-content>
-            </mat-card>
+          <div class="flex-1 rounded border px-4 py-3" style="border-color: var(--tafel-border-color);"
+               testid="infantCountChip">
+            <div class="text-4xl font-bold leading-none">{{ infantCount() }}</div>
+            <div class="mt-1">davon unter 3 Jahren</div>
           </div>
         </div>
+
+        <mat-tab-group animationDuration="0ms">
+          <mat-tab label="Details">
+            <div class="mt-6 space-y-4 lg:space-y-2">
+              <div class="flex flex-col md:flex-row md:justify-between">
+                <strong>Adresse:</strong>
+                <div>{{ formattedAddress() }}</div>
+              </div>
+            </div>
+          </mat-tab>
+          <mat-tab [label]="'Personen (' + (customer()?.additionalPersons?.length ?? 0) + ')'">
+            @if ((customer()?.additionalPersons?.length ?? 0) === 0) {
+              <div testid="nopersons-label" class="font-semibold mt-6">Keine Personen vorhanden</div>
+            }
+            @if ((customer()?.additionalPersons?.length ?? 0) > 0) {
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                @for (addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
+                  <mat-card>
+                    <mat-card-content>
+                      <div class="flex justify-between">
+                        <div class="font-semibold"
+                             [attr.testid]="'addperson-' + i + '-lastnameText'">{{ addPerson?.lastname }}
+                        </div>
+                        <div class="font-semibold"
+                             [attr.testid]="'addperson-' + i + '-firstnameText'">{{ addPerson?.firstname }}
+                        </div>
+                      </div>
+                      <div class="flex justify-between">
+                        <div
+                          [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}
+                        </div>
+                        <div [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}
+                        </div>
+                      </div>
+                      <div>
+                        <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}
+                        </div>
+                      </div>
+                      <mat-divider class="!my-2"></mat-divider>
+                      <div class="flex justify-between items-end">
+                        <div>Im selben Haushalt:</div>
+                        <div class="align-bottom"
+                             [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{ addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja' }}
+                        </div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            }
+          </mat-tab>
+        </mat-tab-group>
 
         <mat-divider class="!my-6"></mat-divider>
 
         @if (customerState() !== undefined && customerState() !== 0) {
-          <div class="flex flex-col md:flex-row gap-2 mb-6">
+          <div class="flex flex-col md:flex-row gap-2 mb-2">
             <div class="flex flex-row gap-2 font-semibold">Ticket-Nummer:</div>
             <div class="flex items-center gap-4">
               <mat-form-field class="w-48">
@@ -184,6 +206,7 @@
               }
             </div>
           </div>
+          <div class="text-xs opacity-70 mb-6">Eingabetaste: Annehmen</div>
         }
       </mat-card-content>
       <mat-card-actions align="end">

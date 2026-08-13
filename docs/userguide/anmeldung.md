@@ -8,14 +8,15 @@ Die Menüpunkte in diesem Bereich sind nur aktiv, solange ein Ausgabetag gestart
 
 ## Kunden-Annahme
 
-Unter **Anmeldung → Annahme** wird die Kundennummer eines Kunden eingegeben (oder per Scanner-Handy gescannt), um dessen Kundendaten während der Ausgabe direkt anzuzeigen.
+Unter **Anmeldung → Annahme** wird die Kundennummer eines Kunden eingegeben (oder per Scanner-Handy gescannt), um dessen Kundendaten während der Ausgabe direkt anzuzeigen. Der Bildschirm ist bewusst für schnelles, wiederholtes Arbeiten ausgelegt: Eingabe, Status, Kontext, Ticket-Nummer und Aktionen sind in dieser Reihenfolge in einer einzigen Spalte angeordnet, und die Eingabetaste übernimmt sowohl die Kundensuche als auch das Annehmen, ohne die Maus zu benötigen.
 
 ![Kunden-Annahme](images/anmeldung-annahme.jpg)
 
-- **Scanner**: Auswahl eines aktiven Scanners, falls mehrere Scanner-Handys im Einsatz sind (siehe [Scanner](#scanner) weiter unten). Der Status (Aktiv/Inaktiv) zeigt, ob eine Verbindung zum ausgewählten Scanner besteht.
-- **Kundennummer**: Manuelle Eingabe der Kundennummer, falls kein Scanner verwendet wird. Mit **Anzeigen** wird der Kunde geöffnet.
+- **Scanner**: Kompakte Zeile rechts oben zur Auswahl eines aktiven Scanners, falls mehrere Scanner-Handys im Einsatz sind (siehe [Scanner](#scanner) weiter unten). Der Status (Aktiv/Inaktiv) zeigt, ob eine Verbindung zum ausgewählten Scanner besteht. Da diese Auswahl in der Regel nur einmal pro Schicht getroffen wird, nimmt sie bewusst wenig Platz ein.
+- **Kundennummer**: Manuelle Eingabe der Kundennummer, falls kein Scanner verwendet wird. Mit **Anzeigen** oder der Eingabetaste wird der Kunde geöffnet.
+- **Zuletzt angenommen**: Erscheint nach dem Annehmen eines Kunden als eigene Zeile mit Kundennummer und Ticket-Nummer sowie einem **Rückgängig**-Button, um eine falsch eingegebene Ticket-Nummer sofort zu korrigieren, ohne den Kunden erneut suchen zu müssen. Dieselbe Rückgängig-Aktion steht zusätzlich kurz als Hinweis mit Aktions-Button an.
 
-Wurde ein Kunde angezeigt, erscheint darunter ein Panel mit farblich gekennzeichnetem Status (GÜLTIG, GÜLTIG – läuft bald ab [innerhalb der nächsten 8 Wochen], UNGÜLTIG oder GESPERRT) sowie ggf. einer separaten Kennzeichnung "Unkostenbeitrag offen", Adresse, Haushaltsgröße, einem Tab mit den weiteren Haushaltspersonen, der letzten Notiz sowie – bei aktivem Ausgabetag – der Eingabe einer Ticket-Nummer, um den Kunden mit **Annehmen** der laufenden Ausgabe zuzuweisen. Ist bereits ein Ticket zugewiesen, kann die Eingabe über **Abbrechen** verworfen bzw. das Ticket über den Papierkorb-Button wieder gelöscht werden.
+Wurde ein Kunde angezeigt, erscheint darunter ein großflächiges, farbiges Statusband (grün/gelb/rot) mit dem Status in großer Schrift sowie der entscheidenden Zusatzinformation direkt darunter: bei GÜLTIG bzw. GÜLTIG – läuft bald ab [innerhalb der nächsten 8 Wochen] das Gültig-bis-Datum, bei UNGÜLTIG das Datum, seit dem die Gültigkeit abgelaufen ist, und bei GESPERRT der hinterlegte Sperrgrund. Ist zusätzlich ein Unkostenbeitrag offen, wird der Betrag als eigene Kennzeichnung im Statusband angezeigt, damit er nicht übersehen wird. Direkt darunter folgt die letzte Notiz zum Haushalt – ist eine vorhanden, ist sie farblich/mit Symbol hervorgehoben, da sie oft wichtige Hinweise für die Annahme enthält. Haushaltsgröße und Anzahl der Personen unter 3 Jahren werden als große Zahlen dargestellt, da diese beiden Werte bei jeder Annahme relevant sind. Es folgen die Adresse sowie ein Tab mit den weiteren Haushaltspersonen und – bei aktivem Ausgabetag – die Eingabe einer Ticket-Nummer, um den Kunden mit **Annehmen** der laufenden Ausgabe zuzuweisen. Ist bereits ein Ticket zugewiesen, kann die Eingabe über **Abbrechen** verworfen bzw. das Ticket über den Papierkorb-Button wieder gelöscht werden.
 
 ![Kunden-Annahme mit Kunde](images/anmeldung-annahme-kunde.jpg)
 
