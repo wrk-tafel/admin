@@ -6,15 +6,17 @@ Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinne
 
 ## Benutzer suchen
 
-Unter **Benutzer → Suchen** durchsucht das Feld **Suche** Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung. Standardmäßig werden nur aktive Benutzer angezeigt (Checkbox "Aktiv").
+Unter **Benutzer → Suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
+
+Das Suchfeld durchsucht Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung.
+
+Zusätzlich lässt sich über die Status-Chips "Alle", "Aktiv" und "Deaktiviert" einschränken - anders als eine Checkbox erlauben sie auch, gezielt nur deaktivierte Benutzer anzuzeigen. Standardmäßig ist "Aktiv" ausgewählt.
 
 ![Benutzer-Suche](images/benutzer-suchen.jpg)
 
-Alternativ kann über das Feld "Personalnummer" (Button **Anzeigen**) direkt zur Detailansicht eines Benutzers gesprungen werden; ist die Personalnummer unbekannt, erscheint "Benutzer nicht gefunden!".
+Beim Öffnen der Seite werden bereits die ersten (aktiven) Benutzer angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein anderer Status-Filter grenzt diese Liste dann ein. Suchbegriff, Status-Filter und die aktuelle Seite bleiben in der Adresszeile erhalten: Wird ein Benutzer aus dem Ergebnis geöffnet und über "Zurück" wieder zur Suche zurückgekehrt, ist dasselbe Ergebnis sofort wieder da, ohne erneut suchen zu müssen.
 
-Beim Öffnen der Seite werden bereits die ersten Benutzer angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff grenzt diese Liste dann ein.
-
-Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status (Aktiv). Über die Aktionen kann der Benutzer angesehen (Lupe) oder bearbeitet (Stift) werden. Liefert die Suche keine Treffer, erscheint "Keine Benutzer gefunden!"; bei vielen Treffern kann über die Seitennavigation geblättert werden.
+Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status als Chips: "Aktiv" (grün) oder "Deaktiviert" (grau), zusätzlich "Passwortänderung erforderlich" bzw. "Gesperrt bis <Datum>", falls zutreffend - letzteres macht auf einen Blick sichtbar, warum sich eine Person gerade nicht anmelden kann, ohne extra auf "Anmelde-Versuche" wechseln zu müssen. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Liefert die Suche keine Treffer, erscheint statt des Ergebnisses der Hinweis "Keine Benutzer gefunden" mit einem Button **Benutzer anlegen**; bei vielen Treffern kann über die Seitennavigation geblättert werden.
 
 ![Suchergebnis](images/benutzer-suchen-ergebnis.jpg)
 
