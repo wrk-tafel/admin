@@ -1,4 +1,4 @@
-import {afterRenderEffect, Component, computed, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
+import {afterRenderEffect, Component, computed, ElementRef, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {HttpErrorResponse} from '@angular/common/http';
 import {catchError, debounceTime, filter, map, switchMap} from 'rxjs/operators';
@@ -105,6 +105,8 @@ export class CustomerEditComponent implements HasUnsavedChanges {
     {initialValue: [] as CustomerData[]}
   );
 
+  private readonly duplicatesWarning = viewChild<ElementRef<HTMLElement>>('duplicatesWarning');
+
   constructor() {
     // Mark forms as touched when customerData is loaded (edit mode)
     afterRenderEffect(() => {
@@ -113,6 +115,21 @@ export class CustomerEditComponent implements HasUnsavedChanges {
       if (editMode) {
         formComponent.markAllAsTouched();
       }
+    });
+
+    // The banner sits above the identity fields, and by the time the third of them (birthdate) is
+    // filled the operator has usually scrolled past that spot - a warning that just appears there
+    // goes unseen, defeating its "before ten more fields are filled in" purpose. Nudge it into
+    // view once, when duplicates are first found; `nearest` keeps the scroll minimal and the
+    // focused input on screen.
+    let hadDuplicates = false;
+    afterRenderEffect(() => {
+      const hasDuplicates = this.possibleDuplicates().length > 0;
+      const banner = this.duplicatesWarning()?.nativeElement;
+      if (hasDuplicates && !hadDuplicates) {
+        banner?.scrollIntoView({block: 'nearest'});
+      }
+      hadDuplicates = hasDuplicates;
     });
   }
 

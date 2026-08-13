@@ -1,6 +1,6 @@
 <div class="pb-20">
   @if (!editMode() && possibleDuplicates().length > 0) {
-    <div testid="possible-duplicates-warning" class="tafel-banner-warning">
+    <div #duplicatesWarning testid="possible-duplicates-warning" class="tafel-banner-warning">
       <div class="font-bold mb-1">Möglicherweise bereits vorhanden</div>
       <ul class="list-none p-0 m-0">
         @for (duplicate of possibleDuplicates(); track duplicate.id) {
