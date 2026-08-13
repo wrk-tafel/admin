@@ -136,12 +136,11 @@ class LoginAttemptService(
      * A failed login names no account: the username typed at the login screen is recorded whether it
      * exists or not, which is exactly why a typo'd one has to stay unlinked instead of guessed at.
      */
-    private fun findUserIdsByUsername(usernames: List<String>): Map<String, Long> =
-        if (usernames.isEmpty()) {
-            emptyMap()
-        } else {
-            userRepository.findIdsByUsernames(usernames).associate { it.username to it.userId }
-        }
+    private fun findUserIdsByUsername(usernames: List<String>): Map<String, Long> = if (usernames.isEmpty()) {
+        emptyMap()
+    } else {
+        userRepository.findIdsByUsernames(usernames).associate { it.username to it.userId }
+    }
 
     private fun isStale(entry: LoginAttemptEntity): Boolean = entry.lastFailureAt.plusSeconds(lockoutDurationInSeconds()).isBefore(now())
 
