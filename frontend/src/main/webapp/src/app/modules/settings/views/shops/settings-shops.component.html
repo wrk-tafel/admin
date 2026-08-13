@@ -111,14 +111,14 @@
                     <a class="text-blue-700 underline" routerLink="/einstellungen/routen"
                        [attr.testid]="'shops-route-link-' + i + '-' + $index">{{ usage.label }}</a>
                     @if (!usage.routeEnabled) {
-                      <span class="text-slate-400"> (Route inaktiv)</span>
+                      <span class="text-slate-500"> (Route inaktiv)</span>
                     }
                     @if (!last) {
                       <span>, </span>
                     }
                   }
                 } @else {
-                  <span class="text-slate-400">Wird derzeit von keiner Route angefahren</span>
+                  <span class="text-slate-500">Wird derzeit von keiner Route angefahren</span>
                 }
               </dd>
             </div>
@@ -128,7 +128,7 @@
                 @if (view.shop.phone) {
                   <a class="text-blue-700 underline" [href]="'tel:' + view.shop.phone">{{ view.shop.phone }}</a>
                 } @else {
-                  <span class="text-slate-400">-</span>
+                  <span class="text-slate-500">-</span>
                 }
               </dd>
             </div>
@@ -138,7 +138,7 @@
                 @if (view.shop.contactPerson) {
                   {{ view.shop.contactPerson }}
                 } @else {
-                  <span class="text-slate-400">-</span>
+                  <span class="text-slate-500">-</span>
                 }
               </dd>
             </div>

@@ -1,5 +1,5 @@
 import {Component, input, output} from '@angular/core';
-import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatSlideToggleChange, MatSlideToggleModule} from '@angular/material/slide-toggle';
 
 /**
  * The switch that activates or deactivates a single record of a settings list.
@@ -28,4 +28,15 @@ export class TafelEnabledToggleComponent {
   testId = input.required<string>();
 
   enabledChange = output<boolean>();
+
+  /**
+   * Controlled: the switch position follows the `enabled` input, never the click itself.
+   * `mat-slide-toggle` flips its own state on click, so it is put back here before the change is
+   * reported - a parent that accepts the change flips the input, which is what moves the switch,
+   * and a parent that rejects it (e.g. a cancelled confirmation dialog) needs to do nothing at all.
+   */
+  onToggleChange(event: MatSlideToggleChange) {
+    event.source.checked = this.enabled();
+    this.enabledChange.emit(event.checked);
+  }
 }

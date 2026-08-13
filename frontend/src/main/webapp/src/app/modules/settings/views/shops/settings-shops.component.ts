@@ -232,13 +232,11 @@ export class SettingsShopsComponent {
         routeStopLabels: activeUsage.map(usage => usage.label)
       };
       const dialogRef = this.dialog.open(ShopDisableConfirmDialogComponent, {data, width: '500px'});
+      // no cancel branch needed: tafel-enabled-toggle is controlled by its `enabled` input, so an
+      // unconfirmed change never moves the switch in the first place
       dialogRef.afterClosed().subscribe(confirmed => {
         if (confirmed) {
           this.updateShopEnabled(shop, enabled);
-        } else {
-          // the toggle already flipped itself on click (it isn't a controlled input) - since no
-          // request went out, forcing a rerender of its bound value is what puts it back
-          this._shops.update(shops => [...shops]);
         }
       });
       return;
