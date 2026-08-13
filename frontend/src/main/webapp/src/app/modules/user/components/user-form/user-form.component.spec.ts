@@ -3,6 +3,8 @@ import {TestBed} from '@angular/core/testing';
 import {UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormField} from '@angular/forms/signals';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
+import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
+import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
@@ -24,7 +26,15 @@ describe('UserFormComponent', () => {
     permissions: mockPermissions
   };
 
+  const mockEmployee: EmployeeData = {
+    id: 1,
+    personnelNumber: '0000',
+    firstname: 'first',
+    lastname: 'last'
+  };
+
   let userApiService: MockedObject<UserApiService>;
+  let employeeApiService: MockedObject<EmployeeApiService>;
   let toastr: MockedObject<TafelToastrService>;
   let authenticationService: MockedObject<AuthenticationService>;
 
@@ -41,9 +51,25 @@ describe('UserFormComponent', () => {
           }
         },
         {
+          provide: EmployeeApiService,
+          useValue: {
+            checkPersonnelNumberAvailability: vi.fn().mockName('EmployeeApiService.checkPersonnelNumberAvailability')
+              .mockReturnValue(of({available: false, existingEmployee: mockEmployee})),
+            findEmployees: vi.fn().mockName('EmployeeApiService.findEmployees')
+              .mockReturnValue(of({items: [], totalCount: 0, currentPage: 1, totalPages: 1, pageSize: 10})),
+            saveEmployee: vi.fn().mockName('EmployeeApiService.saveEmployee')
+          }
+        },
+        {
+          // the employee search opens a real dialog on its results, which outlives the fixture
+          provide: MatDialog,
+          useValue: {open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})}
+        },
+        {
           provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName('TafelToastrService.error')
+            error: vi.fn().mockName('TafelToastrService.error'),
+            success: vi.fn().mockName('TafelToastrService.success')
           }
         },
         {
@@ -56,6 +82,7 @@ describe('UserFormComponent', () => {
     }).compileComponents();
 
     userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
+    employeeApiService = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
   });
@@ -275,7 +302,7 @@ describe('UserFormComponent', () => {
     expect(component.userForm.passwordRepeat().errors()?.some((error: any) => error.kind === 'required')).toBe(true);
     expect(component.isValid()).toBe(false);
 
-    component.userForm.personnelNumber().value.set('0000');
+    component.setSelectedEmployee(mockEmployee);
     component.userForm.username().value.set('username');
     component.userForm.lastname().value.set('last');
     component.userForm.firstname().value.set('first');
@@ -286,6 +313,32 @@ describe('UserFormComponent', () => {
     expect(component.userForm.password().errors()?.length).toBe(0);
     expect(component.userForm.passwordRepeat().errors()?.length).toBe(0);
     expect(component.isValid()).toBe(true);
+  });
+
+  it('personnel number requires a linked employee', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    // Typing a personnel number without resolving it through the search stays invalid...
+    component.userForm.personnelNumber().value.set('0000');
+    fixture.detectChanges();
+    expect(component.userForm.personnelNumber().errors()?.some((error: any) => error.kind === 'employeeNotLinked')).toBe(true);
+    expect(component.selectedEmployee()).toBeNull();
+
+    // ...selecting the resolved employee links it and clears the error...
+    component.setSelectedEmployee(mockEmployee);
+    fixture.detectChanges();
+    expect(component.selectedEmployee()).toEqual(mockEmployee);
+    expect(component.userForm.personnelNumber().value()).toBe(mockEmployee.personnelNumber);
+    expect(component.userForm.personnelNumber().errors()?.some((error: any) => error.kind === 'employeeNotLinked')).toBe(false);
+
+    // ...and removing the link clears the personnel number and requires a new search again.
+    component.resetSelectedEmployee();
+    fixture.detectChanges();
+    expect(component.selectedEmployee()).toBeNull();
+    expect(component.userForm.personnelNumber().value()).toBe('');
   });
 
   it('password stays optional when editing an existing user', () => {
@@ -302,6 +355,41 @@ describe('UserFormComponent', () => {
     expect(component.isValid()).toBe(true);
   });
 
+  it('resolves the linked employee for an existing user on load', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    expect(employeeApiService.checkPersonnelNumberAvailability).toHaveBeenCalledWith(mockUser.personnelNumber);
+    expect(component.selectedEmployee()).toEqual(mockEmployee);
+    // Password fields sit behind the collapsed "Passwort zurücksetzen" section in edit mode.
+    expect(component.passwordResetExpanded()).toBe(false);
+    expect(component.passwordFieldsVisible()).toBe(false);
+
+    component.togglePasswordResetSection();
+    expect(component.passwordFieldsVisible()).toBe(true);
+  });
+
+  it('isDirty tracks changes against the loaded state and markSaved rebases it', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    expect(component.isDirty()).toBe(false);
+
+    component.userForm.firstname().value.set('changed');
+    fixture.detectChanges();
+    expect(component.isDirty()).toBe(true);
+
+    component.markSaved();
+    fixture.detectChanges();
+    expect(component.isDirty()).toBe(false);
+  });
+
   it('generate password', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
@@ -309,6 +397,7 @@ describe('UserFormComponent', () => {
     fixture.detectChanges();
     component.passwordTextVisible.set(false);
     component.passwordRepeatTextVisible.set(false);
+    component.userForm.passwordChangeRequired().value.set(false);
 
     const generatedPassword = 'random-pwd';
     userApiService.generatePassword.mockReturnValue(of({password: generatedPassword}));
@@ -319,6 +408,38 @@ describe('UserFormComponent', () => {
     expect(component.userForm.passwordRepeat().value()).toEqual(generatedPassword);
     expect(component.passwordTextVisible()).toBe(true);
     expect(component.passwordRepeatTextVisible()).toBe(true);
+    // Handing over a generated password is the whole point of this button, so the sensible default
+    // is requiring the recipient to set their own on first login.
+    expect(component.userForm.passwordChangeRequired().value()).toBe(true);
+  });
+
+  it('copyPassword copies the current password value to the clipboard', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+
+    component.userForm.password().value.set('generated-pwd');
+    component.copyPassword();
+
+    expect(writeText).toHaveBeenCalledWith('generated-pwd');
+  });
+
+  it('copyPassword does nothing when the password field is empty', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+
+    component.copyPassword();
+
+    expect(writeText).not.toHaveBeenCalled();
   });
 
   it('generate password failed', () => {
