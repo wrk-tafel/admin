@@ -508,6 +508,39 @@ class HouseholdControllerTest {
         assertThat(bodyBytes).isEqualTo(csvResult.bytes)
     }
 
+    // Called without any parameters, the way a plain GET without query parameters binds - this is
+    // what exercises the Kotlin default values themselves.
+    @Test
+    fun `get households above limit - without parameters`() {
+        val searchResult = HouseholdAboveLimitSearchResult(
+            items = emptyList(),
+            totalCount = 0,
+            currentPage = 1,
+            totalPages = 0,
+            pageSize = 25,
+        )
+        every { householdService.getHouseholdsAboveLimit(null, null, null, null) } returns searchResult
+
+        val response = controller.getHouseholdsAboveLimit()
+
+        assertThat(response.totalCount).isEqualTo(0)
+        verify { householdService.getHouseholdsAboveLimit(null, null, null, null) }
+    }
+
+    @Test
+    fun `generate households above limit csv - without parameters`() {
+        val csvResult = HouseholdAboveLimitCsvResult(
+            filename = "kunden_ueber_limit_13.08.2026.csv",
+            bytes = "Nr.;Name".toByteArray(),
+        )
+        every { householdService.generateAboveLimitCsv(null, null) } returns csvResult
+
+        val response = controller.generateHouseholdsAboveLimitCsv()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify { householdService.generateAboveLimitCsv(null, null) }
+    }
+
     @Test
     fun `get households overview`() {
         val distributionId = 100L

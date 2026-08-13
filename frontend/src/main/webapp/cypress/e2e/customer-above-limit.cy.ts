@@ -23,11 +23,15 @@ describe('Customer Above Limit', () => {
           cy.get('[testid^="abovelimit-address-"]').should('contain.text', customer.address.city);
           cy.get('[testid^="abovelimit-totalSum-"]').should('be.visible');
           cy.get('[testid^="abovelimit-limit-"]').should('be.visible');
+          // the right-hand columns sit past the table wrapper's horizontal scroll fold at this
+          // viewport - scroll each into view the way a user would before asserting on it
           cy.get('[testid^="abovelimit-amountExceededLimit-"]')
+            .scrollIntoView()
             .should('be.visible')
             .invoke('text')
             .should('not.be.empty');
           cy.get('[testid^="abovelimit-percentageExceededLimit-"]')
+            .scrollIntoView()
             .should('be.visible')
             .invoke('text')
             .should('contain', '%');

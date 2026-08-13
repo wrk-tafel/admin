@@ -646,6 +646,47 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `get households above limit - sorts by limit and by percentage exceeded`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        // percentages: 100/1000 = 10%, 400/800 = 50%, 180/900 = 20%
+        val limits = listOf(BigDecimal("1000"), BigDecimal("800"), BigDecimal("900"))
+        val amounts = listOf(BigDecimal("100"), BigDecimal("400"), BigDecimal("180"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = limits[index] + amounts[index],
+                        limit = limits[index],
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = amounts[index],
+                    ),
+                )
+            }
+        }
+
+        val byLimit = service.getHouseholdsAboveLimit(sortBy = "limit", sortDirection = "asc")
+        assertThat(byLimit.items.map { it.limit }).containsExactly(
+            BigDecimal("800"),
+            BigDecimal("900"),
+            BigDecimal("1000"),
+        )
+
+        // descending by default: 50% > 20% > 10%
+        val byPercentage = service.getHouseholdsAboveLimit(sortBy = "percentageExceededLimit")
+        assertThat(byPercentage.items.map { it.amountExceededLimit }).containsExactly(
+            BigDecimal("400"),
+            BigDecimal("180"),
+            BigDecimal("100"),
+        )
+    }
+
+    @Test
     fun `get households above limit - a household that cannot be validated is left out`() {
         val unvalidatableEntity = mockk<HouseholdEntity>(relaxed = true)
         val invalidEntity = mockk<HouseholdEntity>(relaxed = true)
