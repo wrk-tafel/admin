@@ -6,7 +6,9 @@
     <div class="flex flex-wrap items-center justify-end gap-3 text-sm mb-4" testid="scannerToolbar">
       <span>Scanner:</span>
       <mat-form-field subscriptSizing="dynamic" class="w-40">
-        <mat-select testid="scannerIdInput" [(ngModel)]="selectedScannerId">
+        <!-- The visible "Scanner:" text is toolbar prose, not an associated label, so the select
+             needs its accessible name set explicitly -->
+        <mat-select testid="scannerIdInput" aria-label="Scanner" [(ngModel)]="selectedScannerId">
           <mat-option [value]="undefined">Nicht aktiv</mat-option>
           @for (scannerId of scannerIds(); track trackByScannerId(scannerId)) {
             <mat-option [value]="scannerId">Nr. {{ scannerId }}</mat-option>
