@@ -404,6 +404,23 @@ Both follow the same shape, and a change to one usually belongs in the other:
 - `SettingsRoutesComponent` loads shops alongside routes (`forkJoin`) to resolve each stop's shop
   name and address. New routes may only pick active shops, while editing a route additionally
   offers the disabled shops it already stops at, so saving can't silently drop such a stop.
+- **`routes` additionally sorts** (`sortBy` signal, a `mat-button-toggle-group` beside the search
+  box, Nummer/Name) and, once the search/filter narrows the list, shows a result count
+  (`routes-result-count`, plus a `role="status"` `searchAnnouncement()` for screen readers) — the
+  same "search/sort polish" #3240 asked for shops too, kept as an independent implementation on
+  each screen rather than a shared component, since `shops` doesn't have it yet.
+- **`routes`' expanded card also carries a "Route in Karte öffnen" link** (`view.mapsUrl`, built by
+  the module-local `buildRouteMapsUrl()`), composing the same kind of Google Maps directions URL as
+  the Routen-Navi's own map link (`route-guidance.component.ts`) over the route's already
+  time-sorted stops — capped at 10 stops with a truncation hint beyond that, same limit and reason
+  as there. A stop whose shop has since been deactivated is flagged inline with the same "Filiale
+  inaktiv" badge the Routen-Navi shows its drivers (`view.stops[].shopInactive`).
+- **`route-edit-dialog` previews the save-time sort live** as `orderedStopsPreview()` ("Gefahrene
+  Reihenfolge"), and separately surfaces non-blocking `stopWarnings()` (a duplicate shop across
+  stops, a stop with no time yet, or an unusually short/long gap to the next time-sorted stop that
+  is likely a typo) — both `computed()` off the `stops` FormArray's own `valueChanges` via
+  `toSignal()`, so they update on every keystroke without a manual `detectChanges()` call. Neither
+  blocks `save()`; the backend still rejects an actual duplicate shop/time on its own.
 
 ## API services
 

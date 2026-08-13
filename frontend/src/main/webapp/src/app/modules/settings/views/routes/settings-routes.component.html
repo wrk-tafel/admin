@@ -19,9 +19,10 @@
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
       Routen samt ihren Stopps. Die Stopps werden nach ihrer Uhrzeit abgefahren und in dieser
-      Reihenfolge auch bei der Warenerfassung angezeigt. Inaktive Routen stehen bei der
-      Warenerfassung nicht mehr zur Auswahl, bleiben aber in bereits erfassten Ausgabetagen
-      erhalten.
+      Reihenfolge auch im Routen-Navi und bei der Warenerfassung angezeigt. Der Hinweistext einer
+      Route wird dem Fahrer-Team dort prominent angezeigt. Inaktive Routen stehen im Routen-Navi
+      und bei der Warenerfassung nicht mehr zur Auswahl, bleiben aber in bereits erfassten
+      Ausgabetagen erhalten.
     </p>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
@@ -38,9 +39,23 @@
         }
       </mat-form-field>
 
+      <mat-button-toggle-group [value]="sortBy()" (change)="onSortChanged($event)"
+                               aria-label="Sortierung" testid="routes-sort">
+        <mat-button-toggle value="NUMBER" testid="routes-sort-number">Nummer</mat-button-toggle>
+        <mat-button-toggle value="NAME" testid="routes-sort-name">Name</mat-button-toggle>
+      </mat-button-toggle-group>
+
       <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="routes"
                             (valueChange)="onFilterChanged($event)"/>
     </div>
+
+    <p class="sr-only" role="status" testid="routes-search-announcement">{{ searchAnnouncement() }}</p>
+
+    @if (filtered()) {
+      <p class="mb-3 text-sm text-slate-500" testid="routes-result-count">
+        {{ visibleRoutes().length }} von {{ totalCount() }} Routen gefunden
+      </p>
+    }
 
     <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
          as the record's summary, and mat-expansion-panel-header is itself a role="button" that
@@ -83,6 +98,22 @@
             </div>
           }
 
+          @if (view.mapsUrl; as mapsUrl) {
+            <div class="mb-4">
+              <a matButton="outlined" [href]="mapsUrl" target="_blank" rel="noopener"
+                 [attr.testid]="'route-map-link-' + i"
+                 [attr.aria-label]="'Route ' + view.route.name + ' in Karte öffnen (in neuem Tab)'">
+                <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
+                Route in Karte öffnen
+              </a>
+              @if (view.mapsUrlTruncatedHint; as truncatedHint) {
+                <p class="mt-1 text-sm text-slate-500" [attr.testid]="'route-map-link-truncated-' + i">
+                  {{ truncatedHint }}
+                </p>
+              }
+            </div>
+          }
+
           @if (view.stops.length > 0) {
             <ol class="ms-2 border-s border-slate-300 ps-6" [attr.testid]="'route-stops-' + i">
               @for (stop of view.stops; track stop.key) {
@@ -91,6 +122,9 @@
                   <div class="flex flex-wrap items-baseline gap-x-3">
                     <span class="font-semibold tabular-nums">{{ stop.time }}</span>
                     <span>{{ stop.label }}</span>
+                    @if (stop.shopInactive) {
+                      <span class="badge badge-danger">Filiale inaktiv</span>
+                    }
                   </div>
                   @if (stop.shopAddress) {
                     <div class="text-sm text-slate-500">{{ stop.shopAddress }}</div>
