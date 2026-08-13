@@ -64,8 +64,8 @@ describe('User Edit', () => {
       cy.byTestId('save-button').click();
 
       cy.wait('@updateUser').then((interception) => {
-        expect(interception.request.body.password).to.be.undefined;
-        expect(interception.request.body.passwordRepeat).to.be.undefined;
+        expect(interception.request.body.password).to.eq(undefined);
+        expect(interception.request.body.passwordRepeat).to.eq(undefined);
       });
       cy.url().should('contain', '/benutzer/detail/' + user.id);
     });

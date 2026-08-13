@@ -35,9 +35,7 @@
           } @else {
             <div class="font-medium mb-1">Personalnummer</div>
             <div class="flex items-center justify-between gap-2">
-              <div testid="selectedEmployeeDescription">
-                {{selectedEmployee()!.personnelNumber}} {{selectedEmployee()!.firstname}} {{selectedEmployee()!.lastname}}
-              </div>
+              <div testid="selectedEmployeeDescription">{{selectedEmployee()!.personnelNumber}} {{selectedEmployee()!.firstname}} {{selectedEmployee()!.lastname}}</div>
               <button type="button" matButton="filled" class="button-danger" testid="selectedEmployeeRemoveButton"
                       aria-label="Mitarbeiter-Verknüpfung entfernen" (click)="resetSelectedEmployee()">
                 <fa-icon [icon]="faRemove"></fa-icon>
