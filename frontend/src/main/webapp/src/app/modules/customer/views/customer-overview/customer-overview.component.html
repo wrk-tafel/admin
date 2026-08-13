@@ -21,9 +21,10 @@
                       (ngModelChange)="onDistributionSelected($event)">
             <mat-option [value]="undefined" testid="overviewDistributionInput-option-latest">Aktuellste Ausgabe</mat-option>
             @for (distribution of distributionsDataInput()?.items; track trackByDistributionId($index, distribution)) {
-              <mat-option [value]="distribution.id" [attr.testid]="'overviewDistributionInput-option-' + distribution.id">
-                {{ distribution.startedAt | date : 'EE, dd.MM.yyyy' }}
-              </mat-option>
+              <!-- text tight against the tags: Angular collapses the indentation into leading/trailing
+                   spaces otherwise, and the e2e spec matches this label with an anchored pattern -->
+              <mat-option [value]="distribution.id"
+                          [attr.testid]="'overviewDistributionInput-option-' + distribution.id">{{ distribution.startedAt | date : 'EE, dd.MM.yyyy' }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
