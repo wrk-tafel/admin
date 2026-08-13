@@ -53,7 +53,7 @@ This is where the interesting form handling lives, and it's worth knowing it use
 `passwordchange-form`. The general guidance is just "reactive forms for all form handling," which is true but
 doesn't tell you which flavor to expect.
 
-Two things worth calling out:
+Several things worth calling out:
 
 - **Permissions are not part of the signal form at all.** `permissions = signal<UserPermissionFormItem[]>([])` is a
   plain array signal, populated/reset by an `effect()` whenever `userData`/`permissionsData` inputs change, and
@@ -67,8 +67,28 @@ Two things worth calling out:
   passwordRepeat: formValue.passwordRepeat || undefined,
   ```
   `generatePassword()` (`GET /users/generate-password`) writes the generated value directly into both password
-  field values and flips the show/hide signals so the generated password is visible in the clear — useful to know
-  when writing a Cypress test against this button.
+  field values, flips the show/hide signals so the generated password is visible in the clear, and checks
+  `passwordChangeRequired` — the point of generating one here is handing it to a colleague, so requiring them to
+  set their own on first login is the sensible default. `copyPassword()` copies the field's current value (whether
+  generated or typed) to the clipboard, shown next to "Passwort generieren" whenever the field is non-empty.
+- **The personnel number field only ever holds a real employee's number, never free text.** It's driven by the
+  shared `TafelEmployeeSearchCreateComponent` (`common/components/employee-search-create/` — also used by
+  logistics' driver/co-driver picker) rather than a plain input: `setSelectedEmployee()`/`resetSelectedEmployee()`
+  toggle between the search UI and a "selected employee" card, and a `validate()` on `personnelNumber` fails with
+  `employeeNotLinked` unless the field's current value equals `selectedEmployee()?.personnelNumber`. Editing an
+  existing user resolves its already-linked employee on load via
+  `EmployeeApiService.checkPersonnelNumberAvailability(userData.personnelNumber)` (asking "who holds this number"
+  rather than a general search) — the `resolvingEmployee` signal makes that lookup provisionally valid so the
+  field doesn't flash an error before the response arrives.
+- **Edit mode hides the password fields behind a collapsed "Passwort zurücksetzen" section**
+  (`passwordResetExpanded`/`passwordFieldsVisible`), so saving the form can't reset a password nobody meant to
+  touch. Create mode has no such gate — `passwordFieldsVisible` is `createMode() || passwordResetExpanded()`, and
+  `createMode()` is always true there.
+- **`isDirty()`/`markSaved()` back the unsaved-changes navigation guard**, and deliberately don't reuse signal-forms'
+  own `dirty()` tracking: that only reacts to control-originated edits and would miss e.g. an employee picked
+  through the search dialog or a permission checkbox toggle. Instead a JSON-serialized snapshot of
+  `derivedUserData()` is taken right after the form loads (or right after a save, via `markSaved()`), and
+  `isDirty()` just compares the live value against it.
 
 ### UserEditComponent glue
 
@@ -77,6 +97,17 @@ the form's `(userDataChange)` output. An `afterRenderEffect()` marks the whole f
 arrives (so an existing user's validation state — e.g. a field that's actually invalid — shows immediately), but
 this deliberately does *not* fire on the blank create form, so a brand-new form doesn't show a wall of "required"
 errors before the user has typed anything.
+
+The save button is deliberately always `button-success`, never swapped to `button-danger` while disabled — an
+incomplete form isn't an error state, and Material's own disabled styling already communicates "not yet". It also
+sits in a `sticky bottom-0` footer so it stays reachable while scrolling the (potentially long) permission grid
+above it.
+
+`UserEditComponent implements HasUnsavedChanges` (`common/guards/unsaved-changes.guard.ts`) and both
+`benutzer/erstellen`/`benutzer/bearbeiten/:id` wire `canDeactivate: [unsavedChangesGuard]` in `user.routes.ts`, so
+navigating away with unsaved changes opens a confirm dialog rather than silently discarding them.
+`save()` calls the form's `markSaved()` before navigating to the detail page on success — otherwise that very
+navigation would trip the guard over changes that were, in fact, just saved.
 
 ### UserSearchComponent
 
@@ -178,6 +209,11 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
 `deleteUser`, `createUser`, `generatePassword`, `getPermissions`, `getLoginAttempts` (paginated),
 `deleteLoginAttempt`.
 
+`UserFormComponent` additionally calls `EmployeeApiService.checkPersonnelNumberAvailability` (to resolve an
+existing user's linked employee on load) and, through the shared `TafelEmployeeSearchCreateComponent`,
+`EmployeeApiService.findEmployees`/`saveEmployee` (the personnel-number search/create-if-missing flow) — this
+module has no employee endpoints of its own.
+
 ## Gotchas
 
 - `*-resolver.component.ts` files here are not components — just injectable resolver classes.
@@ -190,3 +226,7 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
   first one lives inside the `USER_MANAGEMENT`-gated route tree.
 - `UserEditComponent.save()` decides create vs. update purely from whether `userData()` is `undefined` — there is
   no explicit "mode" flag.
+- Saving is blocked until the personnel number is a real, resolved employee (the `employeeNotLinked` validator) —
+  a personnel number typed but never run through the search/select/create widget never becomes valid.
+- In edit mode, leaving the collapsed "Passwort zurücksetzen" section untouched keeps the existing password;
+  create mode has no such gate since a password is mandatory there.
