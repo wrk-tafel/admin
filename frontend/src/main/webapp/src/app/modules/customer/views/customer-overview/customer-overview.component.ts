@@ -1,18 +1,35 @@
-import {Component, computed, inject, input, linkedSignal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal, signal} from '@angular/core';
 import {Router} from '@angular/router';
-import {CustomerApiService, CustomerOverviewItem, CustomerOverviewResponse} from '../../../../api/customer-api.service';
+import {HttpResponse} from '@angular/common/http';
+import dayjs from 'dayjs';
+import {CustomerApiService, CustomerData, CustomerOverviewItem, CustomerOverviewResponse} from '../../../../api/customer-api.service';
 import {DistributionItem, DistributionListResponse} from '../../../../api/distribution-api.service';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
+import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {faRotate, faSearch, faUserPlus} from '@fortawesome/free-solid-svg-icons';
+import {faChevronLeft, faChevronRight, faFileCsv, faRotate, faSearch, faUserPlus} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
+
+/** Which rows of the merged list the segmented filter lets through. */
+export type OverviewFilter = 'ALL' | 'NEW' | 'RENEWED';
+
+/**
+ * One row of the merged list - a {@link CustomerOverviewItem} tagged with which of the backend's
+ * two lists it came from, so the type chip and the segmented filter can both work off a single
+ * array instead of keeping "Neu" and "Verlängert" as separate render paths.
+ */
+export interface OverviewRow {
+  type: 'NEW' | 'RENEWED';
+  item: CustomerOverviewItem;
+}
 
 @Component({
   selector: 'tafel-customer-overview',
@@ -23,6 +40,7 @@ import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-custome
     MatTableModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatButtonToggleModule,
     FormsModule,
     CommonModule,
     FaIconComponent,
@@ -43,17 +61,55 @@ export class CustomerOverviewComponent {
   readonly customerOverviewData = linkedSignal(() => this.customerOverviewDataInput());
   readonly selectedDistributionId = linkedSignal(() => this.customerOverviewDataInput()?.distributionId ?? undefined);
 
+  readonly selectedFilter = signal<OverviewFilter>('ALL');
+
+  readonly newCount = computed(() => this.customerOverviewData()?.newCustomers?.length ?? 0);
+  readonly renewedCount = computed(() => this.customerOverviewData()?.renewedCustomers?.length ?? 0);
+
+  // Both lists merged into one, newest-first - the type chip and the segmented filter both read
+  // off this instead of two separately rendered tables.
+  private readonly allRows = computed<OverviewRow[]>(() => {
+    const data = this.customerOverviewData();
+    const newRows: OverviewRow[] = (data?.newCustomers ?? []).map(item => ({type: 'NEW' as const, item}));
+    const renewedRows: OverviewRow[] = (data?.renewedCustomers ?? []).map(item => ({type: 'RENEWED' as const, item}));
+    return [...newRows, ...renewedRows].sort((a, b) => new Date(b.item.date).getTime() - new Date(a.item.date).getTime());
+  });
+
+  readonly filteredRows = computed<OverviewRow[]>(() => {
+    const filter = this.selectedFilter();
+    const rows = this.allRows();
+    return filter === 'ALL' ? rows : rows.filter(row => row.type === filter);
+  });
+
   // What the role="status" region in the template says. Picking a different distribution swaps
-  // both lists at once, with nothing else on the screen saying what came back.
+  // the whole list at once, with nothing else on the screen saying what came back.
   protected readonly overviewAnnouncement = computed(() => {
     const data = this.customerOverviewData();
     if (!data) {
       return '';
     }
-    return `${data.newCustomers?.length ?? 0} neue Kunden, ${data.renewedCustomers?.length ?? 0} verlängerte Kunden`;
+    return `${this.newCount()} neue Kunden, ${this.renewedCount()} verlängerte Kunden`;
+  });
+
+  // Position of the selected distribution within the (closed-only, newest-first) distributions
+  // list backing the select. -1 both when nothing is selected (the "Aktuellste Ausgabe" option,
+  // selectedDistributionId() undefined) and when the id resolved to the currently open
+  // distribution, which the select's options never include - neither case matches an entry.
+  private readonly currentDistributionIndex = computed(() => {
+    const items = this.distributionsDataInput()?.items ?? [];
+    const selectedId = this.selectedDistributionId();
+    return items.findIndex(distribution => distribution.id === selectedId);
+  });
+
+  readonly canGoToNewerDistribution = computed(() => this.currentDistributionIndex() !== -1);
+  readonly canGoToOlderDistribution = computed(() => {
+    const items = this.distributionsDataInput()?.items ?? [];
+    const index = this.currentDistributionIndex();
+    return (index === -1 ? 0 : index + 1) < items.length;
   });
 
   private readonly customerApiService = inject(CustomerApiService);
+  private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
 
   onDistributionSelected(distributionId: number | undefined) {
@@ -62,21 +118,73 @@ export class CustomerOverviewComponent {
       .subscribe((response: CustomerOverviewResponse) => this.customerOverviewData.set(response));
   }
 
+  onFilterChanged(event: MatButtonToggleChange) {
+    this.selectedFilter.set(event.value as OverviewFilter);
+  }
+
+  goToNewerDistribution() {
+    const items = this.distributionsDataInput()?.items ?? [];
+    const index = this.currentDistributionIndex();
+    if (index <= 0) {
+      this.onDistributionSelected(undefined);
+    } else {
+      this.onDistributionSelected(items[index - 1].id);
+    }
+  }
+
+  goToOlderDistribution() {
+    const items = this.distributionsDataInput()?.items ?? [];
+    const index = this.currentDistributionIndex();
+    const nextIndex = index === -1 ? 0 : index + 1;
+    if (nextIndex < items.length) {
+      this.onDistributionSelected(items[nextIndex].id);
+    }
+  }
+
+  exportCsv() {
+    this.customerApiService.generateCustomersOverviewCsv(this.selectedDistributionId())
+      .subscribe((response: HttpResponse<Blob>) => this.processCsvResponse(response));
+  }
+
+  private processCsvResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition')!;
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body!);
+  }
+
   showCustomerDetail(customerId: number) {
     this.router.navigate(['/kunden/detail', customerId]);
   }
 
-  trackByCustomerId(index: number, item: CustomerOverviewItem): number {
-    return item.customer.id!;
+  personsCount(customer: CustomerData): number {
+    return 1 + (customer.additionalPersons?.length ?? 0);
+  }
+
+  isCustomerValid(customer: CustomerData): boolean {
+    return !customer.locked && !!customer.validUntil && !dayjs(customer.validUntil).startOf('day').isBefore(dayjs().startOf('day'));
+  }
+
+  validityLabel(customer: CustomerData): string {
+    if (customer.locked) {
+      return 'Gesperrt';
+    }
+    return this.isCustomerValid(customer) ? 'Gültig' : 'Ungültig';
+  }
+
+  trackByRow(index: number, row: OverviewRow): number | undefined {
+    return row.item.customer.id;
   }
 
   trackByDistributionId(index: number, item: DistributionItem): number {
     return item.id;
   }
 
-  displayedColumns = ['icon', 'id', 'name', 'address', 'date', 'actions'];
+  displayedColumns = ['type', 'id', 'name', 'address', 'persons', 'validity', 'date', 'actions'];
 
   protected readonly faUserPlus = faUserPlus;
   protected readonly faRotate = faRotate;
   protected readonly faSearch = faSearch;
+  protected readonly faFileCsv = faFileCsv;
+  protected readonly faChevronLeft = faChevronLeft;
+  protected readonly faChevronRight = faChevronRight;
 }

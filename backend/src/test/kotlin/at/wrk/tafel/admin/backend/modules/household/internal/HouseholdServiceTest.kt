@@ -779,6 +779,83 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `generate households overview csv - builds rows for new and renewed households`() {
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 100
+            every { startedAt } returns LocalDateTime.of(2026, 1, 3, 8, 0)
+            every { endedAt } returns LocalDateTime.of(2026, 1, 3, 18, 0)
+        }
+        every { distributionRepository.findById(100) } returns Optional.of(distribution)
+
+        val newHouseholdEntity = mockk<HouseholdEntity>(relaxed = true) {
+            every { createdAt } returns LocalDateTime.of(2026, 1, 3, 9, 15)
+        }
+        val renewedHouseholdEntity = mockk<HouseholdEntity>(relaxed = true) {
+            every { prolongedAt } returns LocalDateTime.of(2026, 1, 3, 10, 30)
+        }
+
+        val newHousehold = HouseholdResponse(
+            id = 5,
+            address = HouseholdAddress(
+                street = "Teststraße",
+                houseNumber = "12",
+                stairway = "2",
+                door = "5",
+                postalCode = 1010,
+                city = "Wien",
+            ),
+            validUntil = LocalDate.now().plusMonths(1),
+            locked = false,
+            persons = listOf(
+                Person(isMainPerson = true, firstname = "Max", lastname = "Mustermann", birthDate = LocalDate.of(1990, 1, 1), gender = null, country = testCountry),
+                Person(isMainPerson = false, firstname = "Erika", lastname = "Mustermann", birthDate = LocalDate.of(1992, 1, 1), gender = null, country = testCountry),
+            ),
+        )
+        val renewedHousehold = HouseholdResponse(
+            id = 20,
+            address = HouseholdAddress(street = "Beispielweg", houseNumber = "3", postalCode = 1020, city = "Wien"),
+            validUntil = LocalDate.now().minusDays(1),
+            locked = true,
+            persons = listOf(
+                Person(isMainPerson = true, firstname = "Anna", lastname = "Beispiel", birthDate = LocalDate.of(1985, 5, 5), gender = null, country = testCountry),
+            ),
+        )
+
+        every {
+            householdRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        } returns listOf(newHouseholdEntity)
+        every {
+            householdRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        } returns listOf(renewedHouseholdEntity)
+        every { householdConverter.mapEntityToHousehold(newHouseholdEntity) } returns newHousehold
+        every { householdConverter.mapEntityToHousehold(renewedHouseholdEntity) } returns renewedHousehold
+
+        val result = service.generateHouseholdsOverviewCsv(100)
+
+        val lines = String(result.bytes, Charsets.UTF_8).trim().lines()
+        assertThat(lines).hasSize(3)
+        assertThat(lines[0]).isEqualTo("Typ;Nr.;Name;Adresse;Personen;Gültigkeit;Datum")
+        assertThat(lines[1]).isEqualTo("Neu;5;Mustermann Max;Teststraße 12, Stiege 2, Top 5, 1010 Wien;2;Gültig;03.01.2026 09:15")
+        assertThat(lines[2]).isEqualTo("Verlängert;20;Beispiel Anna;Beispielweg 3, 1020 Wien;1;Gesperrt;03.01.2026 10:30")
+    }
+
+    @Test
+    fun `generate households overview csv - filename contains the distribution date`() {
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 100
+            every { startedAt } returns LocalDateTime.of(2026, 1, 3, 8, 0)
+            every { endedAt } returns LocalDateTime.of(2026, 1, 3, 18, 0)
+        }
+        every { distributionRepository.findById(100) } returns Optional.of(distribution)
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+
+        val result = service.generateHouseholdsOverviewCsv(100)
+
+        assertThat(result.filename).isEqualTo("kunden-uebersicht_2026-01-03.csv")
+    }
+
+    @Test
     fun `generate pdf household - not found`() {
         every { householdRepository.findByHouseholdId(any()) } returns null
 
