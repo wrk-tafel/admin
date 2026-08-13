@@ -12,13 +12,39 @@
             <mat-error>{{errorMessage}}</mat-error>
           }
         </mat-form-field>
-        <mat-form-field>
-          <mat-label>Personalnummer</mat-label>
-          <input matInput testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber">
-          @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
-            <mat-error>{{errorMessage}}</mat-error>
+        <div>
+          @if (!selectedEmployee()) {
+            <div class="flex gap-2 items-start">
+              <mat-form-field class="w-full">
+                <mat-label>Personalnummer</mat-label>
+                <input matInput testid="personnelNumberInput" type="text" placeholder="Personalnummer / Name"
+                       [formField]="userForm.personnelNumber" (keyup.enter)="triggerEmployeeSearch()">
+                @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
+                  <mat-error>{{errorMessage}}</mat-error>
+                }
+              </mat-form-field>
+              <!--
+                Resolves against the real employee list instead of accepting free text, so an
+                account can no longer be saved against a personnel number nobody holds - the same
+                search/select/create-if-missing widget logistics uses for driver/co-driver.
+              -->
+              <tafel-employee-search-create #employeeSearchCreate testIdPrefix="user"
+                                            [searchInput]="userForm.personnelNumber().value()"
+                                            (selectedEmployee)="setSelectedEmployee($event)"/>
+            </div>
+          } @else {
+            <div class="font-medium mb-1">Personalnummer</div>
+            <div class="flex items-center justify-between gap-2">
+              <div testid="selectedEmployeeDescription">
+                {{selectedEmployee()!.personnelNumber}} {{selectedEmployee()!.firstname}} {{selectedEmployee()!.lastname}}
+              </div>
+              <button type="button" matButton="filled" class="button-danger" testid="selectedEmployeeRemoveButton"
+                      aria-label="Mitarbeiter-Verknüpfung entfernen" (click)="resetSelectedEmployee()">
+                <fa-icon [icon]="faRemove"></fa-icon>
+              </button>
+            </div>
           }
-        </mat-form-field>
+        </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
         <mat-form-field>
@@ -38,50 +64,94 @@
         </mat-form-field>
       </div>
       <hr>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <mat-form-field>
-          <mat-label>Passwort</mat-label>
-          <input matInput testid="passwordInput"
-                 autocomplete="new-password"
-                 [type]="passwordTextVisible() ? 'text' : 'password'"
-                 [formField]="userForm.password">
-          <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 cursor-pointer"
-                    (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle" type="button">
-            @if (!passwordTextVisible()) {
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            }
-            @if (passwordTextVisible()) {
-              <fa-icon [icon]="faEye"></fa-icon>
-            }
-          </mat-icon>
-          @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
-            <mat-error>{{errorMessage}}</mat-error>
-          }
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Passwort (Wiederholung)</mat-label>
-          <input matInput testid="passwordRepeatInput"
-                 autocomplete="new-password"
-                 [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
-                 [formField]="userForm.passwordRepeat">
-          <mat-icon matSuffix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 cursor-pointer"
-                    (click)="togglePasswordRepeatVisibility()" testid="passwordRepeatVisibilityToggle" type="button">
-            @if (!passwordRepeatTextVisible()) {
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            }
-            @if (passwordRepeatTextVisible()) {
-              <fa-icon [icon]="faEye"></fa-icon>
-            }
-          </mat-icon>
-          @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {
-            <mat-error>{{errorMessage}}</mat-error>
-          }
-        </mat-form-field>
-      </div>
-      <div class="mt-4">
-        <button type="button" testid="generate-password-button" matButton="filled"
-                (click)="generatePassword()">Passwort generieren
+      @if (createMode()) {
+        <h2 class="tafel-h5">Passwort</h2>
+      } @else {
+        <!--
+          Password fields sit behind an explicit toggle in edit mode rather than mid-form like an
+          ordinary field, so a save can't reset a password nobody meant to touch - leaving the
+          section untouched (or collapsed) keeps the existing password.
+        -->
+        <button type="button" id="password-reset-toggle-button" testid="password-reset-toggle"
+                class="w-full flex items-center justify-between gap-2 py-2 text-start cursor-pointer"
+                [attr.aria-expanded]="passwordResetExpanded()" aria-controls="password-reset-panel"
+                (click)="togglePasswordResetSection()">
+          <span class="tafel-h5">Passwort zurücksetzen</span>
+          <fa-icon [icon]="passwordResetExpanded() ? faChevronUp : faChevronDown"></fa-icon>
         </button>
+        @if (!passwordResetExpanded()) {
+          <div class="text-sm text-gray-500 -mt-1">Leer lassen, um das bestehende Passwort beizubehalten.</div>
+        }
+      }
+      <div id="password-reset-panel" [attr.role]="createMode() ? null : 'region'"
+           [attr.aria-labelledby]="createMode() ? null : 'password-reset-toggle-button'"
+           [hidden]="!passwordFieldsVisible()">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
+          <mat-form-field>
+            <mat-label>Passwort</mat-label>
+            <input matInput testid="passwordInput"
+                   autocomplete="new-password"
+                   [type]="passwordTextVisible() ? 'text' : 'password'"
+                   [formField]="userForm.password">
+            <!--
+              A real button rather than a bare `mat-icon` with a click handler: an icon element is
+              neither focusable nor named, which made showing the password a mouse-only action. The
+              icon keeps its own markup so the field looks unchanged (same pattern as the login page
+              and the shared password-change form).
+            -->
+            <button matSuffix type="button" class="cursor-pointer"
+                    (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle"
+                    [attr.aria-label]="passwordTextVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
+                    [attr.aria-pressed]="passwordTextVisible()">
+              <mat-icon class="!flex !items-center !justify-center !leading-none !p-3 box-content">
+                <fa-icon [icon]="passwordTextVisible() ? faEye : faEyeSlash"></fa-icon>
+              </mat-icon>
+            </button>
+            @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Passwort (Wiederholung)</mat-label>
+            <input matInput testid="passwordRepeatInput"
+                   autocomplete="new-password"
+                   [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
+                   [formField]="userForm.passwordRepeat">
+            <button matSuffix type="button" class="cursor-pointer"
+                    (click)="togglePasswordRepeatVisibility()" testid="passwordRepeatVisibilityToggle"
+                    [attr.aria-label]="passwordRepeatTextVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
+                    [attr.aria-pressed]="passwordRepeatTextVisible()">
+              <mat-icon class="!flex !items-center !justify-center !leading-none !p-3 box-content">
+                <fa-icon [icon]="passwordRepeatTextVisible() ? faEye : faEyeSlash"></fa-icon>
+              </mat-icon>
+            </button>
+            @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {
+              <mat-error>{{errorMessage}}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button type="button" testid="generate-password-button" matButton="filled"
+                  (click)="generatePassword()">Passwort generieren
+          </button>
+          @if (userForm.password().value()) {
+            <button type="button" testid="copy-password-button" matButton="outlined" (click)="copyPassword()">
+              <fa-icon [icon]="faCopy" class="me-2"></fa-icon>In Zwischenablage kopieren
+            </button>
+          }
+        </div>
+        <div class="p-6 bg-slate-50 rounded-lg border border-slate-200 mt-4" testid="password-rules">
+          <h2 class="tafel-h4 font-bold text-slate-700 mb-2">Passwortregeln</h2>
+          <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 m-0">
+            <li>Mindestens 8 Zeichen, maximal 50 Zeichen</li>
+            <li>Der Benutzername darf nicht Teil des Passworts sein</li>
+            <li>Keine Leerzeichen</li>
+            <li>
+              Folgende Wörter sind nicht erlaubt:
+              <span class="italic font-medium">wrk, örk, oerk, tafel, roteskreuz, toet, töt, 1030</span>
+            </li>
+          </ul>
+        </div>
       </div>
       <hr>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">

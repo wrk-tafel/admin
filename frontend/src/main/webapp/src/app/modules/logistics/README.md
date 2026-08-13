@@ -26,11 +26,6 @@ categories to populate the recording form; it never creates or edits them.
 
 ```
 logistics/
-  components/
-    tafel-employee-search-create.component.ts   # driver/co-driver lookup widget
-    dialogs/
-      create-employee-dialog.component.ts        # shown when search finds 0 matches
-      select-employee-dialog.component.ts         # shown when search finds >1 matches
   resolver/
     route-data-resolver.component.ts                     # GET /routes
     car-data-resolver.component.ts                       # GET /cars
@@ -137,8 +132,9 @@ the data the team fills in at departure. The odometer readings deliberately do
 *not* live here (see the km section below).
 
 - Driver and co-driver are each picked via a
-  `TafelEmployeeSearchCreateComponent` (in `components/`). Typing a personnel
-  number and triggering the search (`triggerSearch()`) branches three ways:
+  `TafelEmployeeSearchCreateComponent` (`common/components/employee-search-create/` — shared with
+  the `user` module's personnel-number field, which is why it lives under `common` rather than
+  here). Typing a personnel number and triggering the search (`triggerSearch()`) branches three ways:
   exactly one match auto-emits `selectedEmployee`; more than one opens
   `SelectEmployeeDialogComponent` (paginated picker); zero matches opens
   `CreateEmployeeDialogComponent` (inline employee creation). Both dialogs close

@@ -34,9 +34,17 @@ Die Detailansicht zeigt Name, Benutzername, Personalnummer, ob eine Passwortänd
 
 ## Benutzer anlegen / bearbeiten
 
-Beim Anlegen bzw. Bearbeiten werden Benutzername, Personalnummer, Nachname, Vorname sowie ein Passwort erfasst (über **Passwort generieren** kann automatisch ein sicheres Passwort erzeugt werden); über das Augen-Symbol kann das eingegebene Passwort ein-/ausgeblendet werden. Benutzername, Personalnummer, Nach- und Vorname sind Pflichtfelder (max. 50 Zeichen); werden Passwort und Passwort-Wiederholung befüllt, müssen beide übereinstimmen. Beim Anlegen eines neuen Benutzers sind Passwort und Passwort-Wiederholung ebenfalls Pflichtfelder. Beim Bearbeiten eines bestehenden Benutzers bleibt das aktuelle Passwort unverändert, solange die Passwortfelder leer gelassen werden. Zusätzlich kann festgelegt werden, ob der Benutzer aktiv ist und ob beim nächsten Login eine Passwort-Änderung erzwungen wird. Der Speichern-Button ist erst aktiv, sobald alle Pflichtfelder gültig ausgefüllt sind.
+Beim Anlegen bzw. Bearbeiten werden Benutzername, Personalnummer, Nachname und Vorname erfasst. Benutzername, Nach- und Vorname sind Pflichtfelder (max. 50 Zeichen). Der Speichern-Button ist erst aktiv, sobald alle Pflichtfelder gültig ausgefüllt sind, und bleibt am unteren Bildschirmrand sichtbar ("sticky"), auch wenn weiter oben in der (teils langen) Berechtigungsliste gescrollt wird.
+
+Die Personalnummer wird nicht mehr frei eingetippt, sondern über die Mitarbeiter-Suche (Lupe neben dem Feld) mit einem echten Mitarbeiter verknüpft: liefert die Suche genau einen Treffer, wird dieser automatisch übernommen; bei mehreren Treffern erscheint eine Auswahl; findet sich keiner, kann direkt ein neuer Mitarbeiter angelegt werden. Der verknüpfte Mitarbeiter wird danach als Karte mit einem Entfernen-Button angezeigt; ohne verknüpften Mitarbeiter lässt sich das Formular nicht speichern.
 
 ![Benutzer bearbeiten](images/benutzer-bearbeiten.jpg)
+
+Beim Anlegen eines neuen Benutzers sind Passwort und Passwort-Wiederholung Pflichtfelder. Über **Passwort generieren** wird automatisch ein sicheres Passwort erzeugt, direkt lesbar angezeigt (nicht als Punkte) und in die Zwischenablage kopierbar (Button neben "Passwort generieren") – gedacht, um es unmittelbar an die neue Kollegin/den neuen Kollegen weiterzugeben. Dabei wird automatisch "Passwort-Änderung beim nächsten Login erforderlich" aktiviert, da ein weitergegebenes Passwort sinnvollerweise beim ersten Login ersetzt wird. Über das Augen-Symbol lässt sich ein eingegebenes Passwort ein-/ausblenden; werden Passwort und Passwort-Wiederholung befüllt, müssen beide übereinstimmen. Die geltenden Passwortregeln (Länge, verbotene Wörter etc.) werden direkt neben den Passwortfeldern angezeigt, nicht erst als Fehlermeldung nach dem Speichern.
+
+Beim Bearbeiten eines bestehenden Benutzers sitzen die Passwortfelder hinter einem eingeklappten Bereich **Passwort zurücksetzen**, um ein versehentliches Zurücksetzen beim Speichern zu vermeiden. Bleibt dieser Bereich zugeklappt oder werden die Felder darin leer gelassen, bleibt das aktuelle Passwort unverändert. Zusätzlich kann festgelegt werden, ob der Benutzer aktiv ist und ob beim nächsten Login eine Passwort-Änderung erzwungen wird.
+
+Verlässt man die Seite mit ungespeicherten Änderungen (z. B. über einen Klick im Menü), erscheint eine Sicherheitsabfrage, ob die Änderungen wirklich verworfen werden sollen.
 
 Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("Alle auswählen"/"Alle abwählen") vergeben. Die verfügbaren Berechtigungen sind u. a.:
 
