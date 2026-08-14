@@ -290,7 +290,7 @@ describe('CustomerDuplicatesComponent', () => {
     expect(toastr.error).toHaveBeenCalledWith('Markieren fehlgeschlagen!');
   });
 
-  it('start merge navigates to the merge picker with the remaining pair as sources', () => {
+  it('start merge navigates to the merge picker with the remaining pair as sources and the queue position', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
@@ -312,7 +312,7 @@ describe('CustomerDuplicatesComponent', () => {
 
     expect(router.navigate).toHaveBeenCalledWith(
       ['/kunden/zusammenfuehren', mockCustomer1.id],
-      {queryParams: {quellen: `${mockCustomer2.id},${mockCustomer3.id}`}}
+      {queryParams: {quellen: `${mockCustomer2.id},${mockCustomer3.id}`, seite: 3}}
     );
   });
 

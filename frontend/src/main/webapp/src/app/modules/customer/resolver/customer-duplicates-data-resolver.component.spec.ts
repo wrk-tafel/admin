@@ -46,7 +46,23 @@ describe('CustomerDuplicatesDataResolver', () => {
             expect(response).toEqual(mockResponse);
         });
 
-        expect(apiService.getCustomerDuplicates).toHaveBeenCalled();
+        expect(apiService.getCustomerDuplicates).toHaveBeenCalledWith(undefined);
+    });
+
+    it('resolve reads the requested page from the seite query param', () => {
+        const mockResponse: CustomerDuplicatesResponse = {
+            items: [],
+            currentPage: 3,
+            pageSize: 1,
+            totalCount: 10,
+            totalPages: 10
+        };
+        apiService.getCustomerDuplicates.mockReturnValue(of(mockResponse));
+
+        const activatedRoute = <ActivatedRouteSnapshot><unknown>{queryParams: {seite: '3'}};
+        resolver.resolve(activatedRoute).subscribe();
+
+        expect(apiService.getCustomerDuplicates).toHaveBeenCalledWith(3);
     });
 
 });

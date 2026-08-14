@@ -1,6 +1,20 @@
 import dayjs from 'dayjs';
 import {CustomerData, Gender} from '../support/commands';
+import {MAIN_CONTENT} from '../support/accessibility';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+
+// The merge screen is a stepper: the fields are picked on step 1, and the confirm button only
+// exists on step 3 behind the acknowledgement checkbox.
+function goToConfirmStep() {
+  cy.byTestId('merge-next-persons-button').click();
+  cy.byTestId('merge-next-confirm-button').click();
+  cy.byTestId('merge-confirm-checkbox').click();
+}
+
+function confirmMerge() {
+  goToConfirmStep();
+  cy.byTestId('merge-confirm-button').click();
+}
 
 describe('Customer Duplicates', () => {
 
@@ -192,11 +206,115 @@ describe('Customer Merge', () => {
 
       cy.url().should('include', `/kunden/zusammenfuehren/${target.id}`);
       cy.byTestId('merge-field-TELEPHONE_NUMBER-source-' + source.id).click();
-      cy.byTestId('merge-confirm-button').click();
+      confirmMerge();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
       cy.url().should('include', '/kunden/detail/' + target.id);
       cy.byTestId('telephoneNumberText').should('contain.text', '222222');
+    });
+  });
+
+  it('compares the customers column by column and marks a value both of them share', () => {
+    createDuplicatePair({telephoneNumber: '111111'}, {telephoneNumber: '222222'}).then(({first, second}) => {
+      const target = first.body.data;
+      const source = second.body.data;
+
+      cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-merge-button-' + target.id).click();
+
+      // one column per customer, the surviving one first and marked as such
+      cy.byTestId('merge-column-' + target.id).should('contain.text', 'bleibt bestehen');
+      cy.byTestId('merge-column-' + source.id).should('contain.text', 'wird gelöscht');
+
+      cy.byTestId('merge-field-row-TELEPHONE_NUMBER').within(() => {
+        cy.byTestId('merge-field-TELEPHONE_NUMBER-target').should('contain.text', '111111');
+        cy.byTestId('merge-field-TELEPHONE_NUMBER-source-' + source.id).should('contain.text', '222222');
+      });
+
+      // the pair only differs in its telephone number, so the address is offered on the target
+      // column alone and the source's cell says there is nothing to pick
+      cy.byTestId('merge-field-row-ADDRESS').should('not.exist');
+      cy.byTestId('merge-toggle-identical-fields').click();
+      cy.byTestId('merge-identical-fields').should('contain.text', 'Adresse');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+  });
+
+  it('names the customers that get deleted and only merges once that is acknowledged', () => {
+    createDuplicatePair().then(({first, second}) => {
+      const target = first.body.data;
+      const source = second.body.data;
+
+      cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-merge-button-' + target.id).click();
+
+      cy.byTestId('merge-next-persons-button').click();
+      cy.byTestId('merge-next-confirm-button').click();
+
+      // visited steps keep their number - the default edit icon is a Material-Icons font ligature
+      // this app doesn't ship, which would render as clipped raw text ("cr")
+      cy.byTestId('merge-stepper').find('.mat-step-header .mat-step-icon').eq(0).should('have.text', '1');
+      cy.byTestId('merge-stepper').find('.mat-step-header .mat-step-icon').eq(1).should('have.text', '2');
+
+      cy.byTestId('merge-danger-banner')
+        .should('contain.text', 'kann nicht rückgängig gemacht werden')
+        .and('contain.text', `${source.id}`);
+      cy.byTestId('merge-confirm-button').should('be.disabled');
+      // the confirm step is only reachable after two "Weiter" clicks, so nothing audited it before
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('merge-confirm-checkbox').click();
+      cy.byTestId('merge-confirm-button').should('not.be.disabled').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
+      cy.url().should('include', '/kunden/detail/' + target.id);
+    });
+  });
+
+  it('highlights only the fields a source value overwrites in the final summary', () => {
+    createDuplicatePair({telephoneNumber: '111111'}, {telephoneNumber: '222222'}).then(({first, second}) => {
+      const target = first.body.data;
+      const source = second.body.data;
+
+      cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-merge-button-' + target.id).click();
+
+      cy.byTestId('merge-field-TELEPHONE_NUMBER-source-' + source.id).click();
+      cy.byTestId('merge-next-persons-button').click();
+      cy.byTestId('merge-next-confirm-button').click();
+
+      cy.byTestId('merge-changed-summary').should('contain.text', '1 Feld(er)');
+      cy.byTestId('merge-resolved-TELEPHONE_NUMBER').should('contain.text', '222222');
+      cy.byTestId('merge-previous-TELEPHONE_NUMBER').should('contain.text', '111111');
+      cy.byTestId('merge-previous-EMAIL').should('not.exist');
+    });
+  });
+
+  it('stacks the conflict columns and turns the stepper vertical on phone', () => {
+    cy.viewport(PHONE_VIEWPORT);
+
+    createDuplicatePair({telephoneNumber: '111111'}, {telephoneNumber: '222222'}).then(({first, second}) => {
+      const target = first.body.data;
+      const source = second.body.data;
+
+      cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-merge-button-' + target.id).click();
+
+      cy.byTestId('merge-stepper').should('have.class', 'mat-stepper-vertical');
+      // below md: the column headers make no sense, each cell names its customer instead
+      cy.byTestId('merge-column-' + target.id).should('not.be.visible');
+      cy.byTestId('merge-field-TELEPHONE_NUMBER-source-' + source.id)
+        .scrollIntoView()
+        .should('be.visible')
+        .and('contain.text', `Kunde ${source.id}`);
+
+      cy.byTestId('merge-field-TELEPHONE_NUMBER-target').then(($targetCell) => {
+        const targetTop = $targetCell[0].getBoundingClientRect().top;
+        cy.byTestId('merge-field-TELEPHONE_NUMBER-source-' + source.id).then(($sourceCell) => {
+          expect($sourceCell[0].getBoundingClientRect().top).to.be.greaterThan(targetTop);
+        });
+      });
     });
   });
 
@@ -213,11 +331,16 @@ describe('Customer Merge', () => {
         excludeFromHousehold: false,
         receivesFamilyAllowance: false
       }]
-    }).then(({first}) => {
+    }).then(({first, second}) => {
       const target = first.body.data;
+      const source = second.body.data;
 
       cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
+      cy.byTestId('merge-next-persons-button').click();
+      cy.byTestId('merge-person-group-' + source.id).should('contain.text', 'wird übernommen');
+      cy.byTestId('merge-next-confirm-button').click();
+      cy.byTestId('merge-confirm-checkbox').click();
       cy.byTestId('merge-confirm-button').click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
@@ -243,11 +366,16 @@ describe('Customer Merge', () => {
     createDuplicatePair(
       {additionalPersons: [sharedPerson()]},
       {additionalPersons: [sharedPerson()]}
-    ).then(({first}) => {
+    ).then(({first, second}) => {
       const target = first.body.data;
+      const source = second.body.data;
 
       cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
+      cy.byTestId('merge-next-persons-button').click();
+      cy.byTestId('merge-person-group-' + source.id).should('contain.text', 'bereits vorhanden');
+      cy.byTestId('merge-next-confirm-button').click();
+      cy.byTestId('merge-confirm-checkbox').click();
       cy.byTestId('merge-confirm-button').click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
@@ -267,7 +395,7 @@ describe('Customer Merge', () => {
 
       cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
-      cy.byTestId('merge-confirm-button').click();
+      confirmMerge();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
       cy.url().should('include', '/kunden/detail/' + target.id);
@@ -288,9 +416,13 @@ describe('Customer Merge', () => {
       cy.visit('/kunden/duplikate');
       cy.byTestId('duplicate-merge-button-' + target.id).click();
 
+      // the ticket collision is part of step 2, next to the persons it is decided together with
+      cy.byTestId('merge-next-persons-button').click();
       cy.contains('22').should('be.visible');
       cy.contains('wird verworfen').should('be.visible');
 
+      cy.byTestId('merge-next-confirm-button').click();
+      cy.byTestId('merge-confirm-checkbox').click();
       cy.byTestId('merge-confirm-button').click();
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
 
@@ -310,6 +442,26 @@ describe('Customer Merge', () => {
       cy.url().should('include', '/kunden/duplikate');
       cy.byTestId('duplicate-candidate-' + target.id).should('exist');
       cy.byTestId('duplicate-candidate-' + source.id).should('exist');
+    });
+  });
+
+  it('cancel comes back to the queue position the merge was started from', () => {
+    // two pairs, so there is a page 2 at all - the queue shows one pair per page
+    createDuplicatePair().then(() => createDuplicatePair()).then(() => {
+      cy.visit('/kunden/duplikate?seite=2');
+      cy.byTestId('duplicates-announcement').should('contain.text', 'Seite 2');
+
+      // whichever candidate page 2 holds - the order the backend returns them in is not this
+      // test's subject, coming back to the same page is
+      cy.get('[testid^=duplicate-pair-]').invoke('attr', 'testid').then((pairTestId) => {
+        cy.get('[testid^=duplicate-merge-button-]').first().click();
+        cy.url().should('include', 'seite=2');
+
+        cy.byTestId('merge-cancel-button').click();
+
+        cy.url().should('include', '/kunden/duplikate?seite=2');
+        cy.get(`[testid="${pairTestId}"]`).should('exist');
+      });
     });
   });
 
