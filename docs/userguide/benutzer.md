@@ -26,7 +26,9 @@ Auf schmalen Bildschirmen wird das Ergebnis statt als Tabelle als Kartenliste da
 
 ## Benutzerdetails
 
-Die Detailansicht zeigt Name, Benutzername, Personalnummer, ob eine Passwortänderung erforderlich ist, den Aktiv-Status sowie alle zugewiesenen Berechtigungen, gruppiert nach Kategorie (Ausgabe & Betrieb, Logistik, Leitung, Verwaltung).
+Die Detailansicht zeigt Name, Benutzername, Personalnummer, ob eine Passwortänderung erforderlich ist, den Aktiv-Status sowie alle zugewiesenen Berechtigungen, gruppiert nach Kategorie (Ausgabe & Betrieb, Logistik, Leitung, Verwaltung); eine Kategorie, in der der Benutzer keine einzige Berechtigung hat, wird gar nicht erst angezeigt.
+
+Über **Alle anzeigen** oberhalb der Berechtigungen lässt sich zusätzlich einblenden, welche Berechtigungen einer Kategorie der Benutzer *nicht* hat (blass dargestellt) – so ist auf einen Blick erkennbar, was einem Benutzer noch fehlt, ohne die Bearbeitungsmaske zu öffnen. Kategorien, in denen der Benutzer gar keine Berechtigung hat, bleiben auch in dieser Ansicht ausgeblendet.
 
 ![Benutzerdetails](images/benutzer-detail.jpg)
 

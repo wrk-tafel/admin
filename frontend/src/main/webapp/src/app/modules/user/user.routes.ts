@@ -14,6 +14,7 @@ export const routes: Routes = [
     component: UserDetailComponent,
     resolve: {
       userData: UserDataResolver,
+      permissionsData: PermissionsDataResolver,
     }
   },
   {
