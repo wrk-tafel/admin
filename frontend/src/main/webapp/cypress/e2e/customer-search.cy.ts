@@ -289,7 +289,10 @@ describe('Customer Search', () => {
         cy.checkAccessibility(MAIN_CONTENT);
 
         cy.viewport(PHONE_VIEWPORT);
-        cy.byTestId('searchresult-table').should('not.be.visible');
+        // the searchresult-table wrapper holds both responsive branches and stays visible -
+        // what switches at phone width is which branch is displayed
+        cy.byTestId('searchresult-row').should('not.be.visible');
+        cy.get('[testid^="searchresult-card-"]').should('be.visible');
 
         cy.checkAccessibility(MAIN_CONTENT);
       });
