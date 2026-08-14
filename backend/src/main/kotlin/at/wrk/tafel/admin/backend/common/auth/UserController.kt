@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/users")
@@ -115,8 +116,11 @@ class UserController(
             page = page,
             pageSize = pageSize,
         )
+        // One query for the whole page's lockout state rather than one per row - see
+        // LoginAttemptService.getLockedUntil(Collection<String>).
+        val lockedUntilByUsername = loginAttemptService.getLockedUntil(userSearchResult.items.map { it.username })
         return PagedResponse(
-            items = userSearchResult.items.map { mapToResponse(it) },
+            items = userSearchResult.items.map { mapToResponse(it, lockedUntilByUsername[it.username]) },
             totalCount = userSearchResult.totalCount,
             currentPage = userSearchResult.currentPage,
             totalPages = userSearchResult.totalPages,
@@ -255,7 +259,15 @@ class UserController(
         authorities = user.permissions.map { SimpleGrantedAuthority(it.key) },
     )
 
-    private fun mapToResponse(user: TafelUser): UserResponse = UserResponse(
+    /**
+     * [lockedUntil] defaults to a per-user lookup so every single-user endpoint (get/create/update)
+     * gets it for free; [getUsers] passes the batched result for its whole page instead, since a
+     * default-per-row lookup there would be one query per row.
+     */
+    private fun mapToResponse(
+        user: TafelUser,
+        lockedUntil: LocalDateTime? = loginAttemptService.getLockedUntil(user.username),
+    ): UserResponse = UserResponse(
         id = user.id,
         username = user.username,
         personnelNumber = user.personnelNumber,
@@ -269,6 +281,7 @@ class UserController(
             .filter { it.authority != null }
             .map { authority -> mapToUserPermission(authority.authority!!) }
             .sortedBy { it.title },
+        lockedUntil = lockedUntil,
     )
 
     /**

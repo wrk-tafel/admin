@@ -1,4 +1,7 @@
 import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {BreakpointObserver} from '@angular/cdk/layout';
+import {map} from 'rxjs';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -45,13 +48,15 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {ClipboardModule} from '@angular/cdk/clipboard';
 import {CommonModule} from '@angular/common';
-import {faDownload, faPlus, faTrashCan, faUsers} from '@fortawesome/free-solid-svg-icons';
+import {faCopy, faDownload, faPlus, faSpinner, faTrashCan, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {FormatIssuerPipe} from '../../../../common/pipes/format-issuer.pipe';
 import {FormatCustomerNamePipe} from '../../../../common/pipes/format-customer-name.pipe';
+import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {FormsModule} from '@angular/forms';
 import {
   ConfirmCustomerSaveDialog
@@ -62,6 +67,16 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {CustomerHistoryComponent} from '../../components/customer-history/customer-history.component';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
+import {relativeTimeLabel} from '../../../../common/util/relative-time.util';
+import {
+  computeCustomerValidityState,
+  customerValidityStateColor,
+  customerValidityStateText,
+  CustomerValidityState
+} from '../../../../common/util/customer-validity.util';
+
+// Matches the Tailwind `lg` breakpoint this template's action/tab layout switches at.
+const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -85,7 +100,9 @@ import {AuthenticationService} from '../../../../common/security/authentication.
     UploadDocumentPanelComponent,
     MatTooltipModule,
     TafelInfoTooltipComponent,
-    CustomerHistoryComponent
+    CustomerHistoryComponent,
+    ClipboardModule,
+    FormatCustomerAddressPipe
   ]
 })
 export class CustomerDetailComponent {
@@ -122,9 +139,34 @@ export class CustomerDetailComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
+  // Places the #customerActions template: inside the identity header on desktop, below the tabs on
+  // narrow screens. A signal-driven outlet instead of two CSS-hidden copies, so the buttons' menus
+  // and testids exist exactly once in the DOM.
+  readonly isDesktopLayout = toSignal(
+    this.breakpointObserver.observe([DESKTOP_BREAKPOINT]).pipe(map(state => state.matches)),
+    {initialValue: this.breakpointObserver.isMatched(DESKTOP_BREAKPOINT)}
+  );
 
   readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
   readonly hasAuditPermission = computed(() => this.authenticationService.hasPermission('AUDIT_LOG'));
+
+  /** Which PDF is currently being generated, so the triggering print action can show a busy state. */
+  readonly printing = signal<'MASTERDATA' | 'IDCARD' | null>(null);
+
+  readonly validityState = computed(() => computeCustomerValidityState(this.customerData()?.validUntil));
+  readonly validityColor = computed(() => customerValidityStateColor(this.validityState()));
+  readonly validityText = computed(() => customerValidityStateText(this.validityState()));
+
+  /**
+   * Main person plus every additional person not flagged `excludeFromHousehold` - what the identity
+   * header's "household size" chip counts, since an excluded person is on the case file but not part
+   * of the household it feeds.
+   */
+  readonly householdSize = computed(() =>
+    1 + (this.customerData()?.additionalPersons ?? []).filter(person => !person.excludeFromHousehold).length
+  );
 
   uploadDocumentPanel = viewChild(UploadDocumentPanelComponent);
 
@@ -161,13 +203,42 @@ export class CustomerDetailComponent {
   }
 
   printMasterdata() {
-    this.customerApiService.generatePdf(this.customerData().id!, 'MASTERDATA')
-      .subscribe((response) => this.processPdfResponse(response));
+    this.printing.set('MASTERDATA');
+    this.customerApiService.generatePdf(this.customerData().id!, 'MASTERDATA').subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.printing.set(null),
+      complete: () => this.printing.set(null)
+    });
   }
 
   printIdCard() {
-    this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD')
-      .subscribe((response) => this.processPdfResponse(response));
+    this.printing.set('IDCARD');
+    this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD').subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.printing.set(null),
+      complete: () => this.printing.set(null)
+    });
+  }
+
+  /** What "Bezug verlängern" would set `validUntil` to, shown next to each menu item's month count. */
+  prolongPreviewDate(months: number): Date {
+    return dayjs(this.customerData().validUntil).add(months, 'months').endOf('day').toDate();
+  }
+
+  onAddressCopied(success: boolean) {
+    if (success) {
+      this.toastr.success('Adresse in die Zwischenablage kopiert!');
+    } else {
+      this.toastr.error('Kopieren in die Zwischenablage fehlgeschlagen!');
+    }
+  }
+
+  /**
+   * How long ago a note was written, for the note card's header - the absolute timestamp stays
+   * available as that label's tooltip rather than being replaced outright.
+   */
+  noteRelativeTime(timestamp: Date | string): string | null {
+    return relativeTimeLabel(timestamp);
   }
 
   formatAddressLine1(address: CustomerAddressData): string {
@@ -195,7 +266,8 @@ export class CustomerDetailComponent {
   }
 
   openDeleteCustomerDialog() {
-    this.dialog.open(DeleteCustomerDialogComponent)
+    const customer = this.customerData();
+    this.dialog.open(DeleteCustomerDialogComponent, {data: {customerName: `${customer.lastname} ${customer.firstname}`}})
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.customerApiService.deleteCustomer(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
@@ -465,6 +537,9 @@ export class CustomerDetailComponent {
   protected readonly faPlus = faPlus;
   protected readonly faDownload = faDownload;
   protected readonly faTrashCan = faTrashCan;
+  protected readonly faCopy = faCopy;
+  protected readonly faSpinner = faSpinner;
   protected readonly documentTypeLabel = documentTypeLabel;
   protected readonly Number = Number;
+  protected readonly CustomerValidityState = CustomerValidityState;
 }

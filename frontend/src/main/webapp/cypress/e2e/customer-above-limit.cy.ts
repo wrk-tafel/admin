@@ -1,3 +1,5 @@
+import * as path from 'path';
+import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
 
@@ -21,17 +23,68 @@ describe('Customer Above Limit', () => {
           cy.get('[testid^="abovelimit-address-"]').should('contain.text', customer.address.city);
           cy.get('[testid^="abovelimit-totalSum-"]').should('be.visible');
           cy.get('[testid^="abovelimit-limit-"]').should('be.visible');
+          // the right-hand columns sit past the table wrapper's horizontal scroll fold at this
+          // viewport - scroll each into view the way a user would before asserting on it
           cy.get('[testid^="abovelimit-amountExceededLimit-"]')
+            .scrollIntoView()
             .should('be.visible')
             .invoke('text')
             .should('not.be.empty');
+          cy.get('[testid^="abovelimit-percentageExceededLimit-"]')
+            .scrollIntoView()
+            .should('be.visible')
+            .invoke('text')
+            .should('contain', '%');
 
-          // the table row and the equivalent card (below md:) both render a button with this
+          // the table row and the equivalent card (below md:) both render a link with this
           // testid - .closest('tr') above already scopes this to the (visible) table row's copy
-          cy.get('[testid^="abovelimit-showcustomer-button-"]').click();
+          cy.get('[testid^="abovelimit-showcustomer-button-"]')
+            .should('have.attr', 'href', '/kunden/detail/' + customer.id)
+            .click();
         });
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
+  });
+
+  it('shows what the list was checked against', () => {
+    cy.visit('/kunden/ueber-limit');
+
+    cy.contains('Stand: ' + dayjs().format('DD.MM.YYYY')).should('be.visible');
+    // the default e2e user holds the SETTINGS permission, so the Grenzwerte link is rendered
+    cy.byTestId('abovelimit-limits-link')
+      .should('have.attr', 'href', '/einstellungen/statische-werte');
+  });
+
+  it('sorts by clicking a money column header', () => {
+    cy.intercept('GET', '/api/households/above-limit*').as('aboveLimit');
+
+    // guarantees at least one row so the sortable table (rather than the empty state) is rendered,
+    // independent of what any other test left behind in the shared e2e database
+    cy.createDummyCustomer(50000, true).then(() => {
+      cy.visit('/kunden/ueber-limit');
+      cy.wait('@aboveLimit');
+
+      cy.contains('th', 'Einkommen gesamt').click();
+      cy.wait('@aboveLimit').its('request.url').should('include', 'sortBy=totalSum').and('include', 'sortDirection=asc');
+
+      cy.contains('th', 'Einkommen gesamt').click();
+      cy.wait('@aboveLimit').its('request.url').should('include', 'sortBy=totalSum').and('include', 'sortDirection=desc');
+    });
+  });
+
+  it('exports the current list as csv', () => {
+    cy.createDummyCustomer(50000, true).then(() => {
+      cy.visit('/kunden/ueber-limit');
+
+      cy.byTestId('abovelimit-csv-export-button').click();
+
+      const downloadsFolder = Cypress.config('downloadsFolder');
+      const today = dayjs().format('DD.MM.YYYY');
+      const downloadedFilename = path.join(downloadsFolder, `kunden_ueber_limit_${today}.csv`);
+
+      cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+        .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
     });
   });
 
@@ -50,7 +103,7 @@ describe('Customer Above Limit', () => {
         .scrollIntoView()
         .should('be.visible')
         .within(() => {
-          // the table row and the card both render a button with this testid - filter to the
+          // the table row and the card both render a link with this testid - filter to the
           // one that's actually displayed in this (card) branch
           cy.get('[testid^="abovelimit-showcustomer-button-"]').filterDisplayed().should('have.length', 1).click();
         });
@@ -75,6 +128,23 @@ describe('Customer Above Limit', () => {
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
     });
+  });
+
+  it('explains the empty state positively when nobody is above the limit', () => {
+    // stubbed rather than relying on an actually-empty database: other tests in this run share the
+    // same backend and may have already created households above the limit
+    cy.intercept('GET', '/api/households/above-limit*', {
+      items: [],
+      totalCount: 0,
+      currentPage: 1,
+      totalPages: 0,
+      pageSize: 10
+    }).as('aboveLimit');
+
+    cy.visit('/kunden/ueber-limit');
+    cy.wait('@aboveLimit');
+
+    cy.contains('Aktuell liegt kein Kunde über dem Limit').should('be.visible');
   });
 
   // The card list is a different DOM from the table, and the Lighthouse `pages` sweep grades this
