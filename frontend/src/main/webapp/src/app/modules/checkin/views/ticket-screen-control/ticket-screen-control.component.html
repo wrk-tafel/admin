@@ -14,7 +14,24 @@
       <div class="rounded-lg border border-black/10 p-4 sm:p-6 text-center" testid="current-ticket-card">
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
           <div>
-            <div class="text-sm uppercase tracking-wide text-gray-500">Aktuelles Ticket</div>
+            <!-- Back/forward step through the queue without a new paid/unpaid decision: back
+                 reopens the last processed ticket, forward re-closes it keeping the decision it
+                 was originally processed with - so forward only reaches as far as back has gone. -->
+            <div class="flex items-center justify-center gap-2">
+              <button type="button" matIconButton testid="show-previousticket-button"
+                      [disabled]="isShowingPreviousTicket() || currentDistribution() === null || (currentTicket()?.processedTicketsCount ?? 0) === 0"
+                      (click)="showPreviousTicket()"
+                      matTooltip="Ticket zurück" aria-label="Ticket zurück">
+                <fa-icon [icon]="faChevronLeft"></fa-icon>
+              </button>
+              <div class="text-sm uppercase tracking-wide text-gray-500">Aktuelles Ticket</div>
+              <button type="button" matIconButton testid="show-forwardticket-button"
+                      [disabled]="isShowingNextTicket() || currentDistribution() === null || stepsBack() === 0"
+                      (click)="showNextTicketAgain()"
+                      matTooltip="Ticket vor" aria-label="Ticket vor">
+                <fa-icon [icon]="faChevronRight"></fa-icon>
+              </button>
+            </div>
             <div class="text-7xl sm:text-8xl font-bold leading-none" testid="current-ticket-number">{{ currentTicket()?.ticketNumber ?? '-' }}</div>
           </div>
 
@@ -76,8 +93,7 @@
           <div class="mb-2 text-sm font-medium text-gray-600">Monitor zeigt:</div>
           <mat-button-toggle-group aria-label="Monitor zeigt" testid="monitor-mode-group" class="w-full flex">
             <mat-button-toggle testid="show-starttime-toggle" class="flex-1" [checked]="monitorMode() === 'startTime'" (click)="selectStartTimeMode()">Startzeit</mat-button-toggle>
-            <mat-button-toggle testid="show-currentticket-button" class="flex-1" [checked]="monitorMode() === 'current'" [disabled]="isShowingCurrentTicket()" (click)="showCurrentTicket()">Aktuelles</mat-button-toggle>
-            <mat-button-toggle testid="show-previousticket-button" class="flex-1" [checked]="monitorMode() === 'previous'" [disabled]="isShowingPreviousTicket() || currentDistribution() === null" (click)="showPreviousTicket()">Vorheriges</mat-button-toggle>
+            <mat-button-toggle testid="show-currentticket-button" class="flex-1" [checked]="monitorMode() === 'current'" [disabled]="isShowingCurrentTicket()" (click)="showCurrentTicket()">Aktuelles Ticket</mat-button-toggle>
           </mat-button-toggle-group>
 
           @if (monitorMode() === 'startTime') {
@@ -95,13 +111,11 @@
 
         <div>
           <div class="mb-2 text-sm font-medium text-gray-600">Live-Ansicht</div>
-          <!-- @container makes the 16:9 miniature below scale itself off this element's own
-               rendered width (via `cqw`), so it stays faithful to the real monitor at any
-               viewport instead of the old vh/vw-based squeeze. -->
-          <div class="relative mx-auto w-full max-w-sm aspect-video overflow-hidden rounded-lg border border-black/10 @container" testid="preview-container">
-            <div class="origin-top-left" style="width: 1280px; height: 720px; transform: scale(calc(100cqw / 1280));">
-              <tafel-ticket-screen></tafel-ticket-screen>
-            </div>
+          <!-- The monitor component sizes its typography off its own container (see
+               ticket-screen.component.html), so a plain 16:9 box of any size renders a faithful
+               miniature of what the real monitor shows. -->
+          <div class="relative mx-auto w-full max-w-sm aspect-video overflow-hidden rounded-lg border border-black/10" testid="preview-container">
+            <tafel-ticket-screen></tafel-ticket-screen>
             <span class="badge absolute top-2 right-2" role="status" testid="preview-connection-state"
                   [class.badge-success]="previewConnected()" [class.badge-danger]="!previewConnected()">
               <fa-icon [icon]="previewConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>

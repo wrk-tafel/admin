@@ -77,7 +77,12 @@ data class TicketScreenShowTextRequest(
 
 @ExcludeFromTestCoverage
 data class TicketScreenShowNextTicketRequest(
-    val costContributionPaid: Boolean,
+    /**
+     * The operator's paid/unpaid decision for the ticket being closed. `null` means "keep whatever
+     * is already recorded" - used by the forward arrow to re-close a ticket that was reopened via
+     * show-previous without overwriting the decision made when it was originally processed.
+     */
+    val costContributionPaid: Boolean?,
 )
 
 @ExcludeFromTestCoverage

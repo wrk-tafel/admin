@@ -150,6 +150,17 @@ internal class DistributionTicketScreenControllerTest {
     }
 
     @Test
+    fun `show next ticket without a new decision passes null through to the service`() {
+        val expectedResponse = TicketScreenTicketResponse(ticketNumber = 124, householdId = 300, pendingCostContribution = BigDecimal("0.00"))
+        every { service.closeCurrentTicketAndGetNext(null) } returns expectedResponse
+
+        val response = controller.showNextTicket(TicketScreenShowNextTicketRequest(costContributionPaid = null))
+
+        assertThat(response).isEqualTo(expectedResponse)
+        verify { service.closeCurrentTicketAndGetNext(null) }
+    }
+
+    @Test
     fun `show next ticket when ticket is null`() {
         val expectedResponse = TicketScreenTicketResponse(ticketNumber = null, householdId = null, pendingCostContribution = null)
         every { service.closeCurrentTicketAndGetNext(true) } returns expectedResponse

@@ -23,7 +23,9 @@ export class DistributionTicketScreenApiService {
     return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/show-previous', undefined);
   }
 
-  showNextTicket(costContributionPaid: boolean): Observable<TicketScreenTicketResponse> {
+  /** `costContributionPaid: null` closes the current ticket while keeping the paid/unpaid decision
+   *  already recorded on it - used when re-advancing over a ticket reopened via showPreviousTicket(). */
+  showNextTicket(costContributionPaid: boolean | null): Observable<TicketScreenTicketResponse> {
     const request: TicketScreenShowNextTicketRequest = {
       costContributionPaid: costContributionPaid,
     };
@@ -39,7 +41,7 @@ export interface TicketScreenShowTextRequest {
 }
 
 export interface TicketScreenShowNextTicketRequest {
-  costContributionPaid: boolean;
+  costContributionPaid: boolean | null;
 }
 
 export interface TicketScreenTicketResponse {

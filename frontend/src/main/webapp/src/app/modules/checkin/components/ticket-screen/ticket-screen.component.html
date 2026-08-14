@@ -1,13 +1,18 @@
-<div class="relative h-full w-full flex flex-col items-center justify-center bg-black overflow-hidden">
+<!-- container-type: size makes this element the reference for the cq* units below, so every font
+     size and gap is a fraction of whatever box the component is rendered into - the full monitor
+     on the kiosk route, the small 16:9 live preview on the control screen - and the content always
+     fits instead of overflowing at lower resolutions. cqmin (the container's smaller axis) keeps
+     the text from overflowing horizontally too, should the window ever be narrower than 16:9. -->
+<div class="relative h-full w-full flex flex-col items-center justify-center bg-black overflow-hidden [container-type:size]">
   @if (!connected()) {
     <!-- Same "role=status" live-region model as before, just sized to read from across a hall
          instead of a small corner badge - a stale ticket number that still looks current would
          actively mislead the queue, so this needs to be impossible to miss. -->
-    <div testid="connectionState" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-black/85 text-center px-8" role="status">
-      <fa-icon [icon]="faLinkSlash" aria-hidden="true" class="text-white text-[4em]"></fa-icon>
-      <div class="text-white text-[3em] font-semibold">Verbindung getrennt</div>
+    <div testid="connectionState" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-[3cqh] bg-black/85 text-center px-[3cqw]" role="status">
+      <fa-icon [icon]="faLinkSlash" aria-hidden="true" class="text-white text-[9cqmin]"></fa-icon>
+      <div class="text-white text-[7cqmin] font-semibold">Verbindung getrennt</div>
       @if (lastUpdateAt(); as lastUpdate) {
-        <div testid="lastUpdateText" class="text-white/80 text-[1.6em]">letzte Anzeige {{ lastUpdate | date:'HH:mm' }}</div>
+        <div testid="lastUpdateText" class="text-white/80 text-[4cqmin]">letzte Anzeige {{ lastUpdate | date:'HH:mm' }}</div>
       }
     </div>
   }
@@ -15,10 +20,10 @@
        with nothing else changing to give it away. Dimmed while disconnected so the overlay above
        reads as authoritative rather than competing with a still-bright, possibly stale number. -->
   <div role="status" class="flex flex-col items-center transition-opacity duration-500" [class.opacity-30]="!connected()">
-    <div testid="title" class="mt-12 text-white text-[10em]">{{ text() }}</div>
-    <div testid="text" class="text-white text-[23em]" [class.tafel-ticket-screen-pulse]="justChanged()">{{ value() }}</div>
+    <div testid="title" class="text-white text-[20cqmin] leading-tight">{{ text() }}</div>
+    <div testid="text" class="text-white text-[48cqmin] leading-none" [class.tafel-ticket-screen-pulse]="justChanged()">{{ value() }}</div>
     @if (previousTicketValue(); as previousValue) {
-      <div testid="previousTicket" class="text-white/60 text-[3em] -mt-8">Zuvor: {{ previousValue }}</div>
+      <div testid="previousTicket" class="text-white/60 text-[7cqmin] mt-[3cqh]">Zuvor: {{ previousValue }}</div>
     }
   </div>
 </div>

@@ -369,20 +369,21 @@ describe('TicketScreenControlComponent', () => {
       expect(distributionTicketScreenApiService.showText).not.toHaveBeenCalled();
     });
 
-    it('switches to "previous" once "Vorheriges Ticket" succeeds', () => {
+    it('stays on "current" when the back arrow reopens a ticket - the reopened ticket is the current one again', () => {
       const fixture = TestBed.createComponent(TicketScreenControlComponent);
       const component = fixture.componentInstance;
+      component.monitorMode.set('startTime');
       distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(emptyTicket));
 
       component.showPreviousTicket();
 
-      expect(component.monitorMode()).toEqual('previous');
+      expect(component.monitorMode()).toEqual('current');
     });
 
     it('switches back to "current" once "Weiter" (next ticket) succeeds', () => {
       const fixture = TestBed.createComponent(TicketScreenControlComponent);
       const component = fixture.componentInstance;
-      component.monitorMode.set('previous');
+      component.monitorMode.set('startTime');
       distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
 
       component.showNextTicket(true);
@@ -400,6 +401,69 @@ describe('TicketScreenControlComponent', () => {
       component.showStartTime();
 
       expect(component.monitorMode()).toEqual('startTime');
+    });
+  });
+
+  describe('back/forward arrows (step through the queue without a new paid/unpaid decision)', () => {
+    it('going back reopens a ticket and arms the forward arrow', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(emptyTicket));
+
+      expect(component.stepsBack()).toEqual(0);
+
+      component.showPreviousTicket();
+
+      expect(distributionTicketScreenApiService.showPreviousTicket).toHaveBeenCalled();
+      expect(component.stepsBack()).toEqual(1);
+    });
+
+    it('the forward arrow advances without a paid/unpaid decision (null) and consumes one step back', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(emptyTicket));
+      distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
+      component.showPreviousTicket();
+
+      component.showNextTicketAgain();
+
+      expect(distributionTicketScreenApiService.showNextTicket).toHaveBeenCalledWith(null);
+      expect(component.stepsBack()).toEqual(0);
+    });
+
+    it('a "Weiter" advance with an explicit decision also consumes a step back', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(emptyTicket));
+      distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
+      component.showPreviousTicket();
+      component.showPreviousTicket();
+
+      component.showNextTicket(true);
+
+      expect(component.stepsBack()).toEqual(1);
+    });
+
+    it('steps back never go negative, so the forward arrow stays disarmed on plain advances', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(emptyTicket));
+
+      component.showNextTicket(true);
+      component.showNextTicket(false);
+
+      expect(component.stepsBack()).toEqual(0);
+    });
+
+    it('a failed back navigation does not arm the forward arrow', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(throwError(() => new Error('API Error')));
+
+      component.showPreviousTicket();
+
+      expect(component.stepsBack()).toEqual(0);
+      expect(toastr.error).toHaveBeenCalledWith('Fehler beim Anzeigen des vorherigen Tickets!');
     });
   });
 

@@ -18,7 +18,8 @@ import {MatDivider} from '@angular/material/list';
 import {MatDialog} from '@angular/material/dialog';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faCheck, faEuroSign, faLink, faLinkSlash, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faChevronLeft, faChevronRight, faEuroSign, faLink, faLinkSlash, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {CustomerApiService} from '../../../../api/customer-api.service';
 import {HttpErrorResponse} from '@angular/common/http';
@@ -31,7 +32,7 @@ import {
 } from '../../../../common/components/edit-cost-contribution-dialog/edit-cost-contribution-dialog.component';
 
 /** What the public monitor is currently showing - kept in sync with the segmented control. */
-type MonitorMode = 'startTime' | 'current' | 'previous';
+type MonitorMode = 'startTime' | 'current';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
@@ -47,6 +48,7 @@ type MonitorMode = 'startTime' | 'current' | 'previous';
     MatDivider,
     CurrencyPipe,
     MatButtonToggleModule,
+    MatTooltipModule,
     FaIconComponent
   ]
 })
@@ -77,6 +79,12 @@ export class TicketScreenControlComponent {
   /** Which segment of "Monitor zeigt" is active - the segmented control mirrors this. */
   monitorMode = signal<MonitorMode>('current');
 
+  /** How many tickets the back arrow has reopened without them being re-closed yet. The forward
+   *  arrow re-closes one of exactly these (keeping its recorded paid/unpaid decision), so it is
+   *  enabled only while this is > 0 - advancing past that point is a new decision and belongs to
+   *  the "Weiter" buttons. Any successful advance (arrow or "Weiter") consumes one step. */
+  stepsBack = signal(0);
+
   /** How many households are still waiting, derived from the counts the backend already returns
    *  alongside the ticket - `null` while there is nothing to show (no active distribution). */
   readonly queueRemaining = computed(() => {
@@ -92,6 +100,8 @@ export class TicketScreenControlComponent {
   readonly previewConnected = computed(() => this.ticketScreenPreview()?.connected() ?? true);
 
   protected readonly faCheck = faCheck;
+  protected readonly faChevronLeft = faChevronLeft;
+  protected readonly faChevronRight = faChevronRight;
   protected readonly faEuroSign = faEuroSign;
   protected readonly faXmark = faXmark;
   protected readonly faLink = faLink;
@@ -190,7 +200,10 @@ export class TicketScreenControlComponent {
       .subscribe({
         next: (response) => {
           this.currentTicket.set(response);
-          this.monitorMode.set('previous');
+          // The reopened ticket *is* the current one again, so the monitor keeps showing
+          // "Aktuelles Ticket" - going back is queue navigation, not a display mode.
+          this.monitorMode.set('current');
+          this.stepsBack.update(steps => steps + 1);
         },
         error: () => {
           this.toastr.error('Fehler beim Anzeigen des vorherigen Tickets!');
@@ -198,7 +211,17 @@ export class TicketScreenControlComponent {
       });
   }
 
+  /** The forward arrow: re-close the reopened current ticket with the paid/unpaid decision it was
+   *  originally processed with (see `stepsBack`), and show the next one. */
+  showNextTicketAgain() {
+    this.advanceTicket(null);
+  }
+
   showNextTicket(costContributionPaid: boolean) {
+    this.advanceTicket(costContributionPaid);
+  }
+
+  private advanceTicket(costContributionPaid: boolean | null) {
     if (this.isShowingNextTicket()) {
       return;
     }
@@ -209,6 +232,7 @@ export class TicketScreenControlComponent {
         next: (response) => {
           this.currentTicket.set(response);
           this.monitorMode.set('current');
+          this.stepsBack.update(steps => Math.max(0, steps - 1));
         },
         error: () => {
           this.toastr.error('Fehler beim Anzeigen des nächsten Tickets!');

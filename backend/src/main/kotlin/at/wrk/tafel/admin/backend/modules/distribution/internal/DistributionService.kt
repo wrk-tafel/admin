@@ -238,13 +238,17 @@ class DistributionService(
     }
 
     @Transactional
-    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): TicketScreenTicketResponse {
+    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean?): TicketScreenTicketResponse {
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
 
         if (distributionHouseholdEntity != null) {
-            distributionHouseholdEntity.costContributionPaid = costContributionPaid
+            // null = no new paid/unpaid decision - a ticket reopened via reopenAndGetPreviousTicket
+            // keeps the decision recorded when it was originally processed.
+            if (costContributionPaid != null) {
+                distributionHouseholdEntity.costContributionPaid = costContributionPaid
+            }
             distributionHouseholdEntity.processed = true
             distributionHouseholdRepository.save(distributionHouseholdEntity)
 

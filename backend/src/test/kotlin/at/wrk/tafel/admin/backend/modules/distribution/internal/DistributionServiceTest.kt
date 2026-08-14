@@ -1083,6 +1083,45 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `close current ticket without a new decision keeps the recorded costContributionPaid`() {
+        every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
+
+        // A ticket reopened via reopenAndGetPreviousTicket keeps the paid/unpaid decision it was
+        // originally processed with - re-closing it with costContributionPaid = null (the forward
+        // arrow on the control screen) must not overwrite that decision.
+        val reopenedDistributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = false,
+            costContributionPaid = false,
+        ).apply {
+            id = 1
+            createdAt = LocalDateTime.now()
+        }
+
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(
+                reopenedDistributionHouseholdEntity,
+            )
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = null)
+
+        verify {
+            distributionHouseholdRepository.save(
+                withArg {
+                    assertThat(it.costContributionPaid).isFalse()
+                    assertThat(it.processed).isTrue()
+                },
+            )
+        }
+    }
+
+    @Test
     fun `close current ticket and next with all tickets resolved`() {
         val testDistributionHouseholdEntity1 = DistributionHouseholdEntity(
             distribution = testDistributionEntity,
