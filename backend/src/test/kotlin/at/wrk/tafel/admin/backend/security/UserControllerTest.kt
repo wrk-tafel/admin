@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -56,6 +57,17 @@ class UserControllerTest {
 
     @InjectMockKs
     private lateinit var controller: UserController
+
+    /**
+     * A relaxed mock returns a relaxed child mock for a nullable `LocalDateTime?`, not `null` -
+     * every test that doesn't care about lockout state (i.e. almost all of them, via
+     * `testUserResponse`'s `lockedUntil = null`) needs this default so mapToResponse's per-user
+     * lookup resolves the same "not locked" answer `testUserResponse` expects.
+     */
+    @BeforeEach
+    fun stubNoActiveLockoutByDefault() {
+        every { loginAttemptService.getLockedUntil(any<String>()) } returns null
+    }
 
     @AfterEach
     fun afterEach() {
@@ -164,6 +176,21 @@ class UserControllerTest {
         assertThat(response.body).isEqualTo(testUserResponse)
     }
 
+    /**
+     * Single-user endpoints (get/create/update) each look the lockout up for just that one
+     * username - the batched form in `getUsers` below exists specifically to avoid this per-row.
+     */
+    @Test
+    fun `get user surfaces a currently active lockout`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+        val lockedUntil = LocalDate.of(2026, 1, 1).atStartOfDay()
+        every { loginAttemptService.getLockedUntil(testUser.username) } returns lockedUntil
+
+        val response = controller.getUser(1)
+
+        assertThat(response.body?.lockedUntil).isEqualTo(lockedUntil)
+    }
+
     @Test
     fun `get users found when filtered by personnel number`() {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
@@ -227,6 +254,34 @@ class UserControllerTest {
                 page = page,
             )
         }
+    }
+
+    /**
+     * The page's lockout state is looked up once for the whole page (see
+     * LoginAttemptService.getLockedUntil(Collection<String>)) rather than once per row - this pins
+     * that wiring down, since a per-row lookup would still pass a unit test that only checks the
+     * final response shape.
+     */
+    @Test
+    fun `get users surfaces each row's lockout from the batched lookup`() {
+        val lockedUser = testUser.copy(id = 2, username = "locked-user")
+        val userSearchResult = UserSearchResult(
+            items = listOf(testUser, lockedUser),
+            totalCount = 2,
+            currentPage = 1,
+            totalPages = 1,
+            pageSize = 2,
+        )
+        every { userDetailsManager.loadUsers(any(), any(), any(), any()) } returns userSearchResult
+        val lockedUntil = LocalDate.of(2026, 1, 1).atStartOfDay()
+        every {
+            loginAttemptService.getLockedUntil(listOf(testUser.username, lockedUser.username))
+        } returns mapOf(lockedUser.username to lockedUntil)
+
+        val response = controller.getUsers()
+
+        assertThat(response.items).extracting<java.time.LocalDateTime?> { it.lockedUntil }
+            .containsExactly(null, lockedUntil)
     }
 
     @Test

@@ -82,7 +82,7 @@
             <tafel-enabled-toggle [enabled]="view.route.enabled" [label]="'Route ' + view.route.name"
                                   [testId]="'routes-enabled-toggle-' + i"
                                   (enabledChange)="setRouteEnabled(view.route, $event)"/>
-            <button matButton="filled" class="button-danger" [attr.testid]="'editRouteButton-' + i"
+            <button matButton="filled" [attr.testid]="'editRouteButton-' + i"
                     [disabled]="!view.route.enabled" [attr.aria-label]="'Route ' + view.route.name + ' bearbeiten'"
                     (click)="editRoute(view.route)">
               <fa-icon [icon]="faPencil"></fa-icon>

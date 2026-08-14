@@ -66,7 +66,7 @@
             <tafel-enabled-toggle [enabled]="view.shop.enabled" [label]="'Filiale ' + view.shop.name"
                                   [testId]="'shops-enabled-toggle-' + i"
                                   (enabledChange)="setShopEnabled(view.shop, $event)"/>
-            <button matButton="filled" class="button-danger" [attr.testid]="'editShopButton-' + i"
+            <button matButton="filled" [attr.testid]="'editShopButton-' + i"
                     [disabled]="!view.shop.enabled" [attr.aria-label]="'Filiale ' + view.shop.name + ' bearbeiten'"
                     (click)="editShop(view.shop)">
               <fa-icon [icon]="faPencil"></fa-icon>
