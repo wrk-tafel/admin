@@ -161,7 +161,7 @@
                 }
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex gap-2">
+            <mat-card-actions>
               @if (loginAttempt.locked) {
                 <button matButton="filled" [attr.testid]="'unlockLoginAttemptButtonMobile-' + i" (click)="unlock(loginAttempt)"
                         [attr.aria-label]="'Sperre für ' + loginAttempt.username + ' aufheben'">

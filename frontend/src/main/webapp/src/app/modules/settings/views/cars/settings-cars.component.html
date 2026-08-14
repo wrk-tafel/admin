@@ -155,7 +155,7 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex items-center gap-2">
+            <mat-card-actions>
               <tafel-enabled-toggle [enabled]="car.enabled" [label]="'Fahrzeug ' + car.name"
                                     [testId]="'cars-enabled-toggle-mobile-' + i"
                                     (enabledChange)="toggleCarVisibility(car, $event)"/>
