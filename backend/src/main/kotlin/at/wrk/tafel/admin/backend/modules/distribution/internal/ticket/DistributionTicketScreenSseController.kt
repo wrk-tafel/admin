@@ -25,13 +25,7 @@ class DistributionTicketScreenSseController(
     fun listenForChanges(): SseEmitter {
         val sseEmitter = sseEmitterFactory.createSseEmitter()
 
-        // send initial state
-        var currentTicketNumber: Int? = null
-        if (service.hasCurrentDistribution()) {
-            currentTicketNumber = service.getCurrentTicketNumberValue()
-        }
-        val payload = TicketScreenShowTextRequest(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
-        sseOutboxService.sendEvent(sseEmitter, payload)
+        sseOutboxService.sendEvent(sseEmitter, initialState())
 
         sseOutboxService.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
@@ -40,5 +34,27 @@ class DistributionTicketScreenSseController(
         )
 
         return sseEmitter
+    }
+
+    /**
+     * What a freshly connected monitor shows until the next event arrives: the value the operator
+     * last put on the screen - e.g. a start time set before the monitor was even opened - not a
+     * synthesized "current ticket". Replayed from the outbox, bounded at the previous
+     * distribution's end so a monitor opened on a new distribution day never resurrects a ticket
+     * number from the last one (outbox rows live for the whole retention). Only when nothing was
+     * shown since then does the current ticket serve as the fallback.
+     */
+    private fun initialState(): TicketScreenShowTextRequest {
+        val lastShown = sseOutboxService.findLatestEvent(
+            notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+            resultType = TicketScreenShowTextRequest::class.java,
+            after = service.getLastEndedDistributionTime(),
+        )
+        if (lastShown != null) {
+            return lastShown
+        }
+
+        val currentTicketNumber = if (service.hasCurrentDistribution()) service.getCurrentTicketNumberValue() else null
+        return TicketScreenShowTextRequest(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
     }
 }

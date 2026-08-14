@@ -59,6 +59,29 @@ class SseOutboxServiceTest {
     }
 
     @Test
+    fun `findLatestEvent without a bound reads the newest entry of the stream`() {
+        val entity = SseOutboxEntity().apply { payload = testPayloadString }
+        every { sseOutboxRepository.findFirstByNotificationNameOrderByIdDesc(notificationName) } returns entity
+
+        val result = service.findLatestEvent(notificationName, TestJsonPayload::class.java, after = null)
+
+        assertThat(result).isEqualTo(testPayload)
+    }
+
+    @Test
+    fun `findLatestEvent with a bound only reads entries written after it`() {
+        val after = LocalDateTime.now().minusHours(1)
+        every {
+            sseOutboxRepository.findFirstByNotificationNameAndEventTimeAfterOrderByIdDesc(notificationName, after)
+        } returns null
+
+        val result = service.findLatestEvent(notificationName, TestJsonPayload::class.java, after = after)
+
+        assertThat(result).isNull()
+        verify(exactly = 0) { sseOutboxRepository.findFirstByNotificationNameOrderByIdDesc(any()) }
+    }
+
+    @Test
     fun `cleanup outbox`() {
         service.cleanupOutbox()
 

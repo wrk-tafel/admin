@@ -1,0 +1,10 @@
+<tafel-dialog testId="unsavedchanges-dialog" type="warning" title="Ungespeicherte Änderungen">
+  <div tafel-dialog-content>
+    <div class="mb-2">Es gibt ungespeicherte Änderungen in diesem Formular. Beim Verlassen gehen sie verloren.</div>
+    <div class="font-bold mt-6">Trotzdem verlassen?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" class="button-danger" (click)="dialogRef.close(true)">Verlassen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

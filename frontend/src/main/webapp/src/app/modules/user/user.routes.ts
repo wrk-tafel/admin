@@ -5,6 +5,7 @@ import {UserDataResolver} from './resolver/userdata-resolver.component';
 import {UserEditComponent} from './views/user-edit/user-edit.component';
 import {PermissionsDataResolver} from './resolver/permissionsdata-resolver.component';
 import {UserLoginAttemptsComponent} from './views/login-attempts/user-login-attempts.component';
+import {unsavedChangesGuard} from '../../common/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
@@ -13,6 +14,7 @@ export const routes: Routes = [
     component: UserDetailComponent,
     resolve: {
       userData: UserDataResolver,
+      permissionsData: PermissionsDataResolver,
     }
   },
   {
@@ -22,7 +24,8 @@ export const routes: Routes = [
     resolve: {
       userData: UserDataResolver,
       permissionsData: PermissionsDataResolver
-    }
+    },
+    canDeactivate: [unsavedChangesGuard]
   },
   {
     path: 'suchen',
@@ -35,7 +38,8 @@ export const routes: Routes = [
     component: UserEditComponent,
     resolve: {
       permissionsData: PermissionsDataResolver
-    }
+    },
+    canDeactivate: [unsavedChangesGuard]
   },
   {
     path: 'anmelde-versuche',

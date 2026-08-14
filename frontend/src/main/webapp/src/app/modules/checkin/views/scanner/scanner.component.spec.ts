@@ -6,7 +6,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ScannerComponent } from './scanner.component';
 import { QRCodeReaderService } from '../../services/qrcode-reader/qrcode-reader.service';
 import { ScannerApiService } from '../../../../api/scanner-api.service';
-import { EMPTY, of } from 'rxjs';
+import { EMPTY, of, throwError } from 'rxjs';
 
 describe('ScannerComponent', () => {
     let scannerApiService: MockedObject<ScannerApiService>;
@@ -14,14 +14,14 @@ describe('ScannerComponent', () => {
     let fixture: ComponentFixture<ScannerComponent>;
     let component: ScannerComponent;
 
-    beforeEach((() => {
+    function setupTestBed(registerScannerReturn = of({ scannerId: 123 })) {
         TestBed.configureTestingModule({
             imports: [CommonModule, RouterTestingModule],
             providers: [
                 {
                     provide: ScannerApiService,
                     useValue: {
-                        registerScanner: vi.fn().mockReturnValue(of({ scannerId: 123 })),
+                        registerScanner: vi.fn().mockReturnValue(registerScannerReturn),
                         sendScanResult: vi.fn().mockReturnValue(EMPTY)
                     }
                 },
@@ -34,7 +34,9 @@ describe('ScannerComponent', () => {
                         getCameras: vi.fn().mockResolvedValue([]),
                         getCurrentCamera: vi.fn().mockReturnValue({ deviceId: 'default', label: 'Default Camera' } as MediaDeviceInfo),
                         init: vi.fn(),
-                        start: vi.fn().mockResolvedValue(undefined)
+                        start: vi.fn().mockResolvedValue(undefined),
+                        isTorchSupported: vi.fn().mockReturnValue(false),
+                        setTorch: vi.fn().mockResolvedValue(undefined)
                     }
                 }
             ]
@@ -47,9 +49,10 @@ describe('ScannerComponent', () => {
         component = fixture.componentInstance;
         fixture.detectChanges();
 
-        // Wait for effects to complete
         return fixture.whenStable();
-    }));
+    }
+
+    beforeEach(() => setupTestBed());
 
     it('component can be created', () => {
         expect(component).toBeTruthy();
@@ -156,6 +159,165 @@ describe('ScannerComponent', () => {
         const result = component.trackByCameraId(testCamera);
 
         expect(result).toBe('cam1');
+    });
+
+    describe('phase / connection state', () => {
+        it('starts in the pairing phase', () => {
+            expect(component.phase()).toBe('pairing');
+            expect(component.connectionLost()).toBe(false);
+        });
+
+        it('switches to the scanning phase once the camera first starts successfully', async () => {
+            await component.processQrCodeReaderPromise(Promise.resolve());
+
+            expect(component.phase()).toBe('scanning');
+        });
+
+        it('a later camera failure surfaces as connectionLost instead of reverting to pairing', async () => {
+            await component.processQrCodeReaderPromise(Promise.resolve());
+            expect(component.phase()).toBe('scanning');
+
+            await component.processQrCodeReaderPromise(Promise.reject());
+
+            expect(component.phase()).toBe('scanning');
+            expect(component.connectionLost()).toBe(true);
+        });
+
+        it('a failed registration surfaces as connectionLost once scanning has started', async () => {
+            await component.processQrCodeReaderPromise(Promise.resolve());
+            expect(component.connectionLost()).toBe(false);
+
+            scannerApiService.registerScanner.mockReturnValue(throwError(() => new Error('network down')));
+            component.retryRegistration();
+            await fixture.whenStable();
+
+            expect(component.connectionLost()).toBe(true);
+        });
+
+        it('retryRegistration re-registers and clears connectionLost on success', async () => {
+            await component.processQrCodeReaderPromise(Promise.resolve());
+            scannerApiService.registerScanner.mockReturnValue(throwError(() => new Error('down')));
+            component.retryRegistration();
+            await fixture.whenStable();
+            expect(component.connectionLost()).toBe(true);
+
+            scannerApiService.registerScanner.mockReturnValue(of({ scannerId: 999 }));
+            component.retryRegistration();
+            await fixture.whenStable();
+
+            expect(component.connectionLost()).toBe(false);
+            expect(component.scannerId()).toBe(999);
+        });
+    });
+
+    describe('scan feedback', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('shows non-duplicate feedback for a new scan and clears it after the timeout', () => {
+            component.lastScanResult.set(undefined);
+
+            component.qrCodeReaderSuccessCallback('12345');
+
+            expect(component.scanFeedback()).toEqual({ value: 12345, isDuplicate: false });
+
+            vi.advanceTimersByTime(2000);
+
+            expect(component.scanFeedback()).toBeUndefined();
+        });
+
+        it('shows duplicate feedback for the same code scanned again', () => {
+            component.lastScanResult.set(12345);
+
+            component.qrCodeReaderSuccessCallback('12345');
+
+            expect(component.scanFeedback()).toEqual({ value: 12345, isDuplicate: true });
+        });
+
+        it('a new scan while feedback is still showing resets the auto-hide timer', () => {
+            component.lastScanResult.set(undefined);
+
+            component.qrCodeReaderSuccessCallback('111');
+            vi.advanceTimersByTime(1500);
+            component.qrCodeReaderSuccessCallback('222');
+            vi.advanceTimersByTime(1500);
+
+            // Still showing - the second scan's own 2s window hasn't elapsed yet
+            expect(component.scanFeedback()).toEqual({ value: 222, isDuplicate: false });
+
+            vi.advanceTimersByTime(500);
+
+            expect(component.scanFeedback()).toBeUndefined();
+        });
+
+        it('does not retrigger feedback for the same still-in-frame code within the cooldown', () => {
+            // The QR reader decodes a code sitting in front of the camera roughly every 250ms
+            // (QRCodeReaderService's delayBetweenScanAttempts) - without this, the flash/vibration
+            // would fire dozens of times while the runner is still holding the card up.
+            component.lastScanResult.set(undefined);
+
+            component.qrCodeReaderSuccessCallback('12345');
+            vi.advanceTimersByTime(2000); // auto-hide fires
+            expect(component.scanFeedback()).toBeUndefined();
+
+            component.qrCodeReaderSuccessCallback('12345'); // still within the 3s cooldown
+
+            expect(component.scanFeedback()).toBeUndefined();
+        });
+
+        it('re-presenting the same code after the cooldown shows duplicate feedback again', () => {
+            component.lastScanResult.set(undefined);
+
+            component.qrCodeReaderSuccessCallback('12345');
+            vi.advanceTimersByTime(3000); // past both the auto-hide and the rescan cooldown
+
+            component.qrCodeReaderSuccessCallback('12345');
+
+            expect(component.scanFeedback()).toEqual({ value: 12345, isDuplicate: true });
+        });
+    });
+
+    describe('torch', () => {
+        it('toggleTorch is a no-op when the camera does not support a torch', async () => {
+            qrCodeReaderService.isTorchSupported.mockReturnValue(false);
+            await component.processQrCodeReaderPromise(Promise.resolve());
+
+            await component.toggleTorch();
+
+            expect(qrCodeReaderService.setTorch).not.toHaveBeenCalled();
+            expect(component.torchOn()).toBe(false);
+        });
+
+        it('toggleTorch switches the torch on and off when supported', async () => {
+            qrCodeReaderService.isTorchSupported.mockReturnValue(true);
+            await component.processQrCodeReaderPromise(Promise.resolve());
+            expect(component.torchSupported()).toBe(true);
+
+            await component.toggleTorch();
+            expect(qrCodeReaderService.setTorch).toHaveBeenCalledWith(true);
+            expect(component.torchOn()).toBe(true);
+
+            await component.toggleTorch();
+            expect(qrCodeReaderService.setTorch).toHaveBeenCalledWith(false);
+            expect(component.torchOn()).toBe(false);
+        });
+
+        it('switching camera resets the torch state', async () => {
+            qrCodeReaderService.isTorchSupported.mockReturnValue(true);
+            await component.processQrCodeReaderPromise(Promise.resolve());
+            await component.toggleTorch();
+            expect(component.torchOn()).toBe(true);
+
+            component.currentCamera.set({ deviceId: 'other', label: 'Other Camera' } as MediaDeviceInfo);
+            await fixture.whenStable();
+
+            expect(component.torchOn()).toBe(false);
+        });
     });
 
 });

@@ -1,6 +1,14 @@
-<div>
+<div class="pb-4">
   <tafel-user-form [userData]="userData()" [permissionsData]="permissionsData()" (userDataChange)="userDataUpdated($event)"></tafel-user-form>
-  <button testid="save-button" matButton="filled" class="px-6 mt-4" (click)="save()" [disabled]="!isSaveEnabled()"
-          [class.button-success]="isSaveEnabled()" [class.button-danger]="!isSaveEnabled()">Speichern
-  </button>
+  <!--
+    Sticky rather than scrolling away with the (long) permission grid above it - and always
+    button-success, never swapped to button-danger while disabled: an incomplete form is not an
+    error state, it just isn't submittable yet, which the plain Material disabled styling already
+    says on its own (same convention as e.g. the ticket-screen's "Weiter" buttons).
+  -->
+  <div class="sticky bottom-0 z-10 -mx-6 mt-4 border-t border-slate-200 bg-white/95 px-6 py-3 backdrop-blur">
+    <button testid="save-button" matButton="filled" class="button-success px-6" (click)="save()"
+            [disabled]="!isSaveEnabled()">Speichern
+    </button>
+  </div>
 </div>

@@ -59,4 +59,28 @@ describe('TafelEnabledToggleComponent', () => {
     const toggle = fixture.nativeElement.querySelector('[testid="cars-enabled-toggle-0"]');
     expect(toggle.querySelector('button').getAttribute('aria-checked')).toBe('false');
   });
+
+  it('stays on the bound state when the parent does not accept the change', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+
+    // the host leaves `enabled` untouched, like a parent whose confirmation dialog was cancelled
+    fixture.nativeElement.querySelector('[testid="cars-enabled-toggle-0"] button').click();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('[testid="cars-enabled-toggle-0"] button');
+    expect(button.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('moves once the parent applies the change to the bound state', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('[testid="cars-enabled-toggle-0"] button').click();
+    fixture.componentInstance.enabled.set(false);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('[testid="cars-enabled-toggle-0"] button');
+    expect(button.getAttribute('aria-checked')).toBe('false');
+  });
 });
