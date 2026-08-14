@@ -172,6 +172,23 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
     fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)
 
+    @GetMapping("/overview/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    fun generateHouseholdsOverviewCsv(@RequestParam distributionId: Long? = null): ResponseEntity<InputStreamResource> {
+        val csvResult = householdService.generateHouseholdsOverviewCsv(distributionId)
+        val headers = HttpHeaders()
+        headers.add(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "inline; filename=${csvResult.filename}",
+        )
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
+    }
+
     @GetMapping("/duplicates")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(
