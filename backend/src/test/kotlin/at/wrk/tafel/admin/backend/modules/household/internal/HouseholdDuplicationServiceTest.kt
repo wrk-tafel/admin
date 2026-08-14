@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
@@ -9,6 +11,8 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -26,6 +30,9 @@ internal class HouseholdDuplicationServiceTest {
 
     @RelaxedMockK
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @RelaxedMockK
+    private lateinit var householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository
 
     @InjectMockKs
     private lateinit var service: HouseholdDuplicationService
@@ -77,5 +84,27 @@ internal class HouseholdDuplicationServiceTest {
         assertThat(result.pageSize).isEqualTo(pageSize)
         assertThat(result.currentPage).isEqualTo(page)
         assertThat(result.totalPages).isEqualTo(totalCount / pageSize)
+    }
+
+    @Test
+    fun `dismiss - normalizes ids into low-high order and saves`() {
+        every { householdDuplicateDismissalRepository.existsByHouseholdIdLowAndHouseholdIdHigh(1L, 2L) } returns false
+        val savedSlot = slot<HouseholdDuplicateDismissalEntity>()
+        every { householdDuplicateDismissalRepository.saveAndFlush(capture(savedSlot)) } answers { savedSlot.captured }
+
+        service.dismiss(householdId = 2L, otherHouseholdId = 1L)
+
+        verify { householdDuplicateDismissalRepository.saveAndFlush(any()) }
+        assertThat(savedSlot.captured.householdIdLow).isEqualTo(1L)
+        assertThat(savedSlot.captured.householdIdHigh).isEqualTo(2L)
+    }
+
+    @Test
+    fun `dismiss - already dismissed pair is a no-op`() {
+        every { householdDuplicateDismissalRepository.existsByHouseholdIdLowAndHouseholdIdHigh(1L, 2L) } returns true
+
+        service.dismiss(householdId = 1L, otherHouseholdId = 2L)
+
+        verify(exactly = 0) { householdDuplicateDismissalRepository.saveAndFlush(any()) }
     }
 }

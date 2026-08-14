@@ -246,6 +246,15 @@ The self-join condition anchors each match on the *smaller* `household_id`
 exactly one row - anchored on whichever of A/B has the lower id - instead of two mirrored rows (once
 per direction).
 
+`dismiss(householdId, otherHouseholdId)` records a reviewer's "kein Duplikat" decision on the
+`/kunden/duplikate` screen: it normalizes the two ids into `household_id_low`/`household_id_high`
+(matching the anchor ordering above) and stores them in `household_duplicate_dismissals`
+(`HouseholdDuplicateDismissalEntity`/`Repository`). `DUPLICATE_CONDITIONS`'s `NOT EXISTS` anti-join
+against that table is what keeps a dismissed pair from resurfacing on a later visit - without it, a
+decision made once would reappear on every review pass. The table has no foreign key to
+`households`: its columns hold the business `household_id`, which is never reused once assigned, so
+a dismissal outliving a deleted household is simply inert rather than a dangling reference.
+
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
 re-parenting work.

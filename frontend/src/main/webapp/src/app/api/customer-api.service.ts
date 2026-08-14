@@ -116,6 +116,14 @@ export class CustomerApiService {
     );
   }
 
+  /**
+   * Records that `householdId` and `otherHouseholdId` were reviewed and judged not to be a
+   * duplicate, so {@link getCustomerDuplicates} stops surfacing that specific pair.
+   */
+  dismissDuplicate(householdId: number, otherHouseholdId: number): Observable<void> {
+    return this.http.post<void>('/households/duplicates/dismiss', {householdId, otherHouseholdId});
+  }
+
   getCustomersAboveLimit(
     page?: number, pageSize?: number, sortBy?: string, sortDirection?: string
   ): Observable<CustomerAboveLimitResponse> {
