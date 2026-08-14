@@ -7,8 +7,19 @@ Content-Type: application/json
   "value": "123"
 }
 
+### Get current ticket (read-only, does not change what the ticket screen shows)
+GET {{baseApiPath}}/distributions/ticket-screen/current
+
 ### Show current ticket on ticket screen
 POST {{baseApiPath}}/distributions/ticket-screen/show-current
+
+### Show next ticket on ticket screen without a new paid/unpaid decision (keeps the recorded one)
+POST {{baseApiPath}}/distributions/ticket-screen/show-next
+Content-Type: application/json
+
+{
+  "costContributionPaid": null
+}
 
 ### Show previous ticket on ticket screen
 POST {{baseApiPath}}/distributions/ticket-screen/show-previous

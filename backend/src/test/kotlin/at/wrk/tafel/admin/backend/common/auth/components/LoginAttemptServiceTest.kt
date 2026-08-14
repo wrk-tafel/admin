@@ -107,6 +107,10 @@ internal class LoginAttemptServiceTest {
         every { loginAttemptRepository.deleteById(any()) } answers {
             entries.values.removeIf { it.id == firstArg<Long>() }
         }
+        every { loginAttemptRepository.findAllByUsernameIn(any()) } answers {
+            val usernames = firstArg<Collection<String>>()
+            entries.values.filter { usernames.contains(it.username) }
+        }
 
         advisoryLockService = mockk()
         every { advisoryLockService.withLock(any(), any<() -> Any?>()) } answers {
@@ -360,5 +364,54 @@ internal class LoginAttemptServiceTest {
     fun `deleteById fails when id is not found`() {
         assertThatThrownBy { service.deleteById(999L) }
             .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `getLockedUntil returns null without any failures`() {
+        assertThat(service.getLockedUntil("user")).isNull()
+    }
+
+    @Test
+    fun `getLockedUntil returns the lock timestamp once locked`() {
+        repeat(MAX_FAILURES) { service.recordFailure("user") }
+
+        assertThat(service.getLockedUntil("user")).isEqualTo(entries.getValue("user").lockedUntil)
+    }
+
+    @Test
+    fun `getLockedUntil returns null once the lock has expired`() {
+        repeat(MAX_FAILURES) { service.recordFailure("user") }
+        clock.advanceBy(Duration.ofSeconds(LOCKOUT_DURATION_SECONDS + 1))
+
+        assertThat(service.getLockedUntil("user")).isNull()
+    }
+
+    @Test
+    fun `batched getLockedUntil returns an empty map for an empty input`() {
+        assertThat(service.getLockedUntil(emptyList())).isEmpty()
+    }
+
+    /**
+     * The result is keyed by the exact strings passed in - not the normalized/lower-cased form
+     * used for the lookup - so a caller (UserController) can index it with the same
+     * TafelUser.username it passed here, whatever casing that happens to be.
+     */
+    @Test
+    fun `batched getLockedUntil only contains currently-locked usernames, keyed by the original casing`() {
+        repeat(MAX_FAILURES) { service.recordFailure("Locked-User") }
+        service.recordFailure("not-locked-user")
+
+        val result = service.getLockedUntil(listOf("Locked-User", "not-locked-user", "unknown-user"))
+
+        assertThat(result).containsOnlyKeys("Locked-User")
+        assertThat(result.getValue("Locked-User")).isEqualTo(entries.getValue("locked-user").lockedUntil)
+    }
+
+    @Test
+    fun `batched getLockedUntil excludes an expired lock`() {
+        repeat(MAX_FAILURES) { service.recordFailure("user") }
+        clock.advanceBy(Duration.ofSeconds(LOCKOUT_DURATION_SECONDS + 1))
+
+        assertThat(service.getLockedUntil(listOf("user"))).isEmpty()
     }
 }

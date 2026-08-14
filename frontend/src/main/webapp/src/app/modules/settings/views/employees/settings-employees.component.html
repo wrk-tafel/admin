@@ -124,7 +124,7 @@
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButton-' + i" matTooltip="Mitarbeiter bearbeiten"
+            <button matButton="filled" [attr.testid]="'editEmployeeButton-' + i" matTooltip="Mitarbeiter bearbeiten"
                     (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -210,7 +210,7 @@
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
+                <button matButton="filled" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
                         (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>

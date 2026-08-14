@@ -48,6 +48,9 @@ data class UserResponse(
     val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean,
     val permissions: List<UserPermissionItem>,
+    // Currently active lockout from failed logins (see LoginAttemptService); null once it expired
+    // or none is on record. Server-computed - never bound from a UserRequest.
+    val lockedUntil: LocalDateTime? = null,
 )
 
 @ExcludeFromTestCoverage

@@ -15,12 +15,14 @@ import {CustomerMergePreviewResolver} from './resolver/customer-merge-preview-re
 import {CustomerOverviewComponent} from './views/customer-overview/customer-overview.component';
 import {CustomerOverviewDataResolver} from './resolver/customer-overview-data-resolver.component';
 import {CustomerOverviewDistributionsResolver} from './resolver/customer-overview-distributions-resolver.component';
+import {customerEditUnsavedChangesGuard} from './views/customer-edit/customer-edit-unsaved-changes.guard';
 
 export const routes: Routes = [
   {
     path: 'anlegen',
     title: 'Kunden anlegen',
-    component: CustomerEditComponent
+    component: CustomerEditComponent,
+    canDeactivate: [customerEditUnsavedChangesGuard]
   },
   {
     path: 'detail/:id',
@@ -38,7 +40,8 @@ export const routes: Routes = [
     component: CustomerEditComponent,
     resolve: {
       customerData: CustomerDataResolver
-    }
+    },
+    canDeactivate: [customerEditUnsavedChangesGuard]
   },
   {
     path: 'suchen',

@@ -65,7 +65,7 @@ describe('User Create', () => {
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
-      cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
+      linkEmployee('test-personnelNumber-' + userRandomId);
       cy.byTestId('lastnameInput').type('test-lastname');
       cy.byTestId('firstnameInput').type('test-firstname');
 
@@ -127,7 +127,7 @@ describe('User Create', () => {
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
-      cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
+      linkEmployee('test-personnelNumber-' + userRandomId);
       cy.byTestId('lastnameInput').type('test-lastname');
       cy.byTestId('firstnameInput').type('test-firstname');
 
@@ -146,6 +146,65 @@ describe('User Create', () => {
     });
   });
 
+  it('personnel number can only be a real, resolved employee', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      cy.byTestId('usernameInput').type('test-username-' + userRandomId);
+      cy.byTestId('lastnameInput').type('test-lastname');
+      cy.byTestId('firstnameInput').type('test-firstname');
+      cy.byTestId('generate-password-button').click();
+
+      // an employee number never resolved through the search stays invalid, even though something
+      // is typed into the field
+      cy.byTestId('personnelNumberInput').type('never-searched');
+      cy.byTestId('personnelNumberInput').blur();
+      cy.contains('mat-error', 'Bitte einen Mitarbeiter über die Personalnummer-Suche auswählen').should('be.visible');
+      cy.byTestId('save-button').should('be.disabled');
+
+      // '00000' is the personnel number of the e2etest fixture employee - a single match resolves
+      // straight away without any dialog
+      cy.byTestId('personnelNumberInput').clear().type('00000');
+      cy.byTestId('user-employee-search-button').click();
+      cy.byTestId('personnelNumberInput').should('not.exist');
+      cy.byTestId('selectedEmployeeDescription').should('have.text', '00000 E2E Test');
+      cy.byTestId('save-button').should('be.enabled');
+
+      // removing the link goes back to requiring a fresh search
+      cy.byTestId('selectedEmployeeRemoveButton').click();
+      cy.byTestId('personnelNumberInput').should('exist').and('have.value', '');
+      cy.byTestId('save-button').should('be.disabled');
+    });
+  });
+
+  it('generated password can be revealed, copied and defaults to requiring a change on next login', () => {
+    cy.visit('/benutzer/erstellen');
+    cy.window().then((win) => {
+      cy.stub(win.navigator.clipboard, 'writeText').as('clipboardWrite').resolves();
+    });
+
+    cy.byTestId('passwordInput').should('have.attr', 'type', 'password');
+    cy.byTestId('passwordChangeRequiredInput').find('input').should('be.checked');
+    cy.byTestId('copy-password-button').should('not.exist');
+
+    cy.byTestId('generate-password-button').click();
+
+    // revealed in the clear, not masked
+    cy.byTestId('passwordInput').should('have.attr', 'type', 'text').invoke('val').should('not.be.empty');
+    cy.byTestId('passwordRepeatInput').should('have.attr', 'type', 'text');
+    // still checked - generating a password doesn't accidentally clear the default
+    cy.byTestId('passwordChangeRequiredInput').find('input').should('be.checked');
+
+    cy.byTestId('copy-password-button').click();
+    cy.get('@clipboardWrite').should('have.been.calledOnce');
+  });
+
+  it('password rules are shown next to the password fields', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.byTestId('password-rules').should('be.visible').and('contain.text', 'Mindestens 8 Zeichen');
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);
@@ -158,10 +217,39 @@ describe('User Create', () => {
 
   function fillUserForm(username: string, personnelNumber: string) {
     cy.byTestId('usernameInput').type(username);
-    cy.byTestId('personnelNumberInput').type(personnelNumber);
+    linkEmployee(personnelNumber);
     cy.byTestId('lastnameInput').type('test-lastname');
     cy.byTestId('firstnameInput').type('test-firstname');
     cy.byTestId('generate-password-button').click();
+  }
+
+  // Resolves the personnel-number field to a real employee via the search/create-if-missing widget,
+  // rather than leaving it as unlinked free text - matching the driver/co-driver flow in
+  // food-collection-recording.cy.ts. Branches on the actual search result rather than assuming "not
+  // found", since a fixed personnel number (e.g. the 409-conflict test below) may already have been
+  // created as an employee by an earlier run against the same database.
+  function linkEmployee(personnelNumber: string) {
+    cy.intercept('GET', '**/employees*').as('findEmployeesForLink');
+    cy.byTestId('personnelNumberInput').type(personnelNumber);
+    cy.byTestId('user-employee-search-button').click();
+
+    cy.wait('@findEmployeesForLink').then((interception) => {
+      const items = interception.response?.body?.items ?? [];
+      if (items.length === 0) {
+        cy.byTestId('user-search-create-dialog').within(() => {
+          cy.byTestId('user-personnelnumber-input').type(personnelNumber);
+          cy.byTestId('user-firstname-input').type('employee-firstname');
+          cy.byTestId('user-lastname-input').type('employee-lastname');
+          cy.byTestId('user-save-button').click();
+        });
+      } else if (items.length > 1) {
+        cy.byTestId('user-select-employee-dialog').within(() => {
+          cy.byTestId('select-employee-button-0').click();
+        });
+      }
+    });
+
+    cy.byTestId('selectedEmployeeDescription').should('contain.text', personnelNumber);
   }
 
 });

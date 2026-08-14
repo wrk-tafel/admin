@@ -57,6 +57,22 @@ class SseOutboxService(
     }
 
     /**
+     * The latest event stored for [notificationName], for streams whose newest event *is* the
+     * current state (e.g. what the ticket monitor shows) - a fresh subscriber gets it replayed as
+     * its initial state instead of the publisher re-deriving that state. [after] bounds the lookup
+     * to events still relevant to the caller (rows live for the whole `outboxRetention`, which is
+     * far longer than any state here stays meaningful); `null` means no bound.
+     */
+    fun <T> findLatestEvent(notificationName: String, resultType: Class<T>, after: LocalDateTime?): T? {
+        val entity = if (after != null) {
+            sseOutboxRepository.findFirstByNotificationNameAndEventTimeAfterOrderByIdDesc(notificationName, after)
+        } else {
+            sseOutboxRepository.findFirstByNotificationNameOrderByIdDesc(notificationName)
+        }
+        return entity?.payload?.let { jsonMapper.readValue(it, resultType) }
+    }
+
+    /**
      * @param replayable see [SseOutboxListenerService.registerCallback] - whether this stream's
      * subscribers can take a duplicate or a late delivery of an event after a reconnect.
      */

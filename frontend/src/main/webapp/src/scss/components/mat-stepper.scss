@@ -1,0 +1,8 @@
+// The stepper paints its own surface by default (--mat-sys-surface, a grey-lavender tint in this
+// theme), which reads as a grey box inside the white cards content sits in. Transparent lets every
+// stepper take the background of whatever surface hosts it. The header label/icon colours all sit
+// on on-surface/primary tokens, which keep their contrast on white, so no text colours need to move
+// along.
+:root {
+  --mat-stepper-container-color: transparent;
+}

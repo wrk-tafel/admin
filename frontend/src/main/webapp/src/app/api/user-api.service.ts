@@ -116,6 +116,9 @@ export interface UserData {
   passwordRepeat?: string;
   passwordChangeRequired: boolean;
   permissions: UserPermission[];
+  // Currently active lockout from failed logins, server-computed; absent/null once it expired or
+  // none is on record - see LoginAttemptService on the backend.
+  lockedUntil?: string | null;
 }
 
 export interface PermissionsListResponse {

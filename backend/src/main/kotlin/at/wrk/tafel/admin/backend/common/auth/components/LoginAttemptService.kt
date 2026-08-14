@@ -42,9 +42,36 @@ class LoginAttemptService(
     }
 
     @Transactional(readOnly = true)
-    fun isLocked(username: String): Boolean {
-        val lockedUntil = loginAttemptRepository.findByUsername(normalize(username))?.lockedUntil ?: return false
-        return lockedUntil.isAfter(now())
+    fun isLocked(username: String): Boolean = getLockedUntil(username) != null
+
+    /**
+     * The lockout an admin sees on the user search/detail screens - `null` once it has expired,
+     * even though the row is only cleaned up later by [cleanupStaleEntries].
+     */
+    @Transactional(readOnly = true)
+    fun getLockedUntil(username: String): LocalDateTime? {
+        val lockedUntil = loginAttemptRepository.findByUsername(normalize(username))?.lockedUntil ?: return null
+        return lockedUntil.takeIf { it.isAfter(now()) }
+    }
+
+    /**
+     * Batched form of [getLockedUntil] for a page of search results - one query for the whole page
+     * rather than one per row. Result is keyed by the exact strings passed in (not the normalized
+     * form used for the lookup), so a caller can index it with the same [TafelUser.username] it
+     * passed here. Only currently-locked usernames are present in the result map.
+     */
+    @Transactional(readOnly = true)
+    fun getLockedUntil(usernames: Collection<String>): Map<String, LocalDateTime> {
+        if (usernames.isEmpty()) {
+            return emptyMap()
+        }
+        val originalByNormalized = usernames.associateBy { normalize(it) }
+        return loginAttemptRepository.findAllByUsernameIn(originalByNormalized.keys)
+            .mapNotNull { entity ->
+                val original = originalByNormalized[entity.username] ?: return@mapNotNull null
+                entity.lockedUntil?.takeIf { it.isAfter(now()) }?.let { original to it }
+            }
+            .toMap()
     }
 
     @Transactional

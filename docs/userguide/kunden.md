@@ -6,40 +6,45 @@ Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Fam
 
 ## Kunden suchen
 
-Unter **Kunden → Kunden suchen** kann entweder direkt über die **Kundennummer** (Feld oben, Button **Anzeigen**) zur Detailansicht gesprungen werden, oder über das Feld **Suche** gesucht werden. Ist zur eingegebenen Kundennummer kein Kunde vorhanden, erscheint die Meldung "Kunde nicht gefunden!".
+Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Kundennummer entspricht, springt direkt zur Detailansicht (wie früher der Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
 
 Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
 
-Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" filtern; die Filter können auch ohne Sucheingabe verwendet werden. Das Info-Symbol (ⓘ) neben dem Suchfeld und neben jedem Filter erklärt, wonach genau gesucht wird – "Daten unvollständig" findet z. B. Kunden, bei denen bei einer Person Pflichtangaben fehlen.
+Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus.
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
-Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein.
+Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein. Suchbegriff, Filter und die aktuelle Seite bleiben in der Adresszeile erhalten: Wird ein Kunde aus dem Ergebnis geöffnet und über "Zurück" wieder zur Suche zurückgekehrt, ist dasselbe Ergebnis - inklusive Filter und Seite - sofort wieder da, ohne erneut suchen zu müssen.
 
-Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Über die Aktionen kann der Kunde angesehen (Lupe) oder bearbeitet (Stift) werden. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
+Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Das Gültigkeitsdatum ist wie in der Detailansicht grün (aufrecht) oder rot (abgelaufen) hinterlegt, ein Schloss-Symbol markiert gesperrte Kunden. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
 
-Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und denselben Aktionen (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und derselben Aktion (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 
 ![Suchergebnis auf schmalen Bildschirmen](images/kunden-suchen-ergebnis-mobil.jpg)
 
+Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Keine Kunden gefunden" mit einem Button **Kunden anlegen** - dieser öffnet das Formular für einen neuen Kunden und übernimmt dabei den eingegebenen Suchbegriff bereits als Vor- und Nachname, sofern dieser wie ein Name aussieht (keine reine Zahl).
+
 ## Kunden-Detail
 
-Die Detailansicht eines Kunden zeigt alle Stammdaten des Hauptbeziehers sowie die zuletzt erfasste Notiz.
+Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kundennummer groß darstellt sowie den Status auf einen Blick zeigt: die Gültigkeit als grüne/gelbe/rote Markierung (gelb ab 8 Wochen vor Ablauf), ob der Kunde gesperrt ist, ein offener Unkostenbeitrag samt Betrag, und die Haushaltsgröße. Darunter folgen die Stammdaten des Hauptbeziehers sowie die zuletzt erfasste Notiz.
 
 ![Kunden-Detail](images/kunden-detail.jpg)
 
-Am oberen Rand stehen folgende Aktionen zur Verfügung:
+Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihrer Verwendungshäufigkeit (auf schmalen Bildschirmen erscheinen sie stattdessen unterhalb der Daten, siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 
-- **Daten ausdrucken**: Druck der Stammdaten oder nur des Kundenausweises.
-- **Bezug verlängern**: Verlängert die Gültigkeit des Kunden um 1, 2, 3, 6 oder 12 Monate.
-- **Unkostenbeitrag**: Ist noch ein Betrag offen, stehen "Alles bezahlt" und "Betrag eintragen" zur Verfügung; unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
-- **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten). Über den Pfeil daneben stehen zusätzlich **Kunde deaktivieren**, **Kunde sperren**/**entsperren** und **Kunde löschen** zur Verfügung (jeweils mit Sicherheitsabfrage).
-- Ist gerade ein Ausgabetag aktiv, kann dem Kunden rechts oben eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über den Papierkorb-Button wieder entfernt werden.
-- Über den grünen **+**-Button bei "Aktuellste Notiz" kann eine neue Notiz erfasst werden; bei mehreren Notizen können über **Alle Notizen anzeigen** alle bisherigen Notizen eingesehen werden.
+- **Bezug verlängern**: Verlängert die Gültigkeit des Kunden um 1, 2, 3, 6 oder 12 Monate; jeder Menüpunkt zeigt bereits das resultierende Datum an (z. B. "3 Monate → 12.11.2026").
+- **Daten ausdrucken**: Druck der Stammdaten oder nur des Kundenausweises. Während die PDF-Datei erstellt wird, zeigt der Button eine Ladeanimation statt stumm zu warten.
+- **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten).
+- **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
+- **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren** und **Kunde löschen** (jeweils mit Sicherheitsabfrage) in einem Menü.
+- Ist gerade ein Ausgabetag aktiv, kann dem Kunden rechts oben eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über den Papierkorb-Button wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
+- Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden; bei mehreren Notizen können über **Alle Notizen anzeigen** alle bisherigen Notizen eingesehen werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip.
 
-Beim **Sperren** eines Kunden muss ein **Sperrgrund** angegeben werden. Ein gesperrter Kunde wird danach mit einem roten Hinweisbanner ("Kunde ist gesperrt!", Zeitpunkt und Benutzer der Sperrung sowie der Sperrgrund) angezeigt, und die meisten Aktionen sind deaktiviert.
+Telefonnummer und E-Mail-Adresse sind als Links hinterlegt (öffnen die Telefon- bzw. Mail-App); über den Kopieren-Button neben "Adresse" lässt sich die Adresse in die Zwischenablage kopieren, etwa um sie in ein anderes System einzutragen.
+
+Beim **Sperren** eines Kunden muss ein **Sperrgrund** angegeben werden. Ein gesperrter Kunde wird danach mit einem roten Hinweisbanner ("Kunde ist gesperrt!", Zeitpunkt und Benutzer der Sperrung sowie der Sperrgrund) angezeigt, die meisten Aktionen sind deaktiviert (mit erklärendem Tooltip), und der Kopfbereich zeigt zusätzlich einen "Gesperrt"-Hinweis.
 
 ![Kunde gesperrt](images/kunden-gesperrt.jpg)
 
@@ -47,7 +52,7 @@ Wurde bei einem Kunden zwischenzeitlich von anderer Stelle etwas geändert (z. B
 
 ### Weitere Personen
 
-Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. Kinder) mit Geburtsdatum, Nationalität, Arbeitgeber, Einkommen sowie den Angaben "Bezieht Familienbeihilfe" und "Im selben Haushalt". Personen, die als "Nicht im selben Haushalt" markiert sind, bleiben bei der Berechnung vollständig außen vor – weder ihr Einkommen noch ihre Familienbeihilfe zählen mit, und sie erhöhen weder Haushaltsgröße noch Einkommenslimit.
+Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. Kinder) mit Geburtsdatum, Nationalität, Arbeitgeber, Einkommen und der Angabe "Bezieht Familienbeihilfe". Personen, die nicht zum Haushalt zählen, sind mit einer Markierung "Nicht im Haushalt" gekennzeichnet. Sie bleiben bei der Berechnung vollständig außen vor – weder ihr Einkommen noch ihre Familienbeihilfe zählen mit, und sie erhöhen weder die im Kopfbereich angezeigte Haushaltsgröße noch das Einkommenslimit.
 
 ![Weitere Personen](images/kunden-detail-weitere-personen.jpg)
 
@@ -76,7 +81,7 @@ Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhan
 
 ## Kunden anlegen / bearbeiten
 
-Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein, die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor.
+Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
 
 Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das ihre Wirkung erklärt (siehe [Kurzhinweise](README.md#tooltips-und-erklaerungen)):
 
@@ -89,7 +94,9 @@ Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das
 
 ![Kunde anlegen](images/kunden-anlegen.jpg)
 
-Die Bearbeitungsmaske eines bestehenden Kunden zeigt zusätzlich die bereits erfassten weiteren Personen inklusive der Möglichkeit, einzelne Personen zu entfernen (**Löschen**) oder neue hinzuzufügen (**Hinzufügen**).
+Sobald beim Anlegen eines neuen Kunden Nachname, Vorname und Geburtsdatum des Hauptbeziehers ausgefüllt sind, prüft die Anwendung im Hintergrund, ob bereits ein Kunde mit denselben Angaben existiert, und zeigt gegebenenfalls einen Hinweis "Möglicherweise bereits vorhanden" mit einem Link auf den betroffenen Kunden – noch bevor das restliche Formular ausgefüllt wurde. Dieser frühe Hinweis ersetzt nicht die Duplikatsprüfung beim Speichern (siehe [Kunden-Duplikate](#kunden-duplikate) unten), er macht sie nur früher sichtbar.
+
+Die Bearbeitungsmaske eines bestehenden Kunden zeigt zusätzlich die bereits erfassten weiteren Personen. Jede weitere Person wird als aufklappbare Karte mit einer Zusammenfassungszeile (Name, Alter, Einkommen sowie Kennzeichen wie "Familienbeihilfe") dargestellt; ein Klick auf die Kopfzeile öffnet oder schließt die Detailfelder. Eine neu hinzugefügte Person (**Hinzufügen**) öffnet sich automatisch und erhält den Eingabefokus, alle anderen bleiben eingeklappt. Innerhalb der aufgeklappten Karte kann die Person wieder entfernt werden (**Löschen**).
 
 ![Kunde bearbeiten](images/kunden-bearbeiten.jpg)
 
@@ -104,29 +111,53 @@ Gibt es für die Zusammensetzung eines Haushalts keinen hinterlegten Grundbetrag
 
 ![Anspruch prüfen](images/kunden-anspruch-pruefen.jpg)
 
+Damit die Anspruchsfrage nicht erst hinter diesem Button verschwindet, blendet die Anwendung zusätzlich eine kompakte Zusammenfassung oberhalb des Formulars ein, sobald die dafür nötigen Pflichtfelder (Hauptbezieher und Adresse) ausgefüllt sind: Anzahl der berücksichtigten Personen, Einkommen gesamt, Limit sowie – falls über dem Limit – die Differenz. Diese Zusammenfassung aktualisiert sich automatisch während der Eingabe (kurz nach der letzten Änderung) und bleibt beim Scrollen sichtbar; der Button **Anspruch prüfen** öffnet weiterhin die vollständige Aufschlüsselung als Dialog.
+
+Die Buttons **Anspruch prüfen** und **Speichern** sitzen in einer Leiste am unteren Bildschirmrand, die auch bei einem langen Formular immer erreichbar bleibt. Solange das Formular ungespeicherte Änderungen enthält, zeigt diese Leiste zusätzlich den Hinweis "Ungespeicherte Änderungen". Wird versucht, die Seite mit ungespeicherten Änderungen zu verlassen (z. B. über die Navigation), fragt die Anwendung vorher nach, ob die Änderungen verworfen werden sollen.
+
 ## Kunden-Duplikate
 
-Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und zeigt sie paarweise gegenüber.
+Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und stellt sie als direkten Vergleich gegenüber: Geburtsdatum, Adresse, Personenanzahl und Gültigkeit stehen zeilenweise nebeneinander, abweichende Werte sind hervorgehoben, übereinstimmende Werte blass dargestellt – auf einen Blick ist so erkennbar, worin sich die beiden Kunden unterscheiden. Die Gesamtzahl der noch zu prüfenden Duplikat-Gruppen steht rechts über der Liste (z. B. "6 mögliche Duplikate").
 
 ![Kunden-Duplikate](images/kunden-duplikate.jpg)
 
-Eine Legende auf der Seite erklärt die Bedeutung der einzelnen Icons. Wurden keine Duplikate gefunden, erscheint die Meldung "Keine Duplikate gefunden!". Für jedes gefundene Duplikat-Paar stehen folgende Aktionen zur Verfügung:
+Für jeden Kandidaten eines Duplikat-Paares stehen folgende Aktionen zur Verfügung:
 
-- **Kunden zusammenführen** (grüner Haken): Öffnet den Datenabgleich zur Zusammenführung.
-- **Kunden-Details ansehen** (Lupe): Wechselt zur Detailansicht des jeweiligen Kunden.
-- **Kunden löschen** (Papierkorb): Löscht ausschließlich den ausgewählten Kunden, der andere bleibt bestehen.
+- **Zusammenführen** (grün hervorgehoben): Öffnet den Datenabgleich zur Zusammenführung für diesen Kunden.
+- **Details**: Wechselt zur Detailansicht des jeweiligen Kunden.
+- Über die Schaltfläche mit den weiteren Aktionen (▾) stehen zusätzlich zur Verfügung:
+  - **Kein Duplikat**: Markiert dieses Paar als geprüft und keine Duplikate – es wird danach nicht mehr in der Liste angezeigt.
+  - **Kunde löschen**: Löscht ausschließlich diesen Kunden, der andere bleibt bestehen. Der Bestätigungsdialog nennt dabei ausdrücklich den Namen des zu löschenden Kunden.
+
+Nach dem Löschen oder Markieren als "Kein Duplikat" bleibt die Liste an derselben Position stehen – die geprüfte Gruppe verschwindet einfach aus der Warteschlange. Wurden alle möglichen Duplikate geprüft, erscheint eine positive Bestätigung:
+
+![Keine Duplikate mehr](images/kunden-duplikate-keine.jpg)
 
 ### Kunden zusammenführen
 
-Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen werden nach der Zusammenführung gelöscht. Für Felder, die sich zwischen den Kunden unterscheiden (z. B. Adresse, Vorname), kann ausgewählt werden, welcher Wert übernommen wird; über **Identische Felder anzeigen/ausblenden** lässt sich die Ansicht auf die abweichenden Felder reduzieren. Personen, die nur beim zusammenzuführenden Kunden vorhanden sind, werden automatisch übernommen; die Anzahl der zu übernehmenden Notizen und Dokumente wird angezeigt. Haben beide Kunden ein aktives Ticket der laufenden Ausgabe, weist ein Hinweis darauf hin, welches Ticket beim Zusammenführen erhalten bleibt und welches verworfen wird.
+Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen werden nach der Zusammenführung gelöscht. Die Zusammenführung führt in drei Schritten durch den Abgleich; über **Abbrechen** kehrt man jederzeit zu der Stelle in der Duplikat-Liste zurück, von der aus die Zusammenführung geöffnet wurde.
+
+**Schritt 1 – Felder abgleichen:** Die beteiligten Kunden stehen nebeneinander, jeder in einer eigenen Spalte – der Ziel-Kunde zuerst und mit **bleibt bestehen** gekennzeichnet, die übrigen mit **wird gelöscht**. Pro Zeile (z. B. Adresse, Telefonnummer) wird der Wert ausgewählt, der beim Ziel-Kunden bestehen bleibt; vorausgewählt ist immer der Wert des Ziel-Kunden. Trägt ein Kunde denselben Wert wie der Ziel-Kunde, ist dieses Feld nicht auswählbar und mit "identisch mit dem Ziel-Kunden" beschriftet. Angezeigt werden nur die abweichenden Felder; über **Identische Felder anzeigen/ausblenden** lassen sich die übereinstimmenden Werte einblenden.
 
 ![Kunden zusammenführen](images/kunden-zusammenfuehren.jpg)
+
+**Schritt 2 – Personen & Tickets:** Hier ist nichts auszuwählen, sondern nur zu prüfen: Je Quell-Kunde ist aufgelistet, welche Personen übernommen werden und welche beim Ziel-Kunden bereits vorhanden sind und deshalb verworfen werden. Haben beide Kunden ein Ticket derselben Ausgabe, steht darunter, welche Ticketnummer erhalten bleibt und welche verworfen wird.
+
+**Schritt 3 – Prüfen & Bestätigen:** Ein rot hinterlegter Hinweis nennt die Kunden, die endgültig gelöscht werden – die Zusammenführung kann nicht rückgängig gemacht werden. Darunter steht der Kunde so, wie er nach der Zusammenführung aussieht: Felder, die durch einen Wert eines anderen Kunden überschrieben werden, sind mit **geändert** hervorgehoben und zeigen zusätzlich den bisherigen Wert; alle übrigen bleiben unverändert und sind blass dargestellt. Ergänzt wird die Aufstellung um die Anzahl der Personen, Notizen und Dokumente, die übernommen werden. Erst wenn das Kontrollkästchen bestätigt wurde, lässt sich **Endgültig zusammenführen** auslösen.
+
+![Kunden zusammenführen bestätigen](images/kunden-zusammenfuehren-bestaetigen.jpg)
 
 <a id="kunden-über-limit"></a>
 
 ## Kunden über Limit
 
-Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz ("Über Limit"); über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
+Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Diese Liste ist als Arbeitsliste gedacht: Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht, wo die Gültigkeit verkürzt, der Kunde gesperrt oder der Zustand akzeptiert werden kann. Der Link öffnet ein echtes `href`, ein Klick mit der mittleren Maustaste öffnet die Detailansicht daher in einem neuen Tab, ohne die Liste zu verlassen.
+
+Oberhalb der Tabelle steht, gegen welche Grenzwerte aktuell geprüft wird ("Stand: heute") sowie – mit der entsprechenden Berechtigung – ein Link **Grenzwerte ansehen** zu [Einstellungen → Grenzwerte](einstellungen.md#statische-werte-grenzwerte). Sind aktuell keine Kunden über dem Limit, erscheint die Meldung "Aktuell liegt kein Kunde über dem Limit" statt einer leeren Tabelle.
+
+Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz ("Über Limit") samt dem prozentuellen Anteil über dem Limit und einem kompakten Balken, der diesen Anteil visualisiert – 50 € über einem 1.500 €-Limit sind damit auf einen Blick von 50 € über einem 3.900 €-Limit unterscheidbar. Die Spalte **Gültig bis** zeigt die Gültigkeit als grün/rot hervorgehobenen Wert, sodass Fälle, die ohnehin bald ablaufen, sofort erkennbar sind. Standardmäßig ist die Liste nach der größten Überschreitung sortiert; die Spalten Einkommen gesamt, Limit und Über Limit lassen sich zusätzlich durch Klick auf die jeweilige Spaltenüberschrift sortieren.
+
+Über **CSV-Export** lässt sich die aktuelle Liste (in der gerade gewählten Sortierung, vollständig statt nur die angezeigte Seite) als CSV-Datei herunterladen, z. B. um sie in eine Besprechung mitzunehmen.
 
 ![Kunden über Limit](images/kunden-ueber-limit.jpg)
 
@@ -136,8 +167,12 @@ Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Dar
 
 ## Kunden-Übersicht
 
-Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet, getrennt in die Bereiche "Neu" und "Verlängert". Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Über die Auswahlbox **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden; ohne Auswahl zeigt die Seite den zuletzt begonnenen (bzw. laufenden) Ausgabetag. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
+Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet. Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Ein Kunde, der im selben Ausgabetag sowohl neu angelegt als auch verlängert wurde, erscheint in beiden Zählungen.
+
+Ganz oben zeigen zwei Kacheln die Anzahl der neuen und der verlängerten Kunden des ausgewählten Ausgabetags auf einen Blick. Über die Auswahlbox **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden (mit Wochentag, z. B. "Sa, 08.08.2026"); vorausgewählt ist der zuletzt abgeschlossene Ausgabetag. Die Pfeile links und rechts der Auswahlbox blättern schrittweise zum vorherigen bzw. nächsten Ausgabetag, ohne die Liste jedes Mal neu öffnen zu müssen.
+
+Darunter listet eine einzige Tabelle beide Kundengruppen gemeinsam auf, jede Zeile mit einem Typ-Chip ("Neu" bzw. "Verlängert"), der Personenanzahl des Haushalts und einem Gültigkeits-Chip ("Gültig", "Ungültig" oder "Gesperrt"). Über die Schaltflächen **Alle**/**Neu**/**Verlängert** wird die Liste auf eine der beiden Gruppen eingeschränkt. **CSV-Export** lädt die aktuell angezeigte (ungefilterte) Liste des ausgewählten Ausgabetags als CSV-Datei herunter. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
 
 ![Kunden-Übersicht](images/kunden-uebersicht.jpg)
 
-Auf schmalen Bildschirmen werden beide Bereiche ("Neu" und "Verlängert") jeweils als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
+Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
