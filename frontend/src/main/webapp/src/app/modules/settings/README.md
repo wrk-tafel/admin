@@ -371,13 +371,32 @@ Both follow the same shape, and a change to one usually belongs in the other:
 - **View models, not raw entities in the template.** A `computed()` maps each `ShopItem`/`RouteData`
   to a `ShopView`/`RouteView` that pre-renders everything the template shows (address string, unit
   label, resolved shop name per stop, `HH:mm` times, stops summary) plus a lowercased
-  `searchIndex`. The template only interpolates — no method calls, no pipes per row.
+  `searchIndex`. The template only interpolates — no method calls, no pipes per row. `ShopView` also
+  carries `mapUrl` (`buildSingleDestinationMapsUrl` from `common/util/maps-url.util.ts`, the same
+  helper `route-guidance` uses for a single stop's own "Navigation starten" link) and `routeUsage` —
+  every route stopping there, active and inactive alike, built once per shops/routes load
+  (`routeUsageByShopId`) rather than re-scanned per row. The expanded body renders `routeUsage` as
+  links to `/einstellungen/routen` (this screen already requires `SETTINGS`, the same permission
+  that gates the routes list, so the link needs no separate permission check of its own) and falls
+  back to "Wird derzeit von keiner Route angefahren" when the list is empty.
 - **Search on top of the status filter.** A `FormControl` fed through `toSignal()` and the
   `enabledFilter` signal together drive a `visibleShops()`/`visibleRoutes()` `computed()`.
   Filtering is purely client-side; both endpoints return the full list anyway. These two screens
-  are the only ones here with a search box — their lists are the long ones.
+  are the only ones here with a search box — their lists are the long ones. `shops` additionally
+  offers a Nummer/Name sort toggle (`sortBy` signal, applied inside the same `computed()`), a
+  result-count line (`resultCountLabel`) shown only while `filtered()` is true, and an empty-result
+  message that names the active status filter (`emptyMessage`) rather than a single generic
+  sentence.
 - **Enabling/disabling** happens with the module-wide Aktiv switch. On a failed update the list is
   reloaded, because the switch has already moved on its own and only fresh data puts it back.
+  `shops` additionally loads `routes` (`forkJoin`, same as `SettingsRoutesComponent` below) to know
+  which routes stop at a shop: deactivating one that at least one *active* route still stops at
+  opens `shop-disable-confirm-dialog` first, naming those routes and their stop times — the route
+  itself keeps the stop (`route-edit-dialog` never drops a reference), but the Routen-Navi then
+  flags it "Filiale inaktiv", which is what the confirmation is warning about before it happens. A
+  cancelled confirmation has nothing to undo on the server, but the Aktiv switch still has to be
+  pushed back to `checked` explicitly (`this._shops.update(shops => [...shops])`) — it is an
+  uncontrolled Material component that already flipped itself in the DOM on click.
 - **Editing** stays dialog-based (`shop-edit-dialog`, `route-edit-dialog`), and the edit button is
   disabled while the record is inactive, same convention as cars/food-categories.
 - **Both controls sit in the record's header row**, not in the expanded body, so a record can be
@@ -404,6 +423,29 @@ Both follow the same shape, and a change to one usually belongs in the other:
 - `SettingsRoutesComponent` loads shops alongside routes (`forkJoin`) to resolve each stop's shop
   name and address. New routes may only pick active shops, while editing a route additionally
   offers the disabled shops it already stops at, so saving can't silently drop such a stop.
+- **`routes` shows a result count** once the search/filter narrows the list (`routes-result-count`,
+  plus a `role="status"` `searchAnnouncement()` for screen readers) — the same "search polish"
+  #3240 asked for shops too, kept as an independent implementation on each screen rather than a
+  shared component, since `shops` doesn't have it yet. The count line is rendered `invisible`
+  rather than removed while the list is unfiltered, so the record cards never shift when it
+  appears. There is deliberately no sort control: the list is always ordered by route number, and
+  the one search box already matches number, name, note and stops alike.
+- **A search term that hits a route only through its stops auto-expands that route** (an `effect`
+  over `stopsSearchIndex`): the matching shop is invisible while the card is collapsed, so the
+  card opens to show what matched. It never auto-collapses — the summary toggle stays the way
+  back, also after the search is cleared.
+- **`routes`' expanded card also carries a "Route in Karte öffnen" link** (`view.mapsUrl`, built by
+  the module-local `buildRouteMapsUrl()`), composing the same kind of Google Maps directions URL as
+  the Routen-Navi's own map link (`route-guidance.component.ts`) over the route's already
+  time-sorted stops — capped at 10 stops with a truncation hint beyond that, same limit and reason
+  as there. A stop whose shop has since been deactivated is flagged inline with the same "Filiale
+  inaktiv" badge the Routen-Navi shows its drivers (`view.stops[].shopInactive`).
+- **`route-edit-dialog` previews the save-time sort live** as `orderedStopsPreview()` ("Gefahrene
+  Reihenfolge"), and separately surfaces non-blocking `stopWarnings()` (a duplicate shop across
+  stops, a stop with no time yet, or an unusually short/long gap to the next time-sorted stop that
+  is likely a typo) — both `computed()` off the `stops` FormArray's own `valueChanges` via
+  `toSignal()`, so they update on every keystroke without a manual `detectChanges()` call. Neither
+  blocks `save()`; the backend still rejects an actual duplicate shop/time on its own.
 
 ## API services
 

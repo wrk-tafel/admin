@@ -62,7 +62,9 @@ describe('UserEditComponent', () => {
         it('new user saved successfully', () => {
             const userFormComponentMock = {
                 markAllAsTouched: vi.fn().mockName('UserFormComponent.markAllAsTouched'),
-                isValid: vi.fn().mockName('UserFormComponent.isValid')
+                isValid: vi.fn().mockName('UserFormComponent.isValid'),
+                isDirty: vi.fn().mockName('UserFormComponent.isDirty'),
+                markSaved: vi.fn().mockName('UserFormComponent.markSaved')
             };
             userFormComponentMock.isValid.mockReturnValue(true);
             apiService.createUser.mockReturnValue(of(mockUser));
@@ -79,7 +81,34 @@ describe('UserEditComponent', () => {
             expect(component.isSaveEnabled()).toBe(true);
             expect(userFormComponentMock.markAllAsTouched).toHaveBeenCalled();
             expect(apiService.createUser).toHaveBeenCalledWith(expect.objectContaining(mockUser), expect.anything());
+            // Rebased before navigating away, so the unsaved-changes guard on that same navigation
+            // doesn't mistake the just-saved state for a discarded edit.
+            expect(userFormComponentMock.markSaved).toHaveBeenCalled();
             expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
+        });
+
+        it('hasUnsavedChanges reflects the form when no form is rendered yet', () => {
+            const fixture = TestBed.createComponent(UserEditComponent);
+            const component = fixture.componentInstance;
+
+            expect(component.hasUnsavedChanges()).toBe(false);
+        });
+
+        it('hasUnsavedChanges delegates to the form once it is rendered', () => {
+            const userFormComponentMock = {
+                markAllAsTouched: vi.fn(),
+                isValid: vi.fn(),
+                isDirty: vi.fn().mockReturnValue(true),
+                markSaved: vi.fn()
+            };
+
+            const fixture = TestBed.createComponent(UserEditComponent);
+            const component = fixture.componentInstance;
+            Object.defineProperty(component, 'userFormComponent', {
+                get: () => () => userFormComponentMock
+            });
+
+            expect(component.hasUnsavedChanges()).toBe(true);
         });
     });
 
@@ -130,7 +159,12 @@ describe('UserEditComponent', () => {
             const fixture = TestBed.createComponent(UserEditComponent);
             const component = fixture.componentInstance;
 
-            const userFormComponentMock = { isValid: vi.fn().mockReturnValue(true), markAllAsTouched: vi.fn() };
+            const userFormComponentMock = {
+                isValid: vi.fn().mockReturnValue(true),
+                markAllAsTouched: vi.fn(),
+                isDirty: vi.fn().mockReturnValue(false),
+                markSaved: vi.fn()
+            };
             Object.defineProperty(component, 'userFormComponent', {
                 get: () => () => userFormComponentMock
             });
@@ -142,6 +176,7 @@ describe('UserEditComponent', () => {
 
             expect(component.userData()).toEqual(mockUser);
             expect(apiService.updateUser).toHaveBeenCalledWith(expect.objectContaining(mockUser), expect.anything());
+            expect(userFormComponentMock.markSaved).toHaveBeenCalled();
             expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
         });
     });

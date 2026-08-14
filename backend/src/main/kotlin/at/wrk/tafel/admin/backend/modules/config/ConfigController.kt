@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.config
 
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -7,15 +8,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * The injected properties are re-bound in place when an operator edits the mounted config file (see
- * `ConfigFileReloadService`), so reading them per request is what makes this endpoint answer with
- * the new values without a restart. Sessions that are already open don't have to wait for their
- * next request - `ConfigSseController` pushes the same change to them.
+ * The injected [TafelAdminProperties] are re-bound in place when an operator edits the mounted
+ * config file (see `ConfigFileReloadService`), so reading them per request is what makes this
+ * endpoint answer with the new values without a restart. Sessions that are already open don't have
+ * to wait for their next request - `ConfigSseController` pushes the same change to them.
+ * [ApplicationProperties] is only read for [getPublicConfig]'s lockout-duration figure, which stays
+ * fixed for the process lifetime like the rest of that class (see its KDoc).
  */
 @RestController
 @RequestMapping("/api/config")
 class ConfigController(
     private val tafelAdminProperties: TafelAdminProperties,
+    private val applicationProperties: ApplicationProperties,
 ) {
 
     @GetMapping
@@ -37,5 +41,6 @@ class ConfigController(
     @GetMapping("/public")
     fun getPublicConfig(): PublicConfigResponse = PublicConfigResponse(
         environmentLabel = tafelAdminProperties.environmentLabel.trim(),
+        accountLockoutDurationInSeconds = applicationProperties.security.loginAttempts.lockoutDurationInSeconds,
     )
 }
