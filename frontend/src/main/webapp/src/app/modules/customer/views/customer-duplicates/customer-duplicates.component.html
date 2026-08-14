@@ -27,10 +27,12 @@
                      [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                      (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
 
-      <div class="grid gap-6 my-4">
+      <!-- grid-cols-1's minmax(0, 1fr) lets each card shrink below the table's min-content width,
+           so the table scrolls inside the card instead of overflowing the page sideways -->
+      <div class="grid grid-cols-1 gap-6 my-4">
         @for (item of customerDuplicatesData()!.items; track trackByDuplicateItemId($index, item)) {
         <mat-card [attr.testid]="'duplicate-group-' + item.customer.id">
-          <mat-card-content class="overflow-x-auto">
+          <mat-card-content class="overflow-x-auto" [attr.testid]="'duplicate-group-scroller-' + item.customer.id">
             <table class="w-full border-separate border-spacing-0">
               <caption class="sr-only">Vergleich der möglichen Duplikate von Kunde {{item.customer.id}}</caption>
               <thead>
