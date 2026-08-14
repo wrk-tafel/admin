@@ -1,6 +1,48 @@
-<div class="mb-4">
-    <tafel-customer-form [customerData]="customerData()" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode()"></tafel-customer-form>
-    <button testid="validate-button" matButton="filled" class="px-6 mt-4 mb-4" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" matButton="filled"
-            class="button-success px-6 mt-4 ms-2 mb-4" (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
+<div class="pb-20">
+  @if (!editMode() && possibleDuplicates().length > 0) {
+    <div #duplicatesWarning testid="possible-duplicates-warning" class="tafel-banner-warning">
+      <div class="font-bold mb-1">Möglicherweise bereits vorhanden</div>
+      <ul class="list-none p-0 m-0">
+        @for (duplicate of possibleDuplicates(); track duplicate.id) {
+          <li [attr.testid]="'possible-duplicate-' + duplicate.id">
+            <a [routerLink]="['/kunden/detail', duplicate.id]" class="underline">
+              {{ duplicate.id }} – {{ duplicate.lastname }} {{ duplicate.firstname }}
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (liveEligibility(); as eligibility) {
+    <div testid="eligibility-summary"
+         class="sticky top-16 z-[5] mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border px-4 py-2 shadow-sm"
+         [class.bg-green-50]="eligibility.valid" [class.border-green-700]="eligibility.valid"
+         [class.bg-red-50]="!eligibility.valid" [class.border-red-600]="!eligibility.valid">
+      <span testid="eligibility-status" class="font-bold" [ngClass]="{'text-green-700': eligibility.valid, 'text-red-600': !eligibility.valid}">
+        {{ eligibility.valid ? 'Anspruch vorhanden' : 'Kein Anspruch vorhanden' }}
+      </span>
+      <span testid="eligibility-personcount">Personen: {{ liveEligibilityPersonCount() }}</span>
+      <span testid="eligibility-totalsum">Einkommen: {{ eligibility.totalSum | currency }}</span>
+      <span testid="eligibility-limit">Limit: {{ eligibility.limit | currency }}</span>
+      @if (!eligibility.valid) {
+        <span testid="eligibility-amount" class="font-bold text-red-600">Über Limit: {{ eligibility.amountExceededLimit | currency }}</span>
+      }
+    </div>
+  }
+
+  <tafel-customer-form [customerData]="customerData()" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode()"></tafel-customer-form>
+</div>
+
+<div testid="customer-edit-actionbar" class="sticky bottom-0 z-10 -mx-6 mt-4 flex items-center justify-between gap-4 border-t border-gray-200 bg-white px-6 py-3">
+  <div>
+    @if (dirty()) {
+      <span testid="unsaved-changes-indicator" class="badge badge-warning">Ungespeicherte Änderungen</span>
+    }
+  </div>
+  <div class="flex gap-2">
+    <button testid="validate-button" matButton="filled" (click)="validate()">Anspruch prüfen</button>
+    <button testid="save-button" matButton="filled" class="button-success"
+            (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
+  </div>
 </div>

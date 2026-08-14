@@ -18,8 +18,8 @@ export class CustomerApiService {
   private readonly http = inject(HttpClient);
   private readonly toastr = inject(TafelToastrService);
 
-  validate(data: CustomerData): Observable<ValidateCustomerResponse> {
-    return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data));
+  validate(data: CustomerData, context?: HttpContext): Observable<ValidateCustomerResponse> {
+    return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data), {context});
   }
 
   createCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerCreationResponse> {

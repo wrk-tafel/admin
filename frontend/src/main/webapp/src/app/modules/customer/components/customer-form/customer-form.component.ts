@@ -9,24 +9,21 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIcon} from '@angular/material/icon';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
-import {
-  faBuilding,
-  faEnvelope,
-  faEuroSign,
-  faFlag,
-  faLocationDot,
-  faPhone,
-  faVenusMars
-} from '@fortawesome/free-solid-svg-icons';
+import {faBuilding, faEnvelope, faFlag, faLocationDot, faPhone, faVenusMars} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
+import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {email, maxDate, min, minDate, pattern} from '../../../../common/validator/signal-form-validators';
 import {toSignal} from '@angular/core/rxjs-interop';
 import dayjs from 'dayjs';
+
+/** +N-month quick-picks next to "Gültig bis", mirroring the customer detail page's prolong menu. */
+const VALID_UNTIL_QUICK_PICKS = [1, 2, 3, 6, 12] as const;
 
 @Component({
   selector: 'tafel-customer-form',
@@ -40,10 +37,12 @@ import dayjs from 'dayjs';
     MatInputModule,
     MatSelectModule,
     MatCheckboxModule,
+    MatExpansionModule,
     MatIcon,
     FaIconComponent,
     TafelAutofocusDirective,
     GenderLabelPipe,
+    BirthdateAgePipe,
     TafelInfoTooltipComponent
   ]
 })
@@ -147,8 +146,20 @@ export class CustomerFormComponent {
   });
 
   valid = computed(() => this.customerForm().valid());
+  /** Whether the operator has actually typed anything - used for the sticky bar's dirty indicator and the unsaved-changes guard. */
+  dirty = computed(() => this.customerForm().dirty());
   countries = toSignal(this.countryApiService.getCountries(), {initialValue: [] as CountryData[]});
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
+
+  /** Keys of the additional-person accordion panels that are currently open. */
+  expandedPersonKeys = signal<Set<string | number>>(new Set());
+
+  // Open ranges for the native date pickers, so the widget itself only offers dates the
+  // validators above would accept anyway instead of silently rejecting a picked date afterwards.
+  protected readonly today = dayjs().format('YYYY-MM-DD');
+  protected readonly mainBirthDateMin = '1900-01-01';
+  protected readonly personBirthDateMin = '1920-01-01';
+  protected readonly validUntilQuickPicks = VALID_UNTIL_QUICK_PICKS;
 
   // Derived customer data from form model
   private derivedFormData = computed(() => {
@@ -226,6 +237,33 @@ export class CustomerFormComponent {
     return this.customerForm.additionalPersons[index]!;
   }
 
+  isPersonExpanded(key: string | number): boolean {
+    return this.expandedPersonKeys().has(key);
+  }
+
+  togglePersonPanel(key: string | number, expanded: boolean) {
+    this.expandedPersonKeys.update(keys => {
+      const next = new Set(keys);
+      if (expanded) {
+        next.add(key);
+      } else {
+        next.delete(key);
+      }
+      return next;
+    });
+  }
+
+  personSummaryFlags(person: AdditionalPersonFormItem): string[] {
+    const flags: string[] = [];
+    if (person.receivesFamilyAllowance) {
+      flags.push('Familienbeihilfe');
+    }
+    if (person.excludeFromHousehold) {
+      flags.push('Nicht im Haushalt');
+    }
+    return flags;
+  }
+
   addNewPerson() {
     const newPerson: AdditionalPersonFormItem = {
       key: crypto.randomUUID(),
@@ -247,13 +285,30 @@ export class CustomerFormComponent {
       ...model,
       additionalPersons: [...model.additionalPersons, newPerson]
     }));
+    // Adding a person is itself a change worth protecting, even before any of its fields are typed into.
+    this.customerForm().markAsDirty();
+
+    // Only the newly-added person starts open, so a form with several people already reviewed
+    // doesn't reopen all of them every time one more is added.
+    this.expandedPersonKeys.set(new Set([newPerson.key]));
   }
 
   removePerson(index: number) {
+    const removedKey = this.formModel().additionalPersons[index]?.key;
     this.formModel.update(model => ({
       ...model,
       additionalPersons: model.additionalPersons.filter((_, i) => i !== index)
     }));
+    this.customerForm().markAsDirty();
+    if (removedKey !== undefined) {
+      this.togglePersonPanel(removedKey, false);
+    }
+  }
+
+  applyValidUntilQuickPick(months: number) {
+    const current = this.customerForm.validUntil().value();
+    const base = current ? dayjs(current) : dayjs();
+    this.customerForm.validUntil().value.set(base.add(months, 'months').endOf('day').toDate());
   }
 
   markAllAsTouched() {
@@ -269,7 +324,6 @@ export class CustomerFormComponent {
   protected readonly faEnvelope = faEnvelope;
   protected readonly faLocationDot = faLocationDot;
   protected readonly faBuilding = faBuilding;
-  protected readonly faEuroSign = faEuroSign;
   protected readonly faPhone = faPhone;
 }
 
