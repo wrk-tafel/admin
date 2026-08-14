@@ -1,0 +1,4 @@
+<!-- type="button" matters: inside a host's <form> (e.g. the user form) the default type="submit" would submit and reload the page instead of searching -->
+<button matButton="filled" type="button" aria-label="Mitarbeiter suchen" [attr.testid]="testIdPrefix() + '-employee-search-button'" (click)="triggerSearch()">
+  <fa-icon [icon]="faSearch"/>
+</button>

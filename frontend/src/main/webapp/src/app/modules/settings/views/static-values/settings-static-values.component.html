@@ -83,7 +83,7 @@
                         <fa-icon [icon]="faXmark"></fa-icon>
                       </button>
                     } @else {
-                      <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + row.index"
+                      <button matButton="filled" [attr.testid]="'editStaticValueButton-' + row.index"
                               matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
                               [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">
                         <fa-icon [icon]="faPencil"></fa-icon>
@@ -138,7 +138,7 @@
                           <fa-icon [icon]="faXmark"></fa-icon>
                         </button>
                       } @else {
-                        <button matButton="filled" class="button-danger"
+                        <button matButton="filled"
                                 [attr.testid]="'editStaticValueButtonMobile-' + row.index"
                                 matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
                                 [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">

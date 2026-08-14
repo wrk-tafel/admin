@@ -7,6 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {HasUnsavedChanges} from '../../../../common/guards/unsaved-changes.guard';
 
 @Component({
   selector: 'tafel-user-edit',
@@ -16,7 +17,7 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     MatButtonModule
   ]
 })
-export class UserEditComponent {
+export class UserEditComponent implements HasUnsavedChanges {
   permissionsData = input<UserPermission[]>();
   userData = input<UserData>();
 
@@ -52,6 +53,10 @@ export class UserEditComponent {
 
     const observer = {
       next: (user: UserData) => {
+        // Rebase the dirty check on the just-saved state before navigating away, so the
+        // unsaved-changes guard that fires on that same navigation doesn't ask to confirm
+        // discarding changes that were, in fact, just saved.
+        formComponent?.markSaved();
         this.router.navigate(['/benutzer/detail', user.id]);
       },
       error: (error: HttpErrorResponse) => {
@@ -72,6 +77,11 @@ export class UserEditComponent {
       return formComponent.isValid();
     }
     return false;
+  }
+
+  hasUnsavedChanges(): boolean {
+    const formComponent = this.userFormComponent();
+    return !!formComponent && formComponent.isDirty();
   }
 
 }

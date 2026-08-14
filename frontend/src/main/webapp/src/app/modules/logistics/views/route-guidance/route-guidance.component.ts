@@ -36,17 +36,17 @@ import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 import {ScreenWakeLockService} from '../../../../common/wake-lock/screen-wake-lock.service';
 import {RouteGuidanceOfflineQueueService} from '../../services/route-guidance-offline-queue.service';
+import {buildSingleDestinationMapsUrl, MAPS_DIRECTIONS_URL} from '../../../../common/util/maps-url.util';
 
 // Google's directions URL takes an origin, a destination and at most 9 waypoints, so a single link
 // can cover 10 stops. Longer routes are opened in the map app in one chunk and the rest is driven
 // stop by stop from the list.
 const MAX_MAP_STOPS = 10;
 
-const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
-
 // A device drives the same route with the same team most days - remembered per browser/device, not
 // per user, so the picker opens on it again without anyone having to select it every morning.
 const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
+
 
 // What the screen would otherwise have to explain in a paragraph above the stop. It sits in a
 // tooltip instead: on a phone in a van the stop itself has to be the first thing on the screen.
@@ -426,7 +426,7 @@ export class RouteGuidanceComponent {
   }
 
   private navigationUrl(shop: RouteGuidanceShop): string {
-    return `${MAPS_DIRECTIONS_URL}&destination=${encodeURIComponent(shop.address)}&travelmode=driving`;
+    return buildSingleDestinationMapsUrl(shop.address);
   }
 
   protected readonly faBoxesStacked = faBoxesStacked;
