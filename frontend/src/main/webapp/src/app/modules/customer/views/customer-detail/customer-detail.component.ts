@@ -1,4 +1,7 @@
 import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {BreakpointObserver} from '@angular/cdk/layout';
+import {map} from 'rxjs';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -72,6 +75,9 @@ import {
   CustomerValidityState
 } from '../../../../common/util/customer-validity.util';
 
+// Matches the Tailwind `lg` breakpoint this template's action/tab layout switches at.
+const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
+
 @Component({
   selector: 'tafel-customer-detail',
   templateUrl: 'customer-detail.component.html',
@@ -133,6 +139,15 @@ export class CustomerDetailComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
+  // Places the #customerActions template: inside the identity header on desktop, below the tabs on
+  // narrow screens. A signal-driven outlet instead of two CSS-hidden copies, so the buttons' menus
+  // and testids exist exactly once in the DOM.
+  readonly isDesktopLayout = toSignal(
+    this.breakpointObserver.observe([DESKTOP_BREAKPOINT]).pipe(map(state => state.matches)),
+    {initialValue: this.breakpointObserver.isMatched(DESKTOP_BREAKPOINT)}
+  );
 
   readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
   readonly hasAuditPermission = computed(() => this.authenticationService.hasPermission('AUDIT_LOG'));

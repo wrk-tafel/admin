@@ -174,6 +174,9 @@ describe('Customer Detail', () => {
       });
     });
 
+    // ...and the actions leave the identity header, which keeps them on desktop only
+    cy.byTestId('customer-identity-header').find('[testid="editCustomerButton"]').should('not.exist');
+
     cy.byTestId('lock-info-banner').should('not.exist');
 
     openEditMenu();
@@ -189,6 +192,30 @@ describe('Customer Detail', () => {
     cy.byTestId('unlockCustomerButton').click();
 
     cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
+  it('renders the action buttons in the identity header on desktop', () => {
+    // default 1024x768 viewport is at the lg breakpoint, so the desktop placement applies
+    cy.visit('/kunden/detail/101');
+
+    cy.byTestId('customer-identity-header').within(() => {
+      cy.byTestId('prolongButton').should('be.visible');
+      cy.byTestId('editCustomerToggleButton').should('be.visible');
+    });
+
+    // top-right corner: the actions start no lower than the name and end at the header's right edge
+    cy.byTestId('identity-name').then(($name) => {
+      const nameTop = $name[0].getBoundingClientRect().top;
+      cy.byTestId('prolongButton').then(($button) => {
+        expect($button[0].getBoundingClientRect().top).to.be.lessThan(nameTop + $name[0].getBoundingClientRect().height);
+      });
+    });
+    cy.byTestId('customer-identity-header').then(($header) => {
+      const headerRight = $header[0].getBoundingClientRect().right;
+      cy.byTestId('editCustomerToggleButton').then(($button) => {
+        expect($button[0].getBoundingClientRect().right).to.be.greaterThan(headerRight - 100);
+      });
+    });
   });
 
   it('lets the overflowing detail tab header scroll natively instead of only via pagination arrows', () => {

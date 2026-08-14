@@ -11,14 +11,19 @@
 }
 <!-- Identity header: who this is, valid until when, locked?, money open?, household size - the one
      place an operator needs to look before deciding anything else on this page. Always first,
-     regardless of viewport, unlike the actions/tabs below it which reorder on narrow screens. -->
+     regardless of viewport. On desktop the action buttons sit in its top-right corner; narrow
+     screens render them below the tabs instead (the #customerActions template exists exactly once
+     in the DOM, placed by isDesktopLayout, so its menus and testids are never duplicated). -->
 <mat-card testid="customer-identity-header" class="mb-4">
   <mat-card-content>
-    <div class="flex flex-col lg:flex-row lg:items-baseline lg:justify-between gap-1">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-1">
       <div>
         <h2 class="tafel-h3 m-0" testid="identity-name">{{ customerData() | formatCustomerName }}</h2>
         <div class="text-gray-600" testid="identity-number">Kundennummer {{ customerData()?.id }}</div>
       </div>
+      @if (isDesktopLayout()) {
+        <ng-container [ngTemplateOutlet]="customerActions"></ng-container>
+      }
     </div>
     <div class="flex flex-wrap gap-2 mt-3" testid="identity-status-chips">
       <div class="badge"
@@ -52,100 +57,105 @@
     </div>
   </mat-card-content>
 </mat-card>
+<ng-template #customerActions>
+  <div class="flex flex-col lg:flex-row lg:flex-wrap lg:justify-end mt-4 lg:mt-0 gap-4">
+    <!-- Ranked by how often each is used at a Tafel: prolong, print, edit, cost contribution,
+         then everything else (deactivate/lock/delete) tucked into one overflow menu. -->
+    <button testid="prolongButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="prolongMenu"
+            [disabled]="customerData()?.locked"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
+      Bezug verlängern ▾
+    </button>
+    <mat-menu #prolongMenu="matMenu">
+      <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">
+        1 Monat → {{ prolongPreviewDate(1) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">
+        2 Monate → {{ prolongPreviewDate(2) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">
+        3 Monate → {{ prolongPreviewDate(3) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">
+        6 Monate → {{ prolongPreviewDate(6) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongTwelveMonthsButton" (click)="prolongCustomer(12)">
+        12 Monate → {{ prolongPreviewDate(12) | date : 'dd.MM.yyyy' }}
+      </button>
+    </mat-menu>
+
+    <button testid="printMenuButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="printMenu"
+            [disabled]="customerData()?.locked || !!printing()"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
+      @if (printing()) {
+        <fa-icon [icon]="faSpinner" [animation]="'spin'"></fa-icon>&nbsp;Wird erstellt...
+      } @else {
+        Daten ausdrucken ▾
+      }
+    </button>
+    <mat-menu #printMenu="matMenu">
+      <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
+        Stammdaten
+      </button>
+      <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
+        Ausweis
+      </button>
+    </mat-menu>
+
+    <button type="button" matButton="filled" class="w-full lg:w-auto" testid="editCustomerButton" (click)="editCustomer()"
+            [disabled]="!customerData() || customerData()?.locked"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">Kunde bearbeiten
+    </button>
+
+    <button testid="costContributionButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="costContributionMenu"
+            [disabled]="customerData()?.locked"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
+      Unkostenbeitrag ▾
+      @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
+        <span class="badge badge-danger ml-2" testid="cost-contribution-badge">{{ customerData()?.pendingCostContribution | currency }}</span>
+      }
+    </button>
+    <mat-menu #costContributionMenu="matMenu">
+      @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
+        <button mat-menu-item testid="payCostContributionAllButton" (click)="payCostContributionAll()">
+          Alles bezahlt
+        </button>
+        <button mat-menu-item testid="payCostContributionAmountButton" (click)="openPayCostContributionDialog()">
+          Betrag eintragen
+        </button>
+        <mat-divider></mat-divider>
+      }
+      <button mat-menu-item testid="editCostContributionButton" (click)="openEditCostContributionDialog()">
+        Betrag bearbeiten
+      </button>
+    </mat-menu>
+
+    <button type="button" testid="editCustomerToggleButton" matButton="outlined" class="w-full lg:w-auto" [matMenuTriggerFor]="editMenu">
+      Weitere Aktionen ▾
+    </button>
+    <mat-menu #editMenu="matMenu">
+      <button mat-menu-item testid="invalidateCustomerButton" (click)="disableCustomer()"
+              [disabled]="!customerData() || customerData()?.locked">Kunde deaktivieren
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
+              [disabled]="!customerData() || customerData()?.locked">Kunde sperren
+      </button>
+      <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
+              [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
+              [disabled]="!customerData() || customerData()?.locked">Kunde löschen
+      </button>
+    </mat-menu>
+  </div>
+</ng-template>
 <div class="flex flex-col-reverse lg:flex-col">
   <div class="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-4">
-    <div class="flex flex-col lg:flex-row lg:flex-wrap mt-4 lg:mt-0 gap-4">
-      <!-- Ranked by how often each is used at a Tafel: prolong, print, edit, cost contribution,
-           then everything else (deactivate/lock/delete) tucked into one overflow menu. -->
-      <button testid="prolongButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="prolongMenu"
-              [disabled]="customerData()?.locked"
-              [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
-        Bezug verlängern ▾
-      </button>
-      <mat-menu #prolongMenu="matMenu">
-        <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">
-          1 Monat → {{ prolongPreviewDate(1) | date : 'dd.MM.yyyy' }}
-        </button>
-        <button mat-menu-item testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">
-          2 Monate → {{ prolongPreviewDate(2) | date : 'dd.MM.yyyy' }}
-        </button>
-        <button mat-menu-item testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">
-          3 Monate → {{ prolongPreviewDate(3) | date : 'dd.MM.yyyy' }}
-        </button>
-        <button mat-menu-item testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">
-          6 Monate → {{ prolongPreviewDate(6) | date : 'dd.MM.yyyy' }}
-        </button>
-        <button mat-menu-item testid="prolongTwelveMonthsButton" (click)="prolongCustomer(12)">
-          12 Monate → {{ prolongPreviewDate(12) | date : 'dd.MM.yyyy' }}
-        </button>
-      </mat-menu>
-
-      <button testid="printMenuButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="printMenu"
-              [disabled]="customerData()?.locked || !!printing()"
-              [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
-        @if (printing()) {
-          <fa-icon [icon]="faSpinner" [animation]="'spin'"></fa-icon>&nbsp;Wird erstellt...
-        } @else {
-          Daten ausdrucken ▾
-        }
-      </button>
-      <mat-menu #printMenu="matMenu">
-        <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
-          Stammdaten
-        </button>
-        <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
-          Ausweis
-        </button>
-      </mat-menu>
-
-      <button type="button" matButton="filled" class="w-full lg:w-auto" testid="editCustomerButton" (click)="editCustomer()"
-              [disabled]="!customerData() || customerData()?.locked"
-              [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">Kunde bearbeiten
-      </button>
-
-      <button testid="costContributionButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="costContributionMenu"
-              [disabled]="customerData()?.locked"
-              [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
-        Unkostenbeitrag ▾
-        @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
-          <span class="badge badge-danger ml-2" testid="cost-contribution-badge">{{ customerData()?.pendingCostContribution | currency }}</span>
-        }
-      </button>
-      <mat-menu #costContributionMenu="matMenu">
-        @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
-          <button mat-menu-item testid="payCostContributionAllButton" (click)="payCostContributionAll()">
-            Alles bezahlt
-          </button>
-          <button mat-menu-item testid="payCostContributionAmountButton" (click)="openPayCostContributionDialog()">
-            Betrag eintragen
-          </button>
-          <mat-divider></mat-divider>
-        }
-        <button mat-menu-item testid="editCostContributionButton" (click)="openEditCostContributionDialog()">
-          Betrag bearbeiten
-        </button>
-      </mat-menu>
-
-      <button type="button" testid="editCustomerToggleButton" matButton="outlined" class="w-full lg:w-auto" [matMenuTriggerFor]="editMenu">
-        Weitere Aktionen ▾
-      </button>
-      <mat-menu #editMenu="matMenu">
-        <button mat-menu-item testid="invalidateCustomerButton" (click)="disableCustomer()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde deaktivieren
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde sperren
-        </button>
-        <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
-                [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde löschen
-        </button>
-      </mat-menu>
-    </div>
+    @if (!isDesktopLayout()) {
+      <ng-container [ngTemplateOutlet]="customerActions"></ng-container>
+    }
     <div *tafelIfDistributionActive class="flex flex-col lg:flex-row lg:items-center lg:mt-2 mb-2 gap-2 lg:ml-auto">
       @if (!ticketNumber()) {
         <mat-form-field subscriptSizing="dynamic" class="w-full lg:max-w-36">

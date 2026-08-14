@@ -30,7 +30,7 @@ Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kunde
 
 ![Kunden-Detail](images/kunden-detail.jpg)
 
-Am oberen Rand stehen die Aktionen zur Verfügung, gereiht nach ihrer Verwendungshäufigkeit:
+Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihrer Verwendungshäufigkeit (auf schmalen Bildschirmen erscheinen sie stattdessen unterhalb der Daten, siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 
 - **Bezug verlängern**: Verlängert die Gültigkeit des Kunden um 1, 2, 3, 6 oder 12 Monate; jeder Menüpunkt zeigt bereits das resultierende Datum an (z. B. "3 Monate → 12.11.2026").
 - **Daten ausdrucken**: Druck der Stammdaten oder nur des Kundenausweises. Während die PDF-Datei erstellt wird, zeigt der Button eine Ladeanimation statt stumm zu warten.
