@@ -42,8 +42,7 @@
   </div>
   <div class="flex gap-2">
     <button testid="validate-button" matButton="filled" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" matButton="filled"
-            [class.button-success]="isSaveEnabled()"
+    <button testid="save-button" matButton="filled" class="button-success"
             (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
   </div>
 </div>
