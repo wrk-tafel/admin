@@ -178,7 +178,7 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex items-center gap-2">
+            <mat-card-actions>
               <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Waren-Kategorie ' + category.name"
                                     [testId]="'food-categories-enabled-toggle-mobile-' + i"
                                     (enabledChange)="toggleFoodCategoryVisibility(category, $event)"/>

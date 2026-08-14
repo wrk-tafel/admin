@@ -201,7 +201,7 @@
                 </div>
               }
             </mat-card-content>
-            <mat-card-actions class="flex gap-2">
+            <mat-card-actions>
               @if (editingId() === employee.id) {
                 <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" [disabled]="!!editDuplicate()" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>

@@ -174,7 +174,7 @@
                   <div>{{row.item.date | date : 'dd.MM.yyyy'}}</div>
                 </div>
               </mat-card-content>
-              <mat-card-actions class="flex gap-2 mt-2">
+              <mat-card-actions class="mt-2">
                 <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-showcustomer-button-' + i" (click)="showCustomerDetail(row.item.customer.id!)"
                       matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                   <fa-icon [icon]="faSearch"></fa-icon>

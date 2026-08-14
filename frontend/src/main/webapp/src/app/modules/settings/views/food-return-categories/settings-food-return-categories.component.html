@@ -135,7 +135,7 @@
                 }
               </mat-card-title>
             </mat-card-header>
-            <mat-card-actions class="flex items-center gap-2">
+            <mat-card-actions>
               <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Retour-Kategorie ' + category.name"
                                     [testId]="'food-return-categories-enabled-toggle-mobile-' + i"
                                     (enabledChange)="toggleFoodReturnCategoryVisibility(category, $event)"/>

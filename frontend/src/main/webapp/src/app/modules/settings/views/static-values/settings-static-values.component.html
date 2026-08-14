@@ -125,7 +125,7 @@
                         </div>
                       </div>
                     </mat-card-content>
-                    <mat-card-actions class="flex gap-2">
+                    <mat-card-actions>
                       @if (editingId() === row.staticValue.id) {
                         <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + row.index"
                                 matTooltip="Änderungen speichern" (click)="saveEdit(section, row)"
