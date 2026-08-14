@@ -136,8 +136,13 @@ describe('Customer Duplicates', () => {
 
       cy.visit('/kunden/duplikate');
 
+      // the card itself must not overflow the page sideways ...
       cy.byTestId('duplicate-group-' + customer1.id).then(($group) => {
-        expect($group[0].scrollWidth).to.be.greaterThan($group[0].clientWidth);
+        expect($group[0].getBoundingClientRect().width).to.be.at.most(Cypress.config('viewportWidth'));
+      });
+      // ... instead the comparison table scrolls inside the card
+      cy.byTestId('duplicate-group-scroller-' + customer1.id).then(($scroller) => {
+        expect($scroller[0].scrollWidth).to.be.greaterThan($scroller[0].clientWidth);
       });
 
       cy.byTestId('duplicate-actions-menu-' + customer2.id).scrollIntoView().click();

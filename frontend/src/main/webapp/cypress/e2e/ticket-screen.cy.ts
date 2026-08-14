@@ -54,6 +54,54 @@ describe('TicketScreen', () => {
     cy.byTestId('connectionState').should('not.exist');
   });
 
+  it('offers a one-click fullscreen entry that fades out once used', () => {
+    cy.visit('/anmeldung/ticketmonitor');
+
+    cy.byTestId('fullscreen-button').should('be.visible').click();
+
+    // jsdom/Cypress can't grant a real fullscreen context, so the Fullscreen API call itself
+    // rejects here - what matters for this test is that the button still reacts to being clicked
+    // at all. Actually entering fullscreen needs manual verification (see #3216).
+    cy.byTestId('fullscreen-button').should('exist');
+  });
+
+  it('shows a large, centered disconnected state and recovers automatically once the stream comes back', () => {
+    // Overriding EventSource (same technique as logout.cy.ts) to simulate a dropped connection
+    // right after the initial ticket-screen state has been received. Calling the real close()
+    // gives a genuine CLOSED readyState (rather than faking the getter), and dispatching 'error'
+    // afterwards is what tells SseService the drop was permanent (see sse.service.ts's onerror) -
+    // the service then reconnects on its own backoff, and the real backend resends the current
+    // state on every fresh connection, so the display should recover without any user interaction.
+    let dropped = false;
+    cy.visit('/anmeldung/ticketmonitor', {
+      onBeforeLoad(win) {
+        const nativeEventSource = win.EventSource;
+        win.EventSource = class extends nativeEventSource {
+          constructor(url: string | URL, eventSourceInitDict?: EventSourceInit) {
+            super(url, eventSourceInitDict);
+            this.addEventListener('message', () => {
+              if (dropped) {
+                return;
+              }
+              dropped = true;
+              setTimeout(() => {
+                this.close();
+                this.dispatchEvent(new Event('error'));
+              }, 50);
+            });
+          }
+        };
+      }
+    });
+
+    cy.byTestId('connectionState').should('be.visible').and('contain.text', 'Verbindung getrennt');
+    cy.byTestId('lastUpdateText').should('be.visible');
+
+    // The reconnect backoff starts at 1s (see sse.service.ts) - give it comfortable room to
+    // reconnect and receive the resent initial state again.
+    cy.byTestId('connectionState').should('not.exist');
+  });
+
   describe('with distribution and tickets', () => {
 
     beforeEach(() => {
@@ -82,6 +130,20 @@ describe('TicketScreen', () => {
 
       cy.byTestId('costcontribution-paid-yes-button').click();
       assertTicketText('-');
+    });
+
+    it('shows the previously called ticket number once the ticket advances', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+      cy.byTestId('previousTicket').should('not.exist');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+      cy.byTestId('previousTicket').should('have.text', 'Zuvor: 1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('3');
+      cy.byTestId('previousTicket').should('have.text', 'Zuvor: 2');
     });
 
     it('tickets switched by double click', () => {

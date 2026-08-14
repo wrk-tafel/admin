@@ -84,19 +84,30 @@ It only fires once `hasReceivedDistribution()` (from `GlobalStateService`, set o
 
 ### Ticket monitor: TicketScreenComponent / TicketScreenControlComponent / TicketScreenFullscreenComponent
 
-`TicketScreenComponent` is a dumb display component — it just renders whatever the backend currently wants shown (a start time, or a ticket number), driven entirely by SSE:
+`TicketScreenComponent` renders whatever the backend currently wants shown (a start time, or a ticket number), driven entirely by SSE:
 ```ts
 private readonly ticketScreenData = toSignal(
   this.sseService.listen<TicketScreenText>('/sse/distributions/ticket-screen/current')
 );
 ```
-It's reused in two places: embedded as a small live preview inside `TicketScreenControlComponent` (`/anmeldung/ticketmonitor-steuerung`), and full-screen via `TicketScreenFullscreenComponent`.
+It's reused in two places: embedded as a small live preview inside `TicketScreenControlComponent` (`/anmeldung/ticketmonitor-steuerung`), and full-screen via `TicketScreenFullscreenComponent`. Beyond the raw text/value, it tracks its own small piece of state derived from the SSE stream, none of which the backend needs to know about:
+- **Previous ticket number**: whenever `text` equals the backend's `TICKET_SCREEN_TITLE` ("Ticket") and `value` changes, the prior value is kept in `previousTicketValue` and rendered as a smaller "Zuvor: …" caption — but never on the very first message, and it's cleared whenever the caption switches away from a ticket (e.g. to a "Startzeit" announcement), so it can't resurrect a stale number once the display moves on.
+- **Change animation**: a `justChanged` signal briefly toggles a CSS pulse class on a ticket-number change, via a plain `setTimeout` pair (off → macrotask → on → timeout → off again) rather than Angular animations, since the class only needs to restart a CSS `@keyframes` rule.
+- **Optional chime**: gated by the `soundEnabled` input (see below), a `playChime()` synthesizes a short beep with the Web Audio API rather than shipping an audio asset. Best-effort only — browser autoplay policy can block it until the tab has seen a user gesture.
+- **Richer disconnected state**: `lastUpdateAt` is stamped on every SSE message (including the resend a fresh connection gets right after reconnecting), so the full-screen disconnected overlay can say *when* it last knew a definite state, not just that it's currently stale.
 
-`TicketScreenControlComponent` is the staff control panel: buttons call `DistributionTicketScreenApiService` (`showText`, `showCurrentTicket`, `showPreviousTicket`, `showNextTicket(costContributionPaid)`), each a `POST` that causes the backend to broadcast a new SSE message picked up by every open `TicketScreenComponent`. It uses the newer `@angular/forms/signals` API (`form()`, `FormField`, `required`) for the start-time field rather than classic `FormGroup`.
+`TicketScreenControlComponent` is the staff control panel: buttons call `DistributionTicketScreenApiService` (`showText`, `showCurrentTicket`, `showPreviousTicket`, `showNextTicket(costContributionPaid)`), each a `POST` that causes the backend to broadcast a new SSE message picked up by every open `TicketScreenComponent`. It uses the newer `@angular/forms/signals` API (`form()`, `FormField`, `required`) for the start-time field rather than classic `FormGroup`. Its embedded live-preview instance never sets `soundEnabled` — the chime is exclusively a full-screen kiosk feature.
 
 `openScreenInNewTab()` opens `/anmeldung/ticketmonitor` in a new tab via `UrlHelperService.getBaseUrl()` — this is meant to be projected onto a second monitor in the waiting area.
 
 **Important routing detail:** `TicketScreenFullscreenComponent` is *not* a child of the `anmeldung` route group in `app.routes.ts`. It's registered as its own top-level route (`path: 'anmeldung/ticketmonitor'`, guarded only by the plain `authGuard`), so it requires being logged in but **not** the `SCANNER`/`CHECKIN` permission that gates the rest of this module. That's intentional — the monitor is a public-facing display, and whoever's logged into the kiosk running it may not hold either permission.
+
+`TicketScreenFullscreenComponent` also owns the device-facing concerns that only make sense for a real, unattended kiosk tab — not for the tiny live preview embedded in the control screen:
+- Requests a Screen Wake Lock on init and re-acquires it on `visibilitychange` (the browser releases a wake lock whenever the tab is backgrounded, so a lone initial request isn't enough to survive a tab switch).
+- Offers a fullscreen button (Fullscreen API) that hides itself once fullscreen is entered and reappears on `fullscreenchange` if the browser chrome comes back (e.g. Esc).
+- Reads `?sound=1` from the route's query params once, at construction, and passes it down as `TicketScreenComponent`'s `soundEnabled` input.
+
+It reads `document`/`navigator` through Angular's `DOCUMENT`/`Window` injection tokens rather than the bare globals, purely so tests can substitute them. `Window` is fully swapped for a mock in `ticket-screen-fullscreen.component.spec.ts` (matching `ConnectivityService`'s pattern); `DOCUMENT` stays the real `document` there instead, with only the Fullscreen-API properties jsdom doesn't implement patched onto it — Angular's renderer needs a genuine `Document` to attach the fixture's host element to, so swapping the whole token for a plain object breaks rendering.
 
 ## Gotchas
 
