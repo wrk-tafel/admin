@@ -138,17 +138,23 @@ Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, de
 
 ## Routen
 
-Unter **Einstellungen → Routen** werden die Routen samt ihren Stopps gepflegt. Eine Route hat eine Nummer (Zwischennummern wie 2.1 sind möglich), einen Namen und einen freien **Hinweis**-Text.
+Unter **Einstellungen → Routen** werden die Routen samt ihren Stopps gepflegt. Eine Route hat eine Nummer (Zwischennummern wie 2.1 sind möglich), einen Namen und einen freien **Hinweis**-Text, der dem Fahrer-Team im [Routen-Navi](logistik.md#routen-navi) prominent angezeigt wird.
 
-Jede Route ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name sowie die Anzahl der Stopps und die Uhrzeit des ersten und letzten Stopps ("3 Stopps · 12:00 – 13:00"), aufgeklappt den Hinweis und den gesamten Tagesablauf der Route — je Stopp Uhrzeit, Filiale samt Adresse und Beschreibung. Über der Liste stehen ein **Suchfeld** (durchsucht Nummer, Name, Hinweis sowie die Filialen und Beschreibungen der Stopps) sowie der Filter **Alle / Aktiv / Inaktiv**.
+Jede Route ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name sowie die Anzahl der Stopps und die Uhrzeit des ersten und letzten Stopps ("3 Stopps · 12:00 – 13:00"), aufgeklappt den Hinweis, einen Link **Route in Karte öffnen** sowie den gesamten Tagesablauf der Route — je Stopp Uhrzeit, Filiale samt Adresse und Beschreibung. Zeigt ein Stopp auf eine mittlerweile deaktivierte Filiale, steht direkt daneben die Kennzeichnung "Filiale inaktiv" — dieselbe, die dem Fahrer-Team im Routen-Navi angezeigt wird.
+
+Über der Liste stehen ein **Suchfeld** (durchsucht Nummer, Name, Hinweis sowie die Filialen und Beschreibungen der Stopps) und der Filter **Alle / Aktiv / Inaktiv**; sortiert ist die Liste immer nach der Routen-Nummer. Nach einer Suche steht unter diesen Feldern, wie viele Routen gefunden wurden ("2 von 5 Routen gefunden"). Trifft die Suche eine Route nur über einen ihrer Stopps — etwa bei der Suche nach einer Filiale —, klappt diese Route automatisch auf, damit der Treffer sichtbar ist.
 
 ![Routen](images/einstellungen-routen.jpg)
 
+Der Link **Route in Karte öffnen** setzt dieselbe Kartenroute wie das Routen-Navi zusammen — alle Stopps mit Filiale, in der gefahrenen Reihenfolge — und öffnet sie in einem neuen Tab; er ist der schnellste Weg, eine Stopp-Reihenfolge auf Plausibilität zu prüfen. Bei mehr als 10 Stopps mit Filiale deckt die Karte nur die ersten 10 ab; ein Hinweistext darunter nennt, wie viele danach einzeln zu navigieren sind (dieselbe Grenze wie beim Routen-Navi selbst).
+
 Rechts in jeder Zeile stehen — wie bei den [Filialen](#filialen) — der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet; dafür muss die Route nicht aufgeklappt werden. Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, eine **Filiale** und eine **Beschreibung** erfasst; das Papierkorb-Symbol entfernt einen Stopp wieder. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in der Routenliste als auch in der [Warenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Zur Auswahl stehen alle aktiven [Filialen](#filialen); mit "Keine Filiale" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen — bei einem solchen Stopp steht in der Liste die Beschreibung anstelle der Filiale.
+
+Da Stopps in beliebiger Reihenfolge eingegeben und erst beim Speichern nach Uhrzeit sortiert werden, zeigt der Dialog unterhalb der Stopp-Liste live die **gefahrene Reihenfolge** — so, wie sie das Fahrer-Team später sieht, auch bevor gespeichert wird. Direkt darüber weist ein gelber Hinweis auf auffällige Eingaben hin: eine Filiale, die mehrfach als Stopp eingetragen ist, ein Stopp ohne Uhrzeit oder ein ungewöhnlich kurzer (wenige Minuten) oder ungewöhnlich langer (mehrere Stunden) Zeitabstand zwischen zwei benachbarten Stopps — typische Tippfehler. Dieser Hinweis blockiert das Speichern nicht, sondern macht nur vorab auf eine mögliche Ursache aufmerksam.
 
 ![Routen-Stopps](images/einstellungen-routen-stopps.jpg)
 
-Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal vergeben sein; andernfalls erscheint beim Speichern eine entsprechende Meldung. Wie bei den Filialen können Routen deaktiviert statt gelöscht werden: eine deaktivierte Route steht in der Warenerfassung nicht mehr zur Auswahl, bereits erfasste Ausgabetage bleiben aber unverändert.
+Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal vergeben sein; andernfalls erscheint beim Speichern eine entsprechende Meldung. Wie bei den Filialen können Routen deaktiviert statt gelöscht werden: eine deaktivierte Route steht im Routen-Navi und in der Warenerfassung nicht mehr zur Auswahl, bereits erfasste Ausgabetage bleiben aber unverändert.
 
 ## Mitarbeiter
 
