@@ -21,13 +21,21 @@ Wurde ein Kunde angezeigt, erscheint darunter ein Panel mit farblich gekennzeich
 
 ## Scanner
 
-**"Scanner" ist in der Regel kein eigenes Gerät, sondern ein normales Smartphone**: Unter **Anmeldung → Scanner** wird auf einem Mobiltelefon (oder Tablet/PC) im Browser dessen Kamera als Barcode-/QR-Code-Scanner für Kundenausweise verwendet. Jedes Gerät, auf dem diese Seite geöffnet wird, meldet sich als eigener Scanner an und kann anschließend unter **Kunden-Annahme** ausgewählt werden.
+**"Scanner" ist in der Regel kein eigenes Gerät, sondern ein normales Smartphone**: Unter **Anmeldung → Scanner** wird auf einem Mobiltelefon (oder Tablet/PC) im Browser dessen Kamera als Barcode-/QR-Code-Scanner für Kundenausweise verwendet. Jedes Gerät, auf dem diese Seite geöffnet wird, meldet sich als eigener Scanner an und kann anschließend unter **Kunden-Annahme** ausgewählt werden. Die Seite ist für die Bedienung mit einer Hand am Telefon ausgelegt und läuft in zwei aufeinanderfolgenden Ansichten ab:
+
+**Kopplungs-Ansicht** (bevor die Kamera das erste Mal erfolgreich gestartet ist): Die Scanner-Nummer wird groß und zentriert angezeigt, damit sie quer durch den Raum vorgelesen und in der **Kunden-Annahme** ausgewählt werden kann. Darunter befindet sich das Dropdown **Kamera**, über das bei mehreren Kameras am Gerät (z. B. Front-/Rückkamera eines Handys) die gewünschte ausgewählt werden kann – ohne gespeicherte Auswahl wird automatisch die Rückkamera bevorzugt. Der Status zeigt "Bereit" bzw. "Nicht bereit", je nachdem ob die Kamera aktiv ist. Ist am Gerät keine Kamera verfügbar, erscheint stattdessen die Meldung "Keine Kamera gefunden".
 
 ![Scanner](images/anmeldung-scanner.jpg)
 
-Über das Dropdown **Kamera** kann bei mehreren Kameras am Gerät (z. B. Front-/Rückkamera eines Handys) die gewünschte ausgewählt werden. Der Status rechts oben zeigt "Bereit" bzw. "Nicht bereit", je nachdem ob die Kamera aktiv ist und ein Ausweis-Code erkannt werden kann. Ist am Gerät keine Kamera verfügbar, erscheint stattdessen die Meldung "Keine Kamera gefunden".
+**Scan-Ansicht** (sobald die Kamera das erste Mal erfolgreich gestartet hat): Das Kamerabild rückt in den Vordergrund, die Scanner-Nummer wird zu einer kleinen Anzeige in der oberen Ecke verkleinert. Unterstützt das Gerät eine Taschenlampe, erscheint oben rechts ein Taschenlampen-Symbol zum Ein-/Ausschalten (z. B. für dunkle Ladezonen).
+
+Ein erfolgreich erkannter Code wird unmissverständlich bestätigt: Der Bildschirm blendet kurz eine großflächige Farbfläche mit der erkannten Kundennummer ein (grün bei einem neuen Scan, orange bei einem unmittelbar wiederholten Scan desselben Codes), zusätzlich vibriert das Gerät (sofern unterstützt) und gibt einen kurzen Signalton aus.
 
 ![Scanner aktiv](images/anmeldung-scanner-aktiv.jpg)
+
+Bricht während des Scannens entweder die Kamera oder die Anmeldung des Scanners beim Server ab, wird das Kamerabild vollflächig mit der Meldung "Verbindung getrennt" überlagert, statt dass dies nur an einem kleinen Status-Symbol erkennbar wäre – über den Button **Erneut verbinden** kann die Anmeldung neu versucht werden.
+
+Damit der Bildschirm während einer laufenden Ausgabe nicht von selbst sperrt, wird er – sofern vom Gerät/Browser unterstützt – automatisch wachgehalten.
 
 ## Ticket-Monitor – Steuerung
 
