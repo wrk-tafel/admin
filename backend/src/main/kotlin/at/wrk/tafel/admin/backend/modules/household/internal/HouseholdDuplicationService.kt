@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
@@ -41,6 +43,7 @@ class HouseholdDuplicationService(
     private val householdRepository: HouseholdRepository,
     private val householdConverter: HouseholdConverter,
     private val jdbcTemplate: JdbcTemplate,
+    private val householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository,
 ) {
 
     companion object {
@@ -93,6 +96,14 @@ class HouseholdDuplicationService(
                                          compare.address_door)
                           )
                   ) < 10
+              -- household.household_id < compare.household_id above already guarantees the low/high
+              -- order dismiss() normalizes to, so no LEAST/GREATEST needed here.
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM household_duplicate_dismissals dismissal
+                  WHERE dismissal.household_id_low = household.household_id
+                    AND dismissal.household_id_high = compare.household_id
+              )
         """.trimIndent()
     }
 
@@ -124,6 +135,31 @@ class HouseholdDuplicationService(
             totalPages = duplicatesPage.totalPages,
             pageSize = pageRequest.pageSize,
         )
+    }
+
+    /**
+     * Records that [householdId] and [otherHouseholdId] were reviewed and judged not to be a
+     * duplicate, so [findDuplicates] stops surfacing that specific pair - without this, a decision
+     * made once would reappear on every future visit. Idempotent: dismissing an already-dismissed
+     * pair again is a no-op rather than a constraint violation. The order the two ids are given in
+     * doesn't matter - they're normalized into `household_id_low`/`household_id_high` here, matching
+     * the ordering [DUPLICATE_CONDITIONS] already relies on for its anti-join.
+     *
+     * `saveAndFlush` rather than `save`: [findDuplicates] reads this table back through a plain
+     * [JdbcTemplate] query, which Hibernate has no way to auto-flush ahead of - an unflushed insert
+     * would be invisible to it within the same transaction (e.g. a caller that dismisses and then
+     * immediately re-lists on one request).
+     */
+    @Transactional
+    fun dismiss(householdId: Long, otherHouseholdId: Long) {
+        val low = minOf(householdId, otherHouseholdId)
+        val high = maxOf(householdId, otherHouseholdId)
+
+        if (!householdDuplicateDismissalRepository.existsByHouseholdIdLowAndHouseholdIdHigh(low, high)) {
+            householdDuplicateDismissalRepository.saveAndFlush(
+                HouseholdDuplicateDismissalEntity(householdIdLow = low, householdIdHigh = high),
+            )
+        }
     }
 
     private fun loadDuplicates(pageable: Pageable): Page<HouseholdDuplicateEntry> {

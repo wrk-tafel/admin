@@ -112,7 +112,7 @@
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
+            <button matButton="filled" [attr.testid]="'editFoodCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
                     [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -190,7 +190,7 @@
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
+                <button matButton="filled" [attr.testid]="'editFoodCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
                         [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>

@@ -172,7 +172,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   it('new customer saved successfully', () => {
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 
@@ -204,7 +205,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   it('new customer save failed - form invalid', () => {
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(false);
 
@@ -230,7 +232,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 
@@ -264,7 +267,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 
@@ -300,7 +304,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 
@@ -327,7 +332,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 
@@ -363,7 +369,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   it('new customer save with non-409 error shows error toast', () => {
     const customerFormComponentMock = {
       markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
-      valid: vi.fn().mockName('CustomerFormComponent.valid')
+      valid: vi.fn().mockName('CustomerFormComponent.valid'),
+      dirty: vi.fn().mockName('CustomerFormComponent.dirty').mockReturnValue(false)
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 

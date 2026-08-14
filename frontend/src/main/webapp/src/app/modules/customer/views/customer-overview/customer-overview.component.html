@@ -9,19 +9,46 @@
       <div class="sm:col-span-2">
         <div class="mb-2">Ausgabe</div>
       </div>
-      <div class="sm:col-span-5">
+      <div class="sm:col-span-5 flex items-center gap-2">
+        <button type="button" matIconButton testid="overview-distribution-prev-button"
+                [disabled]="!canGoToOlderDistribution()" (click)="goToOlderDistribution()"
+                matTooltip="Ältere Ausgabe" aria-label="Ältere Ausgabe">
+          <fa-icon [icon]="faChevronLeft"></fa-icon>
+        </button>
+
         <mat-form-field subscriptSizing="dynamic" class="w-full">
           <mat-select testid="overviewDistributionInput" aria-label="Ausgabe" [ngModel]="selectedDistributionId()"
                       (ngModelChange)="onDistributionSelected($event)">
-            <mat-option [value]="undefined" testid="overviewDistributionInput-option-latest">Aktuellste Ausgabe</mat-option>
             @for (distribution of distributionsDataInput()?.items; track trackByDistributionId($index, distribution)) {
-              <mat-option [value]="distribution.id" [attr.testid]="'overviewDistributionInput-option-' + distribution.id">
-                {{ distribution.startedAt | date : 'dd.MM.yyyy' }}
-              </mat-option>
+              <!-- text tight against the tags: Angular collapses the indentation into leading/trailing
+                   spaces otherwise, and the e2e spec matches this label with an anchored pattern -->
+              <mat-option [value]="distribution.id"
+                          [attr.testid]="'overviewDistributionInput-option-' + distribution.id">{{ distribution.startedAt | date : 'EE, dd.MM.yyyy' }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
+
+        <button type="button" matIconButton testid="overview-distribution-next-button"
+                [disabled]="!canGoToNewerDistribution()" (click)="goToNewerDistribution()"
+                matTooltip="Neuere Ausgabe" aria-label="Neuere Ausgabe">
+          <fa-icon [icon]="faChevronRight"></fa-icon>
+        </button>
       </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 mt-4">
+      <mat-card class="h-full mat-card-primary">
+        <mat-card-content class="!p-4">
+          <h2 class="tafel-h5 mb-1">Neu</h2>
+          <div testid="overview-stat-new-count" class="text-4xl font-bold leading-none">{{ newCount() }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="h-full mat-card-primary">
+        <mat-card-content class="!p-4">
+          <h2 class="tafel-h5 mb-1">Verlängert</h2>
+          <div testid="overview-stat-renewed-count" class="text-4xl font-bold leading-none">{{ renewedCount() }}</div>
+        </mat-card-content>
+      </mat-card>
     </div>
 
     <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
@@ -31,47 +58,83 @@
 </mat-card>
 
 <mat-card class="mt-4">
-  <mat-card-header class="text-xl font-bold">Neu</mat-card-header>
+  <mat-card-header class="text-xl font-bold w-full">
+    <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+      <span>Kunden</span>
+      <div class="flex flex-wrap items-center gap-3">
+        <mat-button-toggle-group [value]="selectedFilter()" (change)="onFilterChanged($event)"
+                                  aria-label="Nach Typ filtern" testid="overview-type-filter">
+          <mat-button-toggle value="ALL" testid="overview-type-filter-all">Alle</mat-button-toggle>
+          <mat-button-toggle value="NEW" testid="overview-type-filter-new">Neu</mat-button-toggle>
+          <mat-button-toggle value="RENEWED" testid="overview-type-filter-renewed">Verlängert</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <button type="button" matButton="filled" testid="overview-csv-export-button" (click)="exportCsv()">
+          <fa-icon [icon]="faFileCsv" class="me-2"></fa-icon>
+          CSV-Export
+        </button>
+      </div>
+    </div>
+  </mat-card-header>
   <mat-card-content>
-    @if ((customerOverviewData()?.newCustomers?.length ?? 0) === 0) {
-      <div class="text-base font-bold mt-4">Keine neuen Kunden gefunden!</div>
+    @if (filteredRows().length === 0) {
+      <div class="text-base font-bold mt-4">Keine Kunden gefunden!</div>
     }
 
-    @if ((customerOverviewData()?.newCustomers?.length ?? 0) > 0) {
+    @if (filteredRows().length > 0) {
       <div class="hidden md:block mt-4">
-        <table mat-table [dataSource]="customerOverviewData()!.newCustomers" class="min-w-full divide-y divide-gray-200"
-               aria-label="Liste der neuen Kunden">
-          <ng-container matColumnDef="icon">
-            <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
-            <td mat-cell *matCellDef="let item"><fa-icon [icon]="faUserPlus"></fa-icon></td>
+        <table mat-table [dataSource]="filteredRows()" class="min-w-full divide-y divide-gray-200"
+               aria-label="Liste der neuen und verlängerten Kunden">
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Typ</th>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-type-' + i" class="px-4 py-2">
+              <div class="badge" [ngClass]="{'badge-success': row.type === 'NEW', 'badge-info': row.type === 'RENEWED'}">
+                <fa-icon [icon]="row.type === 'NEW' ? faUserPlus : faRotate" class="me-1"></fa-icon>
+                {{ row.type === 'NEW' ? 'Neu' : 'Verlängert' }}
+              </div>
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Nr.</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-new-id-' + i" class="px-4 py-2">{{item.customer.id}}</td>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-id-' + i" class="px-4 py-2">{{row.item.customer.id}}</td>
           </ng-container>
 
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-new-name-' + i" class="px-4 py-2">
-              {{item.customer.lastname}} {{item.customer.firstname}}
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-name-' + i" class="px-4 py-2">
+              {{row.item.customer.lastname}} {{row.item.customer.firstname}}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="address">
             <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Adresse</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-new-address-' + i" class="px-4 py-2">{{item.customer.address | formatCustomerAddress}}</td>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-address-' + i" class="px-4 py-2">{{row.item.customer.address | formatCustomerAddress}}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="persons">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personen</th>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-persons-' + i" class="px-4 py-2">{{personsCount(row.item.customer)}}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="validity">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gültigkeit</th>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-validity-' + i" class="px-4 py-2">
+              <div class="badge" [ngClass]="{'badge-success': isCustomerValid(row.item.customer), 'badge-danger': !isCustomerValid(row.item.customer)}">
+                {{ validityLabel(row.item.customer) }}
+              </div>
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Angelegt am</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-new-date-' + i" class="px-4 py-2">{{item.date | date : 'dd.MM.yyyy'}}</td>
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Datum</th>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-date-' + i" class="px-4 py-2">{{row.item.date | date : 'dd.MM.yyyy'}}</td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
-            <td mat-cell *matCellDef="let item; let i = index" class="px-4 py-2">
-              <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-new-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)"
+            <td mat-cell *matCellDef="let row; let i = index" class="px-4 py-2">
+              <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-showcustomer-button-' + i" (click)="showCustomerDetail(row.item.customer.id!)"
                       matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                 <fa-icon [icon]="faSearch"></fa-icon>
               </button>
@@ -79,105 +142,40 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="overview-new-row"></tr>
+          <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="overview-row"></tr>
         </table>
       </div>
 
       <div class="block md:hidden mt-4">
         <div class="flex flex-col gap-4 mb-4">
-          @for (item of customerOverviewData()!.newCustomers; track trackByCustomerId($index, item); let i = $index) {
+          @for (row of filteredRows(); track trackByRow($index, row); let i = $index) {
             <mat-card>
-              <mat-card-header class="font-semibold">{{item.customer.id}} - {{item.customer.lastname}} {{item.customer.firstname}}</mat-card-header>
+              <mat-card-header class="font-semibold">
+                <div class="flex items-center gap-2">
+                  <div class="badge" [ngClass]="{'badge-success': row.type === 'NEW', 'badge-info': row.type === 'RENEWED'}">
+                    {{ row.type === 'NEW' ? 'Neu' : 'Verlängert' }}
+                  </div>
+                  <span>{{row.item.customer.id}} - {{row.item.customer.lastname}} {{row.item.customer.firstname}}</span>
+                </div>
+              </mat-card-header>
               <mat-card-content>
                 <div class="grid grid-cols-2 gap-2">
                   <div class="font-bold">Adresse:</div>
-                  <div>{{item.customer.address | formatCustomerAddress}}</div>
-                  <div class="font-bold">Angelegt am:</div>
-                  <div>{{item.date | date : 'dd.MM.yyyy'}}</div>
+                  <div>{{row.item.customer.address | formatCustomerAddress}}</div>
+                  <div class="font-bold">Personen:</div>
+                  <div>{{personsCount(row.item.customer)}}</div>
+                  <div class="font-bold">Gültigkeit:</div>
+                  <div>
+                    <div class="badge" [ngClass]="{'badge-success': isCustomerValid(row.item.customer), 'badge-danger': !isCustomerValid(row.item.customer)}">
+                      {{ validityLabel(row.item.customer) }}
+                    </div>
+                  </div>
+                  <div class="font-bold">Datum:</div>
+                  <div>{{row.item.date | date : 'dd.MM.yyyy'}}</div>
                 </div>
               </mat-card-content>
               <mat-card-actions class="flex gap-2 mt-2">
-                <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-new-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)"
-                      matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
-                  <fa-icon [icon]="faSearch"></fa-icon>
-                </button>
-              </mat-card-actions>
-            </mat-card>
-          }
-        </div>
-      </div>
-    }
-  </mat-card-content>
-</mat-card>
-
-<mat-card class="mt-4">
-  <mat-card-header class="text-xl font-bold">Verlängert</mat-card-header>
-  <mat-card-content>
-    @if ((customerOverviewData()?.renewedCustomers?.length ?? 0) === 0) {
-      <div class="text-base font-bold mt-4">Keine verlängerten Kunden gefunden!</div>
-    }
-
-    @if ((customerOverviewData()?.renewedCustomers?.length ?? 0) > 0) {
-      <div class="hidden md:block mt-4">
-        <table mat-table [dataSource]="customerOverviewData()!.renewedCustomers" class="min-w-full divide-y divide-gray-200"
-               aria-label="Liste der verlängerten Kunden">
-          <ng-container matColumnDef="icon">
-            <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
-            <td mat-cell *matCellDef="let item"><fa-icon [icon]="faRotate"></fa-icon></td>
-          </ng-container>
-
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Nr.</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-renewed-id-' + i" class="px-4 py-2">{{item.customer.id}}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-renewed-name-' + i" class="px-4 py-2">
-              {{item.customer.lastname}} {{item.customer.firstname}}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="address">
-            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Adresse</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-renewed-address-' + i" class="px-4 py-2">{{item.customer.address | formatCustomerAddress}}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Verlängert am</th>
-            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'overview-renewed-date-' + i" class="px-4 py-2">{{item.date | date : 'dd.MM.yyyy'}}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
-            <td mat-cell *matCellDef="let item; let i = index" class="px-4 py-2">
-              <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-renewed-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)"
-                      matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
-                <fa-icon [icon]="faSearch"></fa-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="overview-renewed-row"></tr>
-        </table>
-      </div>
-
-      <div class="block md:hidden mt-4">
-        <div class="flex flex-col gap-4 mb-4">
-          @for (item of customerOverviewData()!.renewedCustomers; track trackByCustomerId($index, item); let i = $index) {
-            <mat-card>
-              <mat-card-header class="font-semibold">{{item.customer.id}} - {{item.customer.lastname}} {{item.customer.firstname}}</mat-card-header>
-              <mat-card-content>
-                <div class="grid grid-cols-2 gap-2">
-                  <div class="font-bold">Adresse:</div>
-                  <div>{{item.customer.address | formatCustomerAddress}}</div>
-                  <div class="font-bold">Verlängert am:</div>
-                  <div>{{item.date | date : 'dd.MM.yyyy'}}</div>
-                </div>
-              </mat-card-content>
-              <mat-card-actions class="flex gap-2 mt-2">
-                <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-renewed-showcustomer-button-' + i" (click)="showCustomerDetail(item.customer.id!)"
+                <button type="button" matButton="filled" class="button-info" [attr.testid]="'overview-showcustomer-button-' + i" (click)="showCustomerDetail(row.item.customer.id!)"
                       matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
                   <fa-icon [icon]="faSearch"></fa-icon>
                 </button>

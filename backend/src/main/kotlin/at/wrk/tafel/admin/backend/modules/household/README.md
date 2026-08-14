@@ -126,10 +126,10 @@ below.
 
 `getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
 ("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
-distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the most
-recently created distribution (`DistributionRepository.findFirstByOrderByIdDesc()`, deliberately
-*not* `getCurrentDistribution()`, since the overview should still work once that distribution has
-been closed). It injects `DistributionRepository` directly (from `database.model.distribution`) -
+distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the newest
+*closed* distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`),
+matching the first entry of the closed-only distribution list the frontend's selector offers.
+It injects `DistributionRepository` directly (from `database.model.distribution`) -
 that's fine despite the module's `allowedDependencies` below only listing `base::country`/
 `base::exception`: Spring Modulith's boundary only governs `modules.*` packages, not the shared
 `database.model.*` entity/repository layer (see `DashboardService` for the same pattern).
@@ -245,6 +245,15 @@ The self-join condition anchors each match on the *smaller* `household_id`
 (`household.household_id < compare.household_id`, not `<>`) so an unordered pair {A, B} surfaces as
 exactly one row - anchored on whichever of A/B has the lower id - instead of two mirrored rows (once
 per direction).
+
+`dismiss(householdId, otherHouseholdId)` records a reviewer's "kein Duplikat" decision on the
+`/kunden/duplikate` screen: it normalizes the two ids into `household_id_low`/`household_id_high`
+(matching the anchor ordering above) and stores them in `household_duplicate_dismissals`
+(`HouseholdDuplicateDismissalEntity`/`Repository`). `DUPLICATE_CONDITIONS`'s `NOT EXISTS` anti-join
+against that table is what keeps a dismissed pair from resurfacing on a later visit - without it, a
+decision made once would reappear on every review pass. The table has no foreign key to
+`households`: its columns hold the business `household_id`, which is never reused once assigned, so
+a dismissal outliving a deleted household is simply inert rather than a dangling reference.
 
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
