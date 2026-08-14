@@ -108,7 +108,7 @@ modules/customer/
   │   ├── customer-duplicates/            # list of already-flagged duplicate customer pairs
   │   ├── customer-edit/                  # create (no id) / edit (:id) — hosts customer-form + its dialogs/
   │   ├── customer-merge/                 # field-conflict picker + confirm screen for merging a duplicate group
-  │   └── customer-search/                # search by id or lastname/firstname + filters
+  │   └── customer-search/                # single omnibox (exact id jump or fuzzy search) + chip filters, state in query params
   ├── resolver/
   │   ├── customerdata-resolver.component.ts
   │   ├── customernotes-resolver.component.ts
@@ -242,9 +242,11 @@ Two independent layers, both scoped to the flat `CustomerData`/form model:
   ```
 - `customer-form.component.ts` uses Angular's signal-based reactive forms
   (`@angular/forms/signals`: `form()`, `FormField`, `required()`, `validate()`,
-  `applyEach()`) rather than `FormGroup`/`FormBuilder` — `customer-search.component.ts`
-  is the exception, still on classic `ReactiveFormsModule`/`FormBuilder` since it's a
-  simple filter bar, not a validated data-entry form.
+  `applyEach()`) rather than `FormGroup`/`FormBuilder`. `customer-search.component.ts`
+  isn't a validated data-entry form at all — its query and filters are plain signals
+  bound through `FormsModule`'s `[ngModel]`/`(ngModelChange)`, the same pattern the
+  audit log's filter bar uses, with the whole state mirrored into query params so a
+  detour to a customer and back restores the same search.
 - `effect()` in the form component's constructor both pushes external `customerData`
   input changes into the form model and pushes form changes back out via
   `customerDataChange` (`output()`) — there's no two-way binding, just two one-way

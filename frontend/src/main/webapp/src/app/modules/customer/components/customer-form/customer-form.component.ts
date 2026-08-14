@@ -316,6 +316,23 @@ export class CustomerFormComponent {
     this.customerForm().markAsTouched();
   }
 
+  /**
+   * Prefills first/last name on an otherwise-empty form - used when arriving at "Kunden anlegen"
+   * from a customer search that found nothing, so the search terms are not typed twice. A no-op for
+   * whichever field is not provided, so a surname-only prefill does not clear an empty first name
+   * back to itself for no reason.
+   */
+  prefillNames(firstname: string | null, lastname: string | null) {
+    if (!firstname && !lastname) {
+      return;
+    }
+    this.formModel.update(model => ({
+      ...model,
+      firstname: firstname ?? model.firstname,
+      lastname: lastname ?? model.lastname,
+    }));
+  }
+
   // Expose utility functions for template use
   protected readonly visibleErrorMessages = visibleErrorMessages;
 

@@ -2,7 +2,7 @@ import type {MockedObject} from 'vitest';
 import {of, throwError} from 'rxjs';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {
   CustomerApiService,
@@ -92,7 +92,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   let toastr: MockedObject<TafelToastrService>;
   let matDialog: MockedObject<MatDialog>;
 
-  beforeEach((() => {
+  function configureTestBed(queryParams: Record<string, string> = {}) {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule
@@ -132,7 +132,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
-              data: {}
+              data: {},
+              queryParamMap: convertToParamMap(queryParams)
             }
           }
         }
@@ -143,7 +144,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-  }));
+  }
+
+  beforeEach(() => configureTestBed());
 
   it('initial checks', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
@@ -153,6 +156,17 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
     expect(component.editMode()).toBe(false);
+  });
+
+  it('prefills first/last name from query params (reached from the search screen\'s empty-state CTA)', () => {
+    TestBed.resetTestingModule();
+    configureTestBed({vorname: 'Max', nachname: 'Mustermann'});
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="firstnameInput"]')).nativeElement.value).toBe('Max');
+    expect(fixture.debugElement.query(By.css('[testid="lastnameInput"]')).nativeElement.value).toBe('Mustermann');
   });
 
   it('new customer saved successfully', () => {

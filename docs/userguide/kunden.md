@@ -6,23 +6,25 @@ Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Fam
 
 ## Kunden suchen
 
-Unter **Kunden → Kunden suchen** kann entweder direkt über die **Kundennummer** (Feld oben, Button **Anzeigen**) zur Detailansicht gesprungen werden, oder über das Feld **Suche** gesucht werden. Ist zur eingegebenen Kundennummer kein Kunde vorhanden, erscheint die Meldung "Kunde nicht gefunden!".
+Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Kundennummer entspricht, springt direkt zur Detailansicht (wie früher der Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
 
 Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
 
-Zusätzlich lässt sich nach "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" filtern; die Filter können auch ohne Sucheingabe verwendet werden. Das Info-Symbol (ⓘ) neben dem Suchfeld und neben jedem Filter erklärt, wonach genau gesucht wird – "Daten unvollständig" findet z. B. Kunden, bei denen bei einer Person Pflichtangaben fehlen.
+Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus.
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
-Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein.
+Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein. Suchbegriff, Filter und die aktuelle Seite bleiben in der Adresszeile erhalten: Wird ein Kunde aus dem Ergebnis geöffnet und über "Zurück" wieder zur Suche zurückgekehrt, ist dasselbe Ergebnis - inklusive Filter und Seite - sofort wieder da, ohne erneut suchen zu müssen.
 
-Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Über die Aktionen kann der Kunde angesehen (Lupe) oder bearbeitet (Stift) werden. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
+Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Das Gültigkeitsdatum ist wie in der Detailansicht grün (aufrecht) oder rot (abgelaufen) hinterlegt, ein Schloss-Symbol markiert gesperrte Kunden. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
 
-Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und denselben Aktionen (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und derselben Aktion (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 
 ![Suchergebnis auf schmalen Bildschirmen](images/kunden-suchen-ergebnis-mobil.jpg)
+
+Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Keine Kunden gefunden" mit einem Button **Kunden anlegen** - dieser öffnet das Formular für einen neuen Kunden und übernimmt dabei den eingegebenen Suchbegriff bereits als Vor- und Nachname, sofern dieser wie ein Name aussieht (keine reine Zahl).
 
 ## Kunden-Detail
 

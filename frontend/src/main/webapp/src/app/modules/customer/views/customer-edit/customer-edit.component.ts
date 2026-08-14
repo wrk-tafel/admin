@@ -12,7 +12,7 @@ import {
   CustomerUpdateResponse,
   ValidateCustomerResponse
 } from '../../../../api/customer-api.service';
-import {Router, RouterLink} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {ValidationResultDialogComponent} from './dialogs/validation-result-dialog.component';
@@ -54,6 +54,7 @@ export class CustomerEditComponent implements HasUnsavedChanges {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
@@ -108,12 +109,17 @@ export class CustomerEditComponent implements HasUnsavedChanges {
   private readonly duplicatesWarning = viewChild<ElementRef<HTMLElement>>('duplicatesWarning');
 
   constructor() {
-    // Mark forms as touched when customerData is loaded (edit mode)
     afterRenderEffect(() => {
       const editMode = this.editMode();
       const formComponent = this.customerFormComponent();
       if (editMode) {
+        // Mark forms as touched when customerData is loaded (edit mode)
         formComponent.markAllAsTouched();
+      } else {
+        // "Kunden anlegen" reached from a search that found nothing prefills the name it was
+        // searched for - see the customer search screen's empty-state CTA.
+        const params = this.route.snapshot.queryParamMap;
+        formComponent.prefillNames(params?.get('vorname') ?? null, params?.get('nachname') ?? null);
       }
     });
 
