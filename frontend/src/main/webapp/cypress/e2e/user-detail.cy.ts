@@ -38,6 +38,43 @@ describe('User Detail', () => {
     });
   });
 
+  it('"Alle anzeigen" reveals what a category still misses, without opening the edit form', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const generatedPassword = testUserPassword(randomNumber);
+      const userData: UserData = {
+        username: 'permoverview-' + randomNumber,
+        personnelNumber: 'permoverview-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: generatedPassword,
+        passwordRepeat: generatedPassword,
+        passwordChangeRequired: false,
+        permissions: [
+          {key: 'CHECKIN', title: 'Anmeldung'}
+        ]
+      };
+
+      cy.createUser(userData).then(response => {
+        cy.visit('/benutzer/detail/' + response.body.id);
+
+        cy.byTestId('permission-group-Ausgabe & Betrieb').should('not.contain.text', 'Kundenverwaltung');
+        cy.byTestId('permission-group-Leitung').should('not.exist');
+
+        cy.byTestId('togglePermissionsButton').click();
+
+        cy.byTestId('permission-group-Ausgabe & Betrieb').should('contain.text', 'Kundenverwaltung');
+        // a category the user holds nothing in at all stays omitted, even in the "show all" view
+        cy.byTestId('permission-group-Leitung').should('not.exist');
+        // the muted/unassigned chips only exist behind this toggle, so this is the only place that sees them
+        cy.checkAccessibility('[testid="permissionsText"]');
+
+        cy.byTestId('togglePermissionsButton').click();
+        cy.byTestId('permission-group-Ausgabe & Betrieb').should('not.contain.text', 'Kundenverwaltung');
+      });
+    });
+  });
+
   it('shows a placeholder when the user has no permissions', () => {
     cy.createDummyUser().then(response => {
       cy.visit('/benutzer/detail/' + response.body.id);

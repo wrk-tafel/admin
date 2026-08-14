@@ -65,6 +65,34 @@ describe('PasswordChange', () => {
     cy.url().should('contain', '/uebersicht');
   });
 
+  it('shows a live password-rule checklist and strength meter while typing', () => {
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-changepassword').click();
+
+    // No password typed yet - nothing is met, and the strength meter doesn't render at all.
+    cy.byTestId('passwordStrength').should('not.exist');
+    cy.byTestId('passwordRule-0').should('contain.text', 'Noch nicht erfüllt');
+
+    // Too short and equal to the logged-in username ("e2etest") - two rules stay unmet.
+    cy.byTestId('newPasswordText').type('e2etest');
+    cy.byTestId('passwordRule-0').should('contain.text', 'Noch nicht erfüllt'); // min. 8 characters
+    cy.byTestId('passwordRule-1').should('contain.text', 'Noch nicht erfüllt'); // contains the username
+    cy.byTestId('passwordStrength').should('be.visible');
+    cy.byTestId('passwordStrengthLabel').should('not.be.empty');
+
+    // A password meeting every client-checkable rule turns the whole checklist green.
+    cy.byTestId('newPasswordText').find('input').clear().type('dummy-Passwort-42');
+    cy.byTestId('passwordRule-0').should('contain.text', 'Erfüllt:');
+    cy.byTestId('passwordRule-1').should('contain.text', 'Erfüllt:');
+    cy.byTestId('passwordRule-2').should('contain.text', 'Erfüllt:');
+    cy.byTestId('passwordRule-3').should('contain.text', 'Erfüllt:');
+
+    // A banned word keeps its own rule unmet even though the password is otherwise fine.
+    cy.byTestId('newPasswordText').find('input').clear().type('tafelverein99');
+    cy.byTestId('passwordRule-0').should('contain.text', 'Erfüllt:');
+    cy.byTestId('passwordRule-3').should('contain.text', 'Noch nicht erfüllt');
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);

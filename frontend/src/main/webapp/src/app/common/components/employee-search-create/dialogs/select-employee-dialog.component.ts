@@ -6,8 +6,8 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faHandPointer} from '@fortawesome/free-solid-svg-icons';
 import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../../api/employee-api.service';
-import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
-import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
+import {TafelDialogComponent} from '../../tafel-dialog/tafel-dialog.component';
+import {PAGE_SIZE_OPTIONS} from '../../../api/paged-response';
 
 export interface SelectEmployeeDialogData {
   initialResponse: EmployeeListResponse;

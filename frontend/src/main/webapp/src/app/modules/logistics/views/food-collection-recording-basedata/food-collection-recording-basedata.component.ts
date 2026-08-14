@@ -8,7 +8,9 @@ import {MatIcon} from '@angular/material/icon';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {faRemove, faTruck} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {TafelEmployeeSearchCreateComponent} from '../../components/tafel-employee-search-create.component';
+import {
+  TafelEmployeeSearchCreateComponent
+} from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
 import {EmployeeData} from '../../../../api/employee-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {

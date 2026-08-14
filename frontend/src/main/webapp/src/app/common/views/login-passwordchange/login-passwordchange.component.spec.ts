@@ -117,7 +117,7 @@ describe('LoginPasswordChangeComponent', () => {
         vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
         authServiceSpy.getUsername.mockReturnValue(testUsername);
 
-        const loginResult: LoginResult = { successful: true, passwordChangeRequired: false, locked: false };
+        const loginResult: LoginResult = { successful: true, passwordChangeRequired: false, locked: false, serverUnreachable: false };
         authServiceSpy.login.mockReturnValue(firstValueFrom(of(loginResult)));
 
         component.changePassword();
@@ -126,6 +126,51 @@ describe('LoginPasswordChangeComponent', () => {
 
         expect(authServiceSpy.login).toHaveBeenCalledWith(testUsername, testNewPassword);
         expect(routerSpy.navigate).toHaveBeenCalledWith(['uebersicht']);
+    });
+
+    it('reLoginInProgress is set once the new password is saved, before the silent re-login resolves', async () => {
+        const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const formComponent = component.form();
+        expect(formComponent).toBeDefined();
+
+        vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
+        authServiceSpy.getUsername.mockReturnValue('test-username');
+
+        // Never resolves within this test - lets the "in progress" state be observed on its own.
+        authServiceSpy.login.mockReturnValue(new Promise<LoginResult>(() => undefined));
+
+        expect(component.reLoginInProgress()).toBe(false);
+
+        component.changePassword();
+
+        expect(component.reLoginInProgress()).toBe(true);
+        expect(component.saveDisabled()).toBe(true);
+        expect(routerSpy.navigate).not.toHaveBeenCalled();
+    });
+
+    it('reLoginInProgress resets if the silent re-login unexpectedly fails', async () => {
+        const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const formComponent = component.form();
+        expect(formComponent).toBeDefined();
+
+        vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
+        authServiceSpy.getUsername.mockReturnValue('test-username');
+
+        const failedResult: LoginResult = {successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false};
+        authServiceSpy.login.mockReturnValue(firstValueFrom(of(failedResult)));
+
+        component.changePassword();
+
+        await vi.waitFor(() => {});
+
+        expect(component.reLoginInProgress()).toBe(false);
+        expect(routerSpy.navigate).not.toHaveBeenCalled();
     });
 
 });

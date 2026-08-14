@@ -43,6 +43,20 @@ interface UserRepository :
             "from User u where u.employee.id in :employeeIds",
     )
     fun findAccountsByEmployeeIds(@Param("employeeIds") employeeIds: Collection<Long>): List<EmployeeUserAccountProjection>
+
+    /**
+     * The accounts behind [usernames] - one query for a whole page of login attempts rather than a
+     * lookup per row. Compared lower-cased, since a login attempt records the username normalized
+     * while an account keeps the spelling it was created with.
+     */
+    @Query("select lower(u.username) as username, u.id as userId from User u where lower(u.username) in :usernames")
+    fun findIdsByUsernames(@Param("usernames") usernames: Collection<String>): List<UserIdProjection>
+}
+
+/** One account id and the lower-cased username it belongs to, as [UserRepository.findIdsByUsernames] reads them. */
+interface UserIdProjection {
+    val username: String
+    val userId: Long
 }
 
 /** One user account, as [UserRepository.findAccountsByEmployeeIds] reads them. */

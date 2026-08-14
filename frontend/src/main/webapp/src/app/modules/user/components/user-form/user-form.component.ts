@@ -1,6 +1,7 @@
-import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal, untracked, viewChild} from '@angular/core';
 import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
+import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
@@ -9,12 +10,15 @@ import {MatInputModule} from '@angular/material/input';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatIcon} from '@angular/material/icon';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import {faChevronDown, faChevronUp, faCopy, faEye, faEyeSlash, faRemove} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {groupPermissionsByCategory, PermissionGroup} from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
+import {
+  TafelEmployeeSearchCreateComponent
+} from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
 
 /**
  * Mirrors `UserPermissions.ADMINISTRATOR` on the backend. Kept as a constant rather than inline, so
@@ -35,7 +39,8 @@ const ADMINISTRATOR_PERMISSION = 'ADMINISTRATOR';
         MatCheckboxModule,
         MatIcon,
         FaIconComponent,
-        TafelAutofocusDirective
+        TafelAutofocusDirective,
+        TafelEmployeeSearchCreateComponent
     ]
 })
 export class UserFormComponent {
@@ -43,7 +48,10 @@ export class UserFormComponent {
   permissionsData = input<UserPermission[]>();
   userDataChange = output<UserData>();
 
+  employeeSearchCreate = viewChild<TafelEmployeeSearchCreateComponent>('employeeSearchCreate');
+
   private readonly userApiService = inject(UserApiService);
+  private readonly employeeApiService = inject(EmployeeApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly authenticationService = inject(AuthenticationService);
 
@@ -69,12 +77,36 @@ export class UserFormComponent {
 
   // Without existing user data the form creates a new user, which needs a password;
   // while editing, empty password fields mean "don't change the password"
-  private createMode = computed(() => !this.userData());
+  createMode = computed(() => !this.userData());
+
+  // The employee currently linked via the personnel-number search, resolved through
+  // `tafel-employee-search-create` (matching logistics' driver/co-driver pattern) rather than typed
+  // freely, so an account can no longer reference a personnel number no employee actually holds.
+  selectedEmployee = signal<EmployeeData | null>(null);
+  // True only while an existing user's personnel number is being resolved back to its employee on
+  // load - the personnelNumber validator treats this as provisionally valid so the field doesn't
+  // flash an error before that lookup returns.
+  private resolvingEmployee = signal(false);
+  // Edit mode only: the password fields sit inside a collapsed "Passwort zurücksetzen" section so a
+  // save can't accidentally reset a password nobody meant to touch. Always considered open in create
+  // mode, where a password is mandatory.
+  passwordResetExpanded = signal(false);
+  passwordFieldsVisible = computed(() => this.createMode() || this.passwordResetExpanded());
 
   // Create signal form with validation schema
   userForm = form(this.formModel, (schemaPath) => {
     required(schemaPath.personnelNumber, {message: 'Pflichtfeld'});
     maxLength(schemaPath.personnelNumber, 50, {message: 'Personalnummer zu lang (maximal 50 Zeichen)'});
+    validate(schemaPath.personnelNumber, ({value}) => {
+      if (this.resolvingEmployee()) {
+        return undefined;
+      }
+      const employee = this.selectedEmployee();
+      if (!employee || employee.personnelNumber !== value()) {
+        return {kind: 'employeeNotLinked', message: 'Bitte einen Mitarbeiter über die Personalnummer-Suche auswählen'};
+      }
+      return undefined;
+    });
 
     required(schemaPath.username, {message: 'Pflichtfeld'});
     maxLength(schemaPath.username, 50, {message: 'Benutzername zu lang (maximal 50 Zeichen)'});
@@ -120,6 +152,16 @@ export class UserFormComponent {
     } as UserData;
   });
 
+  // A serialized snapshot of derivedUserData taken right after the form was (re)loaded or saved -
+  // isDirty() compares the live value against it rather than relying on signal-forms' own dirty
+  // tracking, which only reacts to control-originated edits and would miss e.g. an employee picked
+  // through the search dialog or a permission toggle.
+  private initialSnapshot = signal<string | null>(null);
+  private isDirtyState = computed(() => {
+    const initial = this.initialSnapshot();
+    return initial !== null && JSON.stringify(this.derivedUserData()) !== initial;
+  });
+
   constructor() {
     // Initialize form when userData or permissionsData changes
     effect(() => {
@@ -146,6 +188,21 @@ export class UserFormComponent {
           return {...availablePermission, enabled: enabled};
         });
         this.permissions.set(formPermissions);
+
+        // Resolve the employee already linked to this user so it renders as "selected" immediately,
+        // instead of asking the admin to re-search a personnel number that is already valid.
+        this.passwordResetExpanded.set(false);
+        this.selectedEmployee.set(null);
+        this.resolvingEmployee.set(true);
+        this.employeeApiService.checkPersonnelNumberAvailability(userData.personnelNumber).subscribe({
+          next: (response) => {
+            this.selectedEmployee.set(response.existingEmployee ?? null);
+            this.resolvingEmployee.set(false);
+          },
+          error: () => {
+            this.resolvingEmployee.set(false);
+          }
+        });
       } else if (permissionsData) {
         // Initialize with default permissions (all disabled)
         const formPermissions: UserPermissionFormItem[] = permissionsData.map((permission) => ({
@@ -153,7 +210,13 @@ export class UserFormComponent {
           enabled: false
         }));
         this.permissions.set(formPermissions);
+        this.selectedEmployee.set(null);
+        this.resolvingEmployee.set(false);
       }
+
+      // Freshly (re)loaded, so this is the baseline isDirty() compares against - read outside the
+      // tracking context, since derivedUserData reads the signals this same effect just wrote.
+      untracked(() => this.initialSnapshot.set(JSON.stringify(this.derivedUserData())));
     });
 
     // Emit userDataChange when derived user data changes
@@ -174,6 +237,23 @@ export class UserFormComponent {
     return this.userForm().valid();
   }
 
+  /**
+   * Whether the form differs from the state it was last loaded or saved in - drives the
+   * unsaved-changes navigation guard in `UserEditComponent`.
+   */
+  public isDirty(): boolean {
+    return this.isDirtyState();
+  }
+
+  /**
+   * Rebases isDirty() on the current values, called right after a successful save so the
+   * navigation guard that follows (routing to the detail page) doesn't ask to confirm discarding
+   * changes that were, in fact, just saved.
+   */
+  public markSaved() {
+    untracked(() => this.initialSnapshot.set(JSON.stringify(this.derivedUserData())));
+  }
+
   public generatePassword() {
 
     const observer = {
@@ -184,6 +264,10 @@ export class UserFormComponent {
 
         this.passwordTextVisible.set(true);
         this.passwordRepeatTextVisible.set(true);
+
+        // The point of generating a password here is handing it to a new colleague, so the
+        // sensible default is requiring them to set their own on first login.
+        this.userForm.passwordChangeRequired().value.set(true);
       },
       error: () => {
         this.toastr.error('Passwort-Generierung fehlgeschlagen!', 'Fehler');
@@ -193,12 +277,45 @@ export class UserFormComponent {
     this.userApiService.generatePassword().subscribe(observer);
   }
 
+  public copyPassword() {
+    const password = this.userForm.password().value();
+    if (!password) {
+      return;
+    }
+    navigator.clipboard.writeText(password).then(
+      () => this.toastr.success('Passwort in die Zwischenablage kopiert!'),
+      () => this.toastr.error('Kopieren in die Zwischenablage fehlgeschlagen!')
+    );
+  }
+
   public togglePasswordVisibility() {
     this.passwordTextVisible.update(value => !value);
   }
 
   public togglePasswordRepeatVisibility() {
     this.passwordRepeatTextVisible.update(value => !value);
+  }
+
+  public togglePasswordResetSection() {
+    this.passwordResetExpanded.update(value => !value);
+  }
+
+  public triggerEmployeeSearch() {
+    const search = this.employeeSearchCreate();
+    if (search && this.userForm.personnelNumber().value()) {
+      search.triggerSearch();
+    }
+  }
+
+  public setSelectedEmployee(employee: EmployeeData) {
+    this.selectedEmployee.set(employee);
+    this.userForm.personnelNumber().value.set(employee.personnelNumber);
+    this.userForm.personnelNumber().markAsTouched();
+  }
+
+  public resetSelectedEmployee() {
+    this.selectedEmployee.set(null);
+    this.userForm.personnelNumber().value.set('');
   }
 
   /**
@@ -241,6 +358,10 @@ export class UserFormComponent {
 
   protected readonly faEyeSlash = faEyeSlash;
   protected readonly faEye = faEye;
+  protected readonly faCopy = faCopy;
+  protected readonly faRemove = faRemove;
+  protected readonly faChevronDown = faChevronDown;
+  protected readonly faChevronUp = faChevronUp;
 }
 
 export interface UserFormModel {

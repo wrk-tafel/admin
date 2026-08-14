@@ -16,6 +16,8 @@ describe('UserPasswordChangeComponent', () => {
             providers: [
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
+                // This Router mock also covers AuthenticationService, which the shared
+                // tafel-passwordchange-form injects for its live password-rule checklist.
                 {
                     provide: Router,
                     useValue: {

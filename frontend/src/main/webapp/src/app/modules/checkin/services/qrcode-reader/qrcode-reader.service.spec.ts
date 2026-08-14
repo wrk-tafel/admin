@@ -63,6 +63,41 @@ describe('QRCodeReaderService', () => {
         expect(currentCamera).toEqual(testCameras[0]);
     });
 
+    it('getCurrentCamera without a saved cameraId prefers a rear-facing camera over the first device', () => {
+        const { service } = setup();
+        localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
+        const camerasWithRear = [
+            { deviceId: 'front', label: 'Front Camera' } as MediaDeviceInfo,
+            { deviceId: 'back', label: 'camera2 0, facing back' } as MediaDeviceInfo
+        ];
+
+        const currentCamera = service.getCurrentCamera(camerasWithRear);
+
+        expect(currentCamera).toBe(camerasWithRear[1]);
+    });
+
+    it('getCurrentCamera falls back to the first device when no label matches a rear camera', () => {
+        const { service } = setup();
+        localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
+
+        const currentCamera = service.getCurrentCamera(testCameras);
+
+        expect(currentCamera).toBe(testCameras[0]);
+    });
+
+    it('getCurrentCamera prefers a saved cameraId over the rear-camera heuristic', () => {
+        const { service } = setup();
+        const camerasWithRear = [
+            { deviceId: 'front', label: 'Front Camera' } as MediaDeviceInfo,
+            { deviceId: 'back', label: 'Back Camera' } as MediaDeviceInfo
+        ];
+        localStorage.setItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY, 'front');
+
+        const currentCamera = service.getCurrentCamera(camerasWithRear);
+
+        expect(currentCamera).toBe(camerasWithRear[0]);
+    });
+
     it('saveCurrentCamera done successfully', () => {
         const { service } = setup();
         localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
@@ -193,6 +228,42 @@ describe('QRCodeReaderService', () => {
         expect(staleControlsStopSpy).toHaveBeenCalledTimes(1);
         expect(freshControlsStopSpy).not.toHaveBeenCalled();
         expect(service.controls).toBe(freshControls);
+    });
+
+    it('isTorchSupported is false before scanning has started', () => {
+        const { service } = setup();
+
+        expect(service.isTorchSupported()).toBe(false);
+    });
+
+    it('isTorchSupported reflects whether the active stream exposes switchTorch', async () => {
+        const { service, decodeSpy } = setup();
+        service.init('videoElementId', vi.fn());
+        decodeSpy.mockResolvedValueOnce({ stop: vi.fn(), switchTorch: vi.fn().mockResolvedValue(undefined) });
+
+        await service.start('123');
+
+        expect(service.isTorchSupported()).toBe(true);
+    });
+
+    it('setTorch delegates to the active controls switchTorch when supported', async () => {
+        const { service, decodeSpy } = setup();
+        service.init('videoElementId', vi.fn());
+        const switchTorchSpy = vi.fn().mockResolvedValue(undefined);
+        decodeSpy.mockResolvedValueOnce({ stop: vi.fn(), switchTorch: switchTorchSpy });
+        await service.start('123');
+
+        await service.setTorch(true);
+
+        expect(switchTorchSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('setTorch does nothing when the active camera has no torch support', async () => {
+        const { service } = setup();
+        service.init('videoElementId', vi.fn());
+        await service.start('123');
+
+        await expect(service.setTorch(true)).resolves.toBeUndefined();
     });
 
 });

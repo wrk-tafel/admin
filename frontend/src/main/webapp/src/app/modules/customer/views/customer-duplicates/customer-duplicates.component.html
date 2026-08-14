@@ -1,37 +1,23 @@
 <mat-card>
-  <mat-card-header class="text-xl font-bold">Kunden-Duplikate</mat-card-header>
-  <mat-card-content>
-    <div class="flex flex-col gap-2 mb-4">
-      <h2 class="tafel-h6">Legende:</h2>
-      <div>
-        <button matButton="filled" class="button-success me-2" tabindex="-1" aria-label="Symbol: Kunden zusammenführen">
-          <fa-icon [icon]="faCheck"></fa-icon>
-        </button>
-        <strong>Kunden zusammenführen:</strong> Öffnet den Datenabgleich für die ausgewählten Kunden - dort
-        können unterschiedliche Felder ausgewählt werden, bevor die Zusammenführung bestätigt wird.
-      </div>
-      <div>
-        <button matButton="filled" class="me-2" tabindex="-1" aria-label="Symbol: Kunden-Details ansehen">
-          <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-        </button>
-        <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
-      </div>
-      <div>
-        <button matButton="filled" class="button-danger me-2" tabindex="-1" aria-label="Symbol: Kunden löschen">
-          <fa-icon [icon]="faTrashCan"></fa-icon>
-        </button>
-        <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
-      </div>
+  <mat-card-header class="w-full">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline w-full gap-1">
+      <span class="text-xl font-bold">Kunden-Duplikate</span>
+      @if (totalGroupsLabel()) {
+        <span class="tafel-h6" testid="duplicates-total-label">{{totalGroupsLabel()}}</span>
+      }
     </div>
-
-    <hr/>
-
+  </mat-card-header>
+  <mat-card-content>
     <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
          with its text is not reliably announced. -->
     <div class="sr-only" role="status" testid="duplicates-announcement">{{ duplicatesAnnouncement() }}</div>
 
     @if (customerDuplicatesData()?.items?.length === 0) {
-      <h2 class="tafel-h4 font-bold" testid="no-duplicates-message">Keine Duplikate gefunden!</h2>
+      <div class="flex flex-col items-center gap-3 py-10 text-center" testid="no-duplicates-message">
+        <fa-icon [icon]="faCircleCheck" class="text-5xl text-green-600"></fa-icon>
+        <h2 class="tafel-h4 font-bold">Keine Duplikate gefunden!</h2>
+        <p>Alle möglichen Duplikate wurden bereits geprüft.</p>
+      </div>
     }
 
     @if ((customerDuplicatesData()?.items?.length ?? 0) > 0) {
@@ -41,94 +27,72 @@
                      [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
                      (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
 
-      <div class="grid gap-4">
+      <!-- grid-cols-1's minmax(0, 1fr) lets each card shrink below the table's min-content width,
+           so the table scrolls inside the card instead of overflowing the page sideways -->
+      <div class="grid grid-cols-1 gap-6 my-4">
         @for (item of customerDuplicatesData()!.items; track trackByDuplicateItemId($index, item)) {
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" [attr.testid]="'duplicate-pair-' + item.customer.id">
-          <mat-card class="mb-4 md:mb-0" [attr.testid]="'duplicate-customer-' + item.customer.id">
-            <mat-card-header class="font-bold w-full">
-              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
-                <div [attr.testid]="'duplicate-customer-name-' + item.customer.id">
-                  {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
-                </div>
-                <div class="text-right pt-2 sm:pt-0">
-                  <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + item.customer.id" (click)="startMerge(item.customer)" matTooltip="Kunden zusammenführen" aria-label="Kunden zusammenführen">
-                    <fa-icon [icon]="faCheck"></fa-icon>
-                  </button>
-                  <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + item.customer.id" (click)="showCustomerDetail(item.customer.id!)" matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
-                    <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-                  </button>
-                  <button matButton="filled" class="button-danger" [attr.testid]="'duplicate-delete-button-' + item.customer.id" (click)="openDeleteCustomerDialog(item.customer.id!)" matTooltip="Kunden löschen" aria-label="Kunden löschen">
-                    <fa-icon [icon]="faTrashCan"></fa-icon>
-                  </button>
-                </div>
-              </div>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="grid grid-cols-2 gap-1">
-                <div class="font-bold">Geburtsdatum:</div>
-                <div>
-                  {{item.customer.birthDate | date : 'dd.MM.yyyy'}}
-                </div>
-                <div class="font-bold">Adresse:</div>
-                <div>
-                  {{item.customer.address | formatCustomerAddress}}
-                </div>
-                <div class="font-bold text-white px-2"
-                     [ngClass]="{'bg-green-700': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}">
-                  Gültig bis:
-                </div>
-                <div class="text-white px-2"
-                     [ngClass]="{'bg-green-700': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}"
-                     [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-          <div class="flex flex-col gap-4">
-            @for (similarCustomer of item.similarCustomers; track trackBySimilarCustomerId($index, similarCustomer)) {
-            <mat-card [attr.testid]="'duplicate-customer-' + similarCustomer.id">
-              <mat-card-header class="font-bold w-full">
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
-                  <div [attr.testid]="'duplicate-customer-name-' + similarCustomer.id">
-                    {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
-                  </div>
-                  <div class="text-right pt-2 sm:pt-0">
-                    <button matButton="filled" class="button-success me-2" [attr.testid]="'duplicate-merge-button-' + similarCustomer.id" (click)="startMerge(similarCustomer)" matTooltip="Kunden zusammenführen" aria-label="Kunden zusammenführen">
-                      <fa-icon [icon]="faCheck"></fa-icon>
-                    </button>
-                    <button matButton="filled" class="me-2" [attr.testid]="'duplicate-detail-button-' + similarCustomer.id" (click)="showCustomerDetail(similarCustomer.id!)" matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
-                      <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-                    </button>
-                    <button matButton="filled" class="button-danger" [attr.testid]="'duplicate-delete-button-' + similarCustomer.id" (click)="openDeleteCustomerDialog(similarCustomer.id!)" matTooltip="Kunden löschen" aria-label="Kunden löschen">
-                      <fa-icon [icon]="faTrashCan"></fa-icon>
-                    </button>
-                  </div>
-                </div>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="grid grid-cols-2 gap-1">
-                  <div class="font-bold">Geburtsdatum:</div>
-                  <div>
-                    {{similarCustomer.birthDate | date : 'dd.MM.yyyy'}}
-                  </div>
-                  <div class="font-bold">Adresse:</div>
-                  <div>
-                    {{similarCustomer.address | formatCustomerAddress}}
-                  </div>
-                  <div class="font-bold text-white px-2"
-                       [ngClass]="{'bg-green-700': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}">
-                    Gültig bis:
-                  </div>
-                  <div class="text-white px-2"
-                       [ngClass]="{'bg-green-700': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}"
-                       [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-            }
-          </div>
-        </div>
+        <mat-card [attr.testid]="'duplicate-group-' + item.customer.id">
+          <mat-card-content class="overflow-x-auto" [attr.testid]="'duplicate-group-scroller-' + item.customer.id">
+            <table class="w-full border-separate border-spacing-0">
+              <caption class="sr-only">Vergleich der möglichen Duplikate von Kunde {{item.customer.id}}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="text-left align-bottom pb-3 pr-4 w-36"><span class="sr-only">Merkmal</span></th>
+                  @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
+                    <th scope="col" class="text-left align-bottom pb-3 px-2 min-w-[15rem]" [attr.testid]="'duplicate-candidate-' + candidate.id">
+                      <div class="font-bold mb-2" [attr.testid]="'duplicate-candidate-name-' + candidate.id">
+                        {{candidate.id + ' - ' + candidate.lastname + ' ' + candidate.firstname}}
+                      </div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <button matButton="filled" class="button-success" [attr.testid]="'duplicate-merge-button-' + candidate.id"
+                                (click)="startMerge(candidate)" aria-label="Diesen Kunden mit den anderen zusammenführen">
+                          <fa-icon [icon]="faCheck" class="me-1"></fa-icon>Zusammenführen
+                        </button>
+                        <button matButton="outlined" [attr.testid]="'duplicate-detail-button-' + candidate.id"
+                                (click)="showCustomerDetail(candidate.id!)">Details</button>
+                        <button matButton="outlined" [attr.testid]="'duplicate-actions-menu-' + candidate.id"
+                                [matMenuTriggerFor]="actionsMenu" aria-label="Weitere Aktionen für diesen Kunden">▾</button>
+                        <mat-menu #actionsMenu="matMenu">
+                          @if (candidate.id !== item.customer.id) {
+                            <button mat-menu-item [attr.testid]="'duplicate-dismiss-button-' + candidate.id"
+                                    (click)="dismissDuplicate(item.customer, candidate)">Kein Duplikat</button>
+                          }
+                          <button mat-menu-item class="text-red-700" [attr.testid]="'duplicate-delete-button-' + candidate.id"
+                                  (click)="openDeleteCustomerDialog(candidate)">Kunde löschen</button>
+                        </mat-menu>
+                      </div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (field of comparisonFields; track field.key) {
+                  <tr [attr.testid]="'duplicate-field-' + field.key">
+                    <th scope="row" class="text-left font-bold pr-4 py-2 align-top">{{field.label}}</th>
+                    @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
+                      <td class="py-2 px-2 align-top"
+                          [class.font-semibold]="fieldDiffers(item, field)"
+                          [class.text-gray-500]="!fieldDiffers(item, field)">
+                        {{formatFieldValue(field, candidate)}}
+                      </td>
+                    }
+                  </tr>
+                }
+                <tr testid="duplicate-field-validUntil">
+                  <th scope="row" class="text-left font-bold pr-4 py-2 align-top">Gültig bis</th>
+                  @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
+                    <td class="py-2 px-2 align-top">
+                      <span class="font-bold text-white px-2 rounded"
+                            [ngClass]="{'bg-green-700': isValid(candidate), 'bg-red-600': !isValid(candidate)}">
+                        {{candidate.validUntil | date : 'dd.MM.yyyy'}}
+                      </span>
+                    </td>
+                  }
+                </tr>
+              </tbody>
+            </table>
+          </mat-card-content>
+        </mat-card>
         }
       </div>
 

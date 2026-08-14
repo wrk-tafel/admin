@@ -1,41 +1,107 @@
-<mat-card>
-  <mat-card-content class="flex justify-items-center">
-    @if (availableCameras() && availableCameras()!.length === 0) {
-      <div class="my-4 w-full">
-        <div class="tafel-banner-error" testid="no-camera-message">
-          Es wurde keine Kamera gefunden.<br/>Bitte schließen Sie eine Kamera an und laden Sie die Seite neu.
-        </div>
-      </div>
-    }
-    <div class="flex mb-4">
-      <h2 class="tafel-h1 text-6xl">Scanner Nr:</h2>
-      <h2 class="tafel-h1 ms-4 text-6xl" testid="scanner-id">{{ scannerId() }}</h2>
+@if (availableCameras() && availableCameras()!.length === 0) {
+  <div class="p-4">
+    <div class="tafel-banner-error" testid="no-camera-message">
+      Es wurde keine Kamera gefunden.<br/>Bitte schließen Sie eine Kamera an und laden Sie die Seite neu.
     </div>
-    <div class="flex gap-4 my-4">
-      <mat-form-field subscriptSizing="dynamic">
+  </div>
+}
+
+@if (phase() === 'pairing') {
+  <!--
+    Pairing phase: this runs before the camera has decoded anything, while the runner and the
+    Annahme operator are still finding each other - the scanner number is read out loud across
+    the room, so it dominates the screen. The camera picker sits right below it because picking
+    the wrong camera is also a pairing-time problem, not a scanning-time one.
+  -->
+  <div class="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center" testid="pairing-phase">
+    <div>
+      <div class="tafel-h4">Scanner Nr.</div>
+      <div class="text-8xl font-bold leading-none" testid="scanner-id">{{ scannerId() }}</div>
+    </div>
+
+    <div class="text-2xl" testid="state-camera">
+      <span [class]="'badge badge-' + readyStateColor()">{{ readyStateText() }}</span>
+    </div>
+
+    @if (availableCameras() && availableCameras()!.length > 0) {
+      <mat-form-field subscriptSizing="dynamic" class="w-full max-w-xs">
         <mat-label>Kamera</mat-label>
-        <mat-select testid="cameraSelectionInput"
-                    [(ngModel)]="selectedCamera"
-                    class="w-64">
+        <mat-select testid="cameraSelectionInput" [(ngModel)]="selectedCamera">
           @for (camera of availableCameras(); track trackByCameraId(camera)) {
             <mat-option [value]="camera">{{ camera.label }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
-      <!-- Not a heading: it holds the camera's state badge, and as an <h4> after the <h1> above it
-           skipped two levels. text-2xl keeps the badge at the size it sizes itself from. -->
-      <div class="text-2xl flex items-center justify-center m-0">
-        <div testid="state-camera" [class]="'badge badge-' + readyStateColor()">{{ readyStateText() }}</div>
-      </div>
+    }
+
+    <video id="qrCodeReaderVideo" class="w-full max-w-xs rounded-lg" muted></video>
+  </div>
+} @else {
+  <!--
+    Scanning phase: the video preview is what the runner actually needs now, so it takes over the
+    screen. The scanner number is reduced to a corner chip - it already did its job during
+    pairing - and the camera/torch controls move into the bottom half of the screen, reachable
+    with a thumb while the phone is held one-handed.
+  -->
+  <div class="relative flex min-h-0 flex-1 flex-col" testid="scanning-phase">
+    <div class="absolute left-3 top-3 z-10 flex items-center gap-2">
+      <span class="badge badge-info" testid="scanner-id-chip">Scanner {{ scannerId() }}</span>
+      <span [class]="'badge badge-' + readyStateColor()" testid="state-camera">{{ readyStateText() }}</span>
     </div>
-    <mat-divider class="!my-4"></mat-divider>
-    <video id="qrCodeReaderVideo" class="w-full max-w-lg" muted></video>
-    @if (readyState()) {
-      <div class="mt-6">
-        <div class="tafel-banner-info" testid="message">
-          <div><strong>Letzter Scan: </strong>{{ lastScanResult() }}</div>
-        </div>
+
+    @if (torchSupported()) {
+      <button type="button" testid="torch-toggle" (click)="toggleTorch()" [attr.aria-pressed]="torchOn()"
+              [class]="'absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full shadow ' +
+                       (torchOn() ? 'bg-yellow-400 text-black' : 'bg-white text-black')">
+        <fa-icon [icon]="faBolt" aria-hidden="true"></fa-icon>
+        <span class="sr-only">Taschenlampe {{ torchOn() ? 'ausschalten' : 'einschalten' }}</span>
+      </button>
+    }
+
+    <video id="qrCodeReaderVideo" class="min-h-0 w-full flex-1 bg-black object-cover" muted></video>
+
+    @if (connectionLost()) {
+      <!-- z-40: on top of the scan-feedback overlay below (z-30) - a scan flashing "success"
+           while nothing can actually be sent to the backend would be misleading, so a dropped
+           connection always wins the screen over a scan confirmation. -->
+      <div class="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-[var(--tafel-severity-danger)] p-6 text-center text-white"
+           testid="connection-lost-overlay" role="alert">
+        <fa-icon [icon]="faLinkSlash" class="text-5xl" aria-hidden="true"></fa-icon>
+        <div class="text-3xl font-bold">Verbindung getrennt</div>
+        <div>Scans werden gerade nicht übertragen.</div>
+        <button mat-flat-button type="button" testid="retry-connection" (click)="retryRegistration()">Erneut verbinden</button>
       </div>
     }
-  </mat-card-content>
-</mat-card>
+
+    @if (scanFeedback(); as feedback) {
+      @if (feedback.isDuplicate) {
+        <div class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[var(--tafel-severity-warning)] text-white"
+             testid="scan-feedback-duplicate" role="status">
+          <fa-icon [icon]="faRotate" class="text-6xl" aria-hidden="true"></fa-icon>
+          <div class="text-2xl">Bereits gescannt</div>
+          <div class="text-6xl font-bold" testid="scan-feedback-value">{{ feedback.value }}</div>
+        </div>
+      } @else {
+        <div class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[var(--tafel-severity-success)] text-white"
+             testid="scan-feedback-success" role="status">
+          <fa-icon [icon]="faCircleCheck" class="text-6xl" aria-hidden="true"></fa-icon>
+          <div class="text-2xl">Gescannt</div>
+          <div class="text-6xl font-bold" testid="scan-feedback-value">{{ feedback.value }}</div>
+        </div>
+      }
+    }
+
+    @if (availableCameras() && availableCameras()!.length > 1) {
+      <div class="flex items-center justify-center p-4">
+        <mat-form-field subscriptSizing="dynamic" class="w-full max-w-xs">
+          <mat-label>Kamera</mat-label>
+          <mat-select testid="cameraSelectionInput" [(ngModel)]="selectedCamera">
+            @for (camera of availableCameras(); track trackByCameraId(camera)) {
+              <mat-option [value]="camera">{{ camera.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    }
+  </div>
+}
