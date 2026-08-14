@@ -40,9 +40,18 @@ Cypress.Commands.add(
 // which would incorrectly filter out the real match before a click ever gets the chance to scroll it
 // into view. `offsetParent` is null only when the element (or an ancestor) is actually
 // `display: none`, regardless of scroll position, so it isolates the currently-active branch.
-Cypress.Commands.add('filterDisplayed', {prevSubject: true}, (subject) =>
-  cy.wrap((subject as JQuery).filter((_, el) => (el as HTMLElement).offsetParent !== null))
-);
+// A *query* (not a command wrapping cy.wrap): a command freezes the element set it resolved once,
+// so a re-render between the query and a later click leaves the click retrying a detached node
+// until it times out ("the page updated while this command was executing"). As a query the whole
+// chain re-runs on every retry and picks up the re-rendered element instead.
+// Guarded: specs importing this module's exported types/values (e.g. `Gender`) execute it a second
+// time in their own bundle, which `Commands.add` tolerates by overwriting but `addQuery` rejects.
+if (!(Cypress as unknown as Record<string, boolean>)['tafelFilterDisplayedRegistered']) {
+  (Cypress as unknown as Record<string, boolean>)['tafelFilterDisplayedRegistered'] = true;
+  Cypress.Commands.addQuery('filterDisplayed', function () {
+    return (subject: JQuery) => subject.filter((_, el) => (el as HTMLElement).offsetParent !== null);
+  });
+}
 
 // The backend requires the X-XSRF-TOKEN header (mirroring the XSRF-TOKEN cookie) on every
 // mutating request. The Angular app handles this via its xsrfInterceptor - direct cy.request

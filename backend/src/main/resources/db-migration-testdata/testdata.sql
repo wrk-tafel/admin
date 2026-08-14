@@ -362,7 +362,8 @@ values (1064, NOW(), NOW(), 106, false, 'Vorname 5', 'Nachname 5', null, null, n
 UPDATE households SET main_person_id = 106 WHERE id = 106;
 
 -- household above the income limit (couple, 2 children) - complete master data, shows up in
--- "Kunden über Limit": income 2200+1600=3800 vs. limit 2788.00 for 2 adults/2 children
+-- "Kunden über Limit": income 2600+1800=4400 vs. limit 3837.00 (+100.00 tolerance) for
+-- 2 adults/2 children -> 463.00 over
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
@@ -370,11 +371,11 @@ values (110, NOW(), NOW(), 110, 100, null, 'Teststraße', '10', null, null,
         '1030', 'Wien', '0043660111000', 'ueberlimit.paar@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (110, NOW(), NOW(), 110, true, 'Anna', 'Vielverdiener', '1988-05-10', 'FEMALE', 1, 'Firma A', 2200.00,
+values (110, NOW(), NOW(), 110, true, 'Anna', 'Vielverdiener', '1988-05-10', 'FEMALE', 1, 'Firma A', 2600.00,
         '2999-12-31', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (1101, NOW(), NOW(), 110, false, 'Peter', 'Vielverdiener', '1985-03-15', 'MALE', 1, 'Firma B', 1600.00,
+values (1101, NOW(), NOW(), 110, false, 'Peter', 'Vielverdiener', '1985-03-15', 'MALE', 1, 'Firma B', 1800.00,
         '2999-12-31', false, false);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, exclude_household, receives_family_allowance)
@@ -385,7 +386,8 @@ values (1103, NOW(), NOW(), 110, false, 'Tom', 'Vielverdiener', CURRENT_DATE - i
 UPDATE households SET main_person_id = 110 WHERE id = 110;
 
 -- household above the income limit (single adult) - complete master data, shows up in
--- "Kunden über Limit": income 2200 vs. limit 1328.00 for 1 adult/0 children
+-- "Kunden über Limit": income 2200 vs. limit 1827.00 (+100.00 tolerance) for 1 adult/0 children
+-- -> 273.00 over
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
@@ -396,6 +398,92 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
 values (111, NOW(), NOW(), 111, true, 'Sabine', 'Grossverdiener', '1975-11-20', 'FEMALE', 1, 'Firma C', 2200.00,
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 111 WHERE id = 111;
+
+-- household above the income limit (single pensioner, barely above) - shows up in "Kunden über
+-- Limit" near the bottom of the default sort: income 1990 vs. limit 1827.00 (+100.00 tolerance)
+-- for 1 adult/0 children -> 63.00 over
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (112, NOW(), NOW(), 112, 100, null, 'Quellenstraße', '12', null, null,
+        '1100', 'Wien', '0043660111112', null, '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (112, NOW(), NOW(), 112, true, 'Karl', 'Knappdrüber', '1958-03-02', 'MALE', 1, 'PVA', 1990.00,
+        '2999-12-31', false, false);
+UPDATE households SET main_person_id = 112 WHERE id = 112;
+
+-- household far above the income limit (three adults - the third exceeds the base household size
+-- and raises the limit by ADDITIONAL_ADULT): income 2500+1900+1200=5600 vs. limit 2741.00 + 914.00
+-- (+100.00 tolerance) -> 1845.00 over, the top of the default sort
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (113, NOW(), NOW(), 113, 100, null, 'Ottakringer Straße', '113', '1', '4',
+        '1160', 'Wien', null, 'ueberlimit.wg@wrk.at', '2999-12-31', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (113, NOW(), NOW(), 113, true, 'Werner', 'Weitdrüber', '1970-07-07', 'MALE', 1, 'Firma D', 2500.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (1131, NOW(), NOW(), 113, false, 'Waltraud', 'Weitdrüber', '1972-09-23', 'FEMALE', 1, 'Firma E', 1900.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (1132, NOW(), NOW(), 113, false, 'Wolfgang', 'Weitdrüber', '2004-01-30', 'MALE', 1, 'Firma F', 1200.00,
+        '2999-12-31', false, false);
+UPDATE households SET main_person_id = 113 WHERE id = 113;
+
+-- household above the income limit only because of the family allowance (single parent, 2 children
+-- receiving Familienbeihilfe): income 2750 + allowances 478.80 (171.80+148.00 Familienbeihilfe,
+-- 2x70.90 Kinderabsetzbetrag, 2x8.60 Geschwisterstaffel) = 3228.80 vs. limit 2923.00 (+100.00
+-- tolerance) for 1 adult/2 children -> 205.80 over
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution, single_parent)
+values (114, NOW(), NOW(), 114, 100, null, 'Laxenburger Straße', '14', null, '9',
+        '1100', 'Wien', '0043660111114', 'ueberlimit.beihilfe@wrk.at', '2999-12-31', 0, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (114, NOW(), NOW(), 114, true, 'Petra', 'Beihilfenknapp', '1989-04-04', 'FEMALE', 2, 'Firma G', 2750.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (1141, NOW(), NOW(), 114, false, 'Mia', 'Beihilfenknapp', CURRENT_DATE - interval '12 year', 'FEMALE', 2, false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (1142, NOW(), NOW(), 114, false, 'Ben', 'Beihilfenknapp', CURRENT_DATE - interval '7 year', 'MALE', 2, false, true);
+UPDATE households SET main_person_id = 114 WHERE id = 114;
+
+-- household above the income limit (couple, 3 children, the eldest 16 - old enough to count as an
+-- adult for the limit, young enough to still receive family allowance): income 2700+1900=4600 +
+-- allowances 743.80 (171.80+2x148.00 Familienbeihilfe, 3x70.90 Kinderabsetzbetrag, 3x21.10
+-- Geschwisterstaffel) = 5343.80 vs. limit 3837.00 + 914.00 (+100.00 tolerance) -> 492.80 over;
+-- validity runs out soon, so the list shows a near-term "Gültig bis" date too
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, pending_cost_contribution)
+values (115, NOW(), NOW(), 115, 100, null, 'Simmeringer Hauptstraße', '115', null, null,
+        '1110', 'Wien', '0043660111115', null, NOW() + interval '3 weeks', 25);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (115, NOW(), NOW(), 115, true, 'Georg', 'Großfamilie', '1980-12-12', 'MALE', 1, 'Firma H', 2700.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (1151, NOW(), NOW(), 115, false, 'Sandra', 'Großfamilie', '1984-02-28', 'FEMALE', 1, 'Firma I', 1900.00,
+        '2999-12-31', false, false);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (1152, NOW(), NOW(), 115, false, 'Lena', 'Großfamilie', CURRENT_DATE - interval '16 year', 'FEMALE', 1, false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (1153, NOW(), NOW(), 115, false, 'Moritz', 'Großfamilie', CURRENT_DATE - interval '9 year', 'MALE', 1, false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, exclude_household, receives_family_allowance)
+values (1154, NOW(), NOW(), 115, false, 'Paul', 'Großfamilie', CURRENT_DATE - interval '4 year', 'MALE', 1, false, true);
+UPDATE households SET main_person_id = 115 WHERE id = 115;
 
 -- customer duplicates - fuzzy name/address matches for the "Kunden-Duplikate" screen
 -- (see HouseholdDuplicationService: soundex + levenshtein tolerance on name and address)
@@ -1027,6 +1115,11 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW() + interval '2 years', NOW() + interval '2 years');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
 VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);
+-- an attempt on a username that really exists, so the screen's cross-link to the account has
+-- something to link to. Left unlocked on purpose: a lock on 'testuser' would keep that account from
+-- logging in at all.
+INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
+VALUES (3, NOW(), NOW(), 'testuser', 1, NOW() + interval '2 years', NULL);
 
 
 -- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters
@@ -1197,7 +1290,7 @@ SELECT 3000 + s.i,
        1 + (s.i % 5),
        (ARRAY ['Stadt Wien','Rotes Kreuz Wien','Firma Beispiel',null])[1 + (s.i % 4)],
        -- comfortably below every income limit, so none of these households turns up in
-       -- "Kunden über Limit" (the two households seeded for that screen are the only ones there)
+       -- "Kunden über Limit" (households 110-115 seeded for that screen are the only ones there)
        800 + (s.i % 12) * 60,
        (CURRENT_DATE + interval '1 month' * (1 + (s.i % 9)))::date,
        false,

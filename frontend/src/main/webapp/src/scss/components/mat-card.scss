@@ -23,8 +23,11 @@
   flex-grow: 1 !important;
 }
 
+// Material already lays card actions out as a flex row; the gap is the spacing between the
+// buttons, so no card has to add its own flex/gap utilities for a plain action row.
 .mat-mdc-card-actions {
   padding: 1rem !important;
+  gap: 0.5rem;
 }
 
 .mat-card-colored {

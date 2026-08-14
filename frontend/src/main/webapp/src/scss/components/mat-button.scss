@@ -37,3 +37,18 @@
     }
   }
 }
+
+/* Outlined buttons keep their transparent background - "danger" here means the border/text color,
+   not a solid fill. Used to give a secondary action a distinct-but-lighter warning weight than its
+   primary, filled counterpart (e.g. "Weiter (nicht bezahlt)" next to "Weiter (bezahlt)"). */
+.mat-mdc-outlined-button:not([disabled]):not(.mat-mdc-button-disabled) {
+  &.button-danger {
+    color: var(--tafel-severity-danger) !important;
+    border-color: var(--tafel-severity-danger) !important;
+
+    &:hover, &:focus, &:active {
+      color: var(--tafel-severity-danger) !important;
+      border-color: var(--tafel-severity-danger) !important;
+    }
+  }
+}

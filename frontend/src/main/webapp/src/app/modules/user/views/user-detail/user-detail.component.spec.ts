@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserDetailComponent } from './user-detail.component';
-import { UserApiService, UserData } from '../../../../api/user-api.service';
+import { UserApiService, UserData, UserPermission } from '../../../../api/user-api.service';
 import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -22,6 +22,13 @@ describe('UserDetailComponent', () => {
             { key: 'PERM2', title: 'Permission 2', category: 'Category 2' }
         ]
     };
+
+    const permissionsCatalog: UserPermission[] = [
+        { key: 'PERM1', title: 'Permission 1', category: 'Category 1' },
+        { key: 'PERM1B', title: 'Permission 1b', category: 'Category 1' },
+        { key: 'PERM2', title: 'Permission 2', category: 'Category 2' },
+        { key: 'PERM3', title: 'Permission 3', category: 'Category 3' }
+    ];
 
     let userApiService: MockedObject<UserApiService>;
     let router: MockedObject<Router>;
@@ -52,7 +59,8 @@ describe('UserDetailComponent', () => {
                     useValue: {
                         snapshot: {
                             data: {
-                                userData: mockUser
+                                userData: mockUser,
+                                permissionsData: permissionsCatalog
                             }
                         }
                     }
@@ -71,16 +79,21 @@ describe('UserDetailComponent', () => {
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     });
 
-    it('component can be created', () => {
+    function createFixture(userData: UserData = mockUser): ComponentFixture<UserDetailComponent> {
         const fixture = TestBed.createComponent(UserDetailComponent);
-        const component = fixture.componentInstance;
-        expect(component).toBeTruthy();
+        fixture.componentRef.setInput('userData', userData);
+        fixture.componentRef.setInput('permissionsData', permissionsCatalog);
+        fixture.detectChanges();
+        return fixture;
+    }
+
+    it('component can be created', () => {
+        const fixture = createFixture();
+        expect(fixture.componentInstance).toBeTruthy();
     });
 
     it('initial data loaded and shown correctly', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
-        fixture.componentRef.setInput('userData', mockUser);
-        fixture.detectChanges();
+        const fixture = createFixture();
 
         expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.lastname} ${mockUser.firstname}`);
         expect(getTextByTestId(fixture, 'usernameText')).toBe(mockUser.username);
@@ -90,10 +103,8 @@ describe('UserDetailComponent', () => {
     });
 
     it('enable user', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
+        const fixture = createFixture({ ...mockUser, enabled: false });
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('userData', { ...mockUser, enabled: false });
-        fixture.detectChanges();
 
         const updatedUserData = mockUser;
         userApiService.updateUser.mockReturnValueOnce(of(updatedUserData));
@@ -105,10 +116,8 @@ describe('UserDetailComponent', () => {
     });
 
     it('disable user', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
+        const fixture = createFixture({ ...mockUser, enabled: true });
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('userData', { ...mockUser, enabled: true });
-        fixture.detectChanges();
 
         const updatedUserData = mockUser;
         userApiService.updateUser.mockReturnValueOnce(of(updatedUserData));
@@ -120,10 +129,8 @@ describe('UserDetailComponent', () => {
     });
 
     it('deleted user successfully', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
+        const fixture = createFixture();
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('userData', mockUser);
-        fixture.detectChanges();
         userApiService.deleteUser.mockReturnValueOnce(of(undefined));
 
         component.deleteUser();
@@ -134,10 +141,8 @@ describe('UserDetailComponent', () => {
     });
 
     it('delete user failed', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
+        const fixture = createFixture();
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('userData', mockUser);
-        fixture.detectChanges();
         userApiService.deleteUser.mockReturnValueOnce(throwError(() => ({ status: 404 })));
 
         component.deleteUser();
@@ -148,26 +153,19 @@ describe('UserDetailComponent', () => {
     });
 
     it('editUser should navigate properly', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
-        const component = fixture.componentInstance;
-        fixture.componentRef.setInput('userData', mockUser);
-        fixture.detectChanges();
-
-        component.editUser();
+        const fixture = createFixture();
+        fixture.componentInstance.editUser();
 
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/bearbeiten', mockUser.id]);
     });
 
-    it('permissions grouped by category', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
+    it('permissions grouped by category (collapsed, granted only)', () => {
+        const fixture = createFixture();
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('userData', mockUser);
-
-        fixture.detectChanges();
 
         expect(component.permissionGroups()).toEqual([
-            {category: 'Category 1', permissions: [mockUser.permissions[0]]},
-            {category: 'Category 2', permissions: [mockUser.permissions[1]]}
+            {category: 'Category 1', permissions: [{permission: mockUser.permissions[0], granted: true}]},
+            {category: 'Category 2', permissions: [{permission: mockUser.permissions[1], granted: true}]}
         ]);
 
         const permissionsText = getTextByTestId(fixture, 'permissionsText');
@@ -178,12 +176,35 @@ describe('UserDetailComponent', () => {
     });
 
     it('shows placeholder when user has no permissions', () => {
-        const fixture = TestBed.createComponent(UserDetailComponent);
-        fixture.componentRef.setInput('userData', {...mockUser, permissions: []});
-
-        fixture.detectChanges();
+        const fixture = createFixture({...mockUser, permissions: []});
 
         expect(getTextByTestId(fixture, 'permissionsText')).toContain('-');
+    });
+
+    it('"Alle anzeigen" reveals the unassigned catalog permissions within categories the user already holds something in', () => {
+        const fixture = createFixture();
+        const component = fixture.componentInstance;
+
+        fixture.debugElement.query(By.css('[testid="togglePermissionsButton"]')).nativeElement.click();
+        fixture.detectChanges();
+
+        expect(component.permissionGroups()).toEqual([
+            {
+                category: 'Category 1',
+                permissions: [
+                    {permission: permissionsCatalog[0], granted: true},
+                    {permission: permissionsCatalog[1], granted: false}
+                ]
+            },
+            {category: 'Category 2', permissions: [{permission: permissionsCatalog[2], granted: true}]}
+        ]);
+        // Category 3 (PERM3) is a category the user holds nothing in at all - omitted, not shown
+        // fully greyed.
+        expect(component.permissionGroups().map(group => group.category)).not.toContain('Category 3');
+
+        const permissionsText = getTextByTestId(fixture, 'permissionsText');
+        expect(permissionsText).toContain('Permission 1b');
+        expect(permissionsText).not.toContain('Permission 3');
     });
 
     function getTextByTestId(fixture: ComponentFixture<UserDetailComponent>, testId: string): string {

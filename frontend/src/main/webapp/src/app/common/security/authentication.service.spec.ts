@@ -42,7 +42,7 @@ describe('AuthenticationService', () => {
         const userInfoResponseBody = { username: 'test-user', permissions: ['PERM1'] };
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: true, passwordChangeRequired: false, locked: false });
+            expect(response).toEqual({ successful: true, passwordChangeRequired: false, locked: false, serverUnreachable: false });
             expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
         });
@@ -85,7 +85,7 @@ describe('AuthenticationService', () => {
         const userInfoResponseBody = { username: 'test-user', permissions: [] };
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: true, passwordChangeRequired: true, locked: false });
+            expect(response).toEqual({ successful: true, passwordChangeRequired: true, locked: false, serverUnreachable: false });
             expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
         });
@@ -110,7 +110,7 @@ describe('AuthenticationService', () => {
         service.userInfo.set({ username: 'test123', permissions: [] });
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: false });
+            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false });
             // check if it's reset
             expect(service.userInfo()).toBeNull();
         });
@@ -131,7 +131,7 @@ describe('AuthenticationService', () => {
         service.userInfo.set({ username: 'test123', permissions: [] });
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: true });
+            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false });
             // check if it's reset
             expect(service.userInfo()).toBeNull();
         });
@@ -145,6 +145,30 @@ describe('AuthenticationService', () => {
 
         httpMock.expectNone('/users/info');
 
+        httpMock.verify();
+    });
+
+    it('login failed - server error surfaces as unreachable rather than a credentials failure', async () => {
+        service.login('USER', 'PWD').then(response => {
+            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: true });
+        });
+
+        const loginMockReq = httpMock.expectOne('/login');
+        loginMockReq.flush(null, { status: 503, statusText: 'Service Unavailable' });
+
+        httpMock.expectNone('/users/info');
+        httpMock.verify();
+    });
+
+    it('login failed - network error (status 0) surfaces as unreachable', async () => {
+        service.login('USER', 'PWD').then(response => {
+            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: true });
+        });
+
+        const loginMockReq = httpMock.expectOne('/login');
+        loginMockReq.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+
+        httpMock.expectNone('/users/info');
         httpMock.verify();
     });
 

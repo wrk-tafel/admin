@@ -18,14 +18,36 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-row').should('exist');
   });
 
-  it('search by customerId', () => {
+  it('jumps straight to a customer by its exact number', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
 
-      cy.byTestId('customerIdText').type(customerId.toString());
-      cy.byTestId('showcustomer-button').click();
+      cy.byTestId('searchInputText').type(customerId.toString());
+      cy.byTestId('search-button').click();
 
       cy.url().should('include', '/kunden/detail/' + customerId);
+    });
+  });
+
+  it('jumps to a customer by its exact number through Enter, without the button', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+
+      cy.byTestId('searchInputText').type(customerId.toString() + '{enter}');
+
+      cy.url().should('include', '/kunden/detail/' + customerId);
+    });
+  });
+
+  // A number that appears in every dummy customer's phone number but is far larger than any
+  // customer id this suite can produce - guaranteed to miss the exact-id jump and fall back to the
+  // fuzzy search, which still finds it through `search_text`.
+  it('falls back to the fuzzy search when a numeric query matches no customer id', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type('123456789');
+      clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
 
@@ -43,15 +65,6 @@ describe('Customer Search', () => {
       const customer = response.body.data;
 
       cy.byTestId('searchInputText').type(customer.address!.street!);
-      clickSearchAndOpenExpectedResult(customer.id!);
-    });
-  });
-
-  it('search by customer number through the search field', () => {
-    cy.createDummyCustomer().then((response) => {
-      const customer = response.body.data;
-
-      cy.byTestId('searchInputText').type(customer.id!.toString());
       clickSearchAndOpenExpectedResult(customer.id!);
     });
   });
@@ -118,11 +131,50 @@ describe('Customer Search', () => {
       // dummy lastname combined with the cost-contribution filter narrows to just this customer
       // regardless of what other specs have accrued.
       cy.byTestId('searchInputText').type(customer.lastname);
-      cy.byTestId('costContributionInput').click();
-      clickSearchAndOpenExpectedResult(customerId);
+      clickSearchAndWaitForResult();
+      // A chip toggle re-searches on its own - a separate wait for its own answer, same reasoning
+      // as clickSearchAndWaitForResult above.
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('costContributionSearch');
+      cy.byTestId('filter-costContribution').click();
+      cy.wait('@costContributionSearch');
+
+      clickSearchAndOpenExpectedResult(customerId, {alreadySearched: true});
 
       cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
     });
+  });
+
+  it('keeps query, filters and page after returning from a customer via the back button', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('validFilterSearch');
+      cy.byTestId('filter-valid').click();
+      cy.wait('@validFilterSearch');
+
+      clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
+      cy.url().should('include', '/kunden/detail/' + customer.id);
+
+      cy.go('back');
+
+      cy.url().should('include', 'suche=').and('include', 'bezugsberechtigt=true');
+      cy.byTestId('searchresult-table').should('be.visible');
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed().should('have.length', 1);
+    });
+  });
+
+  it('shows a purposeful empty state with a prefilled "Kunden anlegen" CTA', () => {
+    cy.byTestId('searchInputText').type('Zzzzvorname Zzzznachname');
+    cy.byTestId('search-button').click();
+
+    cy.byTestId('searchresult-empty').should('be.visible').and('contain.text', 'Keine Kunden gefunden');
+    cy.byTestId('create-customer-cta').click();
+
+    cy.url().should('include', '/kunden/anlegen');
+    cy.byTestId('firstnameInput').should('have.value', 'Zzzzvorname');
+    cy.byTestId('lastnameInput').should('have.value', 'Zzzznachname');
   });
 
   it('search result renders as a card list on phone and search still works', () => {
@@ -157,15 +209,15 @@ describe('Customer Search', () => {
   // document.elementFromPoint, which now passes straight through the tooltip and reports it as
   // "covered" by whatever sits behind it. `mat-mdc-tooltip-show` is the class Material puts on the
   // panel for as long as it is displayed, so it says the same thing without a pointer probe.
-  it('explains a search filter through its info tooltip', () => {
-    cy.byTestId('post-processing-info-tooltip').trigger('mouseenter');
+  it('explains the search through its info tooltip', () => {
+    cy.byTestId('search-input-info-tooltip').trigger('mouseenter');
 
     cy.get('.mat-mdc-tooltip')
       .should('have.class', 'mat-mdc-tooltip-show')
-      .and('contain.text', 'Findet Kunden, bei denen bei einer Person Pflichtangaben fehlen');
+      .and('contain.text', 'Eine reine Zahl springt bei einem exakten Treffer direkt zum Kunden');
   });
 
-  it('labels the icon-only result buttons through their tooltip', () => {
+  it('labels the edit action through its tooltip', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
@@ -173,10 +225,10 @@ describe('Customer Search', () => {
       cy.byTestId('search-button').click();
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
-      cy.byTestId('searchresult-showcustomer-button-' + customer.id).filterDisplayed().trigger('mouseenter');
+      cy.byTestId('searchresult-editcustomer-button-' + customer.id).filterDisplayed().trigger('mouseenter');
       cy.get('.mat-mdc-tooltip')
         .should('have.class', 'mat-mdc-tooltip-show')
-        .and('contain.text', 'Kundendetails anzeigen');
+        .and('contain.text', 'Kundendaten bearbeiten');
     });
   });
 
@@ -210,11 +262,14 @@ describe('Customer Search', () => {
 
     cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
-    // the table and card list both render a button with this testid (one per branch, only one
-    // of which is displayed per viewport - see 'hidden md:block' / 'block md:hidden' in the template)
-    cy.byTestId('searchresult-showcustomer-button-' + expectedCustomerId).filterDisplayed().should('have.length', 1);
+    // The table and card list both render a link to the same href (one per branch, only one of
+    // which is displayed per viewport - see 'hidden md:block' / 'block md:hidden' in the template).
+    // The whole row/card is a stretched link to it (see the customer search screen's README note),
+    // so the href itself - rather than a dedicated "view" button, which no longer exists - is what
+    // identifies the result unambiguously.
+    cy.get(`a[href$="/kunden/detail/${expectedCustomerId}"]`).filterDisplayed().should('have.length', 1);
 
-    cy.byTestId('searchresult-showcustomer-button-' + expectedCustomerId).filterDisplayed().click();
+    cy.get(`a[href$="/kunden/detail/${expectedCustomerId}"]`).filterDisplayed().click();
     cy.url().should('include', '/kunden/detail/' + expectedCustomerId);
   }
 
@@ -234,7 +289,10 @@ describe('Customer Search', () => {
         cy.checkAccessibility(MAIN_CONTENT);
 
         cy.viewport(PHONE_VIEWPORT);
-        cy.byTestId('searchresult-table').should('not.be.visible');
+        // the searchresult-table wrapper holds both responsive branches and stays visible -
+        // what switches at phone width is which branch is displayed
+        cy.byTestId('searchresult-row').should('not.be.visible');
+        cy.get('[testid^="searchresult-card-"]').should('be.visible');
 
         cy.checkAccessibility(MAIN_CONTENT);
       });
@@ -263,6 +321,14 @@ describe('Customer Search', () => {
       cy.byTestId('search-button').click();
 
       cy.byTestId('searchresult-announcement').should('have.text', 'Keine Kunden gefunden');
+    });
+
+    it('has no violations on the empty-state CTA', () => {
+      cy.byTestId('searchInputText').type('Zzzz Kein Treffer Zzzz');
+      cy.byTestId('search-button').click();
+      cy.byTestId('searchresult-empty').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
     });
 
   });

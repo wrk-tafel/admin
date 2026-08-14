@@ -136,8 +136,8 @@ describe('UserApiService', () => {
   it('get login attempts', () => {
     const testResponse: PagedResponse<LoginAttemptItem> = {
       items: [
-        {id: 1, username: 'user1', failureCount: 3, lastFailureAt: '2026-01-01T10:00:00', lockedUntil: '2026-01-01T10:15:00'},
-        {id: 2, username: 'user2', failureCount: 1, lastFailureAt: '2026-01-01T09:00:00', lockedUntil: null}
+        {id: 1, username: 'user1', failureCount: 3, lastFailureAt: '2026-01-01T10:00:00', lockedUntil: '2026-01-01T10:15:00', userId: 10},
+        {id: 2, username: 'user2', failureCount: 1, lastFailureAt: '2026-01-01T09:00:00', lockedUntil: null, userId: null}
       ],
       totalCount: 2,
       currentPage: 1,
@@ -162,6 +162,22 @@ describe('UserApiService', () => {
 
     const req = httpMock.expectOne({method: 'GET', url: `/users/login-attempts?page=${page}&pageSize=${pageSize}`});
     req.flush({items: []});
+    httpMock.verify();
+  });
+
+  it('get login attempts filtered by username and lock state', () => {
+    apiService.getLoginAttempts(1, 10, 'hans', true).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts?page=1&pageSize=10&searchInput=hans&lockedOnly=true'});
+    req.flush({items: []});
+    httpMock.verify();
+  });
+
+  it('get login attempt settings', () => {
+    apiService.getLoginAttemptSettings().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts/settings'});
+    req.flush({maxFailures: 5, lockoutDurationInSeconds: 900});
     httpMock.verify();
   });
 

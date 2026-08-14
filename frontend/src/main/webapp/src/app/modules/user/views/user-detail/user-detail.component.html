@@ -1,9 +1,9 @@
 <div class="flex flex-col-reverse lg:flex-col mb-4">
   <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 mb-6 lg:mb-0 gap-4">
-    <button testid="editUserButton" matButton="filled" class="button-danger" (click)="editUser()">
+    <button testid="editUserButton" matButton="filled" (click)="editUser()">
       Benutzer bearbeiten
     </button>
-    <button testid="changeUserStateButton" matButton="filled" class="button-danger" [matMenuTriggerFor]="userStateMenu">
+    <button testid="changeUserStateButton" matButton="filled" [matMenuTriggerFor]="userStateMenu">
       Benutzer-Status ändern ▾
     </button>
     <mat-menu #userStateMenu="matMenu">
@@ -49,8 +49,13 @@
       </div>
       <hr class="my-4">
       <div>
-        <div class="font-bold mb-2">
-          Berechtigungen
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-bold">
+            Berechtigungen
+          </div>
+          <button type="button" matButton testid="togglePermissionsButton" (click)="showAllPermissions.set(!showAllPermissions())">
+            {{ showAllPermissions() ? 'Nur zugewiesene anzeigen' : 'Alle anzeigen' }}
+          </button>
         </div>
         <div testid="permissionsText" class="flex flex-col gap-3">
           @if (permissionGroups().length === 0) {
@@ -60,8 +65,11 @@
             <div>
               <div class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{{group.category}}</div>
               <mat-chip-set [attr.testid]="'permission-group-' + group.category">
-                @for (permission of group.permissions; track permission.key) {
-                  <mat-chip [attr.testid]="'permission-chip-' + permission.key">{{permission.title}}</mat-chip>
+                @for (item of group.permissions; track item.permission.key) {
+                  <mat-chip [attr.testid]="'permission-chip-' + item.permission.key"
+                            [ngClass]="{'!opacity-50': !item.granted}"
+                            [matTooltip]="item.granted ? '' : 'Nicht zugewiesen'">{{item.permission.title}}
+                  </mat-chip>
                 }
               </mat-chip-set>
             </div>

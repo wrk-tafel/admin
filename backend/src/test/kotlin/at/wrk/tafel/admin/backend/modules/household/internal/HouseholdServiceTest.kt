@@ -545,6 +545,7 @@ class HouseholdServiceTest {
         assertThat(result.items.first().totalSum).isEqualTo(BigDecimal("1500"))
         assertThat(result.items.first().limit).isEqualTo(BigDecimal("1000"))
         assertThat(result.items.first().amountExceededLimit).isEqualTo(BigDecimal("500"))
+        assertThat(result.items.first().percentageExceededLimit).isEqualByComparingTo(BigDecimal("50.0"))
         assertThat(result.totalCount).isEqualTo(1)
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
@@ -553,6 +554,136 @@ class HouseholdServiceTest {
         // the household that turned out to be below the limit is never mapped to a response
         verify(exactly = 0) { householdConverter.mapEntityToHousehold(testHouseholdEntity1) }
         verify(exactly = 1) { householdConverter.mapEntityToHousehold(testHouseholdEntity2) }
+    }
+
+    @Test
+    fun `get households above limit - a limit of zero yields a zero percentage instead of dividing by it`() {
+        val entity = mockk<HouseholdEntity>(relaxed = true)
+        val household = mockk<HouseholdResponse>(relaxed = true)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns listOf(entity)
+        every { householdConverter.mapEntityToHousehold(entity) } returns household
+
+        every { incomeValidatorService.validateAll(any()) } returns listOf(
+            Result.success(
+                IncomeValidatorResult(
+                    valid = false,
+                    totalSum = BigDecimal("500"),
+                    limit = BigDecimal.ZERO,
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal("500"),
+                ),
+            ),
+        )
+
+        val result = service.getHouseholdsAboveLimit()
+
+        assertThat(result.items.first().percentageExceededLimit).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `get households above limit - defaults to sorting by exceedance, largest first`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        val amounts = listOf(BigDecimal("100"), BigDecimal("500"), BigDecimal("250"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = BigDecimal("1500"),
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = amounts[index],
+                    ),
+                )
+            }
+        }
+
+        val result = service.getHouseholdsAboveLimit()
+
+        assertThat(result.items.map { it.amountExceededLimit }).containsExactly(
+            BigDecimal("500"),
+            BigDecimal("250"),
+            BigDecimal("100"),
+        )
+    }
+
+    @Test
+    fun `get households above limit - sortBy and sortDirection reorder the result`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        val totalSums = listOf(BigDecimal("1300"), BigDecimal("1100"), BigDecimal("1200"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = totalSums[index],
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = BigDecimal("100"),
+                    ),
+                )
+            }
+        }
+
+        val result = service.getHouseholdsAboveLimit(sortBy = "totalSum", sortDirection = "asc")
+
+        assertThat(result.items.map { it.totalSum }).containsExactly(
+            BigDecimal("1100"),
+            BigDecimal("1200"),
+            BigDecimal("1300"),
+        )
+    }
+
+    @Test
+    fun `get households above limit - sorts by limit and by percentage exceeded`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        // percentages: 100/1000 = 10%, 400/800 = 50%, 180/900 = 20%
+        val limits = listOf(BigDecimal("1000"), BigDecimal("800"), BigDecimal("900"))
+        val amounts = listOf(BigDecimal("100"), BigDecimal("400"), BigDecimal("180"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = limits[index] + amounts[index],
+                        limit = limits[index],
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = amounts[index],
+                    ),
+                )
+            }
+        }
+
+        val byLimit = service.getHouseholdsAboveLimit(sortBy = "limit", sortDirection = "asc")
+        assertThat(byLimit.items.map { it.limit }).containsExactly(
+            BigDecimal("800"),
+            BigDecimal("900"),
+            BigDecimal("1000"),
+        )
+
+        // descending by default: 50% > 20% > 10%
+        val byPercentage = service.getHouseholdsAboveLimit(sortBy = "percentageExceededLimit")
+        assertThat(byPercentage.items.map { it.amountExceededLimit }).containsExactly(
+            BigDecimal("400"),
+            BigDecimal("180"),
+            BigDecimal("100"),
+        )
     }
 
     @Test
@@ -693,6 +824,46 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `generate above limit csv - exports every household above the limit, not just one page`() {
+        val entities = (1..30).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..30).map {
+            mockk<HouseholdResponse>(relaxed = true) {
+                every { id } returns it.toLong()
+                every { mainPerson() } returns null
+                every { validUntil } returns null
+                every { address } returns HouseholdAddress(street = "Teststraße", houseNumber = "1", postalCode = 1020, city = "Wien")
+            }
+        }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().map {
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = BigDecimal("1500"),
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = BigDecimal("500"),
+                    ),
+                )
+            }
+        }
+
+        val result = service.generateAboveLimitCsv()
+
+        assertThat(result.filename).startsWith("kunden_ueber_limit_").endsWith(".csv")
+        val csvContent = String(result.bytes)
+        val lines = csvContent.trim().lines()
+        // header + 30 households, unpaginated
+        assertThat(lines).hasSize(31)
+        assertThat(lines[0]).isEqualTo("Nr.;Name;Adresse;Gültig bis;Einkommen gesamt;Limit;Über Limit;% über Limit")
+        assertThat(lines[1]).contains("Teststraße 1, 1020 Wien").contains("1500").contains("50.0")
+    }
+
+    @Test
     fun `get households overview - explicit distributionId returns new and renewed households of that distribution`() {
         val distribution = mockk<DistributionEntity>(relaxed = true) {
             every { id } returns 100
@@ -740,23 +911,46 @@ class HouseholdServiceTest {
     }
 
     @Test
-    fun `get households overview - no distributionId falls back to latest distribution and open distribution uses now as end`() {
-        val distributionStartedAt = LocalDateTime.now().minusHours(2)
+    fun `get households overview - no distributionId falls back to the newest closed distribution`() {
+        val distributionStartedAt = LocalDateTime.of(2026, 2, 7, 8, 0)
+        val distributionEndedAt = LocalDateTime.of(2026, 2, 7, 18, 0)
         val distribution = mockk<DistributionEntity>(relaxed = true) {
             every { id } returns 200
             every { startedAt } returns distributionStartedAt
-            every { endedAt } returns null
+            every { endedAt } returns distributionEndedAt
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns distribution
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
 
         val result = service.getHouseholdsOverview(null)
 
         assertThat(result.distributionId).isEqualTo(200)
-        assertThat(result.distributionEndedAt).isNull()
+        assertThat(result.distributionEndedAt).isEqualTo(distributionEndedAt)
         assertThat(result.newHouseholds).isEmpty()
         assertThat(result.renewedHouseholds).isEmpty()
+        verify {
+            householdRepository.findAllByCreatedAtBetween(distributionStartedAt, distributionEndedAt)
+            householdRepository.findAllByProlongedAtBetween(distributionStartedAt, distributionEndedAt)
+        }
+    }
+
+    @Test
+    fun `get households overview - explicit distributionId of an open distribution uses now as end`() {
+        val distributionStartedAt = LocalDateTime.now().minusHours(2)
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 300
+            every { startedAt } returns distributionStartedAt
+            every { endedAt } returns null
+        }
+        every { distributionRepository.findById(300) } returns Optional.of(distribution)
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+
+        val result = service.getHouseholdsOverview(300)
+
+        assertThat(result.distributionId).isEqualTo(300)
+        assertThat(result.distributionEndedAt).isNull()
         verify {
             householdRepository.findAllByCreatedAtBetween(distributionStartedAt, any())
             householdRepository.findAllByProlongedAtBetween(distributionStartedAt, any())
@@ -764,8 +958,8 @@ class HouseholdServiceTest {
     }
 
     @Test
-    fun `get households overview - no distributions at all returns empty response`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+    fun `get households overview - no closed distributions at all returns empty response`() {
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns null
 
         val result = service.getHouseholdsOverview(null)
 
@@ -776,6 +970,83 @@ class HouseholdServiceTest {
         assertThat(result.renewedHouseholds).isEmpty()
         verify(exactly = 0) { householdRepository.findAllByCreatedAtBetween(any(), any()) }
         verify(exactly = 0) { householdRepository.findAllByProlongedAtBetween(any(), any()) }
+    }
+
+    @Test
+    fun `generate households overview csv - builds rows for new and renewed households`() {
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 100
+            every { startedAt } returns LocalDateTime.of(2026, 1, 3, 8, 0)
+            every { endedAt } returns LocalDateTime.of(2026, 1, 3, 18, 0)
+        }
+        every { distributionRepository.findById(100) } returns Optional.of(distribution)
+
+        val newHouseholdEntity = mockk<HouseholdEntity>(relaxed = true) {
+            every { createdAt } returns LocalDateTime.of(2026, 1, 3, 9, 15)
+        }
+        val renewedHouseholdEntity = mockk<HouseholdEntity>(relaxed = true) {
+            every { prolongedAt } returns LocalDateTime.of(2026, 1, 3, 10, 30)
+        }
+
+        val newHousehold = HouseholdResponse(
+            id = 5,
+            address = HouseholdAddress(
+                street = "Teststraße",
+                houseNumber = "12",
+                stairway = "2",
+                door = "5",
+                postalCode = 1010,
+                city = "Wien",
+            ),
+            validUntil = LocalDate.now().plusMonths(1),
+            locked = false,
+            persons = listOf(
+                Person(isMainPerson = true, firstname = "Max", lastname = "Mustermann", birthDate = LocalDate.of(1990, 1, 1), gender = null, country = testCountry),
+                Person(isMainPerson = false, firstname = "Erika", lastname = "Mustermann", birthDate = LocalDate.of(1992, 1, 1), gender = null, country = testCountry),
+            ),
+        )
+        val renewedHousehold = HouseholdResponse(
+            id = 20,
+            address = HouseholdAddress(street = "Beispielweg", houseNumber = "3", postalCode = 1020, city = "Wien"),
+            validUntil = LocalDate.now().minusDays(1),
+            locked = true,
+            persons = listOf(
+                Person(isMainPerson = true, firstname = "Anna", lastname = "Beispiel", birthDate = LocalDate.of(1985, 5, 5), gender = null, country = testCountry),
+            ),
+        )
+
+        every {
+            householdRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        } returns listOf(newHouseholdEntity)
+        every {
+            householdRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        } returns listOf(renewedHouseholdEntity)
+        every { householdConverter.mapEntityToHousehold(newHouseholdEntity) } returns newHousehold
+        every { householdConverter.mapEntityToHousehold(renewedHouseholdEntity) } returns renewedHousehold
+
+        val result = service.generateHouseholdsOverviewCsv(100)
+
+        val lines = String(result.bytes, Charsets.UTF_8).trim().lines()
+        assertThat(lines).hasSize(3)
+        assertThat(lines[0]).isEqualTo("Typ;Nr.;Name;Adresse;Personen;Gültigkeit;Datum")
+        assertThat(lines[1]).isEqualTo("Neu;5;Mustermann Max;Teststraße 12, Stiege 2, Top 5, 1010 Wien;2;Gültig;03.01.2026 09:15")
+        assertThat(lines[2]).isEqualTo("Verlängert;20;Beispiel Anna;Beispielweg 3, 1020 Wien;1;Gesperrt;03.01.2026 10:30")
+    }
+
+    @Test
+    fun `generate households overview csv - filename contains the distribution date`() {
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 100
+            every { startedAt } returns LocalDateTime.of(2026, 1, 3, 8, 0)
+            every { endedAt } returns LocalDateTime.of(2026, 1, 3, 18, 0)
+        }
+        every { distributionRepository.findById(100) } returns Optional.of(distribution)
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+
+        val result = service.generateHouseholdsOverviewCsv(100)
+
+        assertThat(result.filename).isEqualTo("kunden-uebersicht_2026-01-03.csv")
     }
 
     @Test

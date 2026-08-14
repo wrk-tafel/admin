@@ -2,6 +2,10 @@
 
 @use 'tailwindcss';
 
+/* Screens with vertical room to spare (a maximized desktop window, the check-in stations) get the
+   generous spacing/type back that short laptop viewports trade away to fit without scrolling */
+@custom-variant tall (@media (min-height: 53rem));
+
 // Angular Material theme
 @import "angular-material-theme";
 

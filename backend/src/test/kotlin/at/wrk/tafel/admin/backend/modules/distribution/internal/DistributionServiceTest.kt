@@ -800,11 +800,18 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `get current ticket-screen ticket maps householdId and pending cost contribution`() {
+    fun `get current ticket-screen ticket maps householdId, householdName, pending cost contribution and queue counts`() {
         val ticketScreenHousehold = HouseholdEntity(householdId = 500, validUntil = LocalDate.now()).apply {
             id = 1
             pendingCostContribution = BigDecimal("42.00")
         }
+        val mainPersonEntity = PersonEntity(household = ticketScreenHousehold, country = testCountry1, isMainPerson = true).apply {
+            id = 501
+            firstname = "Erika"
+            lastname = "Musterfrau"
+        }
+        ticketScreenHousehold.mainPerson = mainPersonEntity
+
         val testDistributionHouseholdEntity = DistributionHouseholdEntity(
             distribution = testDistributionEntity,
             household = ticketScreenHousehold,
@@ -814,11 +821,20 @@ internal class DistributionServiceTest {
             id = 1
             createdAt = LocalDateTime.now()
         }
+        val otherProcessedDistributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity2,
+            ticketNumber = 4,
+            processed = true,
+        ).apply {
+            id = 2
+            createdAt = LocalDateTime.now()
+        }
 
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
-            households = listOf(testDistributionHouseholdEntity)
+            households = listOf(testDistributionHouseholdEntity, otherProcessedDistributionHouseholdEntity)
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
@@ -826,7 +842,10 @@ internal class DistributionServiceTest {
 
         assertThat(ticket.ticketNumber).isEqualTo(5)
         assertThat(ticket.householdId).isEqualTo(500)
+        assertThat(ticket.householdName).isEqualTo("Erika Musterfrau")
         assertThat(ticket.pendingCostContribution).isEqualTo(BigDecimal("42.00"))
+        assertThat(ticket.processedTicketsCount).isEqualTo(1)
+        assertThat(ticket.totalTicketsCount).isEqualTo(2)
     }
 
     @Test
@@ -1001,6 +1020,18 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `last ended distribution time reads the most recently ended distribution`() {
+        val endedAt = LocalDateTime.now().minusDays(1)
+        val endedDistribution = DistributionEntity(startedAt = endedAt.minusHours(6), startedByUser = testUserEntity).apply {
+            id = 122
+            this.endedAt = endedAt
+        }
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns endedDistribution
+
+        assertThat(service.getLastEndedDistributionTime()).isEqualTo(endedAt)
+    }
+
+    @Test
     fun `close current ticket and next without registered customers`() {
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -1057,6 +1088,45 @@ internal class DistributionServiceTest {
             distributionHouseholdRepository.save(
                 withArg {
                     assertThat(it.costContributionPaid).isTrue()
+                    assertThat(it.processed).isTrue()
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `close current ticket without a new decision keeps the recorded costContributionPaid`() {
+        every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
+
+        // A ticket reopened via reopenAndGetPreviousTicket keeps the paid/unpaid decision it was
+        // originally processed with - re-closing it with costContributionPaid = null (the forward
+        // arrow on the control screen) must not overwrite that decision.
+        val reopenedDistributionHouseholdEntity = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = testHouseholdEntity1,
+            ticketNumber = 1,
+            processed = false,
+            costContributionPaid = false,
+        ).apply {
+            id = 1
+            createdAt = LocalDateTime.now()
+        }
+
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(
+                reopenedDistributionHouseholdEntity,
+            )
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        service.closeCurrentTicketAndGetNext(costContributionPaid = null)
+
+        verify {
+            distributionHouseholdRepository.save(
+                withArg {
+                    assertThat(it.costContributionPaid).isFalse()
                     assertThat(it.processed).isTrue()
                 },
             )
