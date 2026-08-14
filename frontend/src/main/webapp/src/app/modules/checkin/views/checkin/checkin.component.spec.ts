@@ -16,7 +16,6 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 import {SseService} from '../../../../common/sse/sse.service';
 
-import {MatTabsModule} from '@angular/material/tabs';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
@@ -96,7 +95,6 @@ describe('CheckinComponent', () => {
                         CommonModule,
                 FormsModule,
                 NoopAnimationsModule,
-                MatTabsModule,
                 MatCardModule,
                 MatButtonModule,
                 MatFormFieldModule,
@@ -828,6 +826,27 @@ describe('CheckinComponent', () => {
         });
 
         expect(component.householdSize()).toBe(3);
+    });
+
+    it('householdSize and infantCount skip persons excluded from the household', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        component.processCustomer({
+            id: 133,
+            gender: Gender.MALE,
+            address: {street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien'},
+            validUntil: dayjs().add(3, 'months').toDate(),
+            additionalPersons: [
+                {birthDate: dayjs().subtract(1, 'year').toDate(), excludeFromHousehold: false} as any,
+                {birthDate: dayjs().subtract(2, 'year').toDate(), excludeFromHousehold: true} as any,
+                {birthDate: dayjs().subtract(30, 'year').toDate(), excludeFromHousehold: true} as any
+            ]
+        });
+
+        expect(component.householdSize()).toBe(2);
+        expect(component.infantCount()).toBe(1);
     });
 
     it('customerStateDatePrefix distinguishes an expired from a running validity', () => {

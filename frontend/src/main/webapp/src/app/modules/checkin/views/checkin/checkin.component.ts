@@ -15,7 +15,6 @@ import {SseService} from '../../../../common/sse/sse.service';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
-import {MatTabsModule} from '@angular/material/tabs';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
@@ -33,6 +32,9 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
 @Component({
     selector: 'tafel-checkin',
     templateUrl: 'checkin.component.html',
+    // The shell's <main> is a flex column - joining it lets the card chain in the template
+    // stretch to the bottom of the viewport (see the comment on the root mat-card)
+    host: {class: 'flex flex-col grow'},
   imports: [
     FormsModule,
     CommonModule,
@@ -42,7 +44,6 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     TafelAutofocusDirective,
     GenderLabelPipe,
     BirthdateAgePipe,
-    MatTabsModule,
     MatCardModule,
     MatButtonModule,
     MatInputModule,
@@ -128,7 +129,10 @@ export class CheckinComponent {
     }
   });
 
-  householdSize = computed<number>(() => (this.customer()?.additionalPersons?.length ?? 0) + 1);
+  // Persons flagged excludeFromHousehold don't count - same rule as the backend's household-list
+  // and statistics counting (see DistributionService.mapHouseholdsForPdf)
+  householdSize = computed<number>(() =>
+    (this.customer()?.additionalPersons?.filter((person) => !person.excludeFromHousehold)?.length ?? 0) + 1);
 
   formattedName = computed<string | undefined>(() => {
     const customer = this.customer();
@@ -161,7 +165,9 @@ export class CheckinComponent {
       return 0;
     }
 
-    return customer.additionalPersons.filter((person) => dayjs().diff(person.birthDate, 'years') < 3).length;
+    return customer.additionalPersons
+      .filter((person) => !person.excludeFromHousehold)
+      .filter((person) => dayjs().diff(person.birthDate, 'years') < 3).length;
   });
 
   trackByScannerId(scannerId: number) {

@@ -197,13 +197,36 @@ describe('CheckIn', () => {
             country: AUSTRIA,
             excludeFromHousehold: false,
             receivesFamilyAllowance: false
+          },
+          {
+            id: 0,
+            key: 0,
+            firstname: 'excluded-firstname-' + randomNumber,
+            lastname: 'excluded-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(30, 'year').toDate(),
+            gender: Gender.FEMALE,
+            country: AUSTRIA,
+            excludeFromHousehold: true,
+            receivesFamilyAllowance: false
           }
         ]
       }).then((response) => {
         searchCustomer(response.body.data.id!);
 
+        // the excluded person is listed and marked, but doesn't count towards the household size
         cy.byTestId('householdSizeChip').should('contain.text', '3');
         cy.byTestId('infantCountChip').should('contain.text', '1');
+
+        // identity header and the compact persons list render right away - no tab to open
+        cy.byTestId('addressText').should('contain.text', 'street-' + randomNumber);
+        cy.byTestId('mainPersonBirthDateAgeText').should('be.visible');
+        cy.byTestId('personsPanel')
+          .should('contain.text', 'infant-lastname-' + randomNumber)
+          .should('contain.text', 'child-lastname-' + randomNumber)
+          .should('contain.text', 'excluded-lastname-' + randomNumber);
+        cy.byTestId('personsPanel').find('[testid$="-excludeFromHouseholdText"]')
+          .should('have.length', 1)
+          .should('be.visible').should('contain.text', 'Nicht im Haushalt');
       });
     });
   });

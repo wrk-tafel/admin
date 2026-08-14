@@ -1,49 +1,52 @@
-<mat-card>
-  <mat-card-content>
-    <!-- Scanner pairing is a once-per-shift setup, not something read on every check-in - kept as a
-         compact toolbar row instead of the top-of-page grid row it used to occupy, so the work order
-         below (input -> verdict -> context -> ticket -> actions) starts right away. -->
-    <div class="flex flex-wrap items-center justify-end gap-3 text-sm mb-4" testid="scannerToolbar">
-      <span>Scanner:</span>
-      <mat-form-field subscriptSizing="dynamic" class="w-40">
-        <!-- The visible "Scanner:" text is toolbar prose, not an associated label, so the select
-             needs its accessible name set explicitly -->
-        <mat-select testid="scannerIdInput" aria-label="Scanner" [(ngModel)]="selectedScannerId">
-          <mat-option [value]="undefined">Nicht aktiv</mat-option>
-          @for (scannerId of scannerIds(); track trackByScannerId(scannerId)) {
-            <mat-option [value]="scannerId">Nr. {{ scannerId }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <!-- role="status": the badge flips on its own when a scanner connects or drops, with nothing
-           else on the screen changing to give that away -->
-      <div role="status">
-        <div class="badge"
-             [ngClass]="{'badge-success': scannerReadyState(), 'badge-danger': !scannerReadyState()}"
-             testid="state-camera">
-          {{ scannerReadyState() ? 'AKTIV' : 'INAKTIV' }}
+<!-- With a customer shown, the card chain grows to the bottom of the viewport and the context row
+     absorbs the surplus, so a tall screen is filled instead of ending in a white strip. -->
+<mat-card class="flex flex-col" [class.grow]="customer() !== undefined">
+  <!-- !grow-0: the theme grows every card content; here the surplus belongs to the detail card below -->
+  <mat-card-content class="!grow-0">
+    <!-- One row: the heading, the customer-number input (the every-check-in control) on the left,
+         the scanner pairing (a once-per-shift setup) as a compact toolbar on the right - so the
+         work order below (input -> verdict -> context -> ticket -> actions) starts right away. -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <h2 class="tafel-h4">Kunden-Annahme</h2>
+        <mat-form-field subscriptSizing="dynamic" class="w-52 sm:w-64">
+          <mat-label>Kundennummer</mat-label>
+          <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
+                 [ngModel]="customerId()" (ngModelChange)="customerId.set($event)" tafelAutofocus
+                 (keydown.enter)="searchForCustomerId()"
+                 (wheel)="$event.preventDefault()">
+        </mat-form-field>
+        <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton">
+          Anzeigen
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-sm" testid="scannerToolbar">
+        <span>Scanner:</span>
+        <mat-form-field subscriptSizing="dynamic" class="w-40">
+          <!-- The visible "Scanner:" text is toolbar prose, not an associated label, so the select
+               needs its accessible name set explicitly -->
+          <mat-select testid="scannerIdInput" aria-label="Scanner" [(ngModel)]="selectedScannerId">
+            <mat-option [value]="undefined">Nicht aktiv</mat-option>
+            @for (scannerId of scannerIds(); track trackByScannerId(scannerId)) {
+              <mat-option [value]="scannerId">Nr. {{ scannerId }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <!-- role="status": the badge flips on its own when a scanner connects or drops, with nothing
+             else on the screen changing to give that away -->
+        <div role="status">
+          <div class="badge"
+               [ngClass]="{'badge-success': scannerReadyState(), 'badge-danger': !scannerReadyState()}"
+               testid="state-camera">
+            {{ scannerReadyState() ? 'AKTIV' : 'INAKTIV' }}
+          </div>
         </div>
       </div>
-    </div>
-
-    <h2 class="tafel-h4 mb-4">Kunden-Annahme</h2>
-
-    <div class="flex flex-col sm:flex-row sm:items-end gap-3">
-      <mat-form-field subscriptSizing="dynamic" class="sm:w-64">
-        <mat-label>Kundennummer</mat-label>
-        <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
-               [ngModel]="customerId()" (ngModelChange)="customerId.set($event)" tafelAutofocus
-               (keydown.enter)="searchForCustomerId()"
-               (wheel)="$event.preventDefault()">
-      </mat-form-field>
-      <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton">
-        Anzeigen
-      </button>
     </div>
     <div class="text-xs opacity-70 mt-1">Eingabetaste: Kunde suchen</div>
 
     @if (lastAcceptedCheckin(); as last) {
-      <div class="flex flex-wrap items-center gap-3 text-sm mt-4 px-3 py-2 rounded border"
+      <div class="flex flex-wrap items-center gap-3 text-sm mt-2 px-3 py-1 rounded border"
            style="border-color: var(--tafel-border-color);" testid="lastAcceptedCheckin">
         <span>Zuletzt angenommen: Kunde Nr. {{ last.customerId }} → Ticket {{ last.ticketNumber }}</span>
         <button matButton (click)="undoLastCheckin()" testid="undoLastCheckinButton">
@@ -55,28 +58,28 @@
   </mat-card-content>
 
   @if (customer() !== undefined) {
-    <mat-card class="mt-6 md:m-4 !p-0 overflow-hidden" testid="customerDetailPanel">
+    <mat-card class="mt-3 md:m-3 tall:md:m-4 !p-0 overflow-hidden grow flex flex-col" testid="customerDetailPanel">
 
       <!-- Full-width verdict banner: the dominant visual on the screen, readable in peripheral
            vision. The decisive fact (date or lock reason) sits right under the verdict word rather
            than one navigation away, and the pending-cost-contribution chip lives here too so it
            can't be missed while eyes are on the ticket field below. -->
-      <div class="w-full px-6 py-5 rounded-t-lg text-white"
+      <div class="w-full px-5 py-3 tall:px-6 tall:py-5 rounded-t-lg text-white"
            [ngClass]="{'tafel-verdict-banner-danger': customerStateColor() === 'danger',
                        'tafel-verdict-banner-warning': customerStateColor() === 'warning',
                        'tafel-verdict-banner-success': customerStateColor() === 'success'}"
            testid="verdictBanner">
-        <div class="text-3xl md:text-4xl font-extrabold" testid="verdictHeadline">{{ customerStateText() }}</div>
+        <div class="text-2xl md:text-3xl md:tall:text-4xl font-extrabold" testid="verdictHeadline">{{ customerStateText() }}</div>
         @if (customerStateDatePrefix()) {
-          <div class="text-lg mt-1" testid="verdictDateDetail">
+          <div class="text-base tall:text-lg mt-0.5 tall:mt-1" testid="verdictDateDetail">
             {{ customerStateDatePrefix() }} {{ customer()!.validUntil! | date : 'dd.MM.yyyy' }}
           </div>
         }
         @if (customerState() === 0 && customer()?.lockReason) {
-          <div class="text-lg mt-1" testid="verdictLockReason">Grund: {{ customer()!.lockReason }}</div>
+          <div class="text-base tall:text-lg mt-0.5 tall:mt-1" testid="verdictLockReason">Grund: {{ customer()!.lockReason }}</div>
         }
         @if ((customer()?.pendingCostContribution ?? 0) > 0) {
-          <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1.5 rounded mt-3"
+          <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded mt-2 tall:mt-3"
                style="color: var(--tafel-severity-danger);" testid="pendingCostContributionChip">
             <fa-icon [icon]="faTriangleExclamation"></fa-icon>
             Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
@@ -84,113 +87,102 @@
         }
       </div>
 
-      <mat-card-content class="!pt-6">
-        <h3 class="text-lg font-semibold mb-4">
-          Nr. {{ customer()!.id! }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
+      <mat-card-content class="!pt-3 tall:!pt-5 !flex flex-col grow">
+        <!-- Identity check at a glance: name, birthdate/age and address in one compact header
+             instead of a tab the staff would have to open. -->
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3 tall:mb-5">
+          <h3 class="text-lg tall:text-xl font-semibold">
+            Nr. {{ customer()!.id! }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
+          @if (customer()!.birthDate) {
+            <span testid="mainPersonBirthDateAgeText">{{ customer()!.birthDate | birthdateAge }}</span>
+          }
+          <span class="opacity-80" testid="addressText">{{ formattedAddress() }}</span>
+        </div>
 
         <!-- The latest note lives directly under the verdict in the main column instead of a
              side card, and is visually flagged whenever one exists - notes carry exactly the
              "watch out" context that matters for check-in. -->
-        <div class="mb-6 px-4 py-3 rounded border"
+        <div class="mb-3 tall:mb-5 px-4 py-2 tall:py-3 rounded border"
              [ngClass]="{'border-l-4': (customerNotes()?.length ?? 0) > 0}"
              [style.border-left-color]="(customerNotes()?.length ?? 0) > 0 ? 'var(--tafel-severity-warning)' : null"
              style="border-color: var(--tafel-border-color);"
              testid="latestNotePanel">
-          <div class="font-semibold flex items-center gap-2 mb-1">
-            @if ((customerNotes()?.length ?? 0) > 0) {
-              <fa-icon [icon]="faNoteSticky" style="color: var(--tafel-severity-warning);"></fa-icon>
-            }
-            Aktuellste Notiz
-          </div>
-          @if (customerNotes()?.length === 0) {
-            <div class="font-semibold">
+          <div class="flex flex-wrap items-baseline gap-x-3">
+            <span class="font-semibold inline-flex items-center gap-2">
+              @if ((customerNotes()?.length ?? 0) > 0) {
+                <fa-icon [icon]="faNoteSticky" style="color: var(--tafel-severity-warning);"></fa-icon>
+              }
+              Aktuellste Notiz
+            </span>
+            @if (customerNotes()?.length === 0) {
               <h4 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h4>
-            </div>
-          }
-          @if (customerNotes() && customerNotes()?.length !== 0) {
-            <div>
-              <div class="mb-2 font-semibold" testid="note-title">
-                {{ customerNotes()![0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()![0].author }}
-              </div>
-              <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()![0].note }}</div>
-            </div>
-          }
-        </div>
-
-        <!-- Big stat chips: household size and infants under 3 drive food allocation and are read
-             on every single check-in, so they're large numbers instead of label/value rows. -->
-        <div class="flex gap-4 mb-6">
-          <div class="flex-1 rounded border px-4 py-3" style="border-color: var(--tafel-border-color);"
-               testid="householdSizeChip">
-            <div class="text-4xl font-bold leading-none">{{ householdSize() }}</div>
-            <div class="mt-1">Personen im Haushalt</div>
-          </div>
-          <div class="flex-1 rounded border px-4 py-3" style="border-color: var(--tafel-border-color);"
-               testid="infantCountChip">
-            <div class="text-4xl font-bold leading-none">{{ infantCount() }}</div>
-            <div class="mt-1">davon unter 3 Jahren</div>
-          </div>
-        </div>
-
-        <mat-tab-group animationDuration="0ms">
-          <mat-tab label="Details">
-            <div class="mt-6 space-y-4 lg:space-y-2">
-              <div class="flex flex-col md:flex-row md:justify-between">
-                <strong>Adresse:</strong>
-                <div>{{ formattedAddress() }}</div>
-              </div>
-            </div>
-          </mat-tab>
-          <mat-tab [label]="'Personen (' + (customer()?.additionalPersons?.length ?? 0) + ')'">
-            @if ((customer()?.additionalPersons?.length ?? 0) === 0) {
-              <div testid="nopersons-label" class="font-semibold mt-6">Keine Personen vorhanden</div>
             }
-            @if ((customer()?.additionalPersons?.length ?? 0) > 0) {
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            @if (customerNotes() && customerNotes()?.length !== 0) {
+              <span testid="note-title">
+                {{ customerNotes()![0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()![0].author }}
+              </span>
+            }
+          </div>
+          @if (customerNotes() && customerNotes()?.length !== 0) {
+            <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()![0].note }}</div>
+          }
+        </div>
+
+        <!-- One row of household context: the two stat chips (household size and infants under 3
+             drive food allocation and are read on every single check-in, hence the large numbers)
+             next to the other household members as one compact line each - everything an identity
+             check needs, without a tab to open or cards to scan. -->
+        <div class="flex flex-wrap gap-3 grow">
+          <div class="rounded border px-4 tall:px-5 flex items-center"
+               style="border-color: var(--tafel-border-color);" testid="householdSizeChip">
+            <div class="flex items-baseline gap-3 py-2 tall:py-3">
+              <div class="text-3xl tall:text-4xl font-bold leading-none">{{ householdSize() }}</div>
+              <div class="tall:text-lg">Personen im Haushalt</div>
+            </div>
+          </div>
+          <div class="rounded border px-4 tall:px-5 flex items-center"
+               style="border-color: var(--tafel-border-color);" testid="infantCountChip">
+            <div class="flex items-baseline gap-3 py-2 tall:py-3">
+              <div class="text-3xl tall:text-4xl font-bold leading-none">{{ infantCount() }}</div>
+              <div class="tall:text-lg">davon unter 3 Jahren</div>
+            </div>
+          </div>
+          <div class="px-4 py-2 tall:py-3 rounded border grow basis-72" style="border-color: var(--tafel-border-color);"
+               testid="personsPanel">
+            <div class="font-semibold mb-1">Weitere Personen ({{ customer()?.additionalPersons?.length ?? 0 }})</div>
+            @if ((customer()?.additionalPersons?.length ?? 0) === 0) {
+              <div testid="nopersons-label">Keine weiteren Personen vorhanden</div>
+            } @else {
+              <!-- Column count follows the panel's own width (it shares its row with the stat
+                   chips), so a person's line never wraps mid-entry -->
+              <div class="grid grid-cols-[repeat(auto-fit,minmax(22rem,1fr))] gap-x-8">
                 @for (addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
-                  <mat-card>
-                    <mat-card-content>
-                      <div class="flex justify-between">
-                        <div class="font-semibold"
-                             [attr.testid]="'addperson-' + i + '-lastnameText'">{{ addPerson?.lastname }}
-                        </div>
-                        <div class="font-semibold"
-                             [attr.testid]="'addperson-' + i + '-firstnameText'">{{ addPerson?.firstname }}
-                        </div>
-                      </div>
-                      <div class="flex justify-between">
-                        <div
-                          [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}
-                        </div>
-                        <div [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}
-                        </div>
-                      </div>
-                      <div>
-                        <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}
-                        </div>
-                      </div>
-                      <mat-divider class="!my-2"></mat-divider>
-                      <div class="flex justify-between items-end">
-                        <div>Im selben Haushalt:</div>
-                        <div class="align-bottom"
-                             [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{ addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja' }}
-                        </div>
-                      </div>
-                    </mat-card-content>
-                  </mat-card>
+                  <div class="flex flex-wrap items-baseline gap-x-3 py-0.5 tall:py-1" [attr.testid]="'addperson-' + i">
+                    <span class="font-semibold"
+                          [attr.testid]="'addperson-' + i + '-nameText'">{{ addPerson?.lastname }} {{ addPerson?.firstname }}</span>
+                    <span [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}</span>
+                    <span [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}</span>
+                    <span [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}</span>
+                    @if (addPerson?.excludeFromHousehold === true) {
+                      <span class="badge badge-danger"
+                            [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">Nicht im Haushalt</span>
+                    }
+                  </div>
                 }
               </div>
             }
-          </mat-tab>
-        </mat-tab-group>
+          </div>
+        </div>
 
-        <mat-divider class="!my-6"></mat-divider>
+        <mat-divider class="!my-3 tall:!my-5"></mat-divider>
 
-        @if (customerState() !== undefined && customerState() !== 0) {
-          <div class="flex flex-col md:flex-row gap-2 mb-2">
-            <div class="flex flex-row gap-2 font-semibold">Ticket-Nummer:</div>
-            <div class="flex items-center gap-4">
-              <mat-form-field class="w-48">
+        <!-- Ticket input and the actions share one row, the buttons directly after the input:
+             "Annehmen" confirms exactly that field, so it sits right next to it - and the screen
+             stays short enough to fit without scrolling. -->
+        <div>
+          <div class="flex flex-wrap items-center gap-4">
+            @if (customerState() !== undefined && customerState() !== 0) {
+              <mat-form-field class="w-48" subscriptSizing="dynamic">
                 <mat-label>Ticket-Nummer</mat-label>
                 <input #ticketNumberInput matInput testid="ticketNumberInput" type="number"
                        name="ticketNumberInput" [ngModel]="ticketNumber()" (ngModelChange)="ticketNumber.set($event)"
@@ -206,19 +198,17 @@
                   <fa-icon [icon]="faTrashCan"></fa-icon>
                 </button>
               }
-            </div>
+            }
+            <button matButton="filled" class="button-success" [disabled]="customerState() === 0 || !ticketNumber()"
+                    testid="assignCustomerButton" (click)="assignCustomer()">Annehmen
+            </button>
+            <button #cancelButton matButton="filled" testid="cancelButton" (click)="cancel()">Abbrechen</button>
           </div>
-          <div class="text-xs opacity-70 mb-6">Eingabetaste: Annehmen</div>
-        }
-      </mat-card-content>
-      <mat-card-actions align="end">
-        <div class="flex gap-4">
-          <button matButton="filled" class="button-success" [disabled]="customerState() === 0 || !ticketNumber()"
-                  testid="assignCustomerButton" (click)="assignCustomer()">Annehmen
-          </button>
-          <button #cancelButton matButton="filled" testid="cancelButton" (click)="cancel()">Abbrechen</button>
+          @if (customerState() !== undefined && customerState() !== 0) {
+            <div class="text-xs opacity-70 mt-1">Eingabetaste: Annehmen</div>
+          }
         </div>
-      </mat-card-actions>
+      </mat-card-content>
     </mat-card>
   }
 </mat-card>
