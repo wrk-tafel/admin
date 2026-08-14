@@ -126,10 +126,10 @@ below.
 
 `getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
 ("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
-distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the most
-recently created distribution (`DistributionRepository.findFirstByOrderByIdDesc()`, deliberately
-*not* `getCurrentDistribution()`, since the overview should still work once that distribution has
-been closed). It injects `DistributionRepository` directly (from `database.model.distribution`) -
+distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the newest
+*closed* distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`),
+matching the first entry of the closed-only distribution list the frontend's selector offers.
+It injects `DistributionRepository` directly (from `database.model.distribution`) -
 that's fine despite the module's `allowedDependencies` below only listing `base::country`/
 `base::exception`: Spring Modulith's boundary only governs `modules.*` packages, not the shared
 `database.model.*` entity/repository layer (see `DashboardService` for the same pattern).

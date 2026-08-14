@@ -5,6 +5,8 @@ import {MAIN_CONTENT} from '../support/accessibility';
 // Route 3: two shop stops, and the seeded return boxes the screen hands back.
 const STOP_IDS_BY_ROUTE: Record<number, number[]> = {2: [200, 210, 220], 3: [300, 310]};
 
+const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
+
 describe('Route Guidance', () => {
   beforeEach(() => {
     cy.loginDefault();
@@ -14,6 +16,9 @@ describe('Route Guidance', () => {
         cy.request('PUT', `/api/routes/${routeId}/guidance/stops/${stopId}`, {completed: false})
       )
     );
+    // a leftover "remembered route" from another spec would silently preselect on visit and break
+    // the assumption every test starts from the picker itself
+    cy.window().then(win => win.localStorage.removeItem(SELECTED_ROUTE_STORAGE_KEY));
     // deliberately no cy.createDistribution() - the screen has to work outside a distribution
     cy.visit('/logistik/routen-navi');
   });
@@ -28,7 +33,15 @@ describe('Route Guidance', () => {
     selectRoute('Route 2');
   }
 
-  it('shows one stop at a time and pages through the route', () => {
+  function goOffline() {
+    cy.window().then(win => win.dispatchEvent(new Event('offline')));
+  }
+
+  function goOnline() {
+    cy.window().then(win => win.dispatchEvent(new Event('online')));
+  }
+
+  it('shows one stop at a time and pages through the route without recording anything', () => {
     selectRoute2();
 
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
@@ -40,62 +53,68 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-stop-contact').should('contain.text', 'Hr. Mustermann');
     cy.byTestId('guidance-next-badge').should('be.visible');
     cy.byTestId('guidance-navigate-button').should('be.visible');
-    cy.byTestId('guidance-done-button').should('contain.text', 'Erledigt & weiter');
+    cy.byTestId('guidance-complete-button').should('contain.text', 'Stopp erledigt');
     // the explanation is a tooltip, so the stop itself is the first thing on the screen
     cy.byTestId('guidance-info-tooltip').should('be.visible');
-    // nothing before the first stop
+    // nothing before the first stop, and paging never touches completion
     cy.byTestId('guidance-previous-button').should('be.disabled');
 
-    cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-next-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
     cy.byTestId('guidance-stop').should('contain.text', 'Stopp ohne Filiale');
     cy.byTestId('guidance-stop-description').should('contain.text', 'Extra stop at home');
     // a stop with no shop has nowhere to navigate to, and needs no button of its own either
     cy.byTestId('guidance-navigate-button').should('not.exist');
-    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
-    cy.byTestId('guidance-progress').should('have.attr', 'aria-valuenow', '33');
+    // paging alone recorded nothing
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
 
-    cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-next-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
     cy.byTestId('guidance-stop').should('contain.text', 'Denns BioMarkt');
-    // the last stop has nowhere to move on to
-    cy.byTestId('guidance-done-button').should('contain.text', 'Erledigt').should('not.contain.text', 'weiter');
+    cy.byTestId('guidance-next-button').should('be.disabled');
 
-    cy.byTestId('guidance-done-button').click();
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
-    cy.byTestId('guidance-summary').should('contain.text', '3 von 3 Stopps erledigt');
-    // everything is done, so there is nothing left to press forward
-    cy.byTestId('guidance-done-button').should('be.disabled');
-  });
-
-  it('records who ticked a stop off and when, and keeps it over a reload', () => {
-    selectRoute2();
-
-    cy.byTestId('guidance-done-button').click();
-    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
-
-    // the screen opens on the next stop still to do, with the tick still there
-    cy.visit('/logistik/routen-navi');
-    selectRoute2();
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
-    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
-
-    // and the stop behind it carries who did it and when
     cy.byTestId('guidance-previous-button').click();
-    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
-  });
-
-  it('takes the tick back on the stop it goes back to', () => {
-    selectRoute2();
-    cy.byTestId('guidance-done-button').click();
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
-
-    // going back is how a tick is taken back - there is no separate control for it
     cy.byTestId('guidance-previous-button').click();
-
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
-    cy.byTestId('guidance-done-badge').should('not.exist');
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+  });
+
+  it('completes and undoes a stop through explicit actions, independent of paging', () => {
+    selectRoute2();
+
+    cy.byTestId('guidance-complete-button').click();
+    cy.byTestId('guidance-done-badge').should('be.visible');
+    cy.byTestId('guidance-completed-label').should('contain.text', 'Erledigt');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+    // completing does not page on its own
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // paging away and back does not touch the tick that was just set
+    cy.byTestId('guidance-next-button').click();
+    cy.byTestId('guidance-previous-button').click();
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+    cy.byTestId('guidance-done-badge').should('be.visible');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+
+    // explicit undo, on the stop actually shown
+    cy.byTestId('guidance-undo-button').click();
+    cy.byTestId('guidance-done-badge').should('not.exist');
+    cy.byTestId('guidance-complete-button').should('be.visible');
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+  });
+
+  it('keeps a completion over a reload, with who did it and when', () => {
+    selectRoute2();
+
+    cy.byTestId('guidance-complete-button').click();
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+    cy.byTestId('guidance-completed-label').should('contain.text', 'von').and('not.contain.text', 'Ausstehend');
+
+    // the screen remembers the route and re-opens on the next stop still to do, with the tick intact
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('guidance-stop').should('be.visible');
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
   });
 
   it('starts the navigation without touching the progress', () => {
@@ -122,7 +141,8 @@ describe('Route Guidance', () => {
       .should('contain.text', '2 × Bananenkartons')
       .should('contain.text', '4 × Graue Kisten');
 
-    cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-complete-button').click();
+    cy.byTestId('guidance-next-button').click();
     cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
     // a zero amount means nothing came back - it must not be listed
     cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
@@ -132,7 +152,7 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     // the pause stop has no shop and therefore nothing to hand back
-    cy.byTestId('guidance-done-button').click();
+    cy.byTestId('guidance-next-button').click();
     cy.byTestId('guidance-stop-return-items').should('not.exist');
   });
 
@@ -154,13 +174,64 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-whole-route-truncated').should('not.exist');
   });
 
+  it('gives an overview of every stop as tappable dots, jumping straight to the one tapped', () => {
+    selectRoute2();
+
+    cy.byTestId('guidance-stepper-dot').should('have.length', 3);
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    cy.byTestId('guidance-stepper-dot').eq(2).click();
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
+    // jumping via the overview is browsing too - it records nothing
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+  });
+
+  it('remembers the selected route for the next visit', () => {
+    selectRoute('Route 3');
+
+    cy.visit('/logistik/routen-navi');
+
+    cy.byTestId('routeInput').should('contain.text', 'Route 3');
+    cy.byTestId('guidance-stop').should('be.visible');
+  });
+
+  it('queues a completion made while offline and syncs it automatically once back online', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    selectRoute2();
+
+    cy.intercept('PUT', '**/routes/*/guidance/stops/*').as('setCompletion');
+    cy.byTestId('guidance-offline-indicator').should('not.exist');
+
+    // ConnectivityService only reacts to the online/offline window events, not a live network
+    // cut - dispatching them directly is the standard way to exercise this without relying on
+    // browser/OS-level network emulation (see food-collection-recording.cy.ts for the same pattern).
+    goOffline();
+    cy.byTestId('guidance-offline-indicator').should('contain.text', 'Offline').and('not.contain.text', 'ausstehend');
+
+    cy.byTestId('guidance-complete-button').click();
+    // applied to the screen right away, marked as not yet confirmed
+    cy.byTestId('guidance-pending-badge').should('be.visible');
+    cy.byTestId('guidance-completed-label').should('contain.text', 'Ausstehend');
+    cy.byTestId('guidance-offline-indicator').should('contain.text', '1 Änderung ausstehend');
+    cy.get('@setCompletion.all').should('have.length', 0);
+
+    goOnline();
+
+    cy.wait('@setCompletion').its('request.body').should('deep.equal', {completed: true});
+    cy.byTestId('guidance-pending-badge').should('not.exist');
+    cy.byTestId('guidance-done-badge').should('be.visible');
+    cy.byTestId('guidance-offline-indicator').should('not.exist');
+  });
+
   it('works on a phone screen', () => {
     cy.viewport(PHONE_VIEWPORT);
     selectRoute2();
 
     cy.byTestId('guidance-stop').should('be.visible');
-    // the two buttons sit below the stop card, which fills a phone screen on its own
-    cy.byTestId('guidance-done-button').scrollIntoView().should('be.visible').click();
+    // the completion button is the most prominent control on the screen, fixed to the bottom
+    cy.byTestId('guidance-complete-button').scrollIntoView().should('be.visible').click();
+    cy.byTestId('guidance-done-badge').should('be.visible');
+    cy.byTestId('guidance-next-button').scrollIntoView().should('be.visible').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
   });
 
@@ -177,16 +248,9 @@ describe('Route Guidance', () => {
 
     it('has no violations on a stop that is done', () => {
       selectRoute2();
-      // Forward ticks the stop off and pages on, so a done stop is normally already off screen by
-      // the time it is done. The last stop is the exception - there is nowhere to move on to, so it
-      // ticks off and stays, which is the only place this state can be looked at.
-      cy.byTestId('guidance-done-button').click();
-      cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
-      cy.byTestId('guidance-done-button').click();
-      cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 3 von 3');
-      cy.byTestId('guidance-done-button').click();
-
+      cy.byTestId('guidance-complete-button').click();
       cy.byTestId('guidance-done-badge').should('be.visible');
+
       cy.checkAccessibility(MAIN_CONTENT);
     });
   });

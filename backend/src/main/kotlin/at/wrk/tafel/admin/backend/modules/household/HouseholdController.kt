@@ -157,8 +157,10 @@ class HouseholdController(
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
     ): PagedResponse<HouseholdAboveLimitItem> {
-        val result = householdService.getHouseholdsAboveLimit(page, pageSize)
+        val result = householdService.getHouseholdsAboveLimit(page, pageSize, sortBy, sortDirection)
         return PagedResponse(
             items = result.items,
             totalCount = result.totalCount,
@@ -168,9 +170,43 @@ class HouseholdController(
         )
     }
 
+    @GetMapping("/above-limit/csv", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    fun generateHouseholdsAboveLimitCsv(
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
+    ): ResponseEntity<InputStreamResource> {
+        val csvResult = householdService.generateAboveLimitCsv(sortBy, sortDirection)
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${csvResult.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
+    }
+
     @GetMapping("/overview")
     @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
     fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)
+
+    @GetMapping("/overview/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    fun generateHouseholdsOverviewCsv(@RequestParam distributionId: Long? = null): ResponseEntity<InputStreamResource> {
+        val csvResult = householdService.generateHouseholdsOverviewCsv(distributionId)
+        val headers = HttpHeaders()
+        headers.add(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "inline; filename=${csvResult.filename}",
+        )
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
+    }
 
     @GetMapping("/duplicates")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")

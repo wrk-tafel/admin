@@ -13,6 +13,8 @@ interface LoginAttemptRepository : JpaRepository<LoginAttemptEntity, Long> {
 
     fun findByUsername(username: String): LoginAttemptEntity?
 
+    fun findAllByUsernameIn(usernames: Collection<String>): List<LoginAttemptEntity>
+
     fun deleteByUsername(username: String)
 
     /**
