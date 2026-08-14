@@ -740,23 +740,46 @@ class HouseholdServiceTest {
     }
 
     @Test
-    fun `get households overview - no distributionId falls back to latest distribution and open distribution uses now as end`() {
-        val distributionStartedAt = LocalDateTime.now().minusHours(2)
+    fun `get households overview - no distributionId falls back to the newest closed distribution`() {
+        val distributionStartedAt = LocalDateTime.of(2026, 2, 7, 8, 0)
+        val distributionEndedAt = LocalDateTime.of(2026, 2, 7, 18, 0)
         val distribution = mockk<DistributionEntity>(relaxed = true) {
             every { id } returns 200
             every { startedAt } returns distributionStartedAt
-            every { endedAt } returns null
+            every { endedAt } returns distributionEndedAt
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns distribution
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
 
         val result = service.getHouseholdsOverview(null)
 
         assertThat(result.distributionId).isEqualTo(200)
-        assertThat(result.distributionEndedAt).isNull()
+        assertThat(result.distributionEndedAt).isEqualTo(distributionEndedAt)
         assertThat(result.newHouseholds).isEmpty()
         assertThat(result.renewedHouseholds).isEmpty()
+        verify {
+            householdRepository.findAllByCreatedAtBetween(distributionStartedAt, distributionEndedAt)
+            householdRepository.findAllByProlongedAtBetween(distributionStartedAt, distributionEndedAt)
+        }
+    }
+
+    @Test
+    fun `get households overview - explicit distributionId of an open distribution uses now as end`() {
+        val distributionStartedAt = LocalDateTime.now().minusHours(2)
+        val distribution = mockk<DistributionEntity>(relaxed = true) {
+            every { id } returns 300
+            every { startedAt } returns distributionStartedAt
+            every { endedAt } returns null
+        }
+        every { distributionRepository.findById(300) } returns Optional.of(distribution)
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+
+        val result = service.getHouseholdsOverview(300)
+
+        assertThat(result.distributionId).isEqualTo(300)
+        assertThat(result.distributionEndedAt).isNull()
         verify {
             householdRepository.findAllByCreatedAtBetween(distributionStartedAt, any())
             householdRepository.findAllByProlongedAtBetween(distributionStartedAt, any())
@@ -764,8 +787,8 @@ class HouseholdServiceTest {
     }
 
     @Test
-    fun `get households overview - no distributions at all returns empty response`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+    fun `get households overview - no closed distributions at all returns empty response`() {
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns null
 
         val result = service.getHouseholdsOverview(null)
 

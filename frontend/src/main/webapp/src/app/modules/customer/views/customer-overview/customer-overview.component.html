@@ -19,7 +19,6 @@
         <mat-form-field subscriptSizing="dynamic" class="w-full">
           <mat-select testid="overviewDistributionInput" aria-label="Ausgabe" [ngModel]="selectedDistributionId()"
                       (ngModelChange)="onDistributionSelected($event)">
-            <mat-option [value]="undefined" testid="overviewDistributionInput-option-latest">Aktuellste Ausgabe</mat-option>
             @for (distribution of distributionsDataInput()?.items; track trackByDistributionId($index, distribution)) {
               <!-- text tight against the tags: Angular collapses the indentation into leading/trailing
                    spaces otherwise, and the e2e spec matches this label with an anchored pattern -->

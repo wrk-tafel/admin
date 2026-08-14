@@ -274,6 +274,10 @@ class HouseholdService(
      * *and* prolonged within the same distribution window shows up in both lists - `prolongedAt` is
      * only ever set on an update, but a freshly created household can still be updated again before
      * the distribution ends.
+     *
+     * Without a [distributionId] this defaults to the newest *closed* distribution - the first
+     * entry of the closed-only list `GET /distributions` serves, so the frontend's default
+     * selection and the default response line up.
      */
     @Transactional(readOnly = true)
     fun getHouseholdsOverview(distributionId: Long?): HouseholdOverviewResponse {
@@ -281,7 +285,7 @@ class HouseholdService(
             distributionRepository.findById(distributionId).orElse(null)
                 ?: throw NotFoundException("Ausgabe Nr. $distributionId nicht gefunden!")
         } else {
-            distributionRepository.findFirstByOrderByIdDesc()
+            distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()
         }
 
         if (distribution == null) {

@@ -15,6 +15,8 @@ describe('Customer Overview', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
+      // the overview defaults to the newest closed distribution - close before visiting
+      cy.closeDistribution();
       cy.visit('/kunden/uebersicht');
 
       cy.contains('[testid^="overview-id-"]', customer.id!.toString())
@@ -34,8 +36,6 @@ describe('Customer Overview', () => {
         });
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
-
-      cy.closeDistribution();
     });
   });
 
@@ -47,6 +47,7 @@ describe('Customer Overview', () => {
       const extendedValidUntil = dayjs(customer.validUntil).add(1, 'year').toDate();
 
       cy.updateCustomer({...customer, validUntil: extendedValidUntil}).then(() => {
+        cy.closeDistribution();
         cy.visit('/kunden/uebersicht');
 
         cy.byTestId('overview-type-filter-renewed').click();
@@ -61,8 +62,6 @@ describe('Customer Overview', () => {
           });
 
         cy.url().should('include', '/kunden/detail/' + customer.id);
-
-        cy.closeDistribution();
       });
     });
   });
@@ -79,6 +78,7 @@ describe('Customer Overview', () => {
 
         // created and prolonged within the same distribution window - counts under both lists
         cy.updateCustomer({...secondCustomer, validUntil: extendedValidUntil}).then(() => {
+          cy.closeDistribution();
           cy.visit('/kunden/uebersicht');
 
           cy.byTestId('overview-stat-new-count').should('contain.text', '2');
@@ -86,8 +86,6 @@ describe('Customer Overview', () => {
 
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
-
-          cy.closeDistribution();
         });
       });
     });
@@ -104,6 +102,7 @@ describe('Customer Overview', () => {
         const extendedValidUntil = dayjs(renewedCustomer.validUntil).add(1, 'year').toDate();
 
         cy.updateCustomer({...renewedCustomer, validUntil: extendedValidUntil}).then(() => {
+          cy.closeDistribution();
           cy.visit('/kunden/uebersicht');
 
           cy.byTestId('overview-type-filter-new').click();
@@ -115,17 +114,14 @@ describe('Customer Overview', () => {
           cy.byTestId('overview-type-filter-all').click();
           cy.contains('[testid^="overview-id-"]', newOnlyCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', renewedCustomer.id!.toString()).should('exist');
-
-          cy.closeDistribution();
         });
       });
     });
   });
 
-  it('reloads the overview when a different distribution is selected', () => {
-    // the selector only ever lists closed distributions (the currently open one is what "no
-    // selection" already shows by default) - capture the id directly from the create response
-    // rather than guessing its position in a list that accumulates across the whole e2e run
+  it('defaults to the newest closed distribution and reloads when a different one is selected', () => {
+    // capture the id directly from the create response rather than guessing its position in a
+    // list that accumulates across the whole e2e run
     cy.request('POST', '/api/distributions/new').then((createResponse) => {
       const firstDistributionId = createResponse.body.distribution.id;
 
@@ -136,10 +132,13 @@ describe('Customer Overview', () => {
         cy.createDistribution();
         cy.createDummyCustomer().then((secondResponse) => {
           const secondCustomer = secondResponse.body.data;
+          cy.closeDistribution();
 
           cy.visit('/kunden/uebersicht');
 
-          // defaults to the latest (still open) distribution
+          // defaults to the newest closed distribution, with its date visible in the selector
+          cy.byTestId('overviewDistributionInput')
+            .invoke('text').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('not.exist');
 
@@ -151,8 +150,6 @@ describe('Customer Overview', () => {
 
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('not.exist');
-
-          cy.closeDistribution();
         });
       });
     });
@@ -168,10 +165,11 @@ describe('Customer Overview', () => {
       cy.createDistribution();
       cy.createDummyCustomer().then((secondResponse) => {
         const secondCustomer = secondResponse.body.data;
+        cy.closeDistribution();
 
         cy.visit('/kunden/uebersicht');
 
-        // defaults to the latest (still open) distribution - "newer" is already disabled
+        // defaults to the newest closed distribution - "newer" is already disabled
         cy.byTestId('overview-distribution-next-button').should('be.disabled');
         cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
 
@@ -184,8 +182,6 @@ describe('Customer Overview', () => {
 
         cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
         cy.byTestId('overview-distribution-next-button').should('be.disabled');
-
-        cy.closeDistribution();
       });
     });
   });
@@ -194,6 +190,7 @@ describe('Customer Overview', () => {
     cy.createDistribution();
 
     cy.createDummyCustomer().then(() => {
+      cy.closeDistribution();
       cy.visit('/kunden/uebersicht');
 
       cy.byTestId('overview-csv-export-button').click();
@@ -204,8 +201,6 @@ describe('Customer Overview', () => {
 
       cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
         .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
-
-      cy.closeDistribution();
     });
   });
 
@@ -216,6 +211,7 @@ describe('Customer Overview', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
+      cy.closeDistribution();
       cy.visit('/kunden/uebersicht');
 
       // below md: the table is hidden and the card list is shown instead
@@ -231,8 +227,6 @@ describe('Customer Overview', () => {
         });
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
-
-      cy.closeDistribution();
     });
   });
 
@@ -243,6 +237,7 @@ describe('Customer Overview', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
+      cy.closeDistribution();
       cy.visit('/kunden/uebersicht');
 
       cy.contains('[testid^="overview-id-"]', customer.id!.toString())
@@ -252,8 +247,6 @@ describe('Customer Overview', () => {
         });
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
-
-      cy.closeDistribution();
     });
   });
 
@@ -267,12 +260,11 @@ describe('Customer Overview', () => {
       cy.createDistribution();
 
       cy.createDummyCustomer().then((response) => {
+        cy.closeDistribution();
         cy.visit('/kunden/uebersicht');
         cy.contains('mat-card', response.body.data.lastname).scrollIntoView().should('be.visible');
 
         cy.checkAccessibility(MAIN_CONTENT);
-
-        cy.closeDistribution();
       });
     });
 

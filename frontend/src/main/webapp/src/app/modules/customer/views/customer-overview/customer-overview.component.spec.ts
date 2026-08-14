@@ -247,20 +247,31 @@ describe('CustomerOverviewComponent', () => {
       expect(component.selectedDistributionId()).toEqual(100);
     });
 
-    it('going newer from the newest closed distribution selects "Aktuellste Ausgabe"', () => {
+    it('cannot go newer from the newest distribution', () => {
       const fixture = TestBed.createComponent(CustomerOverviewComponent);
       const component = fixture.componentInstance;
       fixture.componentRef.setInput('customerOverviewData', mockCustomerOverviewResponse);
       fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
       fixture.detectChanges();
 
-      customerApiService.getCustomersOverview.mockReturnValue(of(mockCustomerOverviewResponse));
+      expect(component.canGoToNewerDistribution()).toBe(false);
 
       component.goToNewerDistribution();
 
-      expect(customerApiService.getCustomersOverview).toHaveBeenCalledWith(undefined);
+      expect(customerApiService.getCustomersOverview).not.toHaveBeenCalled();
+      expect(component.selectedDistributionId()).toEqual(100);
+    });
+
+    it('disables both arrows when no distribution has been closed yet', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('customerOverviewData', {distributionId: null, newCustomers: [], renewedCustomers: []});
+      fixture.componentRef.setInput('distributionsData', {items: []});
+      fixture.detectChanges();
+
       expect(component.selectedDistributionId()).toBeUndefined();
       expect(component.canGoToNewerDistribution()).toBe(false);
+      expect(component.canGoToOlderDistribution()).toBe(false);
     });
   });
 

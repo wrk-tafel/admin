@@ -92,27 +92,27 @@ export class CustomerOverviewComponent {
   });
 
   // Position of the selected distribution within the (closed-only, newest-first) distributions
-  // list backing the select. -1 both when nothing is selected (the "Aktuellste Ausgabe" option,
-  // selectedDistributionId() undefined) and when the id resolved to the currently open
-  // distribution, which the select's options never include - neither case matches an entry.
+  // list backing the select. The backend's default answer is the newest closed distribution -
+  // the same first entry of this list - so the resolver-provided selection always matches an
+  // option; -1 only when no distribution has been closed yet and the list is empty.
   private readonly currentDistributionIndex = computed(() => {
     const items = this.distributionsDataInput()?.items ?? [];
     const selectedId = this.selectedDistributionId();
     return items.findIndex(distribution => distribution.id === selectedId);
   });
 
-  readonly canGoToNewerDistribution = computed(() => this.currentDistributionIndex() !== -1);
+  readonly canGoToNewerDistribution = computed(() => this.currentDistributionIndex() > 0);
   readonly canGoToOlderDistribution = computed(() => {
     const items = this.distributionsDataInput()?.items ?? [];
     const index = this.currentDistributionIndex();
-    return (index === -1 ? 0 : index + 1) < items.length;
+    return index !== -1 && index + 1 < items.length;
   });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
 
-  onDistributionSelected(distributionId: number | undefined) {
+  onDistributionSelected(distributionId: number) {
     this.selectedDistributionId.set(distributionId);
     this.customerApiService.getCustomersOverview(distributionId)
       .subscribe((response: CustomerOverviewResponse) => this.customerOverviewData.set(response));
@@ -125,9 +125,7 @@ export class CustomerOverviewComponent {
   goToNewerDistribution() {
     const items = this.distributionsDataInput()?.items ?? [];
     const index = this.currentDistributionIndex();
-    if (index <= 0) {
-      this.onDistributionSelected(undefined);
-    } else {
+    if (index > 0) {
       this.onDistributionSelected(items[index - 1].id);
     }
   }
@@ -135,9 +133,8 @@ export class CustomerOverviewComponent {
   goToOlderDistribution() {
     const items = this.distributionsDataInput()?.items ?? [];
     const index = this.currentDistributionIndex();
-    const nextIndex = index === -1 ? 0 : index + 1;
-    if (nextIndex < items.length) {
-      this.onDistributionSelected(items[nextIndex].id);
+    if (index !== -1 && index + 1 < items.length) {
+      this.onDistributionSelected(items[index + 1].id);
     }
   }
 
