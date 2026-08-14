@@ -29,66 +29,68 @@
 
       <div class="grid gap-6 my-4">
         @for (item of customerDuplicatesData()!.items; track trackByDuplicateItemId($index, item)) {
-        <div class="overflow-x-auto" [attr.testid]="'duplicate-group-' + item.customer.id">
-          <table class="w-full border-separate border-spacing-0">
-            <caption class="sr-only">Vergleich der möglichen Duplikate von Kunde {{item.customer.id}}</caption>
-            <thead>
-              <tr>
-                <th scope="col" class="text-left align-bottom pb-3 pr-4 w-36"><span class="sr-only">Merkmal</span></th>
-                @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
-                  <th scope="col" class="text-left align-bottom pb-3 px-2 min-w-[15rem]" [attr.testid]="'duplicate-candidate-' + candidate.id">
-                    <div class="font-bold mb-2" [attr.testid]="'duplicate-candidate-name-' + candidate.id">
-                      {{candidate.id + ' - ' + candidate.lastname + ' ' + candidate.firstname}}
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                      <button matButton="filled" class="button-success" [attr.testid]="'duplicate-merge-button-' + candidate.id"
-                              (click)="startMerge(candidate)" aria-label="Diesen Kunden mit den anderen zusammenführen">
-                        <fa-icon [icon]="faCheck" class="me-1"></fa-icon>Zusammenführen
-                      </button>
-                      <button matButton="outlined" [attr.testid]="'duplicate-detail-button-' + candidate.id"
-                              (click)="showCustomerDetail(candidate.id!)">Details</button>
-                      <button matButton="outlined" [attr.testid]="'duplicate-actions-menu-' + candidate.id"
-                              [matMenuTriggerFor]="actionsMenu" aria-label="Weitere Aktionen für diesen Kunden">▾</button>
-                      <mat-menu #actionsMenu="matMenu">
-                        @if (candidate.id !== item.customer.id) {
-                          <button mat-menu-item [attr.testid]="'duplicate-dismiss-button-' + candidate.id"
-                                  (click)="dismissDuplicate(item.customer, candidate)">Kein Duplikat</button>
-                        }
-                        <button mat-menu-item class="text-red-700" [attr.testid]="'duplicate-delete-button-' + candidate.id"
-                                (click)="openDeleteCustomerDialog(candidate)">Kunde löschen</button>
-                      </mat-menu>
-                    </div>
-                  </th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              @for (field of comparisonFields; track field.key) {
-                <tr [attr.testid]="'duplicate-field-' + field.key">
-                  <th scope="row" class="text-left font-bold pr-4 py-2 align-top">{{field.label}}</th>
+        <mat-card [attr.testid]="'duplicate-group-' + item.customer.id">
+          <mat-card-content class="overflow-x-auto">
+            <table class="w-full border-separate border-spacing-0">
+              <caption class="sr-only">Vergleich der möglichen Duplikate von Kunde {{item.customer.id}}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="text-left align-bottom pb-3 pr-4 w-36"><span class="sr-only">Merkmal</span></th>
                   @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
-                    <td class="py-2 px-2 align-top"
-                        [class.font-semibold]="fieldDiffers(item, field)"
-                        [class.text-gray-500]="!fieldDiffers(item, field)">
-                      {{formatFieldValue(field, candidate)}}
+                    <th scope="col" class="text-left align-bottom pb-3 px-2 min-w-[15rem]" [attr.testid]="'duplicate-candidate-' + candidate.id">
+                      <div class="font-bold mb-2" [attr.testid]="'duplicate-candidate-name-' + candidate.id">
+                        {{candidate.id + ' - ' + candidate.lastname + ' ' + candidate.firstname}}
+                      </div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <button matButton="filled" class="button-success" [attr.testid]="'duplicate-merge-button-' + candidate.id"
+                                (click)="startMerge(candidate)" aria-label="Diesen Kunden mit den anderen zusammenführen">
+                          <fa-icon [icon]="faCheck" class="me-1"></fa-icon>Zusammenführen
+                        </button>
+                        <button matButton="outlined" [attr.testid]="'duplicate-detail-button-' + candidate.id"
+                                (click)="showCustomerDetail(candidate.id!)">Details</button>
+                        <button matButton="outlined" [attr.testid]="'duplicate-actions-menu-' + candidate.id"
+                                [matMenuTriggerFor]="actionsMenu" aria-label="Weitere Aktionen für diesen Kunden">▾</button>
+                        <mat-menu #actionsMenu="matMenu">
+                          @if (candidate.id !== item.customer.id) {
+                            <button mat-menu-item [attr.testid]="'duplicate-dismiss-button-' + candidate.id"
+                                    (click)="dismissDuplicate(item.customer, candidate)">Kein Duplikat</button>
+                          }
+                          <button mat-menu-item class="text-red-700" [attr.testid]="'duplicate-delete-button-' + candidate.id"
+                                  (click)="openDeleteCustomerDialog(candidate)">Kunde löschen</button>
+                        </mat-menu>
+                      </div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (field of comparisonFields; track field.key) {
+                  <tr [attr.testid]="'duplicate-field-' + field.key">
+                    <th scope="row" class="text-left font-bold pr-4 py-2 align-top">{{field.label}}</th>
+                    @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
+                      <td class="py-2 px-2 align-top"
+                          [class.font-semibold]="fieldDiffers(item, field)"
+                          [class.text-gray-500]="!fieldDiffers(item, field)">
+                        {{formatFieldValue(field, candidate)}}
+                      </td>
+                    }
+                  </tr>
+                }
+                <tr testid="duplicate-field-validUntil">
+                  <th scope="row" class="text-left font-bold pr-4 py-2 align-top">Gültig bis</th>
+                  @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
+                    <td class="py-2 px-2 align-top">
+                      <span class="font-bold text-white px-2 rounded"
+                            [ngClass]="{'bg-green-700': isValid(candidate), 'bg-red-600': !isValid(candidate)}">
+                        {{candidate.validUntil | date : 'dd.MM.yyyy'}}
+                      </span>
                     </td>
                   }
                 </tr>
-              }
-              <tr testid="duplicate-field-validUntil">
-                <th scope="row" class="text-left font-bold pr-4 py-2 align-top">Gültig bis</th>
-                @for (candidate of candidatesFor(item); track trackByCandidateId($index, candidate)) {
-                  <td class="py-2 px-2 align-top">
-                    <span class="font-bold text-white px-2 rounded"
-                          [ngClass]="{'bg-green-700': isValid(candidate), 'bg-red-600': !isValid(candidate)}">
-                      {{candidate.validUntil | date : 'dd.MM.yyyy'}}
-                    </span>
-                  </td>
-                }
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </mat-card-content>
+        </mat-card>
         }
       </div>
 
