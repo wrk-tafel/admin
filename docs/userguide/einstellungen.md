@@ -142,7 +142,7 @@ Unter **Einstellungen → Routen** werden die Routen samt ihren Stopps gepflegt.
 
 Jede Route ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name sowie die Anzahl der Stopps und die Uhrzeit des ersten und letzten Stopps ("3 Stopps · 12:00 – 13:00"), aufgeklappt den Hinweis, einen Link **Route in Karte öffnen** sowie den gesamten Tagesablauf der Route — je Stopp Uhrzeit, Filiale samt Adresse und Beschreibung. Zeigt ein Stopp auf eine mittlerweile deaktivierte Filiale, steht direkt daneben die Kennzeichnung "Filiale inaktiv" — dieselbe, die dem Fahrer-Team im Routen-Navi angezeigt wird.
 
-Über der Liste stehen ein **Suchfeld** (durchsucht Nummer, Name, Hinweis sowie die Filialen und Beschreibungen der Stopps), die Sortierung **Nummer / Name** und der Filter **Alle / Aktiv / Inaktiv**. Nach einer Suche steht unter diesen Feldern, wie viele Routen gefunden wurden ("2 von 5 Routen gefunden").
+Über der Liste stehen ein **Suchfeld** (durchsucht Nummer, Name, Hinweis sowie die Filialen und Beschreibungen der Stopps) und der Filter **Alle / Aktiv / Inaktiv**; sortiert ist die Liste immer nach der Routen-Nummer. Nach einer Suche steht unter diesen Feldern, wie viele Routen gefunden wurden ("2 von 5 Routen gefunden"). Trifft die Suche eine Route nur über einen ihrer Stopps — etwa bei der Suche nach einer Filiale —, klappt diese Route automatisch auf, damit der Treffer sichtbar ist.
 
 ![Routen](images/einstellungen-routen.jpg)
 

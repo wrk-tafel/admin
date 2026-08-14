@@ -216,20 +216,6 @@ describe('SettingsRoutesComponent', () => {
     expect(component['visibleRoutes']().length).toBe(2);
   });
 
-  it('sorts by number by default and by name once switched', () => {
-    const fixture = TestBed.createComponent(SettingsRoutesComponent);
-    fixture.detectChanges();
-    const component = fixture.componentInstance;
-
-    // testRoute1 has number 1/name "Route 1", testRoute2 number 2/name "Route 2" - number order
-    // and name order agree here, so flip the fixture data's naming to tell the sorts apart
-    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute1.id, testRoute2.id]);
-
-    component['onSortChanged']({value: 'NAME'} as any);
-    expect(component['sortBy']()).toBe('NAME');
-    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([testRoute1.id, testRoute2.id]);
-  });
-
   it('sorts by number even when names would order the other way round', () => {
     const routeA: RouteData = {...testRoute1, id: 10, number: 2, name: 'Alpha'};
     const routeB: RouteData = {...testRoute1, id: 20, number: 1, name: 'Beta'};
@@ -240,9 +226,36 @@ describe('SettingsRoutesComponent', () => {
     const component = fixture.componentInstance;
 
     expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([routeB.id, routeA.id]);
+  });
 
-    component['onSortChanged']({value: 'NAME'} as any);
-    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([routeA.id, routeB.id]);
+  it('expands a route on its own when the search only matches through its stops', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['isExpanded'](testRoute1.id)).toBe(false);
+
+    // "billa" is a shop on testRoute1's stops, invisible while the card is collapsed
+    component['searchControl'].setValue('billa');
+    fixture.detectChanges();
+
+    expect(component['isExpanded'](testRoute1.id)).toBe(true);
+
+    // clearing the search keeps the route open - only the summary toggle collapses it again
+    component['clearSearch']();
+    fixture.detectChanges();
+    expect(component['isExpanded'](testRoute1.id)).toBe(true);
+  });
+
+  it('does not expand a route the search matches by its name alone', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('route 1');
+    fixture.detectChanges();
+
+    expect(component['isExpanded'](testRoute1.id)).toBe(false);
   });
 
   it('announces the visible route count for screen readers', () => {

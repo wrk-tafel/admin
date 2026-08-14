@@ -404,11 +404,17 @@ Both follow the same shape, and a change to one usually belongs in the other:
 - `SettingsRoutesComponent` loads shops alongside routes (`forkJoin`) to resolve each stop's shop
   name and address. New routes may only pick active shops, while editing a route additionally
   offers the disabled shops it already stops at, so saving can't silently drop such a stop.
-- **`routes` additionally sorts** (`sortBy` signal, a `mat-button-toggle-group` beside the search
-  box, Nummer/Name) and, once the search/filter narrows the list, shows a result count
-  (`routes-result-count`, plus a `role="status"` `searchAnnouncement()` for screen readers) — the
-  same "search/sort polish" #3240 asked for shops too, kept as an independent implementation on
-  each screen rather than a shared component, since `shops` doesn't have it yet.
+- **`routes` shows a result count** once the search/filter narrows the list (`routes-result-count`,
+  plus a `role="status"` `searchAnnouncement()` for screen readers) — the same "search polish"
+  #3240 asked for shops too, kept as an independent implementation on each screen rather than a
+  shared component, since `shops` doesn't have it yet. The count line is rendered `invisible`
+  rather than removed while the list is unfiltered, so the record cards never shift when it
+  appears. There is deliberately no sort control: the list is always ordered by route number, and
+  the one search box already matches number, name, note and stops alike.
+- **A search term that hits a route only through its stops auto-expands that route** (an `effect`
+  over `stopsSearchIndex`): the matching shop is invisible while the card is collapsed, so the
+  card opens to show what matched. It never auto-collapses — the summary toggle stays the way
+  back, also after the search is cleared.
 - **`routes`' expanded card also carries a "Route in Karte öffnen" link** (`view.mapsUrl`, built by
   the module-local `buildRouteMapsUrl()`), composing the same kind of Google Maps directions URL as
   the Routen-Navi's own map link (`route-guidance.component.ts`) over the route's already

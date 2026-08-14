@@ -1,10 +1,9 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, effect, inject, signal, untracked} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {
@@ -38,8 +37,6 @@ import {
 } from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 import {RouteEditDialogComponent} from './dialogs/route-edit-dialog.component';
 
-type RouteSort = 'NUMBER' | 'NAME';
-
 interface RouteStopView {
   key: string;
   time: string;
@@ -57,6 +54,8 @@ interface RouteView {
   stops: RouteStopView[];
   stopsSummary: string;
   searchIndex: string;
+  /** the stops' share of searchIndex - a hit in here is invisible while the card is collapsed */
+  stopsSearchIndex: string;
   /** undefined when the route has no stop with a resolved shop address to navigate to */
   mapsUrl?: string;
   /** only set when mapsUrl covers fewer stops than the route actually has */
@@ -80,7 +79,6 @@ const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
     MatCardTitle,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonToggleModule,
     TafelEnabledFilterComponent,
     TafelEnabledToggleComponent,
     ReactiveFormsModule,
@@ -105,7 +103,6 @@ export class SettingsRoutesComponent {
   protected readonly searchControl = new FormControl('', {nonNullable: true});
   private readonly searchText = toSignal(this.searchControl.valueChanges, {initialValue: ''});
   protected readonly enabledFilter = signal<EnabledFilter>('ALL');
-  protected readonly sortBy = signal<RouteSort>('NUMBER');
 
   protected readonly activeShops = computed(() => this._shops().filter(shop => shop.enabled));
   protected readonly totalCount = computed(() => this._routes().length);
@@ -122,12 +119,9 @@ export class SettingsRoutesComponent {
   protected readonly visibleRoutes = computed(() => {
     const search = this.searchText().trim().toLowerCase();
     const filter = this.enabledFilter();
-    const sortBy = this.sortBy();
     return this.routeViews()
       .filter(view => matchesEnabledFilter(view.route.enabled, filter) && (search.length === 0 || view.searchIndex.includes(search)))
-      .sort((a, b) => sortBy === 'NAME'
-        ? a.route.name.localeCompare(b.route.name, 'de')
-        : a.route.number - b.route.number);
+      .sort((a, b) => a.route.number - b.route.number);
   });
 
   // Announced to a screen reader on every search/filter/sort change: the cards on screen change on
@@ -139,6 +133,24 @@ export class SettingsRoutesComponent {
 
   constructor() {
     this.loadData();
+
+    // a search term that hits a route only through its stops finds a shop the collapsed card
+    // doesn't show, so such a route expands on its own to make the match visible; it never
+    // auto-collapses - the summary toggle stays the way back
+    effect(() => {
+      const search = this.searchText().trim().toLowerCase();
+      if (search.length === 0) {
+        return;
+      }
+      const matchedByStops = this.routeViews()
+        .filter(view => view.stopsSearchIndex.includes(search))
+        .map(view => view.route.id);
+      const expanded = new Set(untracked(this.expandedIds));
+      matchedByStops.forEach(id => expanded.add(id));
+      if (expanded.size !== untracked(this.expandedIds).size) {
+        this.expandedIds.set(expanded);
+      }
+    });
   }
 
   private loadData() {
@@ -227,10 +239,6 @@ export class SettingsRoutesComponent {
     this.enabledFilter.set(filter);
   }
 
-  protected onSortChanged(event: MatButtonToggleChange) {
-    this.sortBy.set(event.value as RouteSort);
-  }
-
   protected clearSearch() {
     this.searchControl.setValue('');
   }
@@ -244,12 +252,10 @@ export class SettingsRoutesComponent {
 
   private toRouteView(route: RouteData): RouteView {
     const stops = route.stops.map((stop, index) => this.toStopView(stop, index));
-    const searchIndex = [
-      route.number,
-      route.name,
-      route.note,
-      ...stops.map(stop => `${stop.label} ${stop.description ?? ''}`)
-    ].join(' ').toLowerCase();
+    const stopsSearchIndex = stops
+      .map(stop => `${stop.label} ${stop.description ?? ''}`)
+      .join(' ').toLowerCase();
+    const searchIndex = `${[route.number, route.name, route.note].join(' ').toLowerCase()} ${stopsSearchIndex}`;
 
     // route.stops already arrives sorted by time (RouteService.mapRoute), so this is the exact
     // order the driver will follow - no re-sorting needed here, unlike the live edit dialog
@@ -263,6 +269,7 @@ export class SettingsRoutesComponent {
       stops,
       stopsSummary: buildStopsSummary(stops),
       searchIndex,
+      stopsSearchIndex,
       mapsUrl,
       mapsUrlTruncatedHint
     };

@@ -39,23 +39,17 @@
         }
       </mat-form-field>
 
-      <mat-button-toggle-group [value]="sortBy()" (change)="onSortChanged($event)"
-                               aria-label="Sortierung" testid="routes-sort">
-        <mat-button-toggle value="NUMBER" testid="routes-sort-number">Nummer</mat-button-toggle>
-        <mat-button-toggle value="NAME" testid="routes-sort-name">Name</mat-button-toggle>
-      </mat-button-toggle-group>
-
       <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="routes"
                             (valueChange)="onFilterChanged($event)"/>
     </div>
 
     <p class="sr-only" role="status" testid="routes-search-announcement">{{ searchAnnouncement() }}</p>
 
-    @if (filtered()) {
-      <p class="mb-3 text-sm text-slate-500" testid="routes-result-count">
-        {{ visibleRoutes().length }} von {{ totalCount() }} Routen gefunden
-      </p>
-    }
+    <!-- invisible instead of removed while the list is unfiltered, so the record cards don't
+         shift down the moment a search/filter makes the count appear -->
+    <p class="mb-3 text-sm text-slate-500" [class.invisible]="!filtered()" testid="routes-result-count">
+      {{ visibleRoutes().length }} von {{ totalCount() }} Routen gefunden
+    </p>
 
     <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
          as the record's summary, and mat-expansion-panel-header is itself a role="button" that

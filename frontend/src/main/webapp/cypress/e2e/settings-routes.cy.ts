@@ -184,17 +184,18 @@ describe('Settings - Routes', () => {
 
       cy.byTestId('routes-search-clear-button').click();
       cy.byTestId('routes-list').find('[testid^="routes-row-"]').should('have.length.greaterThan', 1);
-      cy.byTestId('routes-result-count').should('not.exist');
+      // the count line keeps its space (invisible) so the record cards below never shift
+      cy.byTestId('routes-result-count').should('not.be.visible');
     });
   });
 
-  it('sorts the list by number by default and by name once switched', () => {
+  it('sorts the list by number even when names would order the other way round', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const suffix = 'E2E Sortierung ' + randomId;
       const nameWithLowerNumber = 'Zeta ' + suffix;
       const nameWithHigherNumber = 'Alpha ' + suffix;
 
-      // the lower route number sorts first by number, but its name sorts after the other's
+      // the lower route number sorts first, although its name would sort after the other's
       createRoute(nameWithLowerNumber, '90.61', ['07:00']);
       cy.contains('.toast-message', 'erstellt').should('be.visible');
       createRoute(nameWithHigherNumber, '90.62', ['07:00']);
@@ -203,11 +204,18 @@ describe('Settings - Routes', () => {
       cy.byTestId('routes-search-input').type(suffix);
       cy.byTestId('routes-row-0').should('contain.text', nameWithLowerNumber);
       cy.byTestId('routes-row-1').should('contain.text', nameWithHigherNumber);
-
-      cy.byTestId('routes-sort-name').click();
-      cy.byTestId('routes-row-0').should('contain.text', nameWithHigherNumber);
-      cy.byTestId('routes-row-1').should('contain.text', nameWithLowerNumber);
     });
+  });
+
+  it('expands a route on its own when the search matches one of its stops', () => {
+    cy.byTestId('route-stops-0').should('not.be.visible');
+
+    // Billa is a stop of testdata Route 1, invisible while its card is collapsed
+    cy.byTestId('routes-search-input').type('Billa');
+
+    cy.byTestId('routes-list').find('[testid^="route-stops-"]').first()
+      .should('be.visible')
+      .and('contain.text', 'Billa');
   });
 
   it('shows a "Route in Karte öffnen" link covering the route\'s stops', () => {
