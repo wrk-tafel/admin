@@ -632,7 +632,7 @@ class UserControllerTest {
         )
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
         val pagedResult = PageImpl(listOf(newer, older), pageRequest, 123)
-        every { loginAttemptService.findAll(pageRequest) } returns pagedResult
+        every { loginAttemptService.findAll(pageRequest, null, false) } returns pagedResult
 
         val response = controller.getLoginAttempts()
 
@@ -650,7 +650,7 @@ class UserControllerTest {
     @Test
     fun `fetch login attempts with explicit valid pageSize`() {
         val pageRequest = PageRequest.of(0, 25)
-        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+        every { loginAttemptService.findAll(pageRequest, null, false) } returns PageImpl(emptyList(), pageRequest, 0)
 
         val response = controller.getLoginAttempts(page = 1, pageSize = 25)
 
@@ -660,11 +660,32 @@ class UserControllerTest {
     @Test
     fun `fetch login attempts with invalid pageSize falls back to default`() {
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
-        every { loginAttemptService.findAll(pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
+        every { loginAttemptService.findAll(pageRequest, null, false) } returns PageImpl(emptyList(), pageRequest, 0)
 
         val response = controller.getLoginAttempts(page = 1, pageSize = 7)
 
         assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
+    }
+
+    @Test
+    fun `fetch login attempts passes the username search and the locked-only filter on`() {
+        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        every { loginAttemptService.findAll(pageRequest, "hans", true) } returns PageImpl(emptyList(), pageRequest, 0)
+
+        val response = controller.getLoginAttempts(searchInput = "hans", lockedOnly = true)
+
+        assertThat(response.totalCount).isEqualTo(0)
+        verify(exactly = 1) { loginAttemptService.findAll(pageRequest, "hans", true) }
+    }
+
+    @Test
+    fun `fetch login attempt settings`() {
+        every { loginAttemptService.getSettings() } returns LoginAttemptSettingsResponse(maxFailures = 5, lockoutDurationInSeconds = 900)
+
+        val response = controller.getLoginAttemptSettings()
+
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        assertThat(response.body).isEqualTo(LoginAttemptSettingsResponse(maxFailures = 5, lockoutDurationInSeconds = 900))
     }
 
     @Test

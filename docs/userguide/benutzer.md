@@ -75,7 +75,18 @@ Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewäh
 
 ## Anmelde-Versuche
 
-Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status (z. B. gesperrt bis) angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt. Über den Papierkorb-Button kann der Eintrag gelöscht werden (mit Sicherheitsabfrage) – dabei wird eine bestehende Sperre ebenfalls aufgehoben; eine separate Funktion, die nur die Sperre entfernt und den Eintrag behält, gibt es nicht. Sind keine (aktuell gesperrten) Fehlversuche vorhanden, bleibt die Liste leer.
+Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt; ab wie vielen Fehlversuchen und für wie lange, steht im Einleitungstext über der Liste, und die Fehlversuche werden gegen diese Grenze gezählt ("3 von 10").
+
+Gesperrte Konten stehen immer an erster Stelle der Liste. Bei ihnen zeigt der Status nicht nur, bis wann die Sperre gilt, sondern auch, wie lange sie noch dauert ("Gesperrt bis 14:32 - noch 12 Min.") – damit ist entscheidbar, ob das Ablaufen abgewartet oder die Sperre aufgehoben wird. Über das Suchfeld kann nach einem Benutzernamen gesucht werden, mit dem Filter **Nur gesperrte** wird die Liste auf die aktuell gesperrten Konten eingeschränkt. Der Button neben der Überschrift lädt die Liste neu, daneben steht der Zeitpunkt des letzten Ladens ("Stand 14:20:05") – nützlich, während jemand gerade weitere Anmeldeversuche macht.
+
+Existiert zum Benutzernamen ein Konto, ist der Name mit dessen Benutzer-Detailseite verlinkt. Wurde ein Benutzername verwendet, den es gar nicht gibt (z. B. ein Tippfehler), steht stattdessen "kein Benutzerkonto" dabei.
+
+Für die Aktion gibt es je nach Zustand zwei Varianten:
+
+* **Entsperren** bei einem aktuell gesperrten Konto: hebt die Sperre sofort auf und setzt die Fehlversuche zurück – ohne Sicherheitsabfrage, weil in diesem Fall genau das die Absicht ist.
+* **Zurücksetzen** bei einem nicht gesperrten Eintrag: löscht die gezählten Fehlversuche, mit Sicherheitsabfrage. An der Anmeldung ändert sich dadurch nichts.
+
+In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Fehlversuche *sind* der Eintrag. Sind keine Fehlversuche vorhanden, bleibt die Liste leer.
 
 ![Anmelde-Versuche](images/benutzer-anmeldeversuche.jpg)
 

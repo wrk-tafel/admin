@@ -61,7 +61,12 @@ export class UserApiService {
     return this.http.get<PermissionsListResponse>('/users/permissions');
   }
 
-  getLoginAttempts(page?: number, pageSize?: number): Observable<PagedResponse<LoginAttemptItem>> {
+  getLoginAttempts(
+    page?: number,
+    pageSize?: number,
+    searchInput?: string | null,
+    lockedOnly?: boolean
+  ): Observable<PagedResponse<LoginAttemptItem>> {
     let queryParams = new HttpParams();
     if (page) {
       queryParams = queryParams.set('page', page);
@@ -69,7 +74,17 @@ export class UserApiService {
     if (pageSize) {
       queryParams = queryParams.set('pageSize', pageSize);
     }
+    if (searchInput) {
+      queryParams = queryParams.set('searchInput', searchInput);
+    }
+    if (lockedOnly) {
+      queryParams = queryParams.set('lockedOnly', true);
+    }
     return this.http.get<PagedResponse<LoginAttemptItem>>('/users/login-attempts', {params: queryParams});
+  }
+
+  getLoginAttemptSettings(): Observable<LoginAttemptSettingsResponse> {
+    return this.http.get<LoginAttemptSettingsResponse>('/users/login-attempts/settings');
   }
 
   deleteLoginAttempt(loginAttemptId: number): Observable<void> {
@@ -126,4 +141,11 @@ export interface LoginAttemptItem {
   failureCount: number;
   lastFailureAt: string;
   lockedUntil: string | null;
+  /** The account behind the username, if one exists - a failed login names no account by itself. */
+  userId: number | null;
+}
+
+export interface LoginAttemptSettingsResponse {
+  maxFailures: number;
+  lockoutDurationInSeconds: number;
 }

@@ -90,5 +90,11 @@ Content-Type: application/json
 ### Get login attempts
 GET {{baseApiPath}}/users/login-attempts
 
+### Get login attempts of a searched username, currently locked ones only
+GET {{baseApiPath}}/users/login-attempts?searchInput=hans&lockedOnly=true
+
+### Get the configured lockout rule
+GET {{baseApiPath}}/users/login-attempts/settings
+
 ### Delete login attempt 1
 DELETE {{baseApiPath}}/users/login-attempts/1

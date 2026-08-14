@@ -9,6 +9,8 @@ import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
+import at.wrk.tafel.admin.backend.database.model.auth.UserIdProjection
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
@@ -54,6 +56,7 @@ internal class LoginAttemptServiceTest {
     private var nextId = 1L
 
     private lateinit var loginAttemptRepository: LoginAttemptRepository
+    private lateinit var userRepository: UserRepository
     private lateinit var advisoryLockService: AdvisoryLockService
     private lateinit var eventPublisher: ApplicationEventPublisher
     private lateinit var service: LoginAttemptService
@@ -65,10 +68,21 @@ internal class LoginAttemptServiceTest {
         eventPublisher = mockk(relaxed = true)
         loginAttemptRepository = mockk()
         every { loginAttemptRepository.findByUsername(any()) } answers { entries[firstArg()] }
-        every { loginAttemptRepository.findAllByOrderByLastFailureAtDescIdDesc(any()) } answers {
-            val pageRequest = firstArg<PageRequest>()
-            val sorted = entries.values.sortedWith(compareByDescending<LoginAttemptEntity> { it.lastFailureAt }.thenByDescending { it.id })
-            PageImpl(sorted, pageRequest, sorted.size.toLong())
+        every { loginAttemptRepository.findAllFiltered(any(), any(), any(), any()) } answers {
+            val usernamePattern = firstArg<String>().trim('%')
+            val lockedOnly = secondArg<Boolean>()
+            val now = thirdArg<LocalDateTime>()
+            val pageRequest = arg<PageRequest>(3)
+
+            val matching = entries.values
+                .filter { it.username.contains(usernamePattern) }
+                .filter { !lockedOnly || isLocked(it, now) }
+                .sortedWith(
+                    compareBy<LoginAttemptEntity> { if (isLocked(it, now)) 0 else 1 }
+                        .thenByDescending { it.lastFailureAt }
+                        .thenByDescending { it.id },
+                )
+            PageImpl(matching, pageRequest, matching.size.toLong())
         }
         every { loginAttemptRepository.save(any()) } answers {
             val entity = firstArg<LoginAttemptEntity>()
@@ -119,7 +133,17 @@ internal class LoginAttemptServiceTest {
             ),
         )
 
-        service = LoginAttemptService(loginAttemptRepository, advisoryLockService, applicationProperties, clock, eventPublisher)
+        userRepository = mockk()
+        every { userRepository.findIdsByUsernames(any()) } returns emptyList()
+
+        service = LoginAttemptService(loginAttemptRepository, userRepository, advisoryLockService, applicationProperties, clock, eventPublisher)
+    }
+
+    private fun isLocked(entry: LoginAttemptEntity, now: LocalDateTime) = entry.lockedUntil?.isAfter(now) == true
+
+    private fun userIdProjection(name: String, id: Long) = object : UserIdProjection {
+        override val username = name
+        override val userId = id
     }
 
     private lateinit var logAppender: ListAppender<ILoggingEvent>
@@ -272,6 +296,57 @@ internal class LoginAttemptServiceTest {
 
         assertThat(page.content).extracting<String> { it.username }.containsExactly("user2", "user1")
         assertThat(page.totalElements).isEqualTo(2)
+    }
+
+    @Test
+    fun `findAll returns currently locked entries first`() {
+        repeat(MAX_FAILURES) { service.recordFailure("locked-user") }
+        clock.advanceBy(Duration.ofSeconds(1))
+        service.recordFailure("unlocked-user")
+
+        val page = service.findAll(PageRequest.of(0, 10))
+
+        assertThat(page.content).extracting<String> { it.username }.containsExactly("locked-user", "unlocked-user")
+    }
+
+    @Test
+    fun `findAll filters by the searched username, ignoring case and whitespace`() {
+        service.recordFailure("hans")
+        service.recordFailure("franz")
+
+        val page = service.findAll(PageRequest.of(0, 10), searchInput = "  HAN ")
+
+        assertThat(page.content).extracting<String> { it.username }.containsExactly("hans")
+    }
+
+    @Test
+    fun `findAll with lockedOnly leaves out the entries nobody is locked out by`() {
+        repeat(MAX_FAILURES) { service.recordFailure("locked-user") }
+        service.recordFailure("unlocked-user")
+
+        val page = service.findAll(PageRequest.of(0, 10), lockedOnly = true)
+
+        assertThat(page.content).extracting<String> { it.username }.containsExactly("locked-user")
+    }
+
+    @Test
+    fun `findAll links the account behind a username, and leaves an unknown one unlinked`() {
+        service.recordFailure("hans")
+        service.recordFailure("gibtsnicht")
+        every { userRepository.findIdsByUsernames(any()) } returns listOf(userIdProjection("hans", 42L))
+
+        val page = service.findAll(PageRequest.of(0, 10))
+
+        assertThat(page.content.single { it.username == "hans" }.userId).isEqualTo(42L)
+        assertThat(page.content.single { it.username == "gibtsnicht" }.userId).isNull()
+    }
+
+    @Test
+    fun `getSettings reports the configured lockout rule`() {
+        val settings = service.getSettings()
+
+        assertThat(settings.maxFailures).isEqualTo(MAX_FAILURES)
+        assertThat(settings.lockoutDurationInSeconds).isEqualTo(LOCKOUT_DURATION_SECONDS)
     }
 
     @Test

@@ -1115,6 +1115,11 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (1, NOW(), NOW(), 'gesperrt1', 5, NOW() + interval '2 years', NOW() + interval '2 years');
 INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
 VALUES (2, NOW(), NOW(), 'fehlversuch1', 2, NOW() + interval '2 years', NULL);
+-- an attempt on a username that really exists, so the screen's cross-link to the account has
+-- something to link to. Left unlocked on purpose: a lock on 'testuser' would keep that account from
+-- logging in at all.
+INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count, last_failure_at, locked_until)
+VALUES (3, NOW(), NOW(), 'testuser', 1, NOW() + interval '2 years', NULL);
 
 
 -- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters

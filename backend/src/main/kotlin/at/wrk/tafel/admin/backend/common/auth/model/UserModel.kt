@@ -83,4 +83,16 @@ data class LoginAttemptItem(
     val failureCount: Int,
     val lastFailureAt: LocalDateTime,
     val lockedUntil: LocalDateTime?,
+    /** The account behind [username], if one exists - a failed login names no account by itself. */
+    val userId: Long? = null,
+)
+
+/**
+ * The lockout rule the counts on the login-attempts screen are measured against - without it a
+ * failure count is a number without a scale.
+ */
+@ExcludeFromTestCoverage
+data class LoginAttemptSettingsResponse(
+    val maxFailures: Int,
+    val lockoutDurationInSeconds: Long,
 )
