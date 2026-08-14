@@ -22,7 +22,7 @@
       angezeigt, bleiben aber in bereits erfassten Ausgabetagen erhalten.
     </p>
 
-    <div class="mb-4 flex flex-wrap items-center gap-3">
+    <div class="mb-2 flex flex-wrap items-center gap-3">
       <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
         <mat-label>Filiale suchen</mat-label>
         <fa-icon matPrefix [icon]="faMagnifyingGlass" class="ms-3 me-2 text-slate-400"></fa-icon>
@@ -36,9 +36,20 @@
         }
       </mat-form-field>
 
-      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="shops"
+      <mat-button-toggle-group class="ms-auto" [value]="sortBy()" aria-label="Sortierung"
+                               testid="shops-sort-toggle"
+                               (change)="onSortChanged($event.value)">
+        <mat-button-toggle value="number" testid="shops-sort-number">Nummer</mat-button-toggle>
+        <mat-button-toggle value="name" testid="shops-sort-name">Name</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <tafel-enabled-filter [value]="enabledFilter()" testIdPrefix="shops"
                             (valueChange)="onFilterChanged($event)"/>
     </div>
+
+    @if (filtered()) {
+      <p class="mb-4 text-sm text-slate-500" testid="shops-result-count">{{ resultCountLabel() }}</p>
+    }
 
     <!-- Deliberately not a mat-accordion: the Aktiv toggle and the edit button sit in the same row
          as the record's summary, and mat-expansion-panel-header is itself a role="button" that
@@ -79,11 +90,37 @@
             <div>
               <dt class="text-xs uppercase tracking-wide text-slate-500">Adresse</dt>
               <dd class="m-0">{{ view.shop.addressStreet }}</dd>
-              <dd class="m-0">{{ view.shop.addressPostalCode }} {{ view.shop.addressCity }}</dd>
+              <dd class="m-0 flex flex-wrap items-center gap-2">
+                <span>{{ view.shop.addressPostalCode }} {{ view.shop.addressCity }}</span>
+                <a class="text-blue-700 underline" [href]="view.mapUrl" target="_blank" rel="noopener"
+                   [attr.aria-label]="'Adresse von ' + view.shop.name + ' in Karte öffnen (in neuem Tab)'"
+                   [attr.testid]="'shops-map-link-' + i">
+                  <fa-icon [icon]="faLocationDot" class="me-1"></fa-icon>Karte
+                </a>
+              </dd>
             </div>
             <div>
               <dt class="text-xs uppercase tracking-wide text-slate-500">Einheit</dt>
               <dd class="m-0">{{ view.foodUnitLabel }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">Stopps</dt>
+              <dd class="m-0" [attr.testid]="'shops-route-usage-' + i">
+                @if (view.routeUsage.length > 0) {
+                  @for (usage of view.routeUsage; track usage.routeId + usage.label; let last = $last) {
+                    <a class="text-blue-700 underline" routerLink="/einstellungen/routen"
+                       [attr.testid]="'shops-route-link-' + i + '-' + $index">{{ usage.label }}</a>
+                    @if (!usage.routeEnabled) {
+                      <span class="text-slate-500"> (Route inaktiv)</span>
+                    }
+                    @if (!last) {
+                      <span>, </span>
+                    }
+                  }
+                } @else {
+                  <span class="text-slate-500">Wird derzeit von keiner Route angefahren</span>
+                }
+              </dd>
             </div>
             <div>
               <dt class="text-xs uppercase tracking-wide text-slate-500">Telefon</dt>
@@ -91,7 +128,7 @@
                 @if (view.shop.phone) {
                   <a class="text-blue-700 underline" [href]="'tel:' + view.shop.phone">{{ view.shop.phone }}</a>
                 } @else {
-                  <span class="text-slate-400">-</span>
+                  <span class="text-slate-500">-</span>
                 }
               </dd>
             </div>
@@ -101,7 +138,7 @@
                 @if (view.shop.contactPerson) {
                   {{ view.shop.contactPerson }}
                 } @else {
-                  <span class="text-slate-400">-</span>
+                  <span class="text-slate-500">-</span>
                 }
               </dd>
             </div>
@@ -126,7 +163,7 @@
           <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="shops-empty">
             <fa-icon [icon]="faShop" size="2x"></fa-icon>
             @if (filtered()) {
-              <span>Keine Filiale entspricht der Suche.</span>
+              <span>{{ emptyMessage() }}</span>
             } @else {
               <span>Noch keine Filialen angelegt.</span>
             }
