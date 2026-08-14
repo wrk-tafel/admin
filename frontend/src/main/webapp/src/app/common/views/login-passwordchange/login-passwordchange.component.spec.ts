@@ -162,7 +162,7 @@ describe('LoginPasswordChangeComponent', () => {
         vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
         authServiceSpy.getUsername.mockReturnValue('test-username');
 
-        const failedResult: LoginResult = {successful: false, passwordChangeRequired: false, locked: false};
+        const failedResult: LoginResult = {successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false};
         authServiceSpy.login.mockReturnValue(firstValueFrom(of(failedResult)));
 
         component.changePassword();
