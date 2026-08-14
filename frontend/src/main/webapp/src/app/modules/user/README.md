@@ -53,7 +53,7 @@ This is where the interesting form handling lives, and it's worth knowing it use
 `passwordchange-form`. The general guidance is just "reactive forms for all form handling," which is true but
 doesn't tell you which flavor to expect.
 
-Two things worth calling out:
+Several things worth calling out:
 
 - **Permissions are not part of the signal form at all.** `permissions = signal<UserPermissionFormItem[]>([])` is a
   plain array signal, populated/reset by an `effect()` whenever `userData`/`permissionsData` inputs change, and
@@ -67,8 +67,28 @@ Two things worth calling out:
   passwordRepeat: formValue.passwordRepeat || undefined,
   ```
   `generatePassword()` (`GET /users/generate-password`) writes the generated value directly into both password
-  field values and flips the show/hide signals so the generated password is visible in the clear — useful to know
-  when writing a Cypress test against this button.
+  field values, flips the show/hide signals so the generated password is visible in the clear, and checks
+  `passwordChangeRequired` — the point of generating one here is handing it to a colleague, so requiring them to
+  set their own on first login is the sensible default. `copyPassword()` copies the field's current value (whether
+  generated or typed) to the clipboard, shown next to "Passwort generieren" whenever the field is non-empty.
+- **The personnel number field only ever holds a real employee's number, never free text.** It's driven by the
+  shared `TafelEmployeeSearchCreateComponent` (`common/components/employee-search-create/` — also used by
+  logistics' driver/co-driver picker) rather than a plain input: `setSelectedEmployee()`/`resetSelectedEmployee()`
+  toggle between the search UI and a "selected employee" card, and a `validate()` on `personnelNumber` fails with
+  `employeeNotLinked` unless the field's current value equals `selectedEmployee()?.personnelNumber`. Editing an
+  existing user resolves its already-linked employee on load via
+  `EmployeeApiService.checkPersonnelNumberAvailability(userData.personnelNumber)` (asking "who holds this number"
+  rather than a general search) — the `resolvingEmployee` signal makes that lookup provisionally valid so the
+  field doesn't flash an error before the response arrives.
+- **Edit mode hides the password fields behind a collapsed "Passwort zurücksetzen" section**
+  (`passwordResetExpanded`/`passwordFieldsVisible`), so saving the form can't reset a password nobody meant to
+  touch. Create mode has no such gate — `passwordFieldsVisible` is `createMode() || passwordResetExpanded()`, and
+  `createMode()` is always true there.
+- **`isDirty()`/`markSaved()` back the unsaved-changes navigation guard**, and deliberately don't reuse signal-forms'
+  own `dirty()` tracking: that only reacts to control-originated edits and would miss e.g. an employee picked
+  through the search dialog or a permission checkbox toggle. Instead a JSON-serialized snapshot of
+  `derivedUserData()` is taken right after the form loads (or right after a save, via `markSaved()`), and
+  `isDirty()` just compares the live value against it.
 
 ### UserEditComponent glue
 
@@ -78,26 +98,68 @@ arrives (so an existing user's validation state — e.g. a field that's actually
 this deliberately does *not* fire on the blank create form, so a brand-new form doesn't show a wall of "required"
 errors before the user has typed anything.
 
+The save button is deliberately always `button-success`, never swapped to `button-danger` while disabled — an
+incomplete form isn't an error state, and Material's own disabled styling already communicates "not yet". It also
+sits in a `sticky bottom-0` footer so it stays reachable while scrolling the (potentially long) permission grid
+above it.
+
+`UserEditComponent implements HasUnsavedChanges` (`common/guards/unsaved-changes.guard.ts`) and both
+`benutzer/erstellen`/`benutzer/bearbeiten/:id` wire `canDeactivate: [unsavedChangesGuard]` in `user.routes.ts`, so
+navigating away with unsaved changes opens a confirm dialog rather than silently discarding them.
+`save()` calls the form's `markSaved()` before navigating to the detail page on success — otherwise that very
+navigation would trip the guard over changes that were, in fact, just saved.
+
 ### UserSearchComponent
 
-Two independent search paths in one screen:
+One omnibox (`query` signal) instead of a personnel-number field plus a separate text field, mirroring the
+customer search screen's rework (`modules/customer/views/customer-search/`) — read that component before
+diverging from the patterns below:
 
-- **Direct lookup**: `searchForPersonnelNumber()` → `UserApiService.getUserForPersonnelNumber(...)` →
-  navigates straight to `/benutzer/detail/:id` on a hit, toasts "Benutzer nicht gefunden!" on 404.
-- **Filtered/paginated search**: `searchForDetails(page?)` → `UserApiService.searchUser(username, enabled,
-  lastname, firstname, page)` → renders a `mat-table` on desktop and a card list below the `md` breakpoint, both
-  driven by the same `mat-paginator`.
+- **The omnibox resolves in `resolveSearch$`**: a query that is a pure number is tried first as an exact
+  personnel-number jump (`UserApiService.getUserForPersonnelNumber(...)`) straight to `/benutzer/detail/:id`;
+  a 404 falls back to the fuzzy search with the same digits as search text (the personnel number is part of
+  `search_text` too), any other query goes straight to the fuzzy search. A non-404 error is toasted instead of
+  falling back.
+- **Search-as-you-type**: `onQueryInput()` feeds a 300ms-debounced subject (`queryInput`), gated to 2+ characters
+  or an empty query; the explicit "Suchen" button and Enter bypass both the debounce and the threshold.
+- **Status is a tri-state chip toggle** (`statusFilter` signal: `'alle' | 'aktiv' | 'deaktiviert'`), a single-select
+  `mat-chip-listbox` rather than the former "Aktiv" checkbox — a checkbox's unchecked state read as "all", which a
+  checkbox does not communicate. `'aktiv'` is the default landing state (same default the checkbox used to start
+  at); selecting a chip re-searches without attempting the exact-match jump (`tryExactMatch: false`), same as a
+  paginator click.
+- **The whole state lives in the URL** (`suche`, `status`, `seite`, `anzahl` query params — `QUERY_PARAMS`), so
+  navigating to a user's detail and back restores the same result list instead of forcing a re-search. The default
+  `'aktiv'` status and the first page/default page size are omitted from the URL to keep it clean.
+- **Row semantics**: the result table/cards have no separate "view" button — a `RouterLink` on the name (desktop)
+  or the whole card (mobile), stretched via `after:absolute after:inset-0`, is the row's link to
+  `/benutzer/detail/:id`; only the edit action remains as a button (`searchresult-edituser-button-<id>`, filled and
+  neutral — not `button-danger`, see #3280).
+- **Status chips per row**: "Aktiv"/"Deaktiviert" (green/grey), plus "Passwortänderung erforderlich" when
+  `passwordChangeRequired` and "Gesperrt bis <Datum>" when `UserData.lockedUntil` (server-computed by
+  `LoginAttemptService.getLockedUntil`, see `UserController.mapToResponse`) is still in the future — `isLocked()`
+  compares it against `Date.now()` client-side, same pattern as the login-attempts screen's own status column.
+- **Empty state**: "Keine Benutzer gefunden" plus a "Benutzer anlegen" CTA linking to `/benutzer/erstellen`.
 
-The filter fields also use `@angular/forms/signals`' `form()`, but with no validators — it's a query, not
-data entry. Minor naming nit if you go digging: `editUser(personnelNumber: number | undefined)` is actually called
-with `user.id` from the template (`editUser(user.id)`), and both `detail/:id` and `bearbeiten/:id` route on the
-numeric user id — the parameter name is just misleading, there's no functional bug.
+The status filter has no validators — it is a query, not data entry — so it is plain component signals rather
+than `@angular/forms/signals`' `form()`.
 
 ### UserDetailComponent
 
 Read-only view plus a `mat-menu` with enable/disable/delete actions.
 `currentUserData = linkedSignal(() => this.userData())` lets `disableUser()`/`enableUser()` update the screen
 immediately from the `updateUser()` response, without re-resolving the route.
+
+**Permissions overview**: `permissionGroups` unifies two shapes behind one
+`{category, permissions: {permission, granted}[]}[]` so the template renders identically either
+way. Collapsed (default) wraps `groupPermissionsByCategory(currentUserData().permissions)` with
+`granted: true` on every entry - categories with nothing granted are absent already, since the
+input is only what's granted. Expanded ("Alle anzeigen", `showAllPermissions` signal) calls
+`buildPermissionOverviewGroups(permissionsData(), currentUserData().permissions)` instead - every
+catalog permission (loaded via the same `PermissionsDataResolver` the edit screen uses, wired to
+the `detail/:id` route as well) within a category the user holds *something* in, the ones they
+don't hold rendered muted (`!opacity-50` + a "Nicht zugewiesen" tooltip); a category the user holds
+nothing in at all stays omitted rather than shown fully muted - see
+`common/util/permission-grouping.util.ts`.
 
 ### UserPasswordChangeComponent — a different password-change path entirely
 
@@ -178,6 +240,11 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
 `deleteUser`, `createUser`, `generatePassword`, `getPermissions`, `getLoginAttempts` (paginated),
 `deleteLoginAttempt`.
 
+`UserFormComponent` additionally calls `EmployeeApiService.checkPersonnelNumberAvailability` (to resolve an
+existing user's linked employee on load) and, through the shared `TafelEmployeeSearchCreateComponent`,
+`EmployeeApiService.findEmployees`/`saveEmployee` (the personnel-number search/create-if-missing flow) — this
+module has no employee endpoints of its own.
+
 ## Gotchas
 
 - `*-resolver.component.ts` files here are not components — just injectable resolver classes.
@@ -190,3 +257,7 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
   first one lives inside the `USER_MANAGEMENT`-gated route tree.
 - `UserEditComponent.save()` decides create vs. update purely from whether `userData()` is `undefined` — there is
   no explicit "mode" flag.
+- Saving is blocked until the personnel number is a real, resolved employee (the `employeeNotLinked` validator) —
+  a personnel number typed but never run through the search/select/create widget never becomes valid.
+- In edit mode, leaving the collapsed "Passwort zurücksetzen" section untouched keeps the existing password;
+  create mode has no such gate since a password is mandatory there.

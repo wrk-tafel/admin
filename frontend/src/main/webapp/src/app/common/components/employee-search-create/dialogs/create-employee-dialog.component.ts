@@ -6,8 +6,8 @@ import {MatInputModule} from '@angular/material/input';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
-import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
-import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {TafelDialogComponent} from '../../tafel-dialog/tafel-dialog.component';
+import {TafelToastrService} from '../../tafel-toastr/tafel-toastr.service';
 
 export interface CreateEmployeeDialogData {
   testId: string;

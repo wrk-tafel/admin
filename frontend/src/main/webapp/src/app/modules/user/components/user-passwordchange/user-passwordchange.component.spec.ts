@@ -3,13 +3,17 @@ import { UserPasswordChangeComponent } from './user-passwordchange.component';
 import { of } from 'rxjs';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
 describe('UserPasswordChangeComponent', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
                 provideHttpClient(withXhr()),
-                provideHttpClientTesting()
+                provideHttpClientTesting(),
+                // The shared tafel-passwordchange-form injects AuthenticationService (for its live
+                // password-rule checklist), which itself depends on Router.
+                provideRouter([])
             ]
         }).compileComponents();
     });

@@ -1,5 +1,9 @@
+import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
+import {Gender} from '../support/commands';
+
+const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
 
 describe('CheckIn', () => {
 
@@ -113,6 +117,144 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(1);
   });
 
+  it('shows the full-width verdict banner with the decisive validity date', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      searchCustomer(customer.id!);
+
+      cy.byTestId('verdictBanner').should('be.visible').should('contain.text', 'GÜLTIG');
+      cy.byTestId('verdictDateDetail')
+        .should('contain.text', 'bis')
+        .should('contain.text', dayjs(customer.validUntil).format('DD.MM.YYYY'));
+      cy.byTestId('verdictLockReason').should('not.exist');
+    });
+  });
+
+  it('shows the lock reason inside the verdict banner for a locked household', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const lockReason = 'Testgrund-' + randomNumber;
+
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        locked: true,
+        lockReason,
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        searchCustomer(response.body.data.id!);
+
+        cy.byTestId('verdictBanner').should('contain.text', 'GESPERRT');
+        cy.byTestId('verdictLockReason').should('be.visible').should('contain.text', lockReason);
+        cy.byTestId('assignCustomerButton').should('be.disabled');
+      });
+    });
+  });
+
+  it('shows household size and infants under 3 as big stat chips', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        },
+        additionalPersons: [
+          {
+            id: 0,
+            key: 0,
+            firstname: 'infant-firstname-' + randomNumber,
+            lastname: 'infant-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(1, 'year').toDate(),
+            gender: Gender.FEMALE,
+            country: AUSTRIA,
+            excludeFromHousehold: false,
+            receivesFamilyAllowance: false
+          },
+          {
+            id: 0,
+            key: 0,
+            firstname: 'child-firstname-' + randomNumber,
+            lastname: 'child-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(10, 'year').toDate(),
+            gender: Gender.MALE,
+            country: AUSTRIA,
+            excludeFromHousehold: false,
+            receivesFamilyAllowance: false
+          },
+          {
+            id: 0,
+            key: 0,
+            firstname: 'excluded-firstname-' + randomNumber,
+            lastname: 'excluded-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(30, 'year').toDate(),
+            gender: Gender.FEMALE,
+            country: AUSTRIA,
+            excludeFromHousehold: true,
+            receivesFamilyAllowance: false
+          }
+        ]
+      }).then((response) => {
+        searchCustomer(response.body.data.id!);
+
+        // the excluded person is listed and marked, but doesn't count towards the household size
+        cy.byTestId('householdSizeChip').should('contain.text', '3');
+        cy.byTestId('infantCountChip').should('contain.text', '1');
+
+        // identity header and the compact persons list render right away - no tab to open
+        cy.byTestId('addressText').should('contain.text', 'street-' + randomNumber);
+        cy.byTestId('mainPersonBirthDateAgeText').should('be.visible');
+        cy.byTestId('personsPanel')
+          .should('contain.text', 'infant-lastname-' + randomNumber)
+          .should('contain.text', 'child-lastname-' + randomNumber)
+          .should('contain.text', 'excluded-lastname-' + randomNumber);
+        cy.byTestId('personsPanel').find('[testid$="-excludeFromHouseholdText"]')
+          .should('have.length', 1)
+          .should('be.visible').should('contain.text', 'Nicht im Haushalt');
+      });
+    });
+  });
+
+  it('undo the last check-in from the confirmation toast', () => {
+    searchCustomer(100);
+    assignTicket(10);
+    assertFormReset();
+
+    cy.get('[matSnackBarLabel]').should('be.visible').should('contain.text', 'Ticket 10 angenommen');
+    cy.get('[matSnackBarAction]').click();
+
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'wurde rückgängig gemacht');
+    assertDashboardCustomerCount(0);
+  });
+
+  it('undo the last check-in from the persistent "zuletzt angenommen" line', () => {
+    searchCustomer(100);
+    assignTicket(10);
+    assertFormReset();
+
+    cy.byTestId('lastAcceptedCheckin').should('be.visible').should('contain.text', 'Ticket 10');
+    cy.byTestId('undoLastCheckinButton').click();
+
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'wurde rückgängig gemacht');
+    assertDashboardCustomerCount(0);
+  });
+
   // The customer panel - the whole point of this screen - only exists after a search, so the
   // Lighthouse `pages` sweep grades the empty form and nothing else.
   // See cypress/support/accessibility.ts.
@@ -125,6 +267,45 @@ describe('CheckIn', () => {
       cy.checkAccessibility(MAIN_CONTENT);
     });
 
+    it('has no violations with the persistent "zuletzt angenommen" line visible', () => {
+      searchCustomer(100);
+      assignTicket(10);
+      assertFormReset();
+
+      cy.byTestId('lastAcceptedCheckin').should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+  });
+
+});
+
+// Accruing cost contribution debt requires closing a distribution of its own (see
+// cy.accrueCostContributionDebt), which would wipe the outer describe's already-active
+// distribution - runs its own lifecycle instead, the same way ticket-screen.cy.ts's equivalent
+// block does.
+describe('CheckIn - pending cost contribution', () => {
+
+  beforeEach(() => {
+    cy.loginDefault();
+  });
+
+  afterEach(() => {
+    cy.closeDistribution();
+  });
+
+  it('shows the pending cost contribution as a chip inside the verdict banner', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.accrueCostContributionDebt(customerId);
+
+      cy.createDistribution();
+      cy.visit('/anmeldung/annahme');
+      searchCustomer(customerId);
+
+      cy.byTestId('pendingCostContributionChip').should('be.visible')
+        .should('contain.text', 'Unkostenbeitrag offen');
+    });
   });
 
 });

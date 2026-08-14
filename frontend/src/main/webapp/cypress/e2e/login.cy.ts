@@ -123,6 +123,11 @@ describe('Login', () => {
       enterLoginData(user.username, testUser.password!);
       cy.url().should('contain', '/login/passwortaendern');
 
+      // The page is reached without asking for it - it must say why (#3209), so it isn't
+      // indistinguishable from a voluntary password change.
+      cy.byTestId('reasonHint').should('be.visible')
+        .and('contain.text', 'Ihr Passwort muss geändert werden, bevor Sie fortfahren können.');
+
       cy.visit('/uebersicht');
       cy.url().should('contain', '/login');
       cy.byTestId('errorMessage').should('exist');
@@ -134,6 +139,10 @@ describe('Login', () => {
       enterLoginData(user.username, testUser.password!);
 
       cy.url().should('contain', '/login/passwortaendern');
+
+      // Labelled "Abmelden" (not "Abbrechen") because it really does end the session - a user
+      // clicking it must not expect to be able to proceed into the app afterwards (#3209).
+      cy.byTestId('cancelButton').should('contain.text', 'Abmelden');
 
       // Cancelling logs out server-side and only then navigates. Wait for that round-trip: the
       // cy.visit() below otherwise tears the page down while the request is still in flight, which
@@ -166,6 +175,35 @@ describe('Login', () => {
       cy.byTestId('newRepeatedPasswordText').type('11111111');
 
       cy.byTestId('saveButton').click();
+      cy.url().should('contain', '/uebersicht');
+    });
+  });
+
+  it('login with required password change shows progress while the silent re-login runs', () => {
+    createTestUserRequiringPasswordChange([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
+      cy.visit('/login');
+
+      enterLoginData(user.username, testUser.password!);
+      cy.url().should('contain', '/login/passwortaendern');
+
+      cy.byTestId('currentPasswordText').type(testUser.password!);
+      cy.byTestId('newPasswordText').type('11111111');
+      cy.byTestId('newRepeatedPasswordText').type('11111111');
+
+      // Slow the silent re-login down so the "Anmeldung läuft…" progress state (#3209) is actually
+      // observable instead of flashing past before the redirect to /uebersicht.
+      cy.intercept('POST', '/api/login', (req) => {
+        req.continue((res) => {
+          res.setDelay(500);
+        });
+      }).as('reLogin');
+
+      cy.byTestId('saveButton').click();
+
+      cy.byTestId('reLoginProgress').should('be.visible').and('contain.text', 'Anmeldung läuft');
+      cy.byTestId('saveButton').should('not.exist');
+
+      cy.wait('@reLogin');
       cy.url().should('contain', '/uebersicht');
     });
   });

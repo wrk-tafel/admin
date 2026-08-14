@@ -53,6 +53,40 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
         assertThat(idsInResult).containsExactlyInAnyOrder(household1.householdId, household2.householdId)
     }
 
+    @Test
+    @Transactional
+    fun `a dismissed pair no longer shows up as a duplicate`() {
+        val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+        val household2 = persistHousehold(firstname = "Marie", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        householdDuplicationService.dismiss(household1.householdId, household2.householdId)
+
+        val result = householdDuplicationService.findDuplicates(page = null)
+
+        assertThat(result.totalCount).isEqualTo(0)
+        assertThat(result.items).isEmpty()
+    }
+
+    @Test
+    @Transactional
+    fun `dismissing a pair is idempotent regardless of argument order`() {
+        val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+        val household2 = persistHousehold(firstname = "Marie", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        householdDuplicationService.dismiss(household1.householdId, household2.householdId)
+        householdDuplicationService.dismiss(household2.householdId, household1.householdId)
+
+        val result = householdDuplicationService.findDuplicates(page = null)
+
+        assertThat(result.totalCount).isEqualTo(0)
+    }
+
     private fun persistHousehold(firstname: String, lastname: String, street: String, houseNumber: String): HouseholdEntity {
         val household = createHousehold(testUser.employee!!, testCountry).apply {
             addressStreet = street
