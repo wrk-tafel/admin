@@ -193,6 +193,7 @@ data class HouseholdAboveLimitItem(
     val totalSum: BigDecimal,
     val limit: BigDecimal,
     val amountExceededLimit: BigDecimal,
+    val percentageExceededLimit: BigDecimal,
 )
 
 @ExcludeFromTestCoverage

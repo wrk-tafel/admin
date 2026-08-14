@@ -545,6 +545,7 @@ class HouseholdServiceTest {
         assertThat(result.items.first().totalSum).isEqualTo(BigDecimal("1500"))
         assertThat(result.items.first().limit).isEqualTo(BigDecimal("1000"))
         assertThat(result.items.first().amountExceededLimit).isEqualTo(BigDecimal("500"))
+        assertThat(result.items.first().percentageExceededLimit).isEqualByComparingTo(BigDecimal("50.0"))
         assertThat(result.totalCount).isEqualTo(1)
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
@@ -553,6 +554,136 @@ class HouseholdServiceTest {
         // the household that turned out to be below the limit is never mapped to a response
         verify(exactly = 0) { householdConverter.mapEntityToHousehold(testHouseholdEntity1) }
         verify(exactly = 1) { householdConverter.mapEntityToHousehold(testHouseholdEntity2) }
+    }
+
+    @Test
+    fun `get households above limit - a limit of zero yields a zero percentage instead of dividing by it`() {
+        val entity = mockk<HouseholdEntity>(relaxed = true)
+        val household = mockk<HouseholdResponse>(relaxed = true)
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns listOf(entity)
+        every { householdConverter.mapEntityToHousehold(entity) } returns household
+
+        every { incomeValidatorService.validateAll(any()) } returns listOf(
+            Result.success(
+                IncomeValidatorResult(
+                    valid = false,
+                    totalSum = BigDecimal("500"),
+                    limit = BigDecimal.ZERO,
+                    toleranceValue = BigDecimal.ZERO,
+                    amountExceededLimit = BigDecimal("500"),
+                ),
+            ),
+        )
+
+        val result = service.getHouseholdsAboveLimit()
+
+        assertThat(result.items.first().percentageExceededLimit).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `get households above limit - defaults to sorting by exceedance, largest first`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        val amounts = listOf(BigDecimal("100"), BigDecimal("500"), BigDecimal("250"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = BigDecimal("1500"),
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = amounts[index],
+                    ),
+                )
+            }
+        }
+
+        val result = service.getHouseholdsAboveLimit()
+
+        assertThat(result.items.map { it.amountExceededLimit }).containsExactly(
+            BigDecimal("500"),
+            BigDecimal("250"),
+            BigDecimal("100"),
+        )
+    }
+
+    @Test
+    fun `get households above limit - sortBy and sortDirection reorder the result`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        val totalSums = listOf(BigDecimal("1300"), BigDecimal("1100"), BigDecimal("1200"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = totalSums[index],
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = BigDecimal("100"),
+                    ),
+                )
+            }
+        }
+
+        val result = service.getHouseholdsAboveLimit(sortBy = "totalSum", sortDirection = "asc")
+
+        assertThat(result.items.map { it.totalSum }).containsExactly(
+            BigDecimal("1100"),
+            BigDecimal("1200"),
+            BigDecimal("1300"),
+        )
+    }
+
+    @Test
+    fun `get households above limit - sorts by limit and by percentage exceeded`() {
+        val entities = (1..3).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..3).map { mockk<HouseholdResponse>(relaxed = true) }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        // percentages: 100/1000 = 10%, 400/800 = 50%, 180/900 = 20%
+        val limits = listOf(BigDecimal("1000"), BigDecimal("800"), BigDecimal("900"))
+        val amounts = listOf(BigDecimal("100"), BigDecimal("400"), BigDecimal("180"))
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().mapIndexed { index, _ ->
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = limits[index] + amounts[index],
+                        limit = limits[index],
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = amounts[index],
+                    ),
+                )
+            }
+        }
+
+        val byLimit = service.getHouseholdsAboveLimit(sortBy = "limit", sortDirection = "asc")
+        assertThat(byLimit.items.map { it.limit }).containsExactly(
+            BigDecimal("800"),
+            BigDecimal("900"),
+            BigDecimal("1000"),
+        )
+
+        // descending by default: 50% > 20% > 10%
+        val byPercentage = service.getHouseholdsAboveLimit(sortBy = "percentageExceededLimit")
+        assertThat(byPercentage.items.map { it.amountExceededLimit }).containsExactly(
+            BigDecimal("400"),
+            BigDecimal("180"),
+            BigDecimal("100"),
+        )
     }
 
     @Test
@@ -690,6 +821,46 @@ class HouseholdServiceTest {
         testHouseholdEntities.forEach { entity ->
             verify(exactly = 1) { householdConverter.mapEntityToHousehold(entity) }
         }
+    }
+
+    @Test
+    fun `generate above limit csv - exports every household above the limit, not just one page`() {
+        val entities = (1..30).map { mockk<HouseholdEntity>(relaxed = true) }
+        val households = (1..30).map {
+            mockk<HouseholdResponse>(relaxed = true) {
+                every { id } returns it.toLong()
+                every { mainPerson() } returns null
+                every { validUntil } returns null
+                every { address } returns HouseholdAddress(street = "Teststraße", houseNumber = "1", postalCode = 1020, city = "Wien")
+            }
+        }
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<Sort>()) } returns entities
+        entities.forEachIndexed { index, entity -> every { householdConverter.mapEntityToHousehold(entity) } returns households[index] }
+
+        every { incomeValidatorService.validateAll(any()) } answers {
+            firstArg<List<List<IncomeValidatorPerson>>>().map {
+                Result.success(
+                    IncomeValidatorResult(
+                        valid = false,
+                        totalSum = BigDecimal("1500"),
+                        limit = BigDecimal("1000"),
+                        toleranceValue = BigDecimal.ZERO,
+                        amountExceededLimit = BigDecimal("500"),
+                    ),
+                )
+            }
+        }
+
+        val result = service.generateAboveLimitCsv()
+
+        assertThat(result.filename).startsWith("kunden_ueber_limit_").endsWith(".csv")
+        val csvContent = String(result.bytes)
+        val lines = csvContent.trim().lines()
+        // header + 30 households, unpaginated
+        assertThat(lines).hasSize(31)
+        assertThat(lines[0]).isEqualTo("Nr.;Name;Adresse;Gültig bis;Einkommen gesamt;Limit;Über Limit;% über Limit")
+        assertThat(lines[1]).contains("Teststraße 1, 1020 Wien").contains("1500").contains("50.0")
     }
 
     @Test

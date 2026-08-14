@@ -126,7 +126,13 @@ Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen 
 
 ## Kunden über Limit
 
-Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz ("Über Limit"); über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
+Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Diese Liste ist als Arbeitsliste gedacht: Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht, wo die Gültigkeit verkürzt, der Kunde gesperrt oder der Zustand akzeptiert werden kann. Der Link öffnet ein echtes `href`, ein Klick mit der mittleren Maustaste öffnet die Detailansicht daher in einem neuen Tab, ohne die Liste zu verlassen.
+
+Oberhalb der Tabelle steht, gegen welche Grenzwerte aktuell geprüft wird ("Stand: heute") sowie – mit der entsprechenden Berechtigung – ein Link **Grenzwerte ansehen** zu [Einstellungen → Grenzwerte](einstellungen.md#statische-werte-grenzwerte). Sind aktuell keine Kunden über dem Limit, erscheint die Meldung "Aktuell liegt kein Kunde über dem Limit" statt einer leeren Tabelle.
+
+Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz ("Über Limit") samt dem prozentuellen Anteil über dem Limit und einem kompakten Balken, der diesen Anteil visualisiert – 50 € über einem 1.500 €-Limit sind damit auf einen Blick von 50 € über einem 3.900 €-Limit unterscheidbar. Die Spalte **Gültig bis** zeigt die Gültigkeit als grün/rot hervorgehobenen Wert, sodass Fälle, die ohnehin bald ablaufen, sofort erkennbar sind. Standardmäßig ist die Liste nach der größten Überschreitung sortiert; die Spalten Einkommen gesamt, Limit und Über Limit lassen sich zusätzlich durch Klick auf die jeweilige Spaltenüberschrift sortieren.
+
+Über **CSV-Export** lässt sich die aktuelle Liste (in der gerade gewählten Sortierung, vollständig statt nur die angezeigte Seite) als CSV-Datei herunterladen, z. B. um sie in eine Besprechung mitzunehmen.
 
 ![Kunden über Limit](images/kunden-ueber-limit.jpg)
 
