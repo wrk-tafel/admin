@@ -9,11 +9,65 @@ describe('TicketScreen', () => {
   it('start time set and shown correctly', () => {
     cy.visit('/anmeldung/ticketmonitor-steuerung');
 
+    // The start-time field only appears once that segment of "Monitor zeigt" is picked - see the
+    // segmented control test below for the full switching behavior.
+    cy.byTestId('show-starttime-toggle').click();
     cy.byTestId('starttime-input').type('12:34');
     cy.byTestId('show-starttime-button').click();
 
     cy.byTestId('title').should('have.text', 'Startzeit');
     cy.byTestId('text').should('have.text', '12:34');
+  });
+
+  it('a start time set before the monitor is opened is what a fresh monitor connection shows', () => {
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('show-starttime-toggle').click();
+    // Enter in the field triggers the form's implicit submission (the same handler as the
+    // "Anzeigen" submit button) - Cypress cannot send extra keystrokes into an <input type="time">,
+    // so submit the form directly instead.
+    cy.byTestId('starttime-input').type('11:30');
+    cy.byTestId('starttime-input').parents('form').submit();
+    cy.byTestId('title').should('have.text', 'Startzeit');
+
+    // A monitor opened only now - a brand-new SSE connection - must replay that start time as its
+    // initial state instead of synthesizing the current ticket (which nobody put on the screen).
+    cy.visit('/anmeldung/ticketmonitor');
+    cy.byTestId('title').should('have.text', 'Startzeit');
+    cy.byTestId('text').should('have.text', '11:30');
+
+    // Re-opening the control page must not hijack the monitor either: its on-load fetch of the
+    // current ticket (for the ticket card and cost-contribution panel) is a read, not a broadcast,
+    // so the live preview still shows the start time.
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+    cy.byTestId('title').should('have.text', 'Startzeit');
+    cy.byTestId('text').should('have.text', '11:30');
+  });
+
+  it('"Monitor zeigt" segmented control mirrors the monitor\'s current mode', () => {
+    createDistributionWithTickets();
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+
+    // Defaults to "Aktuelles Ticket" - the ticket already fetched automatically on load.
+    cy.byTestId('show-currentticket-button').should('have.class', 'mat-button-toggle-checked');
+    cy.byTestId('starttime-input').should('not.exist');
+
+    cy.byTestId('show-starttime-toggle').click();
+    cy.byTestId('show-starttime-toggle').should('have.class', 'mat-button-toggle-checked');
+    cy.byTestId('starttime-input').should('be.visible');
+
+    // Advancing the loop (not touching the segmented control) switches it back to "Aktuelles Ticket".
+    cy.byTestId('costcontribution-paid-yes-button').click();
+    cy.byTestId('show-currentticket-button').should('have.class', 'mat-button-toggle-checked');
+
+    // Going back through the queue is not a display mode: the reopened ticket is the current one
+    // again, so the segmented control stays on "Aktuelles Ticket".
+    cy.byTestId('show-starttime-toggle').click();
+    cy.byTestId('show-previousticket-button').click();
+    cy.byTestId('show-currentticket-button').should('have.class', 'mat-button-toggle-checked');
+    cy.byTestId('starttime-input').should('not.exist');
+
+    cy.closeDistribution();
   });
 
   it('monitor opened correctly', () => {
@@ -117,6 +171,10 @@ describe('TicketScreen', () => {
       cy.byTestId('show-currentticket-button').click();
       assertTicketText('1');
 
+      // Nothing processed yet and nothing reopened yet - both arrows have nowhere to go.
+      cy.byTestId('show-previousticket-button').should('be.disabled');
+      cy.byTestId('show-forwardticket-button').should('be.disabled');
+
       cy.byTestId('costcontribution-paid-yes-button').click();
       assertTicketText('2');
 
@@ -130,6 +188,24 @@ describe('TicketScreen', () => {
 
       cy.byTestId('costcontribution-paid-yes-button').click();
       assertTicketText('-');
+    });
+
+    it('the forward arrow only re-advances over tickets the back arrow reopened', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+      cy.byTestId('show-forwardticket-button').should('be.disabled');
+
+      cy.byTestId('show-previousticket-button').click();
+      assertTicketText('1');
+
+      // Forward re-closes the reopened ticket with the decision it was originally processed
+      // with - no new paid/unpaid choice - and disarms itself again at the front of the queue.
+      cy.byTestId('show-forwardticket-button').click();
+      assertTicketText('2');
+      cy.byTestId('show-forwardticket-button').should('be.disabled');
     });
 
     it('shows the previously called ticket number once the ticket advances', () => {
@@ -174,6 +250,25 @@ describe('TicketScreen', () => {
 
       cy.byTestId('costcontribution-paid-yes-button').click();
       assertTicketText('2');
+    });
+
+    it('shows queue context (processed/remaining) next to the current ticket', () => {
+      cy.byTestId('show-currentticket-button').click();
+      cy.byTestId('ticket-queue-context').should('contain.text', '0 / 3').and('contain.text', '3');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      cy.byTestId('ticket-queue-context').should('contain.text', '1 / 3').and('contain.text', '2');
+    });
+
+    it('advances the ticket via keyboard shortcuts (Enter = bezahlt, N = nicht bezahlt)', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.get('body').type('{enter}');
+      assertTicketText('2');
+
+      cy.get('body').type('n');
+      assertTicketText('3');
     });
 
   });

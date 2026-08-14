@@ -39,15 +39,15 @@ Damit der Bildschirm während einer laufenden Ausgabe nicht von selbst sperrt, w
 
 ## Ticket-Monitor – Steuerung
 
-Unter **Anmeldung → Ticket-Monitor** wird der Ablauf der Ticket-Ausgabe gesteuert, die auf einem zweiten Bildschirm (Kundenanzeige) für die wartenden Kunden sichtbar ist.
+Unter **Anmeldung → Ticket-Monitor** wird der Ablauf der Ticket-Ausgabe gesteuert, die auf einem zweiten Bildschirm (Kundenanzeige) für die wartenden Kunden sichtbar ist. Der Bildschirm ist um die eine Aktion aufgebaut, die während einer Ausgabe hunderte Male wiederholt wird – das Aufrufen des nächsten Tickets – alles andere (Startzeit, Umschalten der Anzeige, Vorschau) ist daneben untergebracht.
 
 ![Ticket-Monitor Steuerung](images/anmeldung-ticketmonitor-steuerung.jpg)
 
-- **Startzeit**: Uhrzeit, ab der die Ticket-Nummern hochgezählt werden.
-- **Tickets**: Mit **Aktuelles Ticket** / **Vorheriges Ticket** kann zur laufenden Ticket-Nummer gesprungen bzw. zurückgeblättert werden.
-- **Aktuelles Ticket**: Zeigt die gerade aufgerufene Ticket-Nummer. Mit **Weiter (bezahlt)** bzw. **Weiter (nicht bezahlt)** wird zum nächsten Ticket weitergeschaltet und gleichzeitig vermerkt, ob der Unkostenbeitrag beglichen wurde.
-- **Unkostenbeitrag (bestehend)**: Zeigt einen noch offenen Unkostenbeitrag des aktuellen Kunden aus einer früheren Ausgabe. Mit **Alles bezahlt** wird der offene Betrag zur Gänze als bezahlt vermerkt, über **Betrag eintragen** ein Teilbetrag erfasst und über **Betrag bearbeiten** ein bereits eingetragener Betrag korrigiert – jede Aktion öffnet einen eigenen Dialog.
-- **Live-Ansicht**: Vorschau dessen, was auf dem Kundenmonitor angezeigt wird. Über **Monitor öffnen** wird die Vollbildansicht (siehe unten) in einem neuen Fenster/Tab geöffnet, das z. B. auf einen zweiten Bildschirm gezogen werden kann.
+- **Aktuelles Ticket**: Die gerade aufgerufene Ticket-Nummer wird sehr groß dargestellt, daneben die Warteschlangen-Info ("X / Y verarbeitet", "Z verbleibend"). Ist dem Ticket ein Kunde zugeordnet, werden Haushaltsnummer und Name direkt darunter angezeigt. Mit den Pfeilen links und rechts über der Ticket-Nummer kann in der Warteschlange zurück- und wieder vorgeblättert werden – der Zurück-Pfeil öffnet das zuletzt abgeschlossene Ticket wieder, der Vor-Pfeil schließt es erneut, ohne die dabei bereits getroffene Bezahlt-Entscheidung zu ändern. Der Vor-Pfeil ist daher nur aktiv, solange zuvor zurückgeblättert wurde; ganz vorne in der Warteschlange geht es ausschließlich über die **Weiter**-Buttons weiter.
+- **Weiter (bezahlt) / Weiter (nicht bezahlt)**: Schaltet zum nächsten Ticket weiter und vermerkt gleichzeitig, ob der Unkostenbeitrag beglichen wurde. **Weiter (bezahlt)** ist als primäre, gefüllte Aktion hervorgehoben, **Weiter (nicht bezahlt)** als davon klar unterscheidbare, umrandete Aktion – zusätzlich funktionieren die Tastenkürzel **Enter** (bezahlt) und **N** (nicht bezahlt), solange kein Eingabefeld oder Dialog aktiv ist.
+- **Unkostenbeitrag (bestehend)**: Direkt am Ticket-Panel angehängt, da er sich immer auf den gerade aufgerufenen Haushalt bezieht. Zeigt einen noch offenen Unkostenbeitrag des aktuellen Kunden aus einer früheren Ausgabe. Mit **Alles bezahlt** wird der offene Betrag zur Gänze als bezahlt vermerkt, über **Betrag eintragen** ein Teilbetrag erfasst und über **Betrag bearbeiten** ein bereits eingetragener Betrag korrigiert – jede Aktion öffnet einen eigenen Dialog.
+- **Monitor zeigt**: Ein Umschalter (Startzeit / Aktuelles Ticket) zeigt auf einen Blick, was der Kundenmonitor gerade anzeigt. Bei **Startzeit** erscheint zusätzlich das Eingabefeld für die Uhrzeit, ab der die Ticket-Nummern hochgezählt werden sollen, mit **Anzeigen** (oder Enter im Eingabefeld) zum Bestätigen. Die angezeigte Startzeit bleibt auch für einen erst danach geöffneten Monitor erhalten. **Aktuelles Ticket** springt sofort zur laufenden Ticket-Nummer.
+- **Live-Ansicht**: Maßstabsgetreue Vorschau (16:9) dessen, was auf dem Kundenmonitor angezeigt wird, mit einer Kennzeichnung, ob die Verbindung zum Monitor besteht. Über **Monitor öffnen** wird die Vollbildansicht (siehe unten) in einem neuen Fenster/Tab geöffnet, das z. B. auf einen zweiten Bildschirm gezogen werden kann.
 
 ## Ticket-Monitor – Vollbildansicht
 
