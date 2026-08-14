@@ -28,6 +28,15 @@ class DistributionTicketScreenController(
         saveToOutbox(text = request.text, value = request.value)
     }
 
+    /**
+     * Read-only counterpart of [showCurrentTicket]: the current ticket and queue counts without
+     * putting anything on the monitor - the control screen loads its panels with this, so merely
+     * (re)opening that page never overwrites what the monitor is showing (e.g. a start time).
+     */
+    @GetMapping("/current")
+    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    fun getCurrentTicket(): TicketScreenTicketResponse = service.getCurrentTicketScreenTicket()
+
     @PostMapping("/show-current")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showCurrentTicket(): TicketScreenTicketResponse {

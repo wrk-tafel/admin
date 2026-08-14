@@ -19,6 +19,31 @@ describe('TicketScreen', () => {
     cy.byTestId('text').should('have.text', '12:34');
   });
 
+  it('a start time set before the monitor is opened is what a fresh monitor connection shows', () => {
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('show-starttime-toggle').click();
+    // Enter in the field triggers the form's implicit submission (the same handler as the
+    // "Anzeigen" submit button) - Cypress cannot send extra keystrokes into an <input type="time">,
+    // so submit the form directly instead.
+    cy.byTestId('starttime-input').type('11:30');
+    cy.byTestId('starttime-input').parents('form').submit();
+    cy.byTestId('title').should('have.text', 'Startzeit');
+
+    // A monitor opened only now - a brand-new SSE connection - must replay that start time as its
+    // initial state instead of synthesizing the current ticket (which nobody put on the screen).
+    cy.visit('/anmeldung/ticketmonitor');
+    cy.byTestId('title').should('have.text', 'Startzeit');
+    cy.byTestId('text').should('have.text', '11:30');
+
+    // Re-opening the control page must not hijack the monitor either: its on-load fetch of the
+    // current ticket (for the ticket card and cost-contribution panel) is a read, not a broadcast,
+    // so the live preview still shows the start time.
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+    cy.byTestId('title').should('have.text', 'Startzeit');
+    cy.byTestId('text').should('have.text', '11:30');
+  });
+
   it('"Monitor zeigt" segmented control mirrors the monitor\'s current mode', () => {
     createDistributionWithTickets();
     cy.visit('/anmeldung/ticketmonitor-steuerung');

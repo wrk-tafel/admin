@@ -52,6 +52,7 @@ describe('TicketScreenControlComponent', () => {
             // the component fetches the current ticket on construction (see the component's
             // constructor), so this needs a default return value or every test that doesn't
             // care about it would otherwise crash on TestBed.createComponent
+            getCurrentTicket: vi.fn().mockReturnValue(of(emptyTicket)).mockName('DistributionTicketScreenApiService.getCurrentTicket'),
             showCurrentTicket: vi.fn().mockReturnValue(of(emptyTicket)).mockName('DistributionTicketScreenApiService.showCurrentTicket'),
             showPreviousTicket: vi.fn().mockName('DistributionTicketScreenApiService.showPreviousTicket'),
             showNextTicket: vi.fn().mockName('DistributionTicketScreenApiService.showNextTicket')
@@ -102,14 +103,16 @@ describe('TicketScreenControlComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('fetches the current ticket on init, without waiting for "Aktuelles Ticket" to be clicked', () => {
+  it('fetches the current ticket read-only on init, without broadcasting anything to the monitor', () => {
     const response: TicketScreenTicketResponse = {ticketNumber: 5, householdId: 100, pendingCostContribution: 20};
-    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(response));
+    distributionTicketScreenApiService.getCurrentTicket.mockReturnValue(of(response));
 
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
 
-    expect(distributionTicketScreenApiService.showCurrentTicket).toHaveBeenCalled();
+    expect(distributionTicketScreenApiService.getCurrentTicket).toHaveBeenCalled();
+    // the broadcasting variant must not fire on load - it would overwrite what the monitor shows
+    expect(distributionTicketScreenApiService.showCurrentTicket).not.toHaveBeenCalled();
     expect(component.currentTicket()).toEqual(response);
   });
 

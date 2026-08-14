@@ -97,13 +97,16 @@
           </mat-button-toggle-group>
 
           @if (monitorMode() === 'startTime') {
-            <form autocomplete="off" class="mt-4">
+            <!-- Native submit semantics make Enter in the field and the "Anzeigen" button the
+                 exact same action; without the preventDefault the browser's implicit form
+                 submission would reload the whole page instead. -->
+            <form autocomplete="off" class="mt-4" (submit)="$event.preventDefault(); showStartTime()">
               <div class="flex items-center gap-4">
                 <mat-form-field class="flex-1" subscriptSizing="dynamic">
                   <mat-label>Startzeit</mat-label>
-                  <input matInput type="time" testid="starttime-input" [formField]="startTimeForm.startTime" (keydown.enter)="showStartTime()">
+                  <input matInput type="time" testid="starttime-input" [formField]="startTimeForm.startTime">
                 </mat-form-field>
-                <button testid="show-starttime-button" matButton="filled" type="button" (click)="showStartTime()" [disabled]="isShowingStartTime()">Anzeigen</button>
+                <button testid="show-starttime-button" matButton="filled" type="submit" [disabled]="isShowingStartTime()">Anzeigen</button>
               </div>
             </form>
           }

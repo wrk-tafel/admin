@@ -130,6 +130,17 @@ internal class DistributionTicketScreenControllerTest {
     }
 
     @Test
+    fun `get current ticket reads without broadcasting to the monitor`() {
+        val expectedResponse = TicketScreenTicketResponse(ticketNumber = 123, householdId = 300, pendingCostContribution = BigDecimal("0.00"))
+        every { service.getCurrentTicketScreenTicket() } returns expectedResponse
+
+        val response = controller.getCurrentTicket()
+
+        assertThat(response).isEqualTo(expectedResponse)
+        verify(exactly = 0) { sseOutboxService.saveOutboxEntry(any(), any()) }
+    }
+
+    @Test
     fun `show next ticket`() {
         val expectedResponse = TicketScreenTicketResponse(ticketNumber = 123, householdId = 300, pendingCostContribution = BigDecimal("0.00"))
         every { service.closeCurrentTicketAndGetNext(false) } returns expectedResponse

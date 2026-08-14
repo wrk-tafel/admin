@@ -108,9 +108,16 @@ export class TicketScreenControlComponent {
   protected readonly faLinkSlash = faLinkSlash;
 
   constructor() {
-    // Populate the cost-contribution panel for whichever ticket is already current (e.g. after a
-    // page reload) instead of leaving it empty until the operator clicks "Aktuelles Ticket".
-    this.showCurrentTicket();
+    // Populate the current-ticket card and cost-contribution panel for whichever ticket is already
+    // current (e.g. after a page reload) - via the read-only fetch, never show-current: a broadcast
+    // here would put "Ticket" on the public monitor just because this page was (re)loaded,
+    // overwriting e.g. a start time the monitor is showing.
+    this.distributionTicketScreenApiService.getCurrentTicket().subscribe({
+      next: (response) => this.currentTicket.set(response),
+      error: () => {
+        this.toastr.error('Fehler beim Laden des aktuellen Tickets!');
+      }
+    });
   }
 
   /**

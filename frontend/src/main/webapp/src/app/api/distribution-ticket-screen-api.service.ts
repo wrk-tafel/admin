@@ -15,6 +15,11 @@ export class DistributionTicketScreenApiService {
     return this.http.post<void>('/distributions/ticket-screen/show-text', request);
   }
 
+  /** Read-only: the current ticket and queue counts, without putting anything on the monitor. */
+  getCurrentTicket(): Observable<TicketScreenTicketResponse> {
+    return this.http.get<TicketScreenTicketResponse>('/distributions/ticket-screen/current');
+  }
+
   showCurrentTicket(): Observable<TicketScreenTicketResponse> {
     return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/show-current', undefined);
   }

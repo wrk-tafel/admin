@@ -1020,6 +1020,18 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `last ended distribution time reads the most recently ended distribution`() {
+        val endedAt = LocalDateTime.now().minusDays(1)
+        val endedDistribution = DistributionEntity(startedAt = endedAt.minusHours(6), startedByUser = testUserEntity).apply {
+            id = 122
+            this.endedAt = endedAt
+        }
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns endedDistribution
+
+        assertThat(service.getLastEndedDistributionTime()).isEqualTo(endedAt)
+    }
+
+    @Test
     fun `close current ticket and next without registered customers`() {
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution

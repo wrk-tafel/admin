@@ -129,6 +129,14 @@ class DistributionService(
 
     fun hasCurrentDistribution(): Boolean = getCurrentDistribution() != null
 
+    /**
+     * When the most recently ended distribution ended - the ticket-screen SSE stream uses it as
+     * the lower bound for replaying what the monitor last showed (see
+     * [at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenSseController]),
+     * so state from a past distribution day never resurfaces on a freshly opened monitor.
+     */
+    fun getLastEndedDistributionTime(): LocalDateTime? = distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()?.endedAt
+
     @Transactional
     fun assignHouseholdToDistribution(
         householdId: Long,
@@ -261,10 +269,8 @@ class DistributionService(
 
             // A ticket having been *processed* is the first point at which food has demonstrably
             // been handed to someone. Deliberately not "a ticket was shown on the screen": the
-            // ticket-screen control page calls show-current on load (see
-            // `ticket-screen-control.component.ts`), so merely opening it - possibly hours early,
-            // with the monitor still switched off - would otherwise announce the hand-out as
-            // started. See DistributionPhaseEvents.
+            // current ticket can be (re-)shown - possibly hours early, with the monitor still
+            // switched off - without any food having changed hands. See DistributionPhaseEvents.
             if (distributionRepository.markFoodHandoutStarted(distribution.id!!, LocalDateTime.now()) == 1) {
                 eventPublisher.publishEvent(FoodHandoutStartedEvent(distribution.id!!))
             }
