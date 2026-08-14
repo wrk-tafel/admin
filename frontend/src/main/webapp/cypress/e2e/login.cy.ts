@@ -7,8 +7,15 @@ describe('Login', () => {
     cy.visit('/login');
   });
 
-  it('login button disabled by default', () => {
-    cy.byTestId('loginButton').should('be.disabled');
+  // The button used to stay [disabled] until both fields were non-empty, which fought browser
+  // autofill and gave no feedback on why nothing happened - it now stays enabled and validates on
+  // submit instead (see the mat-errors asserted below).
+  it('login button is enabled by default and validates on submit rather than staying disabled', () => {
+    cy.byTestId('loginButton').should('be.enabled').click();
+
+    cy.url().should('contain', '/login');
+    cy.contains('mat-error', 'Benutzername ist erforderlich').should('be.visible');
+    cy.contains('mat-error', 'Passwort ist erforderlich').should('be.visible');
   });
 
   it('errorMessage hidden by default', () => {
@@ -16,9 +23,18 @@ describe('Login', () => {
   });
 
   // Read from /api/config/public, the only endpoint reachable without a session - a unit spec with a
-  // mocked service can't tell whether that request is actually let through unauthenticated.
-  it('environmentLabel shows the environment this deployment is', () => {
-    cy.byTestId('environmentLabel').should('be.visible').and('contain.text', 'E2E');
+  // mocked service can't tell whether that request is actually let through unauthenticated. It's a
+  // full-width banner above the card now rather than fine print under the title (see #3208), so it
+  // has to actually announce itself (role="status") and span the viewport, not just be visible.
+  it('environmentLabel shows the environment this deployment is as a full-width banner', () => {
+    cy.byTestId('environmentLabel')
+      .should('be.visible')
+      .and('contain.text', 'E2E')
+      .and('have.attr', 'role', 'status');
+
+    // Wider than the login card itself (max-w-md, i.e. well under 500px) - a full-width banner
+    // above the card, not the small grey line under the title it replaced.
+    cy.byTestId('environmentLabel').invoke('outerWidth').should('be.greaterThan', 900);
   });
 
   it('visiting the app root while not logged in redirects to a plain login without an error message', () => {
@@ -53,6 +69,31 @@ describe('Login', () => {
 
     cy.url().should('contain', '/login');
     cy.byTestId('errorMessage').should('exist');
+
+    // Focus returns to the username field with its content selected, so retyping starts with one
+    // keystroke rather than several clicks/tabs.
+    cy.byTestId('username').should('have.focus');
+  });
+
+  // A network/5xx failure used to read exactly like a typo ("Anmeldung fehlgeschlagen!"), which
+  // risked on-site staff resetting a correct password when the backend was actually just down.
+  it('login shows a distinct message when the server is unreachable rather than the generic credentials failure', () => {
+    cy.intercept('POST', '/api/login', {statusCode: 503}).as('loginRequest');
+
+    enterLoginData('e2etest', 'e2etest');
+    cy.wait('@loginRequest');
+
+    cy.byTestId('errorMessage').should('exist').and('contain.text', 'Server nicht erreichbar');
+  });
+
+  // Shared terminals and external keyboards make an active Caps Lock a frequent, silent cause of a
+  // "wrong" password.
+  it('shows a Caps Lock warning next to the password field while it is active', () => {
+    cy.byTestId('password').trigger('keydown', {getModifierState: () => true});
+    cy.byTestId('capsLockWarning').should('be.visible').and('contain.text', 'Feststelltaste');
+
+    cy.byTestId('password').trigger('keyup', {getModifierState: () => false});
+    cy.byTestId('capsLockWarning').should('not.exist');
   });
 
   // The toggle used to be a bare icon with a click handler: reachable by mouse only and nameless to
@@ -180,7 +221,13 @@ describe('Login', () => {
       enterLoginData(user.username, testUser.password!);
 
       cy.url().should('contain', '/login');
-      cy.byTestId('errorMessage').should('exist').and('contain.text', 'gesperrt');
+      // The message names the actual configured wait (5 minutes, see application.yml
+      // security.loginAttempts.lockoutDurationInSeconds) and what to do instead of leaving the
+      // user to guess.
+      cy.byTestId('errorMessage').should('exist')
+        .and('contain.text', 'gesperrt')
+        .and('contain.text', '5 Minuten')
+        .and('contain.text', 'Administrator');
     });
   });
 

@@ -16,18 +16,28 @@ export class AuthenticationService {
    * treat a resolved `login()` as "userInfo() is already populated", no separate wait needed.
    * A `423` (account locked) is not treated as a request failure: it resolves with
    * `{successful: false, locked: true}` rather than rejecting, so the login form can show a
-   * dedicated "account locked" message instead of a generic error.
+   * dedicated "account locked" message instead of a generic error. Likewise a status of `0`
+   * (request never reached a server, e.g. offline/DNS/CORS) or `5xx` resolves with
+   * `serverUnreachable: true` rather than the generic failure message - wrong credentials come back
+   * as `401`, which is neither of those, so the two are never confused.
    */
   public async login(username: string, password: string): Promise<LoginResult> {
     return firstValueFrom(this.executeLoginRequest(username, password)
       .pipe(map(async response => {
           await this.loadUserInfo();
-          return {successful: true, passwordChangeRequired: response.passwordChangeRequired, locked: false};
+          return {
+            successful: true,
+            passwordChangeRequired: response.passwordChangeRequired,
+            locked: false,
+            serverUnreachable: false
+          };
         }),
 
         catchError((error: HttpErrorResponse) => {
           this.userInfo.set(null);
-          return of({successful: false, passwordChangeRequired: false, locked: error.status === 423});
+          const locked = error.status === 423;
+          const serverUnreachable = !locked && (error.status === 0 || error.status >= 500);
+          return of({successful: false, passwordChangeRequired: false, locked, serverUnreachable});
         })));
   }
 
@@ -116,6 +126,7 @@ export interface LoginResult {
   successful: boolean;
   passwordChangeRequired: boolean;
   locked: boolean;
+  serverUnreachable: boolean;
 }
 
 interface UserInfo {
