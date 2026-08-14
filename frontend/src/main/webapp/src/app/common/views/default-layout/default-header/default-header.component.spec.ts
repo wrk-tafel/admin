@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { DefaultHeaderComponent } from './default-header.component';
 import { AuthenticationService } from '../../../security/authentication.service';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../state/global-state.service';
@@ -182,6 +182,53 @@ describe('DefaultHeaderComponent', () => {
         expect(dialog.open).toHaveBeenCalled();
         expect(supportContextService.collect).toHaveBeenCalledWith(null);
         expect(supportApiService.createSupportRequest).toHaveBeenCalled();
+    });
+
+    it('Ctrl+K opens the quick-open dialog only once until it is closed again', () => {
+        const afterClosed$ = new Subject<void>();
+        dialog.open.mockReturnValue({afterClosed: () => afterClosed$.asObservable()} as any);
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const shortcut = () => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'k', ctrlKey: true, cancelable: true}));
+
+        shortcut();
+        expect(dialog.open).toHaveBeenCalledTimes(1);
+
+        // while the dialog is open the shortcut must not stack a second instance on top
+        shortcut();
+        expect(dialog.open).toHaveBeenCalledTimes(1);
+
+        afterClosed$.next();
+        shortcut();
+        expect(dialog.open).toHaveBeenCalledTimes(2);
+    });
+
+    it('the shortcut is claimed from the browser via preventDefault', () => {
+        const afterClosed$ = new Subject<void>();
+        dialog.open.mockReturnValue({afterClosed: () => afterClosed$.asObservable()} as any);
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const event = new KeyboardEvent('keydown', {key: 'k', ctrlKey: true, cancelable: true});
+        document.dispatchEvent(event);
+
+        expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('the toolbar button opens the quick-open dialog', () => {
+        const afterClosed$ = new Subject<void>();
+        dialog.open.mockReturnValue({afterClosed: () => afterClosed$.asObservable()} as any);
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('[testid="quickOpenButton"]');
+        button.click();
+
+        expect(dialog.open).toHaveBeenCalledTimes(1);
     });
 
     it('open support dialog and cancel does not send anything', async () => {

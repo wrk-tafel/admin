@@ -62,7 +62,7 @@
             <tafel-enabled-toggle [enabled]="shelter.enabled" [label]="'Notschlafstelle ' + shelter.name"
                                   [testId]="'shelters-enabled-toggle-' + i"
                                   (enabledChange)="toggleShelterVisibility(shelter, $event)"/>
-            <button matButton="filled" class="button-danger" [attr.testid]="'editShelterButton-' + i"
+            <button matButton="filled" [attr.testid]="'editShelterButton-' + i"
                     [disabled]="!shelter.enabled" (click)="editShelter(shelter)"
                     matTooltip="Notschlafstelle bearbeiten"
                     [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">

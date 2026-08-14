@@ -195,7 +195,7 @@ describe('Accessibility', () => {
     cy.contains('a', 'Kunden suchen').click();
     cy.url().should('include', '/kunden/suchen');
 
-    cy.focused().should('have.attr', 'testid', 'customerIdText');
+    cy.focused().should('have.attr', 'testid', 'searchInputText');
   });
 
   // Everything the axe assertions below reach exists only after an interaction, which is what the
