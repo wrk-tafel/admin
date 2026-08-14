@@ -20,14 +20,20 @@ modules/checkin/
 
 This module uses `@zxing/browser`'s `BrowserQRCodeReader` for QR decoding — check `package.json` (`@zxing/browser`, `@zxing/library`) and `qrcode-reader.service.ts` if in doubt.
 
-The service is a thin wrapper: `getCameras()` lists video devices, `init(elementId, successCallback)` remembers which `<video>` element and callback to use, and `start(cameraId)` / `restart(cameraId)` / `stop()` manage the actual `decodeFromVideoDevice` call. The last-used camera id is persisted to `localStorage` under `TAFEL_LAST_CAMERA_ID` so a kiosk reopening the page reuses the same camera.
+The service is a thin wrapper: `getCameras()` lists video devices, `init(elementId, successCallback)` remembers which `<video>` element and callback to use, and `start(cameraId)` / `restart(cameraId)` / `stop()` manage the actual `decodeFromVideoDevice` call. The last-used camera id is persisted to `localStorage` under `TAFEL_LAST_CAMERA_ID` so a kiosk reopening the page reuses the same camera. Without a saved id, `getCurrentCamera` prefers a device whose `MediaDeviceInfo.label` looks rear-facing (`back`/`rear`/`environment`/`rück`, case-insensitive) over the first enumerated device — there is no cross-browser way to read `facingMode` before a stream is opened, so the label is what the heuristic has to work with. `isTorchSupported()` / `setTorch(on)` expose the active stream's torch (`controls.switchTorch`, set by `@zxing/browser` only when the current track's capabilities include one) for `ScannerComponent`'s torch toggle.
 
 ### ScannerComponent (`/anmeldung/scanner`) — the kiosk device
 
-This is what runs on the physical scanning station (handheld scanner or webcam kiosk). On load it does two things concurrently (`initEffect`):
+This is what runs on the physical scanning station (handheld scanner or webcam kiosk), typically a phone or tablet held by a runner. On load it does two things concurrently (`initEffect`):
 
 1. **Registers itself** as a scanner: reads an existing scanner id from `localStorage['scanner-id']` if present and calls `ScannerApiService.registerScanner(existingScannerId)` (`POST /scanners/register`). The backend either confirms the existing id or issues a new one, which is written back to `localStorage`. Clearing that key (or using a different browser) gets you a *new* scanner id.
-2. **Starts the camera**: lists cameras, picks the last-used one (or the first), and starts decoding.
+2. **Starts the camera**: lists cameras, picks the last-used/rear one (see `QRCodeReaderService` above), and starts decoding.
+
+The screen serves two audiences in sequence, tracked by the `phase` signal (`'pairing' | 'scanning'`), driven by `hasStartedScanning` — a flag set once the camera first decodes successfully and never cleared again:
+- **Pairing** (`phase() === 'pairing'`, before the camera has ever started): the scanner number is huge and centered — it gets read out loud across the room so the Annahme operator (`CheckinComponent` below) can pick it from their dropdown — with the camera picker underneath it.
+- **Scanning** (`phase() === 'scanning'`, latched once the camera has started at least once): the video preview takes over the screen, the scanner number shrinks to a corner chip, and a torch toggle appears when `torchSupported()` is true. A later camera hiccup surfaces as the `connectionLost` overlay described below **on top of** the scanning layout — it deliberately does not bounce the runner back to the pairing screen they already read the number off of.
+
+`connectionLost` (`hasStartedScanning() && (!readyState() || registrationFailed())`) covers both ways the kiosk can stop actually delivering scans: the camera stream failing, or `registerScanner()`'s `POST` failing (`registrationFailed` signal, set in its `catch`). Either shows a full-screen red "Verbindung getrennt" overlay — a small badge is easy to miss on a phone held at arm's length — with a retry button that calls `retryRegistration()`. It renders above the scan-feedback overlay below (`z-40` vs `z-30`): a scan flashing "success" while nothing could actually reach the backend would be misleading.
 
 Decoded QR text is parsed as a plain number (`+decodedText`) — the QR payload is just the customer/household id, nothing more structured. Sending the scan result to the backend is **deliberately decoupled** from the decode callback:
 
@@ -45,6 +51,10 @@ sendScanResultEffect = effect(() => {
 });
 ```
 If you're debugging "scans get lost right after page load," this is the place to look.
+
+A successful decode also drives `scanFeedback`, a full-screen confirmation (green "Gescannt" / amber "Bereits gescannt", the decoded number in large type, `navigator.vibrate`, and a short Web Audio beep) that auto-hides after `SCAN_FEEDBACK_DURATION_MS` (2s). Re-decoding the *same* still-in-frame code (roughly every 250ms, `QRCodeReaderService`'s `delayBetweenScanAttempts`) does not retrigger it — `RESCAN_COOLDOWN_MS` (3s) gates that, both because a code the runner is still holding up would otherwise keep the video permanently hidden behind the flash, and because retriggering every 250ms would be a flashing-content accessibility hazard (WCAG 2.3.1). Presenting the same code again after the cooldown elapses is treated as a fresh (duplicate) scan. This cooldown is separate from `lastScanResult`/`sendScanResultEffect` above, which is what actually gates re-sending to the backend and is not time-based.
+
+The kiosk also requests a Screen Wake Lock (`navigator.wakeLock`) on load and re-requests it on `visibilitychange` — the API releases itself whenever the tab loses visibility, and a phone that locks mid-shift silently unpairs the flow. Both the wake lock and the beep/vibration are best-effort: a browser that refuses or lacks either just leaves the flash/text confirmation to carry the feedback on its own.
 
 ### CheckinComponent (`/anmeldung/annahme`) — the staff screen
 
@@ -103,5 +113,6 @@ It reads `document`/`navigator` through Angular's `DOCUMENT`/`Window` injection 
 
 - Two unrelated notions of "scanner id" exist side by side: the physical device's registered id (`ScannerComponent`, persisted in `localStorage['scanner-id']`) and the id a staff member picks to *listen to* (`CheckinComponent.currentScannerId`, no persistence). Don't conflate them when debugging.
 - `sendScanResultEffect` exists specifically to avoid a race between scanner registration and camera startup — don't "simplify" it back into the QR decode callback.
+- `ScannerComponent`'s scan-feedback cooldown (`RESCAN_COOLDOWN_MS`) and `sendScanResultEffect`'s dedupe (`lastScanResult`) look similar but answer different questions — one throttles the *visual/haptic* confirmation for a code still sitting in frame, the other prevents *re-sending* an already-sent scan to the backend. Don't merge them; a re-presented code after the cooldown should flash again even though it's still a duplicate the backend won't be told about twice.
 - The ticket monitor's full-screen route deliberately sits outside the `SCANNER`/`CHECKIN` permission gate; if you move it under `checkin.routes.ts` you'll break the "unattended second monitor" use case.
 - `CheckinComponent`'s delete-ticket button (`ticketNumberEdit()`) only appears when a ticket already existed for the customer at lookup time — it's not shown for a fresh, not-yet-assigned ticket number.

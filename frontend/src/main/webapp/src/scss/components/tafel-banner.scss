@@ -10,4 +10,8 @@
   .tafel-banner-info {
     @apply flex items-center p-4 text-blue-800 bg-blue-50 border border-blue-200 rounded-lg mb-8;
   }
+
+  .tafel-banner-warning {
+    @apply flex flex-col p-4 text-amber-800 bg-amber-50 border border-amber-200 rounded-lg mb-8;
+  }
 }

@@ -118,4 +118,104 @@ describe('RouteEditDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith();
   });
 
+  describe('live stop order preview', () => {
+
+    it('shows the stops in time order even though they were entered out of order', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.addStop();
+      component.stops.at(0).patchValue({time: '15:00', shopId: testShop.id});
+      component.addStop();
+      component.stops.at(1).patchValue({time: '09:00', description: 'Pause'});
+
+      expect(component['orderedStopsPreview']()).toEqual([
+        {key: 'stop-1', timeLabel: '09:00', label: 'Pause'},
+        {key: 'stop-0', timeLabel: '15:00', label: '100 - Billa'}
+      ]);
+    });
+
+    it('skips a stop that has no time yet', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.addStop();
+      expect(component['orderedStopsPreview']()).toEqual([]);
+    });
+
+  });
+
+  describe('stop list warnings', () => {
+
+    it('warns about a stop without a time', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.addStop();
+      expect(component['stopWarnings']()).toContain('1 Stopp hat noch keine Uhrzeit.');
+    });
+
+    it('warns about a shop used more than once', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.addStop();
+      component.stops.at(0).patchValue({time: '09:00', shopId: testShop.id});
+      component.addStop();
+      component.stops.at(1).patchValue({time: '10:00', shopId: testShop.id});
+
+      expect(component['stopWarnings']()).toContain('Billa ist 2-mal als Stopp eingetragen.');
+    });
+
+    it('warns about an unusually short gap between two neighboring stops', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.addStop();
+      component.stops.at(0).patchValue({time: '09:00', description: 'Erster Stopp'});
+      component.addStop();
+      component.stops.at(1).patchValue({time: '09:02', description: 'Zweiter Stopp'});
+
+      expect(component['stopWarnings']()).toContain(
+        'Zeitabstand zwischen 09:00 (Erster Stopp) und 09:02 (Zweiter Stopp) wirkt ungewöhnlich (2 Min.) — bitte prüfen.'
+      );
+    });
+
+    it('warns about an unusually long gap between two neighboring stops', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.addStop();
+      component.stops.at(0).patchValue({time: '08:00', description: 'Erster Stopp'});
+      component.addStop();
+      component.stops.at(1).patchValue({time: '12:00', description: 'Zweiter Stopp'});
+
+      expect(component['stopWarnings']()).toContain(
+        'Zeitabstand zwischen 08:00 (Erster Stopp) und 12:00 (Zweiter Stopp) wirkt ungewöhnlich (240 Min.) — bitte prüfen.'
+      );
+    });
+
+    it('has no warnings for a well-formed stop list', async () => {
+      await configure({route: testRoute, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      // testRoute's two stops are 30 minutes apart, one shop each, both with a time
+      expect(fixture.componentInstance['stopWarnings']()).toEqual([]);
+    });
+
+  });
+
 });

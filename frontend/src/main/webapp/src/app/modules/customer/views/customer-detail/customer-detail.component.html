@@ -9,85 +9,153 @@
     }
   </div>
 }
+<!-- Identity header: who this is, valid until when, locked?, money open?, household size - the one
+     place an operator needs to look before deciding anything else on this page. Always first,
+     regardless of viewport. On desktop the action buttons sit in its top-right corner; narrow
+     screens render them below the tabs instead (the #customerActions template exists exactly once
+     in the DOM, placed by isDesktopLayout, so its menus and testids are never duplicated). -->
+<mat-card testid="customer-identity-header" class="mb-4">
+  <mat-card-content>
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-1">
+      <div>
+        <h2 class="tafel-h3 m-0" testid="identity-name">{{ customerData() | formatCustomerName }}</h2>
+        <div class="text-gray-600" testid="identity-number">Kundennummer {{ customerData()?.id }}</div>
+      </div>
+      @if (isDesktopLayout()) {
+        <ng-container [ngTemplateOutlet]="customerActions"></ng-container>
+      }
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3" testid="identity-status-chips">
+      <div class="badge"
+           testid="validity-chip"
+           [ngClass]="{'badge-danger': validityColor() === 'danger',
+                       'badge-warning': validityColor() === 'warning',
+                       'badge-success': validityColor() === 'success'}">
+        @switch (validityState()) {
+          @case (CustomerValidityState.EXPIRED) {
+            {{ validityText() }} seit {{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}
+          }
+          @case (CustomerValidityState.WARNING) {
+            {{ validityText() }} ({{ customerData()?.validUntil | date : 'dd.MM.yyyy' }})
+          }
+          @default {
+            {{ validityText() }} bis {{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}
+          }
+        }
+      </div>
+      @if (customerData()?.locked) {
+        <div class="badge badge-danger" testid="lock-chip">Gesperrt</div>
+      }
+      @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
+        <div class="badge badge-danger" testid="cost-contribution-chip">
+          Unkostenbeitrag offen: {{ customerData()?.pendingCostContribution | currency }}
+        </div>
+      }
+      <div class="badge badge-info" testid="household-size-chip">
+        {{ householdSize() }} {{ householdSize() === 1 ? 'Person' : 'Personen' }}
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ng-template #customerActions>
+  <div class="flex flex-col lg:flex-row lg:flex-wrap lg:justify-end mt-4 lg:mt-0 gap-4">
+    <!-- Ranked by how often each is used at a Tafel: prolong, print, edit, cost contribution,
+         then everything else (deactivate/lock/delete) tucked into one overflow menu. -->
+    <button testid="prolongButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="prolongMenu"
+            [disabled]="customerData()?.locked"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
+      Bezug verlängern ▾
+    </button>
+    <mat-menu #prolongMenu="matMenu">
+      <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">
+        1 Monat → {{ prolongPreviewDate(1) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">
+        2 Monate → {{ prolongPreviewDate(2) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">
+        3 Monate → {{ prolongPreviewDate(3) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">
+        6 Monate → {{ prolongPreviewDate(6) | date : 'dd.MM.yyyy' }}
+      </button>
+      <button mat-menu-item testid="prolongTwelveMonthsButton" (click)="prolongCustomer(12)">
+        12 Monate → {{ prolongPreviewDate(12) | date : 'dd.MM.yyyy' }}
+      </button>
+    </mat-menu>
+
+    <button testid="printMenuButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="printMenu"
+            [disabled]="customerData()?.locked || !!printing()"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
+      @if (printing()) {
+        <fa-icon [icon]="faSpinner" [animation]="'spin'"></fa-icon>&nbsp;Wird erstellt...
+      } @else {
+        Daten ausdrucken ▾
+      }
+    </button>
+    <mat-menu #printMenu="matMenu">
+      <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
+        Stammdaten
+      </button>
+      <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
+        Ausweis
+      </button>
+    </mat-menu>
+
+    <button type="button" matButton="filled" class="w-full lg:w-auto" testid="editCustomerButton" (click)="editCustomer()"
+            [disabled]="!customerData() || customerData()?.locked"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">Kunde bearbeiten
+    </button>
+
+    <button testid="costContributionButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="costContributionMenu"
+            [disabled]="customerData()?.locked"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
+      Unkostenbeitrag ▾
+      @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
+        <span class="badge badge-danger ml-2" testid="cost-contribution-badge">{{ customerData()?.pendingCostContribution | currency }}</span>
+      }
+    </button>
+    <mat-menu #costContributionMenu="matMenu">
+      @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
+        <button mat-menu-item testid="payCostContributionAllButton" (click)="payCostContributionAll()">
+          Alles bezahlt
+        </button>
+        <button mat-menu-item testid="payCostContributionAmountButton" (click)="openPayCostContributionDialog()">
+          Betrag eintragen
+        </button>
+        <mat-divider></mat-divider>
+      }
+      <button mat-menu-item testid="editCostContributionButton" (click)="openEditCostContributionDialog()">
+        Betrag bearbeiten
+      </button>
+    </mat-menu>
+
+    <button type="button" testid="editCustomerToggleButton" matButton="outlined" class="w-full lg:w-auto" [matMenuTriggerFor]="editMenu">
+      Weitere Aktionen ▾
+    </button>
+    <mat-menu #editMenu="matMenu">
+      <button mat-menu-item testid="invalidateCustomerButton" (click)="disableCustomer()"
+              [disabled]="!customerData() || customerData()?.locked">Kunde deaktivieren
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
+              [disabled]="!customerData() || customerData()?.locked">Kunde sperren
+      </button>
+      <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
+              [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
+              [disabled]="!customerData() || customerData()?.locked">Kunde löschen
+      </button>
+    </mat-menu>
+  </div>
+</ng-template>
 <div class="flex flex-col-reverse lg:flex-col">
   <div class="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-4">
-    <div class="flex flex-col lg:flex-row lg:flex-wrap mt-4 lg:mt-0 gap-4">
-      <button testid="printMenuButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="printMenu" [disabled]="customerData()?.locked">
-        Daten ausdrucken ▾
-      </button>
-      <mat-menu #printMenu="matMenu">
-        <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
-          Stammdaten
-        </button>
-        <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
-          Ausweis
-        </button>
-      </mat-menu>
-
-      <button testid="prolongButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="prolongMenu" [disabled]="customerData()?.locked">
-        Bezug verlängern ▾
-      </button>
-      <mat-menu #prolongMenu="matMenu">
-        <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">1
-          Monat
-        </button>
-        <button mat-menu-item testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">2
-          Monate
-        </button>
-        <button mat-menu-item testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">
-          3 Monate
-        </button>
-        <button mat-menu-item testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">6
-          Monate
-        </button>
-        <button mat-menu-item testid="prolongTwelveMonthsButton"
-                (click)="prolongCustomer(12)">12 Monate
-        </button>
-      </mat-menu>
-
-      <button testid="costContributionButton" matButton="filled" class="w-full lg:w-auto" [matMenuTriggerFor]="costContributionMenu" [disabled]="customerData()?.locked">
-        Unkostenbeitrag ▾
-      </button>
-      <mat-menu #costContributionMenu="matMenu">
-        @if ((customerData()?.pendingCostContribution ?? 0) > 0) {
-          <button mat-menu-item testid="payCostContributionAllButton" (click)="payCostContributionAll()">
-            Alles bezahlt
-          </button>
-          <button mat-menu-item testid="payCostContributionAmountButton" (click)="openPayCostContributionDialog()">
-            Betrag eintragen
-          </button>
-          <mat-divider></mat-divider>
-        }
-        <button mat-menu-item testid="editCostContributionButton" (click)="openEditCostContributionDialog()">
-          Betrag bearbeiten
-        </button>
-      </mat-menu>
-
-      <div class="flex w-full lg:w-auto">
-        <button type="button" matButton="filled" class="button-danger !rounded-r-none flex-1 lg:flex-none" testid="editCustomerButton" (click)="editCustomer()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
-        </button>
-        <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
-                aria-label="Weitere Aktionen für diesen Kunden">▾
-        </button>
-      </div>
-      <mat-menu #editMenu="matMenu">
-        <button mat-menu-item testid="invalidateCustomerButton" (click)="disableCustomer()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde deaktivieren
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde sperren
-        </button>
-        <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
-                [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
-        </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
-                [disabled]="!customerData() || customerData()?.locked">Kunde löschen
-        </button>
-      </mat-menu>
-    </div>
+    @if (!isDesktopLayout()) {
+      <ng-container [ngTemplateOutlet]="customerActions"></ng-container>
+    }
     <div *tafelIfDistributionActive class="flex flex-col lg:flex-row lg:items-center lg:mt-2 mb-2 gap-2 lg:ml-auto">
       @if (!ticketNumber()) {
         <mat-form-field subscriptSizing="dynamic" class="w-full lg:max-w-36">
@@ -97,6 +165,7 @@
         </mat-form-field>
         <button testid="assign-ticket-button" matButton="filled" class="button-success w-full lg:w-auto"
                 [disabled]="!ticketNumberInput() || customerData()?.locked"
+                [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''"
                 (click)="assignTicket()">
           Ticket zuweisen
         </button>
@@ -142,16 +211,33 @@
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold">Telefon</span>
-                    <span
-                      testid="telephoneNumberText">{{ customerData()?.telephoneNumber ? customerData()?.telephoneNumber : '-' }}</span>
+                    @if (customerData()?.telephoneNumber) {
+                      <a testid="telephoneNumberText" [href]="'tel:' + customerData()?.telephoneNumber">{{ customerData()?.telephoneNumber }}</a>
+                    } @else {
+                      <span testid="telephoneNumberText">-</span>
+                    }
                   </div>
                   <div class="flex justify-between">
                     <span class="font-bold">E-Mail</span>
-                    <span testid="emailText">{{ customerData()?.email ? customerData()?.email : '-' }}</span>
+                    @if (customerData()?.email) {
+                      <a testid="emailText" [href]="'mailto:' + customerData()?.email">{{ customerData()?.email }}</a>
+                    } @else {
+                      <span testid="emailText">-</span>
+                    }
                   </div>
                   <hr>
                   <div>
-                    <span class="font-bold">Adresse</span>
+                    <div class="flex justify-between items-center">
+                      <span class="font-bold">Adresse</span>
+                      @if (customerData()?.address) {
+                        <button type="button" testid="copy-address-button" matButton="filled" class="!min-w-0 !px-2 !py-1 !min-h-0"
+                                matTooltip="Adresse in die Zwischenablage kopieren" aria-label="Adresse in die Zwischenablage kopieren"
+                                [cdkCopyToClipboard]="customerData()?.address | formatCustomerAddress"
+                                (cdkCopyToClipboardCopied)="onAddressCopied($event)">
+                          <fa-icon [icon]="faCopy"></fa-icon>
+                        </button>
+                      }
+                    </div>
                     <div>
                       @let address = customerData()?.address;
                       <div testid="addressLine1Text">{{ address ? formatAddressLine1(address) : '' }}</div>
@@ -214,7 +300,12 @@
               <mat-card>
                 <mat-card-header class="w-full">
                   <div class="flex justify-between items-center w-full">
-                    <h2 class="tafel-h5 m-0">Aktuellste Notiz</h2>
+                    <h2 class="tafel-h5 m-0">
+                      Aktuellste Notiz
+                      @if ((customerNotesResponse()?.totalCount ?? 0) > 0) {
+                        <span testid="notes-count" class="font-normal text-gray-500">({{ customerNotesResponse()?.totalCount }})</span>
+                      }
+                    </h2>
                     <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
                             matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
                       <fa-icon [icon]="faPlus"></fa-icon>
@@ -229,9 +320,13 @@
                   }
                   @if (customerNotes()?.length !== 0) {
                     <div testid="latest-customer-note">
-                      <div class="mb-2">
+                      <div class="mb-2 flex flex-wrap items-baseline gap-2">
                         <span class="font-bold"
                               testid="note-title">{{ customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()[0].author }}</span>
+                        @if (noteRelativeTime(customerNotes()[0].timestamp); as relative) {
+                          <span testid="note-relative-time" class="text-sm text-gray-500"
+                                [matTooltip]="customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm'">({{ relative }})</span>
+                        }
                       </div>
                       <!-- Notes are free text, never markup: interpolated (not [innerHtml]) so a
                            tag stays text, with pre-line so typed newlines still break the line.
@@ -268,46 +363,44 @@
                 <div>
                   <mat-card>
                     <mat-card-content>
-                      <div class="flex justify-between">
-                        <span class="font-bold"
-                              [attr.testid]="'addperson-' + i + '-lastnameText'">{{ addPerson?.lastname }}</span>
-                        <span class="font-bold"
+                      <div class="flex justify-between items-start gap-2">
+                        <div class="min-w-0">
+                          <div>
+                            <span class="font-bold"
+                                  [attr.testid]="'addperson-' + i + '-lastnameText'">{{ addPerson?.lastname }}</span>&nbsp;<span
+                              class="font-bold"
                               [attr.testid]="'addperson-' + i + '-firstnameText'">{{ addPerson?.firstname }}</span>
+                          </div>
+                          <div class="text-sm text-gray-600">
+                            <span
+                              [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}</span>
+                            &middot;
+                            <span
+                              [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}</span>
+                            &middot;
+                            <span [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}</span>
+                          </div>
+                        </div>
+                        @if (addPerson?.excludeFromHousehold) {
+                          <span class="badge badge-info shrink-0" [attr.testid]="'addperson-' + i + '-excludedChip'">
+                            Nicht im Haushalt
+                          </span>
+                        }
                       </div>
-                      <div class="flex justify-between">
-                        <span
-                          [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{ addPerson?.birthDate | birthdateAge }}</span>
-                        <span
-                          [attr.testid]="'addperson-' + i + '-genderText'">{{ addPerson?.gender | genderLabel }}</span>
-                      </div>
-                      <div>
-                        <span [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}</span>
-                      </div>
-                      <hr>
-                      <div class="flex justify-between mt-1">
+                      <hr class="my-2">
+                      <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-sm">
                         <span>Arbeitgeber</span>
-                        <span
-                          [attr.testid]="'addperson-' + i + '-employerText'">{{ addPerson?.employer ?? '-' }}</span>
-                      </div>
-                      <div class="flex justify-between items-end">
+                        <span class="text-right"
+                              [attr.testid]="'addperson-' + i + '-employerText'">{{ addPerson?.employer ?? '-' }}</span>
                         <span>Einkommen (monatl.)</span>
-                        <span
-                          [attr.testid]="'addperson-' + i + '-incomeText'">{{ addPerson?.income ? (addPerson?.income | currency) : '-' }}</span>
-                      </div>
-                      <div class="flex justify-between items-end">
-                        <span>Einkommen nachgewiesen bis:</span>
-                        <span class="align-bottom"
+                        <span class="text-right"
+                              [attr.testid]="'addperson-' + i + '-incomeText'">{{ addPerson?.income ? (addPerson?.income | currency) : '-' }}</span>
+                        <span>Einkommen nachgewiesen bis</span>
+                        <span class="text-right"
                               [attr.testid]="'addperson-' + i + '-incomeDueText'">{{ addPerson?.incomeDue ? (addPerson?.incomeDue | date : 'dd.MM.yyyy') : '-' }}</span>
-                      </div>
-                      <div class="flex justify-between items-end">
-                        <span>Bezieht Familienbeihilfe:</span>
-                        <span class="align-bottom"
+                        <span>Bezieht Familienbeihilfe</span>
+                        <span class="text-right"
                               [attr.testid]="'addperson-' + i + '-receivesFamilyAllowance'">{{ addPerson?.receivesFamilyAllowance === true ? 'Ja' : 'Nein' }}</span>
-                      </div>
-                      <div class="flex justify-between items-end">
-                        <span>Im selben Haushalt:</span>
-                        <span class="align-bottom"
-                              [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{ addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja' }}</span>
                       </div>
                     </mat-card-content>
                   </mat-card>
