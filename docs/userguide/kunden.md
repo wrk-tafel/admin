@@ -109,15 +109,21 @@ Gibt es für die Zusammensetzung eines Haushalts keinen hinterlegten Grundbetrag
 
 ## Kunden-Duplikate
 
-Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und zeigt sie paarweise gegenüber.
+Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und stellt sie als direkten Vergleich gegenüber: Geburtsdatum, Adresse, Personenanzahl und Gültigkeit stehen zeilenweise nebeneinander, abweichende Werte sind hervorgehoben, übereinstimmende Werte blass dargestellt – auf einen Blick ist so erkennbar, worin sich die beiden Kunden unterscheiden. Die Gesamtzahl der noch zu prüfenden Duplikat-Gruppen steht rechts über der Liste (z. B. "6 mögliche Duplikate").
 
 ![Kunden-Duplikate](images/kunden-duplikate.jpg)
 
-Eine Legende auf der Seite erklärt die Bedeutung der einzelnen Icons. Wurden keine Duplikate gefunden, erscheint die Meldung "Keine Duplikate gefunden!". Für jedes gefundene Duplikat-Paar stehen folgende Aktionen zur Verfügung:
+Für jeden Kandidaten eines Duplikat-Paares stehen folgende Aktionen zur Verfügung:
 
-- **Kunden zusammenführen** (grüner Haken): Öffnet den Datenabgleich zur Zusammenführung.
-- **Kunden-Details ansehen** (Lupe): Wechselt zur Detailansicht des jeweiligen Kunden.
-- **Kunden löschen** (Papierkorb): Löscht ausschließlich den ausgewählten Kunden, der andere bleibt bestehen.
+- **Zusammenführen** (grün hervorgehoben): Öffnet den Datenabgleich zur Zusammenführung für diesen Kunden.
+- **Details**: Wechselt zur Detailansicht des jeweiligen Kunden.
+- Über die Schaltfläche mit den weiteren Aktionen (▾) stehen zusätzlich zur Verfügung:
+  - **Kein Duplikat**: Markiert dieses Paar als geprüft und keine Duplikate – es wird danach nicht mehr in der Liste angezeigt.
+  - **Kunde löschen**: Löscht ausschließlich diesen Kunden, der andere bleibt bestehen. Der Bestätigungsdialog nennt dabei ausdrücklich den Namen des zu löschenden Kunden.
+
+Nach dem Löschen oder Markieren als "Kein Duplikat" bleibt die Liste an derselben Position stehen – die geprüfte Gruppe verschwindet einfach aus der Warteschlange. Wurden alle möglichen Duplikate geprüft, erscheint eine positive Bestätigung:
+
+![Keine Duplikate mehr](images/kunden-duplikate-keine.jpg)
 
 ### Kunden zusammenführen
 
@@ -129,7 +135,13 @@ Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen 
 
 ## Kunden über Limit
 
-Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz ("Über Limit"); über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
+Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Diese Liste ist als Arbeitsliste gedacht: Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht, wo die Gültigkeit verkürzt, der Kunde gesperrt oder der Zustand akzeptiert werden kann. Der Link öffnet ein echtes `href`, ein Klick mit der mittleren Maustaste öffnet die Detailansicht daher in einem neuen Tab, ohne die Liste zu verlassen.
+
+Oberhalb der Tabelle steht, gegen welche Grenzwerte aktuell geprüft wird ("Stand: heute") sowie – mit der entsprechenden Berechtigung – ein Link **Grenzwerte ansehen** zu [Einstellungen → Grenzwerte](einstellungen.md#statische-werte-grenzwerte). Sind aktuell keine Kunden über dem Limit, erscheint die Meldung "Aktuell liegt kein Kunde über dem Limit" statt einer leeren Tabelle.
+
+Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz ("Über Limit") samt dem prozentuellen Anteil über dem Limit und einem kompakten Balken, der diesen Anteil visualisiert – 50 € über einem 1.500 €-Limit sind damit auf einen Blick von 50 € über einem 3.900 €-Limit unterscheidbar. Die Spalte **Gültig bis** zeigt die Gültigkeit als grün/rot hervorgehobenen Wert, sodass Fälle, die ohnehin bald ablaufen, sofort erkennbar sind. Standardmäßig ist die Liste nach der größten Überschreitung sortiert; die Spalten Einkommen gesamt, Limit und Über Limit lassen sich zusätzlich durch Klick auf die jeweilige Spaltenüberschrift sortieren.
+
+Über **CSV-Export** lässt sich die aktuelle Liste (in der gerade gewählten Sortierung, vollständig statt nur die angezeigte Seite) als CSV-Datei herunterladen, z. B. um sie in eine Besprechung mitzunehmen.
 
 ![Kunden über Limit](images/kunden-ueber-limit.jpg)
 
@@ -139,8 +151,12 @@ Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Dar
 
 ## Kunden-Übersicht
 
-Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet, getrennt in die Bereiche "Neu" und "Verlängert". Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Über die Auswahlbox **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden; ohne Auswahl zeigt die Seite den zuletzt begonnenen (bzw. laufenden) Ausgabetag. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
+Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet. Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Ein Kunde, der im selben Ausgabetag sowohl neu angelegt als auch verlängert wurde, erscheint in beiden Zählungen.
+
+Ganz oben zeigen zwei Kacheln die Anzahl der neuen und der verlängerten Kunden des ausgewählten Ausgabetags auf einen Blick. Über die Auswahlbox **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden (mit Wochentag, z. B. "Sa, 08.08.2026"); vorausgewählt ist der zuletzt abgeschlossene Ausgabetag. Die Pfeile links und rechts der Auswahlbox blättern schrittweise zum vorherigen bzw. nächsten Ausgabetag, ohne die Liste jedes Mal neu öffnen zu müssen.
+
+Darunter listet eine einzige Tabelle beide Kundengruppen gemeinsam auf, jede Zeile mit einem Typ-Chip ("Neu" bzw. "Verlängert"), der Personenanzahl des Haushalts und einem Gültigkeits-Chip ("Gültig", "Ungültig" oder "Gesperrt"). Über die Schaltflächen **Alle**/**Neu**/**Verlängert** wird die Liste auf eine der beiden Gruppen eingeschränkt. **CSV-Export** lädt die aktuell angezeigte (ungefilterte) Liste des ausgewählten Ausgabetags als CSV-Datei herunter. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
 
 ![Kunden-Übersicht](images/kunden-uebersicht.jpg)
 
-Auf schmalen Bildschirmen werden beide Bereiche ("Neu" und "Verlängert") jeweils als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
+Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).

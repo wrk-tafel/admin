@@ -5,6 +5,12 @@
       <fa-icon [icon]="faBars"></fa-icon>
     </button>
 
+    <button (click)="openQuickOpenDialog()" testid="quickOpenButton" aria-label="Schnellsuche öffnen (Strg+K)"
+            matTooltip="Schnellsuche (Strg+K)"
+            class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
+      <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+    </button>
+
     <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
             class="!h-7 !px-2 !text-xs sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium">
       Support-Anfrage

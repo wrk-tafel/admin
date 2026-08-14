@@ -156,9 +156,14 @@ There are two separate duplicate-related UI paths in this module; don't conflate
    /households/{id}`.
 2. **Standalone duplicate review list**, `views/customer-duplicates/` +
    `CustomerDuplicatesDataResolver`. Backed by `GET /households/duplicates` (via
-   `CustomerApiService.getCustomerDuplicates()`), it lists pairs of *already saved*
-   customers the backend considers duplicates so staff can review them later: open a
-   candidate's detail, delete one outright (`deleteCustomer`), or start a merge.
+   `CustomerApiService.getCustomerDuplicates()`), it renders each group's candidates as
+   one comparison table (field rows aligned, differing values emphasized via
+   `fieldDiffers()` - see `comparisonFields`) instead of separate cards, so staff can open a
+   candidate's detail, delete one outright (`deleteCustomer`), mark the pair as reviewed
+   and not a duplicate (`dismissDuplicate()` → `POST /households/duplicates/dismiss`, see
+   `HouseholdDuplicationService.dismiss` on the backend - the pair then stops reappearing),
+   or start a merge. Deleting or dismissing refetches the same page, so the queue stays at
+   the reviewer's position instead of jumping back to the start.
 
 Both ultimately go through `customer-api.service.ts`'s translation layer — the
 duplicates response has the same `HouseholdDuplicatesResponse` → `{customer,

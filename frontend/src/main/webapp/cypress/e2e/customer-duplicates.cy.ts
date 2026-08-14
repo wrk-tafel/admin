@@ -8,26 +8,28 @@ describe('Customer Duplicates', () => {
     cy.loginDefault();
   });
 
-  it('lists a detected duplicate pair with both customers\' details', () => {
+  it('lists a detected duplicate pair as a comparison table with both customers\' details', () => {
     createDuplicatePair().then(({first, second}) => {
       const customer1 = first.body.data;
       const customer2 = second.body.data;
 
       cy.visit('/kunden/duplikate');
 
-      cy.byTestId('duplicate-customer-' + customer1.id).within(() => {
-        cy.byTestId('duplicate-customer-name-' + customer1.id)
+      cy.byTestId('duplicates-total-label').should('contain.text', 'mögliche');
+
+      cy.byTestId('duplicate-candidate-' + customer1.id).within(() => {
+        cy.byTestId('duplicate-candidate-name-' + customer1.id)
           .should('contain.text', customer1.lastname)
           .and('contain.text', customer1.firstname);
-        cy.contains(dayjs(customer1.birthDate).format('DD.MM.YYYY')).should('be.visible');
-        cy.contains(customer1.address.street).should('be.visible');
       });
-
-      cy.byTestId('duplicate-customer-' + customer2.id).within(() => {
-        cy.byTestId('duplicate-customer-name-' + customer2.id)
+      cy.byTestId('duplicate-candidate-' + customer2.id).within(() => {
+        cy.byTestId('duplicate-candidate-name-' + customer2.id)
           .should('contain.text', customer2.lastname)
           .and('contain.text', customer2.firstname);
       });
+
+      cy.byTestId('duplicate-field-birthDate').should('contain.text', dayjs(customer1.birthDate).format('DD.MM.YYYY'));
+      cy.byTestId('duplicate-field-address').should('contain.text', customer1.address.street);
     });
   });
 
@@ -42,32 +44,73 @@ describe('Customer Duplicates', () => {
     });
   });
 
-  it('deletes a single customer from the duplicate pair after confirming', () => {
+  it('deletes a single customer from the duplicate pair after confirming, naming the customer in the dialog', () => {
     createDuplicatePair().then(({second}) => {
       const customer2 = second.body.data;
 
       cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-actions-menu-' + customer2.id).click();
       cy.byTestId('duplicate-delete-button-' + customer2.id).click();
 
       cy.byTestId('deletecustomer-dialog').should('be.visible');
       // the dialog exists only after this click, so no other accessibility gate sees it -
       // see cypress/support/accessibility.ts
       cy.checkDialogAccessibility();
+      cy.byTestId('deletecustomer-name').should('contain.text', customer2.lastname).and('contain.text', customer2.firstname);
 
       cy.byTestId('deletecustomer-dialog').within(() => {
         cy.byTestId('cancelButton').click();
       });
 
       cy.byTestId('deletecustomer-dialog').should('not.exist');
-      cy.byTestId('duplicate-customer-' + customer2.id).should('exist');
+      cy.byTestId('duplicate-candidate-' + customer2.id).should('exist');
 
+      cy.byTestId('duplicate-actions-menu-' + customer2.id).click();
       cy.byTestId('duplicate-delete-button-' + customer2.id).click();
       cy.byTestId('deletecustomer-dialog').within(() => {
         cy.byTestId('okButton').click();
       });
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde wurde gelöscht!');
-      cy.byTestId('duplicate-customer-' + customer2.id).should('not.exist');
+      cy.byTestId('duplicate-candidate-' + customer2.id).should('not.exist');
+    });
+  });
+
+  it('marks a pair as "kein Duplikat" and it no longer appears in the list', () => {
+    createDuplicatePair().then(({first, second}) => {
+      const customer1 = first.body.data;
+      const customer2 = second.body.data;
+
+      cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-actions-menu-' + customer2.id).click();
+      cy.byTestId('duplicate-dismiss-button-' + customer2.id).click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'kein Duplikat');
+      // The pair itself disappearing is the assertion here - the list as a whole is usually NOT
+      // empty at this point, since the other tests' pairs accumulate in the shared e2e database.
+      cy.byTestId('duplicate-group-' + customer1.id).should('not.exist');
+    });
+  });
+
+  it('shows the empty state once no duplicates are left', () => {
+    // Stubbed: the shared e2e database accumulates duplicate pairs from the other tests here, so a
+    // really-empty list cannot be arranged through the UI alone.
+    cy.intercept('GET', '**/api/households/duplicates*', {
+      statusCode: 200,
+      body: {items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 10},
+    });
+    cy.visit('/kunden/duplikate');
+
+    cy.byTestId('no-duplicates-message').should('be.visible').and('contain.text', 'Keine Duplikate gefunden!');
+  });
+
+  it('the "kein Duplikat" action is only offered on the similar candidates, not the anchor itself', () => {
+    createDuplicatePair().then(({first}) => {
+      const customer1 = first.body.data;
+
+      cy.visit('/kunden/duplikate');
+      cy.byTestId('duplicate-actions-menu-' + customer1.id).click();
+      cy.byTestId('duplicate-dismiss-button-' + customer1.id).should('not.exist');
     });
   });
 
@@ -84,7 +127,7 @@ describe('Customer Duplicates', () => {
     });
   });
 
-  it('stacks a duplicate pair into a single column on phone and deletion still works', () => {
+  it('stays usable at phone width - the comparison table scrolls horizontally and deletion still works', () => {
     cy.viewport(PHONE_VIEWPORT);
 
     createDuplicatePair().then(({first, second}) => {
@@ -93,30 +136,22 @@ describe('Customer Duplicates', () => {
 
       cy.visit('/kunden/duplikate');
 
-      cy.byTestId('duplicate-customer-' + customer1.id).scrollIntoView().should('be.visible');
-      cy.byTestId('duplicate-customer-' + customer2.id).scrollIntoView().should('be.visible');
-
-      // below md: the pair grid collapses to a single column, so the cards stack on separate rows
-      // instead of sitting side by side (API/render order between the two isn't guaranteed, so
-      // just assert they're not on the same row rather than assuming which one comes first)
-      cy.byTestId('duplicate-customer-' + customer1.id).then(($first) => {
-        const firstTop = $first[0].getBoundingClientRect().top;
-        cy.byTestId('duplicate-customer-' + customer2.id).then(($second) => {
-          expect($second[0].getBoundingClientRect().top).to.not.equal(firstTop);
-        });
+      cy.byTestId('duplicate-group-' + customer1.id).then(($group) => {
+        expect($group[0].scrollWidth).to.be.greaterThan($group[0].clientWidth);
       });
 
+      cy.byTestId('duplicate-actions-menu-' + customer2.id).scrollIntoView().click();
       cy.byTestId('duplicate-delete-button-' + customer2.id).click();
       cy.byTestId('deletecustomer-dialog').within(() => {
         cy.byTestId('okButton').click();
       });
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde wurde gelöscht!');
-      cy.byTestId('duplicate-customer-' + customer2.id).should('not.exist');
+      cy.byTestId('duplicate-candidate-' + customer2.id).should('not.exist');
     });
   });
 
-  it('renders a duplicate pair side-by-side at tablet breakpoint and merge still works', () => {
+  it('shows both candidates without scrolling at tablet width and merge still works', () => {
     cy.viewport(TABLET_VIEWPORT);
 
     createDuplicatePair().then(({first, second}) => {
@@ -125,13 +160,8 @@ describe('Customer Duplicates', () => {
 
       cy.visit('/kunden/duplikate');
 
-      // at md: (768px) the pair grid becomes 2 columns, so both cards start at the same row position
-      cy.byTestId('duplicate-customer-' + customer1.id).then(($first) => {
-        const firstTop = $first[0].getBoundingClientRect().top;
-        cy.byTestId('duplicate-customer-' + customer2.id).then(($second) => {
-          expect($second[0].getBoundingClientRect().top).to.eq(firstTop);
-        });
-      });
+      cy.byTestId('duplicate-candidate-' + customer1.id).should('be.visible');
+      cy.byTestId('duplicate-candidate-' + customer2.id).should('be.visible');
 
       cy.byTestId('duplicate-merge-button-' + customer1.id).click();
 
@@ -273,8 +303,8 @@ describe('Customer Merge', () => {
       cy.byTestId('merge-cancel-button').click();
 
       cy.url().should('include', '/kunden/duplikate');
-      cy.byTestId('duplicate-customer-' + target.id).should('exist');
-      cy.byTestId('duplicate-customer-' + source.id).should('exist');
+      cy.byTestId('duplicate-candidate-' + target.id).should('exist');
+      cy.byTestId('duplicate-candidate-' + source.id).should('exist');
     });
   });
 
