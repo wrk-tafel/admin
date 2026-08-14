@@ -265,6 +265,9 @@ describe('Settings - Routes', () => {
       cy.visit('/einstellungen/filialen');
       cy.byTestId('shops-search-input').type(shopName);
       cy.byTestId('shops-row-0').find('[testid^="shops-enabled-toggle-"]').click();
+      // the shop is stopped at by an active route, so deactivating asks for confirmation first
+      cy.byTestId('shop-disable-confirm-dialog').should('be.visible');
+      cy.byTestId('ok-button').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 
       cy.visit('/einstellungen/routen');
