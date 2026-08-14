@@ -64,10 +64,10 @@
       </mat-menu>
 
       <div class="flex w-full lg:w-auto">
-        <button type="button" matButton="filled" class="button-danger !rounded-r-none flex-1 lg:flex-none" testid="editCustomerButton" (click)="editCustomer()"
+        <button type="button" matButton="filled" class="!rounded-r-none flex-1 lg:flex-none" testid="editCustomerButton" (click)="editCustomer()"
                 [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
         </button>
-        <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
+        <button type="button" testid="editCustomerToggleButton" matButton="filled" class="!rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
                 aria-label="Weitere Aktionen für diesen Kunden">▾
         </button>
       </div>
