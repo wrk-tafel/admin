@@ -21,6 +21,12 @@
   <mat-card>
     <mat-card-content>
       <mat-stepper [orientation]="stepperOrientation()" aria-label="Schritte der Zusammenführung" testid="merge-stepper">
+        <!-- The stepper's default edit/done indicators are Material-Icons font ligatures ("create"/
+             "done"); this app doesn't ship that font (icons are FontAwesome), so they would render
+             as clipped raw text. Visited steps keep their number instead. -->
+        <ng-template matStepperIcon="edit" let-index="index">{{index + 1}}</ng-template>
+        <ng-template matStepperIcon="done" let-index="index">{{index + 1}}</ng-template>
+
         <mat-step>
           <ng-template matStepLabel><span testid="merge-step-fields">Felder abgleichen</span></ng-template>
 

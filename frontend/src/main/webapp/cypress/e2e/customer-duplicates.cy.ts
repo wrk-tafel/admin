@@ -252,6 +252,11 @@ describe('Customer Merge', () => {
       cy.byTestId('merge-next-persons-button').click();
       cy.byTestId('merge-next-confirm-button').click();
 
+      // visited steps keep their number - the default edit icon is a Material-Icons font ligature
+      // this app doesn't ship, which would render as clipped raw text ("cr")
+      cy.byTestId('merge-stepper').find('.mat-step-header .mat-step-icon').eq(0).should('have.text', '1');
+      cy.byTestId('merge-stepper').find('.mat-step-header .mat-step-icon').eq(1).should('have.text', '2');
+
       cy.byTestId('merge-danger-banner')
         .should('contain.text', 'kann nicht rückgängig gemacht werden')
         .and('contain.text', `${source.id}`);
