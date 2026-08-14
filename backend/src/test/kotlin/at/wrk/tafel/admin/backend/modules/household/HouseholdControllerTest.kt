@@ -560,6 +560,27 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `generate households overview csv - result mapped`() {
+        val distributionId = 100L
+        val testFilename = "kunden-uebersicht_2026-01-03.csv"
+        every { householdService.generateHouseholdsOverviewCsv(distributionId) } returns HouseholdOverviewCsvResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.generateHouseholdsOverviewCsv(distributionId)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
     fun `get duplicates - result mapped`() {
         val page = 4
         val duplicationItem = HouseholdDuplicateSearchResultItem(

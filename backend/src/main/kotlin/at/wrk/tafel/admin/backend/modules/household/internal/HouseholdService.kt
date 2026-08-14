@@ -59,6 +59,8 @@ class HouseholdService(
     companion object {
         private val log = LoggerFactory.getLogger(HouseholdService::class.java)
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private val CSV_FILENAME_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private val CSV_ROW_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -353,6 +355,10 @@ class HouseholdService(
      * *and* prolonged within the same distribution window shows up in both lists - `prolongedAt` is
      * only ever set on an update, but a freshly created household can still be updated again before
      * the distribution ends.
+     *
+     * Without a [distributionId] this defaults to the newest *closed* distribution - the first
+     * entry of the closed-only list `GET /distributions` serves, so the frontend's default
+     * selection and the default response line up.
      */
     @Transactional(readOnly = true)
     fun getHouseholdsOverview(distributionId: Long?): HouseholdOverviewResponse {
@@ -360,7 +366,7 @@ class HouseholdService(
             distributionRepository.findById(distributionId).orElse(null)
                 ?: throw NotFoundException("Ausgabe Nr. $distributionId nicht gefunden!")
         } else {
-            distributionRepository.findFirstByOrderByIdDesc()
+            distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()
         }
 
         if (distribution == null) {
@@ -387,6 +393,60 @@ class HouseholdService(
                 HouseholdOverviewItem(household = householdConverter.mapEntityToHousehold(it), date = it.prolongedAt!!)
             },
         )
+    }
+
+    /**
+     * The "Neu"/"Verlängert" households of [getHouseholdsOverview] as a single CSV, matching the
+     * reporting module's export conventions (`;`-delimited via [CsvUtil], `Content-Disposition:
+     * inline` from the controller). One row per household, tagged with its type so the two lists
+     * stay distinguishable once merged.
+     */
+    @Transactional(readOnly = true)
+    fun generateHouseholdsOverviewCsv(distributionId: Long?): HouseholdOverviewCsvResult {
+        val overview = getHouseholdsOverview(distributionId)
+
+        val rows: List<List<String>> = listOf(
+            listOf("Typ", "Nr.", "Name", "Adresse", "Personen", "Gültigkeit", "Datum"),
+        ) +
+            overview.newHouseholds.map { it.toCsvRow("Neu") } +
+            overview.renewedHouseholds.map { it.toCsvRow("Verlängert") }
+
+        val filenameDate = (overview.distributionStartedAt ?: LocalDateTime.now()).toLocalDate()
+        return HouseholdOverviewCsvResult(
+            filename = "kunden-uebersicht_${CSV_FILENAME_DATE_FORMATTER.format(filenameDate)}.csv",
+            bytes = CsvUtil.writeRowsToByteArray(rows),
+        )
+    }
+
+    private fun HouseholdOverviewItem.toCsvRow(type: String): List<String> {
+        val mainPerson = household.mainPerson()
+        return listOf(
+            type,
+            household.id?.toString() ?: "",
+            listOfNotNull(mainPerson?.lastname, mainPerson?.firstname).joinToString(" "),
+            formatHouseholdAddress(household.address),
+            household.persons.size.toString(),
+            householdValidityLabel(household),
+            CSV_ROW_DATE_FORMATTER.format(date),
+        )
+    }
+
+    private fun formatHouseholdAddress(address: HouseholdAddress): String {
+        val parts = listOfNotNull(
+            listOfNotNull(address.street, address.houseNumber).joinToString(" ").trim().ifBlank { null },
+            address.stairway?.trim()?.ifBlank { null }?.let { "Stiege $it" },
+            address.door?.trim()?.ifBlank { null }?.let { "Top $it" },
+            listOfNotNull(address.postalCode?.toString(), address.city).joinToString(" ").trim().ifBlank { null },
+        )
+        return if (parts.isEmpty()) "-" else parts.joinToString(", ")
+    }
+
+    private fun householdValidityLabel(household: HouseholdResponse): String {
+        if (household.locked == true) {
+            return "Gesperrt"
+        }
+        val validUntil = household.validUntil ?: return "Ungültig"
+        return if (!validUntil.isBefore(LocalDate.now())) "Gültig" else "Ungültig"
     }
 
     @Transactional(readOnly = true)
@@ -591,6 +651,28 @@ data class HouseholdPdfResult(
         if (javaClass != other?.javaClass) return false
 
         other as HouseholdPdfResult
+
+        if (filename != other.filename) return false
+        return bytes.contentEquals(other.bytes)
+    }
+
+    override fun hashCode(): Int {
+        var result = filename.hashCode()
+        result = 31 * result + bytes.contentHashCode()
+        return result
+    }
+}
+
+@ExcludeFromTestCoverage
+data class HouseholdOverviewCsvResult(
+    val filename: String,
+    val bytes: ByteArray,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as HouseholdOverviewCsvResult
 
         if (filename != other.filename) return false
         return bytes.contentEquals(other.bytes)

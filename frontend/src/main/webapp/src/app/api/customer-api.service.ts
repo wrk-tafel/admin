@@ -176,6 +176,19 @@ export class CustomerApiService {
     );
   }
 
+  generateCustomersOverviewCsv(distributionId?: number): Observable<HttpResponse<Blob>> {
+    let queryParams = new HttpParams();
+    if (distributionId) {
+      queryParams = queryParams.set('distributionId', distributionId);
+    }
+    return this.http.get('/households/overview/generate-csv',
+      {
+        params: queryParams,
+        responseType: 'blob',
+        observe: 'response'
+      });
+  }
+
   getMergePreview(targetCustomerId: number, sourceCustomerIds: number[]): Observable<CustomerMergePreview> {
     let queryParams = new HttpParams();
     sourceCustomerIds.forEach(sourceCustomerId => {
