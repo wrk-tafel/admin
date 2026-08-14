@@ -117,6 +117,19 @@ Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berec
 
 Ist die Seitenleiste eingeklappt, sind nur noch die Icons sichtbar. Fährt man mit der Maus über ein Icon, wird der Name des Menüpunkts als Kurzhinweis (Tooltip) eingeblendet.
 
+<a id="schnellsuche"></a>
+
+### Schnellsuche (Strg+K)
+
+Mit der Tastenkombination **Strg+K** (bzw. **Cmd+K** auf macOS) – oder über das Lupen-Symbol oben links in der Kopfzeile – öffnet sich von jeder Seite aus die **Schnellsuche**. Während der Eingabe werden zwei Arten von Treffern angezeigt:
+
+- **Navigation**: alle Menüpunkte, deren Name den Suchbegriff enthält. Ein Klick wechselt direkt auf die jeweilige Seite.
+- **Kunden**: ab zwei Zeichen wird zusätzlich in den Kunden gesucht – nach Kundennummer, Namen (auch der weiteren Personen im Haushalt), Adresse, Telefonnummer oder E-Mail, mit derselben Fehlertoleranz wie die Kunden-Suche (siehe [Kunden](kunden.md)). Ein Klick öffnet direkt die Detailseite des Kunden.
+
+![Schnellsuche](images/schnellsuche.jpg)
+
+Angezeigt werden nur Menüpunkte und Kunden, für die der angemeldete Benutzer berechtigt ist; Menüpunkte, die eine aktive Ausgabe voraussetzen, erscheinen nur während eines Ausgabetags. Mit den **Pfeiltasten** wird durch die Treffer navigiert, **Enter** öffnet den ersten Treffer direkt aus dem Suchfeld, **Esc** schließt die Schnellsuche wieder.
+
 Oben rechts in der Kopfzeile zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
 
 <a id="bedienung-mit-der-tastatur"></a>
@@ -129,6 +142,7 @@ Die Anwendung lässt sich vollständig ohne Maus bedienen. Mit der **Tabulator-T
 - Die aufklappbaren Menügruppen ("Sonstige", "Benutzer", "Statistiken", "Einstellungen") lassen sich ebenso mit der Tastatur auf- und zuklappen.
 - Menüpunkte, die eine aktive Ausgabe voraussetzen und mit **INAKTIV** gekennzeichnet sind, werden beim Tabben übersprungen.
 - Das Augen-Symbol in Passwortfeldern, mit dem das eingegebene Passwort sichtbar gemacht wird, ist ebenfalls per Tastatur erreichbar.
+- Die [Schnellsuche](#schnellsuche) öffnet sich von jeder Seite aus mit **Strg+K** (bzw. **Cmd+K** auf macOS) und wird vollständig mit Suchfeld, Pfeiltasten und Enter bedient.
 - Sortierbare Listen in den [Einstellungen](einstellungen.md) werden nicht nur per Drag & Drop sortiert: Ist das Drag-Handle (⋮⋮) angesprungen, verschieben die Pfeiltasten den Eintrag um je eine Position, und die neue Position wird für Vorleseprogramme angesagt.
 
 Der Titel im Browser-Tab nennt immer die gerade geöffnete Seite (z. B. "Kunden suchen – Tafel Admin"). Dadurch sind auch mehrere geöffnete Tabs und Einträge im Browser-Verlauf auseinanderzuhalten, und Vorleseprogramme geben beim Seitenwechsel den Namen der neuen Seite aus. Ebenso wird der Zustand der **Live-Verbindung** aus der Kopfzeile nicht nur farblich, sondern auch als Text ausgegeben, sodass ein Verbindungsabbruch auch mit einem Vorleseprogramm bemerkt wird.
@@ -204,11 +218,11 @@ Zusätzlich wird immer ein **Screenshot der Seite** angehängt, die beim Öffnen
 
 ## Fehlerseiten
 
-Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite:
+Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite mit den Schaltflächen **Zur Übersicht** und **Zurück**, um ohne Umweg über die Adressleiste weiterzuarbeiten:
 
 ![404 – Seite nicht gefunden](images/fehlerseite-404.jpg)
 
-Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. In diesem Fall über **Support-Anfrage** (siehe oben) melden.
+Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. Neben **Zur Übersicht** und **Zurück** steht hier zusätzlich **Neu laden** zur Verfügung; tritt der Fehler weiterhin auf, kann er über **Support-Anfrage** im Hauptmenü gemeldet werden (siehe oben).
 
 ![500 – Interner Server Fehler](images/fehlerseite-500.jpg)
 

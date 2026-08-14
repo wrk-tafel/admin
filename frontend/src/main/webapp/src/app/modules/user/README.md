@@ -149,6 +149,18 @@ Read-only view plus a `mat-menu` with enable/disable/delete actions.
 `currentUserData = linkedSignal(() => this.userData())` lets `disableUser()`/`enableUser()` update the screen
 immediately from the `updateUser()` response, without re-resolving the route.
 
+**Permissions overview**: `permissionGroups` unifies two shapes behind one
+`{category, permissions: {permission, granted}[]}[]` so the template renders identically either
+way. Collapsed (default) wraps `groupPermissionsByCategory(currentUserData().permissions)` with
+`granted: true` on every entry - categories with nothing granted are absent already, since the
+input is only what's granted. Expanded ("Alle anzeigen", `showAllPermissions` signal) calls
+`buildPermissionOverviewGroups(permissionsData(), currentUserData().permissions)` instead - every
+catalog permission (loaded via the same `PermissionsDataResolver` the edit screen uses, wired to
+the `detail/:id` route as well) within a category the user holds *something* in, the ones they
+don't hold rendered muted (`!opacity-50` + a "Nicht zugewiesen" tooltip); a category the user holds
+nothing in at all stays omitted rather than shown fully muted - see
+`common/util/permission-grouping.util.ts`.
+
 ### UserPasswordChangeComponent — a different password-change path entirely
 
 This wraps the **shared** `common/views/passwordchange-form/passwordchange-form.component.ts`

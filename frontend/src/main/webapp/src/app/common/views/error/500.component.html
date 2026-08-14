@@ -1,18 +1,34 @@
-<main class="min-h-dvh flex flex-row items-center bg-[var(--tafel-background-secondary)]">
-  <div class="w-full max-w-6xl mx-auto px-6">
-    <div class="flex justify-center">
-      <div class="w-full md:w-1/2">
-        <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
-          <h1 testid="status" class="text-7xl font-light text-white leading-none">500</h1>
+<main class="min-h-dvh flex flex-col items-center justify-center bg-[var(--tafel-background-secondary)] p-6">
+  <div class="w-full max-w-2xl flex flex-col items-center text-center">
+    <div class="mb-10 rounded-lg bg-white px-6 py-4 shadow-md">
+      <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="h-[54px] w-[200px] object-contain"/>
+    </div>
 
-          <div class="hidden md:block self-stretch w-px bg-gray-700 mx-2"></div>
+    <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
+      <h1 testid="status" class="text-7xl font-light text-white leading-none">500</h1>
 
-          <div class="flex flex-col pt-1">
-            <h2 testid="title" class="mat-h4 text-xl font-semibold mb-1 text-white">Houston, wir haben ein Problem!</h2>
-            <p testid="subtitle" class="text-gray-300 italic">Interner Server Fehler</p>
-          </div>
-        </div>
+      <div class="hidden md:block self-stretch w-px bg-gray-700 mx-2"></div>
+
+      <div class="flex flex-col items-center md:items-start">
+        <h2 testid="title" class="mat-h4 text-xl font-semibold mb-1 text-white">Houston, wir haben ein Problem!</h2>
+        <p testid="subtitle" class="text-gray-300">Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es erneut.</p>
       </div>
+    </div>
+
+    <p testid="supportHint" class="text-sm text-gray-400 mb-8 max-w-md">
+      Tritt der Fehler weiterhin auf, können Sie ihn über "Support-Anfrage" im Hauptmenü melden.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a routerLink="/uebersicht" testid="backToOverviewButton"
+         class="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white
+                hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400">Zur Übersicht</a>
+      <button type="button" (click)="reload()" testid="reloadButton"
+              class="inline-flex items-center justify-center rounded-md border border-gray-500 px-5 py-2.5 text-sm font-medium text-white
+                     hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400">Neu laden</button>
+      <button type="button" (click)="goBack()" testid="backButton"
+              class="inline-flex items-center justify-center rounded-md border border-gray-500 px-5 py-2.5 text-sm font-medium text-white
+                     hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400">Zurück</button>
     </div>
   </div>
 </main>

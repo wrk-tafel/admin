@@ -104,12 +104,64 @@ describe('SettingsRoutesComponent', () => {
       time: '14:00',
       label: '100 - Billa',
       shopAddress: 'Teststraße 1, 1100 Wien',
-      description: 'Stopp 1'
+      description: 'Stopp 1',
+      shopInactive: false
     });
     // a stop without a shop is identified by its description alone, so that becomes the label
     expect(stops[1].label).toBe('Pause');
     expect(stops[1].shopAddress).toBeUndefined();
     expect(stops[1].description).toBeUndefined();
+  });
+
+  it('flags a stop pointing at a since-deactivated shop', () => {
+    const routeWithDisabledShop: RouteData = {
+      ...testRoute2,
+      enabled: true,
+      stops: [{id: 21, time: '09:00:00', shopId: disabledShop.id}]
+    };
+    routeApiMock.getAllRoutes = vi.fn(() => of<RouteList>({routes: [routeWithDisabledShop]}));
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    const stops = fixture.componentInstance['visibleRoutes']()[0].stops;
+    expect(stops[0].shopInactive).toBe(true);
+  });
+
+  it('composes a maps link over the resolved shop addresses, skipping stops without one', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    const [withStops, withoutStops] = fixture.componentInstance['visibleRoutes']();
+    // only the first stop resolves a shop address; the "Pause" stop has none to navigate to
+    expect(withStops.mapsUrl).toBe(
+      'https://www.google.com/maps/dir/?api=1&destination=Teststra%C3%9Fe%201%2C%201100%20Wien&travelmode=driving'
+    );
+    expect(withStops.mapsUrlTruncatedHint).toBeUndefined();
+    // a route with no stops at all has nothing to navigate to
+    expect(withoutStops.mapsUrl).toBeUndefined();
+  });
+
+  it('hints at the stops left out once a route has more than 10 shop stops', () => {
+    const manyStopsRoute: RouteData = {
+      ...testRoute2,
+      enabled: true,
+      stops: Array.from({length: 11}, (_, i) => ({
+        id: 100 + i,
+        time: `${String(i).padStart(2, '0')}:00:00`,
+        shopId: activeShop.id
+      }))
+    };
+    routeApiMock.getAllRoutes = vi.fn(() => of<RouteList>({routes: [manyStopsRoute]}));
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+
+    const view = fixture.componentInstance['visibleRoutes']()[0];
+    expect(view.mapsUrl).toBeDefined();
+    expect(view.mapsUrlTruncatedHint).toBe(
+      'Die Karte deckt die ersten 10 Stopps ab. Der Stopp danach ist einzeln zu navigieren.'
+    );
   });
 
   it('summarizes the stops of a route', () => {
@@ -162,6 +214,59 @@ describe('SettingsRoutesComponent', () => {
 
     component['enabledFilter'].set('ALL');
     expect(component['visibleRoutes']().length).toBe(2);
+  });
+
+  it('sorts by number even when names would order the other way round', () => {
+    const routeA: RouteData = {...testRoute1, id: 10, number: 2, name: 'Alpha'};
+    const routeB: RouteData = {...testRoute1, id: 20, number: 1, name: 'Beta'};
+    routeApiMock.getAllRoutes = vi.fn(() => of<RouteList>({routes: [routeA, routeB]}));
+
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['visibleRoutes']().map(view => view.route.id)).toEqual([routeB.id, routeA.id]);
+  });
+
+  it('expands a route on its own when the search only matches through its stops', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['isExpanded'](testRoute1.id)).toBe(false);
+
+    // "billa" is a shop on testRoute1's stops, invisible while the card is collapsed
+    component['searchControl'].setValue('billa');
+    fixture.detectChanges();
+
+    expect(component['isExpanded'](testRoute1.id)).toBe(true);
+
+    // clearing the search keeps the route open - only the summary toggle collapses it again
+    component['clearSearch']();
+    fixture.detectChanges();
+    expect(component['isExpanded'](testRoute1.id)).toBe(true);
+  });
+
+  it('does not expand a route the search matches by its name alone', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('route 1');
+    fixture.detectChanges();
+
+    expect(component['isExpanded'](testRoute1.id)).toBe(false);
+  });
+
+  it('announces the visible route count for screen readers', () => {
+    const fixture = TestBed.createComponent(SettingsRoutesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['searchAnnouncement']()).toBe('2 von 2 Routen');
+
+    component['searchControl'].setValue('route 2');
+    expect(component['searchAnnouncement']()).toBe('1 von 2 Routen');
   });
 
   it('clearSearch() resets the search field', () => {
