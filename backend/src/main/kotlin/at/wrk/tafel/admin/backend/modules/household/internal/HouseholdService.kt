@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
+import at.wrk.tafel.admin.backend.modules.household.IncomeQuickCheckRequest
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
@@ -64,6 +65,20 @@ class HouseholdService(
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
+
+    /**
+     * Runs the same income validation as [validate] on the bare minimum of person data, so
+     * eligibility can be checked before a household's remaining data is entered at all.
+     */
+    fun quickCheck(request: IncomeQuickCheckRequest): IncomeValidatorResult = incomeValidatorService.validate(
+        request.persons.map {
+            IncomeValidatorPerson(
+                birthDate = it.birthDate,
+                monthlyIncome = it.income,
+                receivesFamilyAllowance = it.receivesFamilyAllowance,
+            )
+        },
+    )
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 

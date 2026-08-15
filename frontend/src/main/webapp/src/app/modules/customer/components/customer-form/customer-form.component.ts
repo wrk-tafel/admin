@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
-import {CustomerData, Gender} from '../../../../api/customer-api.service';
+import {CustomerData, Gender, QuickCheckPersonData} from '../../../../api/customer-api.service';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
@@ -330,6 +330,38 @@ export class CustomerFormComponent {
       ...model,
       firstname: firstname ?? model.firstname,
       lastname: lastname ?? model.lastname,
+    }));
+  }
+
+  /**
+   * Prefills the persons handed over from the Anspruch-Schnellcheck screen on an otherwise-empty
+   * form: the first person's birthdate and income land on the main person, every further one
+   * becomes an additional person with its birthdate, income and family-allowance flag. Names and
+   * the other identity fields remain to be filled in.
+   */
+  prefillQuickCheckPersons(persons: QuickCheckPersonData[]) {
+    if (!persons.length) {
+      return;
+    }
+    const [mainPerson, ...additionalPersons] = persons;
+    this.formModel.update(model => ({
+      ...model,
+      birthDate: mainPerson.birthDate ?? model.birthDate,
+      income: mainPerson.income ?? model.income,
+      additionalPersons: additionalPersons.map(person => ({
+        key: crypto.randomUUID(),
+        id: null,
+        firstname: '',
+        lastname: '',
+        birthDate: person.birthDate ?? null,
+        gender: null,
+        country: null,
+        employer: '',
+        income: person.income ?? null,
+        incomeDue: null,
+        excludeFromHousehold: false,
+        receivesFamilyAllowance: person.receivesFamilyAllowance
+      }))
     }));
   }
 

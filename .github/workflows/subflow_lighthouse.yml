@@ -144,6 +144,7 @@ jobs:
           - name: kunden
             urls: >-
               /kunden/suchen,
+              /kunden/schnellcheck,
               /kunden/anlegen,
               /kunden/detail/100,
               /kunden/bearbeiten/100,

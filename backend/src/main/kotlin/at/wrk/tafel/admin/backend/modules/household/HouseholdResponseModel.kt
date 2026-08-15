@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
@@ -122,6 +123,27 @@ data class Person(
     val incomeDue: LocalDate? = null,
     val receivesFamilyAllowance: Boolean = false,
     val excludeFromHousehold: Boolean = false,
+)
+
+/**
+ * Input for the income quick-check: the bare minimum the income validation needs per person, so an
+ * operator can find out whether a household would qualify before the rest of its data (names,
+ * address, ...) is ever typed in. Validated against the same rules as `POST /validate` and answered
+ * with the same [ValidateHouseholdResponse].
+ */
+@ExcludeFromTestCoverage
+data class IncomeQuickCheckRequest(
+    @field:NotEmpty
+    val persons: List<@Valid IncomeQuickCheckPersonItem> = emptyList(),
+)
+
+@ExcludeFromTestCoverage
+data class IncomeQuickCheckPersonItem(
+    @field:NotNull
+    val birthDate: LocalDate?,
+    @field:PositiveOrZero
+    val income: BigDecimal? = null,
+    val receivesFamilyAllowance: Boolean = false,
 )
 
 @ExcludeFromTestCoverage

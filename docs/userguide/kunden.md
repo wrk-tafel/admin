@@ -79,6 +79,16 @@ Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhan
 
 ![Verlauf](images/kunden-verlauf.jpg)
 
+## Anspruch-Schnellcheck
+
+Unter **Kunden → Anspruch-Schnellcheck** lässt sich vorab klären, ob ein Haushalt überhaupt bezugsberechtigt wäre – bevor die restlichen Kundendaten (Namen, Adresse, Kontakt) erfasst werden. Pro Person im Haushalt werden nur Geburtsdatum und monatliches Einkommen eingetragen. Das Formular ist bereits mit drei Personen vorbereitet; über **Hinzufügen** kommen weitere dazu, über **Entfernen** lassen sich Personen wieder entfernen. Zeilen ohne Geburtsdatum bleiben bei der Prüfung einfach unberücksichtigt – bei kleineren Haushalten müssen leere Zeilen also nicht entfernt werden. Bei jeder weiteren Person steht zusätzlich das Kennzeichen **Bezieht Familienbeihilfe** zur Verfügung, das standardmäßig vorausgewählt ist.
+
+Wie beim Anlegen eines Kunden blendet die Anwendung oberhalb der Eingabe eine kompakte Zusammenfassung ein, sobald mindestens ein Geburtsdatum eingetragen ist: Anspruchs-Status, Anzahl der berücksichtigten Personen, Einkommen gesamt, Limit sowie – falls über dem Limit – die Differenz. Sie aktualisiert sich automatisch während der Eingabe (kurz nach der letzten Änderung); Personen ohne Geburtsdatum bleiben dabei unberücksichtigt.
+
+Die Buttons sitzen wie beim Kundenformular in einer Leiste am unteren Bildschirmrand, die auch bei vielen erfassten Personen immer erreichbar bleibt: **Anspruch prüfen** zeigt dasselbe Ergebnis mit derselben vollständigen Berechnung wie der gleichnamige Button beim [Anlegen eines Kunden](#kunden-anlegen--bearbeiten) – inklusive der Meldung "Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert", falls für die eingegebene Zusammensetzung kein Grundbetrag hinterlegt ist. **Kunden anlegen** führt direkt weiter zur vollständigen Kundenanlage und nimmt die bereits eingetragenen Personen mit: Geburtsdatum und Einkommen der ersten Person landen beim Hauptbezieher, jede weitere Person wird mit Geburtsdatum, Einkommen und Familienbeihilfe-Kennzeichen als weitere Person übernommen – nur die restlichen Angaben (Namen, Adresse, Kontakt) sind noch zu ergänzen.
+
+![Anspruch-Schnellcheck](images/kunden-schnellcheck.jpg)
+
 ## Kunden anlegen / bearbeiten
 
 Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.

@@ -127,6 +127,21 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('income quick-check sends the persons as-is', () => {
+    const birthDate = new Date(1990, 0, 1);
+    apiService.quickCheck([
+      {birthDate, income: 1200, receivesFamilyAllowance: false},
+      {birthDate, income: undefined, receivesFamilyAllowance: true}
+    ]).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/income-quickcheck'});
+    expect(req.request.body.persons).toHaveLength(2);
+    expect(req.request.body.persons[0].income).toBe(1200);
+    expect(req.request.body.persons[1].receivesFamilyAllowance).toBe(true);
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('create customer', () => {
     apiService.createCustomer(mockCustomer, false).subscribe(response => {
       expect(response.data.lastname).toEqual('Mustermann');

@@ -82,6 +82,24 @@ Content-Type: application/json
   ]
 }
 
+### Income quick-check (minimal person data, same response as /validate)
+POST {{baseApiPath}}/households/income-quickcheck
+Content-Type: application/json
+
+{
+  "persons": [
+    {
+      "birthDate": "1990-01-01",
+      "income": 1200.00
+    },
+    {
+      "birthDate": "2015-01-01",
+      "income": null,
+      "receivesFamilyAllowance": true
+    }
+  ]
+}
+
 ### Create household
 POST {{baseApiPath}}/households
 Content-Type: application/json

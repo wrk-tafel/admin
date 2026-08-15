@@ -1,6 +1,7 @@
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {
   faBarcode,
+  faBoltLightning,
   faChartLine,
   faCheck,
   faClockRotateLeft,
@@ -74,6 +75,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     name: 'Kunden anlegen',
     url: '/kunden/anlegen',
     icon: faPlus,
+    permissions: ['CUSTOMER']
+  },
+  {
+    name: 'Anspruch-Schnellcheck',
+    url: '/kunden/schnellcheck',
+    icon: faBoltLightning,
     permissions: ['CUSTOMER']
   },
   {

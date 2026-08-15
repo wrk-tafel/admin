@@ -22,6 +22,15 @@ export class CustomerApiService {
     return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data), {context});
   }
 
+  /**
+   * Income quick-check: the same eligibility answer as {@link validate}, computed from nothing but
+   * each person's birthdate, income and family-allowance flag - usable before the rest of a
+   * customer's data exists.
+   */
+  quickCheck(persons: QuickCheckPersonData[], context?: HttpContext): Observable<ValidateCustomerResponse> {
+    return this.http.post<ValidateCustomerResponse>('/households/income-quickcheck', {persons}, {context});
+  }
+
   createCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerCreationResponse> {
     return this.http.post<HouseholdCreationResponse>('/households', mapCustomerToHousehold(data), {params: {force}, context})
       .pipe(
@@ -266,6 +275,12 @@ export class CustomerApiService {
       .pipe(map(mapHouseholdToCustomer));
   }
 
+}
+
+export interface QuickCheckPersonData {
+  birthDate: Date;
+  income?: number;
+  receivesFamilyAllowance: boolean;
 }
 
 export interface ValidateCustomerResponse {
