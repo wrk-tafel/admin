@@ -377,12 +377,12 @@ describe('Shell', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
 
-    cy.byTestId('distribution-state-badge').should('contain.text', 'Geschlossen');
+    cy.byTestId('distribution-state-badge').should('contain.text', 'Ausgabe geschlossen');
 
     cy.createDistribution();
     cy.reload();
 
-    cy.byTestId('distribution-state-badge').should('contain.text', 'Geöffnet');
+    cy.byTestId('distribution-state-badge').should('contain.text', 'Ausgabe geöffnet');
     cy.byTestId('distribution-state-badge').invoke('text').should('match', /\d{2}:\d{2}/);
 
     cy.closeDistribution();
@@ -437,22 +437,22 @@ describe('Shell', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/uebersicht');
 
-    cy.byTestId('mobile-page-title').should('be.visible').and('have.text', 'Übersicht');
+    cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
   });
 
-  it('keeps the mobile page title out of the accessibility tree, since the real h1 already names the page', () => {
+  it('keeps the page title out of the accessibility tree, since the real h1 already names the page', () => {
     cy.loginDefault();
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/uebersicht');
 
-    cy.byTestId('mobile-page-title').should('have.attr', 'aria-hidden', 'true');
+    cy.byTestId('page-title').should('have.attr', 'aria-hidden', 'true');
   });
 
-  it('hides the mobile page title on desktop, where the sidebar already names the page', () => {
+  it('shows the page title in the header on desktop too', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
 
-    cy.byTestId('mobile-page-title').should('not.be.visible');
+    cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
   });
 
 });

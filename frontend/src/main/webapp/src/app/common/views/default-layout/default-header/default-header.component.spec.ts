@@ -263,7 +263,7 @@ describe('DefaultHeaderComponent', () => {
         fixture.detectChanges();
 
         const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
-        expect(badge.textContent!.trim()).toBe('Geschlossen');
+        expect(badge.textContent!.trim()).toBe('Ausgabe geschlossen');
     });
 
     it('shows the distribution as open with its start time when one is active', () => {
@@ -276,7 +276,7 @@ describe('DefaultHeaderComponent', () => {
         const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
         // collapses the incidental inter-element whitespace Angular's template renders, not the
         // content itself
-        expect(badge.textContent!.replace(/\s+/g, ' ').trim()).toBe('Geöffnet · 07:15');
+        expect(badge.textContent!.replace(/\s+/g, ' ').trim()).toBe('Ausgabe geöffnet · 07:15');
     });
 
     it('does not treat an already-closed distribution as active', () => {
@@ -289,7 +289,7 @@ describe('DefaultHeaderComponent', () => {
         fixture.detectChanges();
 
         const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
-        expect(badge.textContent!.trim()).toBe('Geschlossen');
+        expect(badge.textContent!.trim()).toBe('Ausgabe geschlossen');
     });
 
     it('shows no environment banner on production, where the label is empty', () => {
@@ -312,8 +312,8 @@ describe('DefaultHeaderComponent', () => {
         expect(banner.textContent!.trim()).toBe('DEV-Umgebung');
     });
 
-    // The sidebar names the open page on desktop, but on mobile it is closed by default - this is
-    // the only visible indication of which page is open in that case.
+    // Shown on every viewport; on mobile it is even the only visible indication of the open page,
+    // since the sidebar starts closed there.
     it('shows the active route title in the header, hidden from a screen reader that already has the real h1', async () => {
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         fixture.detectChanges();
@@ -321,7 +321,7 @@ describe('DefaultHeaderComponent', () => {
         await TestBed.inject(Router).navigate(['/uebersicht']);
         fixture.detectChanges();
 
-        const title: HTMLElement = fixture.nativeElement.querySelector('[testid="mobile-page-title"]');
+        const title: HTMLElement = fixture.nativeElement.querySelector('[testid="page-title"]');
         expect(title.textContent!.trim()).toBe('Übersicht');
         expect(title.getAttribute('aria-hidden')).toBe('true');
     });

@@ -136,7 +136,7 @@ Mit der Tastenkombination **Strg+K** (bzw. **Cmd+K** auf macOS) – oder über d
 
 Angezeigt werden nur Menüpunkte und Kunden, für die der angemeldete Benutzer berechtigt ist; Menüpunkte, die eine aktive Ausgabe voraussetzen, erscheinen nur während eines Ausgabetags. Mit den **Pfeiltasten** wird durch die Treffer navigiert, **Enter** öffnet den ersten Treffer direkt aus dem Suchfeld, **Esc** schließt die Schnellsuche wieder.
 
-Oben rechts in der Kopfzeile zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Direkt daneben zeigt ein weiteres Badge dauerhaft den Status des Ausgabetags ("Geöffnet" bzw. "Geschlossen"), bei einer geöffneten Ausgabe zusätzlich mit ihrer Startzeit – nicht nur auf der Übersicht (siehe [Übersicht (Dashboard)](#übersicht-dashboard)), sondern auf jeder Seite der Anwendung. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
+Links in der Kopfzeile wird neben den Schaltflächen immer der Name der gerade geöffneten Seite angezeigt. Oben rechts zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Direkt daneben zeigt ein weiteres Badge dauerhaft den Status des Ausgabetags ("Ausgabe geöffnet" bzw. "Ausgabe geschlossen"), bei einer geöffneten Ausgabe zusätzlich mit ihrer Startzeit – nicht nur auf der Übersicht (siehe [Übersicht (Dashboard)](#übersicht-dashboard)), sondern auf jeder Seite der Anwendung. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
 
 <a id="bedienung-mit-der-tastatur"></a>
 
@@ -161,7 +161,7 @@ Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei 
 
 Umgestellt wird in zwei Stufen:
 
-- **Unter rund 1.000 Pixel Breite** (Tablets, schmale Fenster) wird die Seitenleiste ausgeblendet und stattdessen über das Menü-Symbol (☰) links oben als Überblendung geöffnet. Sie schließt sich wieder, sobald ein Menüpunkt gewählt oder daneben getippt wird. Die Schaltfläche zum Einklappen auf reine Icons entfällt in dieser Ansicht. Da die Seitenleiste die aktuelle Seite normalerweise über ihre Markierung im Menü anzeigt, das in dieser Ansicht aber geschlossen ist, wird stattdessen der Name der aktuellen Seite zusätzlich in der Kopfzeile angezeigt.
+- **Unter rund 1.000 Pixel Breite** (Tablets, schmale Fenster) wird die Seitenleiste ausgeblendet und stattdessen über das Menü-Symbol (☰) links oben als Überblendung geöffnet. Sie schließt sich wieder, sobald ein Menüpunkt gewählt oder daneben getippt wird. Die Schaltfläche zum Einklappen auf reine Icons entfällt in dieser Ansicht. Der Name der aktuellen Seite bleibt dabei über die Kopfzeile sichtbar, auch wenn das Menü geschlossen ist.
 - **Unter rund 770 Pixel Breite** (Handys) werden zusätzlich alle Tabellen als **Kartenliste** dargestellt: eine Karte je Eintrag, in der die Tabellenspalten als Beschriftung und Wert untereinander stehen. Formulare werden einspaltig untereinander angeordnet statt in mehreren Spalten nebeneinander.
 
 ![Navigation auf schmalen Bildschirmen](images/mobil-navigation.jpg)
