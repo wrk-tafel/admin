@@ -246,6 +246,10 @@ export class CustomerSearchComponent {
     return !!customer.validUntil && !dayjs(customer.validUntil).startOf('day').isBefore(dayjs().startOf('day'));
   }
 
+  personsCount(customer: CustomerData): number {
+    return 1 + (customer.additionalPersons ?? []).filter(person => !person.excludeFromHousehold).length;
+  }
+
   /**
    * Prefills "Kunden anlegen" from the current query where that is plausible: a name, not a
    * customer number that just did not match anything. Two-or-more words are read as first name(s)

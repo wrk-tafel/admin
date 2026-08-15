@@ -111,7 +111,7 @@ export class CustomerDuplicatesComponent {
   }
 
   personCount(customer: CustomerData): number {
-    return 1 + (customer.additionalPersons?.length ?? 0);
+    return 1 + (customer.additionalPersons ?? []).filter(person => !person.excludeFromHousehold).length;
   }
 
   formatFieldValue(field: DuplicateComparisonField, customer: CustomerData): string {

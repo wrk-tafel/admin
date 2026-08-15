@@ -1,7 +1,10 @@
 import * as path from 'path';
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {Gender} from '../support/commands';
 import {MAIN_CONTENT} from '../support/accessibility';
+
+const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
 
 describe('Customer Overview', () => {
 
@@ -36,6 +39,69 @@ describe('Customer Overview', () => {
         });
 
       cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
+  });
+
+  it('persons column skips persons excluded from the household', () => {
+    cy.createDistribution();
+
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        telephoneNumber: '0123456789',
+        email: 'firstname.lastname@test.com',
+        employer: 'employer-' + randomNumber,
+        country: AUSTRIA,
+        income: 1000,
+        incomeDue: dayjs().add(30, 'days').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        },
+        validUntil: dayjs().add(1, 'year').toDate(),
+        additionalPersons: [
+          {
+            id: 0,
+            key: 0,
+            firstname: 'child-firstname-' + randomNumber,
+            lastname: 'child-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(5, 'year').toDate(),
+            gender: Gender.MALE,
+            country: AUSTRIA,
+            excludeFromHousehold: false,
+            receivesFamilyAllowance: false
+          },
+          {
+            id: 0,
+            key: 1,
+            firstname: 'excluded-firstname-' + randomNumber,
+            lastname: 'excluded-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(10, 'year').toDate(),
+            gender: Gender.FEMALE,
+            country: AUSTRIA,
+            excludeFromHousehold: true,
+            receivesFamilyAllowance: false
+          }
+        ]
+      }).then((response) => {
+        const customer = response.body.data;
+
+        cy.closeDistribution();
+        cy.visit('/kunden/uebersicht');
+
+        // main person + 1 included person; the excluded one is listed on the household but not counted
+        cy.contains('[testid^="overview-id-"]', customer.id!.toString())
+          .closest('tr')
+          .scrollIntoView()
+          .within(() => {
+            cy.get('[testid^="overview-persons-"]').should('contain.text', '2');
+          });
+      });
     });
   });
 

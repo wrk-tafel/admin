@@ -56,10 +56,10 @@ class CountryDistributionExporterTest {
                     } - Verteilung Nationalitäten",
                 ),
                 listOf("Nationalität", "Haushalte", "Prozent"),
-                listOf("Österreich", "4", "44,44"),
-                listOf("Deutschland", "2", "22,22"),
-                listOf("Schweiz", "2", "22,22"),
-                listOf("Frankreich", "1", "11,11"),
+                listOf("Österreich", "2", "33,33"),
+                listOf("Deutschland", "2", "33,33"),
+                listOf("Frankreich", "1", "16,67"),
+                listOf("Schweiz", "1", "16,67"),
             ),
         )
     }
@@ -80,6 +80,40 @@ class CountryDistributionExporterTest {
         household.persons.add(
             PersonEntity(household = household, country = testCountry2).apply {
                 birthDate = startedAt.toLocalDate().plusYears(2)
+            },
+        )
+
+        val testStatisticDistribution = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            households = listOf(
+                DistributionHouseholdEntity(distribution = this, household = household, ticketNumber = 1),
+            )
+        }
+        val testStatistic = DistributionStatisticEntity(distribution = testStatisticDistribution)
+        testStatisticDistribution.statistic = testStatistic
+
+        val rows = CountryDistributionExporter().getRows(testStatistic)
+
+        assertThat(rows.drop(2)).isEqualTo(
+            listOf(
+                listOf(testCountry1.name, "1", "100,00"),
+            ),
+        )
+    }
+
+    @Test
+    fun `persons excluded from the household are left out`() {
+        val startedAt = LocalDateTime.now()
+        val household = HouseholdEntity(householdId = 901, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = startedAt.toLocalDate().minusYears(25)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry2).apply {
+                birthDate = startedAt.toLocalDate().minusYears(20)
+                excludeFromHousehold = true
             },
         )
 

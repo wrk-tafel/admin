@@ -425,7 +425,7 @@ class HouseholdService(
             household.id?.toString() ?: "",
             listOfNotNull(mainPerson?.lastname, mainPerson?.firstname).joinToString(" "),
             formatHouseholdAddress(household.address),
-            household.persons.size.toString(),
+            household.persons.count { !it.excludeFromHousehold }.toString(),
             householdValidityLabel(household),
             CSV_ROW_DATE_FORMATTER.format(date),
         )

@@ -52,15 +52,15 @@ class AgeDistributionExporterTest {
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
                 listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt"),
                 listOf("0-20", "0", "0,00", "1", "0"),
-                listOf("21-30", "1", "25,00", "2", "2"),
-                listOf("31-40", "0", "0,00", "1", "0"),
+                listOf("21-30", "1", "25,00", "1", "1"),
+                listOf("31-40", "0", "0,00", "0", "0"),
                 listOf("41-50", "0", "0,00", "0", "0"),
                 listOf("51-60", "1", "25,00", "1", "1"),
-                listOf("61-70", "0", "0,00", "1", "0"),
+                listOf("61-70", "0", "0,00", "0", "0"),
                 listOf("71-80", "0", "0,00", "1", "0"),
                 listOf("81-90", "2", "50,00", "2", "1"),
                 listOf("91+", "0", "0,00", "0", "0"),
-                listOf("gesamt", "4", "100,00", "9", "2"),
+                listOf("gesamt", "4", "100,00", "6", "1"),
             ),
         )
     }
@@ -142,6 +142,36 @@ class AgeDistributionExporterTest {
             // born two years after that distribution, i.e. not a member of the household back then
             PersonEntity(household = household, country = testCountry1).apply {
                 birthDate = startedAt.toLocalDate().plusYears(2)
+            },
+        )
+
+        val testStatistic = statisticOf(startedAt, household)
+
+        val rows = AgeDistributionExporter().getRows(testStatistic)
+
+        assertThat(rows.first { it[0] == "0-20" }[3]).isEqualTo("1")
+        assertThat(rows.first { it[0] == "21-30" }[3]).isEqualTo("1")
+        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "2", "2"))
+    }
+
+    @Test
+    fun `persons excluded from the household are left out`() {
+        val startedAt = LocalDateTime.now()
+        val household = HouseholdEntity(householdId = 900, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = startedAt.toLocalDate().minusYears(25)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = startedAt.toLocalDate().minusYears(5)
+            },
+        )
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = startedAt.toLocalDate().minusYears(30)
+                excludeFromHousehold = true
             },
         )
 
