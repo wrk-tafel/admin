@@ -1,6 +1,6 @@
 <mat-card class="h-full mat-card-{{ panelColor() }}" testid="recorded-food-collections-panel">
   <mat-card-content class="!p-4">
-    <h2 class="tafel-h4 mb-1">Erfasste Routen (Anzahl)</h2>
+    <h2 class="tafel-h4 mb-1">Erfasste Routen</h2>
     @if (countRecorded() !== null && countTotal() !== null) {
       <div testid="recorded-food-collections-count" class="text-4xl leading-none">{{ countRecorded() }} / {{ countTotal() }}</div>
     } @else {
