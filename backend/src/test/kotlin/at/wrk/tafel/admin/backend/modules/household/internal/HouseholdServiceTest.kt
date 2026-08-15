@@ -23,6 +23,8 @@ import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
+import at.wrk.tafel.admin.backend.modules.household.IncomeQuickCheckPersonItem
+import at.wrk.tafel.admin.backend.modules.household.IncomeQuickCheckRequest
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
@@ -199,6 +201,61 @@ class HouseholdServiceTest {
                 birthDate = LocalDate.now().minusYears(30),
                 monthlyIncome = BigDecimal("1000"),
                 excludeFromIncomeCalculation = false,
+            ),
+        )
+    }
+
+    @Test
+    fun `quickcheck maps the minimal person data to validation persons`() {
+        val request = IncomeQuickCheckRequest(
+            persons = listOf(
+                IncomeQuickCheckPersonItem(
+                    birthDate = LocalDate.now().minusYears(30),
+                    income = BigDecimal("1000"),
+                ),
+                IncomeQuickCheckPersonItem(
+                    birthDate = LocalDate.now().minusYears(5),
+                    income = null,
+                    receivesFamilyAllowance = true,
+                ),
+            ),
+        )
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4"),
+        )
+
+        val result = service.quickCheck(request)
+
+        assertThat(result).isEqualTo(
+            IncomeValidatorResult(
+                valid = true,
+                totalSum = BigDecimal("1"),
+                limit = BigDecimal("2"),
+                toleranceValue = BigDecimal("3"),
+                amountExceededLimit = BigDecimal("4"),
+            ),
+        )
+
+        val incomeValidatorPersonsSlot = slot<List<IncomeValidatorPerson>>()
+        verify { incomeValidatorService.validate(capture(incomeValidatorPersonsSlot)) }
+
+        assertThat(incomeValidatorPersonsSlot.captured).containsExactly(
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(30),
+                monthlyIncome = BigDecimal("1000"),
+                excludeFromIncomeCalculation = false,
+                receivesFamilyAllowance = false,
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(5),
+                monthlyIncome = null,
+                excludeFromIncomeCalculation = false,
+                receivesFamilyAllowance = true,
             ),
         )
     }

@@ -3,6 +3,7 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 
 import {CustomerEditComponent} from './views/customer-edit/customer-edit.component';
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
+import {CustomerQuickCheckComponent} from './views/customer-quickcheck/customer-quickcheck.component';
 import {CustomerDataResolver} from './resolver/customerdata-resolver.component';
 import {CustomerNotesResolver} from './resolver/customernotes-resolver.component';
 import {CustomerDocumentsResolver} from './resolver/customerdocuments-resolver.component';
@@ -47,6 +48,11 @@ export const routes: Routes = [
     path: 'suchen',
     title: 'Kunden suchen',
     component: CustomerSearchComponent
+  },
+  {
+    path: 'schnellcheck',
+    title: 'Anspruch-Schnellcheck',
+    component: CustomerQuickCheckComponent
   },
   {
     path: 'duplikate',

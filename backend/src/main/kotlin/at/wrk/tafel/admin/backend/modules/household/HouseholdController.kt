@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
+import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
@@ -27,9 +28,16 @@ class HouseholdController(
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse {
-        val result = householdService.validate(household)
-        return ValidateHouseholdResponse(
+    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse =
+        mapToValidateHouseholdResponse(householdService.validate(household))
+
+    @PostMapping("/income-quickcheck")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun incomeQuickCheck(@Valid @RequestBody request: IncomeQuickCheckRequest): ValidateHouseholdResponse =
+        mapToValidateHouseholdResponse(householdService.quickCheck(request))
+
+    private fun mapToValidateHouseholdResponse(result: IncomeValidatorResult): ValidateHouseholdResponse =
+        ValidateHouseholdResponse(
             valid = result.valid,
             totalSum = result.totalSum,
             limit = result.limit,
@@ -49,7 +57,6 @@ class HouseholdController(
                 additionalChildrenSum = result.details.additionalChildrenSum,
             ),
         )
-    }
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")

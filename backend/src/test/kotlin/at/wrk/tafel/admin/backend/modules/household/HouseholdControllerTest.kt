@@ -203,6 +203,65 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `income quickcheck`() {
+        val request = IncomeQuickCheckRequest(
+            persons = listOf(
+                IncomeQuickCheckPersonItem(birthDate = LocalDate.of(1990, 1, 1), income = BigDecimal("1200")),
+                IncomeQuickCheckPersonItem(birthDate = LocalDate.of(2015, 1, 1), receivesFamilyAllowance = true),
+            ),
+        )
+        every { householdService.quickCheck(request) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4"),
+            details = IncomeValidatorDetails(
+                incomeSum = BigDecimal("5"),
+                familyAllowanceSum = BigDecimal("6"),
+                childTaxAllowanceSum = BigDecimal("7"),
+                siblingAdditionSum = BigDecimal("8"),
+                baseLimit = BigDecimal("9"),
+                baseLimitCountAdults = 2,
+                baseLimitCountChildren = 1,
+                additionalAdultsCount = 3,
+                additionalAdultsSum = BigDecimal("10"),
+                additionalChildrenCount = 4,
+                additionalChildrenSum = BigDecimal("11"),
+            ),
+        )
+
+        val response = controller.incomeQuickCheck(request)
+
+        assertThat(response).isEqualTo(
+            ValidateHouseholdResponse(
+                valid = true,
+                totalSum = BigDecimal("1"),
+                limit = BigDecimal("2"),
+                toleranceValue = BigDecimal("3"),
+                amountExceededLimit = BigDecimal("4"),
+                details = IncomeCalculationDetails(
+                    incomeSum = BigDecimal("5"),
+                    familyAllowanceSum = BigDecimal("6"),
+                    childTaxAllowanceSum = BigDecimal("7"),
+                    siblingAdditionSum = BigDecimal("8"),
+                    baseLimit = BigDecimal("9"),
+                    baseLimitCountAdults = 2,
+                    baseLimitCountChildren = 1,
+                    additionalAdultsCount = 3,
+                    additionalAdultsSum = BigDecimal("10"),
+                    additionalChildrenCount = 4,
+                    additionalChildrenSum = BigDecimal("11"),
+                ),
+            ),
+        )
+
+        verify {
+            householdService.quickCheck(request)
+        }
+    }
+
+    @Test
     fun `create household - given id and exists already`() {
         every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
 

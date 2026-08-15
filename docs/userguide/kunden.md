@@ -79,6 +79,14 @@ Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhan
 
 ![Verlauf](images/kunden-verlauf.jpg)
 
+## Anspruch-Schnellcheck
+
+Unter **Kunden → Anspruch-Schnellcheck** lässt sich vorab klären, ob ein Haushalt überhaupt bezugsberechtigt wäre – bevor die restlichen Kundendaten (Namen, Adresse, Kontakt) erfasst werden. Pro Person im Haushalt werden nur Geburtsdatum und monatliches Einkommen eingetragen; weitere Personen werden über **Hinzufügen** ergänzt (und können über **Entfernen** wieder entfernt werden). Bei jeder weiteren Person steht zusätzlich das Kennzeichen **Bezieht Familienbeihilfe** zur Verfügung, das bei neu hinzugefügten Personen vorausgewählt ist.
+
+**Anspruch prüfen** zeigt dasselbe Ergebnis mit derselben vollständigen Berechnung wie der gleichnamige Button beim [Anlegen eines Kunden](#kunden-anlegen--bearbeiten) – inklusive der Meldung "Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert", falls für die eingegebene Zusammensetzung kein Grundbetrag hinterlegt ist. Fällt der Schnellcheck positiv aus, führt der Button **Kunden anlegen** direkt weiter zur vollständigen Kundenanlage; die Daten sind dort erneut einzugeben.
+
+![Anspruch-Schnellcheck](images/kunden-schnellcheck.jpg)
+
 ## Kunden anlegen / bearbeiten
 
 Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
