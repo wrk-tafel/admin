@@ -88,4 +88,39 @@ describe('RecordedFoodCollectionsComponent', () => {
     expect(color).toBe('success');
   });
 
+  it('renders the ratio as a progress bar once a total is known', () => {
+    globalStateService.getCurrentDistribution.mockReturnValue(signal({id: 123, startedAt: new Date()}).asReadonly());
+
+    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('countRecorded', 2);
+    componentRef.setInput('countTotal', 5);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('[testid="recorded-food-collections-progress"]'));
+    expect(bar.attributes['aria-valuenow']).toBe('40');
+  });
+
+  it('renders no progress bar before a total is known', () => {
+    globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+
+    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-progress"]'))).toBeNull();
+  });
+
+  it('renders a 0%-wide progress bar when nothing is recorded yet, not none at all', () => {
+    globalStateService.getCurrentDistribution.mockReturnValue(signal({id: 123, startedAt: new Date()}).asReadonly());
+
+    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('countRecorded', 0);
+    componentRef.setInput('countTotal', 5);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('[testid="recorded-food-collections-progress"]'));
+    expect(bar.attributes['aria-valuenow']).toBe('0');
+  });
+
 });

@@ -25,7 +25,8 @@ readonly data: Signal<DashboardData | undefined> = toSignal(
 ```
 
 `DashboardData` carries everything that isn't already tracked globally: `registeredCustomers`,
-`tickets` (processed/total), `logistics` (food collection + food amount counters, plus
+`tickets` (processed/total), `logistics` (food collection + food amount counters, `allRouteNames`
+- every enabled route, not just the recorded ones, see "Route chips" below - plus
 `routeProgress` - the stops each route has ticked off today in the route guidance screen) and
 `statistics`
 (current employee count / selected shelter names) plus free-text `notes`. The template
@@ -91,7 +92,7 @@ dashboard/
     registered-customers/               # customer count card + PDF customer-list download
     tickets-processed/                  # processed/total ticket count card
     recorded-food-collections/          # recorded/total food-collection count card
-    recorded-route-names/               # names of routes fully recorded so far
+    recorded-route-names/               # one chip per active route, recorded vs outstanding
     food-amount/                        # total recorded food weight (kg) card
     distribution-statistics-input/      # end-of-day form: employee count + shelter occupancy
     distribution-notes-input/           # free-text notes form for the distribution
@@ -111,6 +112,18 @@ pure presentation (`FoodAmountComponent`, `TicketsProcessedComponent`) or talks 
 shelter list via `ShelterApiService.getActiveShelters()` before the route activates, so
 `sheltersData` is available as a route-resolved `input()` on `DashboardComponent` immediately —
 no loading spinner needed for the shelter picker used by `distribution-statistics-input`.
+
+## Route chips
+
+`RecordedRouteNamesComponent` renders one `mat-chip` per entry in `allRouteNames` (every route
+still driven today), styled green/checked when its name is also in `recordedRouteNames` and left
+neutral otherwise. The outstanding chips are the actionable information - "who hasn't handed in
+yet" - so this is deliberately not the same list `foodCollectionsRecordedCount`/`Total` counts:
+those two only need `RouteRepository.findByEnabledIsTrue().size`, whereas this panel needs every
+enabled route's *name*, sourced straight from `DashboardService.getLogisticsData()` alongside
+`recordedRouteNames` rather than from a separate `/routes/active` call - that endpoint requires the
+`LOGISTICS` permission, which would make the route status invisible to any user without it even
+though every other panel here is open to `isAuthenticated()` alone.
 
 ## Notable component details
 
@@ -147,3 +160,9 @@ no loading spinner needed for the shelter picker used by `distribution-statistic
 - `distribution-statistics-input` and `distribution-notes-input` both reset their own local state
   via an `effect()` keyed off `GlobalStateService`'s distribution signal — if you add a new input
   field to the end-of-day form, remember to also reset it in `distributionEffect`.
+- `tickets-processed`/`recorded-food-collections`'s ratio bars are plain `<div>`s (a white fill on
+  a translucent-white track), not `mat-progress-bar`: both panels are colour-filled cards
+  (`mat-card-primary`/`warning`/`success`), and a white-on-translucent bar is what stays legible
+  against all three without needing per-palette Material token overrides. Guard a new one on
+  `!== null` rather than `@if (percent(); as p)` - a real 0% is falsy and would otherwise render as
+  "no bar at all".

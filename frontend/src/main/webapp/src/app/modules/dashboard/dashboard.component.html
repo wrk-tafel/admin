@@ -16,6 +16,7 @@
                                    [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
   </tafel-recorded-food-collections>
   <tafel-recorded-route-names class="lg:col-span-2"
+                              [allRouteNames]="data()?.logistics?.allRouteNames ?? null"
                               [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
   </tafel-recorded-route-names>
   <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">

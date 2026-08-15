@@ -238,6 +238,7 @@ internal class DashboardServiceTest {
         assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(2)
         assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
         assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
+        assertThat(data.logistics.allRouteNames).containsExactly("Route 1", "Route 2", "Route 3", "Route 4")
         assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(140))
         // nobody has ticked a stop off today, so the panel has nothing to say yet
         assertThat(data.logistics.routeProgress).isEmpty()
