@@ -86,6 +86,23 @@ describe('AuditEntryListComponent', () => {
       .toBe('Nr. 1234');
   });
 
+  // A username is not a record number - "Nr." in front of one reads as if it were.
+  it('shows the bare username for a login entry, without a "Nr." prefix', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'UserLogin', operation: 'LOGIN', businessKey: 'test-user', entityId: 7, changes: []}
+    ], true).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('test-user');
+  });
+
+  it('shows the bare username for a user entry too, same reasoning', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'User', businessKey: 'test-user', entityId: 7}
+    ], true).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('test-user');
+  });
+
   it('attributes an entry without an acting user to the system', () => {
     const element: HTMLElement = createComponent([{...entry, actorUsername: undefined}]).nativeElement;
 

@@ -26,11 +26,11 @@
               @if (showSubject() && entry.businessKey) {
                 @if (subjectLink(entry); as link) {
                   <a [routerLink]="link" class="underline" [attr.testid]="'audit-entry-' + i + '-businessKey'"
-                     [attr.aria-label]="entityTypeLabel(entry.entityType) + ' Nr. ' + entry.businessKey + ' öffnen'">
-                    Nr. {{ entry.businessKey }}
+                     [attr.aria-label]="entityTypeLabel(entry.entityType) + ' ' + businessKeyLabel(entry) + ' öffnen'">
+                    {{ businessKeyLabel(entry) }}
                   </a>
                 } @else {
-                  <span [attr.testid]="'audit-entry-' + i + '-businessKey'">Nr. {{ entry.businessKey }}</span>
+                  <span [attr.testid]="'audit-entry-' + i + '-businessKey'">{{ businessKeyLabel(entry) }}</span>
                 }
               }
             </div>

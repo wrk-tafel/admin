@@ -15,6 +15,13 @@ import {AuthenticationService} from '../../security/authentication.service';
 /** The entity types whose business key is a household number - the backend's `AuditScope.householdScoped`. */
 const HOUSEHOLD_SCOPED_ENTITY_TYPES = ['Household', 'Person', 'HouseholdNote', 'Document'];
 
+/**
+ * The entity types whose business key is a username rather than a number - "Nr." reads as a record
+ * number, which a username never is (see `AuditScope`'s `businessKey` for `User`/`UserAuthority`/
+ * the login entry `LoginAuditService` writes).
+ */
+const USERNAME_SCOPED_ENTITY_TYPES = ['User', 'UserAuthority', 'UserLogin'];
+
 /** One day's entries, as the list renders them under a single heading. */
 interface AuditEntryDayGroup {
   /** `yyyy-MM-dd` - what the entries were grouped on, and the `@for` track key. */
@@ -113,6 +120,11 @@ export class AuditEntryListComponent {
 
   protected entityTypeLabel(entityType: string): string {
     return auditEntityTypeLabel[entityType] ?? entityType;
+  }
+
+  /** The business key as shown next to an entry: "Nr. 1234" for a record number, the bare username where it is one. */
+  protected businessKeyLabel(entry: AuditEntryItem): string {
+    return USERNAME_SCOPED_ENTITY_TYPES.includes(entry.entityType) ? `${entry.businessKey}` : `Nr. ${entry.businessKey}`;
   }
 
   protected operationLabel(operation: AuditOperation): string {
