@@ -77,7 +77,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CUSTOMER']
   },
   {
-    name: 'Sonstige',
+    name: 'Auswertungen',
     icon: faEllipsis,
     children: [
       {
@@ -118,7 +118,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     activeDistributionRequired: true
   },
   {
-    name: 'Sonstige',
+    name: 'Verwaltung',
     title: true
   },
   {
@@ -172,8 +172,8 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['SETTINGS'],
     children: [
       {
-        name: 'E-Mail',
-        url: '/einstellungen/email'
+        name: 'Stammdaten',
+        title: true
       },
       {
         name: 'Fahrzeuge',
@@ -182,14 +182,6 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Filialen',
         url: '/einstellungen/filialen'
-      },
-      {
-        name: 'Grenzwerte',
-        url: '/einstellungen/statische-werte'
-      },
-      {
-        name: 'Mitarbeiter',
-        url: '/einstellungen/mitarbeiter'
       },
       {
         name: 'Notschlafstellen',
@@ -206,6 +198,22 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Retour-Kategorien',
         url: '/einstellungen/retourkategorien'
+      },
+      {
+        name: 'Systemverwaltung',
+        title: true
+      },
+      {
+        name: 'E-Mail',
+        url: '/einstellungen/email'
+      },
+      {
+        name: 'Grenzwerte',
+        url: '/einstellungen/statische-werte'
+      },
+      {
+        name: 'Mitarbeiter',
+        url: '/einstellungen/mitarbeiter'
       },
     ],
   },

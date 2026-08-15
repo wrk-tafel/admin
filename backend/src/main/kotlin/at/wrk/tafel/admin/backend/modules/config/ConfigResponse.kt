@@ -13,6 +13,7 @@ fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
     version = version,
     buildTime = buildTime,
     scannerFolderEnabled = scannerFolderAvailable,
+    environmentLabel = environmentLabel.trim(),
 )
 
 @ExcludeFromTestCoverage
@@ -26,13 +27,19 @@ data class ConfigResponse(
      * anything, indistinguishable from "nobody has scanned yet".
      */
     val scannerFolderEnabled: Boolean,
+    /**
+     * Which environment this deployment is ("DEV", "TEST"), empty on production. The shell renders
+     * it as a banner so an already-logged-in session stays visibly distinguishable from production,
+     * the same fact [PublicConfigResponse.environmentLabel] gives the login page before that.
+     */
+    val environmentLabel: String,
 )
 
 /**
  * What an anonymous caller may read (see `ConfigController.getPublicConfig`). [environmentLabel] is
  * empty on production and set per deployment elsewhere ("DEV", "TEST"), which is what the login
- * page shows as a full-width banner above the login card so it's obvious which environment is
- * being logged into.
+ * page shows beneath its title so it's obvious which environment is being logged into - the same
+ * value [ConfigResponse.environmentLabel] carries on for an already-authenticated session.
  * [accountLockoutDurationInSeconds] mirrors `security.loginAttempts.lockoutDurationInSeconds`
  * (`ApplicationProperties`, fixed at startup) so the login page's lockout message can tell a locked-
  * out user how long to wait without hardcoding a number that could drift from the actual setting.

@@ -10,6 +10,8 @@ import { provideRouter, Router, TitleStrategy } from '@angular/router';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { TafelTitleStrategy } from '../../util/tafel-title-strategy';
+import { By } from '@angular/platform-browser';
+import { MatTooltip } from '@angular/material/tooltip';
 
 describe('DefaultLayoutComponent', () => {
     let authService: MockedObject<AuthenticationService>;
@@ -27,7 +29,9 @@ describe('DefaultLayoutComponent', () => {
         };
         const configApiServiceSpy = {
             observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
-                .mockReturnValue(of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true}))
+                .mockReturnValue(of({
+                    version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
+                }))
         };
 
         TestBed.configureTestingModule({
@@ -58,6 +62,12 @@ describe('DefaultLayoutComponent', () => {
         globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
     });
 
+    // A leftover value from one test's persistence would otherwise change what the next test's
+    // component reads at construction.
+    afterEach(() => {
+        localStorage.clear();
+    });
+
     it('should create the component', () => {
         authService.hasAnyPermission.mockReturnValue(false);
 
@@ -72,7 +82,9 @@ describe('DefaultLayoutComponent', () => {
         const component = fixture.componentInstance;
         fixture.detectChanges();
 
-        expect(component.appConfig()).toEqual({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true});
+        expect(component.appConfig()).toEqual({
+            version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
+        });
     });
 
     it('shows the version footer without a "v" prefix when expanded', () => {
@@ -463,6 +475,80 @@ return true;
 
         expect(link.getAttribute('tabindex')).toBe('-1');
         expect(link.getAttribute('aria-disabled')).toBe('true');
+    });
+
+    // A vanished entry used to read as "the menu is broken" - the tooltip is what tells a user
+    // reaching a disabled entry (expanded, so the name itself is already visible) *why* it's
+    // disabled, not just that it is.
+    it('names the reason a distribution-gated nav entry is disabled, even while expanded', () => {
+        authService.hasPermission.mockReturnValue(true);
+        authService.hasAnyPermission.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        const disabledName = component.navItems().find(item => item.attributes?.disabled)!.name;
+        const linkDebugEl = fixture.debugElement.queryAll(By.css('nav a'))
+            .find(el => (el.nativeElement as HTMLElement).textContent!.includes(disabledName))!;
+
+        expect(linkDebugEl.injector.get(MatTooltip).message).toBe('Keine Verteilung aktiv');
+    });
+
+    // "Einstellungen" mixes logistics master data with system administration - the sub-group labels
+    // are what makes the right entry findable without reading all nine flat entries.
+    it('splits the Einstellungen submenu into labeled sub-groups instead of one flat list', () => {
+        authService.hasPermission.mockReturnValue(true);
+        authService.hasAnyPermission.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        const settingsToggle: HTMLButtonElement = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('nav button'))
+            .find(button => button.textContent!.includes('Einstellungen'))!;
+        settingsToggle.click();
+        fixture.detectChanges();
+
+        const group: HTMLElement = fixture.nativeElement.querySelector('#nav-group-' + fixture.componentInstance.navItems()
+            .findIndex(item => item.name === 'Einstellungen'));
+        const labels = Array.from(group.querySelectorAll('div')).map(el => el.textContent!.trim());
+        expect(labels).toEqual(['Stammdaten', 'Systemverwaltung']);
+
+        // the sub-group labels are not links - only the actual entries are
+        const links = Array.from<HTMLAnchorElement>(group.querySelectorAll('a')).map(a => a.textContent!.trim());
+        expect(links).toEqual([
+            'Fahrzeuge', 'Filialen', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
+            'E-Mail', 'Grenzwerte', 'Mitarbeiter'
+        ]);
+    });
+
+    it('remembers the collapsed sidebar across a reload', () => {
+        const firstFixture = TestBed.createComponent(DefaultLayoutComponent);
+        firstFixture.detectChanges();
+        firstFixture.componentInstance.toggleCollapsed();
+        // the persisting effect runs on the next change detection, not synchronously on the signal write
+        firstFixture.detectChanges();
+
+        expect(localStorage.getItem('tafel.sidenav.collapsed')).toBe('true');
+
+        const secondFixture = TestBed.createComponent(DefaultLayoutComponent);
+        expect(secondFixture.componentInstance.collapsed()).toBe(true);
+    });
+
+    it('remembers an expanded nav group across a reload', () => {
+        authService.hasPermission.mockReturnValue(true);
+        authService.hasAnyPermission.mockReturnValue(true);
+
+        const firstFixture = TestBed.createComponent(DefaultLayoutComponent);
+        firstFixture.detectChanges();
+        const groupName = firstFixture.componentInstance.navItems().find(item => item.children)!.name;
+        firstFixture.componentInstance.toggleExpanded(groupName);
+        firstFixture.detectChanges();
+
+        expect(JSON.parse(localStorage.getItem('tafel.sidenav.expandedGroups')!)).toEqual([groupName]);
+
+        const secondFixture = TestBed.createComponent(DefaultLayoutComponent);
+        expect(secondFixture.componentInstance.expandedItems().has(groupName)).toBe(true);
     });
 
 });

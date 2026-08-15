@@ -50,7 +50,7 @@
                 rendered at all in that state, so there is nothing for the button to control and
                 nothing its expanded state could describe.
               -->
-              <button type="button" (click)="toggleExpanded(item.name)"
+              <button type="button" (click)="toggleExpanded(item.name, $event)"
                       [attr.aria-expanded]="collapsed() ? null : expandedItems().has(item.name)"
                       [attr.aria-controls]="collapsed() ? null : 'nav-group-' + $index"
                       [disabled]="!!item.attributes?.disabled"
@@ -69,18 +69,21 @@
               </button>
             } @else {
               <!--
-                `pointer-events-none` alone only disables the mouse - a disabled entry stayed in the
-                tab order and still navigated on Enter, so it needs to leave the tab order too.
+                Disabled via a nulled `routerLink` (no `href`, so neither click nor Enter navigates)
+                plus `tabindex="-1"` to leave the tab order - NOT via `pointer-events: none`, which
+                would also swallow the hover that shows the tooltip explaining *why* the entry is
+                disabled.
               -->
-              <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                 (click)="isMobile() && sidenav.close()"
-                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+              <a [routerLink]="item.attributes?.disabled ? null : item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                 (click)="!item.attributes?.disabled && isMobile() && sidenav.close()"
+                 class="flex items-center gap-3 px-4 py-3"
+                 [ngClass]="item.attributes?.disabled ? 'cursor-default' : 'hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer'"
                  [class.justify-center]="collapsed()"
-                 [class.pointer-events-none]="item.attributes?.disabled"
                  [class.text-gray-400]="item.attributes?.disabled"
                  [attr.aria-disabled]="item.attributes?.disabled ? true : null"
                  [attr.tabindex]="item.attributes?.disabled ? -1 : null"
-                 [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
+                 [matTooltip]="item.attributes?.disabled ? 'Keine Verteilung aktiv' : (collapsed() ? item.name : '')"
+                 matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
@@ -95,14 +98,22 @@
             @if (item.children && !collapsed() && expandedItems().has(item.name)) {
               <div [id]="'nav-group-' + $index">
                 @for (child of item.children; track child.name) {
-                  <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                     (click)="isMobile() && sidenav.close()"
-                     class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
-                    @if (child.icon) {
-                      <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
-                    }
-                    <span>{{ child.name }}</span>
-                  </a>
+                  <!--
+                    A sub-group label rather than a link - splits a long flat submenu (e.g.
+                    "Einstellungen") into labeled sections without a second collapsible level.
+                  -->
+                  @if (child.title) {
+                    <div class="px-9 pt-2 pb-1 text-[10px] uppercase tracking-wide text-gray-500 font-semibold">{{ child.name }}</div>
+                  } @else {
+                    <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                       (click)="isMobile() && sidenav.close()"
+                       class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
+                      @if (child.icon) {
+                        <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
+                      }
+                      <span>{{ child.name }}</span>
+                    </a>
+                  }
                 }
               </div>
             }

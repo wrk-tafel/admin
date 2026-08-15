@@ -56,6 +56,12 @@ export interface AppConfig {
    * source must not be offered - it could never list anything.
    */
   scannerFolderEnabled: boolean;
+  /**
+   * Which environment this deployment is ("DEV", "TEST"), empty on production. Shown as a banner in
+   * the application shell so an already-logged-in session stays visibly distinguishable from
+   * production too, not just the login page (see {@link PublicAppConfig.environmentLabel}).
+   */
+  environmentLabel: string;
 }
 
 export interface PublicAppConfig {
