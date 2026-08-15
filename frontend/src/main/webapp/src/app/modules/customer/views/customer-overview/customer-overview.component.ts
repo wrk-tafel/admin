@@ -154,7 +154,7 @@ export class CustomerOverviewComponent {
   }
 
   personsCount(customer: CustomerData): number {
-    return 1 + (customer.additionalPersons?.length ?? 0);
+    return 1 + (customer.additionalPersons ?? []).filter(person => !person.excludeFromHousehold).length;
   }
 
   isCustomerValid(customer: CustomerData): boolean {

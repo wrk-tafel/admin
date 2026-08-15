@@ -119,6 +119,66 @@ describe('Customer Search', () => {
     });
   });
 
+  it('persons column skips persons excluded from the household', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        telephoneNumber: '0123456789',
+        email: 'firstname.lastname@test.com',
+        employer: 'employer-' + randomNumber,
+        country: AUSTRIA,
+        income: 1000,
+        incomeDue: dayjs().add(30, 'days').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        },
+        validUntil: dayjs().add(1, 'year').toDate(),
+        additionalPersons: [
+          {
+            id: 0,
+            key: 0,
+            firstname: 'child-firstname-' + randomNumber,
+            lastname: 'child-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(5, 'year').toDate(),
+            gender: Gender.MALE,
+            country: AUSTRIA,
+            excludeFromHousehold: false,
+            receivesFamilyAllowance: false
+          },
+          {
+            id: 0,
+            key: 1,
+            firstname: 'excluded-firstname-' + randomNumber,
+            lastname: 'excluded-lastname-' + randomNumber,
+            birthDate: dayjs().subtract(10, 'year').toDate(),
+            gender: Gender.FEMALE,
+            country: AUSTRIA,
+            excludeFromHousehold: true,
+            receivesFamilyAllowance: false
+          }
+        ]
+      }).then((response) => {
+        const customerId = response.body.data.id!;
+
+        cy.byTestId('searchInputText').type('lastname-' + randomNumber);
+        clickSearchAndWaitForResult();
+        cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+        // main person + 1 included person; the excluded one is listed on the household but not counted
+        cy.get(`a[href$="/kunden/detail/${customerId}"]`).filterDisplayed()
+          .closest('tr')
+          .find('[testid^="searchresult-personsCount-"]')
+          .should('have.text', '2');
+      });
+    });
+  });
+
   it('search by cost contribution', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

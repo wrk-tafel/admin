@@ -187,12 +187,19 @@ describe('CustomerOverviewComponent', () => {
   });
 
   describe('persons count and validity', () => {
-    it('counts the main person plus every additional person', () => {
+    it('counts the main person plus every additional person not excluded from the household', () => {
       const fixture = TestBed.createComponent(CustomerOverviewComponent);
       const component = fixture.componentInstance;
 
       expect(component.personsCount(mockNewItem.customer)).toEqual(2);
       expect(component.personsCount(mockRenewedItem.customer)).toEqual(1);
+      expect(component.personsCount({
+        ...mockNewItem.customer,
+        additionalPersons: [
+          ...mockNewItem.customer.additionalPersons!,
+          {excludeFromHousehold: true} as any
+        ]
+      })).toEqual(2);
     });
 
     it('treats a household with a future validUntil and no lock as valid', () => {

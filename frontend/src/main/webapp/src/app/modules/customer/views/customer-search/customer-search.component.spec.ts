@@ -346,4 +346,21 @@ describe('CustomerSearchComponent', () => {
     expect(fixture.debugElement.query(By.css('[testid="searchresult-showcustomer-button-42"]'))).toBeFalsy();
   });
 
+  it('persons count skips persons excluded from the household', () => {
+    apiService.searchCustomer.mockReturnValue(of({
+      ...searchCustomerMockResponse,
+      items: [{
+        ...testCustomer,
+        additionalPersons: [
+          ...testCustomer.additionalPersons,
+          {key: 2, id: 2, firstname: 'excluded', lastname: 'last', excludeFromHousehold: true, receivesFamilyAllowance: false}
+        ]
+      }]
+    }));
+    const {fixture} = createComponent();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-personsCount-0"]')).nativeElement.textContent).toBe('2');
+  });
+
 });

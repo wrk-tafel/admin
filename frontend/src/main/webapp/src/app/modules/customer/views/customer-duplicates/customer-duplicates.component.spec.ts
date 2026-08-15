@@ -188,12 +188,16 @@ describe('CustomerDuplicatesComponent', () => {
     expect(component.fieldDiffers(item, birthDateField)).toBe(false);
   });
 
-  it('person count includes additional persons', () => {
+  it('person count includes additional persons but skips persons excluded from the household', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
     expect(component.personCount(mockCustomer1)).toBe(1);
     expect(component.personCount({...mockCustomer1, additionalPersons: [{} as any, {} as any]})).toBe(3);
+    expect(component.personCount({
+      ...mockCustomer1,
+      additionalPersons: [{} as any, {excludeFromHousehold: true} as any]
+    })).toBe(2);
   });
 
   it('show customer detail calls router navigation', () => {

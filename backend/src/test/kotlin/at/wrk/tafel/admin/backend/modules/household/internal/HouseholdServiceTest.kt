@@ -1003,6 +1003,15 @@ class HouseholdServiceTest {
             persons = listOf(
                 Person(isMainPerson = true, firstname = "Max", lastname = "Mustermann", birthDate = LocalDate.of(1990, 1, 1), gender = null, country = testCountry),
                 Person(isMainPerson = false, firstname = "Erika", lastname = "Mustermann", birthDate = LocalDate.of(1992, 1, 1), gender = null, country = testCountry),
+                Person(
+                    isMainPerson = false,
+                    firstname = "Fritz",
+                    lastname = "Mustermann",
+                    birthDate = LocalDate.of(1995, 1, 1),
+                    gender = null,
+                    country = testCountry,
+                    excludeFromHousehold = true,
+                ),
             ),
         )
         val renewedHousehold = HouseholdResponse(
