@@ -1,4 +1,4 @@
-<div class="pb-20">
+<div class="grow">
   @if (liveEligibility(); as eligibility) {
     <div testid="eligibility-summary"
          class="sticky top-16 z-[5] mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border px-4 py-2 shadow-sm"
@@ -82,7 +82,7 @@
   </form>
 </div>
 
-<div testid="quickcheck-actionbar" class="sticky bottom-0 z-10 -mx-6 mt-4 flex items-center justify-end gap-2 border-t border-gray-200 bg-white px-6 py-3">
+<div testid="quickcheck-actionbar" class="sticky bottom-0 z-10 -mx-6 -mb-6 mt-4 flex items-center justify-end gap-2 border-t border-gray-200 bg-white px-6 py-3">
   <a testid="create-customer-link" matButton="outlined" routerLink="/kunden/anlegen" [state]="createCustomerState()">Kunden anlegen</a>
   <button type="button" testid="quickcheck-button" matButton="filled" (click)="check()">Anspruch prüfen</button>
 </div>

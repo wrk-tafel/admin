@@ -44,20 +44,31 @@ import {ValidationResultDialogComponent} from '../customer-edit/dialogs/validati
     NgClass,
     TafelAutofocusDirective,
     TafelInfoTooltipComponent
-  ]
+  ],
+  // Fills the height the layout gives the screen, so the sticky action bar rests at the bottom
+  // of the viewport even while the form is still short - same pattern as the dashboard.
+  host: {class: 'flex flex-1 flex-col'}
 })
 export class CustomerQuickCheckComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
+  // Three persons up front - the typical household - so most checks need no "Hinzufügen" first.
+  // Rows left empty simply stay out of the check.
   private formModel = signal<QuickCheckFormModel>({
-    persons: [createEmptyPerson()]
+    persons: [createEmptyPerson(), createEmptyPerson(true), createEmptyPerson(true)]
   });
 
   quickCheckForm = form(this.formModel, (schemaPath) => {
     applyEach(schemaPath.persons, (personPath) => {
-      required(personPath.birthDate, {message: 'Pflichtfeld'});
+      // An empty row is fine (it is not part of the check), but an income without a birthdate
+      // would silently be dropped from the calculation - so the birthdate becomes required as
+      // soon as an income is entered.
+      required(personPath.birthDate, {
+        message: 'Pflichtfeld',
+        when: (ctx) => ctx.valueOf(personPath.income) != null
+      });
       validate(personPath.birthDate, minDate(new Date(1900, 0, 1), {message: 'Datum muss nach dem 01.01.1900 liegen'}));
       validate(personPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}));
 
@@ -121,7 +132,13 @@ export class CustomerQuickCheckComponent {
       return;
     }
 
-    this.customerApiService.quickCheck(this.mapToRequestPersons(this.formModel().persons)).subscribe({
+    const persons = this.mapToRequestPersons(this.formModel().persons);
+    if (persons.length === 0) {
+      this.toastr.error('Bitte mindestens ein Geburtsdatum erfassen!');
+      return;
+    }
+
+    this.customerApiService.quickCheck(persons).subscribe({
       next: (result) => {
         this.dialog.open(ValidationResultDialogComponent, {
           data: {validationResult: result}

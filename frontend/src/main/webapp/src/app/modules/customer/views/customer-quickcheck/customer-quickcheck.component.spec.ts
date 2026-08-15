@@ -68,13 +68,19 @@ describe('CustomerQuickCheckComponent', () => {
     matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
   });
 
-  it('starts with a single person that has no family-allowance checkbox and no remove button', () => {
+  it('starts with three persons; only the first lacks the family-allowance checkbox and remove button', () => {
     const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
+    const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('[testid^="quickcheck-person-"]').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('[testid^="quickcheck-person-"]').length).toBe(3);
     expect(fixture.nativeElement.querySelector('[testid="receivesFamilyAllowanceInput-0"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('[testid="remove-person-0"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[testid="receivesFamilyAllowanceInput-1"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[testid="remove-person-2"]')).toBeTruthy();
+    // the pre-created additional rows default to receiving family allowance, like added ones
+    expect(component.quickCheckForm.persons().value()[1].receivesFamilyAllowance).toBe(true);
+    expect(component.quickCheckForm.persons().value()[2].receivesFamilyAllowance).toBe(true);
   });
 
   it('adds and removes persons; added persons default to receiving family allowance', () => {
@@ -85,20 +91,32 @@ describe('CustomerQuickCheckComponent', () => {
     component.addPerson();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('[testid^="quickcheck-person-"]').length).toBe(2);
-    expect(fixture.nativeElement.querySelector('[testid="receivesFamilyAllowanceInput-1"]')).toBeTruthy();
-    expect(component.quickCheckForm.persons().value()[1].receivesFamilyAllowance).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('[testid^="quickcheck-person-"]').length).toBe(4);
+    expect(component.quickCheckForm.persons().value()[3].receivesFamilyAllowance).toBe(true);
 
-    component.removePerson(1);
+    component.removePerson(3);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('[testid^="quickcheck-person-"]').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('[testid^="quickcheck-person-"]').length).toBe(3);
   });
 
-  it('rejects a check while a birthdate is still missing', () => {
+  it('rejects a check while no person has a birthdate yet', () => {
     const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
+
+    component.check();
+
+    expect(toastr.error).toHaveBeenCalledWith('Bitte mindestens ein Geburtsdatum erfassen!');
+    expect(apiService.quickCheck).not.toHaveBeenCalled();
+  });
+
+  it('rejects a check while a person has an income but no birthdate', () => {
+    const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.personField(0).income().value.set(1000);
 
     component.check();
 
@@ -106,7 +124,7 @@ describe('CustomerQuickCheckComponent', () => {
     expect(apiService.quickCheck).not.toHaveBeenCalled();
   });
 
-  it('sends the entered persons and shows the result dialog', () => {
+  it('sends only the persons with a birthdate and shows the result dialog', () => {
     apiService.quickCheck.mockReturnValue(of(testValidationResult));
 
     const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
@@ -118,8 +136,8 @@ describe('CustomerQuickCheckComponent', () => {
 
     component.personField(0).birthDate().value.set(mainBirthDate);
     component.personField(0).income().value.set(1000);
-    component.addPerson();
     component.personField(1).birthDate().value.set(childBirthDate);
+    // the third default row stays empty and must not be part of the request
 
     component.check();
 
@@ -141,8 +159,7 @@ describe('CustomerQuickCheckComponent', () => {
 
     component.personField(0).birthDate().value.set(mainBirthDate);
     component.personField(0).income().value.set(1000);
-    component.addPerson();
-    // the added person keeps its birthdate empty and must not be handed over
+    // the two empty default rows must not be handed over
 
     expect(component.createCustomerState()).toEqual({
       quickCheckPersons: [

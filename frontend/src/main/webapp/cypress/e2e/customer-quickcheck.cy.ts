@@ -11,17 +11,15 @@ describe('Customer QuickCheck', () => {
 
   it('answers a qualified household with the full breakdown dialog', () => {
     // same composition as the customer-create spec's breakdown case: 2 adults with 500 each plus
-    // one 3-year-old with family allowance
+    // one 3-year-old with family allowance - fits exactly into the three default rows
     cy.byTestId('birthDateInput-0').type(birthDateForAge(30));
     cy.byTestId('incomeInput-0').type('500');
 
-    cy.byTestId('addperson-button').click();
     cy.byTestId('birthDateInput-1').type(birthDateForAge(30));
     cy.byTestId('incomeInput-1').type('500');
-    // added persons default to receiving family allowance - this one is an adult
+    // the pre-created rows default to receiving family allowance - this one is an adult
     cy.byTestId('receivesFamilyAllowanceInput-1').click();
 
-    cy.byTestId('addperson-button').click();
     cy.byTestId('birthDateInput-2').type(birthDateForAge(3));
 
     cy.checkAccessibility(MAIN_CONTENT);
@@ -88,8 +86,8 @@ describe('Customer QuickCheck', () => {
 
     cy.byTestId('birthDateInput-0').type(adultBirthDate);
     cy.byTestId('incomeInput-0').type('1000');
-    cy.byTestId('addperson-button').click();
     cy.byTestId('birthDateInput-1').type(childBirthDate);
+    // the third default row stays empty and must not be handed over
 
     cy.byTestId('create-customer-link').click();
     cy.url().should('include', '/kunden/anlegen');
@@ -102,7 +100,19 @@ describe('Customer QuickCheck', () => {
       .and('contain.text', 'Familienbeihilfe');
   });
 
-  it('rejects a check while a birthdate is missing', () => {
+  it('rejects a check while no person has a birthdate yet', () => {
+    cy.byTestId('quickcheck-button').click();
+
+    cy.get('.toast-message')
+      .should('be.visible')
+      .should('contain.text', 'Bitte mindestens ein Geburtsdatum erfassen!');
+    cy.byTestId('validationresult-dialog').should('not.exist');
+  });
+
+  it('rejects a check while a person has an income but no birthdate', () => {
+    cy.byTestId('birthDateInput-0').type(birthDateForAge(30));
+    cy.byTestId('incomeInput-1').type('500');
+
     cy.byTestId('quickcheck-button').click();
 
     cy.get('.toast-message')
@@ -123,12 +133,13 @@ describe('Customer QuickCheck', () => {
     cy.byTestId('validationresult-dialog').should('not.exist');
   });
 
-  it('removes an added person again', () => {
+  it('adds a fourth person and removes it again', () => {
+    cy.byTestId('quickcheck-person-2').should('exist');
     cy.byTestId('addperson-button').click();
-    cy.byTestId('quickcheck-person-1').should('exist');
+    cy.byTestId('quickcheck-person-3').should('exist');
 
-    cy.byTestId('remove-person-1').click();
-    cy.byTestId('quickcheck-person-1').should('not.exist');
+    cy.byTestId('remove-person-3').click();
+    cy.byTestId('quickcheck-person-3').should('not.exist');
   });
 
   it('links into the full customer creation form', () => {
