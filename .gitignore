@@ -25,6 +25,7 @@ build/
 /backend/documents/
 /scanner-inbox/
 /backend/scanner-inbox/
+.angular
 
 ### JVM crash dumps - written next to whatever directory the JVM was started from, and worth
 ### nothing to anybody else once the crash has been diagnosed
