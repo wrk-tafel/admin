@@ -453,7 +453,7 @@ describe('Customer Merge', () => {
 
       // whichever candidate page 2 holds - the order the backend returns them in is not this
       // test's subject, coming back to the same page is
-      cy.get('[testid^=duplicate-pair-]').invoke('attr', 'testid').then((pairTestId) => {
+      cy.get('mat-card[testid^=duplicate-group-]').invoke('attr', 'testid').then((pairTestId) => {
         cy.get('[testid^=duplicate-merge-button-]').first().click();
         cy.url().should('include', 'seite=2');
 
