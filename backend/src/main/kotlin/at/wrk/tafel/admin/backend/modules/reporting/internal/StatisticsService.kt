@@ -117,9 +117,11 @@ class StatisticsService(
 
     /**
      * A key figure that accumulates over the period (shelters served, kilograms collected), so its
-     * headline is the total of the whole course.
+     * headline is the total of the whole course. Rounded once on the summed total rather than per
+     * period, since a per-period `toLong()` would truncate a decimal figure like collected kilograms
+     * on every point of the course instead of just the headline.
      */
-    private fun sumDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail = countDetail(subTitle, results, results.sumOf { it.value.toLong() }, unit)
+    private fun sumDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail = countDetail(subTitle, results, Math.round(results.sumOf { it.value.toDouble() }), unit)
 
     private fun countDetail(
         subTitle: String,
@@ -336,10 +338,10 @@ class StatisticsService(
 
     fun totalShopItems(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
-            SELECT 
+            SELECT
                 format_by_resolution(t.start_date, t.res_code) as label,
                 (
-                    SELECT SUM(fci.amount)
+                    SELECT SUM(fci.weight)
                     FROM distributions d
                     JOIN food_collections fc ON d.id = fc.distribution_id
                     JOIN food_collections_items fci ON fc.id = fci.food_collection_id
@@ -354,12 +356,12 @@ class StatisticsService(
 
     fun averageShopItems(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
-            SELECT 
+            SELECT
                 format_by_resolution(t.start_date, t.res_code) as label,
                 (
-                    SELECT 
+                    SELECT
                         CASE WHEN COUNT(DISTINCT d.id) = 0 THEN 0
-                        ELSE SUM(fci.amount)::FLOAT / COUNT(DISTINCT fci.shop_id)::FLOAT END
+                        ELSE SUM(fci.weight)::FLOAT / COUNT(DISTINCT fci.shop_id)::FLOAT END
                     FROM distributions d
                     JOIN food_collections fc ON d.id = fc.distribution_id
                     JOIN food_collections_items fci ON fc.id = fci.food_collection_id
