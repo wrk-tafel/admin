@@ -383,20 +383,18 @@ Both follow the same shape, and a change to one usually belongs in the other:
   `enabledFilter` signal together drive a `visibleShops()`/`visibleRoutes()` `computed()`.
   Filtering is purely client-side; both endpoints return the full list anyway. These two screens
   are the only ones here with a search box — their lists are the long ones. `shops` additionally
-  offers a Nummer/Name sort toggle (`sortBy` signal, applied inside the same `computed()`), a
-  result-count line (`resultCountLabel`) shown only while `filtered()` is true, and an empty-result
-  message that names the active status filter (`emptyMessage`) rather than a single generic
-  sentence.
+  offers a result-count line (`resultCountLabel`) shown only while `filtered()` is true, and an
+  empty-result message that names the active status filter (`emptyMessage`) rather than a single
+  generic sentence; like routes, the list is always ordered by number.
 - **Enabling/disabling** happens with the module-wide Aktiv switch. On a failed update the list is
   reloaded, because the switch has already moved on its own and only fresh data puts it back.
   `shops` additionally loads `routes` (`forkJoin`, same as `SettingsRoutesComponent` below) to know
   which routes stop at a shop: deactivating one that at least one *active* route still stops at
-  opens `shop-disable-confirm-dialog` first, naming those routes and their stop times — the route
-  itself keeps the stop (`route-edit-dialog` never drops a reference), but the Routen-Navi then
-  flags it "Filiale inaktiv", which is what the confirmation is warning about before it happens. A
-  cancelled confirmation has nothing to undo on the server, but the Aktiv switch still has to be
-  pushed back to `checked` explicitly (`this._shops.update(shops => [...shops])`) — it is an
-  uncontrolled Material component that already flipped itself in the DOM on click.
+  opens `shop-disable-confirm-dialog` first, naming those routes and their stop times — the
+  backend removes the shop's stops from those routes on deactivation (see the logistics module
+  README), which is what the confirmation is warning about before it happens. A cancelled
+  confirmation has nothing to undo: `tafel-enabled-toggle` is controlled by its `enabled` input,
+  so an unconfirmed change never moves the switch in the first place.
 - **Editing** stays dialog-based (`shop-edit-dialog`, `route-edit-dialog`), and the edit button is
   disabled while the record is inactive, same convention as cars/food-categories.
 - **Both controls sit in the record's header row**, not in the expanded body, so a record can be
@@ -438,8 +436,7 @@ Both follow the same shape, and a change to one usually belongs in the other:
   the module-local `buildRouteMapsUrl()`), composing the same kind of Google Maps directions URL as
   the Routen-Navi's own map link (`route-guidance.component.ts`) over the route's already
   time-sorted stops — capped at 10 stops with a truncation hint beyond that, same limit and reason
-  as there. A stop whose shop has since been deactivated is flagged inline with the same "Filiale
-  inaktiv" badge the Routen-Navi shows its drivers (`view.stops[].shopInactive`).
+  as there.
 - **`route-edit-dialog` previews the save-time sort live** as `orderedStopsPreview()` ("Gefahrene
   Reihenfolge"), and separately surfaces non-blocking `stopWarnings()` (a duplicate shop across
   stops, a stop with no time yet, or an unusually short/long gap to the next time-sorted stop that

@@ -37,6 +37,25 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(0);
   });
 
+  it('persons of the household counted on the dashboard, excluded persons left out', () => {
+    // household 101: main person + 3 additional persons, one of them excluded ("Nicht im Haushalt")
+    searchCustomer(101);
+    cy.byTestId('customerDetailPanel').should('be.visible');
+
+    assignTicket(10);
+    assertFormReset();
+
+    assertDashboardCustomerCount(1);
+    assertDashboardPersonCount(3);
+
+    cy.visit('/anmeldung/annahme');
+    searchCustomer(101);
+    cy.byTestId('deleteTicketButton').click();
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Ticket-Nummer gelöscht!');
+
+    assertDashboardPersonCount(0);
+  });
+
   it('customer added and ticket updated', () => {
     searchCustomer(100);
     cy.byTestId('customerDetailPanel').should('be.visible');
@@ -100,6 +119,27 @@ describe('CheckIn', () => {
     cy.get('.toast-message').should('be.visible').should('contain.text', 'Ticket-Nummer gelöscht!');
 
     assertDashboardCustomerCount(0);
+  });
+
+  it('stacks the header on phone: scanner toolbar above the customer-number input, button beside it', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.visit('/anmeldung/annahme');
+
+    // scanner toolbar renders above the customer-number row
+    cy.byTestId('scannerToolbar').then(($toolbar) => {
+      cy.byTestId('customerIdInput').then(($input) => {
+        expect($toolbar[0].getBoundingClientRect().bottom).to.be.at.most($input[0].getBoundingClientRect().top);
+      });
+    });
+    // the Anzeigen button sits beside the input, not below it
+    cy.byTestId('customerIdInput').then(($input) => {
+      cy.byTestId('showCustomerButton').then(($button) => {
+        const inputRect = $input[0].getBoundingClientRect();
+        const buttonRect = $button[0].getBoundingClientRect();
+        expect(buttonRect.left).to.be.at.least(inputRect.right);
+        expect(buttonRect.top).to.be.below(inputRect.bottom);
+      });
+    });
   });
 
   it('customer accepted with desktop-style form grid at tablet breakpoint', () => {
@@ -236,8 +276,8 @@ describe('CheckIn', () => {
     assignTicket(10);
     assertFormReset();
 
-    cy.get('[matSnackBarLabel]').should('be.visible').should('contain.text', 'Ticket 10 angenommen');
-    cy.get('[matSnackBarAction]').click();
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Ticket 10 angenommen');
+    cy.byTestId('toast-action-button').should('contain.text', 'Rückgängig').click();
 
     cy.get('.toast-message').should('be.visible').should('contain.text', 'wurde rückgängig gemacht');
     assertDashboardCustomerCount(0);
@@ -351,4 +391,9 @@ function assertFormReset() {
 function assertDashboardCustomerCount(count: number) {
   cy.visit('/uebersicht');
   cy.byTestId('customers-count').should('have.text', count.toString());
+}
+
+function assertDashboardPersonCount(count: number) {
+  cy.visit('/uebersicht');
+  cy.byTestId('persons-count').should('have.text', count.toString());
 }

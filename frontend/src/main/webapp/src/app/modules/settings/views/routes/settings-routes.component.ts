@@ -45,8 +45,6 @@ interface RouteStopView {
   shopAddress?: string;
   /** only set alongside a shop; for a stop without one the description already is the label */
   description?: string;
-  /** only set for a stop pointing at a shop that has since been deactivated */
-  shopInactive?: boolean;
 }
 
 interface RouteView {
@@ -192,7 +190,7 @@ export class SettingsRoutesComponent {
 
   protected editRoute(route: RouteData) {
     const dialogRef = this.dialog.open(RouteEditDialogComponent, {
-      data: {route, shops: this.shopsForRoute(route)},
+      data: {route, shops: this.activeShops()},
       width: '800px'
     });
 
@@ -243,13 +241,6 @@ export class SettingsRoutesComponent {
     this.searchControl.setValue('');
   }
 
-  // a disabled shop that a route already stops at stays selectable, so editing the route doesn't
-  // silently drop that stop
-  private shopsForRoute(route: RouteData): ShopItem[] {
-    const usedShopIds = route.stops.map(stop => stop.shopId);
-    return this._shops().filter(shop => shop.enabled || usedShopIds.includes(shop.id));
-  }
-
   private toRouteView(route: RouteData): RouteView {
     const stops = route.stops.map((stop, index) => this.toStopView(stop, index));
     const stopsSearchIndex = stops
@@ -283,8 +274,7 @@ export class SettingsRoutesComponent {
       time: formatStopTime(stop.time),
       label: shop ? `${shop.number} - ${shop.name}` : (description ?? ''),
       shopAddress: shop ? formatShopAddress(shop) : undefined,
-      description: shop ? description : undefined,
-      shopInactive: shop ? !shop.enabled : false
+      description: shop ? description : undefined
     };
   }
 

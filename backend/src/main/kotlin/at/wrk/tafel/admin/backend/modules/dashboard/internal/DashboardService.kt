@@ -31,6 +31,7 @@ class DashboardService(
         return currentDistribution?.let {
             DashboardData(
                 registeredCustomers = getRegisteredCustomers(currentDistribution),
+                registeredPersons = getRegisteredPersons(currentDistribution),
                 tickets = getTicketsData(currentDistribution),
                 statistics = getStatisticsData(currentDistribution),
                 logistics = getLogisticsData(currentDistribution),
@@ -38,6 +39,7 @@ class DashboardService(
             )
         } ?: DashboardData(
             registeredCustomers = null,
+            registeredPersons = null,
             tickets = null,
             statistics = null,
             logistics = null,
@@ -56,6 +58,16 @@ class DashboardService(
     }
 
     private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int = distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
+
+    // the same formula DistributionStatisticService and the customer-list PDF use: one per
+    // household (the main person) plus its additional persons that are not excluded
+    private fun getRegisteredPersons(currentDistribution: DistributionEntity): Int {
+        val households = currentDistribution.households
+        return households.size +
+            households
+                .flatMap { it.household.additionalPersons() }
+                .count { !it.excludeFromHousehold }
+    }
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },

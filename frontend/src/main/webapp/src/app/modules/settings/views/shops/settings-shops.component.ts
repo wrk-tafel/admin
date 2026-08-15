@@ -5,7 +5,6 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {
@@ -44,8 +43,6 @@ import {
   ShopDisableConfirmDialogData
 } from './dialogs/shop-disable-confirm-dialog.component';
 
-type ShopSort = 'number' | 'name';
-
 interface ShopRouteUsage {
   routeId: number;
   /** e.g. "Route 1 (14:00)" - the label rendered for the stop's link */
@@ -76,7 +73,6 @@ const FOOD_UNIT_BADGE_BASE = 'rounded-md border px-2 py-0.5 text-xs font-medium'
     MatCardTitle,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonToggleModule,
     TafelEnabledFilterComponent,
     TafelEnabledToggleComponent,
     ReactiveFormsModule,
@@ -101,7 +97,6 @@ export class SettingsShopsComponent {
   protected readonly searchControl = new FormControl('', {nonNullable: true});
   private readonly searchText = toSignal(this.searchControl.valueChanges, {initialValue: ''});
   protected readonly enabledFilter = signal<EnabledFilter>('ALL');
-  protected readonly sortBy = signal<ShopSort>('number');
 
   protected readonly totalCount = computed(() => this._shops().length);
   protected readonly enabledCount = computed(() => this._shops().filter(shop => shop.enabled).length);
@@ -140,14 +135,11 @@ export class SettingsShopsComponent {
   protected readonly visibleShops = computed(() => {
     const search = this.searchText().trim().toLowerCase();
     const filter = this.enabledFilter();
-    const sortBy = this.sortBy();
     return this.shopViews()
       .filter(view =>
         matchesEnabledFilter(view.shop.enabled, filter) && (search.length === 0 || view.searchIndex.includes(search))
       )
-      .sort((a, b) => sortBy === 'name'
-        ? a.shop.name.localeCompare(b.shop.name, 'de')
-        : a.shop.number - b.shop.number);
+      .sort((a, b) => a.shop.number - b.shop.number);
   });
 
   // only shown while the list is narrowed down - the unfiltered count is already the summary line
@@ -273,10 +265,6 @@ export class SettingsShopsComponent {
 
   protected onFilterChanged(filter: EnabledFilter) {
     this.enabledFilter.set(filter);
-  }
-
-  protected onSortChanged(sortBy: ShopSort) {
-    this.sortBy.set(sortBy);
   }
 
   protected clearSearch() {

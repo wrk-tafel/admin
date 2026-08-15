@@ -75,7 +75,6 @@ describe('TicketScreenControlComponent', () => {
           provide: TafelToastrService,
           useValue: {
             error: vi.fn().mockName('TafelToastrService.error'),
-            info: vi.fn().mockName('TafelToastrService.info'),
             success: vi.fn().mockName('TafelToastrService.success'),
             warning: vi.fn().mockName('TafelToastrService.warning')
           }

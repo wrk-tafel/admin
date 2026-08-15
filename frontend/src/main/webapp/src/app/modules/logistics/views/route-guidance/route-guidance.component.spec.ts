@@ -34,8 +34,7 @@ describe('RouteGuidanceComponent', () => {
       address: 'Hauptstraße 5, 1010 Wien',
       phone: '01 234567',
       contactPerson: 'Frau Huber',
-      foodUnit: 'BOX',
-      enabled: true
+      foodUnit: 'BOX'
     },
     completed: false,
     returnItems: [{shopName: 'Lidl', description: 'Graue Kisten', amount: 4}]
@@ -55,8 +54,7 @@ describe('RouteGuidanceComponent', () => {
       number: 2100,
       name: 'Denns BioMarkt',
       address: 'Nebengasse 2, 1020 Wien',
-      foodUnit: 'KG',
-      enabled: true
+      foodUnit: 'KG'
     },
     completed: false,
     returnItems: []
@@ -306,8 +304,7 @@ describe('RouteGuidanceComponent', () => {
         number: 3000 + index,
         name: `Shop ${index}`,
         address: `Gasse ${index}, 1010 Wien`,
-        foodUnit: 'BOX',
-        enabled: true
+        foodUnit: 'BOX'
       },
       completed: false,
       returnItems: []

@@ -11,7 +11,7 @@
       <!-- The call loop: current ticket, queue context, the two advance actions, and (attached to
            the same household) any pre-existing pending cost contribution. This is what the
            operator uses hundreds of times per distribution, so it comes first and largest. -->
-      <div class="rounded-lg border border-black/10 p-4 sm:p-6 text-center" testid="current-ticket-card">
+      <div class="rounded-lg border p-4 sm:p-6 text-center" style="border-color: var(--tafel-border-color);" testid="current-ticket-card">
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
           <div>
             <!-- Back/forward step through the queue without a new paid/unpaid decision: back
@@ -117,7 +117,7 @@
           <!-- The monitor component sizes its typography off its own container (see
                ticket-screen.component.html), so a plain 16:9 box of any size renders a faithful
                miniature of what the real monitor shows. -->
-          <div class="relative mx-auto w-full max-w-sm aspect-video overflow-hidden rounded-lg border border-black/10" testid="preview-container">
+          <div class="relative mx-auto w-full max-w-sm aspect-video overflow-hidden rounded-lg border" style="border-color: var(--tafel-border-color);" testid="preview-container">
             <tafel-ticket-screen></tafel-ticket-screen>
             <span class="badge absolute top-2 right-2" role="status" testid="preview-connection-state"
                   [class.badge-success]="previewConnected()" [class.badge-danger]="!previewConnected()">

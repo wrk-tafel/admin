@@ -11,8 +11,8 @@ export interface ShopDisableConfirmDialogData {
 
 /**
  * Shown only when a shop being deactivated is still stopped at by at least one active route -
- * route editing keeps such a stop rather than dropping it, but the driver-facing Routen-Navi then
- * flags the stop "Filiale inaktiv" (#3239), which is what this dialog names before it happens.
+ * deactivating removes the shop's stops from those routes (see the backend's ShopService), which
+ * is what this dialog names before it happens.
  */
 @Component({
   selector: 'tafel-shop-disable-confirm-dialog',

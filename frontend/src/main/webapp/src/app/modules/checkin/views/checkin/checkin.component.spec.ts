@@ -27,7 +27,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {MatSnackBar, MatSnackBarRef} from '@angular/material/snack-bar';
+import {MatSnackBarRef} from '@angular/material/snack-bar';
+import {TafelSnackbarComponent} from '../../../../common/components/tafel-snackbar/tafel-snackbar.component';
 import {Subject} from 'rxjs';
 
 describe('CheckinComponent', () => {
@@ -40,7 +41,6 @@ describe('CheckinComponent', () => {
     let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
     let router: MockedObject<Router>;
     let toastr: MockedObject<TafelToastrService>;
-    let snackBar: { open: ReturnType<typeof vi.fn> };
     let snackBarOnAction: Subject<void>;
 
     beforeEach(() => {
@@ -76,18 +76,15 @@ describe('CheckinComponent', () => {
         const routerSpy = {
             navigate: vi.fn().mockName('Router.navigate')
         };
-        const toastrSpy = {
-            error: vi.fn().mockName('TafelToastrService.error'),
-            info: vi.fn().mockName('TafelToastrService.info'),
-            success: vi.fn().mockName('TafelToastrService.success'),
-            warning: vi.fn().mockName('TafelToastrService.warning')
-        };
         snackBarOnAction = new Subject<void>();
         const snackBarRefSpy = {
             onAction: vi.fn().mockName('MatSnackBarRef.onAction').mockReturnValue(snackBarOnAction)
         };
-        const snackBarSpy = {
-            open: vi.fn().mockName('MatSnackBar.open').mockReturnValue(snackBarRefSpy as unknown as MatSnackBarRef<unknown>)
+        const toastrSpy = {
+            error: vi.fn().mockName('TafelToastrService.error'),
+            success: vi.fn().mockName('TafelToastrService.success')
+              .mockReturnValue(snackBarRefSpy as unknown as MatSnackBarRef<TafelSnackbarComponent>),
+            warning: vi.fn().mockName('TafelToastrService.warning')
         };
 
         TestBed.configureTestingModule({
@@ -142,10 +139,6 @@ describe('CheckinComponent', () => {
                 {
                     provide: TafelToastrService,
                     useValue: toastrSpy
-                },
-                {
-                    provide: MatSnackBar,
-                    useValue: snackBarSpy
                 }
             ]
         }).compileComponents();
@@ -159,7 +152,6 @@ describe('CheckinComponent', () => {
         distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
-        snackBar = TestBed.inject(MatSnackBar) as unknown as { open: ReturnType<typeof vi.fn> };
     });
 
     it('component can be created', () => {
@@ -575,7 +567,7 @@ describe('CheckinComponent', () => {
         expect(component.customerState()).toBeUndefined();
         expect(component.customerNotes()).toEqual([]);
         expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId, expect.anything());
-        expect(toastr.info).toHaveBeenCalledWith(`Kunde ${testCustomerId} nicht gefunden!`);
+        expect(toastr.warning).toHaveBeenCalledWith(`Kunde ${testCustomerId} nicht gefunden!`);
     });
 
     it('searchForCustomerId non-404 error shows error toast', () => {
@@ -742,10 +734,10 @@ describe('CheckinComponent', () => {
         expect(component.ticketNumber()).toBeUndefined();
 
         expect(component.lastAcceptedCheckin()).toEqual({customerId: mockCustomer.id, ticketNumber});
-        expect(snackBar.open).toHaveBeenCalledWith(
+        expect(toastr.success).toHaveBeenCalledWith(
             `Kunde Nr. ${mockCustomer.id} → Ticket ${ticketNumber} angenommen.`,
-            'Rückgängig',
-            expect.objectContaining({horizontalPosition: 'right', verticalPosition: 'top'})
+            undefined,
+            {action: 'Rückgängig', durationMs: 8000}
         );
     });
 

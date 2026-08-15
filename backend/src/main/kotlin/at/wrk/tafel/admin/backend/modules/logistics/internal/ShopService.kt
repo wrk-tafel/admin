@@ -73,11 +73,16 @@ class ShopService(
         return mapShop(savedEntity)
     }
 
+    @Transactional
     fun updateShop(shopId: Long, updatedShop: ShopRequest): ShopResponse {
         validateNumberIsUnique(updatedShop.number, shopId)
 
         val shopEntity = shopRepository.findByIdOrNull(shopId)
             ?: throw NotFoundException("Shop with id $shopId not found")
+
+        if (shopEntity.enabled && !updatedShop.enabled) {
+            removeShopFromAllRoutes(shopEntity)
+        }
 
         shopEntity.number = updatedShop.number
         shopEntity.name = updatedShop.name
@@ -95,6 +100,27 @@ class ShopService(
         val savedEntity = shopRepository.save(shopEntity)
         log.info("Updated shop {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapShop(savedEntity)
+    }
+
+    /**
+     * A deactivated shop is taken out of every route it was a stop of - the stop is deleted, not
+     * flagged: routes only ever show stops that are actually driven to. Re-enabling the shop does
+     * not restore the stops; they have to be added to the routes again.
+     */
+    private fun removeShopFromAllRoutes(shopEntity: ShopEntity) {
+        val routes = routeRepository.findDistinctByStopsShopId(shopEntity.id!!)
+        routes.forEach { route ->
+            route.stops.removeIf { it.shop?.id == shopEntity.id }
+        }
+        if (routes.isNotEmpty()) {
+            routeRepository.saveAll(routes)
+            log.info(
+                "Removed shop {} ({}) from routes {}",
+                shopEntity.id,
+                sanitizeForLog(shopEntity.name),
+                routes.map { it.number },
+            )
+        }
     }
 
     private fun validateNumberIsUnique(number: Int, shopId: Long?) {

@@ -2,14 +2,16 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {Subject} from 'rxjs';
 import {SwUpdate, VersionEvent} from '@angular/service-worker';
-import {MatSnackBar, MatSnackBarRef} from '@angular/material/snack-bar';
+import {MatSnackBarRef} from '@angular/material/snack-bar';
 import {SwUpdateService} from './sw-update.service';
+import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
+import {TafelSnackbarComponent} from '../components/tafel-snackbar/tafel-snackbar.component';
 
 describe('SwUpdateService', () => {
   let service: SwUpdateService;
   let versionUpdates: Subject<VersionEvent>;
   let mockSwUpdate: { isEnabled: boolean; versionUpdates: Subject<VersionEvent> };
-  let mockSnackBar: { open: ReturnType<typeof vi.fn> };
+  let mockToastr: { warning: ReturnType<typeof vi.fn> };
   let mockSnackBarRef: { onAction: ReturnType<typeof vi.fn> };
   let onActionSubject: Subject<void>;
   let mockWindow: { location: { reload: ReturnType<typeof vi.fn> } };
@@ -19,14 +21,14 @@ describe('SwUpdateService', () => {
     onActionSubject = new Subject<void>();
     mockSwUpdate = {isEnabled: true, versionUpdates};
     mockSnackBarRef = {onAction: vi.fn().mockReturnValue(onActionSubject)};
-    mockSnackBar = {open: vi.fn().mockReturnValue(mockSnackBarRef as unknown as MatSnackBarRef<unknown>)};
+    mockToastr = {warning: vi.fn().mockReturnValue(mockSnackBarRef as unknown as MatSnackBarRef<TafelSnackbarComponent>)};
 
     mockWindow = {location: {reload: vi.fn()}};
 
     TestBed.configureTestingModule({
       providers: [
         {provide: SwUpdate, useValue: mockSwUpdate},
-        {provide: MatSnackBar, useValue: mockSnackBar},
+        {provide: TafelToastrService, useValue: mockToastr},
         {provide: Window, useValue: mockWindow}
       ]
     });
@@ -39,7 +41,7 @@ describe('SwUpdateService', () => {
     service.init();
     versionUpdates.next({type: 'VERSION_READY'} as VersionEvent);
 
-    expect(mockSnackBar.open).not.toHaveBeenCalled();
+    expect(mockToastr.warning).not.toHaveBeenCalled();
   });
 
   it('shows a reload prompt once a new version is ready', () => {
@@ -47,10 +49,10 @@ describe('SwUpdateService', () => {
 
     versionUpdates.next({type: 'VERSION_READY'} as VersionEvent);
 
-    expect(mockSnackBar.open).toHaveBeenCalledWith(
+    expect(mockToastr.warning).toHaveBeenCalledWith(
       'Eine neue Version ist verfügbar.',
-      'Neu laden',
-      expect.objectContaining({horizontalPosition: 'right', verticalPosition: 'top'})
+      undefined,
+      {action: 'Neu laden', durationMs: 0}
     );
   });
 
@@ -59,7 +61,7 @@ describe('SwUpdateService', () => {
 
     versionUpdates.next({type: 'VERSION_DETECTED'} as VersionEvent);
 
-    expect(mockSnackBar.open).not.toHaveBeenCalled();
+    expect(mockToastr.warning).not.toHaveBeenCalled();
   });
 
   it('reloads the page when the reload action is triggered', () => {
