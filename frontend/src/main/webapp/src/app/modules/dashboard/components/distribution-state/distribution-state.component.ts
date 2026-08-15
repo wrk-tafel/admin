@@ -29,7 +29,7 @@ export class DistributionStateComponent {
   readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();
   readonly isDistributionActive = computed(() => {
     const dist = this.distribution();
-    return !!dist && !dist.endedAt;
+    return dist && !dist.endedAt;
   });
 
   createNewDistribution() {

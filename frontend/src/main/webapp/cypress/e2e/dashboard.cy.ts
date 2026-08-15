@@ -10,15 +10,11 @@ describe('Dashboard', () => {
   });
 
   it('create and stop distribution', () => {
-    cy.byTestId('distribution-state-text').should('have.text', 'Keine Verteilung aktiv');
-    // "Tag starten"/"Tag beenden" are the two most consequential clicks in the app, so they carry
-    // a colour rather than looking like any other raised button.
-    cy.byTestId('distribution-start-button').should('have.class', 'button-success');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
 
     // create distribution (event) - OPEN
     cy.byTestId('distribution-start-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
-    cy.byTestId('distribution-close-button').should('have.class', 'button-danger');
 
     // fill employee count
     cy.byTestId('distribution-statistics-employee-count-input').type('100');
@@ -53,7 +49,7 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-close-button').click();
     cy.byTestId('distribution-close-dialog-ok-button').click();
     cy.byTestId('distribution-close-validation-dialog-ok-button').click();
-    cy.byTestId('distribution-state-text').should('have.text', 'Keine Verteilung aktiv');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 
   it('download customer list', () => {
@@ -115,26 +111,6 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
-  it('shows a big idle state with the day-start action, and hides the all-zero glance panels', () => {
-    cy.byTestId('distribution-state-text').should('have.text', 'Keine Verteilung aktiv');
-    cy.byTestId('distribution-start-button').should('be.visible');
-
-    // Outside a distribution almost every glance figure would just be a dash, so the whole grid is
-    // left out entirely rather than rendered full of them - see dashboard.component.html.
-    cy.byTestId('customers-count').should('not.exist');
-    cy.byTestId('tickets-processed-count').should('not.exist');
-    cy.byTestId('dashboard-input-section-header').should('not.exist');
-
-    cy.byTestId('distribution-start-button').click();
-
-    cy.byTestId('customers-count').should('be.visible');
-    // The two data-entry panels get a section header of their own, separating them from the
-    // read-only glance panels above.
-    cy.byTestId('dashboard-input-section-header').should('contain.text', 'Eingabe');
-
-    cy.closeDistribution();
-  });
-
   it('renders ticket/food-collection ratios as progress bars and every active route as a status chip', () => {
     cy.createDistribution();
     // one ticket, still unprocessed - a real total with nothing done yet, which is the case a
@@ -153,76 +129,12 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
-  /**
-   * The dashboard is read from across the room, so a dropped `/sse/dashboard` stream has to be
-   * obvious without anyone walking up to check the small connection badge in the header. This has
-   * to be an e2e case: it exercises the real `EventSource` reconnect behaviour in `SseService`,
-   * which a unit spec with a mocked `SseService` never runs at all - see logout.cy.ts for the same
-   * `EventSource` interception pattern applied to the other SSE stream.
-   */
-  it('dims the panels and overlays a message when the dashboard stream drops, then recovers', () => {
-    cy.createDistribution();
-
-    const streams: EventSource[] = [];
-    cy.visit('/', {
-      onBeforeLoad(win) {
-        const nativeEventSource = win.EventSource;
-        win.EventSource = class extends nativeEventSource {
-          constructor(url: string | URL, eventSourceInitDict?: EventSourceInit) {
-            super(url, eventSourceInitDict);
-            streams.push(this);
-          }
-        };
-      }
-    });
-
-    cy.byTestId('customers-count').should('be.visible');
-    cy.byTestId('dashboard-stale-overlay').should('not.exist');
-
-    const currentDashboardStream = () => {
-      // The last captured instance, not the first: `SseService` may already have reconnected by
-      // now (a dropped connection leaves its dead instance in `streams`), and its error handler
-      // ignores an event when the stream it currently holds is still open.
-      const dashboardStreams = streams.filter(
-        stream => new URL(stream.url).pathname.endsWith('/api/sse/dashboard')
-      );
-      return dashboardStreams[dashboardStreams.length - 1];
-    };
-
-    // The stream has to have actually OPENED before it is killed: during page load the SSE request
-    // can sit queued behind the browser's per-origin connection budget for seconds, and killing a
-    // still-connecting stream exercises the initial-connect path - which the overlay deliberately
-    // ignores (`hasConnectedEver` exists exactly so the overlay doesn't flash before first connect).
-    cy.wrap(null, {timeout: 15000}).should(() => {
-      const stream = currentDashboardStream();
-      expect(stream, 'a dashboard stream').to.not.eq(undefined);
-      expect(stream!.readyState, 'dashboard stream open').to.eq(1);
-    });
-
-    cy.then(() => {
-      const dashboardStream = currentDashboardStream()!;
-      // `EventSource.close()` alone fires no event - `SseService` reacts to `onerror` seeing
-      // `readyState === CLOSED`, so both are driven by hand to simulate the drop it would see.
-      dashboardStream.close();
-      dashboardStream.onerror?.(new Event('error'));
-    });
-
-    cy.byTestId('dashboard-stale-overlay').should('be.visible').and('contain.text', 'Live-Verbindung unterbrochen');
-
-    // `SseService` reconnects on its own backoff (1s, then 2s, ...) - the overlay has to clear
-    // once the stream is actually back, not just after some fixed delay. The generous timeout is
-    // headroom for that backoff plus the reconnect round trip, not a fixed wait.
-    cy.byTestId('dashboard-stale-overlay', {timeout: 10000}).should('not.exist');
-
-    cy.closeDistribution();
-  });
-
   it('dashboard content and actions usable on phone', () => {
     // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
     // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.
     cy.viewport(PHONE_VIEWPORT);
 
-    cy.byTestId('distribution-state-text').should('have.text', 'Keine Verteilung aktiv');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
 
     cy.byTestId('distribution-start-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
@@ -246,7 +158,7 @@ describe('Dashboard', () => {
   it('dashboard content renders and download works at tablet breakpoint', () => {
     cy.viewport(TABLET_VIEWPORT);
 
-    cy.byTestId('distribution-state-text').should('have.text', 'Keine Verteilung aktiv');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
     cy.byTestId('download-customerlist-button').should('not.exist');
 
     cy.createDistribution();

@@ -38,16 +38,6 @@ know about SSE at all — they are pure `input()`-driven display/edit components
 "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
 render it" concern in the leaf components.
 
-`DashboardComponent` also tracks `/sse/dashboard`'s own connection health via `SseService.listen`'s
-`connectionStateCallback` parameter (`dashboardConnected`/`hasConnectedEver` signals), independently
-of `GlobalStateService`'s connection tracking for `/sse/distributions`. `isStale()` — true once the
-stream has connected at least once and then reports disconnected — drives a dimmed overlay
-("Live-Verbindung unterbrochen" + the last update time) over the glance panels in
-`dashboard.component.html`, so a dropped stream is visible from across the room rather than just
-freezing the numbers silently. `hasConnectedEver` exists purely to suppress that overlay for the
-brief moment before the very first `EventSource.onopen`, which would otherwise look identical to a
-drop.
-
 Because the SSE stream only pushes deltas the backend decides are relevant, several fields on
 `data()` are `undefined` on partial/initial payloads (e.g. `data()?.registeredCustomers`). The
 consuming child inputs (`count`, `countProcessedTickets`, etc.) are all optional signal inputs
@@ -102,7 +92,7 @@ dashboard/
     registered-customers/               # customer count card + PDF customer-list download
     tickets-processed/                  # processed/total ticket count card
     recorded-food-collections/          # recorded/total food-collection count card
-    recorded-route-names/               # names of routes fully recorded so far
+    recorded-route-names/               # one chip per active route, recorded vs outstanding
     food-amount/                        # total recorded food weight (kg) card
     distribution-statistics-input/      # end-of-day form: employee count + shelter occupancy
     distribution-notes-input/           # free-text notes form for the distribution
@@ -123,24 +113,6 @@ shelter list via `ShelterApiService.getActiveShelters()` before the route activa
 `sheltersData` is available as a route-resolved `input()` on `DashboardComponent` immediately —
 no loading spinner needed for the shelter picker used by `distribution-statistics-input`.
 
-## Idle state
-
-Outside a distribution, almost every glance figure is zero/empty - `dashboard.component.ts` also
-reads `GlobalStateService.getCurrentDistribution()` (through its own `isDistributionActive`
-computed, following the same "always go through `GlobalStateService`" rule as every other
-component here) to decide which of two branches `dashboard.component.html` renders: the full
-grid while a distribution is open, or just the permission-gated `tafel-distribution-state` card
-while it's closed. That component itself branches on the same `isDistributionActive()` it already
-computed for its buttons: a compact "Geöffnet" card with the "Tag beenden" (`button-danger`)
-button while active, or a big centred "Keine Verteilung aktiv" hero with the "Tag starten"
-(`button-success`) button - both bigger and more consequential-looking than a plain raised button
-- while idle. Both use the `mat-button.scss` colour utility classes rather than Material's own
-`color="warn"`/`color="primary"` inputs: this app's theme never wires the `mat-warn`/`mat-primary`
-host class a `color` input adds to an actual visible style for a raised button, so every one of
-them - the `color` input set or not - falls back to the same `--mat-sys-primary` text on a near-
-white background regardless. Hiding the rest of the grid during idle, rather than rendering it full
-of dashes, is what keeps the idle screen purposeful instead of noisy.
-
 ## Route chips
 
 `RecordedRouteNamesComponent` renders one `mat-chip` per entry in `allRouteNames` (every route
@@ -159,7 +131,7 @@ though every other panel here is open to `isAuthenticated()` alone.
   (`createNewDistribution()` / `closeDistribution()` via `DistributionApiService`). Closing shows
   a confirmation dialog first (`CloseDistributionDialogComponent`); if the backend returns
   validation errors/warnings, a second dialog (`CloseDistributionValidationDialogComponent`)
-  lets the user force-close anyway. See "Idle state" above for its two template branches.
+  lets the user force-close anyway.
 - **`DistributionStatisticsInputComponent`**: reconciles three signal sources — the SSE-pushed
   `employeeCountInput`/`initialSelectedShelterNames` (from `DashboardData.statistics`), the
   resolver-provided `sheltersData`, and locally-typed form state — using a
@@ -188,10 +160,6 @@ though every other panel here is open to `isAuthenticated()` alone.
 - `distribution-statistics-input` and `distribution-notes-input` both reset their own local state
   via an `effect()` keyed off `GlobalStateService`'s distribution signal — if you add a new input
   field to the end-of-day form, remember to also reset it in `distributionEffect`.
-- Those same two components are deliberately plain outlined `mat-card`s, not `mat-card-primary` -
-  they're the dashboard's data-entry surfaces, and the "Eingabe" section header above them in
-  `dashboard.component.html` is what separates that from the colour-filled read-only glance panels
-  above. Don't add a colour class back onto either without also reconsidering that header.
 - `tickets-processed`/`recorded-food-collections`'s ratio bars are plain `<div>`s (a white fill on
   a translucent-white track), not `mat-progress-bar`: both panels are colour-filled cards
   (`mat-card-primary`/`warning`/`success`), and a white-on-translucent bar is what stays legible

@@ -10,10 +10,9 @@ interface RouteChipView {
 }
 
 /**
- * "Erfasste Routen" used to list only the routes already recorded - which meant reading it always
- * meant mentally diffing it against the total route count to answer the actual question: who
- * hasn't handed in yet. Rendering every active route as a chip, recorded ones checked/green and the
- * rest neutral, answers that directly.
+ * Renders every active route as a chip, recorded ones checked/green and the rest neutral - the
+ * actual question this panel answers is "who hasn't handed in yet", and a list of only the
+ * recorded names would leave the reader to diff it against the total route count themselves.
  */
 @Component({
   selector: 'tafel-recorded-route-names',
