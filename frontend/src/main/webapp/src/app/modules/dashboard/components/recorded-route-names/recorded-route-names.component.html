@@ -1,6 +1,5 @@
 <mat-card class="h-full mat-card-primary" testid="recorded-route-names-panel">
   <mat-card-content class="!p-4">
-    <h2 class="tafel-h4 mb-1">Erfasste Routen</h2>
     @if (routes().length > 0) {
       <mat-chip-set testid="recorded-route-chips" aria-label="Erfassungsstatus je Route">
         @for (route of routes(); track route.name; let i = $index) {

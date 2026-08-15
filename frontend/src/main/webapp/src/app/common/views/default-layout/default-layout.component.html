@@ -12,7 +12,7 @@
 <mat-sidenav-container class="h-screen print:hidden">
   <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
                class="!border-r-0 transition-all duration-200"
-               [class.w-64]="!collapsed()" [class.w-16]="collapsed()">
+               [class.w-64]="!effectiveCollapsed()" [class.w-16]="effectiveCollapsed()">
    <!--
      Angular Material projects everything below into a single `.mat-drawer-inner-container` child
      of `mat-sidenav`, so `flex flex-col` on `mat-sidenav` itself has no effect (a flex container
@@ -23,7 +23,7 @@
    <div class="h-full flex flex-col">
     <div class="flex items-center justify-center h-16 w-full bg-white shrink-0">
       <a routerLink="/uebersicht">
-        @if (collapsed()) {
+        @if (effectiveCollapsed()) {
           <img ngSrc="assets/img/brand/logo_small.svg" width="30" height="30" priority alt="ÖRK Logo"/>
         } @else {
           <img ngSrc="assets/img/brand/logo.svg" width="150" height="41" priority alt="ÖRK Logo"/>
@@ -34,7 +34,7 @@
     <nav class="py-2 overflow-y-auto grow" aria-label="Hauptnavigation">
       @for (item of navItems(); track item.name + '-' + $index) {
         @if (item.title) {
-          @if (!collapsed()) {
+          @if (!effectiveCollapsed()) {
             <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-400 font-semibold">{{ item.name }}</div>
           }
         } @else {
@@ -51,17 +51,17 @@
                 nothing its expanded state could describe.
               -->
               <button type="button" (click)="toggleExpanded(item.name, $event)"
-                      [attr.aria-expanded]="collapsed() ? null : expandedItems().has(item.name)"
-                      [attr.aria-controls]="collapsed() ? null : 'nav-group-' + $index"
+                      [attr.aria-expanded]="effectiveCollapsed() ? null : expandedItems().has(item.name)"
+                      [attr.aria-controls]="effectiveCollapsed() ? null : 'nav-group-' + $index"
                       [disabled]="!!item.attributes?.disabled"
                       class="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
-                      [class.justify-center]="collapsed()"
+                      [class.justify-center]="effectiveCollapsed()"
                       [class.text-gray-400]="item.attributes?.disabled"
-                      [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
+                      [matTooltip]="effectiveCollapsed() ? item.name : ''" matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
-                @if (!collapsed()) {
+                @if (!effectiveCollapsed()) {
                   <span class="grow text-left">{{ item.name }}</span>
                   <fa-icon [icon]="expandedItems().has(item.name) ? faAngleDown : faAngleRight"
                            class="w-3 shrink-0"></fa-icon>
@@ -78,16 +78,16 @@
                  (click)="!item.attributes?.disabled && isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3"
                  [ngClass]="item.attributes?.disabled ? 'cursor-default' : 'hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer'"
-                 [class.justify-center]="collapsed()"
+                 [class.justify-center]="effectiveCollapsed()"
                  [class.text-gray-400]="item.attributes?.disabled"
                  [attr.aria-disabled]="item.attributes?.disabled ? true : null"
                  [attr.tabindex]="item.attributes?.disabled ? -1 : null"
-                 [matTooltip]="item.attributes?.disabled ? 'Keine Verteilung aktiv' : (collapsed() ? item.name : '')"
+                 [matTooltip]="item.attributes?.disabled ? 'Keine Verteilung aktiv' : (effectiveCollapsed() ? item.name : '')"
                  matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
-                @if (!collapsed()) {
+                @if (!effectiveCollapsed()) {
                   <span class="grow">{{ item.name }}</span>
                   @if (item.badge) {
                     <span class="badge" [ngClass]="'badge-' + item.badge.color">{{ item.badge.text }}</span>
@@ -95,7 +95,7 @@
                 }
               </a>
             }
-            @if (item.children && !collapsed() && expandedItems().has(item.name)) {
+            @if (item.children && !effectiveCollapsed() && expandedItems().has(item.name)) {
               <div [id]="'nav-group-' + $index">
                 @for (child of item.children; track child.name) {
                   <!--
@@ -130,7 +130,7 @@
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
-    @if (!collapsed() && appConfig(); as info) {
+    @if (!effectiveCollapsed() && appConfig(); as info) {
       <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-400 shrink-0 text-center">
         <div class="truncate">{{ info.version }}</div>
         @if (info.buildTime !== 'unknown') {

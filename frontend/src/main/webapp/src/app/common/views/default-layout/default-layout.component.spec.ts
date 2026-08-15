@@ -12,6 +12,71 @@ import { of } from 'rxjs';
 import { TafelTitleStrategy } from '../../util/tafel-title-strategy';
 import { By } from '@angular/platform-browser';
 import { MatTooltip } from '@angular/material/tooltip';
+import { BreakpointObserver } from '@angular/cdk/layout';
+
+// The suite below mostly asserts the desktop ('side' mode) rendering of collapse/expand, which
+// has to stay stable regardless of how wide the headless test browser's own window happens to be -
+// real runs have seen it land under the component's mobile breakpoint, which previously went
+// unnoticed only because `collapsed` drove the template directly. `configureModule` takes a
+// `mobile` flag so the one test that needs the overlay ('over' mode) branch instead can reconfigure
+// the module itself, since `BreakpointObserver` can't be swapped via `TestBed.overrideProvider`
+// once the module has already been compiled.
+function breakpointObserverSpy(mobile: boolean): MockedObject<BreakpointObserver> {
+    return {
+        observe: vi.fn().mockName('BreakpointObserver.observe').mockReturnValue(of({ matches: mobile, breakpoints: {} })),
+        isMatched: vi.fn().mockName('BreakpointObserver.isMatched').mockReturnValue(mobile)
+    } as unknown as MockedObject<BreakpointObserver>;
+}
+
+function configureModule(mobile: boolean) {
+    const authServiceSpy = {
+        hasPermission: vi.fn().mockName('AuthenticationService.hasPermission'),
+        hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission')
+    };
+    const globalStateServiceSpy = {
+        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
+        getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
+    };
+    const configApiServiceSpy = {
+        observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
+            .mockReturnValue(of({
+                version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
+            }))
+    };
+
+    TestBed.configureTestingModule({
+        providers: [
+            provideRouter([{path: 'uebersicht', title: 'Übersicht', children: []}]),
+            provideLocationMocks(),
+            {provide: TitleStrategy, useExisting: TafelTitleStrategy},
+            // the header collects the browser's context for a support request, which reads it
+            {provide: Window, useValue: window},
+            {
+                provide: AuthenticationService,
+                useValue: authServiceSpy
+            },
+            {
+                provide: GlobalStateService,
+                useValue: globalStateServiceSpy
+            },
+            {
+                provide: ConfigApiService,
+                useValue: configApiServiceSpy
+            },
+            {
+                provide: BreakpointObserver,
+                useValue: breakpointObserverSpy(mobile)
+            }
+        ]
+    }).compileComponents();
+
+    const authService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
+    const globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
+
+    globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
+
+    return {authService, globalStateService};
+}
 
 describe('DefaultLayoutComponent', () => {
     let authService: MockedObject<AuthenticationService>;
@@ -19,47 +84,7 @@ describe('DefaultLayoutComponent', () => {
     let globalStateService: MockedObject<GlobalStateService>;
 
     beforeEach(() => {
-        const authServiceSpy = {
-            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission'),
-            hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission')
-        };
-        const globalStateServiceSpy = {
-            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
-            getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
-        };
-        const configApiServiceSpy = {
-            observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
-                .mockReturnValue(of({
-                    version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
-                }))
-        };
-
-        TestBed.configureTestingModule({
-            providers: [
-                provideRouter([{path: 'uebersicht', title: 'Übersicht', children: []}]),
-                provideLocationMocks(),
-                {provide: TitleStrategy, useExisting: TafelTitleStrategy},
-                // the header collects the browser's context for a support request, which reads it
-                {provide: Window, useValue: window},
-                {
-                    provide: AuthenticationService,
-                    useValue: authServiceSpy
-                },
-                {
-                    provide: GlobalStateService,
-                    useValue: globalStateServiceSpy
-                },
-                {
-                    provide: ConfigApiService,
-                    useValue: configApiServiceSpy
-                }
-            ]
-        }).compileComponents();
-
-        authService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
-        globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
-
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
+        ({authService, globalStateService} = configureModule(false));
     });
 
     // A leftover value from one test's persistence would otherwise change what the next test's
@@ -103,6 +128,28 @@ describe('DefaultLayoutComponent', () => {
         fixture.detectChanges();
 
         expect(fixture.nativeElement.textContent).not.toContain('1.0.0');
+    });
+
+    // A user who collapsed the sidebar on a wide window has no way to expand it again once the
+    // window narrows past the mobile breakpoint - the collapse toggle is `hidden lg:flex`. Without
+    // `effectiveCollapsed` gating collapse on `!isMobile()`, the overlay opened on a phone/narrow
+    // window would render as the same icon-only rail instead of the full labelled overlay the user
+    // guide documents, and a mobile user could never see a label again.
+    it('ignores a collapsed preference while the overlay sidenav is in mobile mode', () => {
+        TestBed.resetTestingModule();
+        const mobileServices = configureModule(true);
+        mobileServices.authService.hasPermission.mockReturnValue(true);
+        mobileServices.authService.hasAnyPermission.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        const component = fixture.componentInstance;
+        component.collapsed.set(true);
+        fixture.detectChanges();
+
+        expect(component.effectiveCollapsed()).toBe(false);
+        expect(fixture.nativeElement.querySelector('mat-sidenav').classList).toContain('w-64');
+        expect(fixture.nativeElement.textContent).toContain('Übersicht');
+        expect(fixture.nativeElement.textContent).toContain('1.0.0');
     });
 
     it('navItems are filtered by permissions - permissions undefined', () => {
