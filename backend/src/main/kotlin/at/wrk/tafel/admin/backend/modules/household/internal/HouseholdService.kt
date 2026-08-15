@@ -22,9 +22,9 @@ import at.wrk.tafel.admin.backend.modules.household.HouseholdOverviewItem
 import at.wrk.tafel.admin.backend.modules.household.HouseholdOverviewResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdPdfType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
-import at.wrk.tafel.admin.backend.modules.household.IncomeQuickCheckRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.HouseholdUpdateResponse
+import at.wrk.tafel.admin.backend.modules.household.IncomeQuickCheckRequest
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService

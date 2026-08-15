@@ -28,35 +28,32 @@ class HouseholdController(
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse =
-        mapToValidateHouseholdResponse(householdService.validate(household))
+    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse = mapToValidateHouseholdResponse(householdService.validate(household))
 
     @PostMapping("/income-quickcheck")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun incomeQuickCheck(@Valid @RequestBody request: IncomeQuickCheckRequest): ValidateHouseholdResponse =
-        mapToValidateHouseholdResponse(householdService.quickCheck(request))
+    fun incomeQuickCheck(@Valid @RequestBody request: IncomeQuickCheckRequest): ValidateHouseholdResponse = mapToValidateHouseholdResponse(householdService.quickCheck(request))
 
-    private fun mapToValidateHouseholdResponse(result: IncomeValidatorResult): ValidateHouseholdResponse =
-        ValidateHouseholdResponse(
-            valid = result.valid,
-            totalSum = result.totalSum,
-            limit = result.limit,
-            toleranceValue = result.toleranceValue,
-            amountExceededLimit = result.amountExceededLimit,
-            details = IncomeCalculationDetails(
-                incomeSum = result.details.incomeSum,
-                familyAllowanceSum = result.details.familyAllowanceSum,
-                childTaxAllowanceSum = result.details.childTaxAllowanceSum,
-                siblingAdditionSum = result.details.siblingAdditionSum,
-                baseLimit = result.details.baseLimit,
-                baseLimitCountAdults = result.details.baseLimitCountAdults,
-                baseLimitCountChildren = result.details.baseLimitCountChildren,
-                additionalAdultsCount = result.details.additionalAdultsCount,
-                additionalAdultsSum = result.details.additionalAdultsSum,
-                additionalChildrenCount = result.details.additionalChildrenCount,
-                additionalChildrenSum = result.details.additionalChildrenSum,
-            ),
-        )
+    private fun mapToValidateHouseholdResponse(result: IncomeValidatorResult): ValidateHouseholdResponse = ValidateHouseholdResponse(
+        valid = result.valid,
+        totalSum = result.totalSum,
+        limit = result.limit,
+        toleranceValue = result.toleranceValue,
+        amountExceededLimit = result.amountExceededLimit,
+        details = IncomeCalculationDetails(
+            incomeSum = result.details.incomeSum,
+            familyAllowanceSum = result.details.familyAllowanceSum,
+            childTaxAllowanceSum = result.details.childTaxAllowanceSum,
+            siblingAdditionSum = result.details.siblingAdditionSum,
+            baseLimit = result.details.baseLimit,
+            baseLimitCountAdults = result.details.baseLimitCountAdults,
+            baseLimitCountChildren = result.details.baseLimitCountChildren,
+            additionalAdultsCount = result.details.additionalAdultsCount,
+            additionalAdultsSum = result.details.additionalAdultsSum,
+            additionalChildrenCount = result.details.additionalChildrenCount,
+            additionalChildrenSum = result.details.additionalChildrenSum,
+        ),
+    )
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
