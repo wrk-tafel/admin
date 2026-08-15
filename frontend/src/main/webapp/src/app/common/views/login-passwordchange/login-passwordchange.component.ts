@@ -1,10 +1,11 @@
-import {Component, computed, inject, viewChild} from '@angular/core';
+import {Component, computed, inject, signal, viewChild} from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
+import {MatProgressBar} from '@angular/material/progress-bar';
 
 @Component({
   selector: 'tafel-login-passwordchange',
@@ -15,6 +16,7 @@ import {MatButton} from '@angular/material/button';
     MatCard,
     MatCardContent,
     MatButton,
+    MatProgressBar,
   ]
 })
 export class LoginPasswordChangeComponent {
@@ -23,8 +25,17 @@ export class LoginPasswordChangeComponent {
   private authenticationService = inject(AuthenticationService);
   private router = inject(Router);
 
+  /**
+   * Set once the new password is saved and the silent re-login kicks off, so the brief pause
+   * before the redirect to /uebersicht reads as progress rather than a hang (see #3209).
+   */
+  reLoginInProgress = signal(false);
+
   // Use signal from child component for reactive form validity
   saveDisabled = computed(() => {
+    if (this.reLoginInProgress()) {
+      return true;
+    }
     const formComponent = this.form();
     if (!formComponent) {
       return true;
@@ -41,11 +52,16 @@ export class LoginPasswordChangeComponent {
 
     formComponent.changePassword().subscribe(successful => {
       if (successful) {
+        this.reLoginInProgress.set(true);
         const username = this.authenticationService.getUsername()!;
         const password = formComponent.passwordForm.newPassword().value();
         this.authenticationService.login(username, password).then((result: LoginResult) => {
           if (result.successful) {
             this.router.navigate(['uebersicht']);
+          } else {
+            // Unexpected: re-login with the password that was just saved failed. Fall back to
+            // letting the user retry by hand rather than leaving the page stuck "in progress".
+            this.reLoginInProgress.set(false);
           }
         });
       }

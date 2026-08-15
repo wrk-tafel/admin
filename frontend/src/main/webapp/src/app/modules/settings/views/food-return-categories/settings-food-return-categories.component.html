@@ -94,7 +94,7 @@
                 <fa-icon [icon]="faXmark"></fa-icon>
               </button>
             } @else {
-              <button matButton="filled" class="button-danger" [attr.testid]="'editFoodReturnCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
+              <button matButton="filled" [attr.testid]="'editFoodReturnCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
                       [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                 <fa-icon [icon]="faPencil"></fa-icon>
               </button>
@@ -135,7 +135,7 @@
                 }
               </mat-card-title>
             </mat-card-header>
-            <mat-card-actions class="flex items-center gap-2">
+            <mat-card-actions>
               <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Retour-Kategorie ' + category.name"
                                     [testId]="'food-return-categories-enabled-toggle-mobile-' + i"
                                     (enabledChange)="toggleFoodReturnCategoryVisibility(category, $event)"/>
@@ -149,7 +149,7 @@
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger"
+                <button matButton="filled"
                         [attr.testid]="'editFoodReturnCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
                         [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>

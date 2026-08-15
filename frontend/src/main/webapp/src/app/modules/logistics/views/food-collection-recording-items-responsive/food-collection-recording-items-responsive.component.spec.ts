@@ -528,6 +528,127 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(indicator).toBeNull();
   });
 
+  it('currentShopIndex/shopProgress - reports the position and per-shop recorded state', () => {
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {
+        items: [
+          {shopId: mockShops[0].id, categoryId: mockFoodCategories[0].id, amount: 1},
+          {shopId: mockShops[0].id, categoryId: mockFoodCategories[1].id, amount: 1}
+        ]
+      }
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    component.currentShop.set(mockShops[1]);
+
+    expect(component.currentShopIndex()).toBe(1);
+    expect(component.shopCount()).toBe(3);
+
+    const progress = component.shopProgress();
+    expect(progress.map(entry => entry.position)).toEqual([1, 2, 3]);
+    expect(progress[0].isRecorded).toBe(true); // every category has an amount > 0
+    expect(progress[1].isRecorded).toBe(false); // the current shop, nothing entered yet
+    expect(progress[1].isCurrent).toBe(true);
+  });
+
+  it('jumpToShop - selects the shop matching the given id', () => {
+    const mockRouteData = {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}};
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    const selectShopSpy = vi.spyOn(component, 'selectShop');
+
+    component.jumpToShop(mockShops[2].id);
+
+    expect(selectShopSpy).toHaveBeenCalledWith(mockShops[2]);
+  });
+
+  it('justSynced - flips true once the offline queue empties out, then clears itself', () => {
+    vi.useFakeTimers();
+    try {
+      offlineQueueService.pendingCount.set(2);
+
+      const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+      const componentRef = fixture.componentRef;
+      componentRef.setInput('foodCategories', mockFoodCategories);
+      componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+      componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+      fixture.detectChanges();
+      expect(fixture.componentInstance.justSynced()).toBe(false);
+
+      offlineQueueService.pendingCount.set(0);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.justSynced()).toBe(true);
+
+      vi.advanceTimersByTime(5000);
+      expect(fixture.componentInstance.justSynced()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('justSynced - stays false when nothing was ever pending', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.justSynced()).toBe(false);
+  });
+
+  it('tabStatus - unsaved while return boxes are pending, complete once markAsSaved is called', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    component.currentShop.set(mockShops[0]);
+    expect(component.tabStatus()).toBeUndefined();
+
+    component.onReturnCategoryValueChange({key: 'Graue Kisten', value: 2});
+    expect(component.tabStatus()).toBe('unsaved');
+
+    component.markAsSaved();
+    expect(component.tabStatus()).toBe('complete');
+  });
+
+  it('tabStatus - invalid once a free-text row duplicates a return category', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    component.currentShop.set(mockShops[0]);
+    component.addReturnItem('graue kisten', 2);
+
+    expect(component.tabStatus()).toBe('invalid');
+  });
+
   it('should navigate to next shop correctly', () => {
     const mockRouteData = {
       route: mockRoute,

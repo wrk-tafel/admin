@@ -1,7 +1,11 @@
 import {Component, inject} from '@angular/core';
-import {MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
+
+export interface DeleteCustomerDialogData {
+  customerName: string;
+}
 
 @Component({
   selector: 'tafel-delete-customer-dialog',
@@ -10,4 +14,5 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 })
 export class DeleteCustomerDialogComponent {
   readonly dialogRef = inject(MatDialogRef<DeleteCustomerDialogComponent>);
+  readonly data: DeleteCustomerDialogData = inject(MAT_DIALOG_DATA);
 }

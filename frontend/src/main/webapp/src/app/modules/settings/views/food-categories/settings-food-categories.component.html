@@ -112,7 +112,7 @@
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
+            <button matButton="filled" [attr.testid]="'editFoodCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
                     [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -178,7 +178,7 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex items-center gap-2">
+            <mat-card-actions>
               <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Waren-Kategorie ' + category.name"
                                     [testId]="'food-categories-enabled-toggle-mobile-' + i"
                                     (enabledChange)="toggleFoodCategoryVisibility(category, $event)"/>
@@ -190,7 +190,7 @@
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editFoodCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
+                <button matButton="filled" [attr.testid]="'editFoodCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
                         [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>

@@ -4,10 +4,10 @@ import {MatButtonModule} from '@angular/material/button';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 
 @Component({
-  selector: 'tafel-delete-login-attempt-dialog',
+  selector: 'tafel-unsaved-changes-dialog',
   imports: [TafelDialogComponent, MatButtonModule],
-  templateUrl: 'delete-login-attempt-dialog.component.html',
+  templateUrl: 'unsaved-changes-dialog.component.html',
 })
-export class DeleteLoginAttemptDialogComponent {
-  readonly dialogRef = inject(MatDialogRef<DeleteLoginAttemptDialogComponent>);
+export class UnsavedChangesDialogComponent {
+  readonly dialogRef = inject(MatDialogRef<UnsavedChangesDialogComponent>);
 }

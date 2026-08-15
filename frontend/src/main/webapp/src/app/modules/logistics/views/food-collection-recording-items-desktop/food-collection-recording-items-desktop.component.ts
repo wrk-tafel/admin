@@ -1,4 +1,5 @@
 import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {NgClass} from '@angular/common';
 import {Shop} from '../../../../api/route-api.service';
 
@@ -26,6 +27,7 @@ import {
   RETURN_ITEM_DESCRIPTION_MAX_LENGTH
 } from '../../services/food-collection-return-items';
 import {Observable} from 'rxjs';
+import {TabStatus} from '../../services/food-collection-tab-status';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-desktop',
@@ -99,6 +101,80 @@ export class FoodCollectionRecordingItemsDesktopComponent {
       this.categories.markAllAsTouched();
       this.formInitialized.set(true);
     }
+  });
+
+  // Recompute trigger for the totals/tabStatus below, which read plain FormArray/FormControl state
+  // that isn't itself a signal - the whole form (categories, returnCategories, returnItems) is
+  // rebuilt on every route change, so this also fires once the matrix has actually been (re)filled.
+  private readonly formChangeTick = toSignal(this.form.valueChanges, {initialValue: null});
+
+  // markAsSaved() below calls markAsPristine(), which never emits valueChanges, so formChangeTick
+  // alone would leave tabStatus stuck on "unsaved" until the next edit - bumped there instead.
+  private readonly savedTick = signal(0);
+
+  /** Sum column of the Warenmenge matrix: total collected per category, across all shops. */
+  readonly categoryTotals = computed<number[]>(() => {
+    this.formChangeTick();
+    return this.categories.controls.map(categoryGroup =>
+      ((categoryGroup.get('shops') as FormArray).controls)
+        .reduce((sum, shopGroup) => sum + (Number(shopGroup.get('amount')!.value) || 0), 0)
+    );
+  });
+
+  /** Sum row of the Warenmenge matrix: total collected per shop, across all categories. */
+  readonly shopTotals = computed<number[]>(() => {
+    this.formChangeTick();
+    const shopCount = this.selectedRouteData()?.shops?.length ?? 0;
+    const totals = new Array<number>(shopCount).fill(0);
+    this.categories.controls.forEach(categoryGroup => {
+      ((categoryGroup.get('shops') as FormArray).controls).forEach((shopGroup, shopIndex) => {
+        totals[shopIndex] += Number(shopGroup.get('amount')!.value) || 0;
+      });
+    });
+    return totals;
+  });
+
+  readonly grandTotal = computed(() => this.categoryTotals().reduce((sum, value) => sum + value, 0));
+
+  /** Same three totals, for the Retourware matrix (the free-text rows below it are not counted in a matrix). */
+  readonly returnCategoryTotals = computed<number[]>(() => {
+    this.formChangeTick();
+    return this.returnCategories.controls.map(categoryGroup =>
+      ((categoryGroup.get('shops') as FormArray).controls)
+        .reduce((sum, shopGroup) => sum + (Number(shopGroup.get('amount')!.value) || 0), 0)
+    );
+  });
+
+  readonly returnShopTotals = computed<number[]>(() => {
+    this.formChangeTick();
+    const shopCount = this.selectedRouteData()?.shops?.length ?? 0;
+    const totals = new Array<number>(shopCount).fill(0);
+    this.returnCategories.controls.forEach(categoryGroup => {
+      ((categoryGroup.get('shops') as FormArray).controls).forEach((shopGroup, shopIndex) => {
+        totals[shopIndex] += Number(shopGroup.get('amount')!.value) || 0;
+      });
+    });
+    return totals;
+  });
+
+  readonly returnGrandTotal = computed(() => this.returnCategoryTotals().reduce((sum, value) => sum + value, 0));
+
+  /** Badge shown on the "Waren" tab label - see {@link TabStatus}. */
+  readonly tabStatus = computed<TabStatus | undefined>(() => {
+    this.formChangeTick();
+    this.savedTick();
+
+    if (!this.formReady()) {
+      return undefined;
+    }
+    const hasData = this.grandTotal() > 0 || this.returnGrandTotal() > 0 || this.returnItems.length > 0;
+    if (!hasData) {
+      return undefined;
+    }
+    if (this.hasInvalidInput()) {
+      return 'invalid';
+    }
+    return this.form.dirty ? 'unsaved' : 'complete';
   });
 
   createCategoryShopInputs(shops: Shop[], items: FoodCollectionItem[] = []) {
@@ -214,6 +290,12 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     }
 
     return requests;
+  }
+
+  /** Called once this section's own save requests have actually gone out - flips its badge back to "complete". */
+  markAsSaved() {
+    this.form.markAsPristine();
+    this.savedTick.update(tick => tick + 1);
   }
 
   private mapItemsFromCategories(): FoodCollectionItem[] {

@@ -300,6 +300,156 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  it('shows running totals in the desktop matrix and keeps them up to date', () => {
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+
+    cy.byTestId('category-1-shop-20-input').clear().type('5');
+    cy.byTestId('category-1-shop-21-input').clear().type('3');
+    assertCellText('category-1-total', '8');
+
+    cy.byTestId('category-2-shop-20-input').clear().type('2');
+    assertCellText('items-shop-total-20', '7');
+    assertCellText('items-grand-total', '10');
+  });
+
+  it('shows tab status badges that track each section\'s save state', () => {
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      cy.byTestId('routeInput').click();
+      cy.get('mat-option').contains('Route 2').click();
+
+      cy.byTestId('route-tab-status-complete').should('not.exist');
+      cy.byTestId('route-tab-status-unsaved').should('not.exist');
+      cy.byTestId('route-tab-status-invalid').should('not.exist');
+
+      // car alone, driver/co-driver still missing - already invalid, doesn't need to be dirty first
+      cy.byTestId('carInput').click();
+      cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
+      cy.byTestId('route-tab-status-invalid').should('be.visible');
+
+      selectDriver();
+      createAndSelectCoDriver(randomNumber);
+      selectExistingCoDriver();
+      cy.byTestId('route-tab-status-unsaved').should('be.visible');
+
+      cy.byTestId('select-items-tab').click();
+      cy.byTestId('waren-tab-status-complete').should('not.exist');
+      enterKmData();
+      // the km inputs sit at the bottom of the items tab, so entering them scrolls the tab header
+      // (which carries the badges) out of the scrollport - scroll back up like a user would
+      cy.byTestId('waren-tab-status-unsaved').scrollIntoView().should('be.visible');
+
+      saveAndConfirmKmDiff();
+      assertSavedToast();
+
+      cy.byTestId('route-tab-status-complete').scrollIntoView().should('be.visible');
+      cy.byTestId('waren-tab-status-complete').scrollIntoView().should('be.visible');
+    });
+  });
+
+  it('warns when amounts are entered before the route base data is complete', () => {
+    enterRouteData(); // route + car only, no driver/co-driver
+    cy.byTestId('basedata-missing-warning').should('not.exist');
+
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('category-1-shop-20-input').clear().type('3');
+
+    // the warning renders above the tab content, which typing in the grid has scrolled past
+    cy.byTestId('basedata-missing-warning').scrollIntoView().should('be.visible');
+  });
+
+  it('shows the live computed distance next to the mileage inputs', () => {
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+
+    cy.byTestId('km-distance-hint').should('not.exist');
+    cy.byTestId('kmStartInput').clear().type('1000');
+    cy.byTestId('km-distance-hint').should('not.exist');
+    cy.byTestId('kmEndInput').clear().type('1042');
+    cy.byTestId('km-distance-hint').should('contain.text', '42 km');
+  });
+
+  it('warns before leaving the page with unsaved changes, and honours the dialog\'s choice', () => {
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+
+    cy.get('a[routerLink="/uebersicht"]').first().click();
+    cy.byTestId('unsaved-changes-dialog').should('be.visible').within(() => {
+      cy.byTestId('stay-button').click();
+    });
+    cy.byTestId('unsaved-changes-dialog').should('not.exist');
+    cy.url().should('include', '/warenerfassung');
+
+    cy.get('a[routerLink="/uebersicht"]').first().click();
+    cy.byTestId('unsaved-changes-dialog').should('be.visible').within(() => {
+      cy.byTestId('leave-button').click();
+    });
+    cy.url().should('include', '/uebersicht');
+  });
+
+  it('mobile: shows trip progress, a jump list and a per-shop recorded checkmark', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+
+    cy.byTestId('shop-progress-label').should('have.text', 'Filiale 1 von 2');
+    cy.byTestId('shop-title').should('contain.text', 'Lidl');
+    cy.byTestId('shop-recorded-badge').should('not.exist');
+
+    // testdata: food categories 1-10 are the regular categories on this route's items screen
+    for (let category = 1; category <= 10; category++) {
+      cy.byTestId(`category-${category}-input`).clear().type('1');
+    }
+    cy.byTestId('shop-recorded-badge').should('contain.text', 'erfasst');
+
+    cy.byTestId('shop-jump-select').click();
+    cy.byTestId('shop-jump-option-21').click();
+    cy.byTestId('shop-progress-label').should('have.text', 'Filiale 2 von 2');
+    cy.byTestId('shop-title').should('contain.text', 'Denns BioMarkt');
+
+    completeRouteViaApi();
+  });
+
+  it('mobile: shows a brief confirmation once a queued change has synced', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+
+    cy.intercept('PATCH', '**/food-collections/routes/*/items').as('patchItem');
+    cy.byTestId('sync-confirmation').should('not.exist');
+
+    goOffline();
+    cy.byTestId('category-1-input').type('4');
+    cy.byTestId('offline-indicator').should('contain.text', '1 Änderung ausstehend');
+
+    goOnline();
+    cy.wait('@patchItem');
+    cy.byTestId('sync-confirmation').should('contain.text', 'Synchronisiert');
+
+    completeRouteViaApi();
+  });
+
+  it('mobile: holding a counter button down repeats past what a single tap would give', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+
+    cy.byTestId('category-1-increment-button').trigger('pointerdown');
+    cy.wait(900); // past the hold delay plus a couple of repeat ticks
+    cy.byTestId('category-1-increment-button').trigger('pointerup');
+
+    cy.byTestId('category-1-input').invoke('val').then(Number).should('be.greaterThan', 1);
+
+    completeRouteViaApi();
+  });
+
   // Nothing below exists on the route the Lighthouse `pages` sweep loads: with no route selected
   // `formReady()` is false, so the whole item matrix - a core screen during a distribution - is
   // audited by no gate at all. See cypress/support/accessibility.ts.
@@ -464,6 +614,16 @@ describe('Food Collection Recording', () => {
   // `targets` has been seen at least once, regardless of order or how many requests it takes -
   // the offline queue only guarantees the final value per field eventually gets sent, not one
   // request per interaction.
+  // The phone layout auto-saves every change, which marks route 2 as started for this
+  // distribution; a started-but-incomplete route blocks closing the distribution in afterEach, and
+  // there is no way to un-start one - so finish it the way a driver would, through the same
+  // endpoints the app uses. Food collections live per distribution, so nothing leaks into the next
+  // test's freshly created one. Testdata ids: car 1 (W-NC-123), employees 200/500.
+  function completeRouteViaApi() {
+    cy.request('POST', '/api/food-collections/routes/2', {carId: 1, driverId: 200, coDriverId: 500});
+    cy.request('POST', '/api/food-collections/routes/2/km', {kmStart: 1000, kmEnd: 2000});
+  }
+
   function waitForFinalPatches(targets: { categoryId: number; shopId: number; amount: number }[]) {
     const seen: string[] = [];
     const remaining = () => targets.filter(t => !seen.includes(JSON.stringify(t)));
@@ -527,6 +687,12 @@ describe('Food Collection Recording', () => {
     }
     cy.byTestId('return-item-0-description-input').clear().type(description);
     cy.byTestId('return-item-0-amount-input').clear().type(String(amount));
+  }
+
+  // The totals cells are plain interpolated text nodes indented by the template, so their raw
+  // textContent carries surrounding whitespace - trim before comparing.
+  function assertCellText(testId: string, expected: string) {
+    cy.byTestId(testId).invoke('text').then((text) => expect(text.trim()).to.equal(expected));
   }
 
   function assertSavedToast() {

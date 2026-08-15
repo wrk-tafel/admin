@@ -97,7 +97,7 @@
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i" matTooltip="Fahrzeug bearbeiten"
+            <button matButton="filled" [attr.testid]="'editCarButton-' + i" matTooltip="Fahrzeug bearbeiten"
                     [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -155,7 +155,7 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex items-center gap-2">
+            <mat-card-actions>
               <tafel-enabled-toggle [enabled]="car.enabled" [label]="'Fahrzeug ' + car.name"
                                     [testId]="'cars-enabled-toggle-mobile-' + i"
                                     (enabledChange)="toggleCarVisibility(car, $event)"/>
@@ -167,7 +167,7 @@
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
+                <button matButton="filled" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
                         [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>

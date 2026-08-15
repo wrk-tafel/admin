@@ -39,6 +39,18 @@ describe('DistributionTicketScreenApiService', () => {
     httpMock.verify();
   });
 
+  it('get current ticket reads without broadcasting', () => {
+    const response: TicketScreenTicketResponse = {ticketNumber: 5, householdId: 100, pendingCostContribution: 12};
+    let result: TicketScreenTicketResponse | undefined;
+    apiService.getCurrentTicket().subscribe(r => result = r);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/ticket-screen/current'});
+    req.flush(response);
+    httpMock.verify();
+
+    expect(result).toEqual(response);
+  });
+
   it('show current ticket', () => {
     const response: TicketScreenTicketResponse = {ticketNumber: 5, householdId: 100, pendingCostContribution: 12};
     let result: TicketScreenTicketResponse | undefined;

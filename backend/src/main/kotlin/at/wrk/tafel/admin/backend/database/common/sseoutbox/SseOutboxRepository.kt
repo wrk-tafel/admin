@@ -37,4 +37,13 @@ interface SseOutboxRepository : JpaRepository<SseOutboxEntity, Long> {
      * delivered to nobody because the listening connection was down when they were written.
      */
     fun findAllByEventTimeAfterOrderByEventTimeAsc(eventTime: LocalDateTime): List<SseOutboxEntity>
+
+    /** The most recent event of a stream - see [SseOutboxService.findLatestEvent]. */
+    fun findFirstByNotificationNameOrderByIdDesc(notificationName: String): SseOutboxEntity?
+
+    /** Like [findFirstByNotificationNameOrderByIdDesc], but only an event written after [eventTime]. */
+    fun findFirstByNotificationNameAndEventTimeAfterOrderByIdDesc(
+        notificationName: String,
+        eventTime: LocalDateTime,
+    ): SseOutboxEntity?
 }

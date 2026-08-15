@@ -1,0 +1,20 @@
+// Brief scale/flash so peripheral vision catches a ticket-number change even from across a room -
+// the class is toggled by TicketScreenComponent.triggerChangeAnimation() for the animation's
+// duration and removed again afterwards.
+@keyframes tafel-ticket-screen-pulse {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.06);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tafel-ticket-screen-pulse {
+  animation: tafel-ticket-screen-pulse 700ms ease-out;
+}
