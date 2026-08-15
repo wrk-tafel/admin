@@ -192,8 +192,6 @@ class RouteGuidanceService(
             stopId = stop.id!!,
             time = stop.time,
             description = stop.description,
-            // Unlike ShopService.getShopsForRouteId, a disabled shop is kept here: a driver is sent
-            // to every stop the route still holds, and dropping one silently would leave a gap.
             shop = stop.shop?.let { shop ->
                 RouteGuidanceShop(
                     id = shop.id!!,
@@ -204,7 +202,6 @@ class RouteGuidanceService(
                     contactPerson = shop.contactPerson,
                     note = shop.note,
                     foodUnit = shop.foodUnit,
-                    enabled = shop.enabled,
                 )
             },
             completed = completion != null,

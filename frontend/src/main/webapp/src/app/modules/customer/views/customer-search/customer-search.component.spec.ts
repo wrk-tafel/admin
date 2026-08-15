@@ -78,7 +78,6 @@ describe('CustomerSearchComponent', () => {
           provide: TafelToastrService,
           useValue: {
             error: vi.fn().mockName('TafelToastrService.error'),
-            info: vi.fn().mockName('TafelToastrService.info'),
             success: vi.fn().mockName('TafelToastrService.success'),
             warning: vi.fn().mockName('TafelToastrService.warning')
           }
@@ -123,7 +122,7 @@ describe('CustomerSearchComponent', () => {
     expect(apiService.searchCustomer)
       .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined);
     expect(component.searchResult()).toEqual(searchCustomerMockResponse);
-    expect(toastr.info).not.toHaveBeenCalled();
+    expect(toastr.warning).not.toHaveBeenCalled();
     expect(component.searchAnnouncement()).toBe('');
   });
 
@@ -276,7 +275,7 @@ describe('CustomerSearchComponent', () => {
 
     expect(component.searchAnnouncement()).toBe('Keine Kunden gefunden');
     expect(component.searchResult()?.items).toEqual([]);
-    expect(toastr.info).not.toHaveBeenCalled();
+    expect(toastr.warning).not.toHaveBeenCalled();
   });
 
   it('writes the current query, filters and page back into the URL after a search', () => {

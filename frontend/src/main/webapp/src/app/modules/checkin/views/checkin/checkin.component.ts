@@ -22,7 +22,6 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatOption, MatSelect} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faNoteSticky, faRotateLeft, faTrashCan, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -65,7 +64,6 @@ export class CheckinComponent {
   private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
@@ -249,7 +247,7 @@ export class CheckinComponent {
         if (error.status === 404) {
           this.processCustomer(undefined);
           this.customerNotes.set([]);
-          this.toastr.info(`Kunde ${this.customerId()} nicht gefunden!`);
+          this.toastr.warning(`Kunde ${this.customerId()} nicht gefunden!`);
         } else {
           this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden des Kunden!');
         }
@@ -350,14 +348,10 @@ export class CheckinComponent {
   }
 
   private showUndoToast(customerId: number, ticketNumber: number) {
-    const snackBarRef = this.snackBar.open(
+    const snackBarRef = this.toastr.success(
       `Kunde Nr. ${customerId} → Ticket ${ticketNumber} angenommen.`,
-      'Rückgängig',
-      {
-        duration: 8000,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-      }
+      undefined,
+      {action: 'Rückgängig', durationMs: 8000}
     );
     snackBarRef.onAction().subscribe(() => this.undoLastCheckin());
   }

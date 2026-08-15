@@ -34,6 +34,7 @@ internal class DashboardControllerTest {
     fun `listen for dashboard data`() {
         val data = DashboardData(
             registeredCustomers = 2,
+            registeredPersons = 5,
             tickets = DashboardTicketsData(
                 countProcessedTickets = 10,
                 countTotalTickets = 123,

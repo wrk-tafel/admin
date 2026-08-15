@@ -156,20 +156,6 @@ describe('SettingsShopsComponent', () => {
     expect(component['visibleShops']().length).toBe(2);
   });
 
-  it('sorts by number or name', () => {
-    const fixture = TestBed.createComponent(SettingsShopsComponent);
-    fixture.detectChanges();
-    const component = fixture.componentInstance;
-
-    component['sortBy'].set('number');
-    expect(component['visibleShops']().map(view => view.shop.id)).toEqual([testShop1.id, testShop2.id]);
-
-    component['sortBy'].set('name');
-    // 'Billa' sorts before 'Hofer' too, so pick names that differ in order from the numbers to prove
-    // the sort actually switched rather than happening to agree with the number order
-    expect(component['visibleShops']().map(view => view.shop.name)).toEqual(['Billa', 'Hofer']);
-  });
-
   it('clearSearch() resets the search field', () => {
     const fixture = TestBed.createComponent(SettingsShopsComponent);
     fixture.detectChanges();

@@ -233,7 +233,7 @@ describe('Settings - Routes', () => {
     });
   });
 
-  it('flags a stop pointing at a shop that was deactivated afterwards', () => {
+  it('removes the stop from the route when its shop is deactivated', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const shopName = 'E2E Filiale inaktiv ' + randomId;
       const shopNumber = 90_000 + (randomId % 900_000);
@@ -273,7 +273,9 @@ describe('Settings - Routes', () => {
       cy.visit('/einstellungen/routen');
       cy.byTestId('routes-search-input').type(routeName);
       cy.byTestId('routes-row-0').find('[testid^="routes-toggle-"]').click();
-      cy.byTestId('route-stops-0').should('contain.text', 'Filiale inaktiv');
+      cy.byTestId('routes-row-0')
+        .should('contain.text', 'Keine Stopps hinterlegt')
+        .and('not.contain.text', shopName);
     });
   });
 

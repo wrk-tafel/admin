@@ -116,9 +116,6 @@
                   <div class="flex flex-wrap items-baseline gap-x-3">
                     <span class="font-semibold tabular-nums">{{ stop.time }}</span>
                     <span>{{ stop.label }}</span>
-                    @if (stop.shopInactive) {
-                      <span class="badge badge-danger">Filiale inaktiv</span>
-                    }
                   </div>
                   @if (stop.shopAddress) {
                     <div class="text-sm text-slate-500">{{ stop.shopAddress }}</div>

@@ -6,6 +6,8 @@ import java.math.BigDecimal
 @ExcludeFromTestCoverage
 data class DashboardData(
     val registeredCustomers: Int?,
+    /** everyone the registered households get food for: main persons plus their not-excluded additional persons */
+    val registeredPersons: Int?,
     val tickets: DashboardTicketsData?,
     val statistics: DashboardStatisticsData?,
     val logistics: DashboardLogisticsData?,

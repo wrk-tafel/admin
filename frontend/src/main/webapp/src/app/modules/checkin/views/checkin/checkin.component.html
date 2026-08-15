@@ -3,24 +3,29 @@
 <mat-card class="flex flex-col" [class.grow]="customer() !== undefined">
   <!-- !grow-0: the theme grows every card content; here the surplus belongs to the detail card below -->
   <mat-card-content class="!grow-0">
-    <!-- One row: the heading, the customer-number input (the every-check-in control) on the left,
-         the scanner pairing (a once-per-shift setup) as a compact toolbar on the right - so the
-         work order below (input -> verdict -> context -> ticket -> actions) starts right away. -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <h2 class="tafel-h4">Kunden-Annahme</h2>
-        <mat-form-field subscriptSizing="dynamic" class="w-52 sm:w-64">
-          <mat-label>Kundennummer</mat-label>
-          <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
-                 [ngModel]="customerId()" (ngModelChange)="customerId.set($event)" tafelAutofocus
-                 (keydown.enter)="searchForCustomerId()"
-                 (wheel)="$event.preventDefault()">
-        </mat-form-field>
-        <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton">
-          Anzeigen
-        </button>
+    <!-- Desktop (lg+), one row: the heading, the customer-number input (the every-check-in control)
+         on the left, the scanner pairing (a once-per-shift setup) as a compact toolbar on the right
+         - so the work order below (input -> verdict -> context -> ticket -> actions) starts right
+         away. Below lg the same elements stack full-width instead: heading, then the scanner
+         toolbar, then the customer-number input with the button beside it (via order-*; the group
+         div dissolves into the column with `contents` so all three rows share one flex context). -->
+    <div class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+      <div class="contents lg:flex lg:flex-wrap lg:items-center lg:gap-x-6 lg:gap-y-3">
+        <h2 class="tafel-h4 order-1 lg:order-none">Kunden-Annahme</h2>
+        <div class="order-3 lg:order-none flex items-center gap-3 lg:gap-x-6 lg:contents">
+          <mat-form-field subscriptSizing="dynamic" class="grow lg:grow-0 lg:w-64">
+            <mat-label>Kundennummer</mat-label>
+            <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
+                   [ngModel]="customerId()" (ngModelChange)="customerId.set($event)" tafelAutofocus
+                   (keydown.enter)="searchForCustomerId()"
+                   (wheel)="$event.preventDefault()">
+          </mat-form-field>
+          <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton">
+            Anzeigen
+          </button>
+        </div>
       </div>
-      <div class="flex flex-wrap items-center gap-3 text-sm" testid="scannerToolbar">
+      <div class="order-2 lg:order-none flex flex-wrap items-center gap-3 text-sm" testid="scannerToolbar">
         <span>Scanner:</span>
         <mat-form-field subscriptSizing="dynamic" class="w-40">
           <!-- The visible "Scanner:" text is toolbar prose, not an associated label, so the select

@@ -64,7 +64,6 @@ describe('UserSearchComponent', () => {
           provide: TafelToastrService,
           useValue: {
             error: vi.fn().mockName('TafelToastrService.error'),
-            info: vi.fn().mockName('TafelToastrService.info'),
             success: vi.fn().mockName('TafelToastrService.success'),
             warning: vi.fn().mockName('TafelToastrService.warning')
           }
@@ -108,7 +107,7 @@ describe('UserSearchComponent', () => {
 
     expect(apiService.searchUser).toHaveBeenCalledWith(undefined, true, undefined, undefined);
     expect(component.searchResult()).toEqual(searchUserMockResponse);
-    expect(toastr.info).not.toHaveBeenCalled();
+    expect(toastr.warning).not.toHaveBeenCalled();
     expect(component.searchAnnouncement()).toBe('');
   });
 
@@ -280,7 +279,7 @@ describe('UserSearchComponent', () => {
 
     expect(component.searchAnnouncement()).toBe('Keine Benutzer gefunden');
     expect(component.searchResult()?.items).toEqual([]);
-    expect(toastr.info).not.toHaveBeenCalled();
+    expect(toastr.warning).not.toHaveBeenCalled();
   });
 
   it('writes the current query, status and page back into the URL after a search', () => {

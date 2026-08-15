@@ -36,14 +36,7 @@
         }
       </mat-form-field>
 
-      <mat-button-toggle-group class="ms-auto" [value]="sortBy()" aria-label="Sortierung"
-                               testid="shops-sort-toggle"
-                               (change)="onSortChanged($event.value)">
-        <mat-button-toggle value="number" testid="shops-sort-number">Nummer</mat-button-toggle>
-        <mat-button-toggle value="name" testid="shops-sort-name">Name</mat-button-toggle>
-      </mat-button-toggle-group>
-
-      <tafel-enabled-filter [value]="enabledFilter()" testIdPrefix="shops"
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="shops"
                             (valueChange)="onFilterChanged($event)"/>
     </div>
 

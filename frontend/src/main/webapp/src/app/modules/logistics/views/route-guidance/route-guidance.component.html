@@ -130,9 +130,6 @@
               </span>
             }
             <span class="tafel-h5 mb-0 font-medium">{{ view.title }}</span>
-            @if (view.stop.shop && !view.stop.shop.enabled) {
-              <span class="badge badge-danger" testid="guidance-stop-inactive">Filiale inaktiv</span>
-            }
           </div>
 
           @if (view.stop.shop; as shop) {

@@ -104,28 +104,12 @@ describe('SettingsRoutesComponent', () => {
       time: '14:00',
       label: '100 - Billa',
       shopAddress: 'Teststraße 1, 1100 Wien',
-      description: 'Stopp 1',
-      shopInactive: false
+      description: 'Stopp 1'
     });
     // a stop without a shop is identified by its description alone, so that becomes the label
     expect(stops[1].label).toBe('Pause');
     expect(stops[1].shopAddress).toBeUndefined();
     expect(stops[1].description).toBeUndefined();
-  });
-
-  it('flags a stop pointing at a since-deactivated shop', () => {
-    const routeWithDisabledShop: RouteData = {
-      ...testRoute2,
-      enabled: true,
-      stops: [{id: 21, time: '09:00:00', shopId: disabledShop.id}]
-    };
-    routeApiMock.getAllRoutes = vi.fn(() => of<RouteList>({routes: [routeWithDisabledShop]}));
-
-    const fixture = TestBed.createComponent(SettingsRoutesComponent);
-    fixture.detectChanges();
-
-    const stops = fixture.componentInstance['visibleRoutes']()[0].stops;
-    expect(stops[0].shopInactive).toBe(true);
   });
 
   it('composes a maps link over the resolved shop addresses, skipping stops without one', () => {
@@ -305,18 +289,13 @@ describe('SettingsRoutesComponent', () => {
     expect(toastrMock.success).toHaveBeenCalled();
   });
 
-  it('editRoute() keeps a disabled shop selectable when the route already stops there', () => {
-    const routeWithDisabledShop: RouteData = {
-      ...testRoute1,
-      stops: [{id: 11, time: '14:00:00', shopId: disabledShop.id}]
-    };
-
+  it('editRoute() offers only the active shops', () => {
     const fixture = TestBed.createComponent(SettingsRoutesComponent);
     fixture.detectChanges();
-    fixture.componentInstance['editRoute'](routeWithDisabledShop);
+    fixture.componentInstance['editRoute'](testRoute1);
 
     expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      data: {route: routeWithDisabledShop, shops: [activeShop, disabledShop]}
+      data: {route: testRoute1, shops: [activeShop]}
     }));
   });
 

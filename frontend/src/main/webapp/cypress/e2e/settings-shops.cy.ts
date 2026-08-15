@@ -178,11 +178,11 @@ describe('Settings - Shops', () => {
     });
   });
 
-  it('sorts the list by number or by name', () => {
+  it('lists the shops ordered by number', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const shared = 'E2E Sort ' + randomId;
-      // Beta gets the lower number but the alphabetically later name, so switching the sort has to
-      // swap the two rows' order rather than happen to agree with it
+      // Beta gets the lower number but the alphabetically later name, so the order can only come
+      // from the numbers rather than happen to agree with the names
       const beta = shared + ' Beta';
       const alpha = shared + ' Alpha';
       const betaNumber = shopNumber(randomId);
@@ -196,13 +196,8 @@ describe('Settings - Shops', () => {
       cy.byTestId('shops-search-input').type(shared);
       cy.byTestId('shops-list').find('[testid^="shops-row-"]').should('have.length', 2);
 
-      // default sort is by number
       cy.byTestId('shops-row-0').should('contain.text', beta);
       cy.byTestId('shops-row-1').should('contain.text', alpha);
-
-      cy.byTestId('shops-sort-name').click();
-      cy.byTestId('shops-row-0').should('contain.text', alpha);
-      cy.byTestId('shops-row-1').should('contain.text', beta);
     });
   });
 
@@ -263,6 +258,11 @@ describe('Settings - Shops', () => {
       cy.contains('.toast-message', 'geändert').should('be.visible');
       shopPanel(shopName).find('[testid^="shops-enabled-toggle-"] button')
         .should('have.attr', 'aria-checked', 'false');
+
+      // deactivating removed the shop's stop from the route
+      shopPanel(shopName).find('[testid^="shops-toggle-"]').click();
+      shopPanel(shopName).find('[testid^="shops-route-usage-"]')
+        .should('contain.text', 'Wird derzeit von keiner Route angefahren');
     });
   });
 

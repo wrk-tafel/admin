@@ -19,6 +19,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -213,6 +214,47 @@ class ShopServiceTest {
         val result = service.updateShop(99L, shopRequest(number = 500).copy(id = 99))
 
         assertThat(result.number).isEqualTo(500)
+    }
+
+    @Test
+    fun `deactivating a shop removes its stops from all routes`() {
+        val existingEntity = ShopEntity(
+            number = 100,
+            name = "Closing down",
+            address = ShopAddress(street = "Old street", postalCode = 1010, city = "Old city"),
+        ).apply { id = 99 }
+        val route = RouteEntity(number = 7.0, name = "Route 7").apply {
+            id = 7
+            stops = mutableListOf(
+                RouteStopEntity(route = this, time = LocalTime.of(14, 0)).apply { shop = existingEntity },
+                RouteStopEntity(route = this, time = LocalTime.of(14, 30)).apply { shop = testShop1 },
+            )
+        }
+        every { shopRepository.findByNumber(500) } returns null
+        every { shopRepository.findByIdOrNull(99L) } returns existingEntity
+        every { shopRepository.save(any()) } answers { firstArg() as ShopEntity }
+        every { routeRepository.findDistinctByStopsShopId(99L) } returns listOf(route)
+
+        service.updateShop(99L, shopRequest(number = 500).copy(id = 99, enabled = false))
+
+        assertThat(route.stops).extracting<Long?> { it.shop?.id }.containsExactly(testShop1.id)
+        verify { routeRepository.saveAll(listOf(route)) }
+    }
+
+    @Test
+    fun `updating a shop without deactivating leaves the routes untouched`() {
+        val existingEntity = ShopEntity(
+            number = 100,
+            name = "Old name",
+            address = ShopAddress(street = "Old street", postalCode = 1010, city = "Old city"),
+        ).apply { id = 99 }
+        every { shopRepository.findByNumber(500) } returns null
+        every { shopRepository.findByIdOrNull(99L) } returns existingEntity
+        every { shopRepository.save(any()) } answers { firstArg() as ShopEntity }
+
+        service.updateShop(99L, shopRequest(number = 500).copy(id = 99, enabled = true))
+
+        verify(exactly = 0) { routeRepository.findDistinctByStopsShopId(any()) }
     }
 
     @Test

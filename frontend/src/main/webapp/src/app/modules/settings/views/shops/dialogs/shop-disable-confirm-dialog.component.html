@@ -2,7 +2,8 @@
   <div tafel-dialog-content>
     <div class="mb-2" testid="message">
       Die Filiale <strong>{{ data.shopName }}</strong> wird derzeit von aktiven Routen angefahren:
-      {{ data.routeStopLabels.join(', ') }}. Diese Routen zeigen dort danach "Filiale inaktiv" an.
+      {{ data.routeStopLabels.join(', ') }}. Beim Deaktivieren wird die Filiale aus diesen Routen
+      entfernt; beim Wiederaktivieren muss sie den Routen neu hinzugefügt werden.
     </div>
     <div class="font-bold mt-6">Trotzdem deaktivieren?</div>
   </div>
