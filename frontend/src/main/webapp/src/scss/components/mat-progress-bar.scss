@@ -1,0 +1,23 @@
+@use '@angular/material' as mat;
+
+// The `color` input (`warn`/`accent`/`primary`) is an M2-only API with no effect under the M3
+// azure-blue theme, so a progress bar takes a severity color through one of these classes instead
+// (e.g. the password-strength bar). The override mixin validates the token name at compile time,
+// so a Material token rename breaks the build here instead of silently reverting the bar to azure.
+.progress-bar-danger {
+  @include mat.progress-bar-overrides((
+    active-indicator-color: var(--tafel-severity-danger),
+  ));
+}
+
+.progress-bar-warning {
+  @include mat.progress-bar-overrides((
+    active-indicator-color: var(--tafel-severity-warning),
+  ));
+}
+
+.progress-bar-success {
+  @include mat.progress-bar-overrides((
+    active-indicator-color: var(--tafel-severity-success),
+  ));
+}

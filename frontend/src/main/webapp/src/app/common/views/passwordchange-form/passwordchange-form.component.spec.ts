@@ -202,4 +202,19 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.passwordStrength().level).toBe('strong');
   });
 
+  it('passwordStrength bar carries the severity class matching the level', () => {
+    // The M2-only `color` input is a no-op under the M3 theme, so the bar's color coding rides on
+    // these classes (styled in scss/components/mat-progress-bar.scss).
+    const barSeverityClass = (newPassword: string): string | undefined => {
+      component.passwordFormModel.set({...component.passwordFormModel(), newPassword});
+      fixture.detectChanges();
+      const bar: HTMLElement = fixture.nativeElement.querySelector('[testid="passwordStrengthBar"]');
+      return Array.from(bar.classList).find(cssClass => cssClass.startsWith('progress-bar-'));
+    };
+
+    expect(barSeverityClass('abc')).toBe('progress-bar-danger');
+    expect(barSeverityClass('passwort123')).toBe('progress-bar-warning');
+    expect(barSeverityClass('dummy-Passwort-42')).toBe('progress-bar-success');
+  });
+
 });

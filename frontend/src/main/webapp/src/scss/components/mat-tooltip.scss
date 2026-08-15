@@ -1,9 +1,15 @@
+@use '@angular/material' as mat;
+
 // Material's default tooltip is sized for one-or-two-word labels: 12px type and a 200px max
 // width. Tooltips here also carry short explanation sentences (income limits, validity dates,
-// cost contribution), so give them room to be read as a sentence rather than a label.
+// cost contribution), so give them room to be read as a sentence rather than a label. The
+// override mixin validates the token names at compile time, so a Material token rename breaks
+// the build here instead of silently reverting the tooltips to label size.
 :root {
-  --mdc-plain-tooltip-supporting-text-size: 0.8125rem;
-  --mdc-plain-tooltip-supporting-text-line-height: 1.25rem;
+  @include mat.tooltip-overrides((
+    supporting-text-size: 0.8125rem,
+    supporting-text-line-height: 1.25rem,
+  ));
 }
 
 .mat-mdc-tooltip .mdc-tooltip__surface {
