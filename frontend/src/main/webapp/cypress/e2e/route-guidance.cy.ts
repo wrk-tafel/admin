@@ -79,27 +79,26 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
   });
 
-  it('completes and undoes a stop through explicit actions, independent of paging', () => {
+  it('completes a stop and advances to the next one; undo is explicit and stays put', () => {
     selectRoute2();
 
     cy.byTestId('guidance-complete-button').click();
-    cy.byTestId('guidance-done-badge').should('be.visible');
-    cy.byTestId('guidance-completed-label').should('contain.text', 'Erledigt');
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
-    // completing does not page on its own
-    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+    // ticking a stop off also pages to the one after it
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
 
-    // paging away and back does not touch the tick that was just set
-    cy.byTestId('guidance-next-button').click();
+    // paging back to the completed stop shows the tick is still there
     cy.byTestId('guidance-previous-button').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
     cy.byTestId('guidance-done-badge').should('be.visible');
+    cy.byTestId('guidance-completed-label').should('contain.text', 'Erledigt');
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
 
-    // explicit undo, on the stop actually shown
+    // explicit undo, on the stop actually shown - and it does not page
     cy.byTestId('guidance-undo-button').click();
     cy.byTestId('guidance-done-badge').should('not.exist');
     cy.byTestId('guidance-complete-button').should('be.visible');
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
   });
 
@@ -108,6 +107,7 @@ describe('Route Guidance', () => {
 
     cy.byTestId('guidance-complete-button').click();
     cy.byTestId('guidance-summary').should('contain.text', '1 von 3 Stopps erledigt');
+    cy.byTestId('guidance-previous-button').click();
     cy.byTestId('guidance-completed-label').should('contain.text', 'von').and('not.contain.text', 'Ausstehend');
 
     // the screen remembers the route and re-opens on the next stop still to do, with the tick intact
@@ -141,8 +141,8 @@ describe('Route Guidance', () => {
       .should('contain.text', '2 × Bananenkartons')
       .should('contain.text', '4 × Graue Kisten');
 
+    // completing the first stop of route 3 already pages to its second and last one
     cy.byTestId('guidance-complete-button').click();
-    cy.byTestId('guidance-next-button').click();
     cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
     // a zero amount means nothing came back - it must not be listed
     cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
@@ -209,7 +209,9 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-offline-indicator').should('contain.text', 'Offline').and('not.contain.text', 'ausstehend');
 
     cy.byTestId('guidance-complete-button').click();
-    // applied to the screen right away, marked as not yet confirmed
+    // applied to the screen right away and paged past - back to it shows not yet confirmed
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
+    cy.byTestId('guidance-previous-button').click();
     cy.byTestId('guidance-pending-badge').should('be.visible');
     cy.byTestId('guidance-completed-label').should('contain.text', 'Ausstehend');
     cy.byTestId('guidance-offline-indicator').should('contain.text', '1 Änderung ausstehend');
@@ -228,11 +230,13 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     cy.byTestId('guidance-stop').should('be.visible');
-    // the completion button is the most prominent control on the screen, fixed to the bottom
+    // the completion button is the most prominent control on the screen, fixed to the bottom, and
+    // pages on to the next stop once pressed
     cy.byTestId('guidance-complete-button').scrollIntoView().should('be.visible').click();
-    cy.byTestId('guidance-done-badge').should('be.visible');
-    cy.byTestId('guidance-next-button').scrollIntoView().should('be.visible').click();
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
+
+    cy.byTestId('guidance-previous-button').scrollIntoView().should('be.visible').click();
+    cy.byTestId('guidance-done-badge').should('be.visible');
   });
 
   describe('accessibility', () => {
@@ -249,6 +253,8 @@ describe('Route Guidance', () => {
     it('has no violations on a stop that is done', () => {
       selectRoute2();
       cy.byTestId('guidance-complete-button').click();
+      // completing pages to the next stop - page back to check the completed one itself
+      cy.byTestId('guidance-previous-button').click();
       cy.byTestId('guidance-done-badge').should('be.visible');
 
       cy.checkAccessibility(MAIN_CONTENT);

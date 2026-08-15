@@ -460,7 +460,7 @@ describe('RouteGuidanceComponent', () => {
   });
 
   describe('completion (online)', () => {
-    it('completes the current stop without moving the page', () => {
+    it('completes the current stop and advances to the next one', () => {
       const fixture = createComponent();
       const component = fixture.componentInstance;
       component['onSelectedRouteChange'](testRoute);
@@ -473,7 +473,20 @@ describe('RouteGuidanceComponent', () => {
       expect(firstStopView.stop.completed).toBe(true);
       expect(firstStopView.completedLabel).toBe('Erledigt um 08:15 von E2E Test');
       expect(component['pendingStopId']()).toBeUndefined();
-      expect(component['currentIndex']()).toBe(0);
+      expect(component['currentIndex']()).toBe(1);
+    });
+
+    it('stays on the last stop when completing it - there is nothing further to advance to', () => {
+      routeApiMock.setStopCompletion = vi.fn(() => of<RouteGuidanceStop>({...secondShopStop, completed: true}));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['goToStop'](2);
+
+      component['completeCurrentStop']();
+      fixture.detectChanges();
+
+      expect(component['currentIndex']()).toBe(2);
     });
 
     it('undoes the current stop without moving the page', () => {
@@ -497,7 +510,7 @@ describe('RouteGuidanceComponent', () => {
       expect(component['stopViews']()[0].completedLabel).toBeUndefined();
     });
 
-    it('shows a toast and leaves the stop untouched when completion fails to save', () => {
+    it('shows a toast, leaves the stop untouched and does not advance when completion fails to save', () => {
       routeApiMock.setStopCompletion = vi.fn(() => throwError(() => new Error('failed')));
       const fixture = createComponent();
       const component = fixture.componentInstance;
@@ -508,9 +521,10 @@ describe('RouteGuidanceComponent', () => {
       expect(toastrMock.error).toHaveBeenCalled();
       expect(component['stopViews']()[0].stop.completed).toBe(false);
       expect(component['pendingStopId']()).toBeUndefined();
+      expect(component['currentIndex']()).toBe(0);
     });
 
-    it('drops a stop answer that arrives after another route was picked', () => {
+    it('drops a stop answer that arrives after another route was picked, and does not page the new route either', () => {
       const pendingCompletion = new Subject<RouteGuidanceStop>();
       routeApiMock.setStopCompletion = vi.fn(() => pendingCompletion.asObservable());
       const fixture = createComponent();
@@ -518,23 +532,26 @@ describe('RouteGuidanceComponent', () => {
       component['onSelectedRouteChange'](testRoute);
 
       component['completeCurrentStop']();
-      // the driver picks a different route while the tick is still on its way
+      // the driver picks a different route while the tick is still on its way - two stops, so a
+      // wrongly-applied advance (the late answer paging the new route instead of being dropped)
+      // would actually move the index and not just no-op on an already-last stop
       routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
         ...guidance,
         routeId: 3,
         routeName: 'Route 3',
-        stops: [secondShopStop]
+        stops: [secondShopStop, pauseStop]
       }));
       component['onSelectedRouteChange']({...testRoute, id: 3, name: 'Route 3'});
       pendingCompletion.next({...shopStop, completed: true});
 
       expect(component['guidance']()!.routeId).toBe(3);
-      expect(component['stops']().length).toBe(1);
+      expect(component['stops']().length).toBe(2);
+      expect(component['currentIndex']()).toBe(0);
     });
   });
 
   describe('offline queue', () => {
-    it('applies a completion locally and queues it while offline', () => {
+    it('applies a completion locally, queues it while offline, and advances to the next stop', () => {
       const fixture = createComponent();
       const component = fixture.componentInstance;
       component['onSelectedRouteChange'](testRoute);
@@ -550,9 +567,10 @@ describe('RouteGuidanceComponent', () => {
       expect(firstStopView.pending).toBe(true);
       expect(firstStopView.completedLabel).toBe('Ausstehend - wird synchronisiert, sobald wieder online');
       expect(component['pendingSyncCount']()).toBe(1);
+      expect(component['currentIndex']()).toBe(1);
     });
 
-    it('queues an undo the same way while offline', () => {
+    it('queues an undo the same way while offline, without paging', () => {
       routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
         ...guidance,
         stops: [{...shopStop, completed: true, completedBy: 'E2E Test'}, pauseStop, secondShopStop]
@@ -569,6 +587,7 @@ describe('RouteGuidanceComponent', () => {
       expect(offlineQueueMock.enqueue).toHaveBeenCalledWith(2, 200, false);
       expect(component['stopViews']()[0].stop.completed).toBe(false);
       expect(component['stopViews']()[0].pending).toBe(true);
+      expect(component['currentIndex']()).toBe(0);
     });
 
     it('merges the synced stop once the offline queue confirms it', () => {

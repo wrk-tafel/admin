@@ -53,9 +53,9 @@ const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
 const INFO_TEXT =
   'Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren werden. '
   + '"Zurück" und "Weiter" blättern frei zwischen den Stopps, ohne etwas abzuhaken. "Stopp erledigt" '
-  + 'hakt den angezeigten Stopp ab, "Rückgängig machen" nimmt das wieder zurück - beides wirkt nur auf '
-  + 'den gerade angezeigten Stopp. Ohne Verbindung werden Häkchen zwischengespeichert und automatisch '
-  + 'übertragen, sobald wieder online.';
+  + 'hakt den angezeigten Stopp ab und springt automatisch zum nächsten Stopp. "Rückgängig machen" '
+  + 'nimmt das Abhaken wieder zurück, ohne dabei zu blättern. Ohne Verbindung werden Häkchen '
+  + 'zwischengespeichert und automatisch übertragen, sobald wieder online.';
 
 interface StopView {
   stop: RouteGuidanceStop;
@@ -146,9 +146,10 @@ export class RouteGuidanceComponent {
   });
 
   // Only one stop is on screen at a time: this is read at the wheel, on a phone, and a scrollable
-  // list of fifteen stops is the wrong shape for that. "Zurück"/"Weiter" page freely between stops;
-  // "Stopp erledigt"/"Rückgängig machen" act only on whichever stop is currently shown - the two are
-  // deliberately independent, see setCompletion().
+  // list of fifteen stops is the wrong shape for that. "Zurück"/"Weiter" page freely between stops
+  // and never touch completion. "Stopp erledigt" also advances to the next stop once the tick is
+  // saved, so working down a route is one tap per stop rather than a tap plus a page; "Rückgängig
+  // machen" is a correction and deliberately stays put - see setCompletion().
   private readonly _currentIndex = signal(0);
   protected readonly currentIndex = this._currentIndex.asReadonly();
   protected readonly currentStop = computed<StopView | undefined>(() => this.stopViews()[this._currentIndex()]);
@@ -318,6 +319,12 @@ export class RouteGuidanceComponent {
    * once the server confirms it. Offline, it's applied to the screen right away and queued - a
    * driver in a loading dock with no signal must not be blocked from recording progress, so this
    * path is deliberately optimistic; `stopSynced$` above corrects it with the real value once sent.
+   *
+   * Ticking a stop *complete* also pages to the next one, once the tick has actually taken - after
+   * the server confirms it online, immediately offline (the optimistic apply above is already the
+   * confirmed local state there). Not on failure, and not for a route switched to while the request
+   * was still out (see `applyStopUpdate`'s return value) - either way there is nothing on screen yet
+   * to page away from. Undoing a stop is a correction, not progress made, and deliberately never pages.
    */
   private setCompletion(stop: RouteGuidanceStop, completed: boolean) {
     const guidance = this._guidance();
@@ -328,14 +335,20 @@ export class RouteGuidanceComponent {
     if (!this.isOnline()) {
       this.applyStopUpdate(guidance.routeId, {...stop, completed, completedAt: undefined, completedBy: undefined});
       this.offlineQueueService.enqueue(guidance.routeId, stop.stopId, completed);
+      if (completed) {
+        this.goToNextStop();
+      }
       return;
     }
 
     this.pendingStopId.set(stop.stopId);
     this.routeApiService.setStopCompletion(guidance.routeId, stop.stopId, completed).subscribe({
       next: updatedStop => {
-        this.applyStopUpdate(guidance.routeId, updatedStop);
+        const applied = this.applyStopUpdate(guidance.routeId, updatedStop);
         this.pendingStopId.set(undefined);
+        if (applied && completed) {
+          this.goToNextStop();
+        }
       },
       error: (error: HttpErrorResponse) => {
         this.toastr.error(extractErrorMessage(error), 'Speichern fehlgeschlagen');
@@ -344,7 +357,8 @@ export class RouteGuidanceComponent {
     });
   }
 
-  private applyStopUpdate(routeId: number, updatedStop: RouteGuidanceStop) {
+  /** @returns whether the update was applied - false when a different route was picked in the meantime. */
+  private applyStopUpdate(routeId: number, updatedStop: RouteGuidanceStop): boolean {
     // the answer is folded into whatever is on screen now, not into the guidance this request
     // started from - a route picked while the request was out must not be overwritten by it
     const current = this._guidance();
@@ -353,7 +367,9 @@ export class RouteGuidanceComponent {
         ...current,
         stops: current.stops.map(stop => stop.stopId === updatedStop.stopId ? updatedStop : stop)
       });
+      return true;
     }
+    return false;
   }
 
   private restoreSelectedRoute(list: RouteList) {
