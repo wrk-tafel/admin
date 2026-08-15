@@ -92,6 +92,14 @@ export class DefaultLayoutComponent {
   );
   readonly sidenavMode = computed<'over' | 'side'>(() => this.isMobile() ? 'over' : 'side');
 
+  // `collapsed` is the persisted preference and stays true even while `isMobile()` is - the
+  // collapse-to-icons toggle is `hidden lg:flex`, so a mobile user has no way to clear it. Without
+  // this, a sidebar collapsed on a wide window renders as the same narrow icon rail once the
+  // overlay opens below the breakpoint, instead of the full-width labelled overlay the user guide
+  // describes - the template reads this, not `collapsed()` directly, everywhere collapse affects
+  // what's rendered.
+  readonly effectiveCollapsed = computed(() => this.collapsed() && !this.isMobile());
+
   readonly navItems = computed(() => {
     const distribution = this.distribution();
     let items = this.filterNavItemsByPermissions(navigationMenuItems);
