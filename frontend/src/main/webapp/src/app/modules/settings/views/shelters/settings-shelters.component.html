@@ -1,136 +1,142 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
-    <mat-card-title>
-      <div class="flex items-center gap-2">
-        <h2 class="tafel-h5 mb-0 mt-1">Notschlafstellen</h2>
-        <button matButton="filled" class="button-success" testid="addShelterButton" matTooltip="Neue Notschlafstelle anlegen" (click)="addShelter()" aria-label="Neue Notschlafstelle anlegen">
-          <fa-icon [icon]="faPlus"></fa-icon>
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-baseline gap-3">
+          <h2 class="tafel-h5 mb-0 mt-1">Notschlafstellen</h2>
+          <span class="text-sm font-normal text-slate-500" testid="shelters-summary">
+            {{ enabledCount() }} von {{ totalCount() }} aktiv
+          </span>
+        </div>
+        <button matButton="filled" class="button-success" testid="addShelterButton" (click)="addShelter()">
+          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          Notschlafstelle anlegen
         </button>
       </div>
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <p class="mb-4 text-sm text-slate-600">
+    <p class="mb-2 text-sm text-slate-600">
       Notschlafstellen samt Ansprechpersonen und Personenanzahl, die bei der Statistik eines
       Ausgabetags ausgewählt werden können.
     </p>
+    <p class="mb-4 flex items-start gap-2 text-sm text-slate-600" testid="shelters-order-hint">
+      <fa-icon [icon]="faCircleInfo" class="mt-0.5 text-slate-400"></fa-icon>
+      <span>Die Reihenfolge gilt auch für die Auswahl im Dashboard und für den Tagesbericht.</span>
+    </p>
 
-    <div class="hidden md:block">
-    <table mat-table [dataSource]="shelters()?.shelters ?? []" testid="shelters-table" [trackBy]="trackById"
-           cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
-      <ng-container matColumnDef="drag">
-        <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
-        <td mat-cell *matCellDef="let shelter; let i = index" [class.tafel-inactive]="!shelter.enabled">
-          <tafel-reorder-handle cdkDragHandle [label]="'Notschlafstelle ' + shelter.name"
-                                [position]="i + 1" [count]="(shelters()?.shelters ?? []).length"
-                                [testId]="'dragShelterHandle-' + i"
-                                (move)="moveShelter(i, $event)"/>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="active">
-        <th mat-header-cell *matHeaderCellDef>Aktiv</th>
-        <td mat-cell *matCellDef="let shelter; let i = index" [class.tafel-inactive]="!shelter.enabled">
-          @if (shelter.enabled) {
-            <button matButton="filled" class="button-success ms-2" testid="enableShelterButton" matTooltip="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl"
-                    (click)="toggleShelterVisibility(shelter, false)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl'">
-              <fa-icon [icon]="faEye"></fa-icon>
-            </button>
-          } @else {
-            <button matButton="filled" class="button-danger ms-2" testid="disableShelterButton" matTooltip="Notschlafstelle wieder aktivieren"
-                    (click)="toggleShelterVisibility(shelter, true)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' wieder aktivieren'">
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            </button>
-          }
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let shelter; let i = index"
-            [class.tafel-inactive]="!shelter.enabled">{{ shelter.name }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="address">
-        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Addresse</th>
-        <td mat-cell *matCellDef="let shelter; let i = index"
-            [class.tafel-inactive]="!shelter.enabled">{{ shelter | formatShelterAddress }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="persons">
-        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Anz. Personen</th>
-        <td mat-cell *matCellDef="let shelter; let i = index"
-            [class.tafel-inactive]="!shelter.enabled">{{ shelter.personsCount }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
-        <td mat-cell *matCellDef="let shelter; let i = index">
-          <button matButton="filled" class="button-secondary me-2" testid="viewShelterButton" matTooltip="Details und Kontakte anzeigen"
-                  (click)="viewShelterDetails(shelter)" [attr.aria-label]="'Details und Kontakte von ' + shelter.name + ' anzeigen'">
-            <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-          </button>
-          <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                  [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">
-            <fa-icon [icon]="faPencil"></fa-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
-          cdkDrag [cdkDragData]="row"
-          [attr.testid]="'shelters-row-' + i"></tr>
-    </table>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="shelters"
+                            (valueChange)="onFilterChanged($event)"/>
     </div>
 
-    <div class="block md:hidden">
-      <div class="flex flex-col gap-4" testid="shelters-cards"
-           cdkDropList [cdkDropListData]="shelters()?.shelters ?? []" (cdkDropListDropped)="drop($event)">
-        @for (shelter of shelters()?.shelters ?? []; track shelter.id; let i = $index) {
-          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="shelter" [class.tafel-inactive]="!shelter.enabled"
-                    [attr.testid]="'shelters-row-' + i">
-            <mat-card-header class="mb-2">
-              <mat-card-title class="flex items-center gap-2 text-base font-semibold">
-                <tafel-reorder-handle cdkDragHandle [label]="'Notschlafstelle ' + shelter.name"
-                                      [position]="i + 1" [count]="(shelters()?.shelters ?? []).length"
-                                      [testId]="'dragShelterHandle-' + i"
-                                      (move)="moveShelter(i, $event)"/>
-                <span>{{ shelter.name }}</span>
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="grid grid-cols-2 gap-2">
-                <div class="font-bold">Addresse:</div>
-                <div>{{ shelter | formatShelterAddress }}</div>
-                <div class="font-bold">Anz. Personen:</div>
-                <div>{{ shelter.personsCount }}</div>
+    <!-- Deliberately not a mat-accordion: the reorder handle and the two actions sit in the same row
+         as the record's summary, and mat-expansion-panel-header is itself a role="button" that
+         cannot legally contain another control. The summary is its own button instead, so handle,
+         toggle and edit button are its siblings rather than controls nested inside a button. -->
+    <div class="block" testid="shelters-list"
+         cdkDropList [cdkDropListData]="visibleShelters()" (cdkDropListDropped)="drop($event)">
+      <!-- Tracked by id, not by index: a reorder replaces the list twice - optimistically and again
+           from the response - and rebuilding the rows would throw away the handle the keyboard is
+           currently on. -->
+      @for (shelter of visibleShelters(); track shelter.id; let i = $index) {
+        <div class="tafel-panel mb-2" cdkDrag [cdkDragData]="shelter"
+             [class.tafel-inactive]="!shelter.enabled" [attr.testid]="'shelters-row-' + i">
+          <div class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
+            <tafel-reorder-handle cdkDragHandle [label]="'Notschlafstelle ' + shelter.name"
+                                  [position]="i + 1" [count]="visibleShelters().length"
+                                  [testId]="'dragShelterHandle-' + i"
+                                  (move)="moveShelter(i, $event)"/>
+            <button type="button" class="flex flex-1 cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 text-start"
+                    [id]="'shelters-toggle-' + i" [attr.testid]="'shelters-toggle-' + i"
+                    [attr.aria-expanded]="isExpanded(shelter.id)"
+                    [attr.aria-controls]="'shelters-panel-' + i"
+                    (click)="toggleExpanded(shelter.id)">
+              <span class="font-medium">{{ shelter.name }}</span>
+              <span class="text-sm text-slate-500">{{ shelter | formatShelterAddress }}</span>
+              <span class="text-sm text-slate-500">{{ shelter.personsCount }} Personen</span>
+              <fa-icon class="ms-auto text-slate-500"
+                       [icon]="isExpanded(shelter.id) ? faChevronUp : faChevronDown"></fa-icon>
+            </button>
+            <!-- both actions stay reachable without expanding the shelter first -->
+            <tafel-enabled-toggle [enabled]="shelter.enabled" [label]="'Notschlafstelle ' + shelter.name"
+                                  [testId]="'shelters-enabled-toggle-' + i"
+                                  (enabledChange)="toggleShelterVisibility(shelter, $event)"/>
+            <button matButton="filled" [attr.testid]="'editShelterButton-' + i"
+                    [disabled]="!shelter.enabled" (click)="editShelter(shelter)"
+                    matTooltip="Notschlafstelle bearbeiten"
+                    [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">
+              <fa-icon [icon]="faPencil"></fa-icon>
+            </button>
+          </div>
+
+          <div class="px-6 pb-4" role="region" [id]="'shelters-panel-' + i"
+               [attr.aria-labelledby]="'shelters-toggle-' + i" [hidden]="!isExpanded(shelter.id)">
+            <dl class="grid gap-x-8 gap-y-3 sm:grid-cols-2" [attr.testid]="'shelter-details-' + i">
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">Adresse</dt>
+                <dd class="m-0">{{ shelter.addressStreet }} {{ shelter.addressHouseNumber }}</dd>
+                @if (shelter.addressStairway) {
+                  <dd class="m-0">Stiege {{ shelter.addressStairway }}</dd>
+                }
+                @if (shelter.addressDoor) {
+                  <dd class="m-0">Top {{ shelter.addressDoor }}</dd>
+                }
+                <dd class="m-0">{{ shelter.addressPostalCode }} {{ shelter.addressCity }}</dd>
               </div>
-            </mat-card-content>
-            <mat-card-actions class="flex gap-2">
-              @if (shelter.enabled) {
-                <button matButton="filled" class="button-success" testid="enableShelterButton" matTooltip="Notschlafstelle deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl"
-                        (click)="toggleShelterVisibility(shelter, false)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' deaktivieren - sie steht bei der Statistik nicht mehr zur Auswahl'">
-                  <fa-icon [icon]="faEye"></fa-icon>
-                </button>
-              } @else {
-                <button matButton="filled" class="button-danger" testid="disableShelterButton" matTooltip="Notschlafstelle wieder aktivieren"
-                        (click)="toggleShelterVisibility(shelter, true)" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' wieder aktivieren'">
-                  <fa-icon [icon]="faEyeSlash"></fa-icon>
-                </button>
-              }
-              <button matButton="filled" class="button-secondary" testid="viewShelterButton" matTooltip="Details und Kontakte anzeigen"
-                      (click)="viewShelterDetails(shelter)" [attr.aria-label]="'Details und Kontakte von ' + shelter.name + ' anzeigen'">
-                <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-              </button>
-              <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
-                      [disabled]="!shelter.enabled" (click)="editShelter(shelter)" matTooltip="Notschlafstelle bearbeiten" [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">
-                <fa-icon [icon]="faPencil"></fa-icon>
-              </button>
-            </mat-card-actions>
-          </mat-card>
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">Anz. Personen</dt>
+                <dd class="m-0">{{ shelter.personsCount }}</dd>
+              </div>
+              <div class="sm:col-span-2">
+                <dt class="text-xs uppercase tracking-wide text-slate-500">Kontakte</dt>
+                <dd class="m-0">
+                  @if (shelter.contacts?.length) {
+                    <ul class="m-0 list-none p-0">
+                      @for (contact of shelter.contacts; track $index) {
+                        <li class="flex flex-wrap items-baseline gap-x-2">
+                          @if (contact.firstname || contact.lastname) {
+                            <span>{{ contact.firstname }} {{ contact.lastname }}</span>
+                          }
+                          <a class="text-blue-700 underline" [href]="'tel:' + contact.phone">{{ contact.phone }}</a>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-slate-400">Keine Kontakte vorhanden</span>
+                  }
+                </dd>
+              </div>
+            </dl>
+
+            @if (shelter.note) {
+              <div class="mt-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+                <fa-icon [icon]="faCircleInfo" class="mt-0.5"></fa-icon>
+                <span class="whitespace-pre-line">{{ shelter.note }}</span>
+              </div>
+            }
+
+            @if (!shelter.enabled) {
+              <p class="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-500">
+                Zum Bearbeiten zuerst aktivieren
+              </p>
+            }
+          </div>
+        </div>
+      } @empty {
+        @if (loaded()) {
+          <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="shelters-empty">
+            <fa-icon [icon]="faHouseChimney" size="2x"></fa-icon>
+            @if (enabledFilter() === 'DISABLED') {
+              <span>Keine Notschlafstelle ist deaktiviert.</span>
+            } @else if (enabledFilter() === 'ENABLED') {
+              <span>Keine Notschlafstelle ist aktiv.</span>
+            } @else {
+              <span>Noch keine Notschlafstellen angelegt.</span>
+            }
+          </div>
         }
-      </div>
+      }
     </div>
   </mat-card-content>
 </mat-card>

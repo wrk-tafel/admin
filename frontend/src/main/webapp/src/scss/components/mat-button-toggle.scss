@@ -1,0 +1,31 @@
+// Every toggle group's border and dividers in the same line every card, menu and tab strip is
+// drawn with - Material's own fallback (--mat-sys-outline) is considerably darker and makes the
+// group the heaviest thing on the page. Set via the token, like mat-card.scss does for cards:
+// Material's structural CSS draws the border from this exact custom property, and a plain
+// border-color override loses the source-order tie against it.
+:root {
+  --mat-button-toggle-divider-color: var(--tafel-border-color);
+}
+
+// A toggle group whose options are wider than the viewport it is shown on. Scrolling the group
+// sideways hides options behind an edge that nothing announces, so it wraps onto further lines
+// instead - which Material does not style for: its toggles keep their content width, so the last
+// line trails off into empty space inside the group's border, and the lines touch without a
+// divider, because Material only draws one between horizontal neighbours.
+.tafel-button-toggle-group-wrap {
+  flex-wrap: wrap;
+
+  .mat-button-toggle {
+    // fill the line the toggle ends up in, however many share it
+    flex: 1 0 auto;
+    // The divider between lines. There is no selector for "the first line" of a wrapping flex
+    // container, so every toggle draws one and every line is pulled up onto the previous line's
+    // edge by the same pixel: the first line's border ends up under the group's own top border,
+    // and two neighbouring lines share a single divider instead of stacking two.
+    margin-top: -1px;
+    border-top: solid 1px;
+    // the very colour Material draws the group's own border and its vertical dividers in - taken
+    // from the group rather than named here, so one line does not end up a different grey
+    border-top-color: inherit;
+  }
+}

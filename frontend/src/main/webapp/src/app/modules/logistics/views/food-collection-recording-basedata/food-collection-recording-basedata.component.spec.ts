@@ -358,4 +358,43 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
   });
 
+  it('tabStatus - undefined while empty, complete once loaded, invalid once cleared', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', {...mockRouteData, foodCollectionData: null});
+
+    fixture.detectChanges();
+
+    expect(component.tabStatus()).toBeUndefined();
+
+    componentRef.setInput('selectedRouteData', mockRouteData);
+    fixture.detectChanges();
+
+    expect(component.tabStatus()).toBe('complete');
+
+    // a real user click, unlike the programmatic setValue()s used elsewhere in this file
+    component.resetDriver();
+    expect(component.tabStatus()).toBe('invalid');
+  });
+
+  it('tabStatus - unsaved after an edit, complete again after markAsSaved', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+    expect(component.tabStatus()).toBe('complete');
+
+    component.car.setValue(mockCarList.cars[1]);
+    component.car.markAsDirty();
+    expect(component.tabStatus()).toBe('unsaved');
+
+    component.markAsSaved();
+    expect(component.tabStatus()).toBe('complete');
+  });
+
 });

@@ -105,5 +105,4 @@ export interface RouteGuidanceShop {
   contactPerson?: string;
   note?: string;
   foodUnit: FoodUnit;
-  enabled: boolean;
 }

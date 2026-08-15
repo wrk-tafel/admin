@@ -152,7 +152,7 @@ tafeladmin:
   environmentLabel: ""
   # The audit trail (audit_log) - see ADR-0039. `enabled` and `retentionDays` are read per use and
   # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
-  # its expression when the bean is created (same as configReload.interval below), so changing it
+  # its expression when the bean is created (same as configReload.cron below), so changing it
   # needs a restart. 05:00 is the quiet window between the last late-evening work and the first
   # distribution-day activity, so the delete never lands while anyone is working; the
   # orphaned-document cleanup runs in the same slot and contends for nothing with it.
@@ -194,7 +194,10 @@ tafeladmin:
   # only, so switching it needs a restart either way.
   configReload:
     enabled: true
-    interval: 5s
+    # A cron, not an interval: every instance re-reads the file for itself, and firing on the
+    # wall-clock boundary is what makes them pick a change up together rather than each on its own
+    # boot-time phase. Read once at startup, like `enabled`.
+    cron: "*/5 * * * * *"
   # Typo tolerance of the single search box on the customer and user search screens. See
   # TafelAdminSearchProperties - this is read per request, so it can be tuned against real data
   # without restarting the container.
@@ -236,7 +239,7 @@ tafeladmin:
   # A mail is written to the mail_outbox table inside the transaction that produced it and handed to
   # the mail server by a poller afterwards (MailOutboxService). How often that poller looks is
   # tafeladmin.mailOutbox.interval below - read at startup only, for the same reason as
-  # tafeladmin.configReload.interval.
+  # tafeladmin.configReload.cron.
   # mail:
   #   from: no-reply@<domain>
   #   subjectPrefix: "[TEST]"
@@ -245,24 +248,29 @@ tafeladmin:
   # Kept out of tafeladmin.mail above on purpose: that section is bound to a properties object, and
   # a key underneath it would make the section exist in every environment (see TafelAdminProperties).
   mailOutbox:
-    # How often the poller looks for mails to send. Read at startup only, for the same reason as
-    # tafeladmin.configReload.interval. Everything below it is re-read per use, so retries can be
+    # How often the poller looks for mails to send, and how often the queue is cleared of the mails
+    # it no longer has to keep. Both are read at startup only, for the same reason as
+    # tafeladmin.configReload.cron; everything below them is re-read per use, so retries can be
     # slowed down or a backlog drained faster on a running deployment - which is what you want during
     # a mail server incident, not a restart.
     interval: 10s
+    cleanupInterval: 1h
     # Delivery attempts before a mail is parked as FAILED and reported as a push notification to
     # administrators. With the backoff below, five attempts span roughly half an hour.
     maxAttempts: 5
-    # Mails one poll takes on, oldest first; the rest wait for the next tick.
-    batchSize: 20
     # Waited after the first failed attempt, multiplied by the attempt count after that, capped at
     # maxRetryBackoff so a long outage still gets a regular retry.
     retryBackoff: 5m
     maxRetryBackoff: 30m
     # How long a sent mail's row is kept before it is deleted. It holds the finished message,
     # attachments and all, so this is the span in which somebody still asks "did the report go out on
-    # Saturday?" - not an archive. FAILED rows are never deleted; they are the mails nobody received.
+    # Saturday?" - not an archive.
     sentRetention: 14d
+    # The same for a mail that was given up on, counted from when it was queued. Longer, because it
+    # is the only record that somebody never got their mail and that question comes late - but not
+    # unlimited, because the row keeps the whole message including report PDFs and support
+    # screenshots.
+    failedRetention: 30d
   # Web Push (VAPID). Without a keypair the application runs normally and push notifications are
   # simply unavailable. Both keys must be the RAW key material, base64url-encoded - NOT the base64
   # inside a PEM file, which wraps DER/ASN.1 structure around the raw bytes and fails to decode; see

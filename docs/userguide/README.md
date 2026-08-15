@@ -7,22 +7,24 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | Kapitel | Beschreibung |
 |---|---|
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
-| [Kunden](kunden.md) | Kunden suchen, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
+| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
 | [Änderungsprotokoll](aenderungsprotokoll.md) | Wer hat wann was geändert, und wie war der Wert davor |
-| [Statistiken](statistiken.md) | Allgemeine Statistik, Schulstartpakete |
+| [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
 
 ## Anmeldung
 
-Der Login erfolgt über Benutzername und Passwort. Nach der Anmeldung gelangt man automatisch zur Übersicht (Dashboard).
+Der Login erfolgt über Benutzername und Passwort. Die Schaltfläche "Anmelden" ist dabei immer aktiv – eine Prüfung auf ausgefüllte Felder erfolgt erst beim Klick, damit vom Browser automatisch ausgefüllte Felder nicht zu einer scheinbar funktionslosen Schaltfläche führen. Fehlt ein Feld, wird das direkt am Feld angezeigt. Ist beim Tippen des Passworts die Feststelltaste aktiv, erscheint darunter ein Hinweis darauf, da das auf gemeinsam genutzten Geräten und externen Tastaturen eine häufige, leicht zu übersehende Ursache für ein falsches Passwort ist. Nach der Anmeldung gelangt man automatisch zur Übersicht (Dashboard).
 
 ![Login](images/login.jpg)
 
-Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlich eine Umgebungskennzeichnung (z. B. "DEV" oder "TEST") angezeigt, damit diese optisch klar von der Produktivumgebung unterscheidbar sind. Auf der Produktivumgebung bleibt diese Kennzeichnung wie oben abgebildet ausgeblendet.
+Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich ein durchgehendes, farblich hervorgehobenes Banner mit der Umgebungskennzeichnung (z. B. "DEV" oder "TEST") angezeigt, damit diese optisch klar von der Produktivumgebung unterscheidbar sind – gerade an baugleichen Geräten eine wichtige Absicherung gegen Verwechslungen. Auf der Produktivumgebung bleibt dieses Banner wie oben abgebildet ausgeblendet.
 
 ![Login mit Umgebungskennzeichnung](images/login-umgebungskennzeichnung.jpg)
+
+Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner oben in der Kopfzeile der Anwendung sichtbar, damit auch eine bereits geöffnete Sitzung auf einer Test- oder Entwicklungsumgebung nicht mit der Produktivumgebung verwechselt werden kann.
 
 Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet oder man kann sich abmelden.
 
@@ -32,23 +34,29 @@ Auf Test- und Entwicklungsumgebungen wird unterhalb von "Tafel Admin" zusätzlic
 
 ![Passwort ändern](images/passwort-aendern.jpg)
 
+Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlicher Login ist nicht nötig. Die Anwendung kehrt dabei automatisch auf jene Seite zurück, von der aus das Benutzermenü geöffnet wurde, und bestätigt die Änderung mit einem kurzen Hinweis. Über **Abbrechen** kommt man ohne Änderung wieder auf dieselbe Seite zurück.
+
 <a id="benachrichtigungen"></a>
 
 Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde. Solche Benachrichtigungen erreichen das Gerät auch dann, wenn die Anwendung gerade nicht geöffnet ist. Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
 
+Wurden Benachrichtigungen im Browser selbst blockiert – etwa weil die Nachfrage des Browsers einmal mit "Blockieren" beantwortet wurde –, kann die Anwendung sie nicht aktivieren. In diesem Fall wird der Schalter deaktiviert dargestellt und darüber der Grund samt Lösungsweg angezeigt: Die Blockade lässt sich nur in den Seiteneinstellungen des Browsers selbst wieder aufheben.
+
+![Benachrichtigungen im Browser blockiert](images/benachrichtigungen-blockiert.jpg)
+
 Tippt bzw. klickt man auf eine eingetroffene Benachrichtigung, öffnet sich direkt die passende Seite in der Anwendung – z. B. die Waren-Eingabe bei einer unvollständigen Warenerfassung. Ist die Anwendung bereits in einem Fenster geöffnet, wird dieses verwendet, statt ein weiteres zu öffnen.
 
-Darunter listet **Deine Geräte** alle für den eigenen Account aktivierten Geräte, jeweils mit Browser-/Betriebssystem-Erkennung und dem Zeitpunkt der Registrierung. Über das Stift-Symbol kann jedem Gerät ein eigener, frei wählbarer Name gegeben werden (z. B. "Tafel Ausgabe 1"), um es in der Liste leichter wiederzuerkennen – dieser Name überschreibt dann die automatische Browser-/Betriebssystem-Anzeige.
+Darunter listet **Deine Geräte** alle für den eigenen Account aktivierten Geräte, jeweils mit Browser-/Betriebssystem-Erkennung und dem Zeitpunkt der Registrierung. Ein Symbol vor dem Namen zeigt, ob es sich um ein Mobilgerät oder um einen Computer handelt, und die Registrierung wird zuerst als Zeitspanne angegeben ("Registriert vor 3 Wochen"), gefolgt vom genauen Zeitpunkt. Beides hilft dabei, ein altes, nicht mehr verwendetes Gerät in der Liste wiederzuerkennen. Über das Stift-Symbol kann jedem Gerät ein eigener, frei wählbarer Name gegeben werden (z. B. "Tafel Ausgabe 1"), um es in der Liste leichter wiederzuerkennen – dieser Name überschreibt dann die automatische Browser-/Betriebssystem-Anzeige.
 
 ![Benachrichtigungen](images/benachrichtigungen.jpg)
 
 ![Gerät benennen](images/benachrichtigungen-geraet-benennen.jpg)
 
-Über das Senden-Symbol (Papierflieger) kann jederzeit eine **Test-Benachrichtigung** an ein einzelnes Gerät geschickt werden. Damit lässt sich sofort überprüfen, ob auf diesem Gerät tatsächlich Benachrichtigungen ankommen, ohne auf die nächste Ausgabe warten zu müssen. Erscheint die Test-Benachrichtigung nicht, wird stattdessen der Grund gemeldet – etwa dass das Gerät beim Push-Dienst nicht mehr angemeldet ist (in diesem Fall wird es aus der Liste entfernt und muss auf dem betroffenen Gerät neu aktiviert werden) oder dass am Server keine Push-Benachrichtigungen eingerichtet sind. Die Test-Benachrichtigung wird unabhängig von den weiter unten beschriebenen Benachrichtigungsarten immer zugestellt.
+Über das Senden-Symbol (Papierflieger) kann jederzeit eine **Test-Benachrichtigung** an ein einzelnes Gerät geschickt werden. Damit lässt sich sofort überprüfen, ob auf diesem Gerät tatsächlich Benachrichtigungen ankommen, ohne auf die nächste Ausgabe warten zu müssen. Erscheint die Test-Benachrichtigung nicht, wird stattdessen der Grund gemeldet – etwa dass das Gerät beim Push-Dienst nicht mehr angemeldet ist (in diesem Fall wird es aus der Liste entfernt und muss auf dem betroffenen Gerät neu aktiviert werden) oder dass am Server keine Push-Benachrichtigungen eingerichtet sind. Das Ergebnis bleibt zusätzlich direkt beim jeweiligen Gerät stehen – während des Sendens "Test wird gesendet …", danach das Ergebnis –, sodass man es auch dann noch sieht, wenn man zwischenzeitlich am Gerät nachgesehen hat und die Einblendung längst wieder verschwunden ist. Die Test-Benachrichtigung wird unabhängig von den weiter unten beschriebenen Benachrichtigungsarten immer zugestellt.
 
 Über das Mistkübel-Symbol kann ein Gerät entfernt werden – etwa wenn es nicht mehr verwendet wird oder verloren gegangen ist. Wird dabei das gerade selbst verwendete Gerät entfernt, wird der Schalter zum Aktivieren der Benachrichtigungen automatisch deaktiviert.
 
-Im Bereich **Benachrichtigungsarten** darunter lässt sich feiner steuern, welche Benachrichtigungen man erhält. Der Schalter **Alle Benachrichtigungen erhalten** ist ein zentraler Hauptschalter für den eigenen Account: Ist er deaktiviert, erhält man auf keinem der eigenen Geräte mehr Benachrichtigungen, unabhängig von den einzelnen Einstellungen darunter – im Gegensatz zum Schalter weiter oben betrifft dies also nicht nur das aktuell verwendete Gerät, sondern alle. Ist der Hauptschalter aktiv, kann darunter für jede einzelne Benachrichtigungsart separat festgelegt werden, ob man sie erhalten möchte. Unter jedem Schalter steht, wann die jeweilige Benachrichtigung ausgelöst wird.
+Im Bereich **Benachrichtigungsarten** darunter lässt sich feiner steuern, welche Benachrichtigungen man erhält. Der Schalter **Alle Benachrichtigungen erhalten** ist ein zentraler Hauptschalter für den eigenen Account: Ist er deaktiviert, erhält man auf keinem der eigenen Geräte mehr Benachrichtigungen, unabhängig von den einzelnen Einstellungen darunter – im Gegensatz zum Schalter weiter oben betrifft dies also nicht nur das aktuell verwendete Gerät, sondern alle. Ist der Hauptschalter aktiv, kann darunter für jede einzelne Benachrichtigungsart separat festgelegt werden, ob man sie erhalten möchte. Unter jedem Schalter steht, wann die jeweilige Benachrichtigung ausgelöst wird. Ist der Hauptschalter deaktiviert, bleibt die Liste sichtbar, ist aber nicht mehr bedienbar: Die einzelnen Einstellungen bleiben gespeichert und wirken wieder, sobald der Hauptschalter erneut aktiviert wird. Ein Hinweis über der Liste erklärt das.
 
 Es werden nur jene Benachrichtigungsarten angezeigt, für die man auch berechtigt ist – wer z. B. keine Administrator-Berechtigung hat, sieht die Art "Benutzer gesperrt" gar nicht erst in der Liste.
 
@@ -84,32 +92,51 @@ Die Berechtigungen sind unter [Benutzer](benutzer.md) beschrieben.
 
 ![Benachrichtigungsarten](images/benachrichtigungen-arten.jpg)
 
-Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login oder nach einem von der Verwaltung erzwungenen Passwortwechsel), zeigt das System stattdessen direkt nach der Anmeldung automatisch eine eigene, davon unabhängige Seite – noch bevor die eigentliche Anwendung geöffnet wird:
+Bei deaktiviertem Hauptschalter sieht derselbe Bereich so aus:
+
+![Benachrichtigungsarten bei deaktiviertem Hauptschalter](images/benachrichtigungen-arten-deaktiviert.jpg)
+
+Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login oder nach einem von der Verwaltung erzwungenen Passwortwechsel), zeigt das System stattdessen direkt nach der Anmeldung automatisch eine eigene, davon unabhängige Seite – noch bevor die eigentliche Anwendung geöffnet wird. Ein Hinweistext direkt unter dem Titel erklärt, warum diese Seite erscheint. Die Schaltfläche zum Verlassen der Seite heißt hier bewusst **Abmelden** statt "Abbrechen": Ein Klick darauf beendet tatsächlich die Sitzung, man gelangt also nicht ohne Passwortänderung in die Anwendung.
 
 ![Passwort ändern nach erzwungenem Login](images/login-passwort-aendern.jpg)
 
-In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten.
+In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde – farblich passend in Rot, Orange bzw. Grün. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
 
-Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.", nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden." und bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!".
+Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es in ca. 5 Minuten erneut oder wenden Sie sich an eine Administratorin/einen Administrator." (die genannte Wartezeit entspricht der tatsächlich konfigurierten Sperrdauer), nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden.", bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!" und wenn der Server nicht erreichbar ist (z. B. bei einer Störung) "Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut." – letzteres damit eine Störung nicht mit einem falschen Passwort verwechselt und unnötig ein Passwort zurückgesetzt wird. Bei jedem fehlgeschlagenen Anmeldeversuch springt der Cursor automatisch zurück ins Benutzername-Feld, dessen Inhalt markiert ist, sodass der nächste Versuch mit einem einzigen Tastendruck beginnen kann.
 
 ![Sitzung abgelaufen](images/login-sitzung-abgelaufen.jpg)
 
 ## Navigation
 
-Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), sind mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde. Untergeordnete Bereiche wie "Benutzer", "Statistiken" und "Einstellungen" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)).
+Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer", "Statistiken" und "Einstellungen" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
 
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
-- **Kunden**: Kunden suchen, Kunden anlegen, sowie unter der aufklappbaren Gruppe "Sonstige": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
+- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
 - **Logistik**: Routen-Navi, Waren-Eingabe
-- **Sonstige**: Benutzer, Statistiken, Änderungsprotokoll, Einstellungen
+- **Verwaltung**: Benutzer, Statistiken, Änderungsprotokoll, Einstellungen
+
+Innerhalb von "Einstellungen" sind die neun Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 
 Ist die Seitenleiste eingeklappt, sind nur noch die Icons sichtbar. Fährt man mit der Maus über ein Icon, wird der Name des Menüpunkts als Kurzhinweis (Tooltip) eingeblendet.
 
-Oben rechts in der Kopfzeile zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
+<a id="schnellsuche"></a>
+
+### Schnellsuche (Strg+K)
+
+Mit der Tastenkombination **Strg+K** (bzw. **Cmd+K** auf macOS) – oder über das Lupen-Symbol oben links in der Kopfzeile – öffnet sich von jeder Seite aus die **Schnellsuche**. Während der Eingabe werden zwei Arten von Treffern angezeigt:
+
+- **Navigation**: alle Menüpunkte, deren Name den Suchbegriff enthält. Ein Klick wechselt direkt auf die jeweilige Seite.
+- **Kunden**: ab zwei Zeichen wird zusätzlich in den Kunden gesucht – nach Kundennummer, Namen (auch der weiteren Personen im Haushalt), Adresse, Telefonnummer oder E-Mail, mit derselben Fehlertoleranz wie die Kunden-Suche (siehe [Kunden](kunden.md)). Ein Klick öffnet direkt die Detailseite des Kunden.
+
+![Schnellsuche](images/schnellsuche.jpg)
+
+Angezeigt werden nur Menüpunkte und Kunden, für die der angemeldete Benutzer berechtigt ist; Menüpunkte, die eine aktive Ausgabe voraussetzen, erscheinen nur während eines Ausgabetags. Mit den **Pfeiltasten** wird durch die Treffer navigiert, **Enter** öffnet den ersten Treffer direkt aus dem Suchfeld, **Esc** schließt die Schnellsuche wieder.
+
+Links in der Kopfzeile wird neben den Schaltflächen immer der Name der gerade geöffneten Seite angezeigt. Oben rechts zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Direkt daneben zeigt ein weiteres Badge dauerhaft den Status des Ausgabetags ("Ausgabe geöffnet" bzw. "Ausgabe geschlossen"), bei einer geöffneten Ausgabe zusätzlich mit ihrer Startzeit – nicht nur auf der Übersicht (siehe [Übersicht (Dashboard)](#übersicht-dashboard)), sondern auf jeder Seite der Anwendung. Unten in der Seitenleiste werden zudem die aktuelle Version und der Build-Zeitpunkt der Anwendung angezeigt.
 
 <a id="bedienung-mit-der-tastatur"></a>
 
@@ -118,9 +145,10 @@ Oben rechts in der Kopfzeile zeigt ein Badge **Live-Verbindung**, ob die Anwendu
 Die Anwendung lässt sich vollständig ohne Maus bedienen. Mit der **Tabulator-Taste** wird von Bedienelement zu Bedienelement gesprungen, mit **Enter** bzw. **Leertaste** wird das gerade angesprungene Element ausgelöst.
 
 - Der erste Tabulator-Schritt auf jeder Seite ist der Sprunglink **"Zum Hauptinhalt springen"**. Er ist nur sichtbar, solange er angesprungen ist, und überspringt die gesamte Seitenleiste – ohne ihn müsste man sich auf jeder Seite erneut durch das komplette Menü tabben.
-- Die aufklappbaren Menügruppen ("Sonstige", "Benutzer", "Statistiken", "Einstellungen") lassen sich ebenso mit der Tastatur auf- und zuklappen.
+- Die aufklappbaren Menügruppen ("Auswertungen", "Benutzer", "Statistiken", "Einstellungen") lassen sich ebenso mit der Tastatur auf- und zuklappen.
 - Menüpunkte, die eine aktive Ausgabe voraussetzen und mit **INAKTIV** gekennzeichnet sind, werden beim Tabben übersprungen.
 - Das Augen-Symbol in Passwortfeldern, mit dem das eingegebene Passwort sichtbar gemacht wird, ist ebenfalls per Tastatur erreichbar.
+- Die [Schnellsuche](#schnellsuche) öffnet sich von jeder Seite aus mit **Strg+K** (bzw. **Cmd+K** auf macOS) und wird vollständig mit Suchfeld, Pfeiltasten und Enter bedient.
 - Sortierbare Listen in den [Einstellungen](einstellungen.md) werden nicht nur per Drag & Drop sortiert: Ist das Drag-Handle (⋮⋮) angesprungen, verschieben die Pfeiltasten den Eintrag um je eine Position, und die neue Position wird für Vorleseprogramme angesagt.
 
 Der Titel im Browser-Tab nennt immer die gerade geöffnete Seite (z. B. "Kunden suchen – Tafel Admin"). Dadurch sind auch mehrere geöffnete Tabs und Einträge im Browser-Verlauf auseinanderzuhalten, und Vorleseprogramme geben beim Seitenwechsel den Namen der neuen Seite aus. Ebenso wird der Zustand der **Live-Verbindung** aus der Kopfzeile nicht nur farblich, sondern auch als Text ausgegeben, sodass ein Verbindungsabbruch auch mit einem Vorleseprogramm bemerkt wird.
@@ -133,12 +161,12 @@ Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei 
 
 Umgestellt wird in zwei Stufen:
 
-- **Unter rund 1.000 Pixel Breite** (Tablets, schmale Fenster) wird die Seitenleiste ausgeblendet und stattdessen über das Menü-Symbol (☰) links oben als Überblendung geöffnet. Sie schließt sich wieder, sobald ein Menüpunkt gewählt oder daneben getippt wird. Die Schaltfläche zum Einklappen auf reine Icons entfällt in dieser Ansicht.
+- **Unter rund 1.000 Pixel Breite** (Tablets, schmale Fenster) wird die Seitenleiste ausgeblendet und stattdessen über das Menü-Symbol (☰) links oben als Überblendung geöffnet. Sie schließt sich wieder, sobald ein Menüpunkt gewählt oder daneben getippt wird. Die Schaltfläche zum Einklappen auf reine Icons entfällt in dieser Ansicht. Der Name der aktuellen Seite bleibt dabei über die Kopfzeile sichtbar, auch wenn das Menü geschlossen ist.
 - **Unter rund 770 Pixel Breite** (Handys) werden zusätzlich alle Tabellen als **Kartenliste** dargestellt: eine Karte je Eintrag, in der die Tabellenspalten als Beschriftung und Wert untereinander stehen. Formulare werden einspaltig untereinander angeordnet statt in mehreren Spalten nebeneinander.
 
 ![Navigation auf schmalen Bildschirmen](images/mobil-navigation.jpg)
 
-Inhaltlich ändert sich dadurch nichts: Es sind dieselben Daten, dieselben Aktionen (Lupe, Stift, Papierkorb usw.), dieselbe Seitennavigation und dieselben Berechtigungen wie in der Tabellenansicht. Als Kartenliste dargestellt werden das Suchergebnis der Kunden-Suche, die Listen "Kunden über Limit" und "Kunden-Übersicht" (siehe [Kunden](kunden.md)), das Suchergebnis der Benutzer-Suche und die Anmelde-Versuche (siehe [Benutzer](benutzer.md)), die Tabellen der [Einstellungen](einstellungen.md) sowie die Ergebnisliste der Schulstartpakete (siehe [Statistiken](statistiken.md)). Filialen und Routen sind keine Tabellen, sondern aufklappbare Listen, und sehen daher auf jeder Bildschirmbreite gleich aus.
+Inhaltlich ändert sich dadurch nichts: Es sind dieselben Daten, dieselben Aktionen (Lupe, Stift, Papierkorb usw.), dieselbe Seitennavigation und dieselben Berechtigungen wie in der Tabellenansicht. Als Kartenliste dargestellt werden das Suchergebnis der Kunden-Suche, die Listen "Kunden über Limit" und "Kunden-Übersicht" (siehe [Kunden](kunden.md)), das Suchergebnis der Benutzer-Suche und die Anmelde-Versuche (siehe [Benutzer](benutzer.md)), die Tabellen der [Einstellungen](einstellungen.md) sowie die Ergebnisliste der Auswertung Kinder (siehe [Statistiken](statistiken.md)). Filialen und Routen sind keine Tabellen, sondern aufklappbare Listen, und sehen daher auf jeder Bildschirmbreite gleich aus.
 
 Eine Ausnahme ist die Warenerfassung: Sie wird auf schmalen Bildschirmen nicht als Kartenliste, sondern als eigener Ablauf Geschäft für Geschäft dargestellt (siehe [Logistik](logistik.md)).
 
@@ -168,8 +196,10 @@ Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags
 
 - **Status**: Zeigt an, ob der Ausgabetag "Geöffnet" oder "Geschlossen" ist. Mit **Tag starten** wird eine neue Ausgabe begonnen, mit **Tag beenden** wird sie abgeschlossen (dabei werden u. a. die Mitarbeiterzahl und die genutzten Notschlafstellen abgefragt).
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
-- **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt).
-- **Erfasste Routen (Anzahl/Details)** und **Erfasste Warenmenge**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)).
+- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im Haushalt" markierte Personen zählen nicht mit.
+- **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.
+- **Erfasste Routen**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)) – als Zahl mit Balken sowie daneben alle heute zu fahrenden Routen als kleine Kacheln (Chips). Bereits vollständig erfasste Routen sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
+- **Erfasste Warenmenge**: Gesamtgewicht der bisher erfassten Warenmengen.
 - **Routen unterwegs**: Zeigt je Route, wie viele Stopps die Fahrer heute bereits abgehakt haben (z. B. "2 / 7"). Der Balken daneben besteht aus einem Abschnitt je Stopp, die erledigten sind grün — so ist auf einen Blick erkennbar, wie viele Stopps eine Route überhaupt hat und wie viele davon schon hinter ihr liegen. Grundlage ist das [Routen-Navi](logistik.md#routen-navi); die Anzeige aktualisiert sich automatisch, sobald unterwegs ein Stopp abgehakt wird — so ist in der Zentrale ohne Anruf ersichtlich, wo eine Route gerade steht. Der Bereich erscheint erst, sobald an diesem Tag der erste Stopp abgehakt wurde: Wird das Routen-Navi nicht verwendet, bleibt er ganz aus. Ab dann werden alle Routen angeführt, auch die noch bei "0 / 15" stehenden; Routen ohne hinterlegte Stopps werden nicht angeführt.
 - **Statistik**: Eingabe der Mitarbeiteranzahl und der Personen in den ausgewählten Notschlafstellen für den Tagesreport. Die Anzahl der Personen in Notschlafstellen wird über den Rechner-Button neben dem Feld ermittelt, indem die genutzten Notschlafstellen ausgewählt werden.
 - **Anmerkungen**: Freitext-Notizen zum aktuellen Ausgabetag, die z. B. im Tagesreport per E-Mail versendet werden.
@@ -196,11 +226,11 @@ Zusätzlich wird immer ein **Screenshot der Seite** angehängt, die beim Öffnen
 
 ## Fehlerseiten
 
-Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite:
+Ist eine aufgerufene Seite nicht vorhanden, zeigt die Anwendung eine 404-Fehlerseite mit den Schaltflächen **Zur Übersicht** und **Zurück**, um ohne Umweg über die Adressleiste weiterzuarbeiten:
 
 ![404 – Seite nicht gefunden](images/fehlerseite-404.jpg)
 
-Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. In diesem Fall über **Support-Anfrage** (siehe oben) melden.
+Tritt bei einer Anfrage ein unerwarteter Serverfehler auf, zeigt die Anwendung eine 500-Fehlerseite. Neben **Zur Übersicht** und **Zurück** steht hier zusätzlich **Neu laden** zur Verfügung; tritt der Fehler weiterhin auf, kann er über **Support-Anfrage** im Hauptmenü gemeldet werden (siehe oben).
 
 ![500 – Interner Server Fehler](images/fehlerseite-500.jpg)
 

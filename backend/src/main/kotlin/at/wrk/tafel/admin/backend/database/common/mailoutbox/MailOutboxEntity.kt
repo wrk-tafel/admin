@@ -57,8 +57,10 @@ enum class MailOutboxStatus {
     SENT,
 
     /**
-     * Given up on after the last retry. Kept rather than deleted - a mail nobody received is
-     * exactly the thing someone has to be able to find afterwards, together with `lastError`.
+     * Given up on after the last retry. Kept far longer than a sent mail - a mail nobody received is
+     * exactly the thing someone has to be able to find afterwards, together with `lastError` - but
+     * still only until `tafeladmin.mailOutbox.failedRetention` has passed, because the row holds the
+     * whole message and nothing else would ever remove that copy.
      */
     FAILED,
 }

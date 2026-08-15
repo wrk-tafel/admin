@@ -1,0 +1,14 @@
+<tafel-dialog testId="shop-disable-confirm-dialog" type="warning" title="Filiale deaktivieren">
+  <div tafel-dialog-content>
+    <div class="mb-2" testid="message">
+      Die Filiale <strong>{{ data.shopName }}</strong> wird derzeit von aktiven Routen angefahren:
+      {{ data.routeStopLabels.join(', ') }}. Beim Deaktivieren wird die Filiale aus diesen Routen
+      entfernt; beim Wiederaktivieren muss sie den Routen neu hinzugefügt werden.
+    </div>
+    <div class="font-bold mt-6">Trotzdem deaktivieren?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="ok-button" matButton="filled" (click)="dialogRef.close(true)">Deaktivieren</button>
+    <button testid="cancel-button" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

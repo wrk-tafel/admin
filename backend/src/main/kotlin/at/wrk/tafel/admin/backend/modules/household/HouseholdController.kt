@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
+import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
@@ -27,16 +28,32 @@ class HouseholdController(
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse {
-        val result = householdService.validate(household)
-        return ValidateHouseholdResponse(
-            valid = result.valid,
-            totalSum = result.totalSum,
-            limit = result.limit,
-            toleranceValue = result.toleranceValue,
-            amountExceededLimit = result.amountExceededLimit,
-        )
-    }
+    fun validate(@Valid @RequestBody household: HouseholdRequest): ValidateHouseholdResponse = mapToValidateHouseholdResponse(householdService.validate(household))
+
+    @PostMapping("/income-quickcheck")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun incomeQuickCheck(@Valid @RequestBody request: IncomeQuickCheckRequest): ValidateHouseholdResponse = mapToValidateHouseholdResponse(householdService.quickCheck(request))
+
+    private fun mapToValidateHouseholdResponse(result: IncomeValidatorResult): ValidateHouseholdResponse = ValidateHouseholdResponse(
+        valid = result.valid,
+        totalSum = result.totalSum,
+        limit = result.limit,
+        toleranceValue = result.toleranceValue,
+        amountExceededLimit = result.amountExceededLimit,
+        details = IncomeCalculationDetails(
+            incomeSum = result.details.incomeSum,
+            familyAllowanceSum = result.details.familyAllowanceSum,
+            childTaxAllowanceSum = result.details.childTaxAllowanceSum,
+            siblingAdditionSum = result.details.siblingAdditionSum,
+            baseLimit = result.details.baseLimit,
+            baseLimitCountAdults = result.details.baseLimitCountAdults,
+            baseLimitCountChildren = result.details.baseLimitCountChildren,
+            additionalAdultsCount = result.details.additionalAdultsCount,
+            additionalAdultsSum = result.details.additionalAdultsSum,
+            additionalChildrenCount = result.details.additionalChildrenCount,
+            additionalChildrenSum = result.details.additionalChildrenSum,
+        ),
+    )
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -144,8 +161,10 @@ class HouseholdController(
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
     ): PagedResponse<HouseholdAboveLimitItem> {
-        val result = householdService.getHouseholdsAboveLimit(page, pageSize)
+        val result = householdService.getHouseholdsAboveLimit(page, pageSize, sortBy, sortDirection)
         return PagedResponse(
             items = result.items,
             totalCount = result.totalCount,
@@ -155,9 +174,43 @@ class HouseholdController(
         )
     }
 
+    @GetMapping("/above-limit/csv", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    fun generateHouseholdsAboveLimitCsv(
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
+    ): ResponseEntity<InputStreamResource> {
+        val csvResult = householdService.generateAboveLimitCsv(sortBy, sortDirection)
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${csvResult.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
+    }
+
     @GetMapping("/overview")
     @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
     fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)
+
+    @GetMapping("/overview/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    fun generateHouseholdsOverviewCsv(@RequestParam distributionId: Long? = null): ResponseEntity<InputStreamResource> {
+        val csvResult = householdService.generateHouseholdsOverviewCsv(distributionId)
+        val headers = HttpHeaders()
+        headers.add(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "inline; filename=${csvResult.filename}",
+        )
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
+    }
 
     @GetMapping("/duplicates")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
@@ -177,6 +230,12 @@ class HouseholdController(
             totalPages = duplicateSearchResult.totalPages,
             pageSize = duplicateSearchResult.pageSize,
         )
+    }
+
+    @PostMapping("/duplicates/dismiss")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    fun dismissDuplicate(@Valid @RequestBody request: HouseholdDuplicateDismissRequest) {
+        householdDuplicationService.dismiss(request.householdId!!, request.otherHouseholdId!!)
     }
 
     @GetMapping("/{householdId}/merge-preview")

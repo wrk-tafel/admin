@@ -12,6 +12,37 @@ describe('Settings - Food Return Categories', () => {
     cy.byTestId('food-return-categories-row-0').should('contain.text', 'Graue Kisten');
   });
 
+  it('names both screens the categories drive', () => {
+    cy.byTestId('food-return-categories-summary').should('contain.text', 'aktiv');
+    cy.contains('Retourware').should('be.visible');
+    cy.contains('Routen-Navigation').should('be.visible');
+  });
+
+  it('links to the food categories screen so a mix-up is caught before editing', () => {
+    cy.byTestId('food-return-categories-distinction').should('contain.text', 'Waren-Kategorien');
+    cy.byTestId('food-return-categories-distinction').find('a').click();
+
+    cy.url().should('include', '/einstellungen/lebensmittelkategorien');
+    cy.byTestId('food-categories-distinction').should('contain.text', 'Retour-Kategorien');
+  });
+
+  // Asserted through the state of the Aktiv switches rather than by row count: it then holds
+  // whatever the other cases left behind, including a filter that matches nothing at all - and it
+  // changes no data of its own.
+  it('filters the list by status', () => {
+    const switches = (state: 'true' | 'false') =>
+      cy.get(`[testid^="food-return-categories-enabled-toggle-"] button[aria-checked="${state}"]`);
+
+    cy.byTestId('food-return-categories-filter-enabled').click();
+    switches('false').should('not.exist');
+
+    cy.byTestId('food-return-categories-filter-disabled').click();
+    switches('true').should('not.exist');
+
+    cy.byTestId('food-return-categories-filter-all').click();
+    cy.byTestId('food-return-categories-row-0').should('be.visible');
+  });
+
   it('creates a new return category', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       cy.byTestId('addFoodReturnCategoryButton').click();
@@ -85,8 +116,16 @@ describe('Settings - Food Return Categories', () => {
   });
 
   it('toggles return category visibility', () => {
-    cy.byTestId('enableFoodReturnCategoryButton').first().click();
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button').click();
     cy.get('.toast-message').should('be.visible');
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button')
+      .should('have.attr', 'aria-checked', 'false');
+
+    // toggle back on - a disabled row 0 would leak into the later tests, whose edit button is
+    // disabled for disabled categories
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button').click();
+    cy.byTestId('food-return-categories-enabled-toggle-0').find('button')
+      .should('have.attr', 'aria-checked', 'true');
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -94,14 +133,16 @@ describe('Settings - Food Return Categories', () => {
     cy.reload();
 
     cy.byTestId('food-return-categories-table').should('not.be.visible');
-    cy.byTestId('food-return-categories-cards').should('be.visible');
     cy.byTestId('addFoodReturnCategoryButton').should('be.visible');
+    // The screen's intro text fills a phone viewport, so the card list starts below the fold -
+    // scroll to it the way a user would before asserting on it.
+    cy.byTestId('food-return-categories-cards').scrollIntoView().should('be.visible');
 
     // The 'toggles return category visibility' test above may have left row 0 disabled (its edit
     // button is disabled for disabled categories) - re-enable it first if needed.
     cy.byTestId('editFoodReturnCategoryButtonMobile-0').then(($btn) => {
       if ($btn.is(':disabled')) {
-        cy.byTestId('disableFoodReturnCategoryButton').filterDisplayed().first().click();
+        cy.byTestId('food-return-categories-enabled-toggle-mobile-0').find('button').click();
         cy.get('.toast-message').should('be.visible');
       }
     });

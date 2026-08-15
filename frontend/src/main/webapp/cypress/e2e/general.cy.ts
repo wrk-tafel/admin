@@ -14,7 +14,7 @@ describe('General', () => {
     cy.url().should('include', '/login');
   });
 
-  it('status 404 page visible', () => {
+  it('status 404 page visible with recovery actions', () => {
     cy.visit('/invalidpath');
 
     cy.byTestId('status').should('have.text', '404');
@@ -22,16 +22,33 @@ describe('General', () => {
     cy.byTestId('subtitle').should('have.text', 'Diese Bananenkiste ist wohl leer');
 
     cy.url().should('include', '/invalidpath');
+
+    // unauthenticated: the overview link exists, but the auth guard sends it on to the login page
+    cy.byTestId('backToOverviewButton').should('be.visible').and('have.text', 'Zur Übersicht').click();
+    cy.url().should('include', '/login');
   });
 
-  it('status 500 page visible', () => {
+  it('status 500 page visible with recovery actions', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
     cy.visit('/500');
 
     cy.byTestId('status').should('have.text', '500');
     cy.byTestId('title').should('have.text', 'Houston, wir haben ein Problem!');
-    cy.byTestId('subtitle').should('have.text', 'Interner Server Fehler');
+    cy.byTestId('subtitle').should('have.text', 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+    cy.byTestId('supportHint').should('contain.text', 'Support-Anfrage');
 
     cy.url().should('include', '/500');
+
+    cy.byTestId('backButton').should('be.visible').and('have.text', 'Zurück').click();
+    cy.url().should('include', '/uebersicht');
+
+    cy.visit('/500');
+    cy.byTestId('backToOverviewButton').should('have.text', 'Zur Übersicht').click();
+    cy.url().should('include', '/uebersicht');
+
+    cy.visit('/500');
+    cy.byTestId('reloadButton').should('have.text', 'Neu laden');
   });
 
   it('remains usable on mobile viewports', () => {
@@ -195,7 +212,7 @@ describe('Accessibility', () => {
     cy.contains('a', 'Kunden suchen').click();
     cy.url().should('include', '/kunden/suchen');
 
-    cy.focused().should('have.attr', 'testid', 'customerIdText');
+    cy.focused().should('have.attr', 'testid', 'searchInputText');
   });
 
   // Everything the axe assertions below reach exists only after an interaction, which is what the
@@ -229,14 +246,14 @@ describe('Accessibility', () => {
     // existence alone and `.focus()` is one of the few commands that performs no actionability
     // check, so a run landing in that window asks the browser to focus an element it refuses to
     // focus - silently, leaving focus on `body` and failing the assertion below instead.
-    cy.contains('button', 'Sonstige')
+    cy.contains('button', 'Auswertungen')
       .should('be.visible')
       .and('have.attr', 'aria-expanded', 'false')
       .focus();
 
-    cy.focused().should('contain.text', 'Sonstige').click();
+    cy.focused().should('contain.text', 'Auswertungen').click();
 
-    cy.contains('button', 'Sonstige').should('have.attr', 'aria-expanded', 'true');
+    cy.contains('button', 'Auswertungen').should('have.attr', 'aria-expanded', 'true');
     cy.contains('a', 'Kunden über Limit').should('be.visible');
   });
 
@@ -286,9 +303,8 @@ describe('Navigation Progress Bar', () => {
     }).as('aboveLimit');
 
     cy.byTestId('nav-progress-bar').should('not.exist');
-    // "Kunden über Limit" lives under the collapsible "Sonstige" nav group - expand it first
-    // (the `button` selector disambiguates from the unrelated "Sonstige" section title lower in the nav)
-    cy.contains('button', 'Sonstige').click();
+    // "Kunden über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
+    cy.contains('button', 'Auswertungen').click();
     cy.contains('Kunden über Limit').click();
 
     cy.byTestId('nav-progress-bar').should('be.visible');
@@ -344,6 +360,99 @@ describe('Navigation Errors', () => {
 
     cy.byTestId('status').should('have.text', '500');
     cy.byTestId('title').should('have.text', 'Houston, wir haben ein Problem!');
+  });
+
+});
+
+describe('Shell', () => {
+
+  it('shows the environment label as a banner in the header, matching the login page', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('environment-banner').should('be.visible').and('contain.text', 'E2E');
+  });
+
+  it('shows the distribution state in the header, next to the Live-Verbindung badge, with its start time once open', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('distribution-state-badge').should('contain.text', 'Ausgabe geschlossen');
+
+    cy.createDistribution();
+    cy.reload();
+
+    cy.byTestId('distribution-state-badge').should('contain.text', 'Ausgabe geöffnet');
+    cy.byTestId('distribution-state-badge').invoke('text').should('match', /\d{2}:\d{2}/);
+
+    cy.closeDistribution();
+  });
+
+  it('disables a distribution-gated nav entry with a tooltip explaining why, instead of hiding it', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.contains('a', 'Waren-Eingabe')
+      .should('be.visible')
+      .and('have.attr', 'aria-disabled', 'true')
+      .trigger('mouseenter');
+    cy.get('.mat-mdc-tooltip').should('have.text', 'Keine Verteilung aktiv');
+  });
+
+  it('groups the Einstellungen submenu into labeled sub-groups instead of one flat list', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.contains('button', 'Einstellungen').click();
+
+    cy.contains('Stammdaten').should('be.visible');
+    cy.contains('Systemverwaltung').should('be.visible');
+    cy.contains('a', 'Fahrzeuge').should('be.visible');
+    cy.contains('a', 'Mitarbeiter').should('be.visible');
+  });
+
+  it('remembers the collapsed sidebar and an expanded nav group across a reload', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.contains('button', 'Auswertungen').click();
+    cy.byTestId('sidenav-collapse-toggle').click();
+    // collapsed: the toggle's own tooltip is what names the state, since the nav entry names
+    // themselves stop being written out once collapsed
+    cy.byTestId('sidenav-collapse-toggle').trigger('mouseenter');
+    cy.get('.mat-mdc-tooltip').should('have.text', 'Menü ausklappen');
+
+    cy.reload();
+
+    cy.byTestId('sidenav-collapse-toggle').trigger('mouseenter');
+    cy.get('.mat-mdc-tooltip').should('have.text', 'Menü ausklappen');
+
+    // un-collapse again to be able to read the expanded group's own state
+    cy.byTestId('sidenav-collapse-toggle').click();
+    cy.contains('button', 'Auswertungen').should('have.attr', 'aria-expanded', 'true');
+  });
+
+  it('shows the active page title in the header on mobile, where the sidebar starts closed', () => {
+    cy.loginDefault();
+    cy.viewport(PHONE_VIEWPORT);
+    cy.visit('/uebersicht');
+
+    cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
+  });
+
+  it('keeps the page title out of the accessibility tree, since the real h1 already names the page', () => {
+    cy.loginDefault();
+    cy.viewport(PHONE_VIEWPORT);
+    cy.visit('/uebersicht');
+
+    cy.byTestId('page-title').should('have.attr', 'aria-hidden', 'true');
+  });
+
+  it('shows the page title in the header on desktop too', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
   });
 
 });

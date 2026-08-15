@@ -7,7 +7,10 @@ import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageItem
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.reporting.ChildAgeCountItem
+import at.wrk.tafel.admin.backend.modules.reporting.ChildItem
+import at.wrk.tafel.admin.backend.modules.reporting.ChildrenAgeDistributionListResponse
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetail
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsResponse
@@ -34,6 +37,11 @@ class StatisticsService(
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
+
+        private const val MIN_AGE = 0
+        private const val MAX_AGE = 120
+
+        private const val UNIT_KILOGRAM = "kg"
     }
 
     fun getSettings(): StatisticsSettingsResponse {
@@ -56,108 +64,122 @@ class StatisticsService(
     }
 
     @Transactional(readOnly = true)
-    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse {
-        val countBeneficiaryCustomers = countBeneficiaryCustomers(fromDate, toDate)
-        val countBeneficiaryCustomersData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countBeneficiaryCustomers.lastOrNull()?.value?.toLong() ?: 0L),
+    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse = StatisticsResponse(
+        beneficiaryCustomers = lastValueDetail(
             subTitle = "Bezugsberechtigte Haushalte",
-            labels = countBeneficiaryCustomers.map { it.label },
-            dataPoints = countBeneficiaryCustomers.map { it.value },
-        )
-
-        val countBeneficiaryPersons = countBeneficiaryPersons(fromDate, toDate)
-        val countBeneficiaryPersonsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countBeneficiaryPersons.lastOrNull()?.value?.toLong() ?: 0L),
+            results = countBeneficiaryCustomers(fromDate, toDate),
+        ),
+        beneficiaryPersons = lastValueDetail(
             subTitle = "Bezugsberechtigte Personen",
-            labels = countBeneficiaryPersons.map { it.label },
-            dataPoints = countBeneficiaryPersons.map { it.value },
-        )
-
-        val countBeneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildren(fromDate, toDate)
-        val countBeneficiaryCustomersWithChildrenData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toLong() ?: 0L),
+            results = countBeneficiaryPersons(fromDate, toDate),
+        ),
+        beneficiaryCustomersWithChildren = lastValueDetail(
             subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
-            labels = countBeneficiaryCustomersWithChildren.map { it.label },
-            dataPoints = countBeneficiaryCustomersWithChildren.map { it.value },
-        )
-
-        val countSingleParentHouseholds = countSingleParentHouseholds(fromDate, toDate)
-        val countSingleParentHouseholdsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countSingleParentHouseholds.lastOrNull()?.value?.toLong() ?: 0L),
+            results = countBeneficiaryCustomersWithChildren(fromDate, toDate),
+        ),
+        singleParentHouseholds = lastValueDetail(
             subTitle = "Alleinerzieher (Haushalte)",
-            labels = countSingleParentHouseholds.map { it.label },
-            dataPoints = countSingleParentHouseholds.map { it.value },
-        )
-
-        val countShelters = countShelters(fromDate, toDate)
-        val countSheltersData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countShelters.sumOf { it.value.toLong() }),
+            results = countSingleParentHouseholds(fromDate, toDate),
+        ),
+        sheltersCount = sumDetail(
             subTitle = "Notschlafstellen (Anzahl)",
-            labels = countShelters.map { it.label },
-            dataPoints = countShelters.map { it.value },
-        )
-
-        val averageShelters = averageShelters(fromDate, toDate)
-        val averageSheltersDivisor = max(averageShelters.count { it.value.toDouble() > 0 }, 1)
-        val averageSheltersTotalAverage = (averageShelters.sumOf { it.value.toDouble() } / averageSheltersDivisor)
-            .let { String.format("%.2f", it) }
-        val averageSheltersData = StatisticsDetail(
-            title = averageSheltersTotalAverage,
+            results = countShelters(fromDate, toDate),
+        ),
+        sheltersAverage = averageDetail(
             subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
-            labels = averageShelters.map { it.label },
-            dataPoints = averageShelters.map { it.value },
-        )
-
-        val countSheltersPersons = countSheltersPersons(fromDate, toDate)
-        val countSheltersPersonsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countSheltersPersons.sumOf { it.value.toLong() }),
+            results = averageShelters(fromDate, toDate),
+        ),
+        sheltersPersonsCount = sumDetail(
             subTitle = "Versorgte Personen (Anzahl)",
-            labels = countSheltersPersons.map { it.label },
-            dataPoints = countSheltersPersons.map { it.value },
-        )
-
-        val countShops = countShops(fromDate, toDate)
-        val countShopsData = StatisticsDetail(
-            title = INTEGER_FORMATTER.format(countShops.sumOf { it.value.toLong() }),
+            results = countSheltersPersons(fromDate, toDate),
+        ),
+        shopsCount = sumDetail(
             subTitle = "Spender (Anzahl)",
-            labels = countShops.map { it.label },
-            dataPoints = countShops.map { it.value },
-        )
-
-        val totalShopItems = totalShopItems(fromDate, toDate)
-        val totalShopItemsData = StatisticsDetail(
-            title = "${INTEGER_FORMATTER.format(totalShopItems.sumOf { it.value.toLong() })} kg",
+            results = countShops(fromDate, toDate),
+        ),
+        shopItemsTotal = sumDetail(
             subTitle = "Warenmenge (Gesamt)",
-            labels = totalShopItems.map { it.label },
-            dataPoints = totalShopItems.map { it.value },
-        )
-
-        val averageShopItems = averageShopItems(fromDate, toDate)
-        val averageShopItemsDivisor = max(averageShopItems.count { it.value.toDouble() > 0 }, 1)
-        val averageShopItemsTotalAverage =
-            (averageShopItems.sumOf { it.value.toDouble() } / averageShopItemsDivisor)
-                .let { String.format("%.2f", it) }
-        val averageShopItemsData = StatisticsDetail(
-            title = "$averageShopItemsTotalAverage kg",
+            results = totalShopItems(fromDate, toDate),
+            unit = UNIT_KILOGRAM,
+        ),
+        shopItemsAverage = averageDetail(
             subTitle = "Warenmenge (Durchschnitt pro Spender)",
-            labels = averageShopItems.map { it.label },
-            dataPoints = averageShopItems.map { it.value },
-        )
+            results = averageShopItems(fromDate, toDate),
+            unit = UNIT_KILOGRAM,
+        ),
+    )
 
-        return StatisticsResponse(
-            beneficiaryCustomers = countBeneficiaryCustomersData,
-            beneficiaryPersons = countBeneficiaryPersonsData,
-            beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
-            singleParentHouseholds = countSingleParentHouseholdsData,
-            sheltersCount = countSheltersData,
-            sheltersAverage = averageSheltersData,
-            sheltersPersonsCount = countSheltersPersonsData,
-            shopsCount = countShopsData,
-            shopItemsTotal = totalShopItemsData,
-            shopItemsAverage = averageShopItemsData,
+    /**
+     * A key figure whose headline is the *state* at the end of the period (how many households were
+     * entitled), so the last point of the course is what it reads - not a total over the period.
+     */
+    private fun lastValueDetail(subTitle: String, results: List<StatisticsResult>): StatisticsDetail = countDetail(subTitle, results, results.lastOrNull()?.value?.toLong() ?: 0L)
+
+    /**
+     * A key figure that accumulates over the period (shelters served, kilograms collected), so its
+     * headline is the total of the whole course.
+     */
+    private fun sumDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail = countDetail(subTitle, results, results.sumOf { it.value.toLong() }, unit)
+
+    private fun countDetail(
+        subTitle: String,
+        results: List<StatisticsResult>,
+        value: Long,
+        unit: String? = null,
+    ): StatisticsDetail = detail(
+        title = INTEGER_FORMATTER.format(value).withUnit(unit),
+        subTitle = subTitle,
+        value = value.toDouble(),
+        unit = unit,
+        results = results,
+    )
+
+    /**
+     * The average per data point that actually happened: periods without any distribution
+     * (a bucket of the timeline with no data at all) would otherwise pull the average towards zero,
+     * which is why the divisor only counts the non-zero ones - and never drops below 1, since
+     * dividing by zero is what an entirely empty period would do.
+     */
+    private fun averageDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail {
+        val divisor = max(results.count { it.value.toDouble() > 0 }, 1)
+        val average = results.sumOf { it.value.toDouble() } / divisor
+
+        return detail(
+            title = String.format("%.2f", average).withUnit(unit),
+            subTitle = subTitle,
+            value = average,
+            unit = unit,
+            results = results,
         )
     }
 
+    private fun detail(
+        title: String,
+        subTitle: String,
+        value: Double,
+        unit: String?,
+        results: List<StatisticsResult>,
+    ) = StatisticsDetail(
+        title = title,
+        subTitle = subTitle,
+        value = value,
+        unit = unit,
+        labels = results.map { it.label },
+        dataPoints = results.map { it.value },
+    )
+
+    private fun String.withUnit(unit: String?): String = unit?.let { "$this $it" } ?: this
+
+    /**
+     * The four key figures below all read "the households entitled during this stretch of the
+     * timeline": still valid when it began, and already registered by the time it ended. The second
+     * half is what `h.created_at` is doing there - without it every household ever registered would
+     * be counted for every point of the timeline, including the years before it existed, so the
+     * curve could only ever fall and a period always looked worse than the one before it.
+     *
+     * `created_at` is measured against the bucket's *end* rather than its start so the newest point
+     * - the one the headline is read off - includes a household registered today.
+     */
     fun countBeneficiaryCustomers(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
             SELECT
@@ -166,6 +188,7 @@ class StatisticsService(
                     SELECT COUNT(*)
                     FROM households h
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked is not true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
@@ -185,6 +208,7 @@ class StatisticsService(
                     -- every household member is a row in persons, including the main person
                     JOIN persons p ON p.household_id = h.id
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked is not true
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
@@ -203,9 +227,12 @@ class StatisticsService(
                     FROM households h
                     JOIN persons p ON p.household_id = h.id
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked IS NOT TRUE
                     AND p.is_main_person = false
-                    AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) <= 15
+                    -- at least 0, so a member born after this point of the timeline - whose AGE()
+                    -- is negative there - is not counted as a child back then
+                    AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) BETWEEN 0 AND 15
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -222,6 +249,7 @@ class StatisticsService(
                     SELECT COUNT(*)
                     FROM households h
                     WHERE h.valid_until >= t.start_date
+                    AND h.created_at < t.end_date + 1
                     AND h.locked is not true
                     AND h.single_parent is true
                 ) as value
@@ -396,51 +424,59 @@ class StatisticsService(
     }
 
     /**
-     * Ports the ad-hoc "Schulstartpakete" SQL (see `_reporting/reporting.sql`) into a real export:
-     * every additional (non-main) member of a currently valid household whose age falls in the
-     * given (inclusive) age range, one row per person, ordered by the household's business number.
-     * The original SQL hardcoded 6..10 but noted the age range should be configurable, hence the
-     * parameters here (frontend exposes them as editable fields) rather than fixed constants.
+     * The children of currently entitled households as a CSV: every additional (non-main) member of
+     * a valid household whose age falls in the given (inclusive) age range, one row per person,
+     * ordered by the household's business number. Ordering school starter packages is one thing the
+     * export is read for (it replaced that ad-hoc SQL, see `_reporting/reporting.sql`) - the age
+     * range is a parameter rather than a constant precisely because the question is asked with
+     * different ages for different purposes.
+     *
+     * Exports every match, never a page - the CSV is what gets acted on, the paginated
+     * [getChildrenData] only the on-screen evidence for it.
      */
     @Transactional(readOnly = true)
-    fun generateSchoolStarterPackageCsv(
+    fun generateChildrenCsv(
         ageMin: Int,
         ageMax: Int,
+        referenceDate: LocalDate? = null,
     ): StatisticsCsvResult {
-        val today = LocalDate.now()
-        val rows = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today))
-            .map { it.toSchoolStarterPackageEntry(today) }
+        validateAgeRange(ageMin, ageMax)
+        val ageDate = referenceDate ?: LocalDate.now()
+        val rows = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate))
+            .map { it.toChildItem(ageDate) }
 
         val csvRows: List<List<String>> = listOf(
             listOf("Haushalt", "Vorname", "Nachname", "Alter"),
         ) + rows.map { listOf(it.householdId.toString(), it.firstname, it.lastname, it.age.toString()) }
 
         return StatisticsCsvResult(
-            filename = "schulstartpakete_${DATE_TIME_FORMATTER.format(today)}.csv",
+            filename = "auswertung_kinder_${DATE_TIME_FORMATTER.format(LocalDate.now())}.csv",
             bytes = CsvUtil.writeRowsToByteArray(csvRows),
         )
     }
 
     /**
      * Filters and paginates at the DB level: "age in [ageMin, ageMax]" is expressed as a plain
-     * `birthDate` range (see [schoolStarterPackageSpec]) rather than computing age in the query
+     * `birthDate` range (see [childrenFilter]) rather than computing age in the query
      * (e.g. via Postgres' `age()`), so it stays a straightforward, index-friendly column
      * comparison that a JPA `Specification`/`Pageable` can paginate directly - no in-memory
      * slicing needed, unlike `HouseholdService.getHouseholdsAboveLimit()`.
      */
     @Transactional(readOnly = true)
-    fun getSchoolStarterPackageData(
+    fun getChildrenData(
         ageMin: Int,
         ageMax: Int,
         page: Int? = null,
         pageSize: Int? = null,
-    ): PagedResponse<SchoolStarterPackageItem> {
-        val today = LocalDate.now()
+        referenceDate: LocalDate? = null,
+    ): PagedResponse<ChildItem> {
+        validateAgeRange(ageMin, ageMax)
+        val ageDate = referenceDate ?: LocalDate.now()
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = personRepository.findAll(schoolStarterPackageSpec(ageMin, ageMax, today), pageRequest)
+        val pagedResult = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate), pageRequest)
 
         return PagedResponse(
-            items = pagedResult.content.map { it.toSchoolStarterPackageEntry(today) },
+            items = pagedResult.content.map { it.toChildItem(ageDate) },
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
@@ -449,27 +485,93 @@ class StatisticsService(
     }
 
     /**
-     * age >= ageMin  <=>  birthDate <= today.minusYears(ageMin)
-     * age <= ageMax  <=>  birthDate >= today.minusYears(ageMax + 1).plusDays(1)
-     * (matches [java.time.temporal.ChronoUnit.YEARS]' truncation, used to compute the displayed
-     * age in [toSchoolStarterPackageEntry])
+     * How the matches of [getChildrenData] split up per age year - what is handed out per child
+     * usually differs by age group, so the split is what actually gets planned, not just the total.
+     *
+     * Covers the whole result set rather than the current page, and reports every age in the
+     * requested range including the empty ones, so the chart drawn from it keeps its gaps instead
+     * of silently closing them.
      */
-    private fun schoolStarterPackageSpec(ageMin: Int, ageMax: Int, today: LocalDate): Specification<PersonEntity> {
-        val maxBirthDate = today.minusYears(ageMin.toLong())
-        val minBirthDate = today.minusYears(ageMax + 1L).plusDays(1)
+    @Transactional(readOnly = true)
+    fun getChildrenAgeDistribution(
+        ageMin: Int,
+        ageMax: Int,
+        referenceDate: LocalDate? = null,
+    ): ChildrenAgeDistributionListResponse {
+        validateAgeRange(ageMin, ageMax)
+        val ageDate = referenceDate ?: LocalDate.now()
 
-        val spec = Specification.allOf(
+        val countsByAge = selectBirthDates(childrenFilter(ageMin, ageMax, ageDate))
+            .groupingBy { ChronoUnit.YEARS.between(it, ageDate).toInt() }
+            .eachCount()
+
+        return ChildrenAgeDistributionListResponse(
+            items = (ageMin..ageMax).map { age ->
+                ChildAgeCountItem(age = age, count = countsByAge[age] ?: 0)
+            },
+        )
+    }
+
+    /**
+     * Reads only the `birthDate` column of the matching persons - the ages are then counted in
+     * memory. One query for the whole distribution, rather than a `count(*)` per age year (which
+     * would be a query per bar), and no entities loaded for rows that are never rendered.
+     */
+    private fun selectBirthDates(spec: Specification<PersonEntity>): List<LocalDate> {
+        val criteriaBuilder = entityManager.criteriaBuilder
+        val query = criteriaBuilder.createQuery(LocalDate::class.java)
+        val root = query.from(PersonEntity::class.java)
+
+        query.select(root["birthDate"])
+        spec.toPredicate(root, query, criteriaBuilder)?.let { query.where(it) }
+
+        return entityManager.createQuery(query).resultList
+    }
+
+    /**
+     * Guards the age-to-`birthDate` math below against a range that can only be a mistake - an
+     * inverted range silently returns nothing, and an unbounded [ageMax] would blow up the
+     * per-age-year list of [getChildrenAgeDistribution]. The frontend rejects the same input before
+     * sending it; this is what makes the API itself safe to call directly.
+     */
+    private fun validateAgeRange(ageMin: Int, ageMax: Int) {
+        if (ageMin < MIN_AGE || ageMax > MAX_AGE) {
+            throw BusinessRuleException("Alter muss zwischen $MIN_AGE und $MAX_AGE Jahren liegen!")
+        }
+        if (ageMin > ageMax) {
+            throw BusinessRuleException("'Alter von' darf nicht größer als 'Alter bis' sein!")
+        }
+    }
+
+    /**
+     * age >= ageMin  <=>  birthDate <= referenceDate.minusYears(ageMin)
+     * age <= ageMax  <=>  birthDate >= referenceDate.minusYears(ageMax + 1).plusDays(1)
+     * (matches [java.time.temporal.ChronoUnit.YEARS]' truncation, used to compute the displayed
+     * age in [toChildItem])
+     *
+     * [referenceDate] is the date the *age* is measured on - what is planned from these numbers is
+     * ordered weeks ahead, so a child turning 6 in August has to be countable in June. Household
+     * validity deliberately stays "entitled today" (see [PersonEntity.Specs.householdIsValid]): a
+     * household whose entitlement runs out before the reference date is usually renewed, and
+     * leaving it out would undercount.
+     */
+    private fun childrenFilter(ageMin: Int, ageMax: Int, referenceDate: LocalDate): Specification<PersonEntity> {
+        val maxBirthDate = referenceDate.minusYears(ageMin.toLong())
+        val minBirthDate = referenceDate.minusYears(ageMax + 1L).plusDays(1)
+
+        return Specification.allOf(
             PersonEntity.Specs.isAdditionalPerson(),
             PersonEntity.Specs.householdIsValid(),
             PersonEntity.Specs.birthDateBetween(minBirthDate, maxBirthDate),
         )
-        return PersonEntity.Specs.orderByHouseholdId(spec)
     }
 
-    private fun PersonEntity.toSchoolStarterPackageEntry(today: LocalDate): SchoolStarterPackageItem {
-        val age = ChronoUnit.YEARS.between(birthDate, today).toInt()
+    private fun childrenSpec(ageMin: Int, ageMax: Int, referenceDate: LocalDate): Specification<PersonEntity> = PersonEntity.Specs.orderByHouseholdId(childrenFilter(ageMin, ageMax, referenceDate))
 
-        return SchoolStarterPackageItem(
+    private fun PersonEntity.toChildItem(referenceDate: LocalDate): ChildItem {
+        val age = ChronoUnit.YEARS.between(birthDate, referenceDate).toInt()
+
+        return ChildItem(
             householdId = household.householdId,
             firstname = firstname.orEmpty(),
             lastname = lastname.orEmpty(),

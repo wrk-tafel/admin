@@ -24,7 +24,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
             <mat-label>Geburtsdatum</mat-label>
-            <input matInput testid="birthDateInput" type="date" [formField]="customerForm.birthDate">
+            <input matInput testid="birthDateInput" type="date" [formField]="customerForm.birthDate"
+                   [attr.min]="mainBirthDateMin" [attr.max]="today">
             @for (errorMessage of visibleErrorMessages(customerForm.birthDate()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
@@ -63,7 +64,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
             <mat-label>Telefonnummer</mat-label>
-            <input matInput testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber">
+            <input matInput testid="telephoneNumberInput" type="tel" [formField]="customerForm.telephoneNumber">
             <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
               <fa-icon [icon]="faPhone"></fa-icon>
             </mat-icon>
@@ -115,6 +116,7 @@
               <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
                 <fa-icon [icon]="faLocationDot"></fa-icon>
               </mat-icon>
+              <mat-hint>4-stellig</mat-hint>
               @for (errorMessage of visibleErrorMessages(customerForm.address.postalCode()); track $index) {
                 <mat-error>{{errorMessage}}</mat-error>
               }
@@ -145,10 +147,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
             <mat-label>Einkommen (monatl.)</mat-label>
-            <input matInput testid="incomeInput" type="number" [formField]="customerForm.income">
-            <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-              <fa-icon [icon]="faEuroSign"></fa-icon>
-            </mat-icon>
+            <input matInput testid="incomeInput" type="number" inputmode="decimal" [formField]="customerForm.income">
+            <span matSuffix class="text-slate-500 pl-1 pr-1">€</span>
             <tafel-info-tooltip matSuffix [testId]="'income-info-tooltip'"
                                 text="Monatliches Nettoeinkommen dieser Person. Die Einkommen aller Personen im Haushalt werden zusammengezählt und gegen die Einkommensgrenze geprüft."></tafel-info-tooltip>
             @for (errorMessage of visibleErrorMessages(customerForm.income()); track $index) {
@@ -181,13 +181,19 @@
             <mat-error>{{errorMessage}}</mat-error>
           }
         </mat-form-field>
+        <div class="flex flex-wrap gap-2 mb-2" role="group" aria-label="Gültig bis - Schnellauswahl">
+          @for (months of validUntilQuickPicks; track months) {
+            <button type="button" matButton="outlined" [attr.testid]="'validUntilQuickPick-' + months + 'm'"
+                    (click)="applyValidUntilQuickPick(months)">+{{months}} {{months === 1 ? 'Monat' : 'Monate'}}</button>
+          }
+        </div>
       </mat-card-content>
     </mat-card>
     <div class="mt-4 md:mt-0">
       <mat-card>
         <mat-card-header class="w-full">
           <div class="flex justify-between items-center w-full">
-            <h2 class="tafel-h5">Weitere Personen</h2>
+            <h2 class="tafel-h5">Weitere Personen ({{ customerForm.additionalPersons().value()?.length ?? 0 }})</h2>
             <button type="button" matButton="filled" class="button-success" (click)="addNewPerson()">Hinzufügen</button>
           </div>
         </mat-card-header>
@@ -197,123 +203,147 @@
               <h3 testid="nopersons-label" class="tafel-h6 mb-4">Keine Personen vorhanden</h3>
             </div>
           }
-          @for (person of customerForm.additionalPersons().value(); track person.key; let i = $index) {
-            <div class="mt-4">
-              <mat-card>
-                <mat-card-content [attr.testid]="'personform-' + i">
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <mat-form-field>
-                      <mat-label>Nachname</mat-label>
-                      <input matInput testid="lastnameInput" type="text" [formField]="personField(i).lastname"
-                             tafelAutofocus>
-                      @for (errorMessage of visibleErrorMessages(personField(i).lastname()); track $index) {
-                        <mat-error>{{errorMessage}}</mat-error>
-                      }
-                    </mat-form-field>
-                    <mat-form-field>
-                      <mat-label>Vorname</mat-label>
-                      <input matInput testid="firstnameInput" type="text" [formField]="personField(i).firstname">
-                      @for (errorMessage of visibleErrorMessages(personField(i).firstname()); track $index) {
-                        <mat-error>{{errorMessage}}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <mat-form-field>
-                      <mat-label>Geburtsdatum</mat-label>
-                      <input matInput testid="birthDateInput" type="date" [formField]="personField(i).birthDate">
-                      @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
-                        <mat-error>{{errorMessage}}</mat-error>
-                      }
-                    </mat-form-field>
-                    <mat-form-field>
-                      <mat-label>Geschlecht</mat-label>
-                      <mat-select testid="genderInput" [formField]="personField(i).gender">
-                        @for (genderOption of genders; track genderOption) {
-                          <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
-                            {{genderOption | genderLabel}}</mat-option>
+          @if ((customerForm.additionalPersons().value()?.length ?? 0) > 0) {
+            <mat-accordion multi>
+              @for (person of customerForm.additionalPersons().value(); track person.key; let i = $index) {
+                <mat-expansion-panel [expanded]="isPersonExpanded(person.key)"
+                                     (opened)="togglePersonPanel(person.key, true)"
+                                     (closed)="togglePersonPanel(person.key, false)">
+                  <mat-expansion-panel-header [attr.testid]="'personform-header-' + i">
+                    <mat-panel-title>
+                      {{ person.lastname || person.firstname ? (person.lastname + ' ' + person.firstname) : 'Weitere Person ' + (i + 1) }}
+                    </mat-panel-title>
+                    <mat-panel-description>
+                      <span class="flex flex-wrap items-center gap-1">
+                        <span>{{ person.birthDate | birthdateAge }}</span>
+                        @if (person.income) {
+                          <span>&middot; {{ person.income | currency }}</span>
+                        }
+                        @for (flag of personSummaryFlags(person); track flag) {
+                          <span class="badge badge-info">{{ flag }}</span>
+                        }
+                      </span>
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+                  <!-- Lazy-rendered: a person's fields (and the signal-forms validity wiring that comes
+                       with them) are only created once its panel is actually opened, not for every
+                       collapsed person a household happens to have. -->
+                  <ng-template matExpansionPanelContent>
+                  <div [attr.testid]="'personform-' + i">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <mat-form-field>
+                        <mat-label>Nachname</mat-label>
+                        <input matInput testid="lastnameInput" type="text" [formField]="personField(i).lastname"
+                               tafelAutofocus [tafelAutofocusEnabled]="isPersonExpanded(person.key)">
+                        @for (errorMessage of visibleErrorMessages(personField(i).lastname()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                      <mat-form-field>
+                        <mat-label>Vorname</mat-label>
+                        <input matInput testid="firstnameInput" type="text" [formField]="personField(i).firstname">
+                        @for (errorMessage of visibleErrorMessages(personField(i).firstname()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+                      <mat-form-field>
+                        <mat-label>Geburtsdatum</mat-label>
+                        <input matInput testid="birthDateInput" type="date" [formField]="personField(i).birthDate"
+                               [attr.min]="personBirthDateMin" [attr.max]="today">
+                        @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                      <mat-form-field>
+                        <mat-label>Geschlecht</mat-label>
+                        <mat-select testid="genderInput" [formField]="personField(i).gender">
+                          @for (genderOption of genders; track genderOption) {
+                            <mat-option [value]="genderOption" [attr.testid]="'genderInput-option-' + genderOption">
+                              {{genderOption | genderLabel}}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                          <fa-icon [icon]="faVenusMars"></fa-icon>
+                        </mat-icon>
+                        @for (errorMessage of visibleErrorMessages(personField(i).gender()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                    </div>
+                    <mat-form-field class="w-full mt-2">
+                      <mat-label>Nationalität</mat-label>
+                      <mat-select testid="countryInput" [formField]="personField(i).country"
+                                  [compareWith]="compareCountry">
+                        @for (countryItem of countries(); track countryItem.id) {
+                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                            {{countryItem.name}}</mat-option>
                         }
                       </mat-select>
                       <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                        <fa-icon [icon]="faVenusMars"></fa-icon>
+                        <fa-icon [icon]="faFlag"></fa-icon>
                       </mat-icon>
-                      @for (errorMessage of visibleErrorMessages(personField(i).gender()); track $index) {
+                      @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>
                       }
                     </mat-form-field>
-                  </div>
-                  <mat-form-field class="w-full mt-2">
-                    <mat-label>Nationalität</mat-label>
-                    <mat-select testid="countryInput" [formField]="personField(i).country"
-                                [compareWith]="compareCountry">
-                      @for (countryItem of countries(); track countryItem.id) {
-                        <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
-                          {{countryItem.name}}</mat-option>
-                      }
-                    </mat-select>
-                    <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                      <fa-icon [icon]="faFlag"></fa-icon>
-                    </mat-icon>
-                    @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
-                      <mat-error>{{errorMessage}}</mat-error>
-                    }
-                  </mat-form-field>
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <mat-form-field>
-                      <mat-label>Arbeitgeber</mat-label>
-                      <input matInput testid="employerInput" type="text" [formField]="personField(i).employer">
-                      <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                        <fa-icon [icon]="faBuilding"></fa-icon>
-                      </mat-icon>
-                      @for (errorMessage of visibleErrorMessages(personField(i).employer()); track $index) {
-                        <mat-error>{{errorMessage}}</mat-error>
-                      }
-                    </mat-form-field>
-                    <mat-form-field>
-                      <mat-label>Einkommen (monatl.)</mat-label>
-                      <input matInput testid="incomeInput" type="number" [formField]="personField(i).income">
-                      <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                        <fa-icon [icon]="faEuroSign"></fa-icon>
-                      </mat-icon>
-                      @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
-                        <mat-error>{{errorMessage}}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-                  <mat-form-field class="w-full mt-2">
-                    <mat-label>nachgewiesen bis</mat-label>
-                    <input matInput testid="incomeDueInput" type="date" [formField]="personField(i).incomeDue">
-                    @for (errorMessage of visibleErrorMessages(personField(i).incomeDue()); track $index) {
-                      <mat-error>{{errorMessage}}</mat-error>
-                    }
-                  </mat-form-field>
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    <div class="flex items-center">
-                      <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
-                                    testid="receivesFamilyAllowanceInput">
-                        Bezieht Familienbeihilfe
-                      </mat-checkbox>
-                      <tafel-info-tooltip [testId]="'family-allowance-info-tooltip'"
-                                          text="Für Kinder mit Familienbeihilfe werden Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel automatisch zum Haushaltseinkommen dazugerechnet."></tafel-info-tooltip>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+                      <mat-form-field>
+                        <mat-label>Arbeitgeber</mat-label>
+                        <input matInput testid="employerInput" type="text" [formField]="personField(i).employer">
+                        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
+                          <fa-icon [icon]="faBuilding"></fa-icon>
+                        </mat-icon>
+                        @for (errorMessage of visibleErrorMessages(personField(i).employer()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
+                      <mat-form-field>
+                        <mat-label>Einkommen (monatl.)</mat-label>
+                        <input matInput testid="incomeInput" type="number" inputmode="decimal" [formField]="personField(i).income">
+                        <span matSuffix class="text-slate-500 pl-1 pr-1">€</span>
+                        @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
+                          <mat-error>{{errorMessage}}</mat-error>
+                        }
+                      </mat-form-field>
                     </div>
-                    <div class="flex items-center">
-                      <mat-checkbox [formField]="personField(i).excludeFromHousehold"
-                                    testid="excludeFromHouseholdInput">
-                        Nicht im selben Haushalt (keine Berechnung)
-                      </mat-checkbox>
-                      <tafel-info-tooltip [testId]="'exclude-from-household-info-tooltip'"
-                                          text="Die Person zählt weiterhin zum Kunden, ihr Einkommen wird aber weder mitgezählt noch erhöht sie die Einkommensgrenze."></tafel-info-tooltip>
+                    <mat-form-field class="w-full mt-2">
+                      <mat-label>nachgewiesen bis</mat-label>
+                      <input matInput testid="incomeDueInput" type="date" [formField]="personField(i).incomeDue">
+                      @for (errorMessage of visibleErrorMessages(personField(i).incomeDue()); track $index) {
+                        <mat-error>{{errorMessage}}</mat-error>
+                      }
+                    </mat-form-field>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+                      <div class="flex items-center">
+                        <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
+                                      testid="receivesFamilyAllowanceInput">
+                          Bezieht Familienbeihilfe
+                        </mat-checkbox>
+                        <tafel-info-tooltip [testId]="'family-allowance-info-tooltip'"
+                                            text="Für Kinder mit Familienbeihilfe werden Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel automatisch zum Haushaltseinkommen dazugerechnet."></tafel-info-tooltip>
+                      </div>
+                      <div class="flex items-center">
+                        <mat-checkbox [formField]="personField(i).excludeFromHousehold"
+                                      testid="excludeFromHouseholdInput">
+                          Nicht im selben Haushalt (keine Berechnung)
+                        </mat-checkbox>
+                        <tafel-info-tooltip [testId]="'exclude-from-household-info-tooltip'"
+                                            text="Die Person zählt weiterhin zum Kunden, bleibt bei der Berechnung aber vollständig außen vor: Weder ihr Einkommen noch ihre Familienbeihilfe werden mitgezählt, und sie erhöht die Einkommensgrenze nicht."></tafel-info-tooltip>
+                      </div>
+                    </div>
+                    <div class="mt-4">
+                      <button type="button" [attr.testid]="'remove-personform-' + i" matButton="filled"
+                              class="button-danger"
+                              (click)="removePerson(i)">Löschen
+                      </button>
                     </div>
                   </div>
-                  <div class="mt-4">
-                    <button type="button" [attr.testid]="'remove-personform-' + i" matButton="filled"
-                            class="button-danger"
-                            (click)="removePerson(i)">Löschen
-                    </button>
-                  </div>
-                </mat-card-content>
-              </mat-card>
-            </div>
+                  </ng-template>
+                </mat-expansion-panel>
+              }
+            </mat-accordion>
           }
         </mat-card-content>
         <mat-card-actions class="justify-end">

@@ -109,7 +109,6 @@ class RouteGuidanceServiceTest {
         assertThat(shopStop.shop!!.contactPerson).isEqualTo("Frau Huber")
         assertThat(shopStop.shop!!.note).isEqualTo("Klingeln bei der Rampe")
         assertThat(shopStop.shop!!.foodUnit).isEqualTo(FoodUnit.BOX)
-        assertThat(shopStop.shop!!.enabled).isTrue()
     }
 
     @Test
@@ -118,15 +117,6 @@ class RouteGuidanceServiceTest {
 
         assertThat(pauseStop.shop).isNull()
         assertThat(pauseStop.description).isEqualTo("Pause")
-    }
-
-    @Test
-    fun `guidance keeps a stop whose shop is disabled`() {
-        val disabledShopStop = service.getGuidance(1).stops[2]
-
-        assertThat(disabledShopStop.shop).isNotNull
-        assertThat(disabledShopStop.shop!!.name).isEqualTo("Denns Bio")
-        assertThat(disabledShopStop.shop!!.enabled).isFalse()
     }
 
     @Test
@@ -410,7 +400,6 @@ class RouteGuidanceServiceTest {
             name = "Denns Bio",
             address = ShopAddress(street = "Nebengasse 2", postalCode = 1020, city = "Wien"),
             foodUnit = FoodUnit.KG,
-            enabled = false,
         ).apply { id = 13 }
 
         return RouteEntity(number = 1.0, name = "Route 1").apply {

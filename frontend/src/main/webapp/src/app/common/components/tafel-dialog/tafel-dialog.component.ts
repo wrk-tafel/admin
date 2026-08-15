@@ -12,7 +12,7 @@ import {MatDialogModule} from '@angular/material/dialog';
  *
  * Usage as a MatDialog body:
  * ```html
- * <tafel-dialog type="info" title="My Dialog" testid="my-dialog">
+ * <tafel-dialog type="info" title="My Dialog" testId="my-dialog">
  *   <div tafel-dialog-content>
  *     <p>Body content goes here.</p>
  *   </div>

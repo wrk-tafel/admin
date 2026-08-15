@@ -1,4 +1,4 @@
-import {Component, computed, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
@@ -19,6 +19,11 @@ import {TafelTitleStrategy} from '../../util/tafel-title-strategy';
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
 const MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
+
+// Sidebar state a returning user expects to still find the way they left it - without this every
+// full reload (not just an in-app navigation) reset both back to their defaults.
+const COLLAPSED_STORAGE_KEY = 'tafel.sidenav.collapsed';
+const EXPANDED_GROUPS_STORAGE_KEY = 'tafel.sidenav.expandedGroups';
 
 @Component({
   selector: 'tafel-default-layout',
@@ -42,12 +47,20 @@ export class DefaultLayoutComponent {
   private readonly globalStateService = inject(GlobalStateService);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly configApiService = inject(ConfigApiService);
+  private readonly window = inject(Window);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
   readonly appConfig = toSignal(this.configApiService.observeConfig(), {initialValue: null});
 
-  readonly collapsed = signal(false);
-  readonly expandedItems = signal<Set<string>>(new Set());
+  readonly collapsed = signal(this.loadCollapsedFromStorage());
+  readonly expandedItems = signal<Set<string>>(this.loadExpandedGroupsFromStorage());
+
+  constructor() {
+    // Persisting from an effect (rather than inside toggleCollapsed/toggleExpanded) covers every
+    // way the signals can change, not just the two toggle methods.
+    effect(() => this.persistToStorage(COLLAPSED_STORAGE_KEY, String(this.collapsed())));
+    effect(() => this.persistToStorage(EXPANDED_GROUPS_STORAGE_KEY, JSON.stringify([...this.expandedItems()])));
+  }
 
   // The sidenav is always "opened" in `side` mode - collapsing only shrinks its width via a CSS class,
   // it's never closed/reopened. Material's content-margin recalculation only runs on open/close toggles,
@@ -78,6 +91,14 @@ export class DefaultLayoutComponent {
     {initialValue: this.breakpointObserver.isMatched(MOBILE_BREAKPOINT)}
   );
   readonly sidenavMode = computed<'over' | 'side'>(() => this.isMobile() ? 'over' : 'side');
+
+  // `collapsed` is the persisted preference and stays true even while `isMobile()` is - the
+  // collapse-to-icons toggle is `hidden lg:flex`, so a mobile user has no way to clear it. Without
+  // this, a sidebar collapsed on a wide window renders as the same narrow icon rail once the
+  // overlay opens below the breakpoint, instead of the full-width labelled overlay the user guide
+  // describes - the template reads this, not `collapsed()` directly, everywhere collapse affects
+  // what's rendered.
+  readonly effectiveCollapsed = computed(() => this.collapsed() && !this.isMobile());
 
   readonly navItems = computed(() => {
     const distribution = this.distribution();
@@ -168,7 +189,8 @@ export class DefaultLayoutComponent {
     return resultNavItems;
   }
 
-  toggleExpanded(name: string) {
+  toggleExpanded(name: string, event?: Event) {
+    const expanding = !this.expandedItems().has(name);
     this.expandedItems.update(current => {
       const updated = new Set(current);
       if (updated.has(name)) {
@@ -178,6 +200,41 @@ export class DefaultLayoutComponent {
       }
       return updated;
     });
+
+    // Expanding a group sitting at the bottom of the nav scrollport would otherwise change nothing
+    // visible - the submenu renders entirely below the fold. Scroll the group (button + submenu,
+    // their common parent div) into view once the submenu exists in the DOM.
+    if (expanding && event?.currentTarget) {
+      const group = (event.currentTarget as HTMLElement).parentElement;
+      setTimeout(() => group?.scrollIntoView({block: 'nearest'}));
+    }
+  }
+
+  private loadCollapsedFromStorage(): boolean {
+    try {
+      return this.window.localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  private loadExpandedGroupsFromStorage(): Set<string> {
+    try {
+      const raw = this.window.localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  }
+
+  // localStorage can throw (quota, private browsing) - the sidebar still works for this session,
+  // the state just won't survive a reload.
+  private persistToStorage(key: string, value: string) {
+    try {
+      this.window.localStorage.setItem(key, value);
+    } catch {
+      // see above
+    }
   }
 
   protected readonly faAngleRight = faAngleRight;

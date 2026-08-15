@@ -129,6 +129,14 @@ class DistributionService(
 
     fun hasCurrentDistribution(): Boolean = getCurrentDistribution() != null
 
+    /**
+     * When the most recently ended distribution ended - the ticket-screen SSE stream uses it as
+     * the lower bound for replaying what the monitor last showed (see
+     * [at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenSseController]),
+     * so state from a past distribution day never resurfaces on a freshly opened monitor.
+     */
+    fun getLastEndedDistributionTime(): LocalDateTime? = distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()?.endedAt
+
     @Transactional
     fun assignHouseholdToDistribution(
         householdId: Long,
@@ -214,10 +222,9 @@ class DistributionService(
      * directly, see `ProjectSpecificRulesTest`.
      */
     @Transactional(readOnly = true)
-    fun getCurrentTicketScreenTicket(): TicketScreenTicketResponse = if (hasCurrentDistribution()) {
-        mapToTicketScreenTicket(getCurrentTicketNumber())
-    } else {
-        mapToTicketScreenTicket(null)
+    fun getCurrentTicketScreenTicket(): TicketScreenTicketResponse {
+        val distribution = getCurrentDistribution() ?: return mapToTicketScreenTicket(null, null)
+        return mapToTicketScreenTicket(getCurrentTicketNumber(), distribution)
     }
 
     @Transactional
@@ -235,17 +242,21 @@ class DistributionService(
             )
         }
 
-        return mapToTicketScreenTicket(getCurrentTicketNumber())
+        return mapToTicketScreenTicket(getCurrentTicketNumber(), distribution)
     }
 
     @Transactional
-    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): TicketScreenTicketResponse {
+    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean?): TicketScreenTicketResponse {
         val distribution = getCurrentDistribution()!!
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
 
         if (distributionHouseholdEntity != null) {
-            distributionHouseholdEntity.costContributionPaid = costContributionPaid
+            // null = no new paid/unpaid decision - a ticket reopened via reopenAndGetPreviousTicket
+            // keeps the decision recorded when it was originally processed.
+            if (costContributionPaid != null) {
+                distributionHouseholdEntity.costContributionPaid = costContributionPaid
+            }
             distributionHouseholdEntity.processed = true
             distributionHouseholdRepository.save(distributionHouseholdEntity)
 
@@ -258,10 +269,8 @@ class DistributionService(
 
             // A ticket having been *processed* is the first point at which food has demonstrably
             // been handed to someone. Deliberately not "a ticket was shown on the screen": the
-            // ticket-screen control page calls show-current on load (see
-            // `ticket-screen-control.component.ts`), so merely opening it - possibly hours early,
-            // with the monitor still switched off - would otherwise announce the hand-out as
-            // started. See DistributionPhaseEvents.
+            // current ticket can be (re-)shown - possibly hours early, with the monitor still
+            // switched off - without any food having changed hands. See DistributionPhaseEvents.
             if (distributionRepository.markFoodHandoutStarted(distribution.id!!, LocalDateTime.now()) == 1) {
                 eventPublisher.publishEvent(FoodHandoutStartedEvent(distribution.id!!))
             }
@@ -279,15 +288,27 @@ class DistributionService(
                 )
             }
 
-            return mapToTicketScreenTicket(nextTicket)
+            return mapToTicketScreenTicket(nextTicket, distribution)
         }
-        return mapToTicketScreenTicket(null)
+        return mapToTicketScreenTicket(null, distribution)
     }
 
-    private fun mapToTicketScreenTicket(distributionHouseholdEntity: DistributionHouseholdEntity?) = TicketScreenTicketResponse(
+    /**
+     * [distribution] is passed in separately (rather than read off [distributionHouseholdEntity])
+     * because the queue counts below must still be available when nothing is currently being
+     * called - e.g. every household already served, or the "no active distribution" case where
+     * both are null.
+     */
+    private fun mapToTicketScreenTicket(
+        distributionHouseholdEntity: DistributionHouseholdEntity?,
+        distribution: DistributionEntity?,
+    ) = TicketScreenTicketResponse(
         ticketNumber = distributionHouseholdEntity?.ticketNumber,
         householdId = distributionHouseholdEntity?.household?.householdId,
+        householdName = distributionHouseholdEntity?.household?.mainPerson?.let { "${it.firstname} ${it.lastname}" },
         pendingCostContribution = distributionHouseholdEntity?.household?.pendingCostContribution,
+        processedTicketsCount = distribution?.households?.count { it.processed == true },
+        totalTicketsCount = distribution?.households?.size,
     )
 
     @Transactional

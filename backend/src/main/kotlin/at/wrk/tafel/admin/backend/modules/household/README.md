@@ -126,19 +126,26 @@ below.
 
 `getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
 ("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
-distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the most
-recently created distribution (`DistributionRepository.findFirstByOrderByIdDesc()`, deliberately
-*not* `getCurrentDistribution()`, since the overview should still work once that distribution has
-been closed). It injects `DistributionRepository` directly (from `database.model.distribution`) -
+distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the newest
+*closed* distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`),
+matching the first entry of the closed-only distribution list the frontend's selector offers.
+It injects `DistributionRepository` directly (from `database.model.distribution`) -
 that's fine despite the module's `allowedDependencies` below only listing `base::country`/
 `base::exception`: Spring Modulith's boundary only governs `modules.*` packages, not the shared
 `database.model.*` entity/repository layer (see `DashboardService` for the same pattern).
 
 `getHouseholdsAboveLimit` is worth knowing about if you touch it: the "above limit" filter can't be
 expressed in SQL because it depends on `IncomeValidatorService`, not stored columns, so it loads
-*every* valid household (via `HouseholdRepository.findAll(spec)`, which eagerly fetches `persons`
-via `@EntityGraph` to avoid N+1), evaluates income validation for each in memory, and then paginates
-the already-computed in-memory list.
+*every* valid household (via `HouseholdRepository.findAll(spec, sort)`, which eagerly fetches
+`persons` via `@EntityGraph` to avoid N+1), evaluates income validation for each in memory, and then
+paginates the already-computed in-memory list. Every page view therefore recomputes the whole set -
+deliberately, so the list is never stale
+(`docs/architecture/adr/0049-the-above-limit-list-is-computed-live-not-materialized.md`).
+What the endpoint keeps small is the work per run: validation reads the persons straight off the
+entities (`mapEntityToValidationPersons`, the entity-side twin of `mapToValidationPersons` - both
+must keep the same rules), and only the requested page's households are mapped to a
+`HouseholdResponse`, since that mapping resolves the issuer, the `lockedBy` user and every person's
+country.
 
 ### `HouseholdConverter` (`internal/converter`)
 Bidirectional mapping between the API-facing `Household`/`Person` models and
@@ -239,6 +246,15 @@ The self-join condition anchors each match on the *smaller* `household_id`
 exactly one row - anchored on whichever of A/B has the lower id - instead of two mirrored rows (once
 per direction).
 
+`dismiss(householdId, otherHouseholdId)` records a reviewer's "kein Duplikat" decision on the
+`/kunden/duplikate` screen: it normalizes the two ids into `household_id_low`/`household_id_high`
+(matching the anchor ordering above) and stores them in `household_duplicate_dismissals`
+(`HouseholdDuplicateDismissalEntity`/`Repository`). `DUPLICATE_CONDITIONS`'s `NOT EXISTS` anti-join
+against that table is what keeps a dismissed pair from resurfacing on a later visit - without it, a
+decision made once would reappear on every review pass. The table has no foreign key to
+`households`: its columns hold the business `household_id`, which is never reused once assigned, so
+a dismissal outliving a deleted household is simply inert rather than a dangling reference.
+
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
 re-parenting work.
@@ -248,19 +264,48 @@ Validates a household's combined income against configurable limits stored in `S
 (`StaticValueType.ADDITIONAL_ADULT`, `ADDITIONAL_CHILD`, `TOLERANCE`, `FAMILY_ALLOWANCE`,
 `SIBLING_ADDITION`, `CHILD_TAX_ALLOWANCE`, and a per-person-count base limit). Key rules baked into
 the implementation:
-- A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket).
-- Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) are
-  excluded from the income sum entirely, but can still receive family allowance.
-- The base limit is looked up per (adult count, child count) via
-  `StaticValueRepository.findLatestForPersonCount`, then a flat `TOLERANCE` amount is added on top
-  before comparing against the summed income - `IncomeValidatorResult.toleranceValue` reports how
-  much tolerance was applied, `amountExceededLimit` how far over the (tolerance-inclusive) limit the
-  household is.
+- **Every lookup is resolved from one `IncomeRateCard`** - the static values in effect on one date,
+  read with a single `StaticValueRepository.findAllValidAt` and answered from memory afterwards.
+  Nothing is cached, so an amount an administrator edits applies to the next validation on every
+  instance, and the arithmetic is a pure function of the persons and that card. `validateAll` shares
+  one card across every household it is given, which is what makes a `getHouseholdsAboveLimit` run
+  internally consistent (`docs/architecture/adr/0048-static-values-resolved-from-a-per-run-snapshot.md`).
+- A person `isChild()` if under 15; `isChildForFamilyAllowance()` if 24 or under (a wider bracket) -
+  both measured against the card's `referenceDate`, so a validation crossing midnight still resolves
+  against a single date.
+- The `FAMILY_ALLOWANCE` rows are "from age X" brackets, so a child is counted at the **highest tier
+  whose `age` they have already reached** (the seeded 0/3/10/19 tiers mirror the Austrian
+  Familienbeihilfe rate card, where the amount rises with the child's age) - a 12-year-old gets the
+  `age = 10` tier, everyone from 19 up to the 24 limit the `age = 19` one.
+- The result carries an `IncomeValidatorDetails` next to the two totals: the income split into
+  income/Familienbeihilfe/Kinderabsetzbetrag/Geschwisterstaffel, and the limit into base limit,
+  per-person surcharges and tolerance. It adds no rule - the parts are exactly the totals, split up -
+  and exists so the frontend's validation dialog can show how a result came about.
+- Persons with `excludeFromIncomeCalculation` (mapped from `Person.excludeFromHousehold`) count for
+  nothing: neither their income nor their Familienbeihilfe/Kinderabsetzbetrag is added, they are not
+  counted for the Geschwisterstaffel tier, and they do not raise the limit. The flag means "not part
+  of this household", so it has to apply to both sides of the comparison - counting a child's family
+  allowance while ignoring the child for the limit can only ever make a household look worse off
+  than it is.
+- The base limit is looked up per (adult count, child count) via `IncomeRateCard.incomeLimit`, then a
+  flat `TOLERANCE` amount is added on top before comparing against the summed income -
+  `IncomeValidatorResult.toleranceValue` reports how much tolerance was applied,
+  `amountExceededLimit` how far over the (tolerance-inclusive) limit the household is.
+- **A composition with no configured base limit is rejected**, with a `BusinessRuleException` naming
+  the (adults, children) combination. Every lookup on the rate card answers zero when nothing is
+  configured - an allowance nobody maintains simply adds nothing - but a base limit of 0.00 is a
+  meaningful value, so `IncomeRateCard.incomeLimit` answers `null` instead and the validator refuses
+  rather than declaring the household ineligible by its entire income. Two things reach it: a
+  household with no adult at all (the counts are capped before the lookup, so every other reachable
+  combination is seeded), and an `INCOME_LIMIT` row that is missing or whose validity window has
+  lapsed. Because of that, `validateAll` hands back a `Result` per household instead of aborting the
+  whole batch - `getHouseholdsAboveLimit` logs the rejected household at WARN and leaves it out.
 
 `HouseholdService.mapToValidationPersons` is the adapter that turns a `Household`'s persons into
 `IncomeValidatorPerson`s before calling this service - both `validate()` (called ad-hoc by the
 frontend before submit) and `createHousehold`/`updateHousehold` (called again server-side, since the
-client-computed result can't be trusted) go through it.
+client-computed result can't be trusted) go through it. `getHouseholdsAboveLimit` holds entities
+rather than DTOs and uses `mapEntityToValidationPersons` instead; the two must keep the same rules.
 
 **Supervisor/force gotcha:** if validation fails, `createHousehold`/`updateHousehold` behave
 differently depending on the caller's role:

@@ -74,6 +74,25 @@ internal class DashboardServiceTest {
     }
 
     @Test
+    fun `get registered persons counts main persons plus not-excluded additional persons`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+                testDistributionHouseholdEntity3,
+            )
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val data = service.getData()
+
+        // 3 main persons + household 1's one additional person that is not excluded from the household
+        assertThat(data.registeredPersons).isEqualTo(4)
+    }
+
+    @Test
     fun `get tickets`() {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
@@ -238,6 +257,7 @@ internal class DashboardServiceTest {
         assertThat(data.logistics!!.foodCollectionsRecordedCount).isEqualTo(2)
         assertThat(data.logistics.foodCollectionsTotalCount).isEqualTo(4)
         assertThat(data.logistics.recordedRouteNames).containsExactly("Route 1", "Route 4")
+        assertThat(data.logistics.allRouteNames).containsExactly("Route 1", "Route 2", "Route 3", "Route 4")
         assertThat(data.logistics.foodAmountTotal).isEqualTo(BigDecimal(140))
         // nobody has ticked a stop off today, so the panel has nothing to say yet
         assertThat(data.logistics.routeProgress).isEmpty()
@@ -333,6 +353,7 @@ internal class DashboardServiceTest {
 
         assertThat(data).isNotNull
         assertThat(data.registeredCustomers).isNull()
+        assertThat(data.registeredPersons).isNull()
         assertThat(data.tickets).isNull()
         assertThat(data.statistics).isNull()
         assertThat(data.logistics).isNull()

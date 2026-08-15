@@ -20,6 +20,9 @@ apache-commons-csv = "1.14.1"
 apache-commons-lang3 = "3.20.0"
 springdoc-openapi = "3.1.0"
 spring-retry = "2.0.13"
+# Runs the scheduled jobs that are not row-based once per cluster. Stores its lock in the same
+# PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
+shedlock = "7.7.0"
 
 # Test dependency versions
 archunit = "1.5.0"
@@ -64,6 +67,10 @@ spring-security-messaging = { module = "org.springframework.security:spring-secu
 
 # Spring Retry
 spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "spring-retry" }
+
+# ShedLock
+shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock" }
+shedlock-provider-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock" }
 
 # Flyway
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }

@@ -8,41 +8,66 @@
 
       <!-- table-fixed: the shop columns split the panel's width evenly instead of growing with
            their content, so the inputs fill their whole column and the table never overflows the
-           viewport no matter how many shops a route has -->
-      <table class="w-full table-fixed divide-y divide-green-200" testid="items-table">
-        <thead>
-        <tr>
-          <!-- The matrix' corner cell heads nothing - it sits above the category names, which are
-               row headers. A `th` here would be an empty column header (axe empty-table-header). -->
-          <td class="w-40 pr-4"></td>
-          @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
-          }
-        </tr>
-        </thead>
-        <tbody formArrayName="categories">
-          @for (category of categories.controls; let categoryIndex = $index; track category) {
-            <tr [formGroupName]="categoryIndex"
-                [ngClass]="{'bg-red-100': isControlInvalid(category)}">
-              <th scope="row" class="font-bold pr-4 text-left">{{ foodCategories()?.[categoryIndex]?.name }}</th>
-              <ng-container formArrayName="shops">
-                @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
-                  <td [formGroupName]="shopIndex" class="px-1">
-                    <mat-form-field subscriptSizing="dynamic" class="w-full">
-                      <!-- the row and column headers name the cell, not the input inside it, so
-                           without this every cell of the matrix is announced as "edit, blank" -->
-                      <input matInput type="number" min="0"
-                             [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
-                             [attr.aria-label]="amountInputLabel(categoryIndex, shopIndex)"
-                             formControlName="amount">
-                    </mat-form-field>
-                  </td>
-                }
-              </ng-container>
+           viewport no matter how many shops a route has. The wrapping div is its own scroll
+           container (max-h-[70vh] overflow-auto) rather than relying on the page scroll, so the
+           shop header row and category column can stick to *its* edges (top-0/left-0) and a cell
+           never loses its context while the matrix scrolls. -->
+      <div class="max-h-[70vh] overflow-auto">
+        <table class="w-full table-fixed divide-y divide-green-200" testid="items-table">
+          <thead>
+          <tr>
+            <!-- The matrix' corner cell heads nothing - it sits above the category names, which are
+                 row headers. A `td` here would be an empty column header (axe empty-table-header). -->
+            <td class="w-40 pr-4 sticky top-0 left-0 z-[6] bg-green-50"></td>
+            @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
+              <th scope="col" class="px-1 break-all sticky top-0 z-[5] bg-green-50">{{ shop.name }}<br>{{ shop.number }}</th>
+            }
+            <th scope="col" class="w-16 px-1 sticky top-0 z-[5] bg-green-50">Summe</th>
+          </tr>
+          </thead>
+          <tbody formArrayName="categories">
+            @for (category of categories.controls; let categoryIndex = $index; track category) {
+              <tr [formGroupName]="categoryIndex"
+                  [ngClass]="{'bg-red-100': isControlInvalid(category)}">
+                <th scope="row" class="font-bold pr-4 text-left sticky left-0 z-[1]"
+                    [ngClass]="isControlInvalid(category) ? 'bg-red-100' : 'bg-green-50'">
+                  {{ foodCategories()?.[categoryIndex]?.name }}
+                </th>
+                <ng-container formArrayName="shops">
+                  @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
+                    <td [formGroupName]="shopIndex" class="px-1">
+                      <mat-form-field subscriptSizing="dynamic" class="w-full">
+                        <!-- the row and column headers name the cell, not the input inside it, so
+                             without this every cell of the matrix is announced as "edit, blank" -->
+                        <input matInput type="number" min="0"
+                               [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                               [attr.aria-label]="amountInputLabel(categoryIndex, shopIndex)"
+                               formControlName="amount">
+                      </mat-form-field>
+                    </td>
+                  }
+                </ng-container>
+                <td class="px-1 text-center font-bold"
+                    [attr.testid]="'category-' + foodCategories()?.[categoryIndex]?.id + '-total'">
+                  {{ categoryTotals()[categoryIndex] }}
+                </td>
+              </tr>
+            }
+            <!-- sum row: total collected per shop, across every category -->
+            <tr class="border-t-2 border-green-300 font-bold">
+              <th scope="row" class="pr-4 text-left sticky left-0 z-[1] bg-green-100" testid="items-total-row-label">
+                Summe
+              </th>
+              @for (shop of selectedRouteData()?.shops ?? []; let shopIndex = $index; track shop.id) {
+                <td class="px-1 text-center" [attr.testid]="'items-shop-total-' + shop.id">
+                  {{ shopTotals()[shopIndex] }}
+                </td>
+              }
+              <td class="px-1 text-center" testid="items-grand-total">{{ grandTotal() }}</td>
             </tr>
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4" testid="return-items-section">
@@ -51,35 +76,56 @@
         Kisten, die an die Filiale zurückgehen. Nicht gelistete Kisten unten mit eigener Beschreibung erfassen.
       </p>
 
-      <table class="w-full table-fixed divide-y divide-amber-200">
-        <thead>
-        <tr>
-          <td class="w-40 pr-4"></td>
-          @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
-            <th scope="col" class="px-1 break-all">{{ shop.name }}<br>{{ shop.number }}</th>
-          }
-        </tr>
-        </thead>
-        <tbody formArrayName="returnCategories">
-          @for (category of returnCategories.controls; let categoryIndex = $index; track category) {
-            <tr [formGroupName]="categoryIndex">
-              <th scope="row" class="font-bold pr-4 text-left">{{ foodReturnCategories()?.[categoryIndex]?.name }}</th>
-              <ng-container formArrayName="shops">
-                @for (shop of getReturnCategoryShops(categoryIndex).controls; let shopIndex = $index; track shop) {
-                  <td [formGroupName]="shopIndex" class="px-1">
-                    <mat-form-field subscriptSizing="dynamic" class="w-full">
-                      <input matInput type="number" min="0"
-                             [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
-                             [attr.aria-label]="returnAmountInputLabel(categoryIndex, shopIndex)"
-                             formControlName="amount">
-                    </mat-form-field>
-                  </td>
-                }
-              </ng-container>
+      <div class="max-h-[70vh] overflow-auto">
+        <table class="w-full table-fixed divide-y divide-amber-200" testid="return-items-table">
+          <thead>
+          <tr>
+            <td class="w-40 pr-4 sticky top-0 left-0 z-[6] bg-amber-50"></td>
+            @for (shop of selectedRouteData()?.shops ?? []; track shop.id) {
+              <th scope="col" class="px-1 break-all sticky top-0 z-[5] bg-amber-50">{{ shop.name }}<br>{{ shop.number }}</th>
+            }
+            <th scope="col" class="w-16 px-1 sticky top-0 z-[5] bg-amber-50">Summe</th>
+          </tr>
+          </thead>
+          <tbody formArrayName="returnCategories">
+            @for (category of returnCategories.controls; let categoryIndex = $index; track category) {
+              <tr [formGroupName]="categoryIndex">
+                <th scope="row" class="font-bold pr-4 text-left sticky left-0 z-[1] bg-amber-50">
+                  {{ foodReturnCategories()?.[categoryIndex]?.name }}
+                </th>
+                <ng-container formArrayName="shops">
+                  @for (shop of getReturnCategoryShops(categoryIndex).controls; let shopIndex = $index; track shop) {
+                    <td [formGroupName]="shopIndex" class="px-1">
+                      <mat-form-field subscriptSizing="dynamic" class="w-full">
+                        <input matInput type="number" min="0"
+                               [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-shop-' + selectedRouteData()?.shops?.[shopIndex]?.id + '-input'"
+                               [attr.aria-label]="returnAmountInputLabel(categoryIndex, shopIndex)"
+                               formControlName="amount">
+                      </mat-form-field>
+                    </td>
+                  }
+                </ng-container>
+                <td class="px-1 text-center font-bold"
+                    [attr.testid]="'return-category-' + foodReturnCategories()?.[categoryIndex]?.id + '-total'">
+                  {{ returnCategoryTotals()[categoryIndex] }}
+                </td>
+              </tr>
+            }
+            <!-- sum row: total return boxes per shop, across every return category -->
+            <tr class="border-t-2 border-amber-300 font-bold">
+              <th scope="row" class="pr-4 text-left sticky left-0 z-[1] bg-amber-100" testid="return-items-total-row-label">
+                Summe
+              </th>
+              @for (shop of selectedRouteData()?.shops ?? []; let shopIndex = $index; track shop.id) {
+                <td class="px-1 text-center" [attr.testid]="'return-items-shop-total-' + shop.id">
+                  {{ returnShopTotals()[shopIndex] }}
+                </td>
+              }
+              <td class="px-1 text-center" testid="return-items-grand-total">{{ returnGrandTotal() }}</td>
             </tr>
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
 
       <div class="mt-6" formArrayName="returnItems">
         <div class="font-bold mb-2">Sonstige Retourware</div>

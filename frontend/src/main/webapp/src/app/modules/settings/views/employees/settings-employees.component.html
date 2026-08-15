@@ -10,20 +10,22 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <p class="mb-4 text-sm text-slate-600">
+    <p class="mb-4 text-sm text-slate-600" testid="employeesCaption">
       Mitarbeiterstammdaten, auf denen die Benutzerkonten sowie die Fahrer/Beifahrer-Zuordnung in
-      der Warenerfassung basieren.
+      der Warenerfassung basieren. Mitarbeiter können weder gelöscht noch deaktiviert werden — ihre
+      Personalnummer bleibt in bereits erfassten Ausgabetagen und Kundendaten referenziert; nicht
+      mehr aktive Mitarbeiter bleiben daher in der Liste stehen.
     </p>
 
     <div class="flex items-center gap-2 mb-4">
       <mat-form-field subscriptSizing="dynamic" class="w-full sm:w-1/3">
         <mat-label>Suche</mat-label>
-        <input matInput testid="employeeSearchInput" [formControl]="searchControl" (keydown.enter)="search()"/>
+        <input matInput testid="employeeSearchInput" [formControl]="searchControl"/>
+        <mat-hint>Sucht nach Personalnummer, Vor- und Nachname</mat-hint>
       </mat-form-field>
-      <button matButton="filled" testid="searchEmployeeButton" matTooltip="Mitarbeiter suchen" (click)="search()" aria-label="Mitarbeiter suchen">
-        <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-      </button>
     </div>
+
+    <p class="sr-only" role="status" testid="employeesSearchAnnouncement">{{ searchAnnouncement() }}</p>
 
     @if (employees()) {
       <mat-paginator class="tafel-paginator-responsive mb-4" [length]="employees()!.totalCount" [pageSize]="employees()!.pageSize"
@@ -44,7 +46,17 @@
               <input #personnelNumberInput matInput [formControl]="personnelNumberControl"
                      [attr.testid]="'employeePersonnelNumberInput-' + i" aria-label="Personalnummer"
                      (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+              @if (personnelNumberControl.errors?.duplicateEmployee) {
+                <mat-error>Personalnummer bereits vergeben</mat-error>
+              }
             </mat-form-field>
+            @if (editDuplicate(); as existingEmployee) {
+              <div class="mt-1 text-sm" [attr.testid]="'employeeDuplicateHint-' + i">
+                Vergeben an {{ existingEmployee.firstname }} {{ existingEmployee.lastname }}.
+                <button matButton type="button" [attr.testid]="'employeeOpenDuplicateButton-' + i"
+                        (click)="openEmployee(existingEmployee)">Mitarbeiter öffnen</button>
+              </div>
+            }
           } @else {
             {{ employee.personnelNumber }}
           }
@@ -81,18 +93,38 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="userAccount">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Benutzerkonto</th>
+        <td mat-cell *matCellDef="let employee; let i = index">
+          @if (employee.userAccount; as userAccount) {
+            <mat-chip-set>
+              <mat-chip [attr.testid]="'employeeUserAccountChip-' + i">
+                @if (canViewUsers()) {
+                  <a class="underline" [routerLink]="['/benutzer/detail', userAccount.id]"
+                     [attr.testid]="'employeeUserAccountLink-' + i">Benutzerkonto {{ userAccount.username }}</a>
+                } @else {
+                  Benutzerkonto vorhanden
+                }
+              </mat-chip>
+            </mat-chip-set>
+          } @else {
+            <span class="text-slate-500" [attr.testid]="'employeeNoUserAccount-' + i">Kein Benutzerkonto</span>
+          }
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let employee; let i = index">
           @if (editingId() === employee.id) {
-            <button matButton="filled" [attr.testid]="'saveEmployeeButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
+            <button matButton="filled" [attr.testid]="'saveEmployeeButton-' + i" [disabled]="!!editDuplicate()" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
             <button matButton="outlined" class="ml-2" [attr.testid]="'cancelEmployeeButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' abbrechen'">
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButton-' + i" matTooltip="Mitarbeiter bearbeiten"
+            <button matButton="filled" [attr.testid]="'editEmployeeButton-' + i" matTooltip="Mitarbeiter bearbeiten"
                     (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -117,7 +149,17 @@
                     <input #personnelNumberInputMobile matInput [formControl]="personnelNumberControl"
                            [attr.testid]="'employeePersonnelNumberInputMobile-' + i"
                            (keydown.enter)="saveEdit(employee)" (keydown.escape)="cancelEdit()"/>
+                    @if (personnelNumberControl.errors?.duplicateEmployee) {
+                      <mat-error>Personalnummer bereits vergeben</mat-error>
+                    }
                   </mat-form-field>
+                  @if (editDuplicate(); as existingEmployee) {
+                    <div class="mt-1 text-sm font-normal" [attr.testid]="'employeeDuplicateHintMobile-' + i">
+                      Vergeben an {{ existingEmployee.firstname }} {{ existingEmployee.lastname }}.
+                      <button matButton type="button" [attr.testid]="'employeeOpenDuplicateButtonMobile-' + i"
+                              (click)="openEmployee(existingEmployee)">Mitarbeiter öffnen</button>
+                    </div>
+                  }
                 } @else {
                   <span>{{ employee.personnelNumber }}</span>
                 }
@@ -143,19 +185,32 @@
                   <div>{{ employee.firstname }}</div>
                   <div class="font-bold">Nachname:</div>
                   <div>{{ employee.lastname }}</div>
+                  <div class="font-bold">Benutzerkonto:</div>
+                  <div>
+                    @if (employee.userAccount; as userAccount) {
+                      @if (canViewUsers()) {
+                        <a class="underline" [routerLink]="['/benutzer/detail', userAccount.id]"
+                           [attr.testid]="'employeeUserAccountLinkMobile-' + i">{{ userAccount.username }}</a>
+                      } @else {
+                        <span [attr.testid]="'employeeUserAccountMobile-' + i">vorhanden</span>
+                      }
+                    } @else {
+                      <span class="text-slate-500" [attr.testid]="'employeeNoUserAccountMobile-' + i">keines</span>
+                    }
+                  </div>
                 </div>
               }
             </mat-card-content>
-            <mat-card-actions class="flex gap-2">
+            <mat-card-actions>
               @if (editingId() === employee.id) {
-                <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
+                <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" [disabled]="!!editDuplicate()" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
                 <button matButton="outlined" [attr.testid]="'cancelEmployeeButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' abbrechen'">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
+                <button matButton="filled" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
                         (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>

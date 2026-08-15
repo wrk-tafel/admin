@@ -1,6 +1,7 @@
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {
   faBarcode,
+  faBoltLightning,
   faChartLine,
   faCheck,
   faClockRotateLeft,
@@ -77,7 +78,13 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CUSTOMER']
   },
   {
-    name: 'Sonstige',
+    name: 'Anspruch-Schnellcheck',
+    url: '/kunden/schnellcheck',
+    icon: faBoltLightning,
+    permissions: ['CUSTOMER']
+  },
+  {
+    name: 'Auswertungen',
     icon: faEllipsis,
     children: [
       {
@@ -118,7 +125,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     activeDistributionRequired: true
   },
   {
-    name: 'Sonstige',
+    name: 'Verwaltung',
     title: true
   },
   {
@@ -154,8 +161,8 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/statistiken/allgemein'
       },
       {
-        name: 'Schulstartpakete',
-        url: '/statistiken/schulstartpakete'
+        name: 'Auswertung Kinder',
+        url: '/statistiken/auswertung-kinder'
       }
     ]
   },
@@ -172,8 +179,8 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['SETTINGS'],
     children: [
       {
-        name: 'E-Mail',
-        url: '/einstellungen/email'
+        name: 'Stammdaten',
+        title: true
       },
       {
         name: 'Fahrzeuge',
@@ -182,14 +189,6 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Filialen',
         url: '/einstellungen/filialen'
-      },
-      {
-        name: 'Grenzwerte',
-        url: '/einstellungen/statische-werte'
-      },
-      {
-        name: 'Mitarbeiter',
-        url: '/einstellungen/mitarbeiter'
       },
       {
         name: 'Notschlafstellen',
@@ -206,6 +205,22 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Retour-Kategorien',
         url: '/einstellungen/retourkategorien'
+      },
+      {
+        name: 'Systemverwaltung',
+        title: true
+      },
+      {
+        name: 'E-Mail',
+        url: '/einstellungen/email'
+      },
+      {
+        name: 'Grenzwerte',
+        url: '/einstellungen/statische-werte'
+      },
+      {
+        name: 'Mitarbeiter',
+        url: '/einstellungen/mitarbeiter'
       },
     ],
   },

@@ -1,4 +1,5 @@
-import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {DecimalPipe} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {FoodCategoryCreateDialogComponent} from './dialogs/food-category-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -19,7 +20,7 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faBoxOpen, faCheck, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   TafelReorderHandleComponent
@@ -30,6 +31,20 @@ import {
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {RouterLink} from '@angular/router';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
+import {
+  TafelInfoTooltipComponent
+} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 @Component({
   selector: 'tafel-settings-food-categories',
@@ -59,7 +74,12 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     CdkDrag,
     CdkDragHandle,
     TafelReorderHandleComponent,
-    MatTooltipModule
+    MatTooltipModule,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
+    TafelInfoTooltipComponent,
+    RouterLink,
+    DecimalPipe
   ]
 })
 export class SettingsFoodCategoriesComponent {
@@ -71,6 +91,28 @@ export class SettingsFoodCategoriesComponent {
   private _foodCategories = signal<FoodCategory[]>([]);
   protected foodCategories = this._foodCategories;
   displayedColumns = ['drag', 'active', 'name', 'weightPerUnit', 'actions'];
+
+  protected readonly loaded = signal(false);
+  protected readonly enabledFilter = signal<EnabledFilter>('ALL');
+  /**
+   * A deactivated category is never deleted, so the list only ever grows - the filter is what keeps
+   * the working list to the categories the Warenerfassung actually offers.
+   */
+  protected readonly visibleFoodCategories = computed(() =>
+    this._foodCategories().filter(category => matchesEnabledFilter(category.enabled, this.enabledFilter()))
+  );
+  protected readonly enabledCount = computed(() => this._foodCategories().filter(category => category.enabled).length);
+  protected readonly totalCount = computed(() => this._foodCategories().length);
+
+  /**
+   * Shown at the weight column of both layouts: the number turns recorded units into the kilograms
+   * every warehouse statistic is built from, and a food collection item keeps the weight it was
+   * recorded with - so an edit here never rewrites a distribution that is already closed.
+   */
+  protected readonly weightExplanation =
+    'Rechnet die erfassten Einheiten in Kilogramm um und bestimmt damit die Warenmenge jeder ' +
+    'Statistik. Eine Änderung wirkt ab der nächsten Erfassung - bereits erfasste Mengen behalten ' +
+    'das Gewicht, mit dem sie erfasst wurden.';
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});
@@ -89,9 +131,19 @@ export class SettingsFoodCategoriesComponent {
 
   private loadFoodCategories() {
     this.foodCategoriesApiService.getAllFoodCategories().subscribe({
-      next: data => this._foodCategories.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Waren-Kategorien', 'Fehler')
+      next: data => {
+        this._foodCategories.set(data);
+        this.loaded.set(true);
+      },
+      error: () => {
+        this.loaded.set(true);
+        this.toastr.error('Fehler beim Laden der Waren-Kategorien', 'Fehler');
+      }
     });
+  }
+
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   protected startEdit(category: FoodCategory) {
@@ -159,24 +211,34 @@ export class SettingsFoodCategoriesComponent {
     const moved = this.reorder(index, targetIndex, true);
 
     if (moved) {
-      this.reorderFeedback.announce(`Waren-Kategorie ${moved.name}`, targetIndex, (this.foodCategories()).length);
+      this.reorderFeedback.announce(`Waren-Kategorie ${moved.name}`, targetIndex, this.visibleFoodCategories().length);
     }
   }
 
   /**
+   * Both indices count the *displayed* categories, which under an active filter are only some of
+   * them - they are translated into the full list before the move, so a category filtered out of
+   * view keeps its place instead of being reordered by a move it isn't part of. Moving past such a
+   * category therefore jumps over it, which is exactly what the visible list shows afterwards.
+   *
    * `keepFocusOnHandle` only for the keyboard path: after a drag the pointer, not the keyboard, is
    * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
    */
-  private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): FoodCategory | undefined {
-    const reordered = [...(this.foodCategories())];
-    if (toIndex < 0 || toIndex >= reordered.length) {
+  private reorder(fromVisibleIndex: number, toVisibleIndex: number, keepFocusOnHandle: boolean): FoodCategory | undefined {
+    const visible = this.visibleFoodCategories();
+    if (toVisibleIndex < 0 || toVisibleIndex >= visible.length) {
       return undefined;
     }
 
+    const reordered = [...(this.foodCategories())];
+    const fromIndex = reordered.findIndex(category => category.id === visible[fromVisibleIndex].id);
+    const toIndex = reordered.findIndex(category => category.id === visible[toVisibleIndex].id);
+
     moveItemInArray(reordered, fromIndex, toIndex);
     this._foodCategories.set(reordered); // optimistic, updates in the background
+    // The handles are keyed by the position in the displayed list, not in the full one.
     if (keepFocusOnHandle) {
-      this.reorderFeedback.refocusHandle(`dragFoodCategoryHandle-${toIndex}`);
+      this.reorderFeedback.refocusHandle(`dragFoodCategoryHandle-${toVisibleIndex}`);
     }
 
     this.foodCategoriesApiService.reorderFoodCategories(reordered.map(category => category.id)).subscribe({
@@ -184,7 +246,7 @@ export class SettingsFoodCategoriesComponent {
         this._foodCategories.set(data);
         // The response replaces every record, so the focused handle is a new element by now.
         if (keepFocusOnHandle) {
-          this.reorderFeedback.refocusHandle(`dragFoodCategoryHandle-${toIndex}`);
+          this.reorderFeedback.refocusHandle(`dragFoodCategoryHandle-${toVisibleIndex}`);
         }
       },
       error: () => {
@@ -214,9 +276,8 @@ export class SettingsFoodCategoriesComponent {
     });
   }
 
+  protected readonly faBoxOpen = faBoxOpen;
   protected readonly faPencil = faPencil;
-  protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;

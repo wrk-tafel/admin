@@ -12,7 +12,7 @@
 <mat-sidenav-container class="h-screen print:hidden">
   <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
                class="!border-r-0 transition-all duration-200"
-               [class.w-64]="!collapsed()" [class.w-16]="collapsed()">
+               [class.w-64]="!effectiveCollapsed()" [class.w-16]="effectiveCollapsed()">
    <!--
      Angular Material projects everything below into a single `.mat-drawer-inner-container` child
      of `mat-sidenav`, so `flex flex-col` on `mat-sidenav` itself has no effect (a flex container
@@ -23,7 +23,7 @@
    <div class="h-full flex flex-col">
     <div class="flex items-center justify-center h-16 w-full bg-white shrink-0">
       <a routerLink="/uebersicht">
-        @if (collapsed()) {
+        @if (effectiveCollapsed()) {
           <img ngSrc="assets/img/brand/logo_small.svg" width="30" height="30" priority alt="ÖRK Logo"/>
         } @else {
           <img ngSrc="assets/img/brand/logo.svg" width="150" height="41" priority alt="ÖRK Logo"/>
@@ -34,7 +34,7 @@
     <nav class="py-2 overflow-y-auto grow" aria-label="Hauptnavigation">
       @for (item of navItems(); track item.name + '-' + $index) {
         @if (item.title) {
-          @if (!collapsed()) {
+          @if (!effectiveCollapsed()) {
             <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-400 font-semibold">{{ item.name }}</div>
           }
         } @else {
@@ -50,18 +50,18 @@
                 rendered at all in that state, so there is nothing for the button to control and
                 nothing its expanded state could describe.
               -->
-              <button type="button" (click)="toggleExpanded(item.name)"
-                      [attr.aria-expanded]="collapsed() ? null : expandedItems().has(item.name)"
-                      [attr.aria-controls]="collapsed() ? null : 'nav-group-' + $index"
+              <button type="button" (click)="toggleExpanded(item.name, $event)"
+                      [attr.aria-expanded]="effectiveCollapsed() ? null : expandedItems().has(item.name)"
+                      [attr.aria-controls]="effectiveCollapsed() ? null : 'nav-group-' + $index"
                       [disabled]="!!item.attributes?.disabled"
                       class="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
-                      [class.justify-center]="collapsed()"
+                      [class.justify-center]="effectiveCollapsed()"
                       [class.text-gray-400]="item.attributes?.disabled"
-                      [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
+                      [matTooltip]="effectiveCollapsed() ? item.name : ''" matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
-                @if (!collapsed()) {
+                @if (!effectiveCollapsed()) {
                   <span class="grow text-left">{{ item.name }}</span>
                   <fa-icon [icon]="expandedItems().has(item.name) ? faAngleDown : faAngleRight"
                            class="w-3 shrink-0"></fa-icon>
@@ -69,22 +69,25 @@
               </button>
             } @else {
               <!--
-                `pointer-events-none` alone only disables the mouse - a disabled entry stayed in the
-                tab order and still navigated on Enter, so it needs to leave the tab order too.
+                Disabled via a nulled `routerLink` (no `href`, so neither click nor Enter navigates)
+                plus `tabindex="-1"` to leave the tab order - NOT via `pointer-events: none`, which
+                would also swallow the hover that shows the tooltip explaining *why* the entry is
+                disabled.
               -->
-              <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                 (click)="isMobile() && sidenav.close()"
-                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
-                 [class.justify-center]="collapsed()"
-                 [class.pointer-events-none]="item.attributes?.disabled"
+              <a [routerLink]="item.attributes?.disabled ? null : item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                 (click)="!item.attributes?.disabled && isMobile() && sidenav.close()"
+                 class="flex items-center gap-3 px-4 py-3"
+                 [ngClass]="item.attributes?.disabled ? 'cursor-default' : 'hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer'"
+                 [class.justify-center]="effectiveCollapsed()"
                  [class.text-gray-400]="item.attributes?.disabled"
                  [attr.aria-disabled]="item.attributes?.disabled ? true : null"
                  [attr.tabindex]="item.attributes?.disabled ? -1 : null"
-                 [matTooltip]="collapsed() ? item.name : ''" matTooltipPosition="right">
+                 [matTooltip]="item.attributes?.disabled ? 'Keine Verteilung aktiv' : (effectiveCollapsed() ? item.name : '')"
+                 matTooltipPosition="right">
                 @if (item.icon) {
                   <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
                 }
-                @if (!collapsed()) {
+                @if (!effectiveCollapsed()) {
                   <span class="grow">{{ item.name }}</span>
                   @if (item.badge) {
                     <span class="badge" [ngClass]="'badge-' + item.badge.color">{{ item.badge.text }}</span>
@@ -92,17 +95,25 @@
                 }
               </a>
             }
-            @if (item.children && !collapsed() && expandedItems().has(item.name)) {
+            @if (item.children && !effectiveCollapsed() && expandedItems().has(item.name)) {
               <div [id]="'nav-group-' + $index">
                 @for (child of item.children; track child.name) {
-                  <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
-                     (click)="isMobile() && sidenav.close()"
-                     class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
-                    @if (child.icon) {
-                      <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
-                    }
-                    <span>{{ child.name }}</span>
-                  </a>
+                  <!--
+                    A sub-group label rather than a link - splits a long flat submenu (e.g.
+                    "Einstellungen") into labeled sections without a second collapsible level.
+                  -->
+                  @if (child.title) {
+                    <div class="px-9 pt-2 pb-1 text-[10px] uppercase tracking-wide text-gray-500 font-semibold">{{ child.name }}</div>
+                  } @else {
+                    <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                       (click)="isMobile() && sidenav.close()"
+                       class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
+                      @if (child.icon) {
+                        <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
+                      }
+                      <span>{{ child.name }}</span>
+                    </a>
+                  }
                 }
               </div>
             }
@@ -119,7 +130,7 @@
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
-    @if (!collapsed() && appConfig(); as info) {
+    @if (!effectiveCollapsed() && appConfig(); as info) {
       <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-400 shrink-0 text-center">
         <div class="truncate">{{ info.version }}</div>
         @if (info.buildTime !== 'unknown') {
@@ -136,7 +147,7 @@
     the `grow` on `<main>` below has nothing to grow inside.
   -->
   <mat-sidenav-content class="!flex flex-col min-h-screen">
-    <tafel-default-header class="block sticky top-0 z-10 bg-white shadow-sm" (toggleSidebar)="sidenav.toggle()"/>
+    <tafel-default-header class="block sticky top-0 z-20 bg-white shadow-sm" (toggleSidebar)="sidenav.toggle()"/>
     <!--
       `tabindex="-1"` makes the landmark itself a focus target for the skip link - without it the
       focus stays where it was and the next Tab would continue in the navigation.

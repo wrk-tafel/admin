@@ -36,7 +36,8 @@ mail server afterwards by a scheduled poller.**
 - `MailOutboxService.sendPendingMails` polls every `tafeladmin.mailOutbox.interval` (default 10s),
   takes the due rows oldest-first and sends them. A failure is retried with a growing backoff and,
   after 5 attempts, the row is parked as `FAILED` **with the error kept**. Sent rows are deleted
-  after 14 days, like the SSE outbox's.
+  after 14 days, like the SSE outbox's; a parked one gets a longer window of its own
+  ([ADR-0046](0046-a-mail-given-up-on-is-kept-for-a-window-not-forever.md)).
 - Each mail's outcome is saved on its own, so one failing mail cannot roll back the outcome already
   recorded for the others in the batch.
 - With no mail server configured (dev, test, the e2e run) nothing is queued at all — the same
@@ -57,7 +58,8 @@ is also what picks up a retry and a row left behind by a crash — a notificatio
   produced them. Bounded by the 14-day cleanup.
 - **Two application instances would send every queued mail twice.** This deployment runs one
   container ([ADR-0019](0019-supply-chain-and-container-runtime-hardening.md)); a second instance
-  would need a `FOR UPDATE SKIP LOCKED` claim on the batch first.
+  would need a `FOR UPDATE SKIP LOCKED` claim on the batch first. That lock is
+  [ADR-0045](0045-one-mail-per-transaction-taken-with-skip-locked.md).
 - A mail is queued only if its transaction commits, which is the point — and it also means a caller
   that never commits never sends.
 

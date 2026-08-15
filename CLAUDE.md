@@ -203,7 +203,10 @@ choice on its own merits).
   a mail and queues the finished MIME message inside the caller's transaction; `MailOutboxService`
   polls and sends it, retries on failure and parks it as `FAILED` with the error after 5 attempts —
   publishing `MailDeliveryFailedEvent`, which `push` turns into a notification to administrators, so
-  a mail that was given up on is not just a row nobody reads. So a mail is never sent from a
+  a mail that was given up on is not just a row nobody reads. `cleanupOldMails` empties the queue of
+  both endings — `sentRetention` (14d) after a mail was sent, `failedRetention` (30d) after a parked
+  one was queued, since the row holds the whole message and nothing else would ever delete that copy
+  (ADR-0046). So a mail is never sent from a
   transaction that rolls back, and never lost when SMTP is down. `MailOutboxService` is the only
   class that holds a `JavaMailSender` — it is what "is a mail server configured?" means, which is
   why `enqueue` is also where a mail is dropped when none is (nothing to deliver to, so a queued row
@@ -217,7 +220,28 @@ choice on its own merits).
   about work that did not happen" failure ADR-0041 exists to prevent. Note a *unit* test with a
   mocked repository cannot see any of this, and neither can a `@Transactional` integration test: the
   test's own read-write transaction is what the code under test would join, and the rows it queues
-  are rolled back before the poller could ever see them (see `DistributionSendMailsIT`)
+  are rolled back before the poller could ever see them (see `DistributionSendMailsIT`).
+  **A poll takes one mail at a time with `SELECT ... FOR UPDATE SKIP LOCKED` and sends it inside
+  that transaction** (ADR-0045), so a second application instance polling the same table skips the
+  row being sent instead of delivering it again. The transaction spanning SMTP is why the scope is
+  one mail: a poller killed mid-send rolls back exactly that mail — which the next poll picks up
+  seconds later, and which is what makes delivery at-least-once — while the ones already sent keep
+  their outcome
+- **Scheduled jobs coordinate on their own rows first, and only take a scheduler lock when there are
+  none** (ADR-0047). A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` — the
+  five retention cleanups (`sse_outbox`, `mail_outbox`, `login_attempts`, `scanner_registrations`,
+  `audit_log`) and the mail poller all do — so two instances share the work out instead of one
+  standing idle. Note this is why those deletes are native `@Modifying` queries rather than derived
+  `deleteAllBy...` methods: a derived delete loads every matching entity and removes it one at a
+  time, which is both a round trip per row and a `StaleStateException` as soon as a second instance
+  is deleting the same rows. A job with nothing to claim — the still-open-distribution reminder, the
+  orphaned-document cleanup, the scanner-folder poll — takes a ShedLock instead (`@SchedulerLock`,
+  `config/SchedulerLockConfig.kt`, `shedlock` table). **`ConfigFileReloadService` is deliberately
+  excluded from both**: every instance has to re-read its own config file. Two things to remember
+  when adding a scheduled job: `lockAtLeastFor` may not exceed `lockAtMostFor` (ShedLock throws at
+  runtime if it does, which for a daily cron means you find out the next morning), and the daily jobs
+  need `lockAtLeastFor` at all because their risk is two instances firing seconds apart, not
+  overlapping. Advisory locks are *not* the tool here — see the advisory-lock README for why
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
@@ -302,7 +326,8 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `cars`: Vehicle management
 - `audit_log`: append-only audit trail (who/what/before-and-after as a `jsonb` diff). Written only by `AuditLogWriter`, deleted only by `AuditRetentionService` — never write to it from a feature module
 - `sse_outbox`: Outbox pattern for SSE events
-- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept — it is the record of a mail nobody received
+- `mail_outbox`: outgoing mails, each stored as the finished MIME message (`bytea`) with its status, attempt count and last error. Written only by `MailSenderService`, sent and cleaned up only by `MailOutboxService`. A row parked as `FAILED` is kept longer than a sent one — it is the record of a mail nobody received — but not indefinitely
+- `shedlock`: one row per scheduled job that must run once per cluster rather than once per instance (ADR-0047). Written only by ShedLock itself; the retention cleanups are *not* in here, since they coordinate on the rows they delete instead
 - `mail_addresses`: Email recipient configuration
 
 ## Testing
@@ -323,6 +348,14 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
 - Open Cypress UI: `npm run cy:open-local` (for local development)
+- **Test hooks: `testid` is the DOM attribute, `testId` is the Angular input.** Native and Material
+  elements carry the lowercase `testid="..."` / `[attr.testid]="..."` — that is what `cy.byTestId()`
+  and the specs' `[testid="..."]` selectors match. The `tafel-*` wrapper components that render the
+  attribute themselves (`tafel-dialog`, `tafel-info-tooltip`, `tafel-counter-input`,
+  `tafel-reorder-handle`, plus `testIdPrefix` on `tafel-employee-search-create`) take it as a
+  case-sensitive `input()` instead, so those get `testId="..."` / `[testId]="..."`. Mixing the two
+  up is silent — the attribute never binds, or the hook lands under a name nothing looks for — so
+  `eslint.config.js` has a `no-restricted-syntax` pair that fails `npm run lint` on either mistake
 - **Any new or changed frontend user-facing behavior (a new dialog, form field, button, tab, flow)
   must come with an added/updated Cypress e2e case** covering it end-to-end, not just a Vitest unit
   spec — this is easy to forget since unit tests alone can pass while the real flow is broken (e.g.
@@ -350,9 +383,9 @@ since it lives outside the code you're editing. On every update or regeneration,
   — so that a sidebar/header/theme change doesn't invalidate the whole set at once. The dashboard
   screenshot in `README.md` (`images/dashboard.jpg`) is the one deliberate exception, kept full-page
   to show the overall app layout with sidebar and header. A handful of other screenshots
-  (`benutzermenue.jpg`, `support-anfrage.jpg`, `kunden-anspruch-pruefen.jpg`,
-  `einstellungen-notschlafstellen-kontakte.jpg`) keep the header specifically because their subject
-  — a dropdown or dialog anchored to a header control — visually extends into that region; crop
+  (`benutzermenue.jpg`, `support-anfrage.jpg`, `kunden-anspruch-pruefen.jpg`) keep the header
+  specifically because their subject — a dropdown or dialog anchored to a header control —
+  visually extends into that region; crop
   those to the sidebar only, not the header. When taking a new screenshot, crop it the same way
   before adding it.
 - **Cross-chapter markdown links** (e.g. `[Kunden](kunden.md)`) must stay as plain file links in the
@@ -509,8 +542,8 @@ or the return type once `ResponseEntity<T>`/`PagedResponse<T>`/`XxxListResponse`
    `StatisticsResponse`, `DistributionCloseResponse`).
 3. **`Item`** — the type is *only* ever the element type of a `PagedResponse<T>` or an
    `XxxListResponse`'s `List<T>` — it never appears as a request body and is never itself returned
-   as a standalone single-resource response (`Route` → `RouteItem`, `SchoolStarterPackageEntry` →
-   `SchoolStarterPackageItem`). A type that already has a dedicated create/update response role
+   as a standalone single-resource response (`Route` → `RouteItem`, `Child` → `ChildItem`). A type
+   that already has a dedicated create/update response role
    (e.g. `HouseholdNoteItem`, created via `POST` and also listed via `PagedResponse`) keeps the
    `Item` suffix rather than splitting into `Request`/`Response` — the "is it ever a request body"
    test is what actually matters, not "does some endpoint return one instance of it directly."
@@ -665,8 +698,25 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
   silently won't be findable.
-- **Income Validation**: Customer income is validated against configurable limits. The validation logic is in `IncomeValidatorService`.
-- **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are generated via Apache FOP.
+- **Income Validation**: Customer income is validated against configurable limits. The validation
+  logic is in `IncomeValidatorService`. Its limits come from `static_values`, read once per
+  validation run into an `IncomeRateCard` and resolved from memory afterwards — `validateAll` shares
+  one card across a whole batch, so `getHouseholdsAboveLimit` measures every household against the
+  same limits and the same date. **Nothing caches those rows** (there is no cache anywhere in the
+  codebase, and no `CacheManager` bean): a cache in front of this table meant an administrator's edit
+  took effect on the editing instance only, with a silently wrong eligibility answer everywhere else
+  — see ADR-0048 before reaching for `@Cacheable` here.
+- **PDF Generation**: Uses XSL-FO templates in `backend/src/main/resources/pdf-templates/`. PDFs are
+  generated via Apache FOP. `PDFService` holds two things per process, because building either is
+  expensive and their input is immutable: the `FopFactory` (extracting the bundled fonts to disk),
+  and one compiled `Templates` per stylesheet (parsing its whole `xsl:include` tree). The
+  per-call parts are the `Transformer` created from those `Templates` and the `Fop` itself — neither
+  is thread-safe, and the shared FOP configuration a `Fop` is built from is a DOM tree that caches
+  its own traversal state, so that construction happens under a lock while the rendering does not.
+  Note this is memoization of classpath resources, which cannot change while the application runs —
+  it needs no eviction, no TTL and nothing that reaches a second instance. It is not a precedent for
+  holding on to anything a user or operator can edit; that is what ADR-0048 rules out for
+  `static_values` above.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`. Golden
   reference files in `src/test/resources/mail-references/` are compared byte-for-byte by
   `MailTemplateRenderingTest`, so a new/changed template needs its reference regenerated — and keep
@@ -714,7 +764,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
     every open SSE stream. That connection closes itself and nothing else ever closes it, which is
     also why `SseOutboxListenerService.cleanup()` only cancels the job instead of waiting for it.
   - `tafeladmin.configReload.enabled: false` switches the whole mechanism off; it is read at startup
-    only. `tafeladmin.configReload.interval` (default 5s) is the poll interval.
+    only. `tafeladmin.configReload.cron` (default `*/5 * * * * *`) is the poll schedule. It is a cron
+    rather than an interval on purpose: this is the one scheduled job that must run on *every*
+    instance, and a wall-clock boundary is what makes them pick a change up together instead of each
+    on its own boot-time phase.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.

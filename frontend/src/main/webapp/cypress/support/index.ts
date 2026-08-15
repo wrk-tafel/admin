@@ -154,6 +154,12 @@ declare global {
       checkSelectAccessibility(options?: Options): void;
 
       /**
+       * Runs axe against the currently open autocomplete panel.
+       * @example cy.checkAutocompleteAccessibility();
+       */
+      checkAutocompleteAccessibility(options?: Options): void;
+
+      /**
        * Custom command to generate a random number in a given range.
        * @example cy.getRandomNumber(min, max);
        */

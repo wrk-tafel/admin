@@ -1,6 +1,7 @@
 import {Component, computed, inject, input, Signal} from '@angular/core';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
+import {RegisteredPersonsComponent} from './components/registered-persons/registered-persons.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
 import {
   DistributionStatisticsInputComponent
@@ -30,6 +31,7 @@ import {MatDivider} from '@angular/material/list';
   imports: [
     DistributionStateComponent,
     RegisteredCustomersComponent,
+    RegisteredPersonsComponent,
     TafelIfPermissionDirective,
     DistributionStatisticsInputComponent,
     RecordedFoodCollectionsComponent,
@@ -64,6 +66,8 @@ export class DashboardComponent {
 
 export interface DashboardData {
   registeredCustomers?: number;
+  /** everyone the registered households get food for: main persons plus their not-excluded additional persons */
+  registeredPersons?: number;
   tickets?: DashboardTicketsData;
   statistics?: DashboardStatisticsData;
   logistics?: DashboardLogisticsData;
@@ -84,6 +88,7 @@ export interface DashboardLogisticsData {
   foodCollectionsRecordedCount?: number;
   foodCollectionsTotalCount?: number;
   recordedRouteNames?: string[];
+  allRouteNames?: string[];
   foodAmountTotal?: number;
   routeProgress?: DashboardRouteProgressData[];
 }

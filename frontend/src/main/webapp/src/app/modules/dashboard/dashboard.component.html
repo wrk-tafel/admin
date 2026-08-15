@@ -3,9 +3,10 @@
      title and its figure in a single padded block instead of a Material card header above a
      centred number, and the dividers between the rows are narrow. A new panel has to earn its
      height the same way. -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-2">
   <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
   <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
+  <tafel-registered-persons [count]="data()?.registeredPersons"></tafel-registered-persons>
   <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets ?? null"
                            [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
   </tafel-tickets-processed>
@@ -16,6 +17,7 @@
                                    [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
   </tafel-recorded-food-collections>
   <tafel-recorded-route-names class="lg:col-span-2"
+                              [allRouteNames]="data()?.logistics?.allRouteNames ?? null"
                               [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
   </tafel-recorded-route-names>
   <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">

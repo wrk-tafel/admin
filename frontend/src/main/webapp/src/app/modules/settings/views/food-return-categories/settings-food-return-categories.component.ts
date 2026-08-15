@@ -1,4 +1,4 @@
-import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {FoodReturnCategoryCreateDialogComponent} from './dialogs/food-return-category-create-dialog.component';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -19,7 +19,7 @@ import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from 
 import {FoodReturnCategoriesApiService, FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faEye, faEyeSlash, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faBoxOpen, faCheck, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   TafelReorderHandleComponent
@@ -30,6 +30,17 @@ import {
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {RouterLink} from '@angular/router';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 
 @Component({
   selector: 'tafel-settings-food-return-categories',
@@ -59,7 +70,10 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     CdkDrag,
     CdkDragHandle,
     TafelReorderHandleComponent,
-    MatTooltipModule
+    MatTooltipModule,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
+    RouterLink
   ]
 })
 export class SettingsFoodReturnCategoriesComponent {
@@ -71,6 +85,18 @@ export class SettingsFoodReturnCategoriesComponent {
   private _foodReturnCategories = signal<FoodReturnCategory[]>([]);
   protected foodReturnCategories = this._foodReturnCategories;
   displayedColumns = ['drag', 'active', 'name', 'actions'];
+
+  protected readonly loaded = signal(false);
+  protected readonly enabledFilter = signal<EnabledFilter>('ALL');
+  /**
+   * A deactivated category is never deleted, so the list only ever grows - the filter is what keeps
+   * the working list to the categories the Warenerfassung actually offers.
+   */
+  protected readonly visibleFoodReturnCategories = computed(() =>
+    this._foodReturnCategories().filter(category => matchesEnabledFilter(category.enabled, this.enabledFilter()))
+  );
+  protected readonly enabledCount = computed(() => this._foodReturnCategories().filter(category => category.enabled).length);
+  protected readonly totalCount = computed(() => this._foodReturnCategories().length);
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});
@@ -88,9 +114,19 @@ export class SettingsFoodReturnCategoriesComponent {
 
   private loadFoodReturnCategories() {
     this.foodReturnCategoriesApiService.getAllFoodReturnCategories().subscribe({
-      next: data => this._foodReturnCategories.set(data),
-      error: () => this.toastr.error('Fehler beim Laden der Retour-Kategorien', 'Fehler')
+      next: data => {
+        this._foodReturnCategories.set(data);
+        this.loaded.set(true);
+      },
+      error: () => {
+        this.loaded.set(true);
+        this.toastr.error('Fehler beim Laden der Retour-Kategorien', 'Fehler');
+      }
     });
+  }
+
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   protected startEdit(category: FoodReturnCategory) {
@@ -156,24 +192,34 @@ export class SettingsFoodReturnCategoriesComponent {
     const moved = this.reorder(index, targetIndex, true);
 
     if (moved) {
-      this.reorderFeedback.announce(`Retour-Kategorie ${moved.name}`, targetIndex, (this.foodReturnCategories()).length);
+      this.reorderFeedback.announce(`Retour-Kategorie ${moved.name}`, targetIndex, this.visibleFoodReturnCategories().length);
     }
   }
 
   /**
+   * Both indices count the *displayed* categories, which under an active filter are only some of
+   * them - they are translated into the full list before the move, so a category filtered out of
+   * view keeps its place instead of being reordered by a move it isn't part of. Moving past such a
+   * category therefore jumps over it, which is exactly what the visible list shows afterwards.
+   *
    * `keepFocusOnHandle` only for the keyboard path: after a drag the pointer, not the keyboard, is
    * where the user is, and pulling focus onto the handle there would be a focus ring out of nowhere.
    */
-  private reorder(fromIndex: number, toIndex: number, keepFocusOnHandle: boolean): FoodReturnCategory | undefined {
-    const reordered = [...(this.foodReturnCategories())];
-    if (toIndex < 0 || toIndex >= reordered.length) {
+  private reorder(fromVisibleIndex: number, toVisibleIndex: number, keepFocusOnHandle: boolean): FoodReturnCategory | undefined {
+    const visible = this.visibleFoodReturnCategories();
+    if (toVisibleIndex < 0 || toVisibleIndex >= visible.length) {
       return undefined;
     }
 
+    const reordered = [...(this.foodReturnCategories())];
+    const fromIndex = reordered.findIndex(category => category.id === visible[fromVisibleIndex].id);
+    const toIndex = reordered.findIndex(category => category.id === visible[toVisibleIndex].id);
+
     moveItemInArray(reordered, fromIndex, toIndex);
     this._foodReturnCategories.set(reordered); // optimistic, updates in the background
+    // The handles are keyed by the position in the displayed list, not in the full one.
     if (keepFocusOnHandle) {
-      this.reorderFeedback.refocusHandle(`dragFoodReturnCategoryHandle-${toIndex}`);
+      this.reorderFeedback.refocusHandle(`dragFoodReturnCategoryHandle-${toVisibleIndex}`);
     }
 
     this.foodReturnCategoriesApiService.reorderFoodReturnCategories(reordered.map(category => category.id)).subscribe({
@@ -181,7 +227,7 @@ export class SettingsFoodReturnCategoriesComponent {
         this._foodReturnCategories.set(data);
         // The response replaces every record, so the focused handle is a new element by now.
         if (keepFocusOnHandle) {
-          this.reorderFeedback.refocusHandle(`dragFoodReturnCategoryHandle-${toIndex}`);
+          this.reorderFeedback.refocusHandle(`dragFoodReturnCategoryHandle-${toVisibleIndex}`);
         }
       },
       error: () => {
@@ -211,9 +257,8 @@ export class SettingsFoodReturnCategoriesComponent {
     });
   }
 
+  protected readonly faBoxOpen = faBoxOpen;
   protected readonly faPencil = faPencil;
-  protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
   protected readonly faPlus = faPlus;
   protected readonly faCheck = faCheck;
   protected readonly faXmark = faXmark;

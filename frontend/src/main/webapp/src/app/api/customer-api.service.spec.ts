@@ -127,6 +127,21 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('income quick-check sends the persons as-is', () => {
+    const birthDate = new Date(1990, 0, 1);
+    apiService.quickCheck([
+      {birthDate, income: 1200, receivesFamilyAllowance: false},
+      {birthDate, income: undefined, receivesFamilyAllowance: true}
+    ]).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/income-quickcheck'});
+    expect(req.request.body.persons).toHaveLength(2);
+    expect(req.request.body.persons[0].income).toBe(1200);
+    expect(req.request.body.persons[1].receivesFamilyAllowance).toBe(true);
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('create customer', () => {
     apiService.createCustomer(mockCustomer, false).subscribe(response => {
       expect(response.data.lastname).toEqual('Mustermann');
@@ -378,13 +393,21 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('get customers above limit with sort', () => {
+    apiService.getCustomersAboveLimit(1, 25, 'totalSum', 'asc').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit?page=1&pageSize=25&sortBy=totalSum&sortDirection=asc'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('get customers above limit maps household to customer', () => {
     let result;
     apiService.getCustomersAboveLimit(1).subscribe(response => result = response);
 
     const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit?page=1'});
     req.flush({
-      items: [{household: mockHousehold, totalSum: 1500, limit: 1000, amountExceededLimit: 500}],
+      items: [{household: mockHousehold, totalSum: 1500, limit: 1000, amountExceededLimit: 500, percentageExceededLimit: 50}],
       totalCount: 1,
       currentPage: 1,
       totalPages: 1,
@@ -397,7 +420,17 @@ describe('CustomerApiService', () => {
     expect(result!.items[0].totalSum).toEqual(1500);
     expect(result!.items[0].limit).toEqual(1000);
     expect(result!.items[0].amountExceededLimit).toEqual(500);
+    expect(result!.items[0].percentageExceededLimit).toEqual(50);
     expect(result!.totalCount).toEqual(1);
+  });
+
+  it('generate customers above limit csv', () => {
+    apiService.generateCustomersAboveLimitCsv('amountExceededLimit', 'desc').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/above-limit/csv?sortBy=amountExceededLimit&sortDirection=desc'});
+    expect(req.request.responseType).toEqual('blob');
+    req.flush(new Blob());
+    httpMock.verify();
   });
 
   it('get customers overview without distributionId', () => {

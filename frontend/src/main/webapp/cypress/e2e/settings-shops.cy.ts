@@ -33,6 +33,23 @@ describe('Settings - Shops', () => {
     return cy.byTestId('shops-list').contains('[testid^="shops-row-"]', name);
   }
 
+  // Creates a route with a single stop at the given shop, then returns to the shops screen - used
+  // to test the "where is this shop used" list, which is built from routes/stops.
+  function createRouteWithStop(routeName: string, routeNumber: string, shopName: string, shopNumber: number, time: string) {
+    cy.visit('/einstellungen/routen');
+    cy.byTestId('addRouteButton').click();
+    cy.byTestId('route-number-input').should('be.visible').type(routeNumber);
+    cy.byTestId('route-name-input').type(routeName);
+    cy.byTestId('route-stop-add-button').click();
+    cy.byTestId('route-stop-time-input-0').type(time);
+    cy.byTestId('route-stop-shop-select-0').click();
+    cy.contains('mat-option', shopNumber + ' - ' + shopName).click();
+    cy.byTestId('route-save-button').click();
+    cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+    cy.visit('/einstellungen/filialen');
+  }
+
   it('lists shops with their address and unit', () => {
     cy.byTestId('shops-list').should('exist');
     cy.byTestId('shops-row-0').should('contain.text', 'Billa').and('contain.text', 'Kisten');
@@ -110,7 +127,8 @@ describe('Settings - Shops', () => {
       shopPanel(name).find('[testid^="shops-enabled-toggle-"]').click();
       cy.contains('.toast-message', 'geändert').should('be.visible');
 
-      shopPanel(name).should('contain.text', 'Inaktiv');
+      shopPanel(name).find('[testid^="shops-enabled-toggle-"] button')
+        .should('have.attr', 'aria-checked', 'false');
       shopPanel(name).find('[testid^="editShopButton-"]').should('be.disabled');
 
       cy.byTestId('shops-filter-enabled').click();
@@ -121,7 +139,7 @@ describe('Settings - Shops', () => {
     });
   });
 
-  it('filters the list by the search text', () => {
+  it('filters the list by the search text and shows a result count', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const name = 'E2E Filiale suchen ' + randomId;
 
@@ -131,9 +149,11 @@ describe('Settings - Shops', () => {
       cy.byTestId('shops-search-input').type(name);
       cy.byTestId('shops-list').find('[testid^="shops-row-"]').should('have.length', 1);
       cy.byTestId('shops-row-0').should('contain.text', name);
+      cy.byTestId('shops-result-count').should('contain.text', '1 von');
 
       cy.byTestId('shops-search-clear-button').click();
       cy.byTestId('shops-list').find('[testid^="shops-row-"]').should('have.length.greaterThan', 1);
+      cy.byTestId('shops-result-count').should('not.exist');
     });
   });
 
@@ -141,6 +161,109 @@ describe('Settings - Shops', () => {
     cy.byTestId('shops-search-input').type('gibt-es-nicht');
 
     cy.byTestId('shops-empty').should('be.visible').and('contain.text', 'Keine Filiale');
+  });
+
+  it('names the active filter in the empty-result message', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const name = 'E2E Filiale gefiltert ' + randomId;
+
+      // an active shop can never show up under the "Inaktiv" filter
+      createShop(name, shopNumber(randomId));
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+      cy.byTestId('shops-search-input').type(name);
+      cy.byTestId('shops-filter-disabled').click();
+
+      cy.byTestId('shops-empty').should('be.visible').and('contain.text', 'Keine inaktiven Filialen gefunden');
+    });
+  });
+
+  it('lists the shops ordered by number', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const shared = 'E2E Sort ' + randomId;
+      // Beta gets the lower number but the alphabetically later name, so the order can only come
+      // from the numbers rather than happen to agree with the names
+      const beta = shared + ' Beta';
+      const alpha = shared + ' Alpha';
+      const betaNumber = shopNumber(randomId);
+      const alphaNumber = betaNumber + 1;
+
+      createShop(beta, betaNumber);
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+      createShop(alpha, alphaNumber);
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+      cy.byTestId('shops-search-input').type(shared);
+      cy.byTestId('shops-list').find('[testid^="shops-row-"]').should('have.length', 2);
+
+      cy.byTestId('shops-row-0').should('contain.text', beta);
+      cy.byTestId('shops-row-1').should('contain.text', alpha);
+    });
+  });
+
+  it('shows the address on a map', () => {
+    cy.byTestId('shops-row-0').find('[testid^="shops-toggle-"]').click();
+
+    cy.byTestId('shops-map-link-0')
+      .should('have.attr', 'href')
+      .and('include', 'google.com/maps')
+      .and('include', 'Bloch-Bauer-Promenade');
+  });
+
+  it('shows which routes stop at a shop and links to them', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const shopName = 'E2E Filiale Route ' + randomId;
+      const shopNr = shopNumber(randomId);
+      const routeName = 'E2E Route Filiale ' + randomId;
+
+      createShop(shopName, shopNr);
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+      createRouteWithStop(routeName, '90.6', shopName, shopNr, '08:15');
+
+      shopPanel(shopName).find('[testid^="shops-toggle-"]').click();
+      shopPanel(shopName).find('[testid^="shops-route-usage-"]')
+        .should('contain.text', routeName)
+        .and('contain.text', '08:15');
+
+      shopPanel(shopName).find('[testid^="shops-route-link-"]').first().click();
+      cy.url().should('include', '/einstellungen/routen');
+    });
+  });
+
+  it('confirms before deactivating a shop an active route stops at', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const shopName = 'E2E Filiale Deaktivieren ' + randomId;
+      const shopNr = shopNumber(randomId);
+      const routeName = 'E2E Route Deaktivieren ' + randomId;
+
+      createShop(shopName, shopNr);
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+      createRouteWithStop(routeName, '90.7', shopName, shopNr, '09:30');
+
+      shopPanel(shopName).find('[testid^="shops-enabled-toggle-"]').click();
+
+      cy.byTestId('shop-disable-confirm-dialog').should('be.visible').and('contain.text', routeName);
+
+      // cancelling leaves the shop active
+      cy.byTestId('cancel-button').click();
+      shopPanel(shopName).find('[testid^="shops-enabled-toggle-"] button')
+        .should('have.attr', 'aria-checked', 'true');
+
+      shopPanel(shopName).find('[testid^="shops-enabled-toggle-"]').click();
+      cy.byTestId('shop-disable-confirm-dialog').should('be.visible');
+      cy.byTestId('ok-button').click();
+
+      cy.contains('.toast-message', 'geändert').should('be.visible');
+      shopPanel(shopName).find('[testid^="shops-enabled-toggle-"] button')
+        .should('have.attr', 'aria-checked', 'false');
+
+      // deactivating removed the shop's stop from the route
+      shopPanel(shopName).find('[testid^="shops-toggle-"]').click();
+      shopPanel(shopName).find('[testid^="shops-route-usage-"]')
+        .should('contain.text', 'Wird derzeit von keiner Route angefahren');
+    });
   });
 
   it('stays usable on phone', () => {
@@ -161,6 +284,23 @@ describe('Settings - Shops', () => {
       cy.byTestId('addShopButton').click();
 
       cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the deactivation confirm dialog is open', () => {
+      cy.getAnyRandomNumber().then((randomId) => {
+        const shopName = 'E2E Filiale A11y ' + randomId;
+        const shopNr = shopNumber(randomId);
+        const routeName = 'E2E Route A11y ' + randomId;
+
+        createShop(shopName, shopNr);
+        cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+        createRouteWithStop(routeName, '90.8', shopName, shopNr, '10:15');
+
+        shopPanel(shopName).find('[testid^="shops-enabled-toggle-"]').click();
+
+        cy.checkDialogAccessibility();
+      });
     });
 
     // Scoped to the whole record, header row included: the summary toggle and the two actions

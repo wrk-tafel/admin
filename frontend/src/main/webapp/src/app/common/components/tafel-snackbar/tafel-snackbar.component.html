@@ -5,6 +5,11 @@
   }
   <div class="toast-message">{{ data.message }}</div>
 </div>
+@if (data.action) {
+  <button matButton class="tafel-snackbar-action" testid="toast-action-button" (click)="dismissWithAction()">
+    {{ data.action }}
+  </button>
+}
 <button mat-icon-button class="tafel-snackbar-close" (click)="dismiss()" aria-label="Schließen">
   <fa-icon [icon]="faXmark"></fa-icon>
 </button>

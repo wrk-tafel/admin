@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
+import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorDetails
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -156,6 +157,19 @@ class HouseholdControllerTest {
             limit = BigDecimal("2"),
             toleranceValue = BigDecimal("3"),
             amountExceededLimit = BigDecimal("4"),
+            details = IncomeValidatorDetails(
+                incomeSum = BigDecimal("5"),
+                familyAllowanceSum = BigDecimal("6"),
+                childTaxAllowanceSum = BigDecimal("7"),
+                siblingAdditionSum = BigDecimal("8"),
+                baseLimit = BigDecimal("9"),
+                baseLimitCountAdults = 2,
+                baseLimitCountChildren = 1,
+                additionalAdultsCount = 3,
+                additionalAdultsSum = BigDecimal("10"),
+                additionalChildrenCount = 4,
+                additionalChildrenSum = BigDecimal("11"),
+            ),
         )
 
         val response = controller.validate(testHouseholdRequest)
@@ -167,11 +181,83 @@ class HouseholdControllerTest {
                 limit = BigDecimal("2"),
                 toleranceValue = BigDecimal("3"),
                 amountExceededLimit = BigDecimal("4"),
+                details = IncomeCalculationDetails(
+                    incomeSum = BigDecimal("5"),
+                    familyAllowanceSum = BigDecimal("6"),
+                    childTaxAllowanceSum = BigDecimal("7"),
+                    siblingAdditionSum = BigDecimal("8"),
+                    baseLimit = BigDecimal("9"),
+                    baseLimitCountAdults = 2,
+                    baseLimitCountChildren = 1,
+                    additionalAdultsCount = 3,
+                    additionalAdultsSum = BigDecimal("10"),
+                    additionalChildrenCount = 4,
+                    additionalChildrenSum = BigDecimal("11"),
+                ),
             ),
         )
 
         verify {
             householdService.validate(testHouseholdRequest)
+        }
+    }
+
+    @Test
+    fun `income quickcheck`() {
+        val request = IncomeQuickCheckRequest(
+            persons = listOf(
+                IncomeQuickCheckPersonItem(birthDate = LocalDate.of(1990, 1, 1), income = BigDecimal("1200")),
+                IncomeQuickCheckPersonItem(birthDate = LocalDate.of(2015, 1, 1), receivesFamilyAllowance = true),
+            ),
+        )
+        every { householdService.quickCheck(request) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4"),
+            details = IncomeValidatorDetails(
+                incomeSum = BigDecimal("5"),
+                familyAllowanceSum = BigDecimal("6"),
+                childTaxAllowanceSum = BigDecimal("7"),
+                siblingAdditionSum = BigDecimal("8"),
+                baseLimit = BigDecimal("9"),
+                baseLimitCountAdults = 2,
+                baseLimitCountChildren = 1,
+                additionalAdultsCount = 3,
+                additionalAdultsSum = BigDecimal("10"),
+                additionalChildrenCount = 4,
+                additionalChildrenSum = BigDecimal("11"),
+            ),
+        )
+
+        val response = controller.incomeQuickCheck(request)
+
+        assertThat(response).isEqualTo(
+            ValidateHouseholdResponse(
+                valid = true,
+                totalSum = BigDecimal("1"),
+                limit = BigDecimal("2"),
+                toleranceValue = BigDecimal("3"),
+                amountExceededLimit = BigDecimal("4"),
+                details = IncomeCalculationDetails(
+                    incomeSum = BigDecimal("5"),
+                    familyAllowanceSum = BigDecimal("6"),
+                    childTaxAllowanceSum = BigDecimal("7"),
+                    siblingAdditionSum = BigDecimal("8"),
+                    baseLimit = BigDecimal("9"),
+                    baseLimitCountAdults = 2,
+                    baseLimitCountChildren = 1,
+                    additionalAdultsCount = 3,
+                    additionalAdultsSum = BigDecimal("10"),
+                    additionalChildrenCount = 4,
+                    additionalChildrenSum = BigDecimal("11"),
+                ),
+            ),
+        )
+
+        verify {
+            householdService.quickCheck(request)
         }
     }
 
@@ -432,11 +518,14 @@ class HouseholdControllerTest {
     @Test
     fun `get households above limit`() {
         val page = 2
+        val sortBy = "totalSum"
+        val sortDirection = "asc"
         val aboveLimitItem = HouseholdAboveLimitItem(
             household = mockk(relaxed = true),
             totalSum = BigDecimal("1500"),
             limit = BigDecimal("1000"),
             amountExceededLimit = BigDecimal("500"),
+            percentageExceededLimit = BigDecimal("50.0"),
         )
         val searchResult = HouseholdAboveLimitSearchResult(
             items = listOf(aboveLimitItem),
@@ -445,15 +534,70 @@ class HouseholdControllerTest {
             totalPages = 2,
             pageSize = 25,
         )
-        every { householdService.getHouseholdsAboveLimit(page) } returns searchResult
+        every { householdService.getHouseholdsAboveLimit(page, null, sortBy, sortDirection) } returns searchResult
 
-        val response = controller.getHouseholdsAboveLimit(page)
+        val response = controller.getHouseholdsAboveLimit(page, sortBy = sortBy, sortDirection = sortDirection)
 
         assertThat(response.items).isEqualTo(listOf(aboveLimitItem))
         assertThat(response.totalCount).isEqualTo(searchResult.totalCount)
         assertThat(response.currentPage).isEqualTo(searchResult.currentPage)
         assertThat(response.totalPages).isEqualTo(searchResult.totalPages)
         assertThat(response.pageSize).isEqualTo(searchResult.pageSize)
+    }
+
+    @Test
+    fun `generate households above limit csv`() {
+        val sortBy = "amountExceededLimit"
+        val sortDirection = "desc"
+        val csvResult = HouseholdAboveLimitCsvResult(
+            filename = "kunden_ueber_limit_13.08.2026.csv",
+            bytes = "Nr.;Name".toByteArray(),
+        )
+        every { householdService.generateAboveLimitCsv(sortBy, sortDirection) } returns csvResult
+
+        val response = controller.generateHouseholdsAboveLimitCsv(sortBy, sortDirection)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=${csvResult.filename}")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(bodyBytes).isEqualTo(csvResult.bytes)
+    }
+
+    // Called without any parameters, the way a plain GET without query parameters binds - this is
+    // what exercises the Kotlin default values themselves.
+    @Test
+    fun `get households above limit - without parameters`() {
+        val searchResult = HouseholdAboveLimitSearchResult(
+            items = emptyList(),
+            totalCount = 0,
+            currentPage = 1,
+            totalPages = 0,
+            pageSize = 25,
+        )
+        every { householdService.getHouseholdsAboveLimit(null, null, null, null) } returns searchResult
+
+        val response = controller.getHouseholdsAboveLimit()
+
+        assertThat(response.totalCount).isEqualTo(0)
+        verify { householdService.getHouseholdsAboveLimit(null, null, null, null) }
+    }
+
+    @Test
+    fun `generate households above limit csv - without parameters`() {
+        val csvResult = HouseholdAboveLimitCsvResult(
+            filename = "kunden_ueber_limit_13.08.2026.csv",
+            bytes = "Nr.;Name".toByteArray(),
+        )
+        every { householdService.generateAboveLimitCsv(null, null) } returns csvResult
+
+        val response = controller.generateHouseholdsAboveLimitCsv()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify { householdService.generateAboveLimitCsv(null, null) }
     }
 
     @Test
@@ -472,6 +616,27 @@ class HouseholdControllerTest {
 
         assertThat(response).isEqualTo(overviewResponse)
         verify { householdService.getHouseholdsOverview(distributionId) }
+    }
+
+    @Test
+    fun `generate households overview csv - result mapped`() {
+        val distributionId = 100L
+        val testFilename = "kunden-uebersicht_2026-01-03.csv"
+        every { householdService.generateHouseholdsOverviewCsv(distributionId) } returns HouseholdOverviewCsvResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.generateHouseholdsOverviewCsv(distributionId)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
 
     @Test
@@ -518,6 +683,15 @@ class HouseholdControllerTest {
 
         assertThat(duplicatesResponse.items).isEmpty()
         verify { householdDuplicationService.findDuplicates(null) }
+    }
+
+    @Test
+    fun `dismiss duplicate`() {
+        val request = HouseholdDuplicateDismissRequest(householdId = 100L, otherHouseholdId = 200L)
+
+        controller.dismissDuplicate(request)
+
+        verify { householdDuplicationService.dismiss(100L, 200L) }
     }
 
     @Test

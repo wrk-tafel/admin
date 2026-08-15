@@ -1,7 +1,7 @@
 import {inject, Service} from '@angular/core';
 import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {filter} from 'rxjs';
+import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 
 /**
  * Prompts the user to reload once a new version has been downloaded in the background by the
@@ -12,7 +12,7 @@ import {filter} from 'rxjs';
 @Service()
 export class SwUpdateService {
   private readonly swUpdate = inject(SwUpdate);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toastr = inject(TafelToastrService);
   private readonly window = inject(Window);
 
   init() {
@@ -23,9 +23,10 @@ export class SwUpdateService {
     this.swUpdate.versionUpdates
       .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
       .subscribe(() => {
-        const snackBarRef = this.snackBar.open('Eine neue Version ist verfügbar.', 'Neu laden', {
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
+        // durationMs 0: stays open until acted on - an auto-dismissed reload prompt is easily missed
+        const snackBarRef = this.toastr.warning('Eine neue Version ist verfügbar.', undefined, {
+          action: 'Neu laden',
+          durationMs: 0,
         });
         snackBarRef.onAction().subscribe(() => {
           this.window.location.reload();

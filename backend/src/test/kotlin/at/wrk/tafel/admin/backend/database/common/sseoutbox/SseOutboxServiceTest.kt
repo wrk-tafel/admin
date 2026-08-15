@@ -59,10 +59,33 @@ class SseOutboxServiceTest {
     }
 
     @Test
+    fun `findLatestEvent without a bound reads the newest entry of the stream`() {
+        val entity = SseOutboxEntity().apply { payload = testPayloadString }
+        every { sseOutboxRepository.findFirstByNotificationNameOrderByIdDesc(notificationName) } returns entity
+
+        val result = service.findLatestEvent(notificationName, TestJsonPayload::class.java, after = null)
+
+        assertThat(result).isEqualTo(testPayload)
+    }
+
+    @Test
+    fun `findLatestEvent with a bound only reads entries written after it`() {
+        val after = LocalDateTime.now().minusHours(1)
+        every {
+            sseOutboxRepository.findFirstByNotificationNameAndEventTimeAfterOrderByIdDesc(notificationName, after)
+        } returns null
+
+        val result = service.findLatestEvent(notificationName, TestJsonPayload::class.java, after = after)
+
+        assertThat(result).isNull()
+        verify(exactly = 0) { sseOutboxRepository.findFirstByNotificationNameOrderByIdDesc(any()) }
+    }
+
+    @Test
     fun `cleanup outbox`() {
         service.cleanupOutbox()
 
-        verify { sseOutboxRepository.deleteAllByEventTimeBefore(any()) }
+        verify { sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(any()) }
     }
 
     /**
@@ -76,7 +99,7 @@ class SseOutboxServiceTest {
         service.cleanupOutbox()
 
         val cutoffSlot = slot<LocalDateTime>()
-        verify { sseOutboxRepository.deleteAllByEventTimeBefore(capture(cutoffSlot)) }
+        verify { sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(capture(cutoffSlot)) }
         assertThat(cutoffSlot.captured).isCloseTo(LocalDateTime.now().minusDays(3), within(1, ChronoUnit.MINUTES))
     }
 

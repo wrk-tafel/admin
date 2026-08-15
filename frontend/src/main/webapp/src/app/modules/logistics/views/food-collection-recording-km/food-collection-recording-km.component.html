@@ -34,5 +34,10 @@
         }
       </mat-form-field>
     </div>
+    @if (liveDistanceKm(); as distance) {
+      <div class="md:col-span-3 flex items-center font-medium text-slate-700" testid="km-distance-hint">
+        → {{ distance }} km
+      </div>
+    }
   </div>
 </form>

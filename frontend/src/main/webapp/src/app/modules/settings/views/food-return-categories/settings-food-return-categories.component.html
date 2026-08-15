@@ -1,8 +1,11 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
-    <mat-card-title>
-      <div class="flex items-center gap-2">
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center gap-2">
         <h2 class="tafel-h5 mb-0 mt-1">Retour-Kategorien</h2>
+        <span class="text-sm font-normal text-slate-500" testid="food-return-categories-summary">
+          {{ enabledCount() }} von {{ totalCount() }} aktiv
+        </span>
         <button matButton="filled" class="button-success" testid="addFoodReturnCategoryButton" matTooltip="Neue Retourkategorie anlegen"
                 (click)="addFoodReturnCategory()" aria-label="Neue Retourkategorie anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
@@ -11,19 +14,40 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="mb-2 text-sm text-slate-600">
+      Kistenarten, die bei der Warenerfassung im Abschnitt "Retourware" als Zähler vorgegeben werden -
+      in der Reihenfolge, in der sie hier stehen. Nicht gelistete Kisten können dort jederzeit mit
+      eigener Beschreibung erfasst werden.
+    </p>
     <p class="mb-4 text-sm text-slate-600">
-      Kistenarten, die bei der Warenerfassung als Retourware vorgegeben werden. Nicht gelistete Kisten
-      können dort jederzeit mit eigener Beschreibung erfasst werden.
+      Die Namen erscheinen außerdem in der Routen-Navigation als Hinweis "Retourware mitnehmen" bzw.
+      "Retourware abgeben" - eine Änderung hier wirkt also auf beide Bildschirme.
     </p>
 
+    <p class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
+       testid="food-return-categories-distinction">
+      <fa-icon [icon]="faBoxOpen" class="mt-0.5"></fa-icon>
+      <span>
+        Nicht zu verwechseln mit den
+        <a class="text-blue-700 underline" routerLink="/einstellungen/lebensmittelkategorien">Waren-Kategorien</a>:
+        dort werden die abgeholten Waren samt Gewicht gepflegt, hier nur die leeren Kisten, die an die
+        Filiale zurückgehen.
+      </span>
+    </p>
+
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="food-return-categories"
+                            (valueChange)="onFilterChanged($event)"/>
+    </div>
+
     <div class="hidden md:block">
-      <table mat-table [dataSource]="foodReturnCategories()" testid="food-return-categories-table" [trackBy]="trackById"
-             cdkDropList [cdkDropListData]="foodReturnCategories()" (cdkDropListDropped)="drop($event)">
+      <table mat-table [dataSource]="visibleFoodReturnCategories()" testid="food-return-categories-table" [trackBy]="trackById"
+             cdkDropList [cdkDropListData]="visibleFoodReturnCategories()" (cdkDropListDropped)="drop($event)">
         <ng-container matColumnDef="drag">
           <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
           <td mat-cell *matCellDef="let category; let i = index">
             <tafel-reorder-handle cdkDragHandle [label]="'Retour-Kategorie ' + category.name"
-                                  [position]="i + 1" [count]="foodReturnCategories().length"
+                                  [position]="i + 1" [count]="visibleFoodReturnCategories().length"
                                   [testId]="'dragFoodReturnCategoryHandle-' + i"
                                   (move)="moveFoodReturnCategory(i, $event)"/>
           </td>
@@ -32,17 +56,10 @@
         <ng-container matColumnDef="active">
           <th mat-header-cell *matHeaderCellDef>Aktiv</th>
           <td mat-cell *matCellDef="let category; let i = index">
-            @if (category.enabled) {
-              <button matButton="filled" class="button-success ms-2" testid="enableFoodReturnCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                      (click)="toggleFoodReturnCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl'">
-                <fa-icon [icon]="faEye"></fa-icon>
-              </button>
-            } @else {
-              <button matButton="filled" class="button-danger ms-2" testid="disableFoodReturnCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                      (click)="toggleFoodReturnCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
-                <fa-icon [icon]="faEyeSlash"></fa-icon>
-              </button>
-            }
+            <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Retour-Kategorie ' + category.name"
+                                  [showLabel]="false"
+                                  [testId]="'food-return-categories-enabled-toggle-' + i"
+                                  (enabledChange)="toggleFoodReturnCategoryVisibility(category, $event)"/>
           </td>
         </ng-container>
 
@@ -56,6 +73,7 @@
                 <input #nameInput matInput [formControl]="nameControl"
                        [attr.testid]="'foodReturnCategoryNameInput-' + i" aria-label="Name"
                        (keydown.enter)="saveEdit(category)" (keydown.escape)="cancelEdit()"/>
+                <mat-hint>Enter speichert, Esc bricht ab</mat-hint>
               </mat-form-field>
             } @else {
               {{ category.name }}
@@ -67,16 +85,16 @@
           <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
           <td mat-cell *matCellDef="let category; let i = index">
             @if (editingId() === category.id) {
-              <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButton-' + i" matTooltip="Änderungen speichern"
+              <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButton-' + i" matTooltip="Änderungen speichern (Enter)"
                       (click)="saveEdit(category)" [attr.aria-label]="'Änderungen an Kategorie ' + category.name + ' speichern'">
                 <fa-icon [icon]="faCheck"></fa-icon>
               </button>
-              <button matButton="outlined" class="ml-2" [attr.testid]="'cancelFoodReturnCategoryButton-' + i" matTooltip="Bearbeiten abbrechen"
+              <button matButton="outlined" class="ml-2" [attr.testid]="'cancelFoodReturnCategoryButton-' + i" matTooltip="Bearbeiten abbrechen (Esc)"
                       (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Kategorie ' + category.name + ' abbrechen'">
                 <fa-icon [icon]="faXmark"></fa-icon>
               </button>
             } @else {
-              <button matButton="filled" class="button-danger" [attr.testid]="'editFoodReturnCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
+              <button matButton="filled" [attr.testid]="'editFoodReturnCategoryButton-' + i" matTooltip="Kategorie bearbeiten"
                       [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                 <fa-icon [icon]="faPencil"></fa-icon>
               </button>
@@ -94,14 +112,14 @@
 
     <div class="block md:hidden">
       <div class="flex flex-col gap-4" testid="food-return-categories-cards"
-           cdkDropList [cdkDropListData]="foodReturnCategories()" (cdkDropListDropped)="drop($event)">
-        @for (category of foodReturnCategories(); track category.id; let i = $index) {
+           cdkDropList [cdkDropListData]="visibleFoodReturnCategories()" (cdkDropListDropped)="drop($event)">
+        @for (category of visibleFoodReturnCategories(); track category.id; let i = $index) {
           <mat-card class="shadow-sm" cdkDrag [cdkDragData]="category" [class.tafel-inactive]="!category.enabled"
                     [attr.testid]="'food-return-categories-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
                 <tafel-reorder-handle cdkDragHandle [label]="'Retour-Kategorie ' + category.name"
-                                      [position]="i + 1" [count]="foodReturnCategories().length"
+                                      [position]="i + 1" [count]="visibleFoodReturnCategories().length"
                                       [testId]="'dragFoodReturnCategoryHandle-' + i"
                                       (move)="moveFoodReturnCategory(i, $event)"/>
                 @if (editingId() === category.id) {
@@ -110,35 +128,28 @@
                     <input #nameInputMobile matInput [formControl]="nameControl"
                            [attr.testid]="'foodReturnCategoryNameInputMobile-' + i"
                            (keydown.enter)="saveEdit(category)" (keydown.escape)="cancelEdit()"/>
+                    <mat-hint>Enter speichert, Esc bricht ab</mat-hint>
                   </mat-form-field>
                 } @else {
                   <span>{{ category.name }}</span>
                 }
               </mat-card-title>
             </mat-card-header>
-            <mat-card-actions class="flex gap-2">
-              @if (category.enabled) {
-                <button matButton="filled" class="button-success" testid="enableFoodReturnCategoryButton" matTooltip="Kategorie deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl"
-                        (click)="toggleFoodReturnCategoryVisibility(category, false)" [attr.aria-label]="'Kategorie ' + category.name + ' deaktivieren - sie steht bei der Warenerfassung nicht mehr zur Auswahl'">
-                  <fa-icon [icon]="faEye"></fa-icon>
-                </button>
-              } @else {
-                <button matButton="filled" class="button-danger" testid="disableFoodReturnCategoryButton" matTooltip="Kategorie wieder aktivieren"
-                        (click)="toggleFoodReturnCategoryVisibility(category, true)" [attr.aria-label]="'Kategorie ' + category.name + ' wieder aktivieren'">
-                  <fa-icon [icon]="faEyeSlash"></fa-icon>
-                </button>
-              }
+            <mat-card-actions>
+              <tafel-enabled-toggle [enabled]="category.enabled" [label]="'Retour-Kategorie ' + category.name"
+                                    [testId]="'food-return-categories-enabled-toggle-mobile-' + i"
+                                    (enabledChange)="toggleFoodReturnCategoryVisibility(category, $event)"/>
               @if (editingId() === category.id) {
-                <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButtonMobile-' + i" matTooltip="Änderungen speichern"
+                <button matButton="filled" [attr.testid]="'saveFoodReturnCategoryButtonMobile-' + i" matTooltip="Änderungen speichern (Enter)"
                         (click)="saveEdit(category)" [attr.aria-label]="'Änderungen an Kategorie ' + category.name + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
                 </button>
-                <button matButton="outlined" [attr.testid]="'cancelFoodReturnCategoryButtonMobile-' + i" matTooltip="Bearbeiten abbrechen"
+                <button matButton="outlined" [attr.testid]="'cancelFoodReturnCategoryButtonMobile-' + i" matTooltip="Bearbeiten abbrechen (Esc)"
                         (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Kategorie ' + category.name + ' abbrechen'">
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger"
+                <button matButton="filled"
                         [attr.testid]="'editFoodReturnCategoryButtonMobile-' + i" matTooltip="Kategorie bearbeiten"
                         [disabled]="!category.enabled" (click)="startEdit(category)" [attr.aria-label]="'Kategorie ' + category.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
@@ -149,5 +160,20 @@
         }
       </div>
     </div>
+
+    <!-- One block for both layouts: the table renders its header even with no rows, and the card
+         list nothing at all, so neither can carry this on its own. -->
+    @if (loaded() && visibleFoodReturnCategories().length === 0) {
+      <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="food-return-categories-empty">
+        <fa-icon [icon]="faBoxOpen" size="2x"></fa-icon>
+        @if (enabledFilter() === 'DISABLED') {
+          <span>Keine Kategorie ist deaktiviert.</span>
+        } @else if (enabledFilter() === 'ENABLED') {
+          <span>Keine Kategorie ist aktiv.</span>
+        } @else {
+          <span>Noch keine Retour-Kategorien angelegt.</span>
+        }
+      </div>
+    }
   </mat-card-content>
 </mat-card>

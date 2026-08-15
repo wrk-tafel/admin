@@ -1,0 +1,67 @@
+<tafel-dialog type="info" [title]="data.detail.subTitle" testId="statistics-detail-dialog">
+  <div tafel-dialog-content>
+    <div class="text-3xl font-bold" testid="statistics-detail-value">{{ data.detail.title }}</div>
+    <div class="text-sm text-slate-600" testid="statistics-detail-range">Zeitraum: {{ data.rangeLabel }}</div>
+
+    @if (delta(); as delta) {
+      <div class="mt-2 text-sm" testid="statistics-detail-delta">
+        <span class="font-bold">
+          @if (delta.direction === 'up') {
+            ▲
+          } @else if (delta.direction === 'down') {
+            ▼
+          } @else {
+            ●
+          }
+          @if (delta.percentage !== undefined) {
+            {{ delta.percentage > 0 ? '+' : '' }}{{ delta.percentage | number: '1.0-1' }}&nbsp;%
+          } @else {
+            {{ delta.difference > 0 ? '+' : '' }}{{ delta.difference | number: '1.0-2' }}{{ data.detail.unit ? ' ' + data.detail.unit : '' }}
+          }
+        </span>
+        {{ data.comparisonLabel }}
+        @if (data.comparisonRangeLabel) {
+          <span class="text-slate-600">({{ data.comparisonRangeLabel }}: {{ data.comparison!.title }})</span>
+        }
+      </div>
+    }
+
+    @if (dataPoints().length > 0) {
+      <!-- Chart.js sizes the canvas from this box and only keeps it bounded when the box is its own
+           positioned container - without `relative` the canvas outgrows the height on a tall dialog.
+           The box is here from the start so the dialog does not resize under the chart; only the
+           canvas waits for the dialog to have finished opening (see `opened`). -->
+      <div class="relative mt-4 h-72 w-full sm:h-80">
+        @if (opened()) {
+          <canvas baseChart testid="statistics-detail-chart"
+                  role="img" [attr.aria-label]="chartLabel()"
+                  [type]="'line'" [data]="chartData()" [options]="chartOptions"></canvas>
+        }
+      </div>
+
+      @if (summary(); as summary) {
+        <dl class="mt-4 grid grid-cols-3 gap-2 text-sm" testid="statistics-detail-summary">
+          <div>
+            <dt class="text-slate-600">Minimum</dt>
+            <dd class="m-0 font-bold">{{ summary.minimum | number: '1.0-2' }}{{ data.detail.unit ? ' ' + data.detail.unit : '' }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-600">Maximum</dt>
+            <dd class="m-0 font-bold">{{ summary.maximum | number: '1.0-2' }}{{ data.detail.unit ? ' ' + data.detail.unit : '' }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-600">Durchschnitt</dt>
+            <dd class="m-0 font-bold">{{ summary.average | number: '1.0-2' }}{{ data.detail.unit ? ' ' + data.detail.unit : '' }}</dd>
+          </div>
+        </dl>
+      }
+    } @else {
+      <p class="mt-4 mb-0 text-sm text-slate-600" testid="statistics-detail-empty">
+        Für diesen Zeitraum liegen keine Datenpunkte vor.
+      </p>
+    }
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="closeButton" matButton="filled" (click)="dialogRef.close()">Schließen</button>
+  </div>
+</tafel-dialog>

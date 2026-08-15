@@ -21,6 +21,18 @@
       </mat-icon>
     </mat-form-field>
 
+    @if (!isOnline()) {
+      <!-- shown whenever the device is offline, not only once a route is picked - a driver who
+           opens the screen already offline should know right away that ticks will be queued -->
+      <div class="mb-4 rounded bg-[#f89406] px-3 py-2 text-center text-white" testid="guidance-offline-indicator">
+        Offline
+        @if (pendingSyncCount() > 0) {
+          - {{ pendingSyncCount() }} Änderung{{ pendingSyncCount() === 1 ? '' : 'en' }} ausstehend, wird
+          automatisch synchronisiert
+        }
+      </div>
+    }
+
     @if (guidance(); as routeGuidance) {
       @if (routeGuidance.routeNote) {
         <div class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="guidance-route-note">
@@ -54,6 +66,29 @@
       }
 
       @if (stops().length > 0) {
+        <!-- Orientation at a glance: which stops are done/current/still open, tappable to jump
+             straight to one - without this, "how far along am I" meant paging through every stop. -->
+        <div class="mb-3 flex items-center gap-1.5 overflow-x-auto py-1" testid="guidance-stepper"
+             role="list" aria-label="Stopp-Übersicht">
+          @for (view of stopViews(); track view.stop.stopId; let i = $index) {
+            <!-- `listitem` sits on a wrapper because a `<button>` may not carry that role
+                 (axe: aria-allowed-role); the button itself is a full touch target (h-6 w-6),
+                 the small dot inside only the visual indicator, so the tappable area stays
+                 large enough on a phone screen -->
+            <div role="listitem" class="shrink-0">
+              <button type="button" testid="guidance-stepper-dot"
+                      class="flex h-6 w-6 items-center justify-center rounded-full"
+                      [attr.aria-current]="i === currentIndex() ? 'step' : null"
+                      [attr.aria-label]="'Stopp ' + (i + 1) + ' von ' + stops().length + ': ' + view.timeLabel + ' ' + view.title
+                        + (view.pending ? ', Änderung ausstehend' : (view.stop.completed ? ', erledigt' : ', offen'))
+                        + (i === currentIndex() ? ', aktuell angezeigt' : '')"
+                      (click)="goToStop(i)">
+                <span [class]="stepperDotClasses(view, i)"></span>
+              </button>
+            </div>
+          }
+        </div>
+
         <!-- directly above the stop, because that is what it is about: how far along the route the
              stop on screen is. The bar carries the same figure as the counter - at the wheel the
              share done is read off a fill, not off two numbers -->
@@ -68,7 +103,7 @@
       }
 
       @if (currentStop(); as view) {
-        <!-- one stop at a time, paged with the two buttons below - see the component's comment -->
+        <!-- one stop at a time, paged with the buttons below - see the component's class doc -->
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" testid="guidance-stop"
              role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -79,7 +114,9 @@
               @if (view.isNext) {
                 <span class="badge badge-info" testid="guidance-next-badge">Nächster offener Stopp</span>
               }
-              @if (view.stop.completed) {
+              @if (view.pending) {
+                <span class="badge badge-warning" testid="guidance-pending-badge">Ausstehend</span>
+              } @else if (view.stop.completed) {
                 <span class="badge badge-success" testid="guidance-done-badge">Erledigt</span>
               }
             </div>
@@ -93,9 +130,6 @@
               </span>
             }
             <span class="tafel-h5 mb-0 font-medium">{{ view.title }}</span>
-            @if (view.stop.shop && !view.stop.shop.enabled) {
-              <span class="badge badge-danger" testid="guidance-stop-inactive">Filiale inaktiv</span>
-            }
           </div>
 
           @if (view.stop.shop; as shop) {
@@ -146,7 +180,8 @@
 
           <div class="mt-4 flex flex-wrap items-center gap-3">
             @if (view.navigationUrl) {
-              <!-- purely the map app: the progress is the two buttons below and nothing else -->
+              <!-- purely the map app: progress is recorded exclusively via the completion button
+                   below -->
               <a matButton="filled" class="w-full sm:w-auto" testid="guidance-navigate-button"
                  [href]="view.navigationUrl" target="_blank" rel="noopener"
                  [attr.aria-label]="view.navigationLabel">
@@ -155,29 +190,52 @@
               </a>
             }
             @if (view.completedLabel) {
-              <span class="text-sm text-green-700" testid="guidance-completed-label">
+              <span class="text-sm" [class.text-green-700]="!view.pending" [class.text-amber-700]="view.pending"
+                    testid="guidance-completed-label">
                 {{ view.completedLabel }}
               </span>
             }
           </div>
         </div>
 
-        <!-- the whole screen: moving is what records the progress - forward ticks the stop off,
-             back takes it out again. There is no separate control for either. -->
+        <!-- Paging: browses stops only, never touches completion - decoupled on purpose, see the
+             component's class doc. -->
         <div class="mt-4 grid grid-cols-2 gap-3">
-          <button matButton="filled" type="button" testid="guidance-previous-button"
-                  [attr.aria-label]="backButtonLabel()"
-                  [disabled]="!hasPreviousStop() || pendingStopId() !== undefined"
-                  (click)="goBack()">
+          <button matButton="filled" type="button" class="!py-3 !text-base" testid="guidance-previous-button"
+                  [attr.aria-label]="previousButtonLabel()"
+                  [disabled]="!hasPreviousStop() || mutationDisabled()"
+                  (click)="goToPreviousStop()">
             <fa-icon [icon]="faChevronLeft" class="me-2"></fa-icon>
             Zurück
           </button>
-          <button matButton="filled" type="button" class="button-success"
-                  testid="guidance-done-button" [attr.aria-label]="forwardButtonLabel()"
-                  [disabled]="forwardDisabled()" (click)="goForward(view.stop)">
-            <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
-            {{ forwardButtonText() }}
+          <button matButton="filled" type="button" class="!py-3 !text-base" testid="guidance-next-button"
+                  [attr.aria-label]="nextButtonLabel()"
+                  [disabled]="!hasNextStop() || mutationDisabled()"
+                  (click)="goToNextStop()">
+            Weiter
+            <fa-icon [icon]="faChevronRight" class="ms-2"></fa-icon>
           </button>
+        </div>
+
+        <!-- Completion: acts only on the stop shown above. Sticky to the bottom of the viewport and
+             deliberately the most prominent control on the screen - this is what a driver's thumb
+             reaches for at every stop, and it must not require a scroll to find. -->
+        <div class="sticky bottom-0 z-10 -mx-4 mt-4 border-t border-slate-200 bg-white p-4 sm:static sm:mx-0 sm:border-0 sm:p-0">
+          @if (view.stop.completed) {
+            <button matButton="filled" type="button" class="button-warning w-full !py-4 !text-lg"
+                    testid="guidance-undo-button" [attr.aria-label]="undoButtonLabel()"
+                    [disabled]="mutationDisabled()" (click)="undoCurrentStop()">
+              <fa-icon [icon]="faRotateLeft" class="me-2"></fa-icon>
+              Rückgängig machen
+            </button>
+          } @else {
+            <button matButton="filled" type="button" class="button-success w-full !py-4 !text-lg"
+                    testid="guidance-complete-button" [attr.aria-label]="completeButtonLabel()"
+                    [disabled]="mutationDisabled()" (click)="completeCurrentStop()">
+              <fa-icon [icon]="faCheck" class="me-2"></fa-icon>
+              Stopp erledigt
+            </button>
+          }
         </div>
       } @else {
         <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="guidance-empty">

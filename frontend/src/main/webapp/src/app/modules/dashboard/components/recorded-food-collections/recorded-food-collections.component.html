@@ -1,10 +1,20 @@
 <mat-card class="h-full mat-card-{{ panelColor() }}" testid="recorded-food-collections-panel">
   <mat-card-content class="!p-4">
-    <h2 class="tafel-h4 mb-1">Erfasste Routen (Anzahl)</h2>
+    <h2 class="tafel-h4 mb-1">Erfasste Routen</h2>
     @if (countRecorded() !== null && countTotal() !== null) {
       <div testid="recorded-food-collections-count" class="text-4xl leading-none">{{ countRecorded() }} / {{ countTotal() }}</div>
     } @else {
       <div testid="recorded-food-collections-count" class="text-4xl leading-none">-</div>
+    }
+    @if (percentRecorded() !== null) {
+      <!-- See tickets-processed.component.html for why this is a plain div bar, not
+           `mat-progress-bar`, and why the guard is `!== null` rather than plain truthiness. -->
+      <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/25" role="progressbar"
+           [attr.aria-label]="countRecorded() + ' von ' + countTotal() + ' Waren-Erfassungen'"
+           aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="percentRecorded()"
+           testid="recorded-food-collections-progress">
+        <div class="h-full rounded-full bg-white" [style.width.%]="percentRecorded()"></div>
+      </div>
     }
   </mat-card-content>
 </mat-card>

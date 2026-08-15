@@ -12,6 +12,33 @@ describe('Settings - Food Categories', () => {
     cy.byTestId('food-categories-row-0').should('contain.text', 'Backwaren');
   });
 
+  it('names what the categories drive', () => {
+    cy.byTestId('food-categories-summary').should('contain.text', 'aktiv');
+    cy.contains('in der Reihenfolge, in der sie hier stehen').should('be.visible');
+    cy.contains('verschwindet sofort aus der Warenerfassung').should('be.visible');
+  });
+
+  it('shows the weight with its unit and explains what it drives', () => {
+    cy.get('[testid="food-categories-table"] [testid="foodCategoryWeightPerUnit-0"]')
+      .should('contain.text', 'kg');
+    cy.byTestId('food-categories-weight-info')
+      .should('have.attr', 'aria-label')
+      .and('contain', 'Warenmenge jeder Statistik');
+  });
+
+  it('says how the inline edit is confirmed and discarded', () => {
+    cy.byTestId('editFoodCategoryButton-0').click();
+
+    cy.contains('Enter speichert, Esc bricht ab').should('be.visible');
+  });
+
+  it('links to the return categories screen so a mix-up is caught before editing', () => {
+    cy.byTestId('food-categories-distinction').should('contain.text', 'Retour-Kategorien');
+    cy.byTestId('food-categories-distinction').find('a').click();
+
+    cy.url().should('include', '/einstellungen/retourkategorien');
+  });
+
   it('creates a new food category', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       cy.byTestId('addFoodCategoryButton').click();
@@ -88,9 +115,27 @@ describe('Settings - Food Categories', () => {
   });
 
   it('toggles food category visibility', () => {
-    cy.byTestId('enableFoodCategoryButton').first().click();
-    cy.get('.toast-message')
-      .should('be.visible');
+    cy.byTestId('food-categories-enabled-toggle-0').find('button').click();
+    cy.get('.toast-message').should('be.visible');
+    cy.byTestId('food-categories-enabled-toggle-0').find('button')
+      .should('have.attr', 'aria-checked', 'false');
+  });
+
+  // Asserted through the state of the Aktiv switches rather than by row count: it then holds
+  // whatever the other cases left behind, including a filter that matches nothing at all.
+  it('filters the list by status', () => {
+    const switches = (state: 'true' | 'false') =>
+      cy.get(`[testid^="food-categories-enabled-toggle-"] button[aria-checked="${state}"]`);
+
+    cy.byTestId('food-categories-filter-enabled').click();
+    switches('false').should('not.exist');
+
+    cy.byTestId('food-categories-filter-disabled').click();
+    switches('true').should('not.exist');
+
+    cy.byTestId('food-categories-filter-all').click();
+    cy.byTestId('food-categories-row-0').should('be.visible');
+    cy.byTestId('food-categories-summary').should('contain.text', 'aktiv');
   });
 
   it('renders as a card list on phone and stays usable', () => {
@@ -105,7 +150,7 @@ describe('Settings - Food Categories', () => {
     // button is disabled for disabled categories) - re-enable it first if needed.
     cy.byTestId('editFoodCategoryButtonMobile-0').then(($btn) => {
       if ($btn.is(':disabled')) {
-        cy.byTestId('disableFoodCategoryButton').filterDisplayed().first().click();
+        cy.byTestId('food-categories-enabled-toggle-mobile-0').find('button').click();
         cy.get('.toast-message').should('be.visible');
       }
     });

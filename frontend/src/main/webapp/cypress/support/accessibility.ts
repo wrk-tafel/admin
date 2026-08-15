@@ -98,6 +98,23 @@ function expectFadedIn($elements: JQuery<HTMLElement>): void {
   });
 }
 
+// The overlay's own fade-in is not the only thing that animates inside it: a `mat-error` or
+// `mat-hint` fades in whenever it appears, so a colour read right after the error shows up is the
+// half-transparent one and the contrast rule fails on text that is perfectly readable a frame
+// later. Waiting on every *finite* animation in the audited subtree covers that without naming any
+// of them; an indefinite one (a spinner, an indeterminate progress bar) is deliberately not waited
+// on, because it never ends.
+function expectAnimationsSettled($elements: JQuery<HTMLElement>): void {
+  $elements.each((_, element) => {
+    const running = element
+      .getAnimations({subtree: true})
+      .filter((animation) => animation.playState === 'running')
+      .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
+
+    expect(running, 'animations still running').to.have.length(0);
+  });
+}
+
 Cypress.Commands.add('checkDialogAccessibility', (options?: Options) => {
   // Scoped to the dialog itself: while it is open the rest of the document is inert, and a
   // violation reported against the whole page would not say which of the two it came from.
@@ -107,6 +124,7 @@ Cypress.Commands.add('checkDialogAccessibility', (options?: Options) => {
   // starts, so a lingering predecessor holds this assertion until it is gone.
   cy.get('mat-dialog-container').should('be.visible').and('have.class', 'mdc-dialog--open');
   cy.get('mat-dialog-container .mat-mdc-dialog-inner-container').should(expectFadedIn);
+  cy.get('mat-dialog-container').should(expectAnimationsSettled);
   cy.checkAccessibility('mat-dialog-container', options);
 });
 
@@ -118,4 +136,9 @@ Cypress.Commands.add('checkMenuAccessibility', (options?: Options) => {
 Cypress.Commands.add('checkSelectAccessibility', (options?: Options) => {
   cy.get('.mat-mdc-select-panel').should('be.visible').and(expectFadedIn);
   cy.checkAccessibility('.mat-mdc-select-panel', options);
+});
+
+Cypress.Commands.add('checkAutocompleteAccessibility', (options?: Options) => {
+  cy.get('.mat-mdc-autocomplete-panel').should('be.visible').and(expectFadedIn);
+  cy.checkAccessibility('.mat-mdc-autocomplete-panel', options);
 });

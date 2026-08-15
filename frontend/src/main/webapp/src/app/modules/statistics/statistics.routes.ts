@@ -1,9 +1,7 @@
 import {Routes} from '@angular/router';
 import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import {StatisticsGeneralComponent} from './views/general/statistics-general.component';
-import {
-  StatisticsSchoolStarterPackagesComponent
-} from './views/school-starter-packages/statistics-school-starter-packages.component';
+import {StatisticsChildrenComponent} from './views/children/statistics-children.component';
 import {StatisticsSettingsResolver} from './resolver/statistics-settings-resolver.component';
 
 export const routes: Routes = [
@@ -24,8 +22,11 @@ export const routes: Routes = [
     }
   },
   {
-    path: 'schulstartpakete',
-    title: 'Statistik - Schulstartpakete',
-    component: StatisticsSchoolStarterPackagesComponent,
+    path: 'auswertung-kinder',
+    title: 'Statistik - Auswertung Kinder',
+    component: StatisticsChildrenComponent,
+    providers: [
+      provideCharts(withDefaultRegisterables())
+    ]
   },
 ];

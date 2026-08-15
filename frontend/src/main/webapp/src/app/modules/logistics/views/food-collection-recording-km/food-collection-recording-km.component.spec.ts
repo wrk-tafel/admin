@@ -131,4 +131,43 @@ describe('FoodCollectionRecordingKmComponent', () => {
     expect(component.needsKmDifferenceConfirmation()).toBe(false);
   });
 
+  it('liveDistanceKm - reports the distance live once both values make sense together', () => {
+    const component = createComponent({...mockRouteData, foodCollectionData: undefined});
+
+    expect(component.liveDistanceKm()).toBeNull();
+
+    component.kmStart.setValue(100);
+    expect(component.liveDistanceKm()).toBeNull();
+
+    component.kmEnd.setValue(142);
+    expect(component.liveDistanceKm()).toBe(42);
+  });
+
+  it('tabStatus - undefined while nothing has been entered, invalid while incomplete/wrong', () => {
+    const component = createComponent({...mockRouteData, foodCollectionData: undefined});
+
+    expect(component.tabStatus()).toBeUndefined();
+
+    component.kmStart.setValue(200);
+    expect(component.tabStatus()).toBe('invalid');
+
+    component.kmEnd.setValue(150);
+    expect(component.tabStatus()).toBe('invalid');
+  });
+
+  it('tabStatus - complete once loaded, unsaved after an edit, complete again after markAsSaved', () => {
+    const component = createComponent();
+
+    expect(component.tabStatus()).toBe('complete');
+
+    // setValue() alone (as used throughout this file) doesn't mark a control dirty - only real
+    // input through the template does, which markAsDirty() stands in for here.
+    component.kmEnd.setValue(999);
+    component.kmEnd.markAsDirty();
+    expect(component.tabStatus()).toBe('unsaved');
+
+    component.markAsSaved();
+    expect(component.tabStatus()).toBe('complete');
+  });
+
 });

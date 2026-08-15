@@ -8,11 +8,13 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -30,6 +32,8 @@ import org.springframework.web.client.RestClient
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 private const val MAILPIT_SMTP_PORT = 1025
@@ -125,7 +129,9 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         // but it cannot rule the case out: a poll already in flight holds its rows in memory and can
         // deliver them after both of these lines have run. That is why the assertions below count
         // this test's own three subjects instead of what Mailpit holds in total.
-        transactionTemplate.executeWithoutResult { mailOutboxRepository.deleteAll() }
+        // Set-based: a row loaded for a per-row delete can be gone by the time it is flushed, since
+        // every context's retention cleanup works this table too, and that rolls the drain back.
+        transactionTemplate.executeWithoutResult { mailOutboxRepository.deleteAllInBatch() }
         mailpitClient.delete().uri("/api/v1/messages").retrieve().toBodilessEntity()
 
         testUser = transactionTemplate.execute { userRepository.saveAndFlush(createUser()) }!!
@@ -138,10 +144,25 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         transactionTemplate.executeWithoutResult {
             val household = householdRepository.saveAndFlush(createHousehold(testUser.employee!!, testCountry))
             household.mainPerson = household.persons.first { it.isMainPerson }
+            // A member born two years after the distribution being mailed - the household is read as
+            // it is now, so re-sending an old distribution's mails has to cope with people who joined
+            // it since, whose age on that day is negative and belongs in no age range.
+            household.persons.add(
+                PersonEntity(household = household, country = testCountry).apply {
+                    lastname = "born-after"
+                    firstname = "born-after"
+                    birthDate = LocalDate.now().minusYears(1)
+                    gender = Gender.FEMALE
+                },
+            )
             householdRepository.saveAndFlush(household)
             householdId = household.id!!
 
-            val distribution = distributionRepository.saveAndFlush(createDistribution(testUser))
+            // A past distribution rather than today's: that is what the statistics exports bucket
+            // ages against, and re-sending its mails is the flow this test stands in for.
+            val distribution = distributionRepository.saveAndFlush(
+                createDistribution(testUser).apply { startedAt = LocalDateTime.now().minusYears(3) },
+            )
             distribution.statistic = DistributionStatisticEntity(distribution = distribution)
             distributionRepository.saveAndFlush(distribution)
             distributionId = distribution.id!!
@@ -169,7 +190,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
                 householdRepository.delete(household)
             }
             userRepository.deleteById(testUser.id!!)
-            mailOutboxRepository.deleteAll()
+            mailOutboxRepository.deleteAllInBatch()
         }
     }
 

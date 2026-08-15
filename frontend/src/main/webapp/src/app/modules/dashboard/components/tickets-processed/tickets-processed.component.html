@@ -6,5 +6,19 @@
     } @else {
       <div testid="tickets-processed-count" class="text-4xl leading-none">-</div>
     }
+    @if (percentProcessed() !== null) {
+      <!-- Guarded on `!== null` rather than `@if (percentProcessed(); as percent)`: a 0% bar (no
+           tickets processed yet, but a total exists) is a real, meaningful state and `0` is falsy
+           in a plain truthiness check. A plain div bar rather than `mat-progress-bar`: these panels
+           are colour-filled (mat-card-primary/warning/success), and a white-on-translucent-white
+           bar is what stays legible against any of the three - see route-progress.component.html
+           for the same reasoning applied to per-stop segments. -->
+      <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/25" role="progressbar"
+           [attr.aria-label]="countProcessedTickets() + ' von ' + countTotalTickets() + ' Tickets abgearbeitet'"
+           aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="percentProcessed()"
+           testid="tickets-processed-progress">
+        <div class="h-full rounded-full bg-white" [style.width.%]="percentProcessed()"></div>
+      </div>
+    }
   </mat-card-content>
 </mat-card>

@@ -70,13 +70,13 @@ class CarServiceTest {
 
     @Test
     fun `update car`() {
-        val existingEntity = CarEntity(licensePlate = "Old Plate", sortOrder = 1, enabled = true).apply {
+        val existingEntity = CarEntity(licensePlate = "W-OLD-1", sortOrder = 1, enabled = true).apply {
             id = 99
             name = "Old Car"
         }
         val updated = CarRequest(
             id = existingEntity.id!!,
-            licensePlate = "Updated Plate",
+            licensePlate = "W-UPD-1",
             name = "Updated Car",
             enabled = false,
             sortOrder = 5,
@@ -115,7 +115,7 @@ class CarServiceTest {
     fun `create car assigns next sort order after the current max, ignoring the input value`() {
         val createInput = CarRequest(
             id = null,
-            licensePlate = "New Plate",
+            licensePlate = "W-NEW-1",
             name = "New Car",
             enabled = true,
             sortOrder = 999,
@@ -145,7 +145,7 @@ class CarServiceTest {
     fun `create car assigns sort order 1 when no cars exist yet`() {
         val createInput = CarRequest(
             id = null,
-            licensePlate = "New Plate",
+            licensePlate = "W-NEW-1",
             name = "New Car",
             enabled = true,
             sortOrder = 999,
@@ -161,6 +161,52 @@ class CarServiceTest {
         val result = service.createCar(createInput)
 
         assertThat(result.sortOrder).isEqualTo(1)
+    }
+
+    @Test
+    fun `create car normalizes the license plate and trims the name`() {
+        val createInput = CarRequest(
+            id = null,
+            licensePlate = "  w-12345x ",
+            name = "  Bus 1  ",
+            enabled = true,
+            sortOrder = 0,
+        )
+
+        every { carRepository.findAll() } returns emptyList()
+        every { carRepository.save(any()) } answers {
+            val arg = firstArg() as CarEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createCar(createInput)
+
+        assertThat(result.licensePlate).isEqualTo("W-12345X")
+        assertThat(result.name).isEqualTo("Bus 1")
+    }
+
+    @Test
+    fun `update car normalizes the license plate and trims the name`() {
+        val existingEntity = CarEntity(licensePlate = "W-11111A", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Old Car"
+        }
+        val updated = CarRequest(
+            id = existingEntity.id!!,
+            licensePlate = " w-12345x",
+            name = "Bus 1 ",
+            enabled = true,
+            sortOrder = 1,
+        )
+
+        every { carRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { carRepository.save(any()) } answers { firstArg() as CarEntity }
+
+        val result = service.updateCar(existingEntity.id!!, updated)
+
+        assertThat(result.licensePlate).isEqualTo("W-12345X")
+        assertThat(result.name).isEqualTo("Bus 1")
     }
 
     @Test
@@ -198,7 +244,7 @@ class CarServiceTest {
 
     @Test
     fun `create car logs the creation`() {
-        val createInput = CarRequest(id = null, licensePlate = "New Plate", name = "New Car", enabled = true, sortOrder = 999)
+        val createInput = CarRequest(id = null, licensePlate = "W-NEW-1", name = "New Car", enabled = true, sortOrder = 999)
         every { carRepository.findAll() } returns emptyList()
         every { carRepository.save(any()) } answers {
             val arg = firstArg() as CarEntity
@@ -211,18 +257,18 @@ class CarServiceTest {
 
             assertThat(logAppender.list).anySatisfy {
                 assertThat(it.level).isEqualTo(Level.INFO)
-                assertThat(it.formattedMessage).contains("Created car").contains("42").contains("New Plate")
+                assertThat(it.formattedMessage).contains("Created car").contains("42").contains("W-NEW-1")
             }
         }
     }
 
     @Test
     fun `update car logs the update`() {
-        val existingEntity = CarEntity(licensePlate = "Old Plate", sortOrder = 1, enabled = true).apply {
+        val existingEntity = CarEntity(licensePlate = "W-OLD-1", sortOrder = 1, enabled = true).apply {
             id = 99
             name = "Old Car"
         }
-        val updated = CarRequest(id = existingEntity.id!!, licensePlate = "Updated Plate", name = "Updated Car", enabled = false, sortOrder = 5)
+        val updated = CarRequest(id = existingEntity.id!!, licensePlate = "W-UPD-1", name = "Updated Car", enabled = false, sortOrder = 5)
         every { carRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
         every { carRepository.save(any()) } answers { firstArg() as CarEntity }
 
@@ -231,7 +277,7 @@ class CarServiceTest {
 
             assertThat(logAppender.list).anySatisfy {
                 assertThat(it.level).isEqualTo(Level.INFO)
-                assertThat(it.formattedMessage).contains("Updated car").contains("99").contains("Updated Plate")
+                assertThat(it.formattedMessage).contains("Updated car").contains("99").contains("W-UPD-1")
             }
         }
     }

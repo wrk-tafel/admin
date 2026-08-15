@@ -25,9 +25,18 @@ describe('SettingsCarsComponent', () => {
     sortOrder: 2
   };
 
+  const disabledCar: CarData = {
+    id: 3,
+    licensePlate: 'W-789',
+    name: 'Car 789',
+    enabled: false,
+    sortOrder: 3
+  };
+
   let carApiMock: Partial<CarApiService>;
   let toastrMock: Partial<TafelToastrService>;
   let liveAnnouncerMock: Partial<LiveAnnouncer>;
+  let matDialogMock: Partial<MatDialog>;
 
   beforeEach(() => {
     carApiMock = {
@@ -46,7 +55,7 @@ describe('SettingsCarsComponent', () => {
       announce: vi.fn(() => Promise.resolve())
     };
 
-    const matDialogMock: Partial<MatDialog> = {
+    matDialogMock = {
       open: vi.fn(() => ({afterClosed: () => of(undefined)})) as any
     };
 
@@ -167,6 +176,108 @@ describe('SettingsCarsComponent', () => {
     expect(component['cars']()?.cars.map(c => c.id)).toEqual([testCar1.id, testCar2.id]);
     expect(carApiMock.reorderCars).not.toHaveBeenCalled();
     expect(liveAnnouncerMock.announce).not.toHaveBeenCalled();
+  });
+
+  it('the status filter narrows the list to the active or the deactivated cars', () => {
+    carApiMock.getAllCars = vi.fn(() => of<CarList>({cars: [testCar1, disabledCar, testCar2]}));
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component['visibleCars']().map(car => car.id)).toEqual([testCar1.id, disabledCar.id, testCar2.id]);
+    expect(component['enabledCount']()).toBe(2);
+    expect(component['totalCount']()).toBe(3);
+
+    component['onFilterChanged']('ENABLED');
+    expect(component['visibleCars']().map(car => car.id)).toEqual([testCar1.id, testCar2.id]);
+
+    component['onFilterChanged']('DISABLED');
+    expect(component['visibleCars']().map(car => car.id)).toEqual([disabledCar.id]);
+  });
+
+  it('moveCar() counts the displayed positions and jumps over a car the filter hides', () => {
+    carApiMock.getAllCars = vi.fn(() => of<CarList>({cars: [testCar1, disabledCar, testCar2]}));
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['onFilterChanged']('ENABLED');
+
+    component['moveCar'](0, 1);
+
+    // the hidden car keeps its place, and the whole list is sent so the backend renumbers all of it
+    expect(carApiMock.reorderCars).toHaveBeenCalledWith([disabledCar.id, testCar2.id, testCar1.id]);
+    expect(liveAnnouncerMock.announce).toHaveBeenCalledWith('Fahrzeug Car 123 ist jetzt an Position 2 von 2.', 'assertive');
+  });
+
+  it('uppercaseLicensePlate() normalizes the case of an inline edit while typing', () => {
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['licensePlateControl'].setValue('w-123x');
+    component['uppercaseLicensePlate']();
+
+    expect(component['licensePlateControl'].value).toBe('W-123X');
+  });
+
+  it('saveEdit() normalizes the license plate and trims the name', () => {
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['startEdit'](testCar1);
+    component['licensePlateControl'].setValue(' w-123x ');
+    component['nameControl'].setValue(' Updated Name ');
+    component['saveEdit'](testCar1);
+
+    expect(carApiMock.updateCar).toHaveBeenCalledWith(testCar1.id, {
+      ...testCar1,
+      licensePlate: 'W-123X',
+      name: 'Updated Name'
+    });
+  });
+
+  it('addCar() creates the car the dialog returned', () => {
+    const newCar: CarData = {id: 0, licensePlate: 'W-999', name: 'New Car', enabled: true, sortOrder: 0};
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of({create: newCar})})) as any;
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['addCar']();
+
+    expect(carApiMock.createCar).toHaveBeenCalledWith(newCar);
+    expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('addCar() re-enables the existing car instead of creating a duplicate', () => {
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of({reactivate: disabledCar})})) as any;
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['addCar']();
+
+    expect(carApiMock.createCar).not.toHaveBeenCalled();
+    expect(carApiMock.updateCar).toHaveBeenCalledWith(disabledCar.id, {...disabledCar, enabled: true});
+  });
+
+  it('addCar() hands the dialog every car, so it can spot a deactivated duplicate', () => {
+    carApiMock.getAllCars = vi.fn(() => of<CarList>({cars: [testCar1, disabledCar]}));
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['addCar']();
+
+    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {existingCars: [testCar1, disabledCar]}
+    }));
   });
 
   it('drop() reverts and shows an error toast when persisting fails', () => {

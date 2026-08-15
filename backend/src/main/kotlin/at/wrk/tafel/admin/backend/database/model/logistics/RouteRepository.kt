@@ -9,6 +9,9 @@ import java.time.LocalDate
 interface RouteRepository : JpaRepository<RouteEntity, Long> {
     fun findByEnabledIsTrue(): List<RouteEntity>
 
+    /** every route with at least one stop at this shop - distinct, since a route may stop there twice */
+    fun findDistinctByStopsShopId(shopId: Long): List<RouteEntity>
+
     /**
      * Claims the right to announce that this route has reached its last stop today, and returns 1
      * when the claim was granted - a caller that gets 0 must stay silent, someone else already said

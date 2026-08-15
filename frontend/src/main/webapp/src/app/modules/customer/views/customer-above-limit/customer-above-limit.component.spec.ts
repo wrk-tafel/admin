@@ -1,13 +1,16 @@
 import {TestBed} from '@angular/core/testing';
+import {HttpHeaders, HttpResponse, provideHttpClient, withXhr} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideRouter} from '@angular/router';
 import {CustomerAboveLimitItem, CustomerAboveLimitResponse, CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {CustomerAboveLimitComponent} from './customer-above-limit.component';
-import {Router} from '@angular/router';
 import {of} from 'rxjs';
 import type {MockedObject} from 'vitest';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 describe('CustomerAboveLimitComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
-  let router: MockedObject<Router>;
+  let fileHelperService: MockedObject<FileHelperService>;
 
   const mockItem: CustomerAboveLimitItem = {
     customer: {
@@ -25,7 +28,8 @@ describe('CustomerAboveLimitComponent', () => {
     },
     totalSum: 1500,
     limit: 1000,
-    amountExceededLimit: 500
+    amountExceededLimit: 500,
+    percentageExceededLimit: 50
   };
 
   const mockCustomerAboveLimitResponse: CustomerAboveLimitResponse = {
@@ -38,27 +42,31 @@ describe('CustomerAboveLimitComponent', () => {
 
   beforeEach(() => {
     const customerApiServiceSpy = {
-      getCustomersAboveLimit: vi.fn().mockName('CustomerApiService.getCustomersAboveLimit')
+      getCustomersAboveLimit: vi.fn().mockName('CustomerApiService.getCustomersAboveLimit'),
+      generateCustomersAboveLimitCsv: vi.fn().mockName('CustomerApiService.generateCustomersAboveLimitCsv')
     } as any;
-    const routerSpy = {
-      navigate: vi.fn().mockName('Router.navigate')
+    const fileHelperServiceSpy = {
+      downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
     } as any;
 
     TestBed.configureTestingModule({
       providers: [
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: CustomerApiService,
           useValue: customerApiServiceSpy
         },
         {
-          provide: Router,
-          useValue: routerSpy
+          provide: FileHelperService,
+          useValue: fileHelperServiceSpy
         }
       ]
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
-    router = TestBed.inject(Router) as MockedObject<Router>;
+    fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
   });
 
   it('component can be created', () => {
@@ -77,7 +85,7 @@ describe('CustomerAboveLimitComponent', () => {
     expect(component.customerAboveLimitData()).toEqual(mockCustomerAboveLimitResponse);
   });
 
-  it('get above limit with page', () => {
+  it('get above limit with page uses the current sort state', () => {
     const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
     const component = fixture.componentInstance;
 
@@ -86,7 +94,8 @@ describe('CustomerAboveLimitComponent', () => {
 
     component.getAboveLimit(page);
 
-    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(page, undefined);
+    // defaults to the backend's own default sort (amountExceededLimit, desc) until a header is clicked
+    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(page, undefined, 'amountExceededLimit', 'desc');
     expect(component.customerAboveLimitData()).toEqual(mockCustomerAboveLimitResponse);
   });
 
@@ -107,14 +116,60 @@ describe('CustomerAboveLimitComponent', () => {
     expect(component.customerAboveLimitData()).toBeUndefined();
   });
 
-  it('show customer detail calls router navigation', () => {
+  it('sorting reloads the first page with the newly selected sort', () => {
+    const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('customerAboveLimitData', mockCustomerAboveLimitResponse);
+    fixture.detectChanges();
+
+    customerApiService.getCustomersAboveLimit.mockReturnValue(of(mockCustomerAboveLimitResponse));
+
+    component.onSortChange({active: 'totalSum', direction: 'asc'});
+
+    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(1, mockCustomerAboveLimitResponse.pageSize, 'totalSum', 'asc');
+  });
+
+  it('clearing the sort direction falls back to descending rather than no sort', () => {
+    const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
+    const component = fixture.componentInstance;
+    customerApiService.getCustomersAboveLimit.mockReturnValue(of(mockCustomerAboveLimitResponse));
+
+    component.onSortChange({active: 'limit', direction: ''});
+
+    expect(customerApiService.getCustomersAboveLimit).toHaveBeenCalledWith(1, undefined, 'limit', 'desc');
+  });
+
+  it('generates and downloads the csv export for the current sort', () => {
     const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
     const component = fixture.componentInstance;
 
-    const customerId = 123;
-    component.showCustomerDetail(customerId);
+    const blob = new Blob(['csv-content']);
+    customerApiService.generateCustomersAboveLimitCsv.mockReturnValue(of(
+      new HttpResponse({
+        body: blob,
+        headers: new HttpHeaders({'content-disposition': 'inline; filename=kunden_ueber_limit_13.08.2026.csv'})
+      })
+    ));
 
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', customerId]);
+    component['generateCsv']();
+
+    expect(customerApiService.generateCustomersAboveLimitCsv).toHaveBeenCalledWith('amountExceededLimit', 'desc');
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('kunden_ueber_limit_13.08.2026.csv', blob);
+  });
+
+  it('a household with no valid-until date is neither valid nor invalid', () => {
+    const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
+    const component = fixture.componentInstance;
+
+    expect(component['isValid']({...mockItem, customer: {...mockItem.customer, validUntil: undefined}})).toBe(false);
+  });
+
+  it('bar width caps at 100 even when the percentage exceeds it', () => {
+    const fixture = TestBed.createComponent(CustomerAboveLimitComponent);
+    const component = fixture.componentInstance;
+
+    expect(component['barWidth']({...mockItem, percentageExceededLimit: 240})).toBe(100);
+    expect(component['barWidth']({...mockItem, percentageExceededLimit: 30})).toBe(30);
   });
 
   it('trackByCustomerId returns the customer id', () => {

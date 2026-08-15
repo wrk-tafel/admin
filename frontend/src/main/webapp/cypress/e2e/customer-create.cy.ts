@@ -30,6 +30,36 @@ describe('Customer Creation', () => {
     cy.url().should('include', '/kunden/detail');
   });
 
+  it('breaks the validation result down into the amounts it was calculated from', () => {
+    createCustomer();
+
+    cy.byTestId('validationresult-dialog')
+      .should('be.visible')
+      .within(() => {
+        // the two adults' income; the 3-year-old has none and the 8-year-old is not in the household
+        cy.byTestId('detail-income').should('contain.text', '1.000,00');
+        // the 8-year-old is not in the household, so nothing of theirs is counted - only the
+        // 3-year-old's "ab 3" tier plus the flat child tax allowance
+        cy.byTestId('detail-familyallowance').should('contain.text', '148,00');
+        cy.byTestId('detail-childtaxallowance').should('contain.text', '70,90');
+        // one child in the household, and the sibling addition starts at two
+        cy.byTestId('detail-siblingaddition').should('contain.text', '0,00');
+        cy.byTestId('total-income').should('contain.text', '1.218,90');
+
+        // 2 adults and 1 child in the household, none of them beyond the base household size
+        cy.byTestId('detail-baselimit')
+          .should('contain.text', 'Grundbetrag (2 Erw., 1 Kind)')
+          .and('contain.text', '3.289,00');
+        cy.byTestId('detail-additionaladults').should('not.exist');
+        cy.byTestId('detail-additionalchildren').should('not.exist');
+        cy.byTestId('detail-tolerance').should('contain.text', '100,00');
+        cy.byTestId('total-limit').should('contain.text', '3.389,00');
+
+        cy.byTestId('amount-exceeded').should('contain.text', '0,00');
+        cy.byTestId('ok-button').click();
+      });
+  });
+
   it('create new customer not qualified and save denied', () => {
     createCustomer(10000);
 
@@ -51,6 +81,20 @@ describe('Customer Creation', () => {
     cy.url().should('include', '/kunden/detail');
   });
 
+  it('reports a household composition that has no configured income limit', () => {
+    // a household of one child and no adult - no income limit is configured for that composition,
+    // and reading that as a limit of 0,00 would deny the household its eligibility silently
+    enterCustomerData(10);
+    cy.byTestId('incomeInput').type('500');
+
+    cy.byTestId('validate-button').click();
+
+    cy.get('.toast-message')
+      .should('be.visible')
+      .should('contain.text', 'Kein Einkommenslimit für diese Haushaltszusammensetzung konfiguriert (Erwachsene: 0, Kinder: 1)!');
+    cy.byTestId('validationresult-dialog').should('not.exist');
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);
@@ -59,6 +103,139 @@ describe('Customer Creation', () => {
       cy.byTestId('lastnameInput').should('be.visible').type('Mustermann');
       cy.byTestId('save-button').should('exist');
     });
+  });
+
+  it('shows a live eligibility summary that updates without clicking Anspruch prüfen', () => {
+    enterCustomerData();
+
+    cy.byTestId('eligibility-summary').should('be.visible');
+    cy.byTestId('eligibility-status').should('contain.text', 'Anspruch vorhanden');
+    cy.byTestId('eligibility-personcount').should('contain.text', '1');
+
+    cy.byTestId('incomeInput').type('10000');
+    // the debounced /households/validate call needs a moment before the summary catches up
+    cy.byTestId('eligibility-status', {timeout: 8000}).should('contain.text', 'Kein Anspruch vorhanden');
+    cy.byTestId('eligibility-amount').should('be.visible');
+  });
+
+  it('shows an early duplicate warning once lastname, firstname and birthdate match an existing customer', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const birthDate = getBirthDateForAge(40);
+      const lastname = 'Mustermann' + randomNumber;
+      const firstname = 'Max' + randomNumber;
+
+      cy.createCustomer({
+        firstname,
+        lastname,
+        birthDate,
+        gender: Gender.MALE,
+        country: {id: 165, code: 'AT', name: 'Österreich'},
+        telephoneNumber: '0123456789',
+        email: 'existing.customer@test.com',
+        employer: 'employer',
+        income: 500,
+        address: {street: 'Teststraße', houseNumber: '1', city: 'Wien', postalCode: 1010},
+        validUntil: dayjs().add(1, 'year').toDate()
+      }).then((response) => {
+        const existingCustomerId = response.body.data.id;
+
+        cy.byTestId('possible-duplicates-warning').should('not.exist');
+
+        cy.byTestId('lastnameInput').type(lastname);
+        cy.byTestId('firstnameInput').type(firstname);
+        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('YYYY-MM-DD'));
+
+        cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('be.visible');
+        cy.byTestId('possible-duplicate-' + existingCustomerId)
+          .should('be.visible')
+          .and('contain.text', lastname)
+          .and('contain.text', firstname);
+
+        cy.byTestId('possible-duplicate-' + existingCustomerId).find('a').click();
+        // the typed identity fields count as unsaved changes, so the guard asks before leaving
+        cy.byTestId('unsavedchanges-dialog').within(() => {
+          cy.byTestId('ok-button').click();
+        });
+        cy.url().should('include', '/kunden/detail/' + existingCustomerId);
+      });
+    });
+  });
+
+  it('renders additional persons as expansion panels, auto-expanding only the newly-added one', () => {
+    enterAdditionalPersonData(0, {
+      id: 0,
+      key: 0,
+      receivesFamilyAllowance: false,
+      lastname: 'Add',
+      firstname: 'Adult 1',
+      birthDate: getBirthDateForAge(30),
+      gender: Gender.MALE,
+      employer: 'test employer',
+      income: 500,
+      country: {id: 1, code: 'AF', name: 'Afghanistan'},
+      excludeFromHousehold: false
+    });
+    cy.byTestId('personform-0').should('be.visible');
+    cy.byTestId('personform-header-0').should('contain.text', 'Add Adult 1');
+
+    enterAdditionalPersonData(1, {
+      id: 1,
+      key: 1,
+      receivesFamilyAllowance: true,
+      lastname: 'Add',
+      firstname: 'Child 1',
+      birthDate: getBirthDateForAge(3),
+      gender: Gender.FEMALE,
+      income: 0,
+      country: {id: 2, code: 'EG', name: 'Ägypten'},
+      excludeFromHousehold: false
+    });
+
+    // only the newly-added person (index 1) stays open - the first one collapses back into its summary line
+    cy.byTestId('personform-1').should('be.visible');
+    cy.byTestId('personform-0').should('not.be.visible');
+    cy.byTestId('personform-header-1').should('contain.text', 'Add Child 1').and('contain.text', 'Familienbeihilfe');
+
+    // clicking a collapsed header re-opens it
+    cy.byTestId('personform-header-0').click();
+    cy.byTestId('personform-0').should('be.visible');
+  });
+
+  it('"Gültig bis" quick-picks add the given number of months from today', () => {
+    cy.byTestId('validUntilQuickPick-6m').click();
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').format('YYYY-MM-DD'));
+
+    cy.byTestId('validUntilQuickPick-12m').click();
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').add(12, 'months').format('YYYY-MM-DD'));
+  });
+
+  it('shows the unsaved-changes indicator once the form is dirty, and Speichern is never styled as danger while merely disabled', () => {
+    cy.byTestId('unsaved-changes-indicator').should('not.exist');
+    cy.byTestId('save-button').should('be.disabled').and('not.have.class', 'button-danger');
+
+    cy.byTestId('lastnameInput').type('a');
+    cy.byTestId('unsaved-changes-indicator').should('be.visible').and('contain.text', 'Ungespeicherte Änderungen');
+  });
+
+  it('warns before leaving with unsaved changes and lets the operator cancel or confirm', () => {
+    cy.byTestId('lastnameInput').type('Mustermann');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.byTestId('unsavedchanges-dialog').should('be.visible');
+    // the dialog exists only after this click, so no other accessibility gate sees it -
+    // see cypress/support/accessibility.ts
+    cy.checkDialogAccessibility();
+
+    cy.byTestId('unsavedchanges-dialog').within(() => {
+      cy.byTestId('cancel-button').click();
+    });
+    cy.url().should('include', '/kunden/anlegen');
+
+    cy.contains('a', 'Kunden suchen').click();
+    cy.byTestId('unsavedchanges-dialog').within(() => {
+      cy.byTestId('ok-button').click();
+    });
+    cy.url().should('include', '/kunden/suchen');
   });
 
   describe('Supervisor', () => {
@@ -183,10 +360,10 @@ describe('Customer Creation', () => {
     cy.byTestId('validate-button').click();
   }
 
-  function enterCustomerData() {
+  function enterCustomerData(age = 25) {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
-    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(25)).format('YYYY-MM-DD'));
+    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(age)).format('YYYY-MM-DD'));
     cy.byTestId('genderInput').click();
     cy.byTestId('genderInput-option-MALE').click();
     cy.byTestId('countryInput').click();

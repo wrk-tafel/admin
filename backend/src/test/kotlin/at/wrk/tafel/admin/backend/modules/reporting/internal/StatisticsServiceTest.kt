@@ -7,7 +7,9 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
-import at.wrk.tafel.admin.backend.modules.reporting.SchoolStarterPackageItem
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.reporting.ChildAgeCountItem
+import at.wrk.tafel.admin.backend.modules.reporting.ChildItem
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetail
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsResponse
@@ -21,6 +23,7 @@ import io.mockk.slot
 import jakarta.persistence.EntityManager
 import jakarta.persistence.Query
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.PageImpl
@@ -332,60 +335,72 @@ internal class StatisticsServiceTest {
                 beneficiaryCustomers = StatisticsDetail(
                     title = "30",
                     subTitle = "Bezugsberechtigte Haushalte",
+                    value = 30.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 beneficiaryPersons = StatisticsDetail(
                     title = "30",
                     subTitle = "Bezugsberechtigte Personen",
+                    value = 30.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 beneficiaryCustomersWithChildren = StatisticsDetail(
                     title = "30",
                     subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+                    value = 30.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 singleParentHouseholds = StatisticsDetail(
                     title = "30",
                     subTitle = "Alleinerzieher (Haushalte)",
+                    value = 30.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 sheltersCount = StatisticsDetail(
                     title = "60",
                     subTitle = "Notschlafstellen (Anzahl)",
+                    value = 60.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 sheltersAverage = StatisticsDetail(
                     title = "20,00",
                     subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
+                    value = 20.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 sheltersPersonsCount = StatisticsDetail(
                     title = "60",
                     subTitle = "Versorgte Personen (Anzahl)",
+                    value = 60.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 shopsCount = StatisticsDetail(
                     title = "60",
                     subTitle = "Spender (Anzahl)",
+                    value = 60.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 shopItemsTotal = StatisticsDetail(
                     title = "60 kg",
                     subTitle = "Warenmenge (Gesamt)",
+                    value = 60.0,
+                    unit = "kg",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
                 shopItemsAverage = StatisticsDetail(
                     title = "20,00 kg",
                     subTitle = "Warenmenge (Durchschnitt pro Spender)",
+                    value = 20.0,
+                    unit = "kg",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
@@ -432,7 +447,7 @@ internal class StatisticsServiceTest {
      * The age-range/main-person/valid-household *filtering* itself now happens inside the
      * Specification passed to `personRepository.findAll(...)` (see `StatisticsServiceIT` for that
      * behavior against a real DB) - these unit tests only cover what the service does with
-     * whatever `PersonRepository` hands back: mapping to `SchoolStarterPackageItem` and
+     * whatever `PersonRepository` hands back: mapping to `ChildItem` and
      * translating `page` into a zero-based `PageRequest`.
      */
     private fun personEntity(householdId: Long, firstname: String, lastname: String, age: Int): PersonEntity {
@@ -445,13 +460,13 @@ internal class StatisticsServiceTest {
     }
 
     @Test
-    fun `generateSchoolStarterPackageCsv builds one row per person returned by the repository`() {
+    fun `generateChildrenCsv builds one row per person returned by the repository`() {
         every { personRepository.findAll(any<Specification<PersonEntity>>()) } returns listOf(
             personEntity(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
             personEntity(householdId = 20L, firstname = "B", lastname = "Household20", age = 8),
         )
 
-        val csvContent = String(service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10).bytes, Charsets.UTF_8)
+        val csvContent = String(service.generateChildrenCsv(ageMin = 6, ageMax = 10).bytes, Charsets.UTF_8)
 
         assertThat(csvContent).contains("Haushalt;Vorname;Nachname;Alter")
         assertThat(csvContent).contains("5;A;Household5;7")
@@ -459,17 +474,17 @@ internal class StatisticsServiceTest {
     }
 
     @Test
-    fun `generateSchoolStarterPackageCsv filename contains todays date`() {
+    fun `generateChildrenCsv filename contains todays date`() {
         every { personRepository.findAll(any<Specification<PersonEntity>>()) } returns emptyList()
 
-        val result = service.generateSchoolStarterPackageCsv(ageMin = 6, ageMax = 10)
+        val result = service.generateChildrenCsv(ageMin = 6, ageMax = 10)
 
-        assertThat(result.filename).startsWith("schulstartpakete_")
+        assertThat(result.filename).startsWith("auswertung_kinder_")
         assertThat(result.filename).endsWith(".csv")
     }
 
     @Test
-    fun `getSchoolStarterPackageData maps the returned page content to entries`() {
+    fun `getChildrenData maps the returned page content to entries`() {
         every {
             personRepository.findAll(any<Specification<PersonEntity>>(), any<Pageable>())
         } returns PageImpl(
@@ -478,10 +493,10 @@ internal class StatisticsServiceTest {
             1,
         )
 
-        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
+        val result = service.getChildrenData(ageMin = 6, ageMax = 10, page = 1)
 
         assertThat(result.items).containsExactly(
-            SchoolStarterPackageItem(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
+            ChildItem(householdId = 5L, firstname = "A", lastname = "Household5", age = 7),
         )
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.totalPages).isEqualTo(1)
@@ -489,7 +504,7 @@ internal class StatisticsServiceTest {
     }
 
     @Test
-    fun `getSchoolStarterPackageData totalCount reflects the pages totalElements, not the items on the current page`() {
+    fun `getChildrenData totalCount reflects the pages totalElements, not the items on the current page`() {
         // Page 1 of a 30-row result, 25 (a full page) returned here - PageImpl would otherwise
         // "correct" an inconsistent total (see its constructor) if offset + pageSize exceeded it,
         // so this has to stay a realistic full first page rather than an arbitrary short list.
@@ -498,7 +513,7 @@ internal class StatisticsServiceTest {
             personRepository.findAll(any<Specification<PersonEntity>>(), any<Pageable>())
         } returns PageImpl(fullPage, PageRequest.of(0, 25), 30)
 
-        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1)
+        val result = service.getChildrenData(ageMin = 6, ageMax = 10, page = 1)
 
         assertThat(result.items).hasSize(25)
         assertThat(result.totalCount).isEqualTo(30L)
@@ -506,40 +521,112 @@ internal class StatisticsServiceTest {
     }
 
     @Test
-    fun `getSchoolStarterPackageData translates the 1-based page param into a 0-based PageRequest`() {
+    fun `getChildrenData translates the 1-based page param into a 0-based PageRequest`() {
         val pageableSlot = slot<Pageable>()
         every {
             personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
         } returns PageImpl(emptyList(), PageRequest.of(1, 25), 0)
 
-        service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 2)
+        service.getChildrenData(ageMin = 6, ageMax = 10, page = 2)
 
         assertThat(pageableSlot.captured.pageNumber).isEqualTo(1)
         assertThat(pageableSlot.captured.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
 
     @Test
-    fun `getSchoolStarterPackageData defaults to the first page`() {
+    fun `getChildrenData defaults to the first page`() {
         val pageableSlot = slot<Pageable>()
         every {
             personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
         } returns PageImpl(emptyList(), PageRequest.of(0, 25), 0)
 
-        val result = service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = null)
+        val result = service.getChildrenData(ageMin = 6, ageMax = 10, page = null)
 
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(pageableSlot.captured.pageNumber).isEqualTo(0)
     }
 
     @Test
-    fun `getSchoolStarterPackageData with invalid pageSize falls back to default`() {
+    fun `getChildrenData with invalid pageSize falls back to default`() {
         val pageableSlot = slot<Pageable>()
         every {
             personRepository.findAll(any<Specification<PersonEntity>>(), capture(pageableSlot))
         } returns PageImpl(emptyList(), PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE), 0)
 
-        service.getSchoolStarterPackageData(ageMin = 6, ageMax = 10, page = 1, pageSize = 999)
+        service.getChildrenData(ageMin = 6, ageMax = 10, page = 1, pageSize = 999)
 
         assertThat(pageableSlot.captured.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
+    }
+
+    @Test
+    fun `getChildrenData reports the age as of the given reference date`() {
+        every {
+            personRepository.findAll(any<Specification<PersonEntity>>(), any<Pageable>())
+        } returns PageImpl(
+            listOf(personEntity(householdId = 5L, firstname = "A", lastname = "Household5", age = 5)),
+            PageRequest.of(0, 25),
+            1,
+        )
+
+        val result = service.getChildrenData(
+            ageMin = 6,
+            ageMax = 10,
+            referenceDate = LocalDate.now().plusYears(1),
+        )
+
+        assertThat(result.items.single().age).isEqualTo(6)
+    }
+
+    @Test
+    fun `generateChildrenCsv reports the age as of the given reference date`() {
+        every { personRepository.findAll(any<Specification<PersonEntity>>()) } returns listOf(
+            personEntity(householdId = 5L, firstname = "A", lastname = "Household5", age = 5),
+        )
+
+        val csvContent = String(
+            service.generateChildrenCsv(
+                ageMin = 6,
+                ageMax = 10,
+                referenceDate = LocalDate.now().plusYears(1),
+            ).bytes,
+            Charsets.UTF_8,
+        )
+
+        assertThat(csvContent).contains("5;A;Household5;6")
+    }
+
+    @Test
+    fun `getChildrenAgeDistribution reports every age of the range, empty ones included`() {
+        val result = service.getChildrenAgeDistribution(ageMin = 6, ageMax = 8)
+
+        assertThat(result.items).containsExactly(
+            ChildAgeCountItem(age = 6, count = 0),
+            ChildAgeCountItem(age = 7, count = 0),
+            ChildAgeCountItem(age = 8, count = 0),
+        )
+    }
+
+    @Test
+    fun `children report rejects an inverted age range`() {
+        assertThatThrownBy { service.getChildrenData(ageMin = 11, ageMax = 10) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("'Alter von' darf nicht größer als 'Alter bis' sein!")
+
+        assertThatThrownBy { service.getChildrenAgeDistribution(ageMin = 11, ageMax = 10) }
+            .isInstanceOf(BusinessRuleException::class.java)
+
+        assertThatThrownBy { service.generateChildrenCsv(ageMin = 11, ageMax = 10) }
+            .isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `children report rejects an age outside the supported bounds`() {
+        assertThatThrownBy { service.getChildrenData(ageMin = -1, ageMax = 10) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("Alter muss zwischen 0 und 120 Jahren liegen!")
+
+        assertThatThrownBy { service.getChildrenData(ageMin = 6, ageMax = 121) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("Alter muss zwischen 0 und 120 Jahren liegen!")
     }
 }

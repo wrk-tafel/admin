@@ -1,70 +1,76 @@
-<form autocomplete="off" (ngSubmit)="$event.preventDefault()">
-  <mat-card class="shadow-sm">
-    <mat-card-content>
-      <div class="mb-4">
-        <h2 class="tafel-h5 text-lg font-semibold">Benutzer-Suche</h2>
-        <p class="mt-2 mb-0 text-sm text-slate-600">
-          Suche direkt über die Personalnummer oder über das Suchfeld.
-        </p>
-      </div>
+<mat-card>
+  <mat-card-content>
+    <div class="mb-4">
+      <h2 class="tafel-h5 text-lg font-semibold">Benutzer-Suche</h2>
+      <p class="mt-2 mb-0 text-sm text-slate-600">
+        Personalnummer für den direkten Sprung, alles andere für die Suche - wahlweise eingegrenzt
+        über den Status-Filter darunter.
+      </p>
+    </div>
 
-      <div class="mb-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div class="sm:w-1/3">
-            <mat-form-field class="w-full" subscriptSizing="dynamic">
-              <mat-label>Personalnummer</mat-label>
-              <input matInput testid="personnelNumberText" type="text" [formField]="searchForm.personnelNumber" (keydown.enter)="searchForPersonnelNumber()" tafelAutofocus>
-            </mat-form-field>
-          </div>
-          <div class="flex sm:w-2/3 items-center">
-            <button type="button" matButton="filled" class="self-center" testid="showuser-button" [disabled]="!this.searchForm.personnelNumber().value()" (click)="searchForPersonnelNumber()">Anzeigen</button>
-          </div>
-        </div>
+    <div class="mb-4">
+      <div class="flex items-center gap-2">
+        <mat-form-field class="w-full sm:w-2/3" subscriptSizing="dynamic">
+          <mat-label>Personalnummer oder Suchbegriff</mat-label>
+          <input matInput testid="searchInputText" type="text" [ngModel]="query()"
+                 (ngModelChange)="onQueryInput($event)" (keydown.enter)="search()" tafelAutofocus>
+        </mat-form-field>
+        <tafel-info-tooltip [testId]="'search-input-info-tooltip'"
+                            text="Eine reine Zahl springt bei einem exakten Treffer direkt zum Benutzer. Sonst werden Benutzername, Personalnummer, Nachname und Vorname durchsucht - Tippfehler werden toleriert, genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
       </div>
+    </div>
 
+    <div class="mb-6">
+      <mat-chip-listbox aria-label="Status" testid="search-status-filter" class="flex flex-wrap gap-2">
+        <mat-chip-option testid="status-filter-alle" [selected]="statusFilter() === 'alle'"
+                          (selectionChange)="onStatusFilterChange('alle', $event)">Alle</mat-chip-option>
+        <mat-chip-option testid="status-filter-aktiv" [selected]="statusFilter() === 'aktiv'"
+                          (selectionChange)="onStatusFilterChange('aktiv', $event)">Aktiv</mat-chip-option>
+        <mat-chip-option testid="status-filter-deaktiviert" [selected]="statusFilter() === 'deaktiviert'"
+                          (selectionChange)="onStatusFilterChange('deaktiviert', $event)">Deaktiviert</mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+
+    <div class="flex sm:w-1/3">
+      <button type="button" matButton="filled" testid="search-button" (click)="search()">Suchen</button>
+    </div>
+
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="searchresult-announcement">{{ searchAnnouncement() }}</div>
+
+    @if (searchResult(); as result) {
       <mat-divider class="!my-6"></mat-divider>
-
-      <div class="mb-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div class="flex sm:w-2/3 items-center gap-2">
-            <mat-form-field class="w-full" subscriptSizing="dynamic">
-              <mat-label>Suche</mat-label>
-              <input matInput testid="searchInputText" type="text" [formField]="searchForm.searchInput" (keydown.enter)="searchForDetails()">
-            </mat-form-field>
-            <tafel-info-tooltip [testId]="'search-input-info-tooltip'"
-                                text="Durchsucht Benutzername, Personalnummer, Nachname und Vorname. Tippfehler werden toleriert - genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
-          </div>
-
-          <div class="sm:w-1/3 flex items-center">
-            <mat-checkbox [formField]="searchForm.enabled" testid="enabledInput">Aktiv</mat-checkbox>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex sm:w-1/3 mt-6">
-        <button type="button" matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
-      </div>
-
-      <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
-           with its text is not reliably announced. -->
-      <div class="sr-only" role="status" testid="searchresult-announcement">{{ searchAnnouncement() }}</div>
-
-      @if(searchResult()) {
-        <mat-divider class="!my-6"></mat-divider>
-        <div class="mt-6">
-          <div class="mb-6">
-            <h2 class="tafel-h5 mb-6">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h2>
-            <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+      <div class="mt-6" testid="searchresult-table">
+        <div class="mb-6">
+          <h2 class="tafel-h5 mb-6">Suchergebnis ({{result.totalCount}} Benutzer)</h2>
+          @if (result.items.length > 0) {
+            <mat-paginator class="tafel-paginator-responsive" [length]="result.totalCount" [pageSize]="result.pageSize"
                            [pageSizeOptions]="pageSizeOptions"
-                           [pageIndex]="searchResult()!.currentPage - 1" [showFirstLastButtons]="true"
-                           (page)="searchForDetails($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
-          </div>
+                           [pageIndex]="result.currentPage - 1" [showFirstLastButtons]="true"
+                           (page)="search($event.pageIndex + 1, $event.pageSize, true, false)"></mat-paginator>
+          }
+        </div>
 
+        @if (result.items.length === 0) {
+          <div class="text-center py-6" testid="searchresult-empty">
+            <h3 class="tafel-h6 font-semibold mb-2">Keine Benutzer gefunden</h3>
+            <p class="mb-4 text-sm text-slate-600">Für diese Suche gibt es noch keinen Benutzer.</p>
+            <a matButton="filled" testid="create-user-cta" [routerLink]="['/benutzer/erstellen']">Benutzer anlegen</a>
+          </div>
+        } @else {
           <div class="hidden md:block">
-            <table mat-table [dataSource]="searchResult()?.items ?? []" class="min-w-full divide-y divide-gray-200 mt-4" aria-label="Liste der gefundenen Benutzer" testid="searchresult-table">
+            <table mat-table [dataSource]="result.items" class="min-w-full divide-y divide-gray-200 mt-4"
+                   aria-label="Liste der gefundenen Benutzer">
               <ng-container matColumnDef="icon">
                 <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
-                <td mat-cell *matCellDef="let user; let i = index"> <fa-icon [icon]="faUser"></fa-icon></td>
+                <td mat-cell *matCellDef="let user">
+                  @if (isLocked(user)) {
+                    <fa-icon [icon]="faLock" class="text-red-600" matTooltip="Benutzer ist gesperrt" aria-label="Benutzer ist gesperrt"></fa-icon>
+                  } @else {
+                    <fa-icon [icon]="faUser" class="text-slate-400"></fa-icon>
+                  }
+                </td>
               </ng-container>
 
               <ng-container matColumnDef="id">
@@ -74,9 +80,10 @@
 
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
-                <td mat-cell *matCellDef="let user; let i = index" [attr.testid]="'searchresult-name-' + i" class="px-4 py-2 cursor-pointer" (click)="navigateToUserDetail(user.id)">
+                <td mat-cell *matCellDef="let user; let i = index" [attr.testid]="'searchresult-name-' + i" class="px-4 py-2">
                   @if (user.lastname || user.firstname) {
-                    <a class="text-blue-600 hover:underline">{{user.lastname ? user.lastname : '-'}} {{user.firstname ? user.firstname : '-'}}</a>
+                    <a class="text-blue-600 hover:underline cursor-pointer after:content-[''] after:absolute after:inset-0"
+                       [routerLink]="['/benutzer/detail', user.id]">{{user.lastname ? user.lastname : '-'}} {{user.firstname ? user.firstname : '-'}}</a>
                   }
                   @if (!user.lastname && !user.firstname) {
                     <div>-</div>
@@ -89,58 +96,78 @@
                 <td mat-cell *matCellDef="let user; let i = index" [attr.testid]="'searchresult-personnelnumber-' + i" class="px-4 py-2">{{user.personnelNumber}}</td>
               </ng-container>
 
-              <ng-container matColumnDef="enabled">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktiv</th>
-                <td mat-cell *matCellDef="let user; let i = index" [attr.testid]="'searchresult-enabled-' + i" class="px-4 py-2">{{user.enabled ? 'Ja' : 'Nein'}}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Status</th>
                 <td mat-cell *matCellDef="let user; let i = index" class="px-4 py-2">
-                  <div class="flex gap-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
-                            matTooltip="Benutzerdetails anzeigen" aria-label="Benutzerdetails anzeigen">
-                      <fa-icon [icon]="faSearch"></fa-icon>
-                    </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
-                            matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
-                      <fa-icon [icon]="faPencil"></fa-icon>
-                    </button>
+                  <div class="flex flex-wrap gap-1">
+                    <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                          [ngClass]="user.enabled ? 'bg-green-700' : 'bg-slate-500'"
+                          [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
+                    @if (user.passwordChangeRequired) {
+                      <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-700"
+                            [attr.testid]="'searchresult-passwordchangerequired-' + i">Passwortänderung erforderlich</span>
+                    }
+                    @if (isLocked(user)) {
+                      <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-red-700"
+                            [attr.testid]="'searchresult-lockeduntil-' + i">Gesperrt bis {{user.lockedUntil | date : 'dd.MM.yyyy HH:mm'}}</span>
+                    }
                   </div>
                 </td>
               </ng-container>
 
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+                <td mat-cell *matCellDef="let user" class="px-4 py-2 relative">
+                  <button type="button" matButton="filled" [attr.testid]="'searchresult-edituser-button-' + user.id" (click)="editUser(user.id)"
+                          matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
+                    <fa-icon [icon]="faPencil"></fa-icon>
+                  </button>
+                </td>
+              </ng-container>
+
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" [attr.testid]="'searchresult-row-' + i"></tr>
+              <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="searchresult-row" class="relative hover:bg-slate-50"></tr>
             </table>
 
             <div class="mt-6">
-              <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
-                             [pageSizeOptions]="pageSizeOptions"
-                             [pageIndex]="searchResult()!.currentPage - 1" [showFirstLastButtons]="true"
-                             (page)="searchForDetails($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+              <mat-paginator class="tafel-paginator-responsive" [length]="result.totalCount" [pageSize]="result.pageSize"
+                             [pageIndex]="result.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                             (page)="search($event.pageIndex + 1, result.pageSize, true, false)"></mat-paginator>
             </div>
           </div>
 
           <div class="block md:hidden">
             <div class="flex flex-col gap-4 mb-4">
-              @for (user of this.searchResult()?.items; track user.id; let i = $index) {
-                <mat-card class="shadow-sm">
-                  <mat-card-header class="font-semibold">{{user.id}} - {{user.lastname}} {{user.firstname}}</mat-card-header>
+              @for (user of result.items; track user.id) {
+                <mat-card class="relative hover:bg-slate-50" [attr.testid]="'searchresult-card-' + user.id">
+                  <mat-card-header class="font-semibold">
+                    <div class="flex items-center gap-2">
+                      @if (isLocked(user)) {
+                        <fa-icon [icon]="faLock" class="text-red-600" aria-label="Benutzer ist gesperrt"></fa-icon>
+                      }
+                      <a class="after:content-[''] after:absolute after:inset-0"
+                         [routerLink]="['/benutzer/detail', user.id]">{{user.id}} - {{user.lastname}} {{user.firstname}}</a>
+                    </div>
+                  </mat-card-header>
                   <mat-card-content>
                     <div class="grid grid-cols-2 gap-2">
                       <div class="font-bold">Personalnummer:</div>
                       <div>{{user.personnelNumber}}</div>
-                      <div class="font-bold">Aktiv:</div>
-                      <div>{{user.enabled ? 'Ja' : 'Nein'}}</div>
+                      <div class="font-bold">Status:</div>
+                      <div class="flex flex-wrap gap-1">
+                        <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                              [ngClass]="user.enabled ? 'bg-green-700' : 'bg-slate-500'">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
+                        @if (user.passwordChangeRequired) {
+                          <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-700">Passwortänderung erforderlich</span>
+                        }
+                        @if (isLocked(user)) {
+                          <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-red-700">Gesperrt bis {{user.lockedUntil | date : 'dd.MM.yyyy HH:mm'}}</span>
+                        }
+                      </div>
                     </div>
                   </mat-card-content>
-                  <mat-card-actions class="flex gap-2 mt-2">
-                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showuser-button-' + i" (click)="navigateToUserDetail(user.id)"
-                            matTooltip="Benutzerdetails anzeigen" aria-label="Benutzerdetails anzeigen">
-                      <fa-icon [icon]="faSearch"></fa-icon>
-                    </button>
-                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i" (click)="editUser(user.id)"
+                  <mat-card-actions class="relative mt-2">
+                    <button type="button" matButton="filled" [attr.testid]="'searchresult-edituser-button-' + user.id" (click)="editUser(user.id)"
                             matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
@@ -149,14 +176,13 @@
               }
             </div>
             <div class="mt-2">
-              <mat-paginator class="tafel-paginator-responsive" [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
-                             [pageSizeOptions]="pageSizeOptions"
-                             [pageIndex]="searchResult()!.currentPage - 1" [showFirstLastButtons]="true"
-                             (page)="searchForDetails($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+              <mat-paginator class="tafel-paginator-responsive" [length]="result.totalCount" [pageSize]="result.pageSize"
+                             [pageIndex]="result.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                             (page)="search($event.pageIndex + 1, result.pageSize, true, false)"></mat-paginator>
             </div>
           </div>
-        </div>
-      }
-    </mat-card-content>
-  </mat-card>
-</form>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

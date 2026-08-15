@@ -30,6 +30,11 @@ class StaticValueEntity(
     @Column(name = "count_children")
     var countChildren: Int? = null
 
+    /**
+     * Lower bound of an age bracket, for the types keyed by age ([StaticValueType.FAMILY_ALLOWANCE]).
+     * A row applies "from age [age] on", up to the next higher tier - the seeded Familienbeihilfe
+     * rows (0/3/10/19) mirror the Austrian rate card, where the amount rises with the child's age.
+     */
     @Column(name = "age")
     var age: Int? = null
 }

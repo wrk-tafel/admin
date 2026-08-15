@@ -1,16 +1,15 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, effect, inject, signal, untracked} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
-import {MatSlideToggleChange, MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {
   faChevronDown,
   faChevronUp,
+  faDiamondTurnRight,
   faMagnifyingGlass,
   faNoteSticky,
   faPencil,
@@ -26,7 +25,16 @@ import {ShopApiService, ShopItem} from '../../../../api/shop-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {formatShopAddress} from '../../../../common/util/format-shop-address.util';
-import {EnabledFilter, matchesEnabledFilter} from '../enabled-filter';
+import {
+  EnabledFilter,
+  matchesEnabledFilter
+} from '../../../../common/components/tafel-enabled-filter/enabled-filter';
+import {
+  TafelEnabledFilterComponent
+} from '../../../../common/components/tafel-enabled-filter/tafel-enabled-filter.component';
+import {
+  TafelEnabledToggleComponent
+} from '../../../../common/components/tafel-enabled-toggle/tafel-enabled-toggle.component';
 import {RouteEditDialogComponent} from './dialogs/route-edit-dialog.component';
 
 interface RouteStopView {
@@ -44,7 +52,20 @@ interface RouteView {
   stops: RouteStopView[];
   stopsSummary: string;
   searchIndex: string;
+  /** the stops' share of searchIndex - a hit in here is invisible while the card is collapsed */
+  stopsSearchIndex: string;
+  /** undefined when the route has no stop with a resolved shop address to navigate to */
+  mapsUrl?: string;
+  /** only set when mapsUrl covers fewer stops than the route actually has */
+  mapsUrlTruncatedHint?: string;
 }
+
+// Google's directions URL takes an origin, a destination and at most 9 waypoints, so a single link
+// can cover 10 stops - same limit and reasoning as the Routen-Navi's own map link
+// (route-guidance.component.ts), which this composes for a planner reviewing the saved route.
+const MAX_MAP_STOPS = 10;
+
+const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
 
 @Component({
   selector: 'tafel-settings-routes',
@@ -56,8 +77,8 @@ interface RouteView {
     MatCardTitle,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonToggleModule,
-    MatSlideToggleModule,
+    TafelEnabledFilterComponent,
+    TafelEnabledToggleComponent,
     ReactiveFormsModule,
     FaIconComponent,
     MatButton,
@@ -96,13 +117,38 @@ export class SettingsRoutesComponent {
   protected readonly visibleRoutes = computed(() => {
     const search = this.searchText().trim().toLowerCase();
     const filter = this.enabledFilter();
-    return this.routeViews().filter(view =>
-      matchesEnabledFilter(view.route.enabled, filter) && (search.length === 0 || view.searchIndex.includes(search))
-    );
+    return this.routeViews()
+      .filter(view => matchesEnabledFilter(view.route.enabled, filter) && (search.length === 0 || view.searchIndex.includes(search)))
+      .sort((a, b) => a.route.number - b.route.number);
   });
+
+  // Announced to a screen reader on every search/filter/sort change: the cards on screen change on
+  // their own, which nothing else would tell an assistive-technology user (same reasoning as
+  // employees'/audit's own role="status" search announcement).
+  protected readonly searchAnnouncement = computed(
+    () => `${this.visibleRoutes().length} von ${this.totalCount()} Routen`
+  );
 
   constructor() {
     this.loadData();
+
+    // a search term that hits a route only through its stops finds a shop the collapsed card
+    // doesn't show, so such a route expands on its own to make the match visible; it never
+    // auto-collapses - the summary toggle stays the way back
+    effect(() => {
+      const search = this.searchText().trim().toLowerCase();
+      if (search.length === 0) {
+        return;
+      }
+      const matchedByStops = this.routeViews()
+        .filter(view => view.stopsSearchIndex.includes(search))
+        .map(view => view.route.id);
+      const expanded = new Set(untracked(this.expandedIds));
+      matchedByStops.forEach(id => expanded.add(id));
+      if (expanded.size !== untracked(this.expandedIds).size) {
+        this.expandedIds.set(expanded);
+      }
+    });
   }
 
   private loadData() {
@@ -144,7 +190,7 @@ export class SettingsRoutesComponent {
 
   protected editRoute(route: RouteData) {
     const dialogRef = this.dialog.open(RouteEditDialogComponent, {
-      data: {route, shops: this.shopsForRoute(route)},
+      data: {route, shops: this.activeShops()},
       width: '800px'
     });
 
@@ -159,10 +205,6 @@ export class SettingsRoutesComponent {
         });
       }
     });
-  }
-
-  protected onEnabledToggled(route: RouteData, event: MatSlideToggleChange) {
-    this.setRouteEnabled(route, event.checked);
   }
 
   protected setRouteEnabled(route: RouteData, enabled: boolean) {
@@ -191,35 +233,36 @@ export class SettingsRoutesComponent {
     this.expandedIds.set(expanded);
   }
 
-  protected onFilterChanged(event: MatButtonToggleChange) {
-    this.enabledFilter.set(event.value as EnabledFilter);
+  protected onFilterChanged(filter: EnabledFilter) {
+    this.enabledFilter.set(filter);
   }
 
   protected clearSearch() {
     this.searchControl.setValue('');
   }
 
-  // a disabled shop that a route already stops at stays selectable, so editing the route doesn't
-  // silently drop that stop
-  private shopsForRoute(route: RouteData): ShopItem[] {
-    const usedShopIds = route.stops.map(stop => stop.shopId);
-    return this._shops().filter(shop => shop.enabled || usedShopIds.includes(shop.id));
-  }
-
   private toRouteView(route: RouteData): RouteView {
     const stops = route.stops.map((stop, index) => this.toStopView(stop, index));
-    const searchIndex = [
-      route.number,
-      route.name,
-      route.note,
-      ...stops.map(stop => `${stop.label} ${stop.description ?? ''}`)
-    ].join(' ').toLowerCase();
+    const stopsSearchIndex = stops
+      .map(stop => `${stop.label} ${stop.description ?? ''}`)
+      .join(' ').toLowerCase();
+    const searchIndex = `${[route.number, route.name, route.note].join(' ').toLowerCase()} ${stopsSearchIndex}`;
+
+    // route.stops already arrives sorted by time (RouteService.mapRoute), so this is the exact
+    // order the driver will follow - no re-sorting needed here, unlike the live edit dialog
+    // preview, which sorts a still-being-edited FormArray.
+    const {mapsUrl, mapsUrlTruncatedHint} = buildRouteMapsUrl(
+      stops.filter(stop => !!stop.shopAddress).map(stop => stop.shopAddress as string)
+    );
 
     return {
       route,
       stops,
       stopsSummary: buildStopsSummary(stops),
-      searchIndex
+      searchIndex,
+      stopsSearchIndex,
+      mapsUrl,
+      mapsUrlTruncatedHint
     };
   }
 
@@ -241,6 +284,7 @@ export class SettingsRoutesComponent {
   protected readonly faXmark = faXmark;
   protected readonly faNoteSticky = faNoteSticky;
   protected readonly faRoute = faRoute;
+  protected readonly faDiamondTurnRight = faDiamondTurnRight;
   protected readonly faChevronDown = faChevronDown;
   protected readonly faChevronUp = faChevronUp;
 }
@@ -258,4 +302,33 @@ function buildStopsSummary(stops: RouteStopView[]): string {
     return `1 Stopp · ${stops[0].time}`;
   }
   return `${stops.length} Stopps · ${stops[0].time} – ${stops[stops.length - 1].time}`;
+}
+
+/**
+ * Composes the same kind of Google Maps directions link the Routen-Navi builds for its own
+ * "restliche Route" link (route-guidance.component.ts) - here over the route's whole, already
+ * time-sorted stop list, as the fastest sanity check a planner has for a stop order (#3240).
+ */
+function buildRouteMapsUrl(addresses: string[]): {mapsUrl?: string; mapsUrlTruncatedHint?: string} {
+  if (addresses.length === 0) {
+    return {};
+  }
+
+  const covered = addresses.slice(0, MAX_MAP_STOPS);
+  const destination = encodeURIComponent(covered[covered.length - 1]);
+  const waypoints = covered.slice(0, -1).map(address => encodeURIComponent(address));
+  const waypointsParam = waypoints.length > 0 ? `&waypoints=${waypoints.join('%7C')}` : '';
+  const mapsUrl = `${MAPS_DIRECTIONS_URL}&destination=${destination}${waypointsParam}&travelmode=driving`;
+
+  const overflow = addresses.length - MAX_MAP_STOPS;
+  if (overflow <= 0) {
+    return {mapsUrl};
+  }
+
+  const coveredHint = `Die Karte deckt die ersten ${MAX_MAP_STOPS} Stopps ab.`;
+  const mapsUrlTruncatedHint = overflow === 1
+    ? `${coveredHint} Der Stopp danach ist einzeln zu navigieren.`
+    : `${coveredHint} Die ${overflow} Stopps danach sind einzeln zu navigieren.`;
+
+  return {mapsUrl, mapsUrlTruncatedHint};
 }

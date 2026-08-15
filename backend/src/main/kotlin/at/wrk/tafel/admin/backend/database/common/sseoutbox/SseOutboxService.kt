@@ -41,7 +41,7 @@ class SseOutboxService(
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupOutbox() {
         val date = LocalDateTime.now().minus(tafelAdminProperties.sse.outboxRetention)
-        sseOutboxRepository.deleteAllByEventTimeBefore(date)
+        sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(date)
     }
 
     @Transactional
@@ -54,6 +54,22 @@ class SseOutboxService(
         sseOutboxEntity.payload = serializedPayload
 
         return sseOutboxRepository.save(sseOutboxEntity)
+    }
+
+    /**
+     * The latest event stored for [notificationName], for streams whose newest event *is* the
+     * current state (e.g. what the ticket monitor shows) - a fresh subscriber gets it replayed as
+     * its initial state instead of the publisher re-deriving that state. [after] bounds the lookup
+     * to events still relevant to the caller (rows live for the whole `outboxRetention`, which is
+     * far longer than any state here stays meaningful); `null` means no bound.
+     */
+    fun <T> findLatestEvent(notificationName: String, resultType: Class<T>, after: LocalDateTime?): T? {
+        val entity = if (after != null) {
+            sseOutboxRepository.findFirstByNotificationNameAndEventTimeAfterOrderByIdDesc(notificationName, after)
+        } else {
+            sseOutboxRepository.findFirstByNotificationNameOrderByIdDesc(notificationName)
+        }
+        return entity?.payload?.let { jsonMapper.readValue(it, resultType) }
     }
 
     /**

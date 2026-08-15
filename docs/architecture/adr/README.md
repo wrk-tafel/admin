@@ -36,6 +36,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0020](0020-reports-are-frozen-snapshots.md) | Reports and statistics are frozen snapshots, never live joins | accepted |
 | [0021](0021-documents-on-a-volume-metadata-in-the-database.md) | Documents on a mounted volume, metadata in the database | accepted |
 | [0025](0025-single-free-text-fuzzy-search.md) | One free-text search box over a trigger-maintained column | accepted |
+| [0048](0048-static-values-resolved-from-a-per-run-snapshot.md) | Static values resolved from a per-run snapshot instead of a cache | accepted |
 
 ### Interfaces and communication
 
@@ -44,6 +45,9 @@ instead, so a number's position in a group says nothing about its age.
 | [0008](0008-rest-api-and-dto-naming-conventions.md) | REST conventions and Request/Response/Item DTO naming | accepted |
 | [0005](0005-server-sent-events-with-a-transactional-outbox.md) | Real-time updates via SSE fed by a transactional outbox | accepted |
 | [0041](0041-mails-sent-through-an-outbox.md) | Mails queued in the database and sent by a poller | accepted |
+| [0045](0045-one-mail-per-transaction-taken-with-skip-locked.md) | One mail per transaction, taken with `FOR UPDATE SKIP LOCKED` | accepted |
+| [0046](0046-a-mail-given-up-on-is-kept-for-a-window-not-forever.md) | A mail given up on is kept for a window, not forever | accepted |
+| [0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md) | Scheduled jobs coordinate on their own rows first, ShedLock second | accepted |
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |
@@ -58,6 +62,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0032](0032-checkin-relays-scans-without-interpreting-them.md) | Check-in relays scan results without interpreting them | accepted |
 | [0023](0023-ticket-numbers-come-from-the-caller.md) | Ticket numbers come from the caller; backend enforces uniqueness | accepted |
 | [0024](0024-server-side-income-validation.md) | Income validation re-runs server-side, with supervisor override | accepted |
+| [0049](0049-the-above-limit-list-is-computed-live-not-materialized.md) | The above-limit list is computed from live data, never materialized | accepted |
 | [0022](0022-duplicate-detection-and-merge-by-side.md) | Fuzzy duplicate detection; merges resolved by side | accepted |
 
 ### Operations, build and delivery
@@ -93,6 +98,8 @@ decided. They live one level up, in `docs/architecture/`:
 |---|---|
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
 | [`push-outbox-evaluation.md`](../push-outbox-evaluation.md) | Whether push notifications should be sent through an outbox like mails and SSE events ([#3155](https://github.com/wrk-tafel/admin/issues/3155)) |
+| [`material-icons-migration-evaluation.md`](../material-icons-migration-evaluation.md) | Whether the frontend's FontAwesome icons can be replaced with Material icons, and which delivery form survives the pipeline's gates ([#3304](https://github.com/wrk-tafel/admin/issues/3304)) |
+| [`material-theming-migration-evaluation.md`](../material-theming-migration-evaluation.md) | Whether the frontend's custom styling can move onto Angular Material's own theming tooling, and which overrides are already silently dead ([#3306](https://github.com/wrk-tafel/admin/issues/3306)) |
 
 ## Writing a new one
 

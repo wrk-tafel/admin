@@ -10,7 +10,9 @@ describe('UploadDocumentPanelComponent', () => {
   let config: BehaviorSubject<AppConfig | null>;
 
   beforeEach(() => {
-    config = new BehaviorSubject<AppConfig | null>({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: true});
+    config = new BehaviorSubject<AppConfig | null>({
+      version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: true, environmentLabel: ''
+    });
     const configApiServiceSpy = {
       observeConfig: vi.fn().mockName('ConfigApiService.observeConfig').mockReturnValue(config.asObservable())
     };
@@ -40,7 +42,9 @@ describe('UploadDocumentPanelComponent', () => {
   });
 
   it('hides the scanner source when the deployment has no scanner folder', () => {
-    configApiService.observeConfig.mockReturnValue(of({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: false}));
+    configApiService.observeConfig.mockReturnValue(of({
+      version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: false, environmentLabel: ''
+    }));
 
     const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
     fixture.detectChanges();
@@ -71,7 +75,7 @@ describe('UploadDocumentPanelComponent', () => {
     fixture.componentInstance.selectSource('scanner');
     fixture.componentInstance.selectedScannerFileName.set('scan-1.pdf');
 
-    config.next({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: false});
+    config.next({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: false, environmentLabel: ''});
     fixture.detectChanges();
 
     expect(fixture.componentInstance.scannerEnabled()).toBe(false);
@@ -86,9 +90,9 @@ describe('UploadDocumentPanelComponent', () => {
     const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
     fixture.detectChanges();
 
-    config.next({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: false});
+    config.next({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: false, environmentLabel: ''});
     fixture.detectChanges();
-    config.next({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: true});
+    config.next({version: '1.0.0', buildTime: 'unknown', scannerFolderEnabled: true, environmentLabel: ''});
     fixture.detectChanges();
 
     expect(fixture.componentInstance.scannerEnabled()).toBe(true);
@@ -106,5 +110,30 @@ describe('UploadDocumentPanelComponent', () => {
 
     expect(documentScannerApiService.getScannerFiles).toHaveBeenCalled();
     expect(documentScannerApiService.listenForScannerFileChanges).toHaveBeenCalled();
+  });
+
+  // An import removes the file it took from the scanner folder. Waiting for the announcement of
+  // that on the SSE stream would leave the file on screen whenever the stream is not connected yet.
+  it('re-reads the scanner file list once an import it handed over went through', () => {
+    const documentScannerApiService = TestBed.inject(DocumentScannerApiService) as MockedObject<DocumentScannerApiService>;
+    const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.selectSource('scanner');
+    documentScannerApiService.getScannerFiles.mockClear();
+
+    fixture.componentInstance.reset();
+
+    expect(documentScannerApiService.getScannerFiles).toHaveBeenCalled();
+  });
+
+  it('does not read the scanner file list after an upload from the file picker', () => {
+    const documentScannerApiService = TestBed.inject(DocumentScannerApiService) as MockedObject<DocumentScannerApiService>;
+    const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.reset();
+
+    expect(documentScannerApiService.getScannerFiles).not.toHaveBeenCalled();
   });
 });

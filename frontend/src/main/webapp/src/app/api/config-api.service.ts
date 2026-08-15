@@ -56,6 +56,12 @@ export interface AppConfig {
    * source must not be offered - it could never list anything.
    */
   scannerFolderEnabled: boolean;
+  /**
+   * Which environment this deployment is ("DEV", "TEST"), empty on production. Shown as a banner in
+   * the application shell so an already-logged-in session stays visibly distinguishable from
+   * production too, not just the login page (see {@link PublicAppConfig.environmentLabel}).
+   */
+  environmentLabel: string;
 }
 
 export interface PublicAppConfig {
@@ -64,4 +70,10 @@ export interface PublicAppConfig {
    * page so it's obvious which one is being logged into.
    */
   environmentLabel: string;
+  /**
+   * How long an account stays locked after too many failed logins, mirroring the backend's
+   * `security.loginAttempts.lockoutDurationInSeconds`. Shown in the login page's lockout message so
+   * it tells the user something true rather than a hardcoded guess.
+   */
+  accountLockoutDurationInSeconds: number;
 }

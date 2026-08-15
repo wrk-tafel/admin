@@ -70,6 +70,11 @@ DB level — it only governs `modules`-to-`modules` traffic.
   `food_collections_items.shop_id` and `food_collections_return_items.shop_id` all reference them,
   so recorded history would break. The `enabled` flag is the only way to retire one; disabling
   keeps every past food collection intact.
+- **Deactivating a shop removes its stops from every route** (`ShopService.updateShop` →
+  `removeShopFromAllRoutes`): routes only ever hold stops that are actually driven to. Re-enabling
+  the shop does not restore the stops. The settings screen warns before this happens
+  (`shop-disable-confirm-dialog`), and today's completions of a removed stop go with it
+  (`on delete cascade`, see route guidance below).
 - **Permission split, same shape as cars/food categories:** `getActiveRoutes()` and
   `getShopsOfRoute()` require `LOGISTICS` (the recording screen), while the full list plus
   create/update on both controllers require `SETTINGS` (the maintenance screens under
@@ -81,10 +86,10 @@ DB level — it only governs `modules`-to-`modules` traffic.
   person, shop note, food unit), and `PUT /api/routes/{routeId}/guidance/stops/{stopId}` ticks a
   stop off or undoes it. Both require `LOGISTICS`.
 - **This read model is not `getShopsForRouteId`'s, and the difference is deliberate.** That one
-  serves the recording screen and drops what it cannot record against: stops without a shop, and
-  shops that are disabled. Guidance keeps both — a driver is sent to every stop the route still
-  holds, and silently omitting one would leave a gap on the road. `RouteGuidanceShop.enabled` is
-  carried so the screen can mark a retired shop rather than hide it.
+  serves the recording screen and drops what it cannot record against: stops without a shop.
+  Guidance keeps those — a driver is sent to every stop the route still holds, and silently
+  omitting one would leave a gap on the road. (Disabled shops need no handling on either screen:
+  their stops are removed from the routes when the shop is deactivated, see above.)
 - **Progress is keyed by `(route_stop, calendar date)`, not by a distribution**
   (`routes_stops_completions`, `RouteStopCompletionEntity`). The screen is reachable without an
   active distribution on purpose — a driver looks at the route before the day starts — so a

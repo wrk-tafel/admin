@@ -32,4 +32,36 @@ interface UserRepository :
         @Param("authority") authority: String,
         @Param("excludedUserId") excludedUserId: Long,
     ): Long
+
+    /**
+     * The accounts linked to [employeeIds] - one query for a whole page of employees rather than a
+     * lookup per row. A projection rather than the entities, because the only thing read of an
+     * account here is which employee it belongs to and how to address it.
+     */
+    @Query(
+        "select u.employee.id as employeeId, u.id as userId, u.username as username " +
+            "from User u where u.employee.id in :employeeIds",
+    )
+    fun findAccountsByEmployeeIds(@Param("employeeIds") employeeIds: Collection<Long>): List<EmployeeUserAccountProjection>
+
+    /**
+     * The accounts behind [usernames] - one query for a whole page of login attempts rather than a
+     * lookup per row. Compared lower-cased, since a login attempt records the username normalized
+     * while an account keeps the spelling it was created with.
+     */
+    @Query("select lower(u.username) as username, u.id as userId from User u where lower(u.username) in :usernames")
+    fun findIdsByUsernames(@Param("usernames") usernames: Collection<String>): List<UserIdProjection>
+}
+
+/** One account id and the lower-cased username it belongs to, as [UserRepository.findIdsByUsernames] reads them. */
+interface UserIdProjection {
+    val username: String
+    val userId: Long
+}
+
+/** One user account, as [UserRepository.findAccountsByEmployeeIds] reads them. */
+interface EmployeeUserAccountProjection {
+    val employeeId: Long
+    val userId: Long
+    val username: String
 }

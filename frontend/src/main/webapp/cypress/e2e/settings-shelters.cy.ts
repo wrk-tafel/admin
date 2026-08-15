@@ -1,4 +1,4 @@
-import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {PHONE_VIEWPORT} from '../support/viewports';
 
 describe('Settings - Shelters', () => {
 
@@ -8,18 +8,23 @@ describe('Settings - Shelters', () => {
   });
 
   it('lists shelters', () => {
-    cy.byTestId('shelters-table').should('exist');
+    cy.byTestId('shelters-list').should('exist');
     cy.byTestId('shelters-row-0').should('contain.text', 'Shelter');
+    cy.byTestId('shelters-summary').should('contain.text', 'aktiv');
+    cy.byTestId('shelters-order-hint').should('contain.text', 'Tagesbericht');
   });
 
-  it('opens details dialog', () => {
-    cy.byTestId('viewShelterButton').first().click();
+  it('shows the address and the contacts of a shelter only once it is expanded', () => {
+    cy.byTestId('shelter-details-0').should('not.be.visible');
 
-    cy.byTestId('shelter-details-dialog').should('be.visible')
-      .and('contain.text', 'Shelter')
+    cy.byTestId('shelters-row-0').find('[testid^="shelters-toggle-"]').click();
+
+    cy.byTestId('shelter-details-0').should('be.visible')
       .and('contain.text', 'Erdberg')
       .and('contain.text', 'Anz. Personen');
-    cy.contains('Schließen').click();
+
+    // a contact's phone number is dialable straight from the list
+    cy.byTestId('shelter-details-0').find('a[href^="tel:"]').should('exist');
   });
 
   it('creates a new shelter', () => {
@@ -39,27 +44,50 @@ describe('Settings - Shelters', () => {
       cy.get('input[formControlName="lastname"]').last().type('Smith');
       cy.get('input[formControlName="phone"]').last().type('0999');
       cy.contains('Speichern').click();
+
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+      cy.byTestId('shelters-list').should('contain.text', 'New Shelter ' + randomId);
     });
   });
 
   it('edits a shelter', () => {
     cy.getAnyRandomNumber().then((randomId) => {
-      // open edit for row 0
-      cy.get('[testid^="searchresult-edituser-button-"]').first().click();
+      // The edit button sits in the collapsed header row, so editing needs no expanding. A disabled
+      // shelter's button is disabled, hence the first enabled one rather than plainly the first.
+      cy.get('[testid^="editShelterButton-"]:not(:disabled)').first().click();
 
       // Dialog fields are rendered in the overlay; target visible inputs instead
       const newName = 'A Shelter Updated ' + randomId;
       cy.get('input[formControlName="name"]').should('be.visible').clear().type(newName);
       cy.contains('Speichern').click();
 
-      cy.byTestId('shelters-row-0').should('contain.text', newName);
+      cy.byTestId('shelters-list').should('contain.text', newName);
     });
   });
 
-  it('toggles shelter visibility', () => {
-    cy.byTestId('enableShelterButton').first().click();
-    cy.get('.toast-message')
-      .should('be.visible');
+  it('deactivates a shelter and finds it again through the status filter', () => {
+    const activeToggle = () =>
+      cy.get('[testid^="shelters-enabled-toggle-"] button[aria-checked="true"]').first();
+
+    // whichever shelter the cases above left active first - its switch is what names it
+    activeToggle().invoke('attr', 'aria-label').then((label) => {
+      const name = label!.replace('Aktiv - Notschlafstelle ', '');
+
+      activeToggle().click();
+      cy.get('.toast-message').should('be.visible');
+
+      cy.byTestId('shelters-filter-enabled').click();
+      cy.byTestId('shelters-list').should('not.contain.text', name);
+
+      cy.byTestId('shelters-filter-disabled').click();
+      cy.byTestId('shelters-list').should('contain.text', name);
+
+      // back to active, so the following cases still find a shelter they may edit
+      cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name)
+        .find('[testid^="shelters-enabled-toggle-"] button').click();
+      cy.get('.toast-message').should('be.visible');
+      cy.byTestId('shelters-filter-all').click();
+    });
   });
 
   it('shows validation errors and does not submit invalid shelter', () => {
@@ -73,46 +101,38 @@ describe('Settings - Shelters', () => {
     cy.get('input[formControlName="name"]').should('have.class', 'ng-invalid');
   });
 
-  it('renders as a card list on phone and stays usable', () => {
+  it('stays usable on phone', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.reload();
 
-    cy.byTestId('shelters-table').should('not.be.visible');
-    cy.byTestId('shelters-cards').should('be.visible').and('contain.text', 'Shelter');
     cy.byTestId('addShelterButton').should('be.visible');
+    cy.byTestId('shelters-row-0').should('be.visible').find('[testid^="shelters-toggle-"]').click();
+    cy.byTestId('shelter-details-0').should('be.visible').and('contain.text', 'Anz. Personen');
 
     cy.getAnyRandomNumber().then((randomId) => {
       // Pick the first enabled shelter's edit button - the 'toggles shelter visibility' test above
       // may have left another shelter disabled (its edit button is disabled while so).
-      cy.get('[testid^="searchresult-edituser-button-"]:not(:disabled)').filterDisplayed().first().click();
+      cy.get('[testid^="editShelterButton-"]:not(:disabled)').first().click();
 
       const newName = 'A Shelter Updated On Phone ' + randomId;
       cy.get('input[formControlName="name"]').should('be.visible').clear().type(newName);
       cy.contains('Speichern').click();
 
-      cy.byTestId('shelters-cards').should('contain.text', newName);
+      cy.byTestId('shelters-list').should('contain.text', newName);
     });
   });
-
-  it('renders as a table at tablet breakpoint', () => {
-    cy.viewport(TABLET_VIEWPORT);
-    cy.reload();
-
-    cy.byTestId('shelters-table').should('be.visible');
-    cy.byTestId('shelters-cards').should('not.be.visible');
-    cy.byTestId('addShelterButton').should('be.visible');
-  });
-
 
   // The states below exist only after a click, so neither the template lint nor the Lighthouse
   // `pages` sweep ever sees them - see cypress/support/accessibility.ts.
   describe('accessibility', () => {
 
-    it('has no violations while the details dialog is open', () => {
-      cy.byTestId('viewShelterButton').first().click();
-      cy.byTestId('shelter-details-dialog').should('be.visible');
+    // Scoped to the whole record, header row included: the summary toggle, the reorder handle and
+    // the two actions beside it are all siblings there, so the assertion has to see them.
+    it('has no violations while a record is expanded', () => {
+      cy.byTestId('shelters-row-0').find('[testid^="shelters-toggle-"]').click();
+      cy.byTestId('shelter-details-0').should('be.visible');
 
-      cy.checkDialogAccessibility();
+      cy.checkAccessibility('[testid="shelters-row-0"]');
     });
 
     it('has no violations while the edit dialog is open, including an added contact', () => {
@@ -133,13 +153,12 @@ describe('Settings - Shelters', () => {
   // Angular CDK's drag-and-drop contributes no keyboard behaviour of its own, so without this the
   // sort order could only be changed with a pointing device (see #3131).
   //
-  // Every lookup goes through `cy.get` scoped to the table, and each move waits for its request to
-  // land: a reorder re-renders the rows optimistically and then again from the response, so a
-  // subject captured before that second render is gone by the time it is used. The table scope
-  // also picks the displayed one of the two responsive layouts, which share a testid.
+  // Each move waits for its request to land: a reorder re-renders the list optimistically and then
+  // again from the response, so a subject captured before that second render is gone by the time it
+  // is used.
   it('reorders with the keyboard and keeps focus on the moved record', () => {
     const handle = (index: number) =>
-      cy.get('[testid="shelters-table"] [testid="dragShelterHandle-' + index + '"]');
+      cy.get('[testid="shelters-list"] [testid="dragShelterHandle-' + index + '"]');
 
     cy.intercept('POST', '/api/shelters/reorder').as('reorder');
 

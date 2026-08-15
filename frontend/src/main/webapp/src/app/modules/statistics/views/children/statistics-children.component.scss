@@ -1,0 +1,5 @@
+// Separates one household's children from the next one's. It sits on the cells rather than on the
+// row: a Material table collapses its borders, so a border-top on the <tr> itself never paints.
+.tafel-household-group-start td {
+  border-top: 2px solid var(--tafel-border-color);
+}

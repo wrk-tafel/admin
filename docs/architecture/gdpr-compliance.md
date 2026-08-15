@@ -30,6 +30,7 @@ Two things to be clear about before reading on:
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
+| `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | until a user imports or deletes them |
 | `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
@@ -59,7 +60,7 @@ code being wrong — see [G4](#g4-nothing-keeps-special-category-data-out-of-not
   names; the Stammdatenblatt is a household's complete master data. Once printed, the application
   has no further say in them.
 - **Direct SQL.** `_reporting/reporting.sql` is a set of hand-run queries, and the first one selects
-  `firstname, lastname, birth_date` for the school-starter-package report. Whatever it is run
+  `firstname, lastname, birth_date` for the children report. Whatever it is run
   against, that access passes no `@PreAuthorize` and produces no `audit_log` entry.
 
 ## 3. What the code already gets right
@@ -216,8 +217,9 @@ document download and the two PDF endpoints. The retention window and the existi
 **Art. 5(1)(c), Art. 32(1)(b).**
 
 `CUSTOMER` is a single flag, and it grants read and write on every household, every note, every
-income figure and every uploaded ID scan (`HouseholdController`, `HouseholdNoteController`,
-`HouseholdDocumentController` are each annotated once at class level). Check-in staff who only need
+income figure and every uploaded ID scan — `HouseholdNoteController`, `HouseholdDocumentController`
+and `DocumentScannerController` require it once at class level, `HouseholdController` on each of its
+methods that isn't behind one of the narrower customer permissions. Check-in staff who only need
 to confirm that a number is valid hold the same access as the person doing the income assessment.
 `ADMINISTRATOR` expands to everything by design.
 
@@ -266,9 +268,16 @@ retention [G6](#g6-read-access-to-a-case-file-is-not-recorded) lands on if a rea
 
 Deleting a household is thorough in the database, but copies outlive it: `audit_log` entries for up
 to 30 days (deliberate, and documented in ADR-0039), `sse_outbox` payloads for 14, `mail_outbox`
-rows — the composed mails, attachments included — for 14 after they were sent (ADR-0041), any
-Kundenliste PDF already printed or mailed, and every backup made before the deletion. Restoring a backup
-re-creates erased people, and nothing propagates the erasure into it.
+rows — the composed mails, attachments included — for 14 after they were sent (ADR-0041) or 30 after
+they were queued if delivery was given up on (ADR-0046), any Kundenliste PDF already printed or
+mailed, and every backup made before the deletion. Restoring a backup re-creates erased people, and
+nothing propagates the erasure into it.
+
+Every copy inside the application now has a clock on it, which was not true of a `mail_outbox` row
+parked as `FAILED`: it kept its full MIME message — report PDF or support screenshot included — until
+somebody removed the row by hand, which no screen ever prompted anyone to do.
+
+What is left is outside the application: a printed or mailed PDF, and the operator's backups.
 
 **Smallest useful step:** write down the actual erasure timeline — which store empties after how long
 — so a request can be answered honestly ("gelöscht, letzte technische Spuren nach 30 Tagen"), and
@@ -326,16 +335,19 @@ picture:
 
 ## 7. Where to start
 
-| | Gap | Cost | First step |
-|---|---|---|---|
-| 1 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | hours | rotation + retention in `application.yml` |
-| 2 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | hours | a visible rule at the note field, upload dialog and user guide |
-| 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | hours | a line in the dialog, plus retention on the support mailbox |
-| 4 | [G2](#g2-there-is-no-privacy-notice-and-no-record-of-a-legal-basis) no privacy notice | days, mostly the operator's | notice text on the Stammdatenblatt and in the shell |
-| 5 | [G1](#g1-nothing-about-a-customer-ever-expires) no retention for customer data | days, needs a decision first | agree the periods, then a nightly job modelled on `AuditRetentionService` |
-| 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | days | one endpoint returning the full household record + documents |
-| 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | days | audit document downloads and PDF generation |
-| 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | structural | each needs a decision with the operator before code |
+Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) is collected in
+[#3185](https://github.com/wrk-tafel/admin/issues/3185), which most of the rest is blocked on.
+
+| | Gap | Issue | Cost | First step |
+|---|---|---|---|---|
+| 1 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | [#3174](https://github.com/wrk-tafel/admin/issues/3174) | hours | rotation + retention in `application.yml` |
+| 2 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | [#3175](https://github.com/wrk-tafel/admin/issues/3175) | hours | a visible rule at the note field, upload dialog and user guide |
+| 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | hours | a line in the dialog, plus retention on the support mailbox |
+| 4 | [G2](#g2-there-is-no-privacy-notice-and-no-record-of-a-legal-basis) no privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | days, mostly the operator's | notice text on the Stammdatenblatt and in the shell |
+| 5 | [G1](#g1-nothing-about-a-customer-ever-expires) no retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | days, needs a decision first | agree the periods, then a nightly job modelled on `AuditRetentionService` |
+| 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | days | one endpoint returning the full household record + documents |
+| 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
+| 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3181](https://github.com/wrk-tafel/admin/issues/3181), [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
 
 G3, G9 and G4 are worth doing regardless of what the operator decides. Everything from G2 downwards
 depends on answers that come from outside this repository — which makes

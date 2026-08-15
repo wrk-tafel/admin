@@ -21,6 +21,19 @@ export class EmployeeApiService {
     return this.http.get<EmployeeListResponse>('/employees', {params: queryParams});
   }
 
+  /**
+   * Whether a personnel number is still free, and who holds it when it is not - asked while it is
+   * being typed, so the collision is shown next to the field instead of as a failed save.
+   * `excludedEmployeeId` is the employee being edited, whose own number is not a collision.
+   */
+  checkPersonnelNumberAvailability(personnelNumber: string, excludedEmployeeId?: number): Observable<PersonnelNumberAvailabilityResponse> {
+    let queryParams = new HttpParams().set('personnelNumber', personnelNumber);
+    if (excludedEmployeeId) {
+      queryParams = queryParams.set('excludedEmployeeId', excludedEmployeeId);
+    }
+    return this.http.get<PersonnelNumberAvailabilityResponse>('/employees/personnel-number-availability', {params: queryParams});
+  }
+
   saveEmployee(createEmployeeRequest: CreateEmployeeRequest): Observable<EmployeeData> {
     return this.http.post<EmployeeData>('/employees', createEmployeeRequest);
   }
@@ -44,4 +57,16 @@ export interface EmployeeData {
   personnelNumber: string;
   firstname: string;
   lastname: string;
+  /** The user account referencing this employee, on the list responses that carry it. */
+  userAccount?: EmployeeUserAccount;
+}
+
+export interface EmployeeUserAccount {
+  id: number;
+  username: string;
+}
+
+export interface PersonnelNumberAvailabilityResponse {
+  available: boolean;
+  existingEmployee?: EmployeeData;
 }

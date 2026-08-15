@@ -1,17 +1,59 @@
 <tafel-dialog testId="validationresult-dialog" [type]="dialogType()" [title]="dialogTitle()">
   <div tafel-dialog-content>
-    <div class="flex justify-between py-1">
-      <span class="font-bold">Limit (inkl. Toleranz von {{ data.validationResult.toleranceValue | currency }}):</span>
-      <span>{{ data.validationResult.limit | currency }}</span>
+    <h3 class="tafel-h6 mt-0 mb-1">Einkommen</h3>
+    <div class="flex justify-between gap-4 py-1" testid="detail-income">
+      <span>Einkommen der Personen</span>
+      <span>{{ details().incomeSum | currency }}</span>
     </div>
-    <div class="flex justify-between py-1">
-      <span class="font-bold">Einkommen gesamt:</span>
-      <span>{{ data.validationResult.totalSum | currency }}</span>
+    <div class="flex justify-between gap-4 py-1" testid="detail-familyallowance">
+      <span>Familienbeihilfe</span>
+      <span>{{ details().familyAllowanceSum | currency }}</span>
+    </div>
+    <div class="flex justify-between gap-4 py-1" testid="detail-childtaxallowance">
+      <span>Kinderabsetzbetrag</span>
+      <span>{{ details().childTaxAllowanceSum | currency }}</span>
+    </div>
+    <div class="flex justify-between gap-4 py-1" testid="detail-siblingaddition">
+      <span>Geschwisterstaffel</span>
+      <span>{{ details().siblingAdditionSum | currency }}</span>
     </div>
     <hr>
-    <div class="flex justify-between py-1">
+    <div class="flex justify-between gap-4 py-1" testid="total-income">
+      <span class="font-bold">Einkommen gesamt:</span>
+      <span class="font-bold">{{ data.validationResult.totalSum | currency }}</span>
+    </div>
+
+    <h3 class="tafel-h6 mt-4 mb-1">Limit</h3>
+    <div class="flex justify-between gap-4 py-1" testid="detail-baselimit">
+      <span>{{ baseLimitLabel() }}</span>
+      <span>{{ details().baseLimit | currency }}</span>
+    </div>
+    @if (details().additionalAdultsCount > 0) {
+      <div class="flex justify-between gap-4 py-1" testid="detail-additionaladults">
+        <span>{{ additionalAdultsLabel() }}</span>
+        <span>{{ details().additionalAdultsSum | currency }}</span>
+      </div>
+    }
+    @if (details().additionalChildrenCount > 0) {
+      <div class="flex justify-between gap-4 py-1" testid="detail-additionalchildren">
+        <span>{{ additionalChildrenLabel() }}</span>
+        <span>{{ details().additionalChildrenSum | currency }}</span>
+      </div>
+    }
+    <div class="flex justify-between gap-4 py-1" testid="detail-tolerance">
+      <span>Toleranz</span>
+      <span>{{ data.validationResult.toleranceValue | currency }}</span>
+    </div>
+    <hr>
+    <div class="flex justify-between gap-4 py-1" testid="total-limit">
+      <span class="font-bold">Limit gesamt:</span>
+      <span class="font-bold">{{ data.validationResult.limit | currency }}</span>
+    </div>
+
+    <hr class="my-3">
+    <div class="flex justify-between gap-4 py-1" testid="amount-exceeded">
       <span class="font-bold">Einkommen über Limit:</span>
-      <span [ngClass]="{'text-[#e55353]': !data.validationResult.valid}">
+      <span class="font-bold" [ngClass]="{'text-[#e55353]': !data.validationResult.valid}">
         {{ data.validationResult.amountExceededLimit | currency }}
       </span>
     </div>

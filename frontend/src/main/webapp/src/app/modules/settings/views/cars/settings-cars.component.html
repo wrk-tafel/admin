@@ -1,8 +1,11 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
-    <mat-card-title>
-      <div class="flex items-center gap-2">
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center gap-2">
         <h2 class="tafel-h5 mb-0 mt-1">Fahrzeuge</h2>
+        <span class="text-sm font-normal text-slate-500" testid="cars-summary">
+          {{ enabledCount() }} von {{ totalCount() }} aktiv
+        </span>
         <button matButton="filled" class="button-success" testid="addCarButton" matTooltip="Neues Fahrzeug anlegen" (click)="addCar()" aria-label="Neues Fahrzeug anlegen">
           <fa-icon [icon]="faPlus"></fa-icon>
         </button>
@@ -11,17 +14,25 @@
   </mat-card-header>
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
-      Fahrzeuge, die bei der Warenerfassung einer Route zugeordnet werden können.
+      Fahrzeuge, die bei der Warenerfassung einer Route zugeordnet werden können. Die Reihenfolge
+      dieser Liste ist die Reihenfolge der Auswahlliste in der Warenerfassung. Ein deaktiviertes
+      Fahrzeug steht dort nicht mehr zur Auswahl, wird aber nicht gelöscht - bereits erfasste
+      Warenerfassungen verweisen darauf.
     </p>
 
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="cars"
+                            (valueChange)="onFilterChanged($event)"/>
+    </div>
+
     <div class="hidden md:block">
-    <table mat-table [dataSource]="cars()?.cars ?? []" testid="cars-table" [trackBy]="trackById"
-           cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">
+    <table mat-table [dataSource]="visibleCars()" testid="cars-table" [trackBy]="trackById"
+           cdkDropList [cdkDropListData]="visibleCars()" (cdkDropListDropped)="drop($event)">
       <ng-container matColumnDef="drag">
         <th mat-header-cell *matHeaderCellDef><span class="sr-only">Reihenfolge</span></th>
         <td mat-cell *matCellDef="let car; let i = index">
           <tafel-reorder-handle cdkDragHandle [label]="'Fahrzeug ' + car.name"
-                                [position]="i + 1" [count]="(cars()?.cars ?? []).length"
+                                [position]="i + 1" [count]="visibleCars().length"
                                 [testId]="'dragCarHandle-' + i"
                                 (move)="moveCar(i, $event)"/>
         </td>
@@ -30,17 +41,9 @@
       <ng-container matColumnDef="active">
         <th mat-header-cell *matHeaderCellDef>Aktiv</th>
         <td mat-cell *matCellDef="let car; let i = index">
-          @if (car.enabled) {
-            <button matButton="filled" class="button-success ms-2" testid="enableCarButton" matTooltip="Fahrzeug deaktivieren - es steht bei der Warenerfassung nicht mehr zur Auswahl"
-                    (click)="toggleCarVisibility(car, false)" [attr.aria-label]="'Fahrzeug ' + car.name + ' deaktivieren - es steht bei der Warenerfassung nicht mehr zur Auswahl'">
-              <fa-icon [icon]="faEye"></fa-icon>
-            </button>
-          } @else {
-            <button matButton="filled" class="button-danger ms-2" testid="disableCarButton" matTooltip="Fahrzeug wieder aktivieren"
-                    (click)="toggleCarVisibility(car, true)" [attr.aria-label]="'Fahrzeug ' + car.name + ' wieder aktivieren'">
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            </button>
-          }
+          <tafel-enabled-toggle [enabled]="car.enabled" [label]="'Fahrzeug ' + car.name"
+                                [showLabel]="false" [testId]="'cars-enabled-toggle-' + i"
+                                (enabledChange)="toggleCarVisibility(car, $event)"/>
         </td>
       </ng-container>
 
@@ -52,6 +55,7 @@
               <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
                    inside it, and a visible label here would repeat the column header in every row -->
               <input #licensePlateInput matInput [formControl]="licensePlateControl"
+                     maxlength="20" (input)="uppercaseLicensePlate()"
                      [attr.testid]="'carLicensePlateInput-' + i" aria-label="Kennzeichen"
                      (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
@@ -62,11 +66,17 @@
       </ng-container>
 
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <th mat-header-cell *matHeaderCellDef>
+          <span class="inline-flex items-center gap-1">
+            Name
+            <tafel-info-tooltip text="Bezeichnung, wie sie dem Routen-Team in der Warenerfassung angezeigt wird - dort steht das Kennzeichen und dahinter dieser Name."
+                                testId="carNameInfoTooltip"/>
+          </span>
+        </th>
         <td mat-cell *matCellDef="let car; let i = index">
           @if (editingId() === car.id) {
             <mat-form-field subscriptSizing="dynamic">
-              <input matInput [formControl]="nameControl" [attr.testid]="'carNameInput-' + i"
+              <input matInput [formControl]="nameControl" maxlength="50" [attr.testid]="'carNameInput-' + i"
                      aria-label="Name"
                      (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
             </mat-form-field>
@@ -87,7 +97,7 @@
               <fa-icon [icon]="faXmark"></fa-icon>
             </button>
           } @else {
-            <button matButton="filled" class="button-danger" [attr.testid]="'editCarButton-' + i" matTooltip="Fahrzeug bearbeiten"
+            <button matButton="filled" [attr.testid]="'editCarButton-' + i" matTooltip="Fahrzeug bearbeiten"
                     [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
               <fa-icon [icon]="faPencil"></fa-icon>
             </button>
@@ -104,20 +114,22 @@
     </div>
 
     <div class="block md:hidden">
-      <div class="flex flex-col gap-4" testid="cars-cards" cdkDropList [cdkDropListData]="cars()?.cars ?? []" (cdkDropListDropped)="drop($event)">
-        @for (car of cars()?.cars ?? []; track car.id; let i = $index) {
-          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [class.tafel-inactive]="!car.enabled" [attr.testid]="'cars-row-' + i">
+      <div class="flex flex-col gap-4" testid="cars-cards" cdkDropList [cdkDropListData]="visibleCars()" (cdkDropListDropped)="drop($event)">
+        @for (car of visibleCars(); track car.id; let i = $index) {
+          <mat-card class="shadow-sm" cdkDrag [cdkDragData]="car" [class.tafel-inactive]="!car.enabled"
+                    [attr.testid]="'cars-row-' + i">
             <mat-card-header class="mb-2">
               <mat-card-title class="flex items-center gap-2 text-base font-semibold">
                 <tafel-reorder-handle cdkDragHandle [label]="'Fahrzeug ' + car.name"
-                                      [position]="i + 1" [count]="(cars()?.cars ?? []).length"
+                                      [position]="i + 1" [count]="visibleCars().length"
                                       [testId]="'dragCarHandle-' + i"
                                       (move)="moveCar(i, $event)"/>
                 @if (editingId() === car.id) {
                   <mat-form-field subscriptSizing="dynamic" class="w-full">
                     <mat-label>Name</mat-label>
-                    <input matInput [formControl]="nameControl" [attr.testid]="'carNameInputMobile-' + i"
+                    <input matInput [formControl]="nameControl" maxlength="50" [attr.testid]="'carNameInputMobile-' + i"
                            (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
+                    <mat-hint>Bezeichnung, wie sie dem Routen-Team angezeigt wird</mat-hint>
                   </mat-form-field>
                 } @else {
                   <span>{{ car.name }}</span>
@@ -131,7 +143,9 @@
                   @if (editingId() === car.id) {
                     <mat-form-field subscriptSizing="dynamic">
                       <!-- the card's own "Kennzeichen:" text sits in a sibling cell and names nothing -->
-                      <input #licensePlateInputMobile matInput [formControl]="licensePlateControl" [attr.testid]="'carLicensePlateInputMobile-' + i"
+                      <input #licensePlateInputMobile matInput [formControl]="licensePlateControl"
+                             maxlength="20" (input)="uppercaseLicensePlate()"
+                             [attr.testid]="'carLicensePlateInputMobile-' + i"
                              aria-label="Kennzeichen"
                              (keydown.enter)="saveEdit(car)" (keydown.escape)="cancelEdit()"/>
                     </mat-form-field>
@@ -141,18 +155,10 @@
                 </div>
               </div>
             </mat-card-content>
-            <mat-card-actions class="flex gap-2">
-              @if (car.enabled) {
-                <button matButton="filled" class="button-success" testid="enableCarButton" matTooltip="Fahrzeug deaktivieren - es steht bei der Warenerfassung nicht mehr zur Auswahl"
-                        (click)="toggleCarVisibility(car, false)" [attr.aria-label]="'Fahrzeug ' + car.name + ' deaktivieren - es steht bei der Warenerfassung nicht mehr zur Auswahl'">
-                  <fa-icon [icon]="faEye"></fa-icon>
-                </button>
-              } @else {
-                <button matButton="filled" class="button-danger" testid="disableCarButton" matTooltip="Fahrzeug wieder aktivieren"
-                        (click)="toggleCarVisibility(car, true)" [attr.aria-label]="'Fahrzeug ' + car.name + ' wieder aktivieren'">
-                  <fa-icon [icon]="faEyeSlash"></fa-icon>
-                </button>
-              }
+            <mat-card-actions>
+              <tafel-enabled-toggle [enabled]="car.enabled" [label]="'Fahrzeug ' + car.name"
+                                    [testId]="'cars-enabled-toggle-mobile-' + i"
+                                    (enabledChange)="toggleCarVisibility(car, $event)"/>
               @if (editingId() === car.id) {
                 <button matButton="filled" [attr.testid]="'saveCarButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(car)" [attr.aria-label]="'Änderungen an Fahrzeug ' + car.name + ' speichern'">
                   <fa-icon [icon]="faCheck"></fa-icon>
@@ -161,7 +167,7 @@
                   <fa-icon [icon]="faXmark"></fa-icon>
                 </button>
               } @else {
-                <button matButton="filled" class="button-danger" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
+                <button matButton="filled" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
                         [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
@@ -171,5 +177,20 @@
         }
       </div>
     </div>
+
+    <!-- One block for both layouts: the table renders its header even with no rows, and the card
+         list nothing at all, so neither can carry this on its own. -->
+    @if (loaded() && visibleCars().length === 0) {
+      <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="cars-empty">
+        <fa-icon [icon]="faTruck" size="2x"></fa-icon>
+        @if (enabledFilter() === 'DISABLED') {
+          <span>Kein Fahrzeug ist deaktiviert.</span>
+        } @else if (enabledFilter() === 'ENABLED') {
+          <span>Kein Fahrzeug ist aktiv.</span>
+        } @else {
+          <span>Noch keine Fahrzeuge angelegt.</span>
+        }
+      </div>
+    }
   </mat-card-content>
 </mat-card>

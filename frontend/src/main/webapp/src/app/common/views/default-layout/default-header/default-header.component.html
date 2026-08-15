@@ -1,46 +1,105 @@
-<div class="flex items-center justify-between border-b border-gray-200 px-6 h-16">
-  <div class="flex items-center gap-2">
-    <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
-            class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
-      <fa-icon [icon]="faBars"></fa-icon>
-    </button>
+<div class="relative border-b border-gray-200">
+  <!--
+    Non-empty only outside production - the same fact the login page shows beneath its title, kept
+    visible after login too so an already-open session doesn't get mistaken for production.
+    Absolutely positioned as a ribbon hanging from the header's top edge rather than a block above
+    it: the header has to stay exactly `h-16` to line up with the sidebar's logo block, so the
+    banner overlays the (empty) top-center of the header instead of adding to its height.
+    `pointer-events-none` so it can never swallow a click meant for the header.
+  -->
+  @if (environmentLabel()) {
+    <div testid="environment-banner"
+         class="absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none rounded-b-md bg-amber-100 text-amber-900 text-center text-xs font-semibold uppercase tracking-wide px-3 py-0.5">
+      {{ environmentLabel() }}-Umgebung
+    </div>
+  }
 
-    <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
-            class="!h-7 !px-2 !text-xs sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium">
-      Support-Anfrage
-    </button>
-  </div>
+  <div class="flex items-center justify-between px-3 sm:px-6 h-16">
+    <div class="flex items-center gap-2 min-w-0">
+      <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
+              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
+        <fa-icon [icon]="faBars"></fa-icon>
+      </button>
 
-  <div class="flex items-center gap-6">
-    <!--
-      Green against red was the only thing that told the two states apart, which is no difference at
-      all to someone who cannot tell those two colours apart, and none whatsoever to a screen
-      reader. The icon carries the state as a shape, the visually hidden text carries it as words,
-      and `role="status"` makes the badge a live region so a connection that drops is announced
-      rather than silently turning red.
-    -->
-    <span class="badge" role="status" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">
-      <fa-icon [icon]="sseConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
-      Live-Verbindung<span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
-    </span>
+      <button (click)="openQuickOpenDialog()" testid="quickOpenButton" aria-label="Schnellsuche öffnen (Strg+K)"
+              matTooltip="Schnellsuche (Strg+K)"
+              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
+        <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+      </button>
 
-    <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
-            class="w-9 h-9 rounded-md overflow-hidden">
-      <img ngSrc="./assets/img/user/user.svg" width="36" height="36" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
-    </button>
-    <mat-menu #userMenu="matMenu">
-      <!-- --tafel-background-secondary (defined in _theme.scss) is the same variable the sidebar itself uses (default-layout.component.scss). -->
-      <div class="px-6 py-2 text-xs uppercase tracking-wide text-gray-100 font-semibold bg-[var(--tafel-background-secondary)]">Benutzer</div>
-      <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
-        <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
-      </a>
-      <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
-        <fa-icon [icon]="faBell"></fa-icon> Benachrichtigungen
-      </a>
-      <mat-divider></mat-divider>
-      <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
-        <fa-icon [icon]="faLock"></fa-icon> Abmelden
-      </a>
-    </mat-menu>
+      <!--
+        Icon-only below `sm` - the header has to leave room for the page title next to it,
+        and the `aria-label` names the button either way.
+      -->
+      <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
+              class="!h-7 !px-2 !text-xs !min-w-0 sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium shrink-0">
+        <fa-icon [icon]="faCircleQuestion" class="sm:hidden" aria-hidden="true"></fa-icon>
+        <span class="hidden sm:inline">Support-Anfrage</span>
+      </button>
+
+      <!--
+        Names the open page right in the header, on every viewport - on mobile it is even the only
+        visible indication, since the sidebar starts closed there. The real `h1` (sr-only, rendered
+        by the shell's `<main>`) already gives a screen reader that information, so this is
+        `aria-hidden` rather than a second heading announcing the same title twice.
+      -->
+      @if (pageTitle()) {
+        <!-- text tight against the tags: the indentation would otherwise collapse into leading/
+             trailing spaces, and the e2e spec asserts this title's exact text -->
+        <span aria-hidden="true" testid="page-title"
+              class="truncate text-sm font-semibold text-slate-700">{{ pageTitle() }}</span>
+      }
+    </div>
+
+    <div class="flex items-center gap-2 sm:gap-6 shrink-0">
+      <!--
+        Distribution state matters everywhere in this app (e.g. "Annahme"/"Waren-Eingabe" require an
+        active one), so it is shown permanently here rather than only on the dashboard. `role="status"`
+        makes it a live region, same reasoning as the Live-Verbindung badge below.
+        Below `sm` only the state word is written out ("Geöffnet"/"Geschlossen") - the full
+        "Ausgabe ..." phrase would leave the page title next to it no room at all on a phone. The
+        prefix stays `sr-only` there rather than `hidden`, so the live region keeps announcing the
+        complete phrase; `capitalize` upper-cases the state word visually once it stands alone.
+      -->
+      <span class="badge" role="status" [ngClass]="distributionActive() ? 'badge-success' : 'badge-info'" testid="distribution-state-badge">
+        <span class="capitalize sm:normal-case"><span class="sr-only sm:not-sr-only">Ausgabe </span>{{ distributionActive() ? 'geöffnet' : 'geschlossen' }}</span>
+        @if (distributionActive() && distribution()?.startedAt) {
+          <!-- hidden below `sm`: the state itself is what matters, the header has no room for the time there -->
+          <span class="hidden sm:inline"> · {{ distribution()!.startedAt | date: 'HH:mm' }}</span>
+        }
+      </span>
+
+      <!--
+        Green against red was the only thing that told the two states apart, which is no difference at
+        all to someone who cannot tell those two colours apart, and none whatsoever to a screen
+        reader. The icon carries the state as a shape, the visually hidden text carries it as words,
+        and `role="status"` makes the badge a live region so a connection that drops is announced
+        rather than silently turning red.
+      -->
+      <span class="badge" role="status" testid="connection-state-badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">
+        <fa-icon [icon]="sseConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
+        <!-- icon-only below `sm` (room for the page title); the sr-only state text stays either way -->
+        <span class="hidden sm:inline">Live-Verbindung</span><span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
+      </span>
+
+      <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
+              class="w-9 h-9 rounded-md overflow-hidden">
+        <img ngSrc="./assets/img/user/user.svg" width="36" height="36" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <!-- --tafel-background-secondary (defined in _theme.scss) is the same variable the sidebar itself uses (default-layout.component.scss). -->
+        <div class="px-6 py-2 text-xs uppercase tracking-wide text-gray-100 font-semibold bg-[var(--tafel-background-secondary)]">Benutzer</div>
+        <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
+          <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
+        </a>
+        <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
+          <fa-icon [icon]="faBell"></fa-icon> Benachrichtigungen
+        </a>
+        <mat-divider></mat-divider>
+        <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
+          <fa-icon [icon]="faLock"></fa-icon> Abmelden
+        </a>
+      </mat-menu>
+    </div>
   </div>
 </div>

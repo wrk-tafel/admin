@@ -3,18 +3,21 @@ import { TestBed } from '@angular/core/testing';
 
 import { DefaultHeaderComponent } from './default-header.component';
 import { AuthenticationService } from '../../../security/authentication.service';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../state/global-state.service';
 import { signal } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router, TitleStrategy } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { SupportApiService, SupportClientContext } from '../../../../api/support-api.service';
 import { TafelToastrService } from '../../../components/tafel-toastr/tafel-toastr.service';
 import { SupportContextService } from '../../../support/support-context.service';
 import { ScreenshotService } from '../../../support/screenshot.service';
+import { ConfigApiService } from '../../../../api/config-api.service';
+import { DistributionItem } from '../../../../api/distribution-api.service';
+import { TafelTitleStrategy } from '../../../util/tafel-title-strategy';
 
 const screenshot = 'data:image/jpeg;base64,AAAA';
 
@@ -43,8 +46,9 @@ describe('DefaultHeaderComponent', () => {
             providers: [
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
-                provideRouter([]),
+                provideRouter([{path: 'uebersicht', title: 'Übersicht', children: []}]),
                 provideLocationMocks(),
+                {provide: TitleStrategy, useExisting: TafelTitleStrategy},
                 {
                     provide: AuthenticationService,
                     useValue: {
@@ -56,7 +60,18 @@ describe('DefaultHeaderComponent', () => {
                     provide: GlobalStateService,
                     useValue: {
                         getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState')
-                          .mockReturnValue(signal(false).asReadonly())
+                          .mockReturnValue(signal(false).asReadonly()),
+                        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+                          .mockReturnValue(signal<DistributionItem | null>(null).asReadonly())
+                    }
+                },
+                {
+                    provide: ConfigApiService,
+                    useValue: {
+                        observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
+                          .mockReturnValue(of({
+                              version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
+                          }))
                     }
                 },
                 {
@@ -126,14 +141,14 @@ describe('DefaultHeaderComponent', () => {
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         fixture.detectChanges();
 
-        const badge: HTMLElement = fixture.nativeElement.querySelector('[role="status"]');
+        const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="connection-state-badge"]');
         expect(badge.textContent!.trim()).toBe('Live-Verbindung unterbrochen');
 
         globalStateService.getConnectionState.mockReturnValue(signal(true).asReadonly());
         const connectedFixture = TestBed.createComponent(DefaultHeaderComponent);
         connectedFixture.detectChanges();
 
-        const connectedBadge: HTMLElement = connectedFixture.nativeElement.querySelector('[role="status"]');
+        const connectedBadge: HTMLElement = connectedFixture.nativeElement.querySelector('[testid="connection-state-badge"]');
         expect(connectedBadge.textContent!.trim()).toBe('Live-Verbindung besteht');
     });
 
@@ -184,6 +199,53 @@ describe('DefaultHeaderComponent', () => {
         expect(supportApiService.createSupportRequest).toHaveBeenCalled();
     });
 
+    it('Ctrl+K opens the quick-open dialog only once until it is closed again', () => {
+        const afterClosed$ = new Subject<void>();
+        dialog.open.mockReturnValue({afterClosed: () => afterClosed$.asObservable()} as any);
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const shortcut = () => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'k', ctrlKey: true, cancelable: true}));
+
+        shortcut();
+        expect(dialog.open).toHaveBeenCalledTimes(1);
+
+        // while the dialog is open the shortcut must not stack a second instance on top
+        shortcut();
+        expect(dialog.open).toHaveBeenCalledTimes(1);
+
+        afterClosed$.next();
+        shortcut();
+        expect(dialog.open).toHaveBeenCalledTimes(2);
+    });
+
+    it('the shortcut is claimed from the browser via preventDefault', () => {
+        const afterClosed$ = new Subject<void>();
+        dialog.open.mockReturnValue({afterClosed: () => afterClosed$.asObservable()} as any);
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const event = new KeyboardEvent('keydown', {key: 'k', ctrlKey: true, cancelable: true});
+        document.dispatchEvent(event);
+
+        expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('the toolbar button opens the quick-open dialog', () => {
+        const afterClosed$ = new Subject<void>();
+        dialog.open.mockReturnValue({afterClosed: () => afterClosed$.asObservable()} as any);
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('[testid="quickOpenButton"]');
+        button.click();
+
+        expect(dialog.open).toHaveBeenCalledTimes(1);
+    });
+
     it('open support dialog and cancel does not send anything', async () => {
         dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)} as any);
 
@@ -194,6 +256,74 @@ describe('DefaultHeaderComponent', () => {
 
         expect(dialog.open).toHaveBeenCalled();
         expect(supportApiService.createSupportRequest).not.toHaveBeenCalled();
+    });
+
+    it('shows the distribution as closed and without a start time when none is active', () => {
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
+        expect(badge.textContent!.trim()).toBe('Ausgabe geschlossen');
+    });
+
+    it('shows the distribution as open with its start time when one is active', () => {
+        const distribution: DistributionItem = {id: 1, startedAt: new Date('2026-08-13T07:15:00')};
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(distribution).asReadonly());
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
+        // collapses the incidental inter-element whitespace Angular's template renders, not the
+        // content itself
+        expect(badge.textContent!.replace(/\s+/g, ' ').trim()).toBe('Ausgabe geöffnet · 07:15');
+    });
+
+    it('does not treat an already-closed distribution as active', () => {
+        const distribution: DistributionItem = {
+            id: 1, startedAt: new Date('2026-08-13T07:15:00'), endedAt: new Date('2026-08-13T12:00:00')
+        };
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(distribution).asReadonly());
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
+        expect(badge.textContent!.trim()).toBe('Ausgabe geschlossen');
+    });
+
+    it('shows no environment banner on production, where the label is empty', () => {
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('[testid="environment-banner"]')).toBeFalsy();
+    });
+
+    it('shows an environment banner outside production', () => {
+        const configApiService = TestBed.inject(ConfigApiService) as MockedObject<ConfigApiService>;
+        configApiService.observeConfig.mockReturnValue(
+            of({version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: 'DEV'})
+        );
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const banner: HTMLElement = fixture.nativeElement.querySelector('[testid="environment-banner"]');
+        expect(banner.textContent!.trim()).toBe('DEV-Umgebung');
+    });
+
+    // Shown on every viewport; on mobile it is even the only visible indication of the open page,
+    // since the sidebar starts closed there.
+    it('shows the active route title in the header, hidden from a screen reader that already has the real h1', async () => {
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        await TestBed.inject(Router).navigate(['/uebersicht']);
+        fixture.detectChanges();
+
+        const title: HTMLElement = fixture.nativeElement.querySelector('[testid="page-title"]');
+        expect(title.textContent!.trim()).toBe('Übersicht');
+        expect(title.getAttribute('aria-hidden')).toBe('true');
     });
 
 });

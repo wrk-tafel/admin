@@ -1,0 +1,6 @@
+<mat-slide-toggle [checked]="enabled()" [aria-label]="'Aktiv - ' + label()"
+                  [attr.testid]="testId()" (change)="onToggleChange($event)">
+  @if (showLabel()) {
+    Aktiv
+  }
+</mat-slide-toggle>

@@ -53,7 +53,6 @@ data class RouteGuidanceShop(
     val contactPerson: String?,
     val note: String?,
     val foodUnit: FoodUnit,
-    val enabled: Boolean,
 )
 
 @ExcludeFromTestCoverage

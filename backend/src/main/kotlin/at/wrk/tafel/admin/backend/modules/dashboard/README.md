@@ -16,8 +16,12 @@ Only three source files (plus `package-info.java`):
   (`getData()`). Looks up the current open distribution
   (`DistributionRepository.getCurrentDistribution()`), and if none is open, returns an all-null
   `DashboardData` (the frontend renders this as "no active distribution"). If one is open, it assembles
-  ticket counts, registered-household count, statistics (employee count + shelter names), and logistics
-  (food collections vs. total routes, total food weight).
+  ticket counts, registered-household count, registered-person count (one per household plus its
+  not-excluded additional persons - the same formula as `DistributionStatisticService` and the
+  customer-list PDF), statistics (employee count + shelter names), and logistics
+  (food collections vs. total routes, total food weight, the enabled routes' names both recorded and in
+  full - the frontend renders the latter as chips so the routes that haven't handed in yet are visible
+  without diffing two lists itself).
 - **`DashboardResponseModel`** (`DashboardData`, `DashboardTicketsData`, `DashboardStatisticsData`,
   `DashboardLogisticsData`) – Plain DTOs serialized straight onto the SSE stream as JSON.
 

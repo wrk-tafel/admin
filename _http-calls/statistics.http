@@ -7,8 +7,14 @@ GET {{baseApiPath}}/statistics/data?fromDate=2000-01-01&toDate=2999-12-31
 ### Generate CSV export
 GET {{baseApiPath}}/statistics/generate-csv?fromDate=2000-01-01&toDate=2999-12-31
 
-### Fetch school starter package report data
-GET {{baseApiPath}}/statistics/school-starter-package?ageMin=6&ageMax=10
+### Fetch children report data
+GET {{baseApiPath}}/statistics/children?ageMin=6&ageMax=15
 
-### Generate school starter package report CSV export
-GET {{baseApiPath}}/statistics/generate-school-starter-package-csv?ageMin=6&ageMax=10
+### Fetch children report data for a reference date (age as of that day)
+GET {{baseApiPath}}/statistics/children?ageMin=6&ageMax=15&referenceDate=2999-09-01
+
+### Fetch children count per age year
+GET {{baseApiPath}}/statistics/children/age-distribution?ageMin=6&ageMax=15
+
+### Generate children report CSV export
+GET {{baseApiPath}}/statistics/generate-children-csv?ageMin=6&ageMax=15

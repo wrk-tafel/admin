@@ -38,7 +38,7 @@ class AuditRetentionService(
 
     /**
      * The schedule is a plain placeholder rather than a [TafelAdminProperties] field, for the same
-     * reason as `tafeladmin.configReload.interval` (see `ConfigFileReloadService`): `@Scheduled`
+     * reason as `tafeladmin.configReload.cron` (see `ConfigFileReloadService`): `@Scheduled`
      * fixes the expression when the bean is created, so a reloaded value could never take effect,
      * and listing it beside the reloadable `retentionDays` would advertise a liveness it doesn't
      * have. Changing it needs a restart.
@@ -53,7 +53,7 @@ class AuditRetentionService(
         }
 
         val cutoff = LocalDateTime.now(clock).minusDays(retentionDays)
-        val deletedCount = auditLogRepository.deleteAllByOccurredAtBefore(cutoff)
+        val deletedCount = auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(cutoff)
         if (deletedCount > 0) {
             logger.info("Removed {} audit entries older than {}", deletedCount, cutoff)
         }

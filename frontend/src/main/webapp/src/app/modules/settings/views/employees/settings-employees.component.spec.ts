@@ -1,18 +1,27 @@
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideRouter} from '@angular/router';
 import {SettingsEmployeesComponent} from './settings-employees.component';
-import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../../api/employee-api.service';
+import {
+  EmployeeApiService,
+  EmployeeData,
+  EmployeeListResponse,
+  PersonnelNumberAvailabilityResponse
+} from '../../../../api/employee-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {of} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
+import {EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
 
 describe('SettingsEmployeesComponent', () => {
   const testEmployee1: EmployeeData = {
     id: 1,
     personnelNumber: '00001',
     firstname: 'First 1',
-    lastname: 'Last 1'
+    lastname: 'Last 1',
+    userAccount: {id: 7, username: 'user-7'}
   };
   const testEmployee2: EmployeeData = {
     id: 2,
@@ -30,12 +39,17 @@ describe('SettingsEmployeesComponent', () => {
 
   let employeeApiMock: Partial<EmployeeApiService>;
   let toastrMock: Partial<TafelToastrService>;
+  let permissions: string[];
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    permissions = ['SETTINGS', 'USER_MANAGEMENT'];
+
     employeeApiMock = {
       findEmployees: vi.fn(() => of<EmployeeListResponse>(listResponse)),
       updateEmployee: vi.fn(() => of(testEmployee1)),
       saveEmployee: vi.fn(() => of(testEmployee1)),
+      checkPersonnelNumberAvailability: vi.fn(() => of<PersonnelNumberAvailabilityResponse>({available: true})),
     };
 
     toastrMock = {
@@ -51,11 +65,20 @@ describe('SettingsEmployeesComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
+        provideRouter([]),
         {provide: EmployeeApiService, useValue: employeeApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
-        {provide: MatDialog, useValue: matDialogMock}
+        {provide: MatDialog, useValue: matDialogMock},
+        {
+          provide: AuthenticationService,
+          useValue: {hasPermission: (permission: string) => permissions.includes(permission)}
+        }
       ]
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('component can be created', () => {
@@ -72,17 +95,22 @@ describe('SettingsEmployeesComponent', () => {
     expect(component['employees']()).toBeDefined();
     expect(component['employees']()?.items.length).toBe(2);
     expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined, undefined);
+    expect(component['searchAnnouncement']()).toBe('2 Mitarbeiter gefunden');
   });
 
-  it('search() reloads from page 1 with the search input', () => {
+  it('searches from page 1 while the search input is typed, once the typing settles', () => {
     const fixture = TestBed.createComponent(SettingsEmployeesComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
+    component['searchControl'].setValue('0000');
     component['searchControl'].setValue('00001');
-    component['search']();
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(500);
 
     expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledTimes(2);
   });
 
   it('startEdit() enters edit mode for the given row and prefills the fields', () => {
@@ -128,18 +156,88 @@ describe('SettingsEmployeesComponent', () => {
     expect(component['editingId']()).toBeNull();
   });
 
+  it('reports a personnel number already given out while it is typed and refuses to save it', () => {
+    (employeeApiMock.checkPersonnelNumberAvailability as any).mockReturnValue(
+      of<PersonnelNumberAvailabilityResponse>({available: false, existingEmployee: testEmployee2})
+    );
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['startEdit'](testEmployee1);
+    component['personnelNumberControl'].setValue('00002');
+    vi.advanceTimersByTime(500);
+
+    expect(employeeApiMock.checkPersonnelNumberAvailability).toHaveBeenCalledWith('00002', testEmployee1.id);
+    expect(component['editDuplicate']()).toEqual(testEmployee2);
+    expect(component['personnelNumberControl'].errors).toEqual({duplicateEmployee: true});
+
+    component['saveEdit'](testEmployee1);
+
+    expect(employeeApiMock.updateEmployee).not.toHaveBeenCalled();
+  });
+
+  it('openEmployee() narrows the list to the employee holding the number and edits it', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['openEmployee'](testEmployee2);
+
+    expect(component['searchControl'].value).toBe(testEmployee2.personnelNumber);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(testEmployee2.personnelNumber, 1, listResponse.pageSize);
+    expect(component['editingId']()).toBe(testEmployee2.id);
+  });
+
   it('addEmployee() creates the employee returned by the dialog and reloads', () => {
     const fixture = TestBed.createComponent(SettingsEmployeesComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
     const created = {personnelNumber: '00003', firstname: 'First 3', lastname: 'Last 3'};
+    const result: EmployeeCreateDialogResult = {type: 'create', employee: created};
     const dialog = TestBed.inject(MatDialog);
-    (dialog.open as any).mockReturnValueOnce({afterClosed: () => of(created)});
+    (dialog.open as any).mockReturnValueOnce({afterClosed: () => of(result)});
 
     component['addEmployee']();
 
     expect(employeeApiMock.saveEmployee).toHaveBeenCalledWith(created);
     expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('addEmployee() opens the colliding employee when the dialog closes with one', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    const result: EmployeeCreateDialogResult = {type: 'openExisting', employee: testEmployee2};
+    const dialog = TestBed.inject(MatDialog);
+    (dialog.open as any).mockReturnValueOnce({afterClosed: () => of(result)});
+
+    component['addEmployee']();
+
+    expect(employeeApiMock.saveEmployee).not.toHaveBeenCalled();
+    expect(component['editingId']()).toBe(testEmployee2.id);
+  });
+
+  it('links a linked user account for someone allowed to open it', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="employeeUserAccountLink-0"]')?.getAttribute('href')).toBe('/benutzer/detail/7');
+    expect(element.querySelector('[testid="employeeNoUserAccount-1"]')).toBeTruthy();
+  });
+
+  it('states that an account exists without linking it for someone who cannot open it', () => {
+    permissions = ['SETTINGS'];
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="employeeUserAccountLink-0"]')).toBeNull();
+    expect(element.querySelector('[testid="employeeUserAccountChip-0"]')?.textContent).toContain('Benutzerkonto vorhanden');
   });
 });

@@ -63,6 +63,7 @@ describe('DashboardComponent', () => {
   it('init subscribes data', () => {
     const mockData: DashboardData = {
       registeredCustomers: 123,
+      registeredPersons: 321,
       logistics: {
         foodAmountTotal: 456,
         foodCollectionsRecordedCount: 789,

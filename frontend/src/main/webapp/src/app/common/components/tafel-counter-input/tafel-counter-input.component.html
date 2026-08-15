@@ -4,15 +4,19 @@
   at all.
 -->
 <div class="flex items-center justify-center gap-2">
-  <button matButton="outlined" [attr.aria-label]="label() + ' verringern'" (click)="decrement()"
-          [attr.testid]="testId() + '-decrement-button'">
+  <!-- pointerdown/up starts and stops the hold-to-repeat, click still handles a plain tap/keyboard
+       activation on its own - see the component for how the two don't double up. -->
+  <button matButton="outlined" [attr.aria-label]="label() + ' verringern'" (click)="onDecrementClick()"
+          (pointerdown)="startHoldDecrement()" (pointerup)="stopHold()" (pointerleave)="stopHold()"
+          (pointercancel)="stopHold()" [attr.testid]="testId() + '-decrement-button'">
     <fa-icon [icon]="faMinus"></fa-icon>
   </button>
   <input [attr.testid]="testId() + '-input'" type="number" name="valueInput" [attr.aria-label]="label()"
          class="w-16 text-center border border-gray-300 rounded-md py-1.5"
          [ngModel]="currentValue()" (ngModelChange)="onValueChange($event)" />
-  <button matButton="outlined" [attr.aria-label]="label() + ' erhöhen'" (click)="increment()"
-          [attr.testid]="testId() + '-increment-button'">
+  <button matButton="outlined" [attr.aria-label]="label() + ' erhöhen'" (click)="onIncrementClick()"
+          (pointerdown)="startHoldIncrement()" (pointerup)="stopHold()" (pointerleave)="stopHold()"
+          (pointercancel)="stopHold()" [attr.testid]="testId() + '-increment-button'">
     <fa-icon [icon]="faPlus"></fa-icon>
   </button>
 </div>

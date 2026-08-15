@@ -49,7 +49,8 @@ export interface ShelterItem {
 }
 
 export interface ShelterContact {
-  firstname: string;
-  lastname: string;
+  // a contact may be just a phone number - the backend keeps both name parts nullable
+  firstname?: string;
+  lastname?: string;
   phone: string;
 }

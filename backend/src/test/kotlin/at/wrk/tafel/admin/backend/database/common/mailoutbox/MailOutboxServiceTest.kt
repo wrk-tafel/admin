@@ -16,10 +16,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.data.domain.Limit
 import org.springframework.mail.MailSendException
 import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.TransactionStatus
+import org.springframework.transaction.support.SimpleTransactionStatus
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.io.ByteArrayInputStream
 import java.time.Clock
 import java.time.Duration
@@ -39,6 +43,23 @@ class MailOutboxServiceTest {
 
     @RelaxedMockK
     private lateinit var eventPublisher: ApplicationEventPublisher
+
+    /**
+     * The poller's transaction boundary, real rather than mocked - [TransactionTemplate] is what
+     * runs the callback, and a mock of it would only be a mock of the code under test. What it
+     * commits to is a no-op: this class asserts what the send does, not what Postgres does with it.
+     */
+    private val transactionTemplate = TransactionTemplate(
+        object : PlatformTransactionManager {
+            override fun getTransaction(definition: TransactionDefinition?): TransactionStatus = SimpleTransactionStatus()
+
+            override fun commit(status: TransactionStatus) = Unit
+
+            override fun rollback(status: TransactionStatus) = Unit
+        },
+    )
+
+    private var nextId = 1L
 
     private val now = LocalDateTime.of(2026, 3, 22, 10, 15, 30)
     private val clock = Clock.fixed(Instant.parse("2026-03-22T09:15:30Z"), ZoneId.of("Europe/Vienna"))
@@ -72,70 +93,58 @@ class MailOutboxServiceTest {
     @Test
     fun `sending marks a mail as sent`() {
         val service = service()
-        val pendingMail = pendingMail()
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(
-                MailOutboxStatus.PENDING,
-                now,
-                any<Limit>(),
-            )
-        } returns listOf(pendingMail)
+        val dueMail = dueMail()
+        givenDueMails(dueMail)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
 
         service.sendPendingMails()
 
         verify { mailSender.send(any<MimeMessage>()) }
-        assertThat(pendingMail.status).isEqualTo(MailOutboxStatus.SENT)
-        assertThat(pendingMail.sentAt).isEqualTo(now)
-        assertThat(pendingMail.attempts).isEqualTo(1)
-        assertThat(pendingMail.lastError).isNull()
-        verify { mailOutboxRepository.save(pendingMail) }
+        assertThat(dueMail.status).isEqualTo(MailOutboxStatus.SENT)
+        assertThat(dueMail.sentAt).isEqualTo(now)
+        assertThat(dueMail.attempts).isEqualTo(1)
+        assertThat(dueMail.lastError).isNull()
+        verify { mailOutboxRepository.save(dueMail) }
     }
 
     @Test
     fun `a failed send is retried later with the error recorded`() {
         val service = service()
-        val pendingMail = pendingMail()
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(pendingMail)
+        val dueMail = dueMail()
+        givenDueMails(dueMail)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
 
         service.sendPendingMails()
 
-        assertThat(pendingMail.status).isEqualTo(MailOutboxStatus.PENDING)
-        assertThat(pendingMail.attempts).isEqualTo(1)
-        assertThat(pendingMail.lastError).contains("smtp is down")
-        assertThat(pendingMail.nextAttemptAt).isEqualTo(now.plusMinutes(5))
-        verify { mailOutboxRepository.save(pendingMail) }
+        assertThat(dueMail.status).isEqualTo(MailOutboxStatus.PENDING)
+        assertThat(dueMail.attempts).isEqualTo(1)
+        assertThat(dueMail.lastError).contains("smtp is down")
+        assertThat(dueMail.nextAttemptAt).isEqualTo(now.plusMinutes(5))
+        verify { mailOutboxRepository.save(dueMail) }
     }
 
     @Test
     fun `a mail is given up on after the last attempt and kept with its error`() {
         val service = service()
-        val pendingMail = pendingMail().apply { attempts = 4 }
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(pendingMail)
+        val dueMail = dueMail().apply { attempts = 4 }
+        givenDueMails(dueMail)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
 
         service.sendPendingMails()
 
-        assertThat(pendingMail.status).isEqualTo(MailOutboxStatus.FAILED)
-        assertThat(pendingMail.attempts).isEqualTo(5)
-        assertThat(pendingMail.lastError).contains("smtp is down")
-        verify { mailOutboxRepository.save(pendingMail) }
+        assertThat(dueMail.status).isEqualTo(MailOutboxStatus.FAILED)
+        assertThat(dueMail.attempts).isEqualTo(5)
+        assertThat(dueMail.lastError).contains("smtp is down")
+        verify { mailOutboxRepository.save(dueMail) }
     }
 
     @Test
     fun `giving up on a mail announces it, so the failure is not just a row nobody reads`() {
         val service = service()
-        val pendingMail = pendingMail().apply { attempts = 4 }
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(pendingMail)
+        val dueMail = dueMail().apply { attempts = 4 }
+        givenDueMails(dueMail)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
 
@@ -151,9 +160,7 @@ class MailOutboxServiceTest {
     @Test
     fun `a mail that will be retried announces nothing yet`() {
         val service = service()
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(pendingMail())
+        givenDueMails(dueMail())
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
 
@@ -188,11 +195,9 @@ class MailOutboxServiceTest {
     @Test
     fun `one failing mail does not stop the rest of the batch`() {
         val service = service()
-        val failing = pendingMail()
-        val succeeding = pendingMail()
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(failing, succeeding)
+        val failing = dueMail()
+        val succeeding = dueMail()
+        givenDueMails(failing, succeeding)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down") andThen Unit
 
@@ -222,9 +227,7 @@ class MailOutboxServiceTest {
 
         service.sendPendingMails()
 
-        verify(exactly = 0) {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        }
+        verify(exactly = 0) { mailOutboxRepository.findNextDueForUpdateSkipLocked(any(), any()) }
     }
 
     /**
@@ -240,11 +243,9 @@ class MailOutboxServiceTest {
                 maxRetryBackoff = Duration.ofMinutes(2)
             },
         )
-        val firstFailure = pendingMail()
-        val lastAttempt = pendingMail().apply { attempts = 1 }
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(firstFailure, lastAttempt)
+        val firstFailure = dueMail()
+        val lastAttempt = dueMail().apply { attempts = 1 }
+        givenDueMails(firstFailure, lastAttempt)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
 
@@ -265,10 +266,8 @@ class MailOutboxServiceTest {
                 maxRetryBackoff = Duration.ofMinutes(12)
             },
         )
-        val mail = pendingMail().apply { attempts = 5 }
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns listOf(mail)
+        val mail = dueMail().apply { attempts = 5 }
+        givenDueMails(mail)
         every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
         every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
 
@@ -279,29 +278,93 @@ class MailOutboxServiceTest {
     }
 
     @Test
-    fun `the batch size limits what one poll takes on`() {
-        val service = service(properties = TafelAdminMailOutboxProperties().apply { batchSize = 3 })
-        every {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), any<Limit>())
-        } returns emptyList()
+    fun `a poll with nothing due sends nothing`() {
+        val service = service()
+        givenDueMails()
 
         service.sendPendingMails()
 
-        val limitSlot = slot<Limit>()
-        verify {
-            mailOutboxRepository.findAllByStatusAndNextAttemptAtLessThanEqualOrderByIdAsc(any(), any(), capture(limitSlot))
-        }
-        assertThat(limitSlot.captured.max()).isEqualTo(3)
+        verify(exactly = 0) { mailSender.send(any<MimeMessage>()) }
+    }
+
+    /**
+     * The poll keeps taking the next due mail until there is none - the queue is drained per poll,
+     * not capped at a batch. Each one is taken with its own locking read, which is what a second
+     * instance's poller runs into.
+     */
+    @Test
+    fun `a poll works through every due mail, one at a time`() {
+        val service = service()
+        val mails = listOf(dueMail(), dueMail(), dueMail())
+        givenDueMails(*mails.toTypedArray())
+        every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
+
+        service.sendPendingMails()
+
+        verify(exactly = 3) { mailSender.send(any<MimeMessage>()) }
+        assertThat(mails).allMatch { it.status == MailOutboxStatus.SENT }
+        // four reads for three mails: the last one is what ends the poll
+        verify(exactly = 4) { mailOutboxRepository.findNextDueForUpdateSkipLocked(MailOutboxStatus.PENDING.name, now) }
+    }
+
+    /**
+     * A mail is due again immediately only if the backoff was configured to zero, and a poll that
+     * keeps taking the same row would hammer the mail server for as long as the application runs.
+     */
+    @Test
+    fun `a mail that comes back due immediately does not spin the poll`() {
+        val service = service(properties = TafelAdminMailOutboxProperties().apply { retryBackoff = Duration.ZERO })
+        val mail = dueMail()
+        every { mailOutboxRepository.findNextDueForUpdateSkipLocked(any(), any()) } returns mail
+        every { mailSender.createMimeMessage(any<ByteArrayInputStream>()) } returns mimeMessage("subject")
+        every { mailSender.send(any<MimeMessage>()) } throws MailSendException("smtp is down")
+
+        service.sendPendingMails()
+
+        verify(exactly = 2) { mailOutboxRepository.findNextDueForUpdateSkipLocked(any(), any()) }
     }
 
     @Test
     fun `cleanup removes sent mails older than the retention window`() {
         val service = service()
 
-        service.cleanupSentMails()
+        service.cleanupOldMails()
 
         verify {
-            mailOutboxRepository.deleteAllByStatusAndSentAtBefore(MailOutboxStatus.SENT, now.minusDays(14))
+            mailOutboxRepository.deleteAllByStatusAndSentAtBeforeSkipLocked(MailOutboxStatus.SENT.name, now.minusDays(14))
+        }
+    }
+
+    /**
+     * A mail nobody received is kept longer than a sent one, and counted from when it was queued -
+     * it has no `sentAt`. But it is not kept forever: the row holds the whole message, attachments
+     * and all, and that copy is reached by no other retention rule (see the GDPR analysis, G10).
+     */
+    @Test
+    fun `cleanup removes mails that were given up on after their own longer window`() {
+        val service = service()
+
+        service.cleanupOldMails()
+
+        verify {
+            mailOutboxRepository.deleteAllByStatusAndCreatedAtBeforeSkipLocked(MailOutboxStatus.FAILED.name, now.minusDays(30))
+        }
+    }
+
+    @Test
+    fun `the configured retention windows are what the cleanup applies`() {
+        val service = service(
+            properties = TafelAdminMailOutboxProperties().apply {
+                sentRetention = Duration.ofDays(3)
+                failedRetention = Duration.ofDays(7)
+            },
+        )
+
+        service.cleanupOldMails()
+
+        verify {
+            mailOutboxRepository.deleteAllByStatusAndSentAtBeforeSkipLocked(MailOutboxStatus.SENT.name, now.minusDays(3))
+            mailOutboxRepository.deleteAllByStatusAndCreatedAtBeforeSkipLocked(MailOutboxStatus.FAILED.name, now.minusDays(7))
         }
     }
 
@@ -310,19 +373,33 @@ class MailOutboxServiceTest {
         properties: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties(),
     ) = MailOutboxService(
         mailOutboxRepository,
+        transactionTemplate,
         mailSender,
         clock,
         eventPublisher,
         TafelAdminProperties().apply { mailOutbox = properties },
     )
 
-    private fun pendingMail() = MailOutboxEntity().apply {
+    /**
+     * Ids matter here: the poll uses them to notice a mail that keeps coming back due, and
+     * [at.wrk.tafel.admin.backend.database.model.base.BaseEntity] compares by id, so two rows
+     * without one would be the same row to every assertion.
+     */
+    private fun dueMail() = MailOutboxEntity().apply {
+        id = nextId++
         createdAt = now
         subject = "subject"
         recipients = "to@localhost"
         message = "raw message".toByteArray()
         status = MailOutboxStatus.PENDING
         nextAttemptAt = now
+    }
+
+    /** What the poller reads, one row per call, until it comes up empty and the poll ends. */
+    private fun givenDueMails(vararg mails: MailOutboxEntity) {
+        every {
+            mailOutboxRepository.findNextDueForUpdateSkipLocked(any(), any())
+        } returnsMany (mails.toList() + null)
     }
 
     private fun mimeMessage(subject: String) = MimeMessage(Session.getInstance(Properties())).apply {

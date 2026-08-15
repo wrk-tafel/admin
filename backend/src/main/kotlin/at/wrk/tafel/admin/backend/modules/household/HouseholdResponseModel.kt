@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
@@ -124,6 +125,27 @@ data class Person(
     val excludeFromHousehold: Boolean = false,
 )
 
+/**
+ * Input for the income quick-check: the bare minimum the income validation needs per person, so an
+ * operator can find out whether a household would qualify before the rest of its data (names,
+ * address, ...) is ever typed in. Validated against the same rules as `POST /validate` and answered
+ * with the same [ValidateHouseholdResponse].
+ */
+@ExcludeFromTestCoverage
+data class IncomeQuickCheckRequest(
+    @field:NotEmpty
+    val persons: List<@Valid IncomeQuickCheckPersonItem> = emptyList(),
+)
+
+@ExcludeFromTestCoverage
+data class IncomeQuickCheckPersonItem(
+    @field:NotNull
+    val birthDate: LocalDate?,
+    @field:PositiveOrZero
+    val income: BigDecimal? = null,
+    val receivesFamilyAllowance: Boolean = false,
+)
+
 @ExcludeFromTestCoverage
 data class ValidateHouseholdResponse(
     val valid: Boolean,
@@ -131,6 +153,29 @@ data class ValidateHouseholdResponse(
     val limit: BigDecimal,
     val toleranceValue: BigDecimal,
     val amountExceededLimit: BigDecimal,
+    val details: IncomeCalculationDetails,
+)
+
+/**
+ * What [ValidateHouseholdResponse.totalSum] and `limit` are made up of, so the frontend can show
+ * the calculation rather than only its outcome. Every amount here is part of one of those two
+ * totals - `totalSum` is [incomeSum] + [familyAllowanceSum] + [childTaxAllowanceSum] +
+ * [siblingAdditionSum], `limit` is [baseLimit] + [additionalAdultsSum] + [additionalChildrenSum] +
+ * [ValidateHouseholdResponse.toleranceValue].
+ */
+@ExcludeFromTestCoverage
+data class IncomeCalculationDetails(
+    val incomeSum: BigDecimal,
+    val familyAllowanceSum: BigDecimal,
+    val childTaxAllowanceSum: BigDecimal,
+    val siblingAdditionSum: BigDecimal,
+    val baseLimit: BigDecimal,
+    val baseLimitCountAdults: Int,
+    val baseLimitCountChildren: Int,
+    val additionalAdultsCount: Int,
+    val additionalAdultsSum: BigDecimal,
+    val additionalChildrenCount: Int,
+    val additionalChildrenSum: BigDecimal,
 )
 
 @ExcludeFromTestCoverage
@@ -152,6 +197,14 @@ data class HouseholdDuplicationItem(
 )
 
 @ExcludeFromTestCoverage
+data class HouseholdDuplicateDismissRequest(
+    @field:NotNull
+    val householdId: Long? = null,
+    @field:NotNull
+    val otherHouseholdId: Long? = null,
+)
+
+@ExcludeFromTestCoverage
 data class HouseholdCostContributionPaymentRequest(
     @field:Positive
     val amount: BigDecimal? = null,
@@ -170,6 +223,7 @@ data class HouseholdAboveLimitItem(
     val totalSum: BigDecimal,
     val limit: BigDecimal,
     val amountExceededLimit: BigDecimal,
+    val percentageExceededLimit: BigDecimal,
 )
 
 @ExcludeFromTestCoverage

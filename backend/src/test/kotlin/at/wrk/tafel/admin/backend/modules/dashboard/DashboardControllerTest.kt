@@ -34,6 +34,7 @@ internal class DashboardControllerTest {
     fun `listen for dashboard data`() {
         val data = DashboardData(
             registeredCustomers = 2,
+            registeredPersons = 5,
             tickets = DashboardTicketsData(
                 countProcessedTickets = 10,
                 countTotalTickets = 123,
@@ -46,6 +47,7 @@ internal class DashboardControllerTest {
                 foodCollectionsRecordedCount = 1,
                 foodCollectionsTotalCount = 2,
                 recordedRouteNames = listOf("Route 1"),
+                allRouteNames = listOf("Route 1", "Route 2"),
                 foodAmountTotal = BigDecimal(3),
                 routeProgress = listOf(
                     DashboardRouteProgressItem(
