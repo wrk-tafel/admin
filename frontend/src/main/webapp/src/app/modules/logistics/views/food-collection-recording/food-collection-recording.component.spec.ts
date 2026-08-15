@@ -65,6 +65,8 @@ describe('FoodCollectionRecordingComponent', () => {
             markAllAsTouched: vi.fn(),
             hasInvalidInput: vi.fn().mockReturnValue(false),
             saveRequest: vi.fn().mockReturnValue(of(undefined)),
+            markAsSaved: vi.fn(),
+            tabStatus: vi.fn().mockReturnValue(undefined),
             ...overrides.basedata
         };
         const km = {
@@ -73,12 +75,16 @@ describe('FoodCollectionRecordingComponent', () => {
             needsKmDifferenceConfirmation: vi.fn().mockReturnValue(false),
             kmDifference: vi.fn().mockReturnValue(100),
             saveRequest: vi.fn().mockReturnValue(of(undefined)),
+            markAsSaved: vi.fn(),
+            tabStatus: vi.fn().mockReturnValue(undefined),
             ...overrides.km
         };
         const items = {
             markAllAsTouched: vi.fn(),
             hasInvalidInput: vi.fn().mockReturnValue(false),
             saveRequests: vi.fn().mockReturnValue([of(undefined)]),
+            markAsSaved: vi.fn(),
+            tabStatus: vi.fn().mockReturnValue(undefined),
             ...overrides.items
         };
 
@@ -225,6 +231,100 @@ describe('FoodCollectionRecordingComponent', () => {
         expect(matDialog.open).toHaveBeenCalled();
         expect(stubs.km.saveRequest).toHaveBeenCalled();
         expect(stubs.items.saveRequests).toHaveBeenCalled();
+    });
+
+    it('save - marks the completed sections as saved but leaves a skipped one alone', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        const stubs = createSectionStubs(component, {
+            basedata: {
+                hasInvalidInput: vi.fn().mockReturnValue(true),
+                saveRequest: vi.fn().mockReturnValue(null)
+            }
+        });
+
+        component.save();
+
+        expect(stubs.basedata.markAsSaved).not.toHaveBeenCalled();
+        expect(stubs.km.markAsSaved).toHaveBeenCalled();
+        expect(stubs.items.markAsSaved).toHaveBeenCalled();
+    });
+
+    it('routeTabStatus/warenTabStatus - read the respective sections and combine the "Waren" ones', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('unsaved')},
+            km: {tabStatus: vi.fn().mockReturnValue('complete')},
+            items: {tabStatus: vi.fn().mockReturnValue('invalid')}
+        });
+
+        expect(component.routeTabStatus()).toBe('unsaved');
+        // invalid outranks complete when combining km + items into the one "Waren" badge
+        expect(component.warenTabStatus()).toBe('invalid');
+    });
+
+    it('basedataMissingWarning - warns once "Waren" has data and "Route" is not complete', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue(undefined)},
+            km: {tabStatus: vi.fn().mockReturnValue('complete')}
+        });
+
+        expect(component.basedataMissingWarning()).toBe(true);
+    });
+
+    it('basedataMissingWarning - does not warn once "Route" is complete too', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('complete')},
+            km: {tabStatus: vi.fn().mockReturnValue('complete')}
+        });
+
+        expect(component.basedataMissingWarning()).toBe(false);
+    });
+
+    it('basedataMissingWarning - does not warn while "Waren" itself has nothing entered', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue(undefined)},
+            km: {tabStatus: vi.fn().mockReturnValue(undefined)}
+        });
+
+        expect(component.basedataMissingWarning()).toBe(false);
+    });
+
+    it('hasUnsavedChanges/canDeactivate - allows leaving without confirmation when nothing is unsaved', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('complete')},
+            km: {tabStatus: vi.fn().mockReturnValue(undefined)}
+        });
+
+        expect(component.hasUnsavedChanges()).toBe(false);
+        expect(component.canDeactivate()).toBe(true);
+        expect(matDialog.open).not.toHaveBeenCalled();
+    });
+
+    it('hasUnsavedChanges/canDeactivate - asks for confirmation and honours the dialog result', () => {
+        matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('unsaved')}
+        });
+
+        expect(component.hasUnsavedChanges()).toBe(true);
+
+        (component.canDeactivate() as any).subscribe((result: boolean) => {
+            expect(result).toBe(true);
+        });
+        expect(matDialog.open).toHaveBeenCalled();
     });
 
 });

@@ -1,4 +1,5 @@
-import {Component, effect, inject, input, model, signal, untracked, viewChild} from '@angular/core';
+import {Component, computed, effect, inject, input, model, signal, untracked, viewChild} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -8,7 +9,9 @@ import {MatIcon} from '@angular/material/icon';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {faRemove, faTruck} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {TafelEmployeeSearchCreateComponent} from '../../components/tafel-employee-search-create.component';
+import {
+  TafelEmployeeSearchCreateComponent
+} from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
 import {EmployeeData} from '../../../../api/employee-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {
@@ -18,6 +21,7 @@ import {
 import {CarData, CarList} from '../../../../api/car-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {Observable} from 'rxjs';
+import {TabStatus} from '../../services/food-collection-tab-status';
 
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
@@ -101,6 +105,31 @@ export class FoodCollectionRecordingBasedataComponent {
     });
   });
 
+  // Recompute trigger for the plain (non-signal) form state read below - setValue() does not mark
+  // a control dirty, so the effect above resetting/prefilling the form never counts as a user
+  // change here, only actual input does.
+  private readonly formChangeTick = toSignal(this.form.valueChanges, {initialValue: null});
+
+  // markAsSaved() below calls markAsPristine(), which never emits valueChanges, so formChangeTick
+  // alone would leave tabStatus stuck on "unsaved" until the next edit - bumped there instead.
+  private readonly savedTick = signal(0);
+
+  /** Badge shown on the "Route" tab label - see {@link TabStatus}. */
+  readonly tabStatus = computed<TabStatus | undefined>(() => {
+    this.formChangeTick();
+    this.savedTick();
+
+    const hasData = !!this.car.value || !!this.selectedDriver() || !!this.selectedCoDriver()
+      || !!this.driverSearchInput.value || !!this.coDriverSearchInput.value;
+    if (!hasData) {
+      return undefined;
+    }
+    if (this.hasInvalidInput()) {
+      return 'invalid';
+    }
+    return this.form.dirty ? 'unsaved' : 'complete';
+  });
+
   triggerSearchDriver() {
     const driverSearch = this.driverEmployeeSearchCreate();
     if (this.driverSearchInput.value && driverSearch) {
@@ -151,13 +180,23 @@ export class FoodCollectionRecordingBasedataComponent {
     return this.foodCollectionsApiService.saveRouteData(this.selectedRouteData()!.route.id, routeData);
   }
 
+  /** Called once this section's own save request has actually gone out - flips its badge back to "complete". */
+  markAsSaved() {
+    this.form.markAsPristine();
+    this.savedTick.update(tick => tick + 1);
+  }
+
   resetDriver() {
     this.driverSearchInput.setValue(null);
+    // setValue() alone doesn't mark the control dirty (only real user input through the template
+    // does) - this button click is itself a user change, so tabStatus must see it as one too.
+    this.driverSearchInput.markAsDirty();
     this.selectedDriver.set(null);
   }
 
   resetCoDriver() {
     this.coDriverSearchInput.setValue(null);
+    this.coDriverSearchInput.markAsDirty();
     this.selectedCoDriver.set(null);
   }
 

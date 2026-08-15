@@ -111,6 +111,24 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
+  it('renders ticket/food-collection ratios as progress bars and every active route as a status chip', () => {
+    cy.createDistribution();
+    // one ticket, still unprocessed - a real total with nothing done yet, which is the case a
+    // plain truthiness check on the percentage would render as "no bar at all"
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
+    cy.visit('/');
+
+    cy.byTestId('tickets-processed-progress').should('have.attr', 'aria-valuenow', '0');
+    cy.byTestId('recorded-food-collections-progress').should('have.attr', 'aria-valuenow', '0');
+
+    // every active route from testdata.sql is rendered as a chip, none of them recorded yet -
+    // the outstanding ones are the actionable information here, not just the recorded ones.
+    cy.byTestId('recorded-route-chip-0').should('contain.text', 'Route 1').and('not.have.class', 'route-chip-recorded');
+    cy.byTestId('recorded-route-chip-4').should('contain.text', 'Route 5').and('not.have.class', 'route-chip-recorded');
+
+    cy.closeDistribution();
+  });
+
   it('dashboard content and actions usable on phone', () => {
     // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
     // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.

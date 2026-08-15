@@ -48,6 +48,9 @@ data class UserResponse(
     val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean,
     val permissions: List<UserPermissionItem>,
+    // Currently active lockout from failed logins (see LoginAttemptService); null once it expired
+    // or none is on record. Server-computed - never bound from a UserRequest.
+    val lockedUntil: LocalDateTime? = null,
 )
 
 @ExcludeFromTestCoverage
@@ -80,4 +83,16 @@ data class LoginAttemptItem(
     val failureCount: Int,
     val lastFailureAt: LocalDateTime,
     val lockedUntil: LocalDateTime?,
+    /** The account behind [username], if one exists - a failed login names no account by itself. */
+    val userId: Long? = null,
+)
+
+/**
+ * The lockout rule the counts on the login-attempts screen are measured against - without it a
+ * failure count is a number without a scale.
+ */
+@ExcludeFromTestCoverage
+data class LoginAttemptSettingsResponse(
+    val maxFailures: Int,
+    val lockoutDurationInSeconds: Long,
 )

@@ -1,7 +1,39 @@
-// `mat-radio-button` is a block-level host that stretches to the full row width, but its
-// internal `.mdc-form-field` label (the actual click target - see MDC's own radio template)
-// only shrink-wraps its content. Without this, only the circle/text is clickable and the rest
-// of the visually full-width row silently does nothing on click.
-.merge-radio-group ::ng-deep .mdc-form-field {
+// The conflict grid renders one column per customer, each cell a radio button styled as a card, so
+// a value is compared down its column instead of by reading labels. Columns are equal-width flex
+// children (`flex-1 basis-0` in the template) rather than a CSS grid: the number of columns is only
+// known at runtime, and flex needs no column-count variable to keep header and rows aligned.
+.merge-cell {
+  border: 1px solid var(--mat-sys-outline-variant, #d1d5db);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.merge-cell-selected {
+  border-color: var(--mat-sys-primary, #005cbb);
+  border-width: 2px;
+  // Compensates the thicker border so a selected cell doesn't shift its neighbours by a pixel.
+  padding: calc(0.5rem - 1px);
+  background-color: var(--mat-sys-primary-container, #d8e2ff);
+}
+
+// A cell nothing can be picked from carries no radio circle, so its text would start 40px left of
+// the selectable cells next to it - that offset is the width of MDC's radio control.
+.merge-cell-identical {
+  padding-left: calc(0.5rem + 40px);
+}
+
+// `mat-radio-button` is a block-level host that stretches to the full cell width, but its internal
+// `.mdc-form-field` label (the actual click target - see MDC's own radio template) only shrink-wraps
+// its content. Without this, only the circle/text is clickable and the rest of the visually
+// full-width cell silently does nothing on click.
+.merge-cells ::ng-deep .mdc-form-field {
   width: 100%;
+  // A cell holds a customer label above a value that may wrap over several lines; centering it
+  // against the radio circle would leave the circle floating in the middle of a tall cell.
+  align-items: flex-start;
+}
+
+.merge-cells ::ng-deep .mdc-form-field > label {
+  width: 100%;
+  white-space: normal;
 }

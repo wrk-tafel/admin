@@ -83,7 +83,7 @@
                         <fa-icon [icon]="faXmark"></fa-icon>
                       </button>
                     } @else {
-                      <button matButton="filled" class="button-danger" [attr.testid]="'editStaticValueButton-' + row.index"
+                      <button matButton="filled" [attr.testid]="'editStaticValueButton-' + row.index"
                               matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
                               [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">
                         <fa-icon [icon]="faPencil"></fa-icon>
@@ -125,7 +125,7 @@
                         </div>
                       </div>
                     </mat-card-content>
-                    <mat-card-actions class="flex gap-2">
+                    <mat-card-actions>
                       @if (editingId() === row.staticValue.id) {
                         <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + row.index"
                                 matTooltip="Änderungen speichern" (click)="saveEdit(section, row)"
@@ -138,7 +138,7 @@
                           <fa-icon [icon]="faXmark"></fa-icon>
                         </button>
                       } @else {
-                        <button matButton="filled" class="button-danger"
+                        <button matButton="filled"
                                 [attr.testid]="'editStaticValueButtonMobile-' + row.index"
                                 matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
                                 [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">

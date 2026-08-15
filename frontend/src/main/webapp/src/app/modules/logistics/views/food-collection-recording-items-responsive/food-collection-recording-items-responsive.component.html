@@ -6,11 +6,35 @@
     }
   </div>
 }
+@if (justSynced() && isOnline()) {
+  <div class="bg-green-600 text-white text-center py-2 px-3 rounded mb-4" testid="sync-confirmation">
+    Synchronisiert ✓
+  </div>
+}
 @if (currentShop(); as shop) {
   <div class="mt-4 mb-4">
-    <div class="grid grid-cols-12">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <!-- text tight against the tags: the indentation would otherwise collapse into leading/
+           trailing spaces, and the e2e spec asserts this label's exact text -->
+      <span class="text-sm font-semibold text-slate-600"
+            testid="shop-progress-label">Filiale {{ currentShopIndex() + 1 }} von {{ shopCount() }}</span>
+      <mat-form-field subscriptSizing="dynamic" class="w-56">
+        <mat-label>Zu Filiale springen</mat-label>
+        <mat-select testid="shop-jump-select" [ngModel]="shop.id" (ngModelChange)="jumpToShop($event)">
+          @for (entry of shopProgress(); track entry.shop.id) {
+            <mat-option [value]="entry.shop.id" [attr.testid]="'shop-jump-option-' + entry.shop.id">
+              {{ entry.position }}. {{ entry.shop.name }}{{ entry.isRecorded ? ' ✓' : '' }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="grid grid-cols-12 mt-2">
       <div class="col-span-3 font-bold">Filiale:</div>
-      <div class="col-span-9" testid="shop-title">{{ shop.id + ' - ' + shop.name }}</div>
+      <!-- text tight against the tag for the same reason as the progress label above -->
+      <div class="col-span-9" testid="shop-title">{{ shop.id + ' - ' + shop.name }}@if (currentShopRecorded()) {
+        <span class="badge badge-success ms-2" testid="shop-recorded-badge">✓ erfasst</span>
+      }</div>
     </div>
     <div class="grid grid-cols-12">
       <div class="col-span-3"></div>

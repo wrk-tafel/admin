@@ -28,6 +28,15 @@ class DistributionTicketScreenController(
         saveToOutbox(text = request.text, value = request.value)
     }
 
+    /**
+     * Read-only counterpart of [showCurrentTicket]: the current ticket and queue counts without
+     * putting anything on the monitor - the control screen loads its panels with this, so merely
+     * (re)opening that page never overwrites what the monitor is showing (e.g. a start time).
+     */
+    @GetMapping("/current")
+    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    fun getCurrentTicket(): TicketScreenTicketResponse = service.getCurrentTicketScreenTicket()
+
     @PostMapping("/show-current")
     @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showCurrentTicket(): TicketScreenTicketResponse {
@@ -77,7 +86,12 @@ data class TicketScreenShowTextRequest(
 
 @ExcludeFromTestCoverage
 data class TicketScreenShowNextTicketRequest(
-    val costContributionPaid: Boolean,
+    /**
+     * The operator's paid/unpaid decision for the ticket being closed. `null` means "keep whatever
+     * is already recorded" - used by the forward arrow to re-close a ticket that was reopened via
+     * show-previous without overwriting the decision made when it was originally processed.
+     */
+    val costContributionPaid: Boolean?,
 )
 
 @ExcludeFromTestCoverage
@@ -85,4 +99,7 @@ data class TicketScreenTicketResponse(
     val ticketNumber: Int?,
     val householdId: Long?,
     val pendingCostContribution: BigDecimal?,
+    val householdName: String? = null,
+    val processedTicketsCount: Int? = null,
+    val totalTicketsCount: Int? = null,
 )

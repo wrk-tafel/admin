@@ -1,5 +1,6 @@
 import {Component, computed, effect, inject, model, signal, viewChild} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
+import {NgClass} from '@angular/common';
 
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -29,11 +30,13 @@ import {
   FoodCollectionRecordingItemsResponsiveComponent
 } from '../food-collection-recording-items-responsive/food-collection-recording-items-responsive.component';
 import {KmDiffDialogComponent} from '../food-collection-recording-km/dialogs/km-diff-dialog.component';
+import {UnsavedChangesDialogComponent} from './dialogs/unsaved-changes-dialog.component';
 import {FoodCollectionData, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {concat, forkJoin, map, Observable} from 'rxjs';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {combineTabStatus, TabStatus} from '../../services/food-collection-tab-status';
 
 // Matches the Tailwind `md` breakpoint the two item layouts have always been switched at.
 const DESKTOP_BREAKPOINT = '(min-width: 768px)';
@@ -42,6 +45,7 @@ const DESKTOP_BREAKPOINT = '(min-width: 768px)';
   selector: 'tafel-food-collection-recording',
   templateUrl: 'food-collection-recording.component.html',
   imports: [
+    NgClass,
     MatButtonModule,
     MatCardModule,
     ReactiveFormsModule,
@@ -92,6 +96,27 @@ export class FoodCollectionRecordingComponent {
     this.isDesktopLayout() ? this.itemsDesktopComponent() : this.itemsResponsiveComponent()
   );
 
+  /** Badge on the "Route" tab label - see {@link TabStatus}. */
+  protected readonly routeTabStatus = computed<TabStatus | undefined>(() => this.basedataComponent()?.tabStatus());
+
+  /** Badge on the "Waren" tab label: the worse of mileage and item amounts. */
+  protected readonly warenTabStatus = computed<TabStatus | undefined>(() =>
+    combineTabStatus(this.kmComponent()?.tabStatus(), this.itemsComponent()?.tabStatus())
+  );
+
+  /**
+   * Amounts have already been entered on "Waren" while "Route" isn't complete yet - both are
+   * legitimate on their own (base data at departure, amounts on the road), but together they are
+   * worth a heads-up before Speichern skips the incomplete part rather than after.
+   */
+  protected readonly basedataMissingWarning = computed(() =>
+    this.warenTabStatus() !== undefined && this.routeTabStatus() !== 'complete'
+  );
+
+  protected readonly hasUnsavedChanges = computed(() =>
+    this.routeTabStatus() === 'unsaved' || this.warenTabStatus() === 'unsaved'
+  );
+
   constructor() {
     // Redirect to overview once it's confirmed no distribution is active. `getCurrentDistribution()`
     // is also `null` before the first SSE message arrives, so this must wait for that first message
@@ -103,6 +128,17 @@ export class FoodCollectionRecordingComponent {
         this.router.navigate(['uebersicht']);
       }
     });
+  }
+
+  /**
+   * Route guard (see `logistics.routes.ts`): leaving with unsaved changes needs confirmation, since
+   * closing the tab or navigating away otherwise silently drops them.
+   */
+  canDeactivate(): Observable<boolean> | boolean {
+    if (!this.hasUnsavedChanges()) {
+      return true;
+    }
+    return this.dialog.open(UnsavedChangesDialogComponent).afterClosed().pipe(map(confirmed => !!confirmed));
   }
 
   onSelectedRouteChange(route: RouteData) {
@@ -176,6 +212,19 @@ export class FoodCollectionRecordingComponent {
     concat(...requests).subscribe({
       complete: () => {
         this.saving.set(false);
+
+        // only the sections that actually had a complete request sent flip their badge back to
+        // "complete" - a section skipped for being incomplete stays exactly as invalid as before
+        if (!basedata?.hasInvalidInput()) {
+          basedata?.markAsSaved();
+        }
+        if (!km?.hasInvalidInput()) {
+          km?.markAsSaved();
+        }
+        if (!items?.hasInvalidInput()) {
+          items?.markAsSaved();
+        }
+
         if (skipped.length > 0) {
           this.toastr.warning(`Gespeichert - unvollständig und daher nicht gespeichert: ${skipped.join(', ')}`);
         } else {

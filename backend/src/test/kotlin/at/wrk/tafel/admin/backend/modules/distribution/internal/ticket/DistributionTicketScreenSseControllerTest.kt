@@ -29,9 +29,35 @@ internal class DistributionTicketScreenSseControllerTest {
     private lateinit var controller: DistributionTicketScreenSseController
 
     @Test
+    fun `listen for changes replays what the monitor last showed`() {
+        // e.g. a start time set before the monitor was opened - the freshly connected monitor must
+        // show it instead of a synthesized current ticket
+        val lastShown = TicketScreenShowTextRequest(text = "Startzeit", value = "11:30")
+        every {
+            sseOutboxService.findLatestEvent(
+                notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+                resultType = TicketScreenShowTextRequest::class.java,
+                after = any(),
+            )
+        } returns lastShown
+
+        val emitter = controller.listenForChanges()
+
+        verify { sseOutboxService.sendEvent(emitter, lastShown) }
+        verify(exactly = 0) { service.getCurrentTicketNumberValue() }
+    }
+
+    @Test
     fun `listen for changes with active distribution`() {
         val testValue = TicketScreenShowTextRequest(text = "Ticket", value = "50")
 
+        every {
+            sseOutboxService.findLatestEvent(
+                notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+                resultType = TicketScreenShowTextRequest::class.java,
+                after = any(),
+            )
+        } returns null
         every { service.hasCurrentDistribution() } returns true
         every { service.getCurrentTicketNumberValue() } returns 50
 
@@ -60,6 +86,13 @@ internal class DistributionTicketScreenSseControllerTest {
     fun `listen for changes without active distribution`() {
         val testValue = TicketScreenShowTextRequest(text = "Ticket", value = null)
 
+        every {
+            sseOutboxService.findLatestEvent(
+                notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+                resultType = TicketScreenShowTextRequest::class.java,
+                after = any(),
+            )
+        } returns null
         every { service.hasCurrentDistribution() } returns false
 
         val emitter = controller.listenForChanges()

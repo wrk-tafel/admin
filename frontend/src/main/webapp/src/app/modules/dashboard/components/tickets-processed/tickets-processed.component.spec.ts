@@ -84,4 +84,33 @@ describe('TicketsProcessedComponent', () => {
     expect(component.panelColor()).toBe('success');
   });
 
+  it('renders the ratio as a progress bar once a total is known', () => {
+    const fixture = TestBed.createComponent(TicketsProcessedComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('countProcessedTickets', 34);
+    componentRef.setInput('countTotalTickets', 120);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('[testid="tickets-processed-progress"]'));
+    expect(bar.attributes['aria-valuenow']).toBe('28');
+  });
+
+  it('renders no progress bar before a total is known', () => {
+    const fixture = TestBed.createComponent(TicketsProcessedComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="tickets-processed-progress"]'))).toBeNull();
+  });
+
+  it('renders a 0%-wide progress bar when nothing is processed yet, not none at all', () => {
+    const fixture = TestBed.createComponent(TicketsProcessedComponent);
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('countProcessedTickets', 0);
+    componentRef.setInput('countTotalTickets', 50);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('[testid="tickets-processed-progress"]'));
+    expect(bar.attributes['aria-valuenow']).toBe('0');
+  });
+
 });

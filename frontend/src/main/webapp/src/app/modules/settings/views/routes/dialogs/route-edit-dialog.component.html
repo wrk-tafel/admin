@@ -26,6 +26,7 @@
         <mat-label>Hinweis</mat-label>
         <textarea matInput formControlName="note" placeholder="Notiz für diese Route eingeben ..."
                   rows="4" testid="route-note-input"></textarea>
+        <mat-hint>Wird dem Fahrer-Team im Routen-Navi prominent angezeigt.</mat-hint>
       </mat-form-field>
 
       <mat-slide-toggle formControlName="enabled" testid="route-enabled-toggle">Aktiv</mat-slide-toggle>
@@ -44,6 +45,31 @@
           Die Uhrzeit bestimmt die Reihenfolge — jede Uhrzeit und jede Filiale darf pro Route nur
           einmal vorkommen. Ohne Filiale wird der Stopp als reiner Zwischenhalt geführt.
         </p>
+
+        @if (stopWarnings().length > 0) {
+          <div class="mb-3 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="route-stop-warnings">
+            <fa-icon [icon]="faTriangleExclamation" class="mt-0.5"></fa-icon>
+            <ul class="list-disc ps-4">
+              @for (warning of stopWarnings(); track warning) {
+                <li>{{ warning }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- only once there is an order to show: a "preview" of a single stop says nothing -->
+        @if (orderedStopsPreview().length > 1) {
+          <div class="mb-4 rounded-md border border-slate-200 bg-slate-50 p-3" testid="route-stop-order-preview">
+            <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Gefahrene Reihenfolge
+            </h4>
+            <ol class="ms-4 list-decimal text-sm text-slate-700">
+              @for (item of orderedStopsPreview(); track item.key) {
+                <li>{{ item.timeLabel }} – {{ item.label }}</li>
+              }
+            </ol>
+          </div>
+        }
 
         <div formArrayName="stops" class="flex flex-col gap-3">
           @for (stopCtrl of stops.controls; track i; let i = $index) {

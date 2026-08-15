@@ -16,6 +16,7 @@ describe('CustomerMergeComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
+  let activatedRouteStub: { snapshot: { data: object, queryParams: Record<string, string> } };
 
   const mockTarget: CustomerData = {
     id: 100,
@@ -33,6 +34,15 @@ describe('CustomerMergeComponent', () => {
     gender: Gender.MALE,
     address: {street: 'Teststraße', houseNumber: '1', postalCode: 1010, city: 'Wien'},
     telephoneNumber: '222'
+  };
+
+  const mockSecondSource: CustomerData = {
+    id: 300,
+    firstname: 'Maxi',
+    lastname: 'Mustermann',
+    gender: Gender.MALE,
+    address: {street: 'Teststraße', houseNumber: '1', postalCode: 1010, city: 'Wien'},
+    telephoneNumber: '111'
   };
 
   const mockPreview: CustomerMergePreview = {
@@ -83,12 +93,13 @@ describe('CustomerMergeComponent', () => {
       error: vi.fn().mockName('TafelToastrService.error'),
       success: vi.fn().mockName('TafelToastrService.success')
     } as any;
+    activatedRouteStub = {snapshot: {data: {customerMergePreviewData: mockPreview}, queryParams: {}}};
 
     TestBed.configureTestingModule({
       providers: [
         {provide: CustomerApiService, useValue: customerApiServiceSpy},
         {provide: Router, useValue: routerSpy},
-        {provide: ActivatedRoute, useValue: {snapshot: {data: {customerMergePreviewData: mockPreview}}}},
+        {provide: ActivatedRoute, useValue: activatedRouteStub},
         {provide: TafelToastrService, useValue: toastrSpy}
       ]
     }).compileComponents();
@@ -98,9 +109,9 @@ describe('CustomerMergeComponent', () => {
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
-  function createComponent() {
+  function createComponent(preview: CustomerMergePreview = mockPreview) {
     const fixture = TestBed.createComponent(CustomerMergeComponent);
-    fixture.componentRef.setInput('customerMergePreviewData', mockPreview);
+    fixture.componentRef.setInput('customerMergePreviewData', preview);
     fixture.detectChanges();
     return fixture.componentInstance;
   }
@@ -134,9 +145,91 @@ describe('CustomerMergeComponent', () => {
     expect(component.resolvedDisplayValue('TELEPHONE_NUMBER')).toBe('222');
   });
 
+  it('the conflict grid holds one column per customer, target first', () => {
+    const component = createComponent();
+
+    expect(component.columns().map(column => column.customer.id)).toEqual([100, 200]);
+    expect(component.columns()[0].isTarget).toBe(true);
+    expect(component.columns()[0].label).toBe('100 - Mustermann Max');
+  });
+
+  it('a source that carries the target value gets a cell that cannot be selected', () => {
+    const component = createComponent({
+      ...mockPreview,
+      sources: [mockSource, mockSecondSource]
+    });
+
+    const cells = component.conflictRows()[0].cells;
+
+    expect(cells.map(cell => cell.customerId)).toEqual([100, 200, 300]);
+    expect(cells.map(cell => cell.selectable)).toEqual([true, true, false]);
+    expect(cells.map(cell => cell.selected)).toEqual([true, false, false]);
+    expect(cells[2].value).toBe('111');
+    expect(cells[1].testId).toBe('merge-field-TELEPHONE_NUMBER-source-200');
+  });
+
+  it('the selected cell follows the picked value', () => {
+    const component = createComponent();
+
+    component.selectField('TELEPHONE_NUMBER', 200);
+
+    expect(component.conflictRows()[0].cells.map(cell => cell.selected)).toEqual([false, true]);
+  });
+
+  it('only the fields a source value won are marked as changed', () => {
+    const component = createComponent();
+    component.selectField('TELEPHONE_NUMBER', 200);
+
+    const changedRows = component.changedSummaryRows();
+
+    expect(changedRows.map(row => row.field)).toEqual(['TELEPHONE_NUMBER']);
+    expect(changedRows[0].value).toBe('222');
+    expect(changedRows[0].previousValue).toBe('111');
+    expect(component.summaryRows().find(row => row.field === 'EMAIL')!.changed).toBe(false);
+  });
+
+  it('persons are grouped by their source customer and keep their position in the preview', () => {
+    const component = createComponent({
+      ...mockPreview,
+      sources: [mockSource, mockSecondSource],
+      persons: [
+        ...mockPreview.persons,
+        {
+          sourceCustomerId: 300,
+          person: {
+            key: 'peter',
+            id: 6,
+            firstname: 'Peter',
+            lastname: 'Novak',
+            excludeFromHousehold: false,
+            receivesFamilyAllowance: false
+          },
+          duplicate: true
+        }
+      ]
+    });
+
+    const groups = component.personGroups();
+
+    expect(groups.map(group => group.sourceCustomerId)).toEqual([200, 300]);
+    expect(groups[1].label).toBe('300 - Mustermann Maxi');
+    expect(groups[1].entries[0].index).toBe(1);
+    expect(component.movedPersonCount()).toBe(1);
+    expect(component.droppedPersonCount()).toBe(1);
+  });
+
+  it('confirm does nothing until the deletion is acknowledged', () => {
+    const component = createComponent();
+
+    component.confirm();
+
+    expect(customerApiService.mergeCustomers).not.toHaveBeenCalled();
+  });
+
   it('confirm sends the chosen field selections and navigates to the target on success', () => {
     const component = createComponent();
     component.selectField('TELEPHONE_NUMBER', 200);
+    component.confirmationAccepted.set(true);
     customerApiService.mergeCustomers.mockReturnValue(of(mockMergeResult));
 
     component.confirm();
@@ -150,14 +243,27 @@ describe('CustomerMergeComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 100]);
   });
 
+  it('a second confirm while the merge is running is ignored', () => {
+    const component = createComponent();
+    component.confirmationAccepted.set(true);
+    customerApiService.mergeCustomers.mockReturnValue(of());
+
+    component.confirm();
+    component.confirm();
+
+    expect(customerApiService.mergeCustomers).toHaveBeenCalledTimes(1);
+  });
+
   it('confirm shows an error toast and does not navigate on failure', () => {
     const component = createComponent();
+    component.confirmationAccepted.set(true);
     customerApiService.mergeCustomers.mockReturnValue(throwError(() => ({status: 500})));
 
     component.confirm();
 
     expect(toastr.error).toHaveBeenCalledWith('Zusammenführen der Kunden fehlgeschlagen!');
     expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.merging()).toBe(false);
   });
 
   it('cancel navigates back to the duplicates list', () => {
@@ -166,6 +272,15 @@ describe('CustomerMergeComponent', () => {
     component.cancel();
 
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/duplikate']);
+  });
+
+  it('cancel returns to the duplicates page the merge was started from', () => {
+    activatedRouteStub.snapshot.queryParams['seite'] = '3';
+    const component = createComponent();
+
+    component.cancel();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/duplikate'], {queryParams: {seite: '3'}});
   });
 
 });

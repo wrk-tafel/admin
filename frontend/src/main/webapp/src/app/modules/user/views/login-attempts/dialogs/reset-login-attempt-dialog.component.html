@@ -1,0 +1,13 @@
+<tafel-dialog testId="resetloginattempt-dialog" type="warning" title="Fehlversuche zurücksetzen">
+  <div tafel-dialog-content>
+    <div class="mb-2">
+      Die gezählten Fehlversuche von <span class="font-bold">{{ data.username }}</span> werden gelöscht.
+      Das Konto ist derzeit nicht gesperrt - die Anmeldung ändert sich dadurch nicht.
+    </div>
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Zurücksetzen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

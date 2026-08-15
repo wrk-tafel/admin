@@ -3,6 +3,8 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {ChangePasswordResponse} from '../../../api/user-api.service';
+import {provideRouter} from '@angular/router';
+import {AuthenticationService} from '../../security/authentication.service';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
@@ -14,6 +16,9 @@ describe('PasswordChangeFormComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
+        // AuthenticationService (needed for the live password-rule checklist's username check)
+        // itself depends on Router - not otherwise exercised by this spec.
+        provideRouter([]),
       ]
     }).compileComponents();
 
@@ -148,6 +153,53 @@ describe('PasswordChangeFormComponent', () => {
       newRepeatedPassword: '12345678'
     });
     expect(component.passwordForm().valid()).toBe(true);
+  });
+
+  it('passwordRules are all unmet for an empty password', () => {
+    expect(component.passwordRules().every(rule => !rule.met)).toBe(true);
+  });
+
+  it('passwordRules flag a too-short password only on the length rule', () => {
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: '1234567'});
+
+    const rules = component.passwordRules();
+    expect(rules[0].met).toBe(false); // length
+    expect(rules[2].met).toBe(true); // no whitespace
+    expect(rules[3].met).toBe(true); // no banned word
+  });
+
+  it('passwordRules flag whitespace and banned words', () => {
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'has tafel word'});
+
+    const rules = component.passwordRules();
+    expect(rules[0].met).toBe(true); // length
+    expect(rules[2].met).toBe(false); // no whitespace
+    expect(rules[3].met).toBe(false); // no banned word ("tafel")
+  });
+
+  it('passwordRules are all met for a compliant password', () => {
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'dummy-Passwort-42'});
+
+    expect(component.passwordRules().every(rule => rule.met)).toBe(true);
+  });
+
+  it('passwordRules flag a password containing the current username', () => {
+    TestBed.inject(AuthenticationService).userInfo.set({username: 'e2etest', permissions: []});
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'contains-e2etest-here'});
+
+    const rules = component.passwordRules();
+    expect(rules[1].met).toBe(false); // contains the username
+  });
+
+  it('passwordStrength is empty for an empty password and scored otherwise', () => {
+    expect(component.passwordStrength().label).toBe('');
+
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'ab'});
+    expect(component.passwordStrength().score).toBeGreaterThan(0);
+    expect(component.passwordStrength().label).not.toBe('');
+
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'dummy-Passwort-42'});
+    expect(component.passwordStrength().level).toBe('strong');
   });
 
 });

@@ -29,4 +29,15 @@ export class RecordedFoodCollectionsComponent {
     }
   });
 
+  // Same reasoning as TicketsProcessedComponent.percentProcessed: a ratio reads faster as a bar
+  // than as two numbers, and `null` (not 0) is what suppresses the bar before a total exists.
+  percentRecorded = computed<number | null>(() => {
+    const recorded = this.countRecorded();
+    const total = this.countTotal();
+    if (!total) {
+      return null;
+    }
+    return Math.min(100, Math.round(((recorded ?? 0) / total) * 100));
+  });
+
 }

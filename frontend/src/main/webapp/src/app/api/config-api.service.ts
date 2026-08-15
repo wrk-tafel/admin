@@ -70,4 +70,10 @@ export interface PublicAppConfig {
    * page so it's obvious which one is being logged into.
    */
   environmentLabel: string;
+  /**
+   * How long an account stays locked after too many failed logins, mirroring the backend's
+   * `security.loginAttempts.lockoutDurationInSeconds`. Shown in the login page's lockout message so
+   * it tells the user something true rather than a hardcoded guess.
+   */
+  accountLockoutDurationInSeconds: number;
 }

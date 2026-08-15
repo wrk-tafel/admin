@@ -18,8 +18,8 @@ export class CustomerApiService {
   private readonly http = inject(HttpClient);
   private readonly toastr = inject(TafelToastrService);
 
-  validate(data: CustomerData): Observable<ValidateCustomerResponse> {
-    return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data));
+  validate(data: CustomerData, context?: HttpContext): Observable<ValidateCustomerResponse> {
+    return this.http.post<ValidateCustomerResponse>('/households/validate', mapCustomerToHousehold(data), {context});
   }
 
   createCustomer(data: CustomerData, force: boolean, context?: HttpContext): Observable<CustomerCreationResponse> {
@@ -116,7 +116,42 @@ export class CustomerApiService {
     );
   }
 
-  getCustomersAboveLimit(page?: number, pageSize?: number): Observable<CustomerAboveLimitResponse> {
+  /**
+   * Records that `householdId` and `otherHouseholdId` were reviewed and judged not to be a
+   * duplicate, so {@link getCustomerDuplicates} stops surfacing that specific pair.
+   */
+  dismissDuplicate(householdId: number, otherHouseholdId: number): Observable<void> {
+    return this.http.post<void>('/households/duplicates/dismiss', {householdId, otherHouseholdId});
+  }
+
+  getCustomersAboveLimit(
+    page?: number, pageSize?: number, sortBy?: string, sortDirection?: string
+  ): Observable<CustomerAboveLimitResponse> {
+    return this.http.get<HouseholdAboveLimitResponse>('/households/above-limit', {
+      params: this.aboveLimitParams(page, pageSize, sortBy, sortDirection)
+    }).pipe(
+      map(response => ({
+        ...response,
+        items: (response?.items ?? []).map(item => ({
+          customer: mapHouseholdToCustomer(item.household),
+          totalSum: item.totalSum,
+          limit: item.limit,
+          amountExceededLimit: item.amountExceededLimit,
+          percentageExceededLimit: item.percentageExceededLimit
+        }))
+      }))
+    );
+  }
+
+  generateCustomersAboveLimitCsv(sortBy?: string, sortDirection?: string): Observable<HttpResponse<Blob>> {
+    return this.http.get('/households/above-limit/csv', {
+      params: this.aboveLimitParams(undefined, undefined, sortBy, sortDirection),
+      responseType: 'blob',
+      observe: 'response'
+    });
+  }
+
+  private aboveLimitParams(page?: number, pageSize?: number, sortBy?: string, sortDirection?: string): HttpParams {
     let queryParams = new HttpParams();
     if (page) {
       queryParams = queryParams.set('page', page);
@@ -124,17 +159,13 @@ export class CustomerApiService {
     if (pageSize) {
       queryParams = queryParams.set('pageSize', pageSize);
     }
-    return this.http.get<HouseholdAboveLimitResponse>('/households/above-limit', {params: queryParams}).pipe(
-      map(response => ({
-        ...response,
-        items: (response?.items ?? []).map(item => ({
-          customer: mapHouseholdToCustomer(item.household),
-          totalSum: item.totalSum,
-          limit: item.limit,
-          amountExceededLimit: item.amountExceededLimit
-        }))
-      }))
-    );
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+    if (sortDirection) {
+      queryParams = queryParams.set('sortDirection', sortDirection);
+    }
+    return queryParams;
   }
 
   getCustomersOverview(distributionId?: number): Observable<CustomerOverviewResponse> {
@@ -151,6 +182,19 @@ export class CustomerApiService {
         renewedCustomers: (response?.renewedHouseholds ?? []).map(mapHouseholdOverviewItemToCustomer)
       }))
     );
+  }
+
+  generateCustomersOverviewCsv(distributionId?: number): Observable<HttpResponse<Blob>> {
+    let queryParams = new HttpParams();
+    if (distributionId) {
+      queryParams = queryParams.set('distributionId', distributionId);
+    }
+    return this.http.get('/households/overview/generate-csv',
+      {
+        params: queryParams,
+        responseType: 'blob',
+        observe: 'response'
+      });
   }
 
   getMergePreview(targetCustomerId: number, sourceCustomerIds: number[]): Observable<CustomerMergePreview> {
@@ -345,6 +389,7 @@ export interface CustomerAboveLimitItem {
   totalSum: number;
   limit: number;
   amountExceededLimit: number;
+  percentageExceededLimit: number;
 }
 
 export interface CustomerOverviewResponse {
@@ -540,6 +585,7 @@ interface HouseholdAboveLimitItem {
   totalSum: number;
   limit: number;
   amountExceededLimit: number;
+  percentageExceededLimit: number;
 }
 
 interface HouseholdOverviewResponse {

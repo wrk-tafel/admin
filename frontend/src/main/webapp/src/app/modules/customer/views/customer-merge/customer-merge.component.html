@@ -2,116 +2,240 @@
   <mat-card>
     <mat-card-header class="text-xl font-bold">Kunden zusammenführen</mat-card-header>
     <mat-card-content>
-      <p>
-        <strong testid="merge-target-label">Ziel-Kunde: {{target().id}} - {{target().lastname}} {{target().firstname}}</strong>
-        bleibt bestehen. Folgende Kunden werden dabei zusammengeführt und anschließend gelöscht:
-      </p>
-      <ul class="list-disc list-inside">
+      <!-- Who is involved stays visible above the stepper: it is the one fact every step is about. -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div class="flex flex-col gap-1" testid="merge-target-label">
+          <div class="font-bold">{{customerLabel(target())}}</div>
+          <div><span class="badge badge-success">bleibt bestehen</span></div>
+        </div>
         @for (source of sources(); track source.id) {
-          <li [attr.testid]="'merge-source-' + source.id">{{source.id}} - {{source.lastname}} {{source.firstname}}</li>
+          <div class="flex flex-col gap-1" [attr.testid]="'merge-source-' + source.id">
+            <div class="font-bold">{{customerLabel(source)}}</div>
+            <div><span class="badge badge-danger">wird gelöscht</span></div>
+          </div>
         }
-      </ul>
+      </div>
     </mat-card-content>
   </mat-card>
 
   <mat-card>
-    <mat-card-header class="font-bold">Felder abgleichen</mat-card-header>
     <mat-card-content>
-      @if (conflictingFields().length === 0) {
-        <p>Keine unterschiedlichen Felder gefunden.</p>
-      }
-      <div class="grid gap-4">
-        @for (field of conflictingFields(); track field) {
-          <div [attr.testid]="'merge-field-row-' + field">
-            <div class="font-bold mb-1">{{fieldDefinitions[field].label}}</div>
-            <mat-radio-group
-              class="merge-radio-group"
-              [value]="(selectedSourceIdFor(field) ?? 'target').toString()"
-              (change)="selectField(field, $event.value === 'target' ? undefined : +$event.value)">
-              <div class="flex flex-col gap-1">
-                <mat-radio-button value="target" [attr.testid]="'merge-field-' + field + '-target'">
-                  {{target().id}}: {{formatFieldValue(field, target())}}
-                </mat-radio-button>
-                @for (sourceId of conflictSourceIdsFor(field); track sourceId) {
-                  <mat-radio-button [value]="sourceId.toString()" [attr.testid]="'merge-field-' + field + '-source-' + sourceId">
-                    {{sourceId}}: {{formatFieldValue(field, customerFor(sourceId))}}
-                  </mat-radio-button>
+      <mat-stepper [orientation]="stepperOrientation()" aria-label="Schritte der Zusammenführung" testid="merge-stepper">
+        <!-- The stepper's default edit/done indicators are Material-Icons font ligatures ("create"/
+             "done"); this app doesn't ship that font (icons are FontAwesome), so they would render
+             as clipped raw text. Visited steps keep their number instead. -->
+        <ng-template matStepperIcon="edit" let-index="index">{{index + 1}}</ng-template>
+        <ng-template matStepperIcon="done" let-index="index">{{index + 1}}</ng-template>
+
+        <mat-step>
+          <ng-template matStepLabel><span testid="merge-step-fields">Felder abgleichen</span></ng-template>
+
+          @if (conflictRows().length === 0) {
+            <p testid="merge-no-conflicts">Keine unterschiedlichen Felder gefunden - alle Daten der Kunden stimmen überein.</p>
+          } @else {
+            <p class="text-sm text-gray-500 mb-4">
+              Pro Feld wird der Wert gewählt, der beim Ziel-Kunden bestehen bleibt. Vorausgewählt ist immer der Wert des Ziel-Kunden.
+            </p>
+
+            <!-- Column headers only exist side by side; stacked, each cell names its customer itself. -->
+            <div class="hidden md:flex gap-2 items-end pb-2">
+              <div class="w-48 shrink-0"></div>
+              @for (column of columns(); track column.customer.id) {
+                <div class="flex-1 basis-0 min-w-0" [attr.testid]="'merge-column-' + column.customer.id">
+                  <div class="font-bold break-words">{{column.label}}</div>
+                  <span class="badge" [class.badge-success]="column.isTarget" [class.badge-danger]="!column.isTarget">
+                    {{column.isTarget ? 'bleibt bestehen' : 'wird gelöscht'}}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <div class="flex flex-col">
+              @for (row of conflictRows(); track row.field) {
+                <div class="flex flex-col md:flex-row gap-2 py-3 border-t border-gray-200" [attr.testid]="'merge-field-row-' + row.field">
+                  <div class="w-full md:w-48 md:shrink-0 font-bold flex items-center gap-2">
+                    @if (row.icon) {
+                      <fa-icon [icon]="row.icon"></fa-icon>
+                    }
+                    {{row.label}}
+                  </div>
+                  <mat-radio-group
+                    class="merge-cells flex flex-col md:flex-row gap-2 flex-1 min-w-0"
+                    [attr.aria-label]="row.label"
+                    [value]="(selectedSourceIdFor(row.field) ?? 'target').toString()"
+                    (change)="selectField(row.field, $event.value === 'target' ? undefined : +$event.value)">
+                    @for (cell of row.cells; track cell.customerId) {
+                      @if (cell.selectable) {
+                        <mat-radio-button
+                          class="merge-cell flex-1 basis-0 min-w-0"
+                          [class.merge-cell-selected]="cell.selected"
+                          [value]="cell.radioValue"
+                          [attr.testid]="cell.testId">
+                          <span class="md:hidden text-sm text-gray-600 block">
+                            {{cell.isTarget ? 'Ziel-Kunde' : 'Kunde'}} {{cell.customerId}}
+                          </span>
+                          <span class="block break-words">{{cell.value}}</span>
+                        </mat-radio-button>
+                      } @else {
+                        <!-- Nothing to decide: this source already carries the target's value. Rendered
+                             as plain content rather than a disabled radio so it is neither in the tab
+                             order nor greyed out below the required contrast. -->
+                        <div class="merge-cell merge-cell-identical flex-1 basis-0 min-w-0" [attr.testid]="cell.testId">
+                          <span class="md:hidden text-sm text-gray-600 block">Kunde {{cell.customerId}}</span>
+                          <span class="block break-words">{{cell.value}}</span>
+                          <span class="block text-sm text-gray-600">identisch mit dem Ziel-Kunden</span>
+                        </div>
+                      }
+                    }
+                  </mat-radio-group>
+                </div>
+              }
+            </div>
+          }
+
+          <button matButton class="mt-4" testid="merge-toggle-identical-fields"
+                  [attr.aria-expanded]="showIdenticalFields()" (click)="toggleIdenticalFields()">
+            {{showIdenticalFields() ? 'Identische Felder ausblenden' : 'Identische Felder anzeigen'}}
+          </button>
+
+          @if (showIdenticalFields()) {
+            <div class="grid grid-cols-2 gap-1 mt-2" testid="merge-identical-fields">
+              @for (row of identicalFieldRows(); track row.field) {
+                <div class="font-bold">{{row.label}}:</div>
+                <div>{{row.value}}</div>
+              }
+            </div>
+          }
+
+          <div class="flex justify-between gap-2 mt-6">
+            <button matButton="outlined" testid="merge-cancel-button" (click)="cancel()">Abbrechen</button>
+            <button matButton="filled" matStepperNext testid="merge-next-persons-button">Weiter</button>
+          </div>
+        </mat-step>
+
+        <mat-step>
+          <ng-template matStepLabel><span testid="merge-step-persons">Personen &amp; Tickets</span></ng-template>
+
+          <h2 class="tafel-h6 font-bold">Personen</h2>
+          @if (personGroups().length === 0) {
+            <p testid="merge-no-persons">Keine zusätzlichen Personen zu übernehmen.</p>
+          } @else {
+            <p class="text-sm text-gray-500 mb-2">
+              Personen, die es beim Ziel-Kunden bereits gibt, werden verworfen - alle anderen werden übernommen.
+              Daran gibt es nichts auszuwählen.
+            </p>
+            @for (group of personGroups(); track group.sourceCustomerId) {
+              <div class="mt-4" [attr.testid]="'merge-person-group-' + group.sourceCustomerId">
+                <div class="font-bold">Von Kunde {{group.label}}</div>
+                @for (item of group.entries; track item.index) {
+                  <div class="flex flex-wrap justify-between items-center gap-2 py-2 border-t border-gray-200"
+                       [attr.testid]="'merge-person-' + group.sourceCustomerId + '-' + item.index">
+                    <div class="flex items-center gap-2">
+                      <fa-icon [icon]="item.entry.duplicate ? faXmark : faCheck"></fa-icon>
+                      {{personLabel(item.entry)}}
+                    </div>
+                    <span class="badge" [class.badge-success]="!item.entry.duplicate" [class.badge-warning]="item.entry.duplicate">
+                      {{item.entry.duplicate ? 'bereits vorhanden - wird verworfen' : 'wird übernommen'}}
+                    </span>
+                  </div>
                 }
               </div>
-            </mat-radio-group>
-          </div>
-        }
-      </div>
-
-      <button matButton class="mt-4" testid="merge-toggle-identical-fields" (click)="toggleIdenticalFields()">
-        {{showIdenticalFields() ? 'Identische Felder ausblenden' : 'Identische Felder anzeigen'}}
-      </button>
-
-      @if (showIdenticalFields()) {
-        <div class="grid grid-cols-2 gap-1 mt-2">
-          @for (field of identicalFields(); track field) {
-            <div class="font-bold">{{fieldDefinitions[field].label}}:</div>
-            <div>{{formatFieldValue(field, target())}}</div>
+            }
           }
-        </div>
-      }
-    </mat-card-content>
-  </mat-card>
 
-  <mat-card>
-    <mat-card-header class="font-bold">Personen</mat-card-header>
-    <mat-card-content>
-      @if (preview()!.persons.length === 0) {
-        <p>Keine zusätzlichen Personen zu übernehmen.</p>
-      }
-      <div class="grid gap-2">
-        @for (item of preview()!.persons; track item.sourceCustomerId + '-' + item.person.id; let i = $index) {
-          <div class="flex justify-between items-center gap-4" [attr.testid]="'merge-person-' + item.sourceCustomerId + '-' + i">
-            <div>{{personLabel(item)}} - von Kunde Nr. {{item.sourceCustomerId}}</div>
-            <div class="font-bold" [class.text-green-600]="!item.duplicate" [class.text-orange-600]="item.duplicate">
-              {{item.duplicate ? 'bereits vorhanden - wird verworfen' : 'wird übernommen'}}
-            </div>
-          </div>
-        }
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  @if (preview()!.distributionCollisions.length > 0) {
-    <mat-card>
-      <mat-card-header class="font-bold">
-        <fa-icon [icon]="faCircleExclamation" class="me-2"></fa-icon>
-        Ausgabe-Ticketnummern
-      </mat-card-header>
-      <mat-card-content>
-        <div class="grid gap-2">
-          @for (collision of preview()!.distributionCollisions; track collision.distributionId + '-' + collision.sourceCustomerId) {
-            <div [attr.testid]="'merge-distribution-collision-' + collision.distributionId + '-' + collision.sourceCustomerId">
-              Ausgabe {{collision.distributionStartedAt | date : 'dd.MM.yyyy'}}: Ticketnummer {{collision.targetTicketNumber}} bleibt bestehen,
-              Ticketnummer {{collision.sourceTicketNumber}} von Kunde Nr. {{collision.sourceCustomerId}} wird verworfen.
+          <h2 class="tafel-h6 font-bold mt-6">Ausgabe-Ticketnummern</h2>
+          @if (preview()!.distributionCollisions.length === 0) {
+            <p testid="merge-no-distribution-collisions">Keine gemeinsamen Ausgaben - es gehen keine Ticketnummern verloren.</p>
+          } @else {
+            <div class="flex flex-col gap-2">
+              @for (collision of preview()!.distributionCollisions; track collision.distributionId + '-' + collision.sourceCustomerId) {
+                <div class="flex items-start gap-2"
+                     [attr.testid]="'merge-distribution-collision-' + collision.distributionId + '-' + collision.sourceCustomerId">
+                  <fa-icon [icon]="faCircleExclamation" class="mt-1"></fa-icon>
+                  <div>
+                    Ausgabe {{collision.distributionStartedAt | date : 'dd.MM.yyyy'}}: Ticketnummer {{collision.targetTicketNumber}} bleibt bestehen,
+                    Ticketnummer {{collision.sourceTicketNumber}} von Kunde Nr. {{collision.sourceCustomerId}} wird verworfen.
+                  </div>
+                </div>
+              }
             </div>
           }
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
 
-  <mat-card>
-    <mat-card-header class="font-bold">Prüfen &amp; Zusammenführen</mat-card-header>
-    <mat-card-content>
-      <div class="grid grid-cols-2 gap-1 mb-4">
-        @for (field of allFields; track field) {
-          <div class="font-bold">{{fieldDefinitions[field].label}}:</div>
-          <div [attr.testid]="'merge-resolved-' + field">{{resolvedDisplayValue(field)}}</div>
-        }
-      </div>
+          <div class="flex justify-between gap-2 mt-6">
+            <button matButton="outlined" matStepperPrevious testid="merge-back-fields-button">Zurück</button>
+            <button matButton="filled" matStepperNext testid="merge-next-confirm-button">Weiter</button>
+          </div>
+        </mat-step>
 
-      <p>{{preview()!.noteCount}} Notiz(en) und {{preview()!.documentCount}} Dokument(e) werden übernommen.</p>
+        <mat-step>
+          <ng-template matStepLabel><span testid="merge-step-confirm">Prüfen &amp; Bestätigen</span></ng-template>
 
-      <div class="text-right mt-4">
-        <button matButton="filled" class="me-2" testid="merge-cancel-button" (click)="cancel()">Abbrechen</button>
-        <button matButton="filled" class="button-danger" testid="merge-confirm-button" (click)="confirm()">Zusammenführen</button>
-      </div>
+          <div class="tafel-banner-error" testid="merge-danger-banner">
+            <div class="flex items-start gap-3">
+              <fa-icon [icon]="faTriangleExclamation" class="mt-1"></fa-icon>
+              <div>
+                <div class="font-bold">Diese Aktion kann nicht rückgängig gemacht werden.</div>
+                <div>
+                  Folgende Kunden werden endgültig gelöscht:
+                  @for (source of sources(); track source.id) {
+                    <span class="font-bold">{{customerLabel(source)}}</span>{{$last ? '' : ', '}}
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="tafel-h6 font-bold">Ergebnis für {{customerLabel(target())}}</h2>
+          <p class="text-sm text-gray-500 mb-2" testid="merge-changed-summary">
+            @if (changedSummaryRows().length === 0) {
+              Es wird kein Feld des Ziel-Kunden überschrieben.
+            } @else {
+              {{changedSummaryRows().length}} Feld(er) des Ziel-Kunden werden überschrieben - hervorgehoben dargestellt.
+            }
+          </p>
+
+          <div class="flex flex-col">
+            @for (row of summaryRows(); track row.field) {
+              <div class="flex flex-col md:flex-row md:gap-2 py-1 border-t border-gray-200"
+                   [class.text-gray-500]="!row.changed"
+                   [attr.testid]="'merge-resolved-row-' + row.field">
+                <div class="w-full md:w-64 md:shrink-0" [class.font-bold]="row.changed">{{row.label}}:</div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span [class.font-bold]="row.changed" [attr.testid]="'merge-resolved-' + row.field">{{row.value}}</span>
+                  @if (row.changed) {
+                    <span class="badge badge-info">geändert</span>
+                    <span class="text-sm" [attr.testid]="'merge-previous-' + row.field">bisher: {{row.previousValue}}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <p class="mt-4" testid="merge-move-summary">
+            {{movedPersonCount()}} Person(en), {{preview()!.noteCount}} Notiz(en) und {{preview()!.documentCount}} Dokument(e) werden übernommen.
+            @if (droppedPersonCount() > 0) {
+              {{droppedPersonCount()}} Person(en) sind beim Ziel-Kunden bereits vorhanden und werden verworfen.
+            }
+          </p>
+
+          <mat-checkbox class="mt-4" testid="merge-confirm-checkbox"
+                        [checked]="confirmationAccepted()"
+                        (change)="confirmationAccepted.set($event.checked)">
+            Ich habe die Daten geprüft und bestätige, dass die oben genannten Kunden endgültig gelöscht werden.
+          </mat-checkbox>
+
+          <div class="flex justify-between gap-2 mt-6">
+            <button matButton="outlined" matStepperPrevious testid="merge-back-persons-button">Zurück</button>
+            <div class="flex gap-2">
+              <button matButton="outlined" testid="merge-cancel-confirm-button" (click)="cancel()">Abbrechen</button>
+              <button matButton="filled" class="button-danger" testid="merge-confirm-button"
+                      [disabled]="!confirmationAccepted() || merging()" (click)="confirm()">
+                Endgültig zusammenführen
+              </button>
+            </div>
+          </div>
+        </mat-step>
+      </mat-stepper>
     </mat-card-content>
   </mat-card>
 </div>

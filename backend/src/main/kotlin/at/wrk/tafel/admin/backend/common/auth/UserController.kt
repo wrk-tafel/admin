@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/users")
@@ -115,8 +116,11 @@ class UserController(
             page = page,
             pageSize = pageSize,
         )
+        // One query for the whole page's lockout state rather than one per row - see
+        // LoginAttemptService.getLockedUntil(Collection<String>).
+        val lockedUntilByUsername = loginAttemptService.getLockedUntil(userSearchResult.items.map { it.username })
         return PagedResponse(
-            items = userSearchResult.items.map { mapToResponse(it) },
+            items = userSearchResult.items.map { mapToResponse(it, lockedUntilByUsername[it.username]) },
             totalCount = userSearchResult.totalCount,
             currentPage = userSearchResult.currentPage,
             totalPages = userSearchResult.totalPages,
@@ -221,11 +225,17 @@ class UserController(
     @GetMapping("/login-attempts")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getLoginAttempts(
+        @RequestParam searchInput: String? = null,
+        @RequestParam lockedOnly: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<LoginAttemptItem> {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = loginAttemptService.findAll(pageRequest)
+        val pagedResult = loginAttemptService.findAll(
+            pageRequest = pageRequest,
+            searchInput = searchInput,
+            lockedOnly = lockedOnly ?: false,
+        )
 
         return PagedResponse(
             items = pagedResult.content,
@@ -235,6 +245,10 @@ class UserController(
             pageSize = pageRequest.pageSize,
         )
     }
+
+    @GetMapping("/login-attempts/settings")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getLoginAttemptSettings(): ResponseEntity<LoginAttemptSettingsResponse> = ResponseEntity.ok(loginAttemptService.getSettings())
 
     @DeleteMapping("/login-attempts/{loginAttemptId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
@@ -255,7 +269,15 @@ class UserController(
         authorities = user.permissions.map { SimpleGrantedAuthority(it.key) },
     )
 
-    private fun mapToResponse(user: TafelUser): UserResponse = UserResponse(
+    /**
+     * [lockedUntil] defaults to a per-user lookup so every single-user endpoint (get/create/update)
+     * gets it for free; [getUsers] passes the batched result for its whole page instead, since a
+     * default-per-row lookup there would be one query per row.
+     */
+    private fun mapToResponse(
+        user: TafelUser,
+        lockedUntil: LocalDateTime? = loginAttemptService.getLockedUntil(user.username),
+    ): UserResponse = UserResponse(
         id = user.id,
         username = user.username,
         personnelNumber = user.personnelNumber,
@@ -269,6 +291,7 @@ class UserController(
             .filter { it.authority != null }
             .map { authority -> mapToUserPermission(authority.authority!!) }
             .sortedBy { it.title },
+        lockedUntil = lockedUntil,
     )
 
     /**

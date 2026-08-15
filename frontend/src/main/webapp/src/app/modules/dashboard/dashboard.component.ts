@@ -84,6 +84,7 @@ export interface DashboardLogisticsData {
   foodCollectionsRecordedCount?: number;
   foodCollectionsTotalCount?: number;
   recordedRouteNames?: string[];
+  allRouteNames?: string[];
   foodAmountTotal?: number;
   routeProgress?: DashboardRouteProgressData[];
 }
