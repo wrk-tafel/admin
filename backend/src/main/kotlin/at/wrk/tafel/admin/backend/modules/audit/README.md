@@ -50,6 +50,14 @@ Deliberately left out, and worth leaving out:
   per household per distribution day.
 - `login_attempts` and `sse_outbox` — purpose-built infrastructure with their own retention.
 
+A successful login is the one exception written on purpose despite not being an entity change:
+`LoginAuditService` records it as one entry per login, `entityType` `UserLogin`
+(`AuditScope.USER_LOGIN_ENTITY_TYPE`), `operation` `LOGIN`, `businessKey` the username — so "who
+logged in, and when" is answered from the same log and the same "Änderungsprotokoll" screen as
+everything else, filterable like any other entry. It has no `AuditScope.auditedEntities` map entry
+(a login is never loaded or saved through the persistence context, so no Hibernate event exists to
+key one off) and carries no field diff, only that it happened.
+
 ## The gap to know about
 
 **Bulk `@Modifying` queries and native SQL never reach a Hibernate event.** Those callers have to
@@ -61,6 +69,16 @@ with their last field values — come from the listener.
 
 Any new bulk write against an audited table has to do the same. This is the price of not using
 database triggers, and the reason it was still the better trade is in ADR-0039.
+
+## The actor is not always the `SecurityContext`
+
+The actor stamped on a batch of entries is normally resolved once per transaction from
+`SecurityContextHolder` (see above). A login is the one write where that resolves to nothing: this
+app is stateless, so nothing populates the `SecurityContext` until the JWT a login is about to issue
+is actually presented on a *later* request — at login time itself there is no authenticated user to
+read. `AuditLogWriter.PendingEntry.actorOverride` is the escape hatch: `LoginAuditService` passes the
+just-authenticated user explicitly, and that value wins over the (empty) `SecurityContext` one for
+that entry. Every other caller leaves it unset.
 
 ## Values
 

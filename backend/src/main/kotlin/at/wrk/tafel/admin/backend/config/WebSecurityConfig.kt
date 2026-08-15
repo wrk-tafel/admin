@@ -32,7 +32,6 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import tools.jackson.databind.json.JsonMapper
-import java.time.Clock
 
 @Configuration
 @EnableWebSecurity
@@ -46,7 +45,7 @@ class WebSecurityConfig(
     private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
-    private val clock: Clock,
+    private val loginAuditService: LoginAuditService,
 ) {
 
     companion object {
@@ -182,7 +181,7 @@ class WebSecurityConfig(
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
 
     @Bean
-    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService, userRepository, clock)
+    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService, loginAuditService)
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)

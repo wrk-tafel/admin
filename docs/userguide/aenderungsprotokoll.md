@@ -4,9 +4,9 @@
 
 Das Änderungsprotokoll hält fest, **wer wann was geändert hat – und wie der Wert davor ausgesehen hat**. Es beantwortet damit Fragen, die sich aus den Daten selbst nicht mehr beantworten lassen: Wer hat die Adresse dieses Kunden korrigiert? Welches Einkommen war vorher eingetragen? Wer hat diesen Kunden gesperrt?
 
-Erfasst werden Änderungen an Kunden (inklusive weiterer Personen, Notizen und Dokumenten), an Benutzern und deren Berechtigungen sowie an Einstellungen (Grenzwerte, E-Mail-Empfänger).
+Erfasst werden Änderungen an Kunden (inklusive weiterer Personen, Notizen und Dokumenten), an Benutzern und deren Berechtigungen, an Einstellungen (Grenzwerte, E-Mail-Empfänger) sowie jede erfolgreiche Anmeldung eines Benutzers am System.
 
-Bewusst **nicht** erfasst werden die Anmeldungen zu den einzelnen Ausgabetagen: diese sind ohnehin bereits ein Verlauf und stehen in den [Statistiken](statistiken.md) zur Verfügung. Auch die [Anmelde-Versuche](benutzer.md#anmelde-versuche) haben eine eigene Liste unter [Benutzer](benutzer.md).
+Bewusst **nicht** erfasst werden die Anmeldungen zu den einzelnen Ausgabetagen: diese sind ohnehin bereits ein Verlauf und stehen in den [Statistiken](statistiken.md) zur Verfügung. Auch die [Anmelde-Versuche](benutzer.md#anmelde-versuche) – die *fehlgeschlagenen* Login-Versuche – haben eine eigene Liste unter [Benutzer](benutzer.md); eine erfolgreiche Anmeldung erscheint dagegen hier im Änderungsprotokoll.
 
 Das Änderungsprotokoll ist ein reines Nachschlagewerk: Einträge können weder bearbeitet noch gelöscht werden. Sie entstehen automatisch mit der Änderung, die sie beschreiben, und werden nach Ablauf der Aufbewahrungsfrist automatisch entfernt – standardmäßig nach 30 Tagen. Das Protokoll ist damit dazu gedacht, eine kürzlich erfolgte Änderung nachzuvollziehen, und nicht als Langzeitarchiv: Wer eine Änderung klären will, sollte das zeitnah tun.
 
@@ -27,9 +27,9 @@ Die Einträge sind nach Tagen gruppiert: Über jedem Tag steht eine Überschrift
 
 Jeder Eintrag besteht aus:
 
-- **Art der Änderung**: *Angelegt* (grün), *Geändert* (grau) oder *Gelöscht* (rot)
-- **Datensatz-Art**: Kunde, Person, Notiz, Dokument, Benutzer, Berechtigung, Grenzwert oder E-Mail-Empfänger
-- **Nummer**: die Kunden- bzw. Benutzernummer, zu der der Datensatz gehört. Sie bleibt auch dann aussagekräftig, wenn der Datensatz selbst nicht mehr existiert – etwa nach einer Löschung oder einer Zusammenführung. Wo der Datensatz noch geöffnet werden kann und die nötige Berechtigung vorhanden ist, führt die Nummer direkt zum Kunden bzw. Benutzer.
+- **Art der Änderung**: *Angelegt* (grün), *Geändert* (grau), *Gelöscht* (rot) oder *Angemeldet* (blau)
+- **Datensatz-Art**: Kunde, Person, Notiz, Dokument, Benutzer, Berechtigung, Grenzwert, E-Mail-Empfänger oder Login
+- **Nummer**: die Kunden- bzw. Benutzernummer, zu der der Datensatz gehört. Sie bleibt auch dann aussagekräftig, wenn der Datensatz selbst nicht mehr existiert – etwa nach einer Löschung oder einer Zusammenführung. Wo der Datensatz noch geöffnet werden kann und die nötige Berechtigung vorhanden ist, führt die Nummer direkt zum Kunden bzw. Benutzer – ein Login-Eintrag verlinkt genauso zum angemeldeten Benutzer.
 - **Zeitpunkt und Benutzer**: wann die Änderung passiert ist und wer sie vorgenommen hat – der Benutzername und in Klammern der Vor- und Nachname dazu, z. B. `e2etest (E2E Test)`. Bei sehr alten Einträgen steht nur der Benutzername, weil der Name damals noch nicht mitprotokolliert wurde. Steht dort *System*, war kein angemeldeter Benutzer beteiligt (z. B. bei automatischen Abläufen).
 - **Feldänderungen**: eine Tabelle mit dem geänderten Feld sowie dem Wert davor und danach. Der bisherige Wert ist rot, der neue grün hinterlegt. Ein Strich (–) bedeutet, dass das Feld leer war.
 

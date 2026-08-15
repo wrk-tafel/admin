@@ -101,7 +101,10 @@ export class AuditEntryListComponent {
     }
 
     // Only the user record itself: an authority entry's id is the authority row's, not the user's.
-    if (entry.entityType === 'User' && entry.operation !== 'DELETE' && this.canViewUsers() && entry.entityId) {
+    // A login entry's id is the same user's - it just never goes through an entity save, so it
+    // carries the same link.
+    const isUserOrLogin = entry.entityType === 'User' || entry.entityType === 'UserLogin';
+    if (isUserOrLogin && entry.operation !== 'DELETE' && this.canViewUsers() && entry.entityId) {
       return ['/benutzer/detail', String(entry.entityId)];
     }
 
@@ -158,6 +161,8 @@ export class AuditEntryListComponent {
         return 'bg-green-700 text-white';
       case 'DELETE':
         return 'bg-red-600 text-white';
+      case 'LOGIN':
+        return 'bg-blue-700 text-white';
       default:
         return 'bg-slate-600 text-white';
     }

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
-import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.LockedException
@@ -12,16 +12,13 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
-import java.time.Clock
-import java.time.LocalDateTime
 import java.util.UUID
 
 class TafelLoginProvider(
     private val userDetailsService: UserDetailsService,
     private val passwordEncoder: PasswordEncoder,
     private val loginAttemptService: LoginAttemptService,
-    private val userRepository: UserRepository,
-    private val clock: Clock,
+    private val loginAuditService: LoginAuditService,
 ) : AbstractUserDetailsAuthenticationProvider() {
 
     companion object {
@@ -47,7 +44,7 @@ class TafelLoginProvider(
         try {
             val result = super.authenticate(authentication)
             loginAttemptService.recordSuccess(username)
-            userRepository.updateLastLogin(username, LocalDateTime.now(clock))
+            loginAuditService.recordLogin(result.principal as TafelUser)
             log.info("Login successful for user '{}'", sanitizeForLog(username))
             return result
         } catch (e: BadCredentialsException) {

@@ -28,6 +28,15 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 object AuditScope {
 
     /**
+     * The entity type stamped on a login event, written by
+     * [at.wrk.tafel.admin.backend.common.auth.components.LoginAuditService]. A login is never
+     * loaded or saved through the persistence context, so - unlike everything else here - it has no
+     * [auditedEntities] map entry and [of] never resolves it; it is added to [allEntityTypes]
+     * directly so "Login" still shows up as a filter option.
+     */
+    const val USER_LOGIN_ENTITY_TYPE = "UserLogin"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -105,7 +114,7 @@ object AuditScope {
     val householdScopedEntityTypes: Set<String> =
         auditedEntities.values.filter { it.householdScoped }.map { it.entityType }.toSet()
 
-    val allEntityTypes: List<String> = auditedEntities.values.map { it.entityType }.sorted()
+    val allEntityTypes: List<String> = (auditedEntities.values.map { it.entityType } + USER_LOGIN_ENTITY_TYPE).sorted()
 
     /**
      * Takes the *mapped* class (`EntityPersister.getMappedClass()`), never `entity.javaClass`: a

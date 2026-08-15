@@ -103,6 +103,16 @@ describe('AuditEntryListComponent', () => {
     expect(element.querySelector('[testid="audit-entry-0-actor"]')?.textContent?.trim()).toBe('test-user');
   });
 
+  it('marks a login entry with its own colour, distinct from a plain change', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'UserLogin', operation: 'LOGIN', changes: []}
+    ]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-operation"]')?.className).toContain('bg-blue-700');
+    expect(element.querySelector('[testid="audit-entry-0-operation"]')?.textContent?.trim()).toBe('Angemeldet');
+    expect(element.querySelector('[testid="audit-entry-0-entityType"]')?.textContent?.trim()).toBe('Login');
+  });
+
   it('says so when an entry carries no field changes', () => {
     const element: HTMLElement = createComponent([{...entry, changes: []}]).nativeElement;
 
@@ -164,6 +174,12 @@ describe('AuditEntryListComponent', () => {
 
     it('links a user entry to the account by its id, since the key is only the username', () => {
       const link = subjectLink([{...entry, entityType: 'User', businessKey: 'test-user', entityId: 7}]);
+
+      expect(link?.getAttribute('href')).toBe('/benutzer/detail/7');
+    });
+
+    it('links a login entry to the account it belongs to, same as a user entry', () => {
+      const link = subjectLink([{...entry, entityType: 'UserLogin', operation: 'LOGIN', businessKey: 'test-user', entityId: 7}]);
 
       expect(link?.getAttribute('href')).toBe('/benutzer/detail/7');
     });

@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -23,17 +22,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 
 internal class TafelLoginProviderTest {
 
     private lateinit var userDetailsService: UserDetailsService
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var loginAttemptService: LoginAttemptService
-    private lateinit var userRepository: UserRepository
-    private val clock = Clock.fixed(Instant.parse("2026-01-01T10:00:00Z"), ZoneOffset.UTC)
+    private lateinit var loginAuditService: LoginAuditService
     private lateinit var provider: TafelLoginProvider
 
     private val testUser = TafelUser(
@@ -56,10 +51,10 @@ internal class TafelLoginProviderTest {
         userDetailsService = mockk()
         passwordEncoder = mockk()
         loginAttemptService = mockk(relaxed = true)
-        userRepository = mockk(relaxed = true)
+        loginAuditService = mockk(relaxed = true)
 
         every { passwordEncoder.encode(any()) } returns "fallback-hash"
-        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, userRepository, clock)
+        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, loginAuditService)
 
         logger = LoggerFactory.getLogger(TafelLoginProvider::class.java) as Logger
         logAppender = ListAppender<ILoggingEvent>().apply { start() }
@@ -102,7 +97,7 @@ internal class TafelLoginProviderTest {
 
         assertThat(result.isAuthenticated).isTrue
         verify { loginAttemptService.recordSuccess("user") }
-        verify { userRepository.updateLastLogin("user", java.time.LocalDateTime.now(clock)) }
+        verify { loginAuditService.recordLogin(testUser) }
         assertThat(logAppender.list.single().level).isEqualTo(Level.INFO)
         assertThat(logAppender.list.single().formattedMessage).contains("user")
     }
@@ -132,7 +127,7 @@ internal class TafelLoginProviderTest {
         }
 
         verify { loginAttemptService.recordFailure("user") }
-        verify(exactly = 0) { userRepository.updateLastLogin(any(), any()) }
+        verify(exactly = 0) { loginAuditService.recordLogin(any()) }
         assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
         assertThat(logAppender.list.single().formattedMessage).contains("user")
     }

@@ -11,4 +11,7 @@ enum class AuditOperation {
     INSERT,
     UPDATE,
     DELETE,
+
+    /** A successful login - see [AuditScope.USER_LOGIN_ENTITY_TYPE]. */
+    LOGIN,
 }
