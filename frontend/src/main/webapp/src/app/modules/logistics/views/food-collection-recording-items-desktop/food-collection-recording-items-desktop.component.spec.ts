@@ -264,4 +264,59 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         expect(foodCollectionsApiService.saveItems).not.toHaveBeenCalled();
     });
 
+    it('categoryTotals/shopTotals/grandTotal - sum the Warenmenge matrix by row, column and overall', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+
+        componentRef.setInput('selectedRouteData', {route: testRoute, shops: testShops});
+        componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
+        fixture.detectChanges();
+
+        component.getShops(0).at(0).get('amount')!.setValue(3);
+        component.getShops(0).at(1).get('amount')!.setValue(4);
+        component.getShops(1).at(0).get('amount')!.setValue(5);
+        component.getShops(1).at(1).get('amount')!.setValue(6);
+
+        expect(component.categoryTotals()).toEqual([7, 11]);
+        expect(component.shopTotals()).toEqual([8, 10]);
+        expect(component.grandTotal()).toBe(18);
+    });
+
+    it('tabStatus - undefined while empty, complete once amounts are loaded', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+
+        componentRef.setInput('selectedRouteData', {route: testRoute, shops: testShops});
+        componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
+        fixture.detectChanges();
+
+        expect(component.tabStatus()).toBeUndefined();
+
+        component.getShops(0).at(0).get('amount')!.setValue(3);
+        component.getShops(0).at(0).get('amount')!.markAsDirty();
+        expect(component.tabStatus()).toBe('unsaved');
+
+        component.markAsSaved();
+        expect(component.tabStatus()).toBe('complete');
+    });
+
+    it('tabStatus - invalid once a free-text return item duplicates a return category', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+
+        componentRef.setInput('selectedRouteData', {route: testRoute, shops: testShops});
+        componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
+        fixture.detectChanges();
+
+        component.addReturnItem(testShops[0].id, 'graue kisten', 2);
+
+        expect(component.tabStatus()).toBe('invalid');
+    });
+
 });

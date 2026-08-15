@@ -1,4 +1,5 @@
-import {Component, effect, inject, input} from '@angular/core';
+import {Component, computed, effect, inject, input, signal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
@@ -8,6 +9,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FoodCollectionSaveKmRequest, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {Observable} from 'rxjs';
+import {TabStatus} from '../../services/food-collection-tab-status';
 
 /**
  * The mileage is read off the car when it is back from the route, long after the route's base data
@@ -57,6 +59,37 @@ export class FoodCollectionRecordingKmComponent {
       this.kmStart.setValue(foodCollectionData.kmStart);
       this.kmEnd.setValue(foodCollectionData.kmEnd);
     }
+  });
+
+  // Recompute trigger for everything below that reads plain (non-signal) form state - setValue()
+  // does not mark a control dirty, so the effect above resetting/prefilling the form never counts
+  // as a user change here, only actual input does.
+  private readonly formChangeTick = toSignal(this.form.valueChanges, {initialValue: null});
+
+  // markAsSaved() below calls markAsPristine(), which - unlike setValue()/reset() - never emits
+  // valueChanges, so formChangeTick alone would leave tabStatus stuck on "unsaved" until the next
+  // edit. This is bumped there so tabStatus has something to react to.
+  private readonly savedTick = signal(0);
+
+  /** The route length as soon as both values make sense together, for a live "→ 42 km" hint. */
+  readonly liveDistanceKm = computed(() => {
+    this.formChangeTick();
+    return this.kmDifference();
+  });
+
+  /** Badge shown on the "Waren" tab label - see {@link TabStatus}. */
+  readonly tabStatus = computed<TabStatus | undefined>(() => {
+    this.formChangeTick();
+    this.savedTick();
+
+    const hasData = !!this.kmStart.value || !!this.kmEnd.value;
+    if (!hasData) {
+      return undefined;
+    }
+    if (this.hasInvalidInput()) {
+      return 'invalid';
+    }
+    return this.form.dirty ? 'unsaved' : 'complete';
   });
 
   private createKmValidation() {
@@ -124,6 +157,12 @@ export class FoodCollectionRecordingKmComponent {
     };
 
     return this.foodCollectionsApiService.saveKm(this.selectedRouteData()!.route.id, kmData);
+  }
+
+  /** Called once this section's own save request has actually gone out - flips its badge back to "complete". */
+  markAsSaved() {
+    this.form.markAsPristine();
+    this.savedTick.update(tick => tick + 1);
   }
 
   get kmStart() {

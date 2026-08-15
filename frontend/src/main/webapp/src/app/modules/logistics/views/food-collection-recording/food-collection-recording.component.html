@@ -28,10 +28,27 @@
     </div>
     @if (selectedRouteData()) {
       <hr>
+      @if (basedataMissingWarning()) {
+        <div class="mt-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="basedata-missing-warning">
+          Es wurden bereits Mengen erfasst, aber KFZ/Fahrer/Beifahrer fehlen noch auf dem Reiter
+          "Route" - diese Angaben werden beim Speichern übersprungen, bis sie vollständig sind.
+        </div>
+      }
       <mat-tab-group animationDuration="0ms">
         <mat-tab>
           <ng-template mat-tab-label>
             <span testid="select-route-tab">Route</span>
+            @if (routeTabStatus(); as status) {
+              <span class="badge ms-2"
+                    [ngClass]="{'badge-success': status === 'complete', 'badge-warning': status === 'unsaved', 'badge-danger': status === 'invalid'}"
+                    [attr.testid]="'route-tab-status-' + status">
+                @switch (status) {
+                  @case ('complete') { ✓ Vollständig }
+                  @case ('unsaved') { ● Nicht gespeichert }
+                  @case ('invalid') { ! Ungültig }
+                }
+              </span>
+            }
           </ng-template>
           <div class="pt-4">
             <tafel-food-collection-recording-basedata [carList]="carList()"
@@ -42,6 +59,17 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <span testid="select-items-tab">Waren</span>
+            @if (warenTabStatus(); as status) {
+              <span class="badge ms-2"
+                    [ngClass]="{'badge-success': status === 'complete', 'badge-warning': status === 'unsaved', 'badge-danger': status === 'invalid'}"
+                    [attr.testid]="'waren-tab-status-' + status">
+                @switch (status) {
+                  @case ('complete') { ✓ Vollständig }
+                  @case ('unsaved') { ● Nicht gespeichert }
+                  @case ('invalid') { ! Ungültig }
+                }
+              </span>
+            }
           </ng-template>
           <!-- Desktop is filled in one go once the car is back, so the mileage reads first. On the
                phone the amounts are counted shop by shop while still on the road and the mileage is
