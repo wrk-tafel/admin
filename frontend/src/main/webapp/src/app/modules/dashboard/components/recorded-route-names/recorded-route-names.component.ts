@@ -17,6 +17,7 @@ interface RouteChipView {
 @Component({
   selector: 'tafel-recorded-route-names',
   templateUrl: 'recorded-route-names.component.html',
+  styleUrls: ['recorded-route-names.component.scss'],
   imports: [
     MatCard,
     MatCardContent,

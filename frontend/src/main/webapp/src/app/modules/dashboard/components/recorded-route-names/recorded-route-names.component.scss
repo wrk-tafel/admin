@@ -1,0 +1,16 @@
+// Material's default chip tokens assume a light surface: a transparent container with a 1px
+// outline and an on-surface (dark) label - illegible on this colour-filled panel
+// (mat-card-primary). Same colour language as the neighbouring panels' ratio bars instead:
+// translucent white for an outstanding route, the severity palette's success green (which takes
+// white text by design, see _theme.scss) for a recorded one.
+// Set as tokens rather than raw background/color overrides because the chip's label paints its
+// own color from --mat-chip-label-text-color - a color set on the chip host never reaches it.
+mat-chip.route-chip {
+  --mat-chip-elevated-container-color: rgb(255 255 255 / 0.25);
+  --mat-chip-label-text-color: white;
+  --mat-chip-outline-width: 0;
+
+  &.route-chip-recorded {
+    --mat-chip-elevated-container-color: var(--tafel-severity-success);
+  }
+}

@@ -123,8 +123,8 @@ describe('Dashboard', () => {
 
     // every active route from testdata.sql is rendered as a chip, none of them recorded yet -
     // the outstanding ones are the actionable information here, not just the recorded ones.
-    cy.byTestId('recorded-route-chip-0').should('contain.text', 'Route 1').and('not.have.class', '!bg-green-700');
-    cy.byTestId('recorded-route-chip-4').should('contain.text', 'Route 5').and('not.have.class', '!bg-green-700');
+    cy.byTestId('recorded-route-chip-0').should('contain.text', 'Route 1').and('not.have.class', 'route-chip-recorded');
+    cy.byTestId('recorded-route-chip-4').should('contain.text', 'Route 5').and('not.have.class', 'route-chip-recorded');
 
     cy.closeDistribution();
   });

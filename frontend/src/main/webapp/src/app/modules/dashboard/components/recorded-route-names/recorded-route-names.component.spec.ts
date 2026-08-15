@@ -25,10 +25,10 @@ describe('RecordedRouteNamesComponent', () => {
     const chips = fixture.debugElement.queryAll(By.css('mat-chip'));
     expect(chips.length).toBe(3);
     expect(chips[0].nativeElement.textContent.trim()).toContain('Route 1');
-    expect(chips[0].nativeElement.classList).toContain('!bg-green-700');
+    expect(chips[0].nativeElement.classList).toContain('route-chip-recorded');
     expect(chips[1].nativeElement.textContent.trim()).toContain('Route 2');
-    expect(chips[1].nativeElement.classList).not.toContain('!bg-green-700');
-    expect(chips[2].nativeElement.classList).toContain('!bg-green-700');
+    expect(chips[1].nativeElement.classList).not.toContain('route-chip-recorded');
+    expect(chips[2].nativeElement.classList).toContain('route-chip-recorded');
   });
 
   it('placeholder rendered when no active routes exist', () => {
