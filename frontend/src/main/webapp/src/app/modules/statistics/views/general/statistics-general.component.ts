@@ -153,8 +153,8 @@ export class StatisticsGeneralComponent {
         'beneficiaryCustomersWithChildren',
         'singleParentHouseholds'
       ]),
-      group('Notschlafstellen', ['sheltersCount', 'sheltersAverage', 'sheltersPersonsCount']),
-      group('Transport- / Logistik', ['shopsCount', 'shopItemsTotal', 'shopItemsAverage'])
+      group('Transport- / Logistik', ['shopsCount', 'shopItemsTotal', 'shopItemsAverage']),
+      group('Notschlafstellen', ['sheltersCount', 'sheltersAverage', 'sheltersPersonsCount'])
     ];
   });
 

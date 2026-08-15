@@ -39,6 +39,9 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
     private lateinit var auditLogRepository: AuditLogRepository
 
     @Autowired
+    private lateinit var auditLogWriter: AuditLogWriter
+
+    @Autowired
     private lateinit var householdRepository: HouseholdRepository
 
     @Autowired
@@ -196,6 +199,51 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
 
         assertThat(household.createdBy).isEqualTo(testUser.username)
         assertThat(household.updatedBy).isEqualTo(testUser.username)
+    }
+
+    /**
+     * What `LoginAuditService` relies on: a login is written before `SecurityContextHolder` holds
+     * anything for the request, so the usual actor resolution ([AuditActorProvider]) would otherwise
+     * record it as done by nobody. `actorOverride` is the escape hatch - proven here against a real
+     * transaction and a real row, not just the mocked unit test.
+     */
+    @Test
+    fun `a pending entry's actorOverride is stamped even with no authenticated user`() {
+        SecurityContextHolder.clearContext()
+
+        transactionTemplate.execute {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.USER_LOGIN_ENTITY_TYPE,
+                    entityId = testUser.id,
+                    businessKey = testUser.username,
+                    operation = AuditOperation.LOGIN,
+                    changedFields = emptyMap(),
+                    actorOverride = AuditLogWriter.Actor(
+                        username = testUser.username,
+                        userId = testUser.id,
+                        firstname = testUser.employee.firstname,
+                        lastname = testUser.employee.lastname,
+                    ),
+                ),
+            )
+        }
+
+        val entry = transactionTemplate.execute {
+            auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(
+                businessKey = testUser.username,
+                entityTypes = setOf(AuditScope.USER_LOGIN_ENTITY_TYPE),
+                pageable = Pageable.unpaged(),
+            ).content.single()
+        }!!
+
+        assertThat(entry.operation.name).isEqualTo("LOGIN")
+        assertThat(entry.actorUsername).isEqualTo(testUser.username)
+        assertThat(entry.actorUserId).isEqualTo(testUser.id)
+        assertThat(entry.actorFirstname).isEqualTo(testUser.employee.firstname)
+        assertThat(entry.actorLastname).isEqualTo(testUser.employee.lastname)
+
+        transactionTemplate.execute { auditLogRepository.delete(entry) }
     }
 
     private fun createTestHousehold() {

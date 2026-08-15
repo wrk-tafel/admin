@@ -59,7 +59,7 @@ export class AuditApiService {
 
 export type AuditEntriesResponse = PagedResponse<AuditEntryItem>;
 
-export type AuditOperation = 'INSERT' | 'UPDATE' | 'DELETE';
+export type AuditOperation = 'INSERT' | 'UPDATE' | 'DELETE' | 'LOGIN';
 
 export interface AuditSearchFilter {
   entityType?: string | null;
@@ -116,13 +116,15 @@ export const auditEntityTypeLabel: Record<string, string> = {
   User: 'Benutzer',
   UserAuthority: 'Berechtigung',
   StaticValue: 'Grenzwert',
-  MailRecipient: 'E-Mail-Empfänger'
+  MailRecipient: 'E-Mail-Empfänger',
+  UserLogin: 'Login'
 };
 
 export const auditOperationLabel: Record<AuditOperation, string> = {
   INSERT: 'Angelegt',
   UPDATE: 'Geändert',
-  DELETE: 'Gelöscht'
+  DELETE: 'Gelöscht',
+  LOGIN: 'Angemeldet'
 };
 
 /**

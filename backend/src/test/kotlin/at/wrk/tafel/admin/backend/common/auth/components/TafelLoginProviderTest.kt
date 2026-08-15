@@ -28,6 +28,7 @@ internal class TafelLoginProviderTest {
     private lateinit var userDetailsService: UserDetailsService
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var loginAttemptService: LoginAttemptService
+    private lateinit var loginAuditService: LoginAuditService
     private lateinit var provider: TafelLoginProvider
 
     private val testUser = TafelUser(
@@ -50,9 +51,10 @@ internal class TafelLoginProviderTest {
         userDetailsService = mockk()
         passwordEncoder = mockk()
         loginAttemptService = mockk(relaxed = true)
+        loginAuditService = mockk(relaxed = true)
 
         every { passwordEncoder.encode(any()) } returns "fallback-hash"
-        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService)
+        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, loginAuditService)
 
         logger = LoggerFactory.getLogger(TafelLoginProvider::class.java) as Logger
         logAppender = ListAppender<ILoggingEvent>().apply { start() }
@@ -95,6 +97,7 @@ internal class TafelLoginProviderTest {
 
         assertThat(result.isAuthenticated).isTrue
         verify { loginAttemptService.recordSuccess("user") }
+        verify { loginAuditService.recordLogin(testUser) }
         assertThat(logAppender.list.single().level).isEqualTo(Level.INFO)
         assertThat(logAppender.list.single().formattedMessage).contains("user")
     }
@@ -124,6 +127,7 @@ internal class TafelLoginProviderTest {
         }
 
         verify { loginAttemptService.recordFailure("user") }
+        verify(exactly = 0) { loginAuditService.recordLogin(any()) }
         assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
         assertThat(logAppender.list.single().formattedMessage).contains("user")
     }

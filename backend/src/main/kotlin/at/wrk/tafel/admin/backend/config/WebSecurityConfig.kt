@@ -45,6 +45,7 @@ class WebSecurityConfig(
     private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
+    private val loginAuditService: LoginAuditService,
 ) {
 
     companion object {
@@ -180,7 +181,7 @@ class WebSecurityConfig(
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
 
     @Bean
-    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService)
+    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService, loginAuditService)
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)
