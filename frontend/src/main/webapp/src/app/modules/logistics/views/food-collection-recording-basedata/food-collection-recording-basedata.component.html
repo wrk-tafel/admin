@@ -21,11 +21,11 @@
   </div>
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
     <div class="md:col-span-5">
+      <div class="font-medium">Fahrer</div>
       @if (!selectedDriver()) {
         <div class="flex gap-2">
           <mat-form-field class="w-full">
-            <mat-label>Fahrer</mat-label>
-            <input matInput testid="driverSearchInput" type="text" formControlName="driverSearchInput"
+            <input matInput testid="driverSearchInput" type="text" formControlName="driverSearchInput" aria-label="Fahrer"
                    placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()">
             @if (driverSearchInput.errors?.required && driverSearchInput.touched) {
               <mat-error>Pflichtfeld</mat-error>
@@ -44,7 +44,6 @@
                                         (selectedEmployee)="setSelectedDriver($event)"/>
         </div>
       } @else {
-        <div class="font-medium">Fahrer</div>
         <div class="flex items-center justify-between gap-2">
           <div testid="selectedDriverDescription">{{ selectedDriver()!.personnelNumber }} {{ selectedDriver()!.firstname }} {{ selectedDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedDriverRemoveButton" class="button-danger" aria-label="Fahrer entfernen"
@@ -55,11 +54,11 @@
       }
     </div>
     <div class="md:col-span-5 mt-4 md:mt-0">
+      <div class="font-medium">Beifahrer</div>
       @if (!selectedCoDriver()) {
         <div class="flex gap-2">
           <mat-form-field class="w-full">
-            <mat-label>Beifahrer</mat-label>
-            <input matInput testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput"
+            <input matInput testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" aria-label="Beifahrer"
                    placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()">
             @if (coDriverSearchInput.errors?.required && coDriverSearchInput.touched) {
               <mat-error>Pflichtfeld</mat-error>
@@ -78,7 +77,6 @@
                                         (selectedEmployee)="setSelectedCoDriver($event)"/>
         </div>
       } @else {
-        <div class="font-medium">Beifahrer</div>
         <div class="flex items-center justify-between gap-2">
           <div testid="selectedCoDriverDescription">{{ selectedCoDriver()!.personnelNumber }} {{ selectedCoDriver()!.firstname }} {{ selectedCoDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedCoDriverRemoveButton" class="button-danger" aria-label="Beifahrer entfernen"
