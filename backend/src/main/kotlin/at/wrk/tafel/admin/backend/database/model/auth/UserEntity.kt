@@ -44,6 +44,14 @@ class UserEntity(
     var authorities: MutableList<UserAuthorityEntity> = mutableListOf()
 
     /**
+     * The most recent successful login, `null` for an account that has never logged in. Written by
+     * [at.wrk.tafel.admin.backend.database.model.auth.UserRepository.updateLastLogin] on every login
+     * rather than through a loaded/saved entity - see that method for why.
+     */
+    @Column(name = "last_login")
+    var lastLogin: LocalDateTime? = null
+
+    /**
      * Everything the single search box may match a user on - username plus the personnel number and
      * name of the linked employee - concatenated and lower-cased. Maintained by a database trigger
      * (see `R__00088_fulltext_search.sql`), hence read-only here.
