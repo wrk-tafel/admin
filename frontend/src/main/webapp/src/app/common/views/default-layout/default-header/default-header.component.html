@@ -32,7 +32,7 @@
         and the `aria-label` names the button either way.
       -->
       <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
-              class="!h-7 !px-2 !text-xs sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium shrink-0">
+              class="!h-7 !px-2 !text-xs !min-w-0 sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium shrink-0">
         <fa-icon [icon]="faCircleQuestion" class="sm:hidden" aria-hidden="true"></fa-icon>
         <span class="hidden sm:inline">Support-Anfrage</span>
       </button>
@@ -51,14 +51,18 @@
       }
     </div>
 
-    <div class="flex items-center gap-3 sm:gap-6 shrink-0">
+    <div class="flex items-center gap-2 sm:gap-6 shrink-0">
       <!--
         Distribution state matters everywhere in this app (e.g. "Annahme"/"Waren-Eingabe" require an
         active one), so it is shown permanently here rather than only on the dashboard. `role="status"`
         makes it a live region, same reasoning as the Live-Verbindung badge below.
+        Below `sm` only the state word is written out ("Geöffnet"/"Geschlossen") - the full
+        "Ausgabe ..." phrase would leave the page title next to it no room at all on a phone. The
+        prefix stays `sr-only` there rather than `hidden`, so the live region keeps announcing the
+        complete phrase; `capitalize` upper-cases the state word visually once it stands alone.
       -->
       <span class="badge" role="status" [ngClass]="distributionActive() ? 'badge-success' : 'badge-info'" testid="distribution-state-badge">
-        {{ distributionActive() ? 'Ausgabe geöffnet' : 'Ausgabe geschlossen' }}
+        <span class="capitalize sm:normal-case"><span class="sr-only sm:not-sr-only">Ausgabe </span>{{ distributionActive() ? 'geöffnet' : 'geschlossen' }}</span>
         @if (distributionActive() && distribution()?.startedAt) {
           <!-- hidden below `sm`: the state itself is what matters, the header has no room for the time there -->
           <span class="hidden sm:inline"> · {{ distribution()!.startedAt | date: 'HH:mm' }}</span>
