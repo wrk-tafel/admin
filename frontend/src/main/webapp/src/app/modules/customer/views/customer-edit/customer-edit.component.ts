@@ -10,6 +10,7 @@ import {
   CustomerCreationResponse,
   CustomerData,
   CustomerUpdateResponse,
+  QuickCheckPersonData,
   ValidateCustomerResponse
 } from '../../../../api/customer-api.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
@@ -57,6 +58,13 @@ export class CustomerEditComponent implements HasUnsavedChanges {
   private readonly route = inject(ActivatedRoute);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
+
+  /**
+   * Persons handed over from the Anspruch-Schnellcheck screen (create mode only), captured from
+   * the navigation that opened this route - see the quick-check's "Kunden anlegen" link.
+   */
+  private readonly quickCheckPersons =
+    (this.router.getCurrentNavigation?.()?.extras?.state?.['quickCheckPersons'] ?? null) as QuickCheckPersonData[] | null;
 
   /**
    * Live eligibility preview: re-runs the same `/households/validate` call "Anspruch prüfen" uses,
@@ -120,6 +128,11 @@ export class CustomerEditComponent implements HasUnsavedChanges {
         // searched for - see the customer search screen's empty-state CTA.
         const params = this.route.snapshot.queryParamMap;
         formComponent.prefillNames(params?.get('vorname') ?? null, params?.get('nachname') ?? null);
+        // Reached from the Anspruch-Schnellcheck instead: carry the already-entered birthdates,
+        // incomes and family-allowance flags over so they are not typed twice.
+        if (this.quickCheckPersons?.length) {
+          formComponent.prefillQuickCheckPersons(this.quickCheckPersons);
+        }
       }
     });
 

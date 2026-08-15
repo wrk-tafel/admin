@@ -1,68 +1,88 @@
-<form>
-  <div class="max-w-3xl">
-    <mat-card>
-      <mat-card-header class="w-full">
-        <div class="flex justify-between items-center w-full">
-          <h2 class="tafel-h5">Personen im Haushalt ({{ quickCheckForm.persons().value().length }})</h2>
-          <button type="button" testid="addperson-button" matButton="filled" class="button-success" (click)="addPerson()">
-            Hinzufügen
-          </button>
-        </div>
-      </mat-card-header>
-      <mat-card-content>
-        <p class="mb-4">
-          Prüft anhand von Geburtsdatum und Einkommen aller Personen, ob ein Haushalt Anspruch hätte –
-          bevor die restlichen Kundendaten erfasst werden.
-        </p>
-        @for (person of quickCheckForm.persons().value(); track person.key; let i = $index) {
-          <div [attr.testid]="'quickcheck-person-' + i" role="group"
-               [attr.aria-label]="'Person ' + (i + 1)"
-               class="border-t border-gray-200 pt-4 mt-2">
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="tafel-h6 m-0">Person {{ i + 1 }}{{ i === 0 ? ' (Hauptbezieher)' : '' }}</h3>
+<div class="pb-20">
+  @if (liveEligibility(); as eligibility) {
+    <div testid="eligibility-summary"
+         class="sticky top-16 z-[5] mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border px-4 py-2 shadow-sm"
+         [class.bg-green-50]="eligibility.valid" [class.border-green-700]="eligibility.valid"
+         [class.bg-red-50]="!eligibility.valid" [class.border-red-600]="!eligibility.valid">
+      <span testid="eligibility-status" class="font-bold" [ngClass]="{'text-green-700': eligibility.valid, 'text-red-600': !eligibility.valid}">
+        {{ eligibility.valid ? 'Anspruch vorhanden' : 'Kein Anspruch vorhanden' }}
+      </span>
+      <span testid="eligibility-personcount">Personen: {{ liveEligibilityPersonCount() }}</span>
+      <span testid="eligibility-totalsum">Einkommen: {{ eligibility.totalSum | currency }}</span>
+      <span testid="eligibility-limit">Limit: {{ eligibility.limit | currency }}</span>
+      @if (!eligibility.valid) {
+        <span testid="eligibility-amount" class="font-bold text-red-600">Über Limit: {{ eligibility.amountExceededLimit | currency }}</span>
+      }
+    </div>
+  }
+
+  <form>
+    <div class="max-w-3xl">
+      <mat-card>
+        <mat-card-header class="w-full">
+          <div class="flex justify-between items-center w-full">
+            <h2 class="tafel-h5">Personen im Haushalt ({{ quickCheckForm.persons().value().length }})</h2>
+            <button type="button" testid="addperson-button" matButton="filled" class="button-success" (click)="addPerson()">
+              Hinzufügen
+            </button>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="mb-4">
+            Prüft anhand von Geburtsdatum und Einkommen aller Personen, ob ein Haushalt Anspruch hätte –
+            bevor die restlichen Kundendaten erfasst werden.
+          </p>
+          @for (person of quickCheckForm.persons().value(); track person.key; let i = $index) {
+            <div [attr.testid]="'quickcheck-person-' + i" role="group"
+                 [attr.aria-label]="'Person ' + (i + 1)"
+                 class="border-t border-gray-200 pt-4 mt-2">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="tafel-h6 m-0">Person {{ i + 1 }}{{ i === 0 ? ' (Hauptbezieher)' : '' }}</h3>
+                @if (i > 0) {
+                  <button type="button" [attr.testid]="'remove-person-' + i" matButton="outlined"
+                          class="button-danger" (click)="removePerson(i)">Entfernen
+                  </button>
+                }
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
+                <mat-form-field>
+                  <mat-label>Geburtsdatum</mat-label>
+                  <input matInput [attr.testid]="'birthDateInput-' + i" type="date" [formField]="personField(i).birthDate"
+                         [attr.min]="birthDateMin" [attr.max]="today"
+                         tafelAutofocus [tafelAutofocusEnabled]="i === 0">
+                  @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
+                    <mat-error>{{ errorMessage }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Einkommen (monatl.)</mat-label>
+                  <input matInput [attr.testid]="'incomeInput-' + i" type="number" inputmode="decimal"
+                         [formField]="personField(i).income">
+                  <span matSuffix class="text-slate-500 pl-1 pr-1">€</span>
+                  @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
+                    <mat-error>{{ errorMessage }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
               @if (i > 0) {
-                <button type="button" [attr.testid]="'remove-person-' + i" matButton="outlined"
-                        class="button-danger" (click)="removePerson(i)">Entfernen
-                </button>
+                <div class="mb-2 flex items-center">
+                  <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
+                                [attr.testid]="'receivesFamilyAllowanceInput-' + i">
+                    Bezieht Familienbeihilfe
+                  </mat-checkbox>
+                  <tafel-info-tooltip [testId]="'family-allowance-info-tooltip-' + i"
+                                      text="Für Kinder mit Familienbeihilfe werden Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel automatisch zum Haushaltseinkommen dazugerechnet."></tafel-info-tooltip>
+                </div>
               }
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
-              <mat-form-field>
-                <mat-label>Geburtsdatum</mat-label>
-                <input matInput [attr.testid]="'birthDateInput-' + i" type="date" [formField]="personField(i).birthDate"
-                       [attr.min]="birthDateMin" [attr.max]="today"
-                       tafelAutofocus [tafelAutofocusEnabled]="i === 0">
-                @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
-                  <mat-error>{{ errorMessage }}</mat-error>
-                }
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Einkommen (monatl.)</mat-label>
-                <input matInput [attr.testid]="'incomeInput-' + i" type="number" inputmode="decimal"
-                       [formField]="personField(i).income">
-                <span matSuffix class="text-slate-500 pl-1 pr-1">€</span>
-                @for (errorMessage of visibleErrorMessages(personField(i).income()); track $index) {
-                  <mat-error>{{ errorMessage }}</mat-error>
-                }
-              </mat-form-field>
-            </div>
-            @if (i > 0) {
-              <div class="mb-2 flex items-center">
-                <mat-checkbox [formField]="personField(i).receivesFamilyAllowance"
-                              [attr.testid]="'receivesFamilyAllowanceInput-' + i">
-                  Bezieht Familienbeihilfe
-                </mat-checkbox>
-                <tafel-info-tooltip [testId]="'family-allowance-info-tooltip-' + i"
-                                    text="Für Kinder mit Familienbeihilfe werden Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffel automatisch zum Haushaltseinkommen dazugerechnet."></tafel-info-tooltip>
-              </div>
-            }
-          </div>
-        }
-      </mat-card-content>
-      <mat-card-actions class="justify-between">
-        <a testid="create-customer-link" matButton="outlined" routerLink="/kunden/anlegen">Kunden anlegen</a>
-        <button type="button" testid="quickcheck-button" matButton="filled" (click)="check()">Anspruch prüfen</button>
-      </mat-card-actions>
-    </mat-card>
-  </div>
-</form>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </form>
+</div>
+
+<div testid="quickcheck-actionbar" class="sticky bottom-0 z-10 -mx-6 mt-4 flex items-center justify-end gap-2 border-t border-gray-200 bg-white px-6 py-3">
+  <a testid="create-customer-link" matButton="outlined" routerLink="/kunden/anlegen" [state]="createCustomerState()">Kunden anlegen</a>
+  <button type="button" testid="quickcheck-button" matButton="filled" (click)="check()">Anspruch prüfen</button>
+</div>

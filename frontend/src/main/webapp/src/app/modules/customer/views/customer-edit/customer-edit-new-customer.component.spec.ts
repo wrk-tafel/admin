@@ -92,7 +92,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   let toastr: MockedObject<TafelToastrService>;
   let matDialog: MockedObject<MatDialog>;
 
-  function configureTestBed(queryParams: Record<string, string> = {}) {
+  function configureTestBed(queryParams: Record<string, string> = {}, navigationState?: Record<string, unknown>) {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule
@@ -116,7 +116,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         {
           provide: Router,
           useValue: {
-            navigate: vi.fn().mockName('Router.navigate')
+            navigate: vi.fn().mockName('Router.navigate'),
+            getCurrentNavigation: vi.fn().mockName('Router.getCurrentNavigation')
+              .mockReturnValue(navigationState ? {extras: {state: navigationState}} : null)
           }
         },
         {
@@ -166,6 +168,27 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     expect(fixture.debugElement.query(By.css('[testid="firstnameInput"]')).nativeElement.value).toBe('Max');
     expect(fixture.debugElement.query(By.css('[testid="lastnameInput"]')).nativeElement.value).toBe('Mustermann');
+  });
+
+  it('prefills persons handed over from the quick-check screen via navigation state', () => {
+    TestBed.resetTestingModule();
+    // birthdates arrive as 'YYYY-MM-DD' strings, exactly as the quick-check's native date inputs provide them
+    configureTestBed({}, {
+      quickCheckPersons: [
+        {birthDate: '1990-05-12', income: 1000, receivesFamilyAllowance: false},
+        {birthDate: '2015-01-01', income: undefined, receivesFamilyAllowance: true}
+      ]
+    });
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="birthDateInput"]')).nativeElement.value)
+      .toBe('1990-05-12');
+    expect(fixture.debugElement.query(By.css('[testid="incomeInput"]')).nativeElement.value).toBe('1000');
+    // the handed-over child arrives as a collapsed additional person
+    expect(fixture.debugElement.query(By.css('[testid="personform-header-0"]'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeNull();
   });
 
   it('new customer saved successfully', () => {

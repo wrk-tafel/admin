@@ -132,6 +132,25 @@ describe('CustomerQuickCheckComponent', () => {
     });
   });
 
+  it('hands only persons with a birthdate over to the "Kunden anlegen" link state', () => {
+    const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const mainBirthDate = dayjs().subtract(30, 'years').startOf('day').toDate();
+
+    component.personField(0).birthDate().value.set(mainBirthDate);
+    component.personField(0).income().value.set(1000);
+    component.addPerson();
+    // the added person keeps its birthdate empty and must not be handed over
+
+    expect(component.createCustomerState()).toEqual({
+      quickCheckPersons: [
+        {birthDate: mainBirthDate, income: 1000, receivesFamilyAllowance: false}
+      ]
+    });
+  });
+
   it('leaves error presentation to the interceptor toast when the check fails', () => {
     apiService.quickCheck.mockReturnValue(throwError(() => new Error('composition not configured')));
 

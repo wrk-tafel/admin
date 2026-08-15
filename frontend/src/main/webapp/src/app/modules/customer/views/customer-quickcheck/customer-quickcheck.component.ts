@@ -1,5 +1,8 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
+import {toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {applyEach, form, FormField, required, validate} from '@angular/forms/signals';
+import {catchError, debounceTime, filter, map, switchMap} from 'rxjs/operators';
+import {of} from 'rxjs';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -7,11 +10,13 @@ import {MatInputModule} from '@angular/material/input';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import {RouterLink} from '@angular/router';
+import {CurrencyPipe, NgClass} from '@angular/common';
 import dayjs from 'dayjs';
-import {CustomerApiService, QuickCheckPersonData} from '../../../../api/customer-api.service';
+import {CustomerApiService, QuickCheckPersonData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {maxDate, min, minDate} from '../../../../common/validator/signal-form-validators';
 import {ValidationResultDialogComponent} from '../customer-edit/dialogs/validation-result-dialog.component';
@@ -19,8 +24,10 @@ import {ValidationResultDialogComponent} from '../customer-edit/dialogs/validati
 /**
  * Income quick-check: answers "would this household qualify at all?" from nothing but each
  * person's birthdate, income and family-allowance flag - before any of the remaining customer
- * data (names, address, ...) is typed in. The result is the same breakdown dialog "Anspruch
- * prüfen" on the customer form shows.
+ * data (names, address, ...) is typed in. Mirrors the customer form's eligibility surfaces: the
+ * same live summary banner while entering, and the same breakdown dialog behind "Anspruch
+ * prüfen". "Kunden anlegen" hands the entered persons over to the customer form so they are not
+ * typed twice.
  */
 @Component({
   selector: 'tafel-customer-quickcheck',
@@ -33,6 +40,8 @@ import {ValidationResultDialogComponent} from '../customer-edit/dialogs/validati
     MatInputModule,
     MatCheckboxModule,
     RouterLink,
+    CurrencyPipe,
+    NgClass,
     TafelAutofocusDirective,
     TafelInfoTooltipComponent
   ]
@@ -55,6 +64,33 @@ export class CustomerQuickCheckComponent {
       validate(personPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}));
     });
   });
+
+  /**
+   * Live eligibility preview, mirroring the customer form's: re-runs the same quick-check call
+   * "Anspruch prüfen" uses, debounced, as soon as at least one person has a birthdate - persons
+   * still missing theirs are left out of the request rather than blocking the preview. Errors
+   * (e.g. an unconfigured household composition) are swallowed here - "Anspruch prüfen" is still
+   * the place that surfaces those.
+   */
+  readonly liveEligibility = toSignal(
+    toObservable(this.formModel).pipe(
+      debounceTime(600),
+      map(model => this.mapToRequestPersons(model.persons)),
+      filter(persons => persons.length > 0),
+      switchMap(persons => this.customerApiService.quickCheck(persons, SUPPRESS_ERROR_TOAST_CONTEXT).pipe(
+        catchError(() => of(null))
+      ))
+    ),
+    {initialValue: null as ValidateCustomerResponse | null}
+  );
+
+  readonly liveEligibilityPersonCount = computed(() => this.mapToRequestPersons(this.formModel().persons).length);
+
+  /**
+   * Navigation state for the "Kunden anlegen" link: the persons as entered so far, picked up by
+   * the customer form so birthdates and incomes are not typed twice.
+   */
+  readonly createCustomerState = computed(() => ({quickCheckPersons: this.mapToRequestPersons(this.formModel().persons)}));
 
   // Open range for the native date pickers, mirroring the customer form's birthdate bounds.
   protected readonly today = dayjs().format('YYYY-MM-DD');
@@ -85,15 +121,7 @@ export class CustomerQuickCheckComponent {
       return;
     }
 
-    const persons: QuickCheckPersonData[] = this.formModel().persons.map((person, index) => ({
-      birthDate: person.birthDate!,
-      income: person.income ?? undefined,
-      // The first person stands in for the main person, which never contributes a family
-      // allowance on the customer form either - its checkbox simply doesn't exist here.
-      receivesFamilyAllowance: index === 0 ? false : person.receivesFamilyAllowance
-    }));
-
-    this.customerApiService.quickCheck(persons).subscribe({
+    this.customerApiService.quickCheck(this.mapToRequestPersons(this.formModel().persons)).subscribe({
       next: (result) => {
         this.dialog.open(ValidationResultDialogComponent, {
           data: {validationResult: result}
@@ -105,6 +133,21 @@ export class CustomerQuickCheckComponent {
       error: () => {
       }
     });
+  }
+
+  /**
+   * The wire shape of the entered persons, dropping any still missing their birthdate. The first
+   * form person stands in for the main person, which never contributes a family allowance on the
+   * customer form either - its checkbox simply doesn't exist here.
+   */
+  private mapToRequestPersons(persons: QuickCheckPersonFormItem[]): QuickCheckPersonData[] {
+    return persons
+      .map((person, index): QuickCheckPersonData | null => person.birthDate ? {
+        birthDate: person.birthDate,
+        income: person.income ?? undefined,
+        receivesFamilyAllowance: index === 0 ? false : person.receivesFamilyAllowance
+      } : null)
+      .filter((person): person is QuickCheckPersonData => person !== null);
   }
 
   protected readonly visibleErrorMessages = visibleErrorMessages;

@@ -229,4 +229,34 @@ describe('CustomerFormComponent', () => {
     expect(validUntilUpdated).toEqual('2000-04-01');
   });
 
+  it('prefills the persons handed over from the quick-check screen', () => {
+    apiService.getCountries.mockReturnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const mainBirthDate = dayjs().subtract(30, 'years').startOf('day').toDate();
+    const childBirthDate = dayjs().subtract(5, 'years').startOf('day').toDate();
+
+    component.prefillQuickCheckPersons([
+      {birthDate: mainBirthDate, income: 1000, receivesFamilyAllowance: false},
+      {birthDate: childBirthDate, income: undefined, receivesFamilyAllowance: true}
+    ]);
+
+    expect(component.customerForm.birthDate().value()).toEqual(mainBirthDate);
+    expect(component.customerForm.income().value()).toEqual(1000);
+
+    const additionalPersons = component.customerForm.additionalPersons().value();
+    expect(additionalPersons).toHaveLength(1);
+    expect(additionalPersons[0]).toEqual(expect.objectContaining({
+      birthDate: childBirthDate,
+      income: null,
+      receivesFamilyAllowance: true,
+      excludeFromHousehold: false,
+      firstname: '',
+      lastname: ''
+    }));
+  });
+
 });

@@ -68,6 +68,40 @@ describe('Customer QuickCheck', () => {
       });
   });
 
+  it('shows a live eligibility summary that updates without clicking Anspruch prüfen', () => {
+    cy.byTestId('birthDateInput-0').type(birthDateForAge(30));
+    cy.byTestId('incomeInput-0').type('500');
+
+    // the debounced quick-check call needs a moment before the summary appears
+    cy.byTestId('eligibility-summary', {timeout: 8000}).should('be.visible');
+    cy.byTestId('eligibility-status').should('contain.text', 'Anspruch vorhanden');
+    cy.byTestId('eligibility-personcount').should('contain.text', '1');
+
+    cy.byTestId('incomeInput-0').clear().type('10000');
+    cy.byTestId('eligibility-status', {timeout: 8000}).should('contain.text', 'Kein Anspruch vorhanden');
+    cy.byTestId('eligibility-amount').should('be.visible');
+  });
+
+  it('hands the entered persons over to the customer form via "Kunden anlegen"', () => {
+    const adultBirthDate = birthDateForAge(30);
+    const childBirthDate = birthDateForAge(3);
+
+    cy.byTestId('birthDateInput-0').type(adultBirthDate);
+    cy.byTestId('incomeInput-0').type('1000');
+    cy.byTestId('addperson-button').click();
+    cy.byTestId('birthDateInput-1').type(childBirthDate);
+
+    cy.byTestId('create-customer-link').click();
+    cy.url().should('include', '/kunden/anlegen');
+
+    cy.byTestId('birthDateInput').should('have.value', adultBirthDate);
+    cy.byTestId('incomeInput').should('have.value', '1000');
+    // the handed-over child arrives as a collapsed additional person with its flag intact
+    cy.byTestId('personform-header-0')
+      .should('be.visible')
+      .and('contain.text', 'Familienbeihilfe');
+  });
+
   it('rejects a check while a birthdate is missing', () => {
     cy.byTestId('quickcheck-button').click();
 
