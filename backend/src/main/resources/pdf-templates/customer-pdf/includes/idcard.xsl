@@ -163,11 +163,11 @@
                                 <xsl:value-of select="customer/address/street"/>
                                 <xsl:value-of select="' '"/>
                                 <xsl:value-of select="customer/address/houseNumber"/>
-                                <xsl:if test="customer/address/stairway != ''">
+                                <xsl:if test="customer/address/stairway != '-'">
                                     <xsl:value-of select="', Stiege '"/>
                                     <xsl:value-of select="customer/address/stairway"/>
                                 </xsl:if>
-                                <xsl:if test="customer/address/door != ''">
+                                <xsl:if test="customer/address/door != '-'">
                                     <xsl:value-of select="' Top '"/>
                                     <xsl:value-of select="customer/address/door"/>
                                 </xsl:if>
@@ -236,9 +236,11 @@
                                                        border-bottom="0.25mm solid {$tafelHairline}">
                                             <fo:block font-size="10pt" color="{$tafelInk}">
                                                 <xsl:value-of select="concat(./lastname, ' ', ./firstname)"/>
-                                                <fo:inline color="{$tafelMuted}" font-size="8.5pt">
-                                                    <xsl:value-of select="concat(' · ', ./birthDate)"/>
-                                                </fo:inline>
+                                                <xsl:if test="./birthDate != '-'">
+                                                    <fo:inline color="{$tafelMuted}" font-size="8.5pt">
+                                                        <xsl:value-of select="concat(' · ', ./birthDate)"/>
+                                                    </fo:inline>
+                                                </xsl:if>
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>

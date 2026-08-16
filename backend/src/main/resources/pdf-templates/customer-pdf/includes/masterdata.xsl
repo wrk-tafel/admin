@@ -68,13 +68,13 @@
                     <fo:table-cell padding="1.5mm" number-columns-spanned="2">
                         <xsl:variable name="streetValue">
                             <xsl:value-of select="$data/address/street"/>
-                            <xsl:if test="$data/address/houseNumber != ''">
+                            <xsl:if test="$data/address/houseNumber != '-'">
                                 <xsl:value-of select="concat(' ', $data/address/houseNumber)"/>
                             </xsl:if>
-                            <xsl:if test="$data/address/stairway != ''">
+                            <xsl:if test="$data/address/stairway != '-'">
                                 <xsl:value-of select="concat(', Stiege ', $data/address/stairway)"/>
                             </xsl:if>
-                            <xsl:if test="$data/address/door != ''">
+                            <xsl:if test="$data/address/door != '-'">
                                 <xsl:value-of select="concat(' Top ', $data/address/door)"/>
                             </xsl:if>
                         </xsl:variable>
@@ -182,19 +182,35 @@
                                         </xsl:if>
                                     </fo:block>
                                     <fo:block font-size="8.5pt" color="{$tafelMuted}">
-                                        <xsl:value-of select="./birthDate"/>
-                                        <xsl:value-of select="' · '"/>
-                                        <xsl:value-of select="./gender"/>
-                                        <xsl:value-of select="' · '"/>
-                                        <xsl:value-of select="./country"/>
+                                        <xsl:if test="./birthDate != '-'">
+                                            <xsl:value-of select="./birthDate"/>
+                                        </xsl:if>
+                                        <xsl:if test="./gender != '-'">
+                                            <xsl:if test="./birthDate != '-'">
+                                                <xsl:value-of select="' · '"/>
+                                            </xsl:if>
+                                            <xsl:value-of select="./gender"/>
+                                        </xsl:if>
+                                        <xsl:if test="./country != '-'">
+                                            <xsl:if test="./birthDate != '-' or ./gender != '-'">
+                                                <xsl:value-of select="' · '"/>
+                                            </xsl:if>
+                                            <xsl:value-of select="./country"/>
+                                        </xsl:if>
                                     </fo:block>
                                     <xsl:if test="./employer != '-' or ./income != '-'">
                                         <fo:block font-size="8.5pt" color="{$tafelMuted}" space-before="0.5mm">
-                                            <xsl:value-of select="./employer"/>
-                                            <xsl:value-of select="' · '"/>
-                                            <xsl:value-of select="./income"/>
+                                            <xsl:if test="./employer != '-'">
+                                                <xsl:value-of select="./employer"/>
+                                            </xsl:if>
+                                            <xsl:if test="./employer != '-' and ./income != '-'">
+                                                <xsl:value-of select="' · '"/>
+                                            </xsl:if>
                                             <xsl:if test="./income != '-'">
-                                                <xsl:value-of select="concat(' bis ', ./incomeDueDate)"/>
+                                                <xsl:value-of select="./income"/>
+                                                <xsl:if test="./incomeDueDate != '-'">
+                                                    <xsl:value-of select="concat(' bis ', ./incomeDueDate)"/>
+                                                </xsl:if>
                                             </xsl:if>
                                         </fo:block>
                                     </xsl:if>
@@ -250,7 +266,16 @@
                     <fo:table-row>
                         <fo:table-cell padding-right="4mm">
                             <xsl:call-template name="field-with-label">
-                                <xsl:with-param name="value" select="concat(./issuedAtDate, ' · ', ./issuer)"/>
+                                <xsl:with-param name="value">
+                                    <xsl:choose>
+                                        <xsl:when test="./issuer != ''">
+                                            <xsl:value-of select="concat(./issuedAtDate, ' · ', ./issuer)"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="./issuedAtDate"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:with-param>
                                 <xsl:with-param name="label" select="'Datum, ausgestellt von'"/>
                             </xsl:call-template>
                         </fo:table-cell>
