@@ -159,28 +159,26 @@
                     </fo:table-row>
                     <fo:table-row>
                         <fo:table-cell number-columns-spanned="2" padding-bottom="3mm">
-                            <xsl:variable name="addressLine">
+                            <xsl:variable name="addressLine1">
                                 <xsl:value-of select="customer/address/street"/>
                                 <xsl:value-of select="' '"/>
                                 <xsl:value-of select="customer/address/houseNumber"/>
-                                <xsl:if test="customer/address/stairway != '' or customer/address/door != ''">
-                                    <xsl:value-of select="', '"/>
-                                </xsl:if>
                                 <xsl:if test="customer/address/stairway != ''">
-                                    <xsl:value-of select="' Stiege '"/>
+                                    <xsl:value-of select="', Stiege '"/>
                                     <xsl:value-of select="customer/address/stairway"/>
                                 </xsl:if>
                                 <xsl:if test="customer/address/door != ''">
                                     <xsl:value-of select="' Top '"/>
                                     <xsl:value-of select="customer/address/door"/>
                                 </xsl:if>
-                                <xsl:value-of select="', '"/>
+                            </xsl:variable>
+                            <xsl:variable name="addressLine2">
                                 <xsl:value-of select="customer/address/postalCode"/>
                                 <xsl:value-of select="' '"/>
                                 <xsl:value-of select="customer/address/city"/>
                             </xsl:variable>
                             <xsl:call-template name="field-with-label">
-                                <xsl:with-param name="value" select="$addressLine"/>
+                                <xsl:with-param name="value" select="concat($addressLine1, '&#xA;', $addressLine2)"/>
                                 <xsl:with-param name="label" select="'Adresse'"/>
                             </xsl:call-template>
                         </fo:table-cell>

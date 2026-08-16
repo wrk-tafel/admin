@@ -65,43 +65,38 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell padding="1.5mm" number-columns-spanned="3">
-                        <xsl:variable name="addressValue">
+                        <xsl:variable name="addressLine1">
                             <xsl:value-of select="$data/address/street"/>
                             <xsl:if test="$data/address/houseNumber != ''">
                                 <xsl:value-of select="concat(' ', $data/address/houseNumber)"/>
                             </xsl:if>
-                            <xsl:if test="$data/address/stairway != '' or $data/address/door != ''">
-                                <xsl:value-of select="', '"/>
-                            </xsl:if>
                             <xsl:if test="$data/address/stairway != ''">
-                                <xsl:value-of select="concat('Stiege ', $data/address/stairway)"/>
+                                <xsl:value-of select="concat(', Stiege ', $data/address/stairway)"/>
                             </xsl:if>
                             <xsl:if test="$data/address/door != ''">
-                                <xsl:if test="$data/address/stairway != ''">
-                                    <xsl:value-of select="' '"/>
-                                </xsl:if>
-                                <xsl:value-of select="concat('Top ', $data/address/door)"/>
+                                <xsl:value-of select="concat(' Top ', $data/address/door)"/>
                             </xsl:if>
-                            <xsl:value-of select="', '"/>
+                        </xsl:variable>
+                        <xsl:variable name="addressLine2">
                             <xsl:if test="$data/address/postalCode != ''">
                                 <xsl:value-of select="concat($data/address/postalCode, ' ')"/>
                             </xsl:if>
                             <xsl:value-of select="$data/address/city"/>
                         </xsl:variable>
                         <xsl:call-template name="field-with-label">
-                            <xsl:with-param name="value" select="$addressValue"/>
+                            <xsl:with-param name="value" select="concat($addressLine1, '&#xA;', $addressLine2)"/>
                             <xsl:with-param name="label" select="'Adresse'"/>
                         </xsl:call-template>
                     </fo:table-cell>
                 </fo:table-row>
                 <fo:table-row>
-                    <fo:table-cell padding="1.5mm" number-columns-spanned="2">
+                    <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/telephoneNumber"/>
                             <xsl:with-param name="label" select="'Telefonnummer'"/>
                         </xsl:call-template>
                     </fo:table-cell>
-                    <fo:table-cell padding="1.5mm">
+                    <fo:table-cell padding="1.5mm" number-columns-spanned="2">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/email"/>
                             <xsl:with-param name="label" select="'E-Mail'"/>

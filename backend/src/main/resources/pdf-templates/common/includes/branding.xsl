@@ -77,7 +77,7 @@
     <xsl:template name="field-with-label">
         <xsl:param name="value"/>
         <xsl:param name="label"/>
-        <fo:block font-size="11pt" color="{$tafelInk}">
+        <fo:block font-size="11pt" color="{$tafelInk}" linefeed-treatment="preserve">
             <xsl:value-of select="$value"/>
         </fo:block>
         <fo:block border-top="0.4mm solid {$tafelAccent}" margin-top="1mm">
