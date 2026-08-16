@@ -1,10 +1,16 @@
+@use '@angular/material' as mat;
+
 // Every toggle group's border and dividers in the same line every card, menu and tab strip is
 // drawn with - Material's own fallback (--mat-sys-outline) is considerably darker and makes the
 // group the heaviest thing on the page. Set via the token, like mat-card.scss does for cards:
-// Material's structural CSS draws the border from this exact custom property, and a plain
-// border-color override loses the source-order tie against it.
+// Material's structural CSS draws the border from this exact token, and a plain border-color
+// override loses the source-order tie against it. The override mixin validates the token name at
+// compile time, so a Material token rename breaks the build here instead of silently reverting
+// the divider color.
 :root {
-  --mat-button-toggle-divider-color: var(--tafel-border-color);
+  @include mat.button-toggle-overrides((
+    divider-color: var(--tafel-border-color),
+  ));
 }
 
 // A toggle group whose options are wider than the viewport it is shown on. Scrolling the group

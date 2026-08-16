@@ -1,25 +1,35 @@
+@use '@angular/material' as mat;
+
 // Material's M3 tokens default dropdown/overlay panels to a greyish "surface-container"
 // color, an elevation shadow and (for menus/autocomplete) 4px rounded corners. Match the
 // white background + light grey border + flat look used for cards (mat-card.scss) and
-// buttons (mat-button.scss) instead - set through Material's own theming custom properties
-// rather than raw overrides, since all three panels expose them.
+// buttons (mat-button.scss) instead - set through Material's own theming tokens rather than
+// raw overrides, since all three panels expose them. The override mixins validate the token
+// names at compile time, so a Material token rename breaks the build here instead of silently
+// reverting a panel's look.
 :root {
-  --mat-menu-container-color: white;
-  --mat-menu-container-elevation-shadow: none;
-  --mat-menu-container-shape: 8px;
-  // A divider's own margin (8px top + 8px bottom by default) sits between two items but
-  // belongs to neither, so hovering either item stops short of the divider instead of
-  // reaching it. Zero it via these tokens; the same breathing room is restored on the
-  // adjacent items' own height below so it's included in their hover area.
-  --mat-menu-divider-top-spacing: 0;
-  --mat-menu-divider-bottom-spacing: 0;
+  @include mat.menu-overrides((
+    container-color: white,
+    container-elevation-shadow: none,
+    container-shape: 8px,
+    // A divider's own margin (8px top + 8px bottom by default) sits between two items but
+    // belongs to neither, so hovering either item stops short of the divider instead of
+    // reaching it. Zero it via these tokens; the same breathing room is restored on the
+    // adjacent items' own height below so it's included in their hover area.
+    divider-top-spacing: 0,
+    divider-bottom-spacing: 0,
+  ));
 
-  --mat-select-panel-background-color: white;
-  --mat-select-container-elevation-shadow: none;
+  @include mat.select-overrides((
+    panel-background-color: white,
+    container-elevation-shadow: none,
+  ));
 
-  --mat-autocomplete-background-color: white;
-  --mat-autocomplete-container-elevation-shadow: none;
-  --mat-autocomplete-container-shape: 8px;
+  @include mat.autocomplete-overrides((
+    background-color: white,
+    container-elevation-shadow: none,
+    container-shape: 8px,
+  ));
 }
 
 // No custom-property equivalent exists for any of these three panels' border, so this stays

@@ -1,7 +1,13 @@
+@use '@angular/material' as mat;
+
 // mat-paginator defaults to the theme's surface color (a light grey/lavender tint), not pure
-// white - match the outlined mat-card look used throughout the app instead.
+// white - match the outlined mat-card look used throughout the app instead. The override mixin
+// validates the token name at compile time, so a Material token rename breaks the build here
+// instead of silently reverting the paginator to the tinted surface.
 :root {
-  --mat-paginator-container-background-color: white;
+  @include mat.paginator-overrides((
+    container-background-color: white,
+  ));
 }
 
 // mat-paginator defaults to right-aligned content; this centers it for mobile/dialog usages

@@ -1,5 +1,11 @@
+@use '@angular/material' as mat;
+
 // mat-table defaults to the theme's surface color (a light grey/lavender tint), not pure white -
-// match the outlined mat-card look used throughout the app instead.
+// match the outlined mat-card look used throughout the app instead. The override mixin validates
+// the token name at compile time, so a Material token rename breaks the build here instead of
+// silently reverting the table to the tinted surface.
 :root {
-  --mat-table-background-color: white;
+  @include mat.table-overrides((
+    background-color: white,
+  ));
 }
