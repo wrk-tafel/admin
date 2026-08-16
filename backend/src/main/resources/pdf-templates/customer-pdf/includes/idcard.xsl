@@ -101,14 +101,24 @@
             <fo:table-column column-width="50%"/>
             <fo:table-column column-width="50%"/>
             <fo:table-body>
+                <!--
+                    Padding on the fo:table-cell (not on the fo:block-container it wraps - FOP
+                    doesn't honor padding on a block-container nested in a table-cell, content
+                    renders flush against it regardless) is what keeps text off the card edge / the
+                    accent divider. That padding sits outside the block-container's own 8cm
+                    (=cut-strip height), so the container's height is reduced by the same top+bottom
+                    padding to keep the row's total at 8cm - otherwise it overflows past the dashed
+                    cut line on the outside page.
+                -->
                 <fo:table-row>
-                    <fo:table-cell>
-                        <fo:block-container height="8cm">
+                    <fo:table-cell padding-top="4mm" padding-bottom="2mm" padding-left="4mm" padding-right="3mm">
+                        <fo:block-container height="7.4cm">
                             <xsl:call-template name="inside-left"/>
                         </fo:block-container>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block-container border-left="0.5mm solid {$tafelAccent}" height="8cm">
+                    <fo:table-cell padding-top="4mm" padding-bottom="2mm" padding-left="4mm" padding-right="3mm"
+                                   border-left="0.5mm solid {$tafelAccent}">
+                        <fo:block-container height="7.4cm">
                             <xsl:call-template name="inside-right"/>
                         </fo:block-container>
                     </fo:table-cell>
@@ -117,7 +127,7 @@
         </fo:table>
     </xsl:template>
     <xsl:template name="inside-left">
-        <fo:block padding="5mm">
+        <fo:block>
             <fo:block font-size="11pt" font-weight="bold" color="{$tafelAccent}" space-after="3mm">
                 Hauptbezieher
             </fo:block>
@@ -194,7 +204,7 @@
         </fo:block>
     </xsl:template>
     <xsl:template name="inside-right">
-        <fo:block padding="5mm">
+        <fo:block>
             <fo:block font-size="11pt" font-weight="bold" color="{$tafelAccent}" space-after="3mm">
                 Weitere Personen
             </fo:block>
