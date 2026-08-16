@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 .mat-mdc-button-base {
   box-shadow: none !important;
 }
@@ -13,53 +15,42 @@
   margin: 0 !important;
 }
 
-/* Support legacy "btn-success" / "btn-danger" utility classes on Material buttons
-   and ensure the background color applies in normal, hover, focus and active states. */
-.mat-mdc-button:not([disabled]):not(.mat-mdc-button-disabled),
-.mat-mdc-raised-button:not([disabled]):not(.mat-mdc-button-disabled),
-.mat-mdc-unelevated-button:not([disabled]):not(.mat-mdc-button-disabled) {
-  &.button-success {
-    background-color: var(--tafel-severity-success) !important;
-    color: white !important;
-
-    &:hover, &:focus, &:active {
-      background-color: var(--tafel-severity-success) !important;
-      color: white !important;
-    }
-  }
-
-  &.button-warning {
-    background-color: var(--tafel-severity-warning) !important;
-    color: var(--tafel-severity-on-warning) !important;
-
-    &:hover, &:focus, &:active {
-      background-color: var(--tafel-severity-warning) !important;
-      color: var(--tafel-severity-on-warning) !important;
-    }
-  }
-
-  &.button-danger {
-    background-color: var(--tafel-severity-danger) !important;
-    color: white !important;
-
-    &:hover, &:focus, &:active {
-      background-color: var(--tafel-severity-danger) !important;
-      color: white !important;
-    }
-  }
+// Severity classes for "btn-success"/"btn-warning"/"btn-danger" usages on matButton="filled"/
+// "outlined" buttons. Material's filled-button structural CSS draws the container from
+// filled-container-color and paints hover/focus/pressed as a translucent state layer over it
+// (from filled-state-layer-color/filled-ripple-color), so a class-scoped override needs no
+// :hover/:focus/:active selectors and no !important, unlike the raw background-color overrides
+// this replaced. The override mixin validates the token names at compile time, so a Material
+// token rename breaks the build here instead of silently reverting a button to its default color.
+.button-success {
+  @include mat.button-overrides((
+    filled-container-color: var(--tafel-severity-success),
+    filled-label-text-color: white,
+    filled-state-layer-color: white,
+    filled-ripple-color: rgba(white, 0.1),
+  ));
 }
 
-/* Outlined buttons keep their transparent background - "danger" here means the border/text color,
-   not a solid fill. Used to give a secondary action a distinct-but-lighter warning weight than its
-   primary, filled counterpart (e.g. "Weiter (nicht bezahlt)" next to "Weiter (bezahlt)"). */
-.mat-mdc-outlined-button:not([disabled]):not(.mat-mdc-button-disabled) {
-  &.button-danger {
-    color: var(--tafel-severity-danger) !important;
-    border-color: var(--tafel-severity-danger) !important;
+.button-warning {
+  @include mat.button-overrides((
+    filled-container-color: var(--tafel-severity-warning),
+    filled-label-text-color: var(--tafel-severity-on-warning),
+    filled-state-layer-color: var(--tafel-severity-on-warning),
+    filled-ripple-color: rgba(white, 0.1),
+  ));
+}
 
-    &:hover, &:focus, &:active {
-      color: var(--tafel-severity-danger) !important;
-      border-color: var(--tafel-severity-danger) !important;
-    }
-  }
+// Also carries the outlined tokens: "danger" is used on both the filled, solid-fill variant and
+// the outlined, border/text-only variant (e.g. a secondary action next to its primary, filled
+// counterpart - "Weiter (nicht bezahlt)" next to "Weiter (bezahlt)"). Outlined buttons keep their
+// transparent background, so only the border/text color need a token here.
+.button-danger {
+  @include mat.button-overrides((
+    filled-container-color: var(--tafel-severity-danger),
+    filled-label-text-color: white,
+    filled-state-layer-color: white,
+    filled-ripple-color: rgba(white, 0.1),
+    outlined-label-text-color: var(--tafel-severity-danger),
+    outlined-outline-color: var(--tafel-severity-danger),
+  ));
 }

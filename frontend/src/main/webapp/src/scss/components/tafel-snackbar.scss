@@ -1,20 +1,32 @@
-// Recolor the Material snack bar surface per severity to match the previous
-// toastr look (see tafel-snackbar.component.ts for the matching panelClass).
+@use '@angular/material' as mat;
+
+// Recolor the Material snack bar surface per severity to match the previous toastr look (see
+// tafel-snackbar.component.ts for the matching panelClass). The override mixin validates the
+// token names at compile time, so a Material token rename breaks the build here instead of
+// silently reverting a snackbar to its default color.
 .mat-mdc-snack-bar-container.tafel-snackbar-panel {
-  --mat-snack-bar-container-shape: 3px;
+  @include mat.snack-bar-overrides((
+    container-shape: 3px,
+  ));
 
   &-success {
-    --mat-snack-bar-container-color: #51a351;
-    --mat-snack-bar-supporting-text-color: #ffffff;
+    @include mat.snack-bar-overrides((
+      container-color: #51a351,
+      supporting-text-color: #ffffff,
+    ));
   }
 
   &-error {
-    --mat-snack-bar-container-color: #bd362f;
-    --mat-snack-bar-supporting-text-color: #ffffff;
+    @include mat.snack-bar-overrides((
+      container-color: #bd362f,
+      supporting-text-color: #ffffff,
+    ));
   }
 
   &-warning {
-    --mat-snack-bar-container-color: #f89406;
-    --mat-snack-bar-supporting-text-color: #ffffff;
+    @include mat.snack-bar-overrides((
+      container-color: #f89406,
+      supporting-text-color: #ffffff,
+    ));
   }
 }

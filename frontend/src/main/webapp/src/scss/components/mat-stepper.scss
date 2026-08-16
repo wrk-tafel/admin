@@ -1,8 +1,13 @@
+@use '@angular/material' as mat;
+
 // The stepper paints its own surface by default (--mat-sys-surface, a grey-lavender tint in this
 // theme), which reads as a grey box inside the white cards content sits in. Transparent lets every
 // stepper take the background of whatever surface hosts it. The header label/icon colours all sit
 // on on-surface/primary tokens, which keep their contrast on white, so no text colours need to move
-// along.
+// along. The override mixin validates the token name at compile time, so a Material token rename
+// breaks the build here instead of silently reverting the stepper to the tinted surface.
 :root {
-  --mat-stepper-container-color: transparent;
+  @include mat.stepper-overrides((
+    container-color: transparent,
+  ));
 }
