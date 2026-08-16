@@ -21,7 +21,7 @@
                         class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-gray-100 focus:bg-gray-100"
                         (click)="openNavEntry(entry)">
                   @if (entry.icon) {
-                    <fa-icon [icon]="entry.icon" class="w-5 text-center text-gray-500" aria-hidden="true"></fa-icon>
+                    <mat-icon [svgIcon]="entry.icon" class="!w-5 !h-5 text-center text-gray-500" aria-hidden="true"></mat-icon>
                   }
                   <span>{{ entry.label }}</span>
                 </button>
@@ -41,7 +41,7 @@
                   <button type="button" data-quick-open-result [attr.testid]="'quickOpenCustomer-' + customer.id"
                           class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-gray-100 focus:bg-gray-100"
                           (click)="openCustomer(customer)">
-                    <fa-icon [icon]="faUser" class="w-5 text-center text-gray-500" aria-hidden="true"></fa-icon>
+                    <mat-icon svgIcon="person" class="!w-5 !h-5 text-center text-gray-500" aria-hidden="true"></mat-icon>
                     <span class="flex flex-col">
                       <span>{{ customer.id }} – {{ customer.lastname }} {{ customer.firstname }}</span>
                       <span class="text-sm text-gray-500">

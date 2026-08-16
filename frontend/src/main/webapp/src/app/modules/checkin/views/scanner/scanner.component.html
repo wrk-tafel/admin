@@ -53,7 +53,7 @@
       <button type="button" testid="torch-toggle" (click)="toggleTorch()" [attr.aria-pressed]="torchOn()"
               [class]="'absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full shadow ' +
                        (torchOn() ? 'bg-yellow-400 text-black' : 'bg-white text-black')">
-        <fa-icon [icon]="faBolt" aria-hidden="true"></fa-icon>
+        <mat-icon svgIcon="bolt" class="!w-5 !h-5" aria-hidden="true"></mat-icon>
         <span class="sr-only">Taschenlampe {{ torchOn() ? 'ausschalten' : 'einschalten' }}</span>
       </button>
     }
@@ -66,7 +66,7 @@
            connection always wins the screen over a scan confirmation. -->
       <div class="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-[var(--tafel-severity-danger)] p-6 text-center text-white"
            testid="connection-lost-overlay" role="alert">
-        <fa-icon [icon]="faLinkSlash" class="text-5xl" aria-hidden="true"></fa-icon>
+        <mat-icon svgIcon="link_off" class="!w-12 !h-12" aria-hidden="true"></mat-icon>
         <div class="text-3xl font-bold">Verbindung getrennt</div>
         <div>Scans werden gerade nicht übertragen.</div>
         <button mat-flat-button type="button" testid="retry-connection" (click)="retryRegistration()">Erneut verbinden</button>
@@ -77,14 +77,14 @@
       @if (feedback.isDuplicate) {
         <div class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[var(--tafel-severity-warning)] text-white"
              testid="scan-feedback-duplicate" role="status">
-          <fa-icon [icon]="faRotate" class="text-6xl" aria-hidden="true"></fa-icon>
+          <mat-icon svgIcon="refresh" class="!w-16 !h-16" aria-hidden="true"></mat-icon>
           <div class="text-2xl">Bereits gescannt</div>
           <div class="text-6xl font-bold" testid="scan-feedback-value">{{ feedback.value }}</div>
         </div>
       } @else {
         <div class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[var(--tafel-severity-success)] text-white"
              testid="scan-feedback-success" role="status">
-          <fa-icon [icon]="faCircleCheck" class="text-6xl" aria-hidden="true"></fa-icon>
+          <mat-icon svgIcon="check_circle" class="!w-16 !h-16" aria-hidden="true"></mat-icon>
           <div class="text-2xl">Gescannt</div>
           <div class="text-6xl font-bold" testid="scan-feedback-value">{{ feedback.value }}</div>
         </div>

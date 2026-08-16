@@ -1,4 +1,4 @@
-<fa-icon [icon]="icon" class="tafel-snackbar-icon" aria-hidden="true"></fa-icon>
+<mat-icon [svgIcon]="icon" class="tafel-snackbar-icon" aria-hidden="true"></mat-icon>
 <div class="tafel-snackbar-text">
   @if (data.title) {
     <div class="toast-title">{{ data.title }}</div>
@@ -11,5 +11,5 @@
   </button>
 }
 <button mat-icon-button class="tafel-snackbar-close" (click)="dismiss()" aria-label="Schließen">
-  <fa-icon [icon]="faXmark"></fa-icon>
+  <mat-icon svgIcon="close"></mat-icon>
 </button>

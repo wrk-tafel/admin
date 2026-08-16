@@ -1,29 +1,54 @@
-import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
-import {
-  faBarcode,
-  faBoltLightning,
-  faChartLine,
-  faCheck,
-  faClockRotateLeft,
-  faCopy,
-  faDesktop,
-  faEllipsis,
-  faGaugeHigh,
-  faGear,
-  faListCheck,
-  faMagnifyingGlass,
-  faPlus,
-  faRoute,
-  faTriangleExclamation,
-  faTruck,
-  faUser,
-  faUserLock
-} from '@fortawesome/free-solid-svg-icons';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import speedIcon from '@material-symbols/svg-400/outlined/speed-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import barcodeIcon from '@material-symbols/svg-400/outlined/barcode-fill.svg';
+import desktopWindowsIcon from '@material-symbols/svg-400/outlined/desktop_windows-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import boltIcon from '@material-symbols/svg-400/outlined/bolt-fill.svg';
+import moreHorizIcon from '@material-symbols/svg-400/outlined/more_horiz-fill.svg';
+import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import checklistIcon from '@material-symbols/svg-400/outlined/checklist-fill.svg';
+import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
+import localShippingIcon from '@material-symbols/svg-400/outlined/local_shipping-fill.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import lockPersonIcon from '@material-symbols/svg-400/outlined/lock_person-fill.svg';
+import monitoringIcon from '@material-symbols/svg-400/outlined/monitoring-fill.svg';
+import historyIcon from '@material-symbols/svg-400/outlined/history-fill.svg';
+import settingsIcon from '@material-symbols/svg-400/outlined/settings-fill.svg';
+
+// Every icon name used anywhere in navigationMenuItems below, registered once from here rather than
+// by each consumer (DefaultLayoutComponent's sidebar, QuickOpenDialogComponent's flattened search
+// results) - two independent lists silently drifting out of sync is exactly how an icon ends up
+// registered for one consumer but not the other.
+export function registerNavigationIcons(): void {
+  registerSvgIcons({
+    speed: speedIcon,
+    check: checkIcon,
+    barcode: barcodeIcon,
+    desktop_windows: desktopWindowsIcon,
+    search: searchIcon,
+    add: addIcon,
+    bolt: boltIcon,
+    more_horiz: moreHorizIcon,
+    content_copy: contentCopyIcon,
+    warning: warningIcon,
+    checklist: checklistIcon,
+    route: routeIcon,
+    local_shipping: localShippingIcon,
+    person: personIcon,
+    lock_person: lockPersonIcon,
+    monitoring: monitoringIcon,
+    history: historyIcon,
+    settings: settingsIcon
+  });
+}
 
 export interface ITafelNavData {
   name: string;
   url?: string;
-  icon?: IconDefinition;
+  icon?: string;
   permissions?: string[];
   activeDistributionRequired?: boolean;
   title?: boolean;
@@ -36,7 +61,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    icon: faGaugeHigh
+    icon: 'speed'
   },
   {
     name: 'Anmeldung',
@@ -45,20 +70,20 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Annahme',
     url: '/anmeldung/annahme',
-    icon: faCheck,
+    icon: 'check',
     permissions: ['CHECKIN'],
     activeDistributionRequired: true
   },
   {
     name: 'Scanner',
     url: '/anmeldung/scanner',
-    icon: faBarcode,
+    icon: 'barcode',
     permissions: ['SCANNER']
   },
   {
     name: 'Ticket-Monitor',
     url: '/anmeldung/ticketmonitor-steuerung',
-    icon: faDesktop,
+    icon: 'desktop_windows',
     permissions: ['CHECKIN']
   },
   {
@@ -68,41 +93,41 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Kunden suchen',
     url: '/kunden/suchen',
-    icon: faMagnifyingGlass,
+    icon: 'search',
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden anlegen',
     url: '/kunden/anlegen',
-    icon: faPlus,
+    icon: 'add',
     permissions: ['CUSTOMER']
   },
   {
     name: 'Anspruch-Schnellcheck',
     url: '/kunden/schnellcheck',
-    icon: faBoltLightning,
+    icon: 'bolt',
     permissions: ['CUSTOMER']
   },
   {
     name: 'Auswertungen',
-    icon: faEllipsis,
+    icon: 'more_horiz',
     children: [
       {
         name: 'Kunden-Duplikate',
         url: '/kunden/duplikate',
-        icon: faCopy,
+        icon: 'content_copy',
         permissions: ['CUSTOMER_DUPLICATES']
       },
       {
         name: 'Kunden über Limit',
         url: '/kunden/ueber-limit',
-        icon: faTriangleExclamation,
+        icon: 'warning',
         permissions: ['CUSTOMERS_ABOVE_LIMIT']
       },
       {
         name: 'Kunden-Übersicht',
         url: '/kunden/uebersicht',
-        icon: faListCheck,
+        icon: 'checklist',
         permissions: ['CUSTOMERS_OVERVIEW']
       }
     ]
@@ -114,13 +139,13 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Routen-Navi',
     url: '/logistik/routen-navi',
-    icon: faRoute,
+    icon: 'route',
     permissions: ['LOGISTICS']
   },
   {
     name: 'Waren-Eingabe',
     url: '/logistik/warenerfassung',
-    icon: faTruck,
+    icon: 'local_shipping',
     permissions: ['LOGISTICS'],
     activeDistributionRequired: true
   },
@@ -131,29 +156,29 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Benutzer',
     url: '/benutzer',
-    icon: faUser,
+    icon: 'person',
     permissions: ['USER_MANAGEMENT'],
     children: [
       {
         name: 'Benutzer suchen',
         url: '/benutzer/suchen',
-        icon: faMagnifyingGlass
+        icon: 'search'
       },
       {
         name: 'Benutzer anlegen',
         url: '/benutzer/erstellen',
-        icon: faPlus
+        icon: 'add'
       },
       {
         name: 'Anmelde-Versuche',
         url: '/benutzer/anmelde-versuche',
-        icon: faUserLock
+        icon: 'lock_person'
       }
     ]
   },
   {
     name: 'Statistiken',
-    icon: faChartLine,
+    icon: 'monitoring',
     permissions: ['STATISTICS'],
     children: [
       {
@@ -169,12 +194,12 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Änderungsprotokoll',
     url: '/aenderungsprotokoll',
-    icon: faClockRotateLeft,
+    icon: 'history',
     permissions: ['AUDIT_LOG']
   },
   {
     name: 'Einstellungen',
-    icon: faGear,
+    icon: 'settings',
     url: '/einstellungen',
     permissions: ['SETTINGS'],
     children: [

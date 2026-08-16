@@ -5,18 +5,17 @@ import {FormatShelterAddressPipe} from '../../../../common/pipes/format-shelter-
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {ShelterApiService, ShelterItem} from '../../../../api/shelter-api.service';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {
-  faChevronDown,
-  faChevronUp,
-  faCircleInfo,
-  faHouseChimney,
-  faPencil,
-  faPlus
-} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import infoIcon from '@material-symbols/svg-400/outlined/info-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import homeIcon from '@material-symbols/svg-400/outlined/home-fill.svg';
 import {
   TafelReorderHandleComponent
 } from '../../../../common/components/tafel-reorder-handle/tafel-reorder-handle.component';
@@ -43,7 +42,7 @@ import {
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     CdkDropList,
     CdkDrag,
@@ -55,6 +54,15 @@ import {
   ]
 })
 export class SettingsSheltersComponent {
+  private readonly registerIcons = registerSvgIcons({
+    add: addIcon,
+    info: infoIcon,
+    keyboard_arrow_up: keyboardArrowUpIcon,
+    keyboard_arrow_down: keyboardArrowDownIcon,
+    edit: editIcon,
+    home: homeIcon
+  });
+
   private readonly shelterApiService = inject(ShelterApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly reorderFeedback = inject(ReorderFeedbackService);
@@ -229,10 +237,4 @@ export class SettingsSheltersComponent {
     this.enabledFilter.set(filter);
   }
 
-  protected readonly faPencil = faPencil;
-  protected readonly faPlus = faPlus;
-  protected readonly faChevronDown = faChevronDown;
-  protected readonly faChevronUp = faChevronUp;
-  protected readonly faCircleInfo = faCircleInfo;
-  protected readonly faHouseChimney = faHouseChimney;
 }

@@ -7,11 +7,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
 import {FormsModule} from '@angular/forms';
 import {Subscription} from 'rxjs';
-import {faEye} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {DocumentType, documentTypeLabel} from '../../../../api/customer-document-api.service';
 import {DocumentScannerApiService, ScannerFileItem} from '../../../../api/document-scanner-api.service';
 import {ConfigApiService} from '../../../../api/config-api.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
 
 export type UploadDocumentPanelResult =
   | { mode: 'upload'; documentType: DocumentType; file: File }
@@ -22,11 +23,13 @@ type DocumentSource = 'upload' | 'scanner';
 @Component({
   selector: 'tafel-upload-document-panel',
   imports: [
-    CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, FormsModule, FaIconComponent
+    CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, FormsModule, MatIcon
   ],
   templateUrl: 'upload-document-panel.component.html',
 })
 export class UploadDocumentPanelComponent {
+  private readonly registerIcons = registerSvgIcons({visibility: visibilityIcon});
+
   private readonly documentScannerApiService = inject(DocumentScannerApiService);
   private readonly configApiService = inject(ConfigApiService);
   private readonly destroyRef = inject(DestroyRef);
@@ -56,7 +59,6 @@ export class UploadDocumentPanelComponent {
 
   protected readonly documentTypeLabel = documentTypeLabel;
   protected readonly documentTypes = Object.values(DocumentType);
-  protected readonly faEye = faEye;
 
   constructor() {
     this.destroyRef.onDestroy(() => {

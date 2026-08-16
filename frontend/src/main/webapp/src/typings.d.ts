@@ -23,3 +23,9 @@ declare module 'node_modules/chart.js/dist/types/utils' {
         : T[P];
   };
 }
+
+// Material Symbols SVGs are imported as raw strings, see angular.json's build "loader" option
+declare module '*.svg' {
+  const content: string;
+  export default content;
+}

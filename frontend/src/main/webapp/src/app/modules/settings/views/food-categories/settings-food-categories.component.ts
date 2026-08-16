@@ -18,10 +18,15 @@ import {
 } from '@angular/material/table';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
-import {faBoxOpen, faCheck, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import package2Icon from '@material-symbols/svg-400/outlined/package_2-fill.svg';
 import {
   TafelReorderHandleComponent
 } from '../../../../common/components/tafel-reorder-handle/tafel-reorder-handle.component';
@@ -65,7 +70,7 @@ import {
     MatRowDef,
     MatTable,
     MatHeaderCellDef,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -83,6 +88,14 @@ import {
   ]
 })
 export class SettingsFoodCategoriesComponent {
+  private readonly registerIcons = registerSvgIcons({
+    add: addIcon,
+    check: checkIcon,
+    close: closeIcon,
+    edit: editIcon,
+    package_2: package2Icon
+  });
+
   private readonly foodCategoriesApiService = inject(FoodCategoriesApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly reorderFeedback = inject(ReorderFeedbackService);
@@ -276,9 +289,4 @@ export class SettingsFoodCategoriesComponent {
     });
   }
 
-  protected readonly faBoxOpen = faBoxOpen;
-  protected readonly faPencil = faPencil;
-  protected readonly faPlus = faPlus;
-  protected readonly faCheck = faCheck;
-  protected readonly faXmark = faXmark;
 }

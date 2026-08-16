@@ -10,7 +10,7 @@
         </div>
         <button matButton="filled" class="button-success" testid="addRouteButton"
                 [disabled]="!loaded()" (click)="addRoute()">
-          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          <mat-icon svgIcon="add" class="me-2"></mat-icon>
           Route anlegen
         </button>
       </div>
@@ -28,13 +28,13 @@
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
         <mat-label>Route suchen</mat-label>
-        <fa-icon matPrefix [icon]="faMagnifyingGlass" class="ms-3 me-2 text-slate-400"></fa-icon>
+        <mat-icon svgIcon="search" matPrefix class="ms-3 me-2 text-slate-400"></mat-icon>
         <input matInput [formControl]="searchControl" testid="routes-search-input"
                placeholder="Nummer, Name, Filiale oder Hinweis"/>
         @if (searchControl.value) {
           <button matIconButton matSuffix type="button" aria-label="Suche zurücksetzen"
                   testid="routes-search-clear-button" (click)="clearSearch()">
-            <fa-icon [icon]="faXmark"></fa-icon>
+            <mat-icon svgIcon="close"></mat-icon>
           </button>
         }
       </mat-form-field>
@@ -70,7 +70,7 @@
               </span>
               <span class="font-medium">{{ view.route.name }}</span>
               <span class="text-sm text-slate-500">{{ view.stopsSummary }}</span>
-              <fa-icon class="ms-auto text-slate-500" [icon]="isExpanded(view.route.id) ? faChevronUp : faChevronDown"></fa-icon>
+              <mat-icon [svgIcon]="isExpanded(view.route.id) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="ms-auto text-slate-500"></mat-icon>
             </button>
             <!-- both actions stay reachable without expanding the route first -->
             <tafel-enabled-toggle [enabled]="view.route.enabled" [label]="'Route ' + view.route.name"
@@ -79,7 +79,7 @@
             <button matButton="filled" [attr.testid]="'editRouteButton-' + i"
                     [disabled]="!view.route.enabled" [attr.aria-label]="'Route ' + view.route.name + ' bearbeiten'"
                     (click)="editRoute(view.route)">
-              <fa-icon [icon]="faPencil"></fa-icon>
+              <mat-icon svgIcon="edit"></mat-icon>
             </button>
           </div>
 
@@ -87,7 +87,7 @@
                [attr.aria-labelledby]="'routes-toggle-' + i" [hidden]="!isExpanded(view.route.id)">
           @if (view.route.note) {
             <div class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-              <fa-icon [icon]="faNoteSticky" class="mt-0.5"></fa-icon>
+              <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
               <span class="whitespace-pre-line">{{ view.route.note }}</span>
             </div>
           }
@@ -97,7 +97,7 @@
               <a matButton="outlined" [href]="mapsUrl" target="_blank" rel="noopener"
                  [attr.testid]="'route-map-link-' + i"
                  [attr.aria-label]="'Route ' + view.route.name + ' in Karte öffnen (in neuem Tab)'">
-                <fa-icon [icon]="faDiamondTurnRight" class="me-2"></fa-icon>
+                <mat-icon svgIcon="directions" class="me-2"></mat-icon>
                 Route in Karte öffnen
               </a>
               @if (view.mapsUrlTruncatedHint; as truncatedHint) {
@@ -140,7 +140,7 @@
       } @empty {
         @if (loaded()) {
           <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="routes-empty">
-            <fa-icon [icon]="faRoute" size="2x"></fa-icon>
+            <mat-icon svgIcon="route" class="!w-8 !h-8"></mat-icon>
             @if (filtered()) {
               <span>Keine Route entspricht der Suche.</span>
             } @else {

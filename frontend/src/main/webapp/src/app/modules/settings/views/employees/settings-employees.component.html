@@ -4,7 +4,7 @@
       <div class="flex items-center gap-2">
         <h2 class="tafel-h5 mb-0 mt-1">Mitarbeiter</h2>
         <button matButton="filled" class="button-success" testid="addEmployeeButton" matTooltip="Neuen Mitarbeiter anlegen" (click)="addEmployee()" aria-label="Neuen Mitarbeiter anlegen">
-          <fa-icon [icon]="faPlus"></fa-icon>
+          <mat-icon svgIcon="add"></mat-icon>
         </button>
       </div>
     </mat-card-title>
@@ -118,15 +118,15 @@
         <td mat-cell *matCellDef="let employee; let i = index">
           @if (editingId() === employee.id) {
             <button matButton="filled" [attr.testid]="'saveEmployeeButton-' + i" [disabled]="!!editDuplicate()" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
-              <fa-icon [icon]="faCheck"></fa-icon>
+              <mat-icon svgIcon="check"></mat-icon>
             </button>
             <button matButton="outlined" class="ml-2" [attr.testid]="'cancelEmployeeButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' abbrechen'">
-              <fa-icon [icon]="faXmark"></fa-icon>
+              <mat-icon svgIcon="close"></mat-icon>
             </button>
           } @else {
             <button matButton="filled" [attr.testid]="'editEmployeeButton-' + i" matTooltip="Mitarbeiter bearbeiten"
                     (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
-              <fa-icon [icon]="faPencil"></fa-icon>
+              <mat-icon svgIcon="edit"></mat-icon>
             </button>
           }
         </td>
@@ -204,15 +204,15 @@
             <mat-card-actions>
               @if (editingId() === employee.id) {
                 <button matButton="filled" [attr.testid]="'saveEmployeeButtonMobile-' + i" [disabled]="!!editDuplicate()" matTooltip="Änderungen speichern" (click)="saveEdit(employee)" [attr.aria-label]="'Änderungen an Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' speichern'">
-                  <fa-icon [icon]="faCheck"></fa-icon>
+                  <mat-icon svgIcon="check"></mat-icon>
                 </button>
                 <button matButton="outlined" [attr.testid]="'cancelEmployeeButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' abbrechen'">
-                  <fa-icon [icon]="faXmark"></fa-icon>
+                  <mat-icon svgIcon="close"></mat-icon>
                 </button>
               } @else {
                 <button matButton="filled" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
                         (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
-                  <fa-icon [icon]="faPencil"></fa-icon>
+                  <mat-icon svgIcon="edit"></mat-icon>
                 </button>
               }
             </mat-card-actions>

@@ -22,8 +22,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatOption, MatSelect} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faNoteSticky, faRotateLeft, faTrashCan, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2-fill.svg';
+import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
@@ -50,11 +54,18 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
     MatDividerModule,
     MatSelect,
     MatOption,
-    FaIconComponent,
+    MatIcon,
     MatTooltipModule
   ]
 })
 export class CheckinComponent {
+  private readonly registerIcons = registerSvgIcons({
+    sticky_note_2: stickyNote2Icon,
+    restart_alt: restartAltIcon,
+    delete: deleteIcon,
+    warning: warningIcon
+  });
+
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly globalStateService = inject(GlobalStateService);
@@ -356,10 +367,6 @@ export class CheckinComponent {
     snackBarRef.onAction().subscribe(() => this.undoLastCheckin());
   }
 
-  protected readonly faTrashCan = faTrashCan;
-  protected readonly faRotateLeft = faRotateLeft;
-  protected readonly faTriangleExclamation = faTriangleExclamation;
-  protected readonly faNoteSticky = faNoteSticky;
 }
 
 export enum CustomerState {

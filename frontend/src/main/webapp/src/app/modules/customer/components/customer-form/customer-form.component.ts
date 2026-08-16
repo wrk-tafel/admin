@@ -12,9 +12,14 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIcon} from '@angular/material/icon';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
-import {faBuilding, faEnvelope, faFlag, faLocationDot, faPhone, faVenusMars} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import wcIcon from '@material-symbols/svg-400/outlined/wc-fill.svg';
+import flagIcon from '@material-symbols/svg-400/outlined/flag-fill.svg';
+import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
+import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
+import locationOnIcon from '@material-symbols/svg-400/outlined/location_on-fill.svg';
+import apartmentIcon from '@material-symbols/svg-400/outlined/apartment-fill.svg';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
@@ -39,7 +44,6 @@ const VALID_UNTIL_QUICK_PICKS = [1, 2, 3, 6, 12] as const;
     MatCheckboxModule,
     MatExpansionModule,
     MatIcon,
-    FaIconComponent,
     TafelAutofocusDirective,
     GenderLabelPipe,
     BirthdateAgePipe,
@@ -47,6 +51,15 @@ const VALID_UNTIL_QUICK_PICKS = [1, 2, 3, 6, 12] as const;
   ]
 })
 export class CustomerFormComponent {
+  private readonly registerIcons = registerSvgIcons({
+    wc: wcIcon,
+    flag: flagIcon,
+    call: callIcon,
+    mail: mailIcon,
+    location_on: locationOnIcon,
+    apartment: apartmentIcon
+  });
+
   editMode = input(false);
   customerData = input<CustomerData>();
   customerDataChange = output<CustomerData>();
@@ -368,12 +381,6 @@ export class CustomerFormComponent {
   // Expose utility functions for template use
   protected readonly visibleErrorMessages = visibleErrorMessages;
 
-  protected readonly faVenusMars = faVenusMars;
-  protected readonly faFlag = faFlag;
-  protected readonly faEnvelope = faEnvelope;
-  protected readonly faLocationDot = faLocationDot;
-  protected readonly faBuilding = faBuilding;
-  protected readonly faPhone = faPhone;
 }
 
 export interface CustomerFormModel {

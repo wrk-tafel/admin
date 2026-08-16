@@ -166,12 +166,12 @@
                     [attr.testid]="'return-item-' + returnItemIndex + '-remove-button'"
                     (click)="removeReturnItem(returnItemIndex)"
                     matTooltip="Retour-Position entfernen" aria-label="Retour-Position entfernen">
-              <fa-icon [icon]="faRemove"></fa-icon>
+              <mat-icon svgIcon="close"></mat-icon>
             </button>
           </div>
         }
         <button type="button" matButton="filled" testid="add-return-item-button" (click)="addReturnItem()">
-          <fa-icon [icon]="faPlus"></fa-icon>
+          <mat-icon svgIcon="add"></mat-icon>
           Retourware hinzufügen
         </button>
       </div>

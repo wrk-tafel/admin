@@ -1,8 +1,9 @@
 import {Component, computed, input} from '@angular/core';
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faCheck} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 
 interface RouteChipView {
   name: string;
@@ -22,10 +23,12 @@ interface RouteChipView {
     MatCard,
     MatCardContent,
     MatChipsModule,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class RecordedRouteNamesComponent {
+  private readonly registerIcons = registerSvgIcons({check: checkIcon});
+
   /** Every route still driven today, in driving order - the panel's full universe of "who has to hand in". */
   allRouteNames = input<string[] | null>(null);
   /** Names already fully recorded, from the live dashboard feed. */
@@ -35,6 +38,4 @@ export class RecordedRouteNamesComponent {
     const recorded = new Set(this.recordedRouteNames() ?? []);
     return (this.allRouteNames() ?? []).map(name => ({name, recorded: recorded.has(name)}));
   });
-
-  protected readonly faCheck = faCheck;
 }

@@ -21,7 +21,7 @@
                 [attr.testid]="testId() ? testId() + '-details-button' : null"
                 [attr.aria-label]="detailsLabel()"
                 (click)="$event.stopPropagation(); openDetails()">
-          <fa-icon [icon]="faUpRightAndDownLeftFromCenter"></fa-icon>
+          <mat-icon svgIcon="open_in_full"></mat-icon>
         </button>
       </div>
       <div class="text-2xl font-bold" testid="panel-value">{{ data()?.title }}</div>
@@ -30,11 +30,11 @@
         <div class="mt-1 text-sm" testid="panel-delta">
           <span class="font-bold" aria-hidden="true">
             @if (delta.direction === 'up') {
-              <fa-icon [icon]="faArrowUp"></fa-icon>
+              <mat-icon svgIcon="arrow_upward"></mat-icon>
             } @else if (delta.direction === 'down') {
-              <fa-icon [icon]="faArrowDown"></fa-icon>
+              <mat-icon svgIcon="arrow_downward"></mat-icon>
             } @else {
-              <fa-icon [icon]="faMinus"></fa-icon>
+              <mat-icon svgIcon="remove"></mat-icon>
             }
             @if (delta.percentage !== undefined) {
               {{ delta.percentage > 0 ? '+' : '' }}{{ delta.percentage | number: '1.0-1' }}&nbsp;%

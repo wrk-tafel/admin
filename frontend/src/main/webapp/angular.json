@@ -37,6 +37,9 @@
               "dayjs"
             ],
             "browser": "src/main.ts",
+            "loader": {
+              ".svg": "text"
+            },
             "stylePreprocessorOptions": {
               "sass": {
                 "silenceDeprecations": [

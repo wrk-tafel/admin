@@ -10,12 +10,16 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {CommonModule} from '@angular/common';
-import {faArrowUpRightFromSquare, faSave, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new-fill.svg';
+import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
 
 @Component({
   selector: 'tafel-customer-above-limit',
@@ -27,7 +31,7 @@ import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-p
     MatPaginatorModule,
     MatSortModule,
     CommonModule,
-    FaIconComponent,
+    MatIcon,
     FormatCustomerAddressPipe,
     MatTooltipModule,
     RouterLink,
@@ -35,6 +39,13 @@ import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-p
   ]
 })
 export class CustomerAboveLimitComponent {
+  private readonly registerIcons = registerSvgIcons({
+    open_in_new: openInNewIcon,
+    save: saveIcon,
+    person: personIcon,
+    search: searchIcon
+  });
+
   // Input signal - aliased to match the route resolver data key (see customer.routes.ts) since the
   // unaliased name below is already used for the locally-writable linkedSignal counterpart
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -105,9 +116,5 @@ export class CustomerAboveLimitComponent {
   // columns for mat-table
   displayedColumns = ['icon', 'id', 'name', 'address', 'validUntil', 'totalSum', 'limit', 'amountExceededLimit', 'actions'];
 
-  protected readonly faUser = faUser;
-  protected readonly faSearch = faSearch;
-  protected readonly faSave = faSave;
-  protected readonly faArrowUpRightFromSquare = faArrowUpRightFromSquare;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

@@ -37,7 +37,7 @@
             Stopps ({{ stops.length }})
           </h3>
           <button matButton="filled" type="button" testid="route-stop-add-button" (click)="addStop()">
-            <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+            <mat-icon svgIcon="add" class="me-2"></mat-icon>
             Stopp hinzufügen
           </button>
         </div>
@@ -48,7 +48,7 @@
 
         @if (stopWarnings().length > 0) {
           <div class="mb-3 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="route-stop-warnings">
-            <fa-icon [icon]="faTriangleExclamation" class="mt-0.5"></fa-icon>
+            <mat-icon svgIcon="warning" class="mt-0.5"></mat-icon>
             <ul class="list-disc ps-4">
               @for (warning of stopWarnings(); track warning) {
                 <li>{{ warning }}</li>
@@ -97,7 +97,7 @@
                 <button type="button" matButton="filled" class="button-danger"
                         aria-label="Stopp entfernen" matTooltip="Stopp entfernen"
                         [attr.testid]="'route-stop-remove-button-' + i" (click)="removeStop(i)">
-                  <fa-icon [icon]="faTrashCan"></fa-icon>
+                  <mat-icon svgIcon="delete"></mat-icon>
                 </button>
               </div>
 
