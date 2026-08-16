@@ -25,9 +25,8 @@
     <xsl:template name="masterdata-field-grid">
         <xsl:param name="data"/>
         <fo:table table-layout="fixed" width="100%">
-            <fo:table-column column-width="33.33%"/>
-            <fo:table-column column-width="33.33%"/>
-            <fo:table-column column-width="33.34%"/>
+            <fo:table-column column-width="50%"/>
+            <fo:table-column column-width="50%"/>
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell padding="1.5mm">
@@ -42,20 +41,22 @@
                             <xsl:with-param name="label" select="'Vorname'"/>
                         </xsl:call-template>
                     </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
                     <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/birthDate"/>
                             <xsl:with-param name="label" select="'Geburtsdatum'"/>
                         </xsl:call-template>
                     </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
                     <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/gender"/>
                             <xsl:with-param name="label" select="'Geschlecht'"/>
                         </xsl:call-template>
                     </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
                     <fo:table-cell padding="1.5mm" number-columns-spanned="2">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/country"/>
@@ -64,7 +65,7 @@
                     </fo:table-cell>
                 </fo:table-row>
                 <fo:table-row>
-                    <fo:table-cell padding="1.5mm" number-columns-spanned="3">
+                    <fo:table-cell padding="1.5mm" number-columns-spanned="2">
                         <xsl:variable name="addressLine1">
                             <xsl:value-of select="$data/address/street"/>
                             <xsl:if test="$data/address/houseNumber != ''">
@@ -96,7 +97,7 @@
                             <xsl:with-param name="label" select="'Telefonnummer'"/>
                         </xsl:call-template>
                     </fo:table-cell>
-                    <fo:table-cell padding="1.5mm" number-columns-spanned="2">
+                    <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/email"/>
                             <xsl:with-param name="label" select="'E-Mail'"/>
@@ -110,15 +111,15 @@
                             <xsl:with-param name="label" select="'Arbeitgeber'"/>
                         </xsl:call-template>
                     </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
                     <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/income"/>
                             <xsl:with-param name="label" select="'Einkommen'"/>
                         </xsl:call-template>
                     </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell padding="1.5mm" number-columns-spanned="3">
+                    <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$data/incomeDueDate"/>
                             <xsl:with-param name="label" select="'Einkommen gültig bis'"/>
