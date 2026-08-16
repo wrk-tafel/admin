@@ -208,19 +208,39 @@
             </fo:block>
             <xsl:choose>
                 <xsl:when test="customer/additionalPersons != ''">
+                    <!--
+                        The card panel is a fixed 7.4cm, unlike the master data sheet's full page,
+                        so a large household's person list can't just run longer - past this many
+                        names it would overflow past the dashed cut line onto the next panel's area.
+                        Cut off with a "+N weitere" note instead; the full list still prints on the
+                        master data sheet.
+                    -->
+                    <xsl:variable name="maxVisible" select="8"/>
+                    <xsl:variable name="totalCount" select="count(customer/additionalPersons/additionalPersons)"/>
                     <fo:table table-layout="fixed" width="100%">
                         <fo:table-column column-width="100%"/>
                         <fo:table-body>
                             <xsl:for-each select="customer/additionalPersons/additionalPersons">
+                                <xsl:if test="position() &lt;= $maxVisible">
+                                    <fo:table-row>
+                                        <fo:table-cell padding-top="1.5mm" padding-bottom="1.5mm"
+                                                       border-bottom="0.25mm solid {$tafelHairline}">
+                                            <fo:block font-size="10pt" color="{$tafelInk}">
+                                                <xsl:value-of select="concat(./lastname, ' ', ./firstname)"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </xsl:if>
+                            </xsl:for-each>
+                            <xsl:if test="$totalCount &gt; $maxVisible">
                                 <fo:table-row>
-                                    <fo:table-cell padding-top="1.5mm" padding-bottom="1.5mm"
-                                                   border-bottom="0.25mm solid {$tafelHairline}">
-                                        <fo:block font-size="10pt" color="{$tafelInk}">
-                                            <xsl:value-of select="concat(./lastname, ' ', ./firstname)"/>
+                                    <fo:table-cell padding-top="1.5mm">
+                                        <fo:block font-size="9pt" font-style="italic" color="{$tafelMuted}">
+                                            <xsl:value-of select="concat('+ ', $totalCount - $maxVisible, ' weitere (siehe Stammdatenblatt)')"/>
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
-                            </xsl:for-each>
+                            </xsl:if>
                         </fo:table-body>
                     </fo:table>
                 </xsl:when>
