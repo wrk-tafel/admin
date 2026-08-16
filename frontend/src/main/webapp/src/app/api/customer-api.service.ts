@@ -82,6 +82,7 @@ export class CustomerApiService {
     postProcessing?: boolean | null,
     costContribution?: boolean | null,
     valid?: boolean | null,
+    locked?: boolean | null,
     page?: number,
     pageSize?: number
   ): Observable<CustomerSearchResult> {
@@ -97,6 +98,9 @@ export class CustomerApiService {
     }
     if (valid) {
       queryParams = queryParams.set('valid', valid);
+    }
+    if (locked) {
+      queryParams = queryParams.set('locked', locked);
     }
     if (page) {
       queryParams = queryParams.set('page', page);

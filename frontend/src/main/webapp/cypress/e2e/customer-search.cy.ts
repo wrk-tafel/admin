@@ -204,6 +204,39 @@ describe('Customer Search', () => {
     });
   });
 
+  it('search by locked filter', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        locked: true,
+        lockReason: 'Testgrund-' + randomNumber,
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customer = response.body.data;
+
+        // Filter by lastname too - same reasoning as the cost-contribution filter test above: the
+        // locked filter alone would depend on this being the only locked customer suite-wide.
+        cy.byTestId('searchInputText').type(customer.lastname);
+        clickSearchAndWaitForResult();
+        cy.intercept('GET', /\/api\/households(\?|$)/).as('lockedFilterSearch');
+        cy.byTestId('filter-locked').click();
+        cy.wait('@lockedFilterSearch');
+
+        clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
+      });
+    });
+  });
+
   it('keeps query, filters and page after returning from a customer via the back button', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

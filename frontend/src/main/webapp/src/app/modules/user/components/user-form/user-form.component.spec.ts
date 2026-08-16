@@ -341,6 +341,23 @@ describe('UserFormComponent', () => {
     expect(component.userForm.personnelNumber().value()).toBe('');
   });
 
+  it('selecting an employee fills in its name, and removing the link clears it again', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    component.setSelectedEmployee(mockEmployee);
+    fixture.detectChanges();
+    expect(component.userForm.lastname().value()).toBe(mockEmployee.lastname);
+    expect(component.userForm.firstname().value()).toBe(mockEmployee.firstname);
+
+    component.resetSelectedEmployee();
+    fixture.detectChanges();
+    expect(component.userForm.lastname().value()).toBe('');
+    expect(component.userForm.firstname().value()).toBe('');
+  });
+
   it('password stays optional when editing an existing user', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;

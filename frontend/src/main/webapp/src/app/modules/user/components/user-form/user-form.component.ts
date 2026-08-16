@@ -19,6 +19,7 @@ import {AuthenticationService} from '../../../../common/security/authentication.
 import {
   TafelEmployeeSearchCreateComponent
 } from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 
 /**
  * Mirrors `UserPermissions.ADMINISTRATOR` on the backend. Kept as a constant rather than inline, so
@@ -40,7 +41,8 @@ const ADMINISTRATOR_PERMISSION = 'ADMINISTRATOR';
         MatIcon,
         FaIconComponent,
         TafelAutofocusDirective,
-        TafelEmployeeSearchCreateComponent
+        TafelEmployeeSearchCreateComponent,
+        TafelInfoTooltipComponent
     ]
 })
 export class UserFormComponent {
@@ -307,15 +309,25 @@ export class UserFormComponent {
     }
   }
 
+  /**
+   * The lastname/firstname fields save onto the linked employee (see `resolveEmployee` on the
+   * backend), so they're kept in sync with whichever employee the personnel-number search resolved
+   * - typing a name there is for correcting the employee's name, not for entering an independent
+   * one that would otherwise silently overwrite it on save.
+   */
   public setSelectedEmployee(employee: EmployeeData) {
     this.selectedEmployee.set(employee);
     this.userForm.personnelNumber().value.set(employee.personnelNumber);
     this.userForm.personnelNumber().markAsTouched();
+    this.userForm.lastname().value.set(employee.lastname);
+    this.userForm.firstname().value.set(employee.firstname);
   }
 
   public resetSelectedEmployee() {
     this.selectedEmployee.set(null);
     this.userForm.personnelNumber().value.set('');
+    this.userForm.lastname().value.set('');
+    this.userForm.firstname().value.set('');
   }
 
   /**

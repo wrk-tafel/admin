@@ -10,7 +10,7 @@ Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Ei
 
 Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
 
-Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen" und "Derzeit bezugsberechtigt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus.
+Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen", "Derzeit bezugsberechtigt" und "Gesperrt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus.
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
