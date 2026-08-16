@@ -10,6 +10,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.scheduling.annotation.Async
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 @ExtendWith(MockKExtension::class)
 internal class RouteAtLastStopPushListenerTest {
@@ -64,5 +66,20 @@ internal class RouteAtLastStopPushListenerTest {
             .getDeclaredMethod("onRouteAtLastStop", RouteAtLastStopEvent::class.java)
 
         assertThat(method.isAnnotationPresent(Async::class.java)).isTrue()
+    }
+
+    /**
+     * `RouteGuidanceService.publishIfAtLastStop` publishes from inside its own transaction, so a
+     * rollback must not leave the notification sent - see the class KDoc.
+     */
+    @Test
+    fun `the broadcast only fires after the publishing transaction commits`() {
+        val method = RouteAtLastStopPushListener::class.java
+            .getDeclaredMethod("onRouteAtLastStop", RouteAtLastStopEvent::class.java)
+
+        val annotation = method.getAnnotation(TransactionalEventListener::class.java)
+        assertThat(annotation).isNotNull()
+        assertThat(annotation.phase).isEqualTo(TransactionPhase.AFTER_COMMIT)
+        assertThat(annotation.fallbackExecution).isTrue()
     }
 }

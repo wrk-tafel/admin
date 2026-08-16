@@ -5,9 +5,10 @@ import at.wrk.tafel.admin.backend.modules.distribution.events.AllTicketsProcesse
 import at.wrk.tafel.admin.backend.modules.distribution.events.CheckinStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.logistics.events.FoodCollectionCompletedEvent
-import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 /**
  * Turns the distribution day's phase transitions into push notifications, so that someone who isn't
@@ -20,6 +21,15 @@ import org.springframework.stereotype.Component
  * actively waiting on - a check-in being saved, a ticket being closed, a food collection being
  * recorded. None of those should slow down, or fail, because a push service is unreachable.
  *
+ * All four also fire from inside their publisher's own transaction (`DistributionService` for the
+ * first three, `FoodCollectionService` for the last), so all four are
+ * `@TransactionalEventListener(phase = AFTER_COMMIT)` rather than plain `@EventListener`: without
+ * it, a rollback would both send a notification about something that never happened *and* roll back
+ * the phase-timestamp guard that prevents it firing again, so the same notification could go out a
+ * second time later. `fallbackExecution = true` matters here because these are also reached from
+ * tests and any other caller with no open transaction - without it, the listener would silently do
+ * nothing in that case instead of broadcasting immediately.
+ *
  * Each event is published at most once per distribution (guarded by a phase timestamp on
  * `distributions`), so no de-duplication is needed here.
  */
@@ -29,7 +39,7 @@ class DistributionPhasePushListener(
 ) {
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     fun onCheckinStarted(event: CheckinStartedEvent) {
         pushBroadcastService.broadcast(
             type = PushNotificationType.CHECKIN_STARTED,
@@ -39,7 +49,7 @@ class DistributionPhasePushListener(
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     fun onFoodHandoutStarted(event: FoodHandoutStartedEvent) {
         pushBroadcastService.broadcast(
             type = PushNotificationType.FOOD_HANDOUT_STARTED,
@@ -49,7 +59,7 @@ class DistributionPhasePushListener(
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     fun onAllTicketsProcessed(event: AllTicketsProcessedEvent) {
         pushBroadcastService.broadcast(
             type = PushNotificationType.ALL_TICKETS_PROCESSED,
@@ -59,7 +69,7 @@ class DistributionPhasePushListener(
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     fun onFoodCollectionCompleted(event: FoodCollectionCompletedEvent) {
         pushBroadcastService.broadcast(
             type = PushNotificationType.FOOD_COLLECTION_COMPLETED,
