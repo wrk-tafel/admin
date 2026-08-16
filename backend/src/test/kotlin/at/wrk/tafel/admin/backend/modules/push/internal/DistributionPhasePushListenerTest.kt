@@ -13,6 +13,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.scheduling.annotation.Async
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionPhasePushListenerTest {
@@ -94,6 +96,29 @@ internal class DistributionPhasePushListenerTest {
             assertThat(method.isAnnotationPresent(Async::class.java))
                 .describedAs("%s should be @Async", name)
                 .isTrue()
+        }
+    }
+
+    /**
+     * All four are published from inside their publisher's own transaction, so a rollback must not
+     * leave the notification sent - see the class KDoc for why `AFTER_COMMIT` plus
+     * `fallbackExecution = true` is the fix rather than a plain `@EventListener`.
+     */
+    @Test
+    fun `every phase broadcast only fires after its publishing transaction commits`() {
+        val methods = mapOf(
+            "onCheckinStarted" to CheckinStartedEvent::class.java,
+            "onFoodHandoutStarted" to FoodHandoutStartedEvent::class.java,
+            "onAllTicketsProcessed" to AllTicketsProcessedEvent::class.java,
+            "onFoodCollectionCompleted" to FoodCollectionCompletedEvent::class.java,
+        )
+
+        methods.forEach { (name, eventType) ->
+            val method = DistributionPhasePushListener::class.java.getDeclaredMethod(name, eventType)
+            val annotation = method.getAnnotation(TransactionalEventListener::class.java)
+            assertThat(annotation).describedAs("%s should be @TransactionalEventListener", name).isNotNull()
+            assertThat(annotation.phase).isEqualTo(TransactionPhase.AFTER_COMMIT)
+            assertThat(annotation.fallbackExecution).isTrue()
         }
     }
 }

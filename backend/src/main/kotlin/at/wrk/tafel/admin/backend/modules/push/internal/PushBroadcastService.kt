@@ -41,6 +41,7 @@ class PushBroadcastService(
         val recipientCache = mutableMapOf<Long, Boolean>()
         val targetPath = PushNotificationTypeTargeting.targetPathOf(type) ?: ""
 
+        val resultCounts = mutableMapOf<PushSendResult, Int>()
         pushSubscriptionRepository.findAll().forEach { subscription ->
             val user = subscription.user ?: return@forEach
             val userId = user.id ?: return@forEach
@@ -55,7 +56,37 @@ class PushBroadcastService(
                 return@forEach
             }
 
-            sendTo(subscription, title, body, targetPath)
+            val result = sendTo(subscription, title, body, targetPath)
+            resultCounts.merge(result, 1, Int::plus)
+        }
+
+        // One summary line per broadcast, on top of sendTo's per-subscription logging: without it,
+        // "the push service was down for ten minutes" and "one phone is unreachable" are
+        // indistinguishable in the logs, so an outage isn't greppable as one. Logged even when
+        // nothing failed, so a broadcast with zero eligible subscriptions is visible too, e.g. an
+        // administrator wondering why nobody's phone rang.
+        val sent = resultCounts[PushSendResult.SENT] ?: 0
+        val failed = resultCounts[PushSendResult.FAILED] ?: 0
+        val expired = resultCounts[PushSendResult.EXPIRED] ?: 0
+        val notConfigured = resultCounts[PushSendResult.NOT_CONFIGURED] ?: 0
+        if (failed > 0) {
+            logger.warn(
+                "Broadcast {} finished: {} sent, {} failed, {} expired, {} not-configured",
+                type,
+                sent,
+                failed,
+                expired,
+                notConfigured,
+            )
+        } else {
+            logger.info(
+                "Broadcast {} finished: {} sent, {} failed, {} expired, {} not-configured",
+                type,
+                sent,
+                failed,
+                expired,
+                notConfigured,
+            )
         }
     }
 
