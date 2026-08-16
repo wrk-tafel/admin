@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
@@ -49,7 +51,7 @@ internal class TafelJwtAuthProviderTest {
     }
 
     @Test
-    fun `authenticate successful`() {
+    fun `authenticate successful reads permissions from the DB, not the token`() {
         val username = "SUBJ"
         val tokenValue = "TOKEN"
         val perm1 = "PERM1"
@@ -60,15 +62,16 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1),
             ),
         )
-        every { userRepository.findByUsername(username) } returns UserEntity(
+        val userEntity = UserEntity(
             username = username,
             password = "pwd",
             employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
             enabled = true,
         )
+        userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = perm1))
+        every { userRepository.findByUsername(username) } returns userEntity
 
         val resultingAuthentication = provider.authenticate(authentication)
 
@@ -78,11 +81,69 @@ internal class TafelJwtAuthProviderTest {
         assertThat(resultingAuthentication.authorities.joinToString(",")).isEqualTo(perm1)
     }
 
+    /**
+     * ADMINISTRATOR grants everything, so authenticating as one is expanded into every permission -
+     * every `@PreAuthorize`, the frontend's route guards and its `tafelIfPermission` directive all
+     * read what lands on the resulting authentication.
+     */
+    @Test
+    fun `authenticate expands the administrator permission into every permission`() {
+        val username = "SUBJ"
+        val expiration = Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.MIN))
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration,
+            ),
+        )
+        val userEntity = UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+        )
+        userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.ADMINISTRATOR.key))
+        every { userRepository.findByUsername(username) } returns userEntity
+
+        val resultingAuthentication = provider.authenticate(authentication)
+
+        assertThat(resultingAuthentication.authorities.mapNotNull { it.authority })
+            .containsExactlyInAnyOrderElementsOf(UserPermissions.entries.map { it.key })
+    }
+
+    @Test
+    fun `authenticate grants no permissions while a password change is still required`() {
+        val username = "SUBJ"
+        val expiration = Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.MIN))
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration,
+            ),
+        )
+        val userEntity = UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+            passwordChangeRequired = true,
+        )
+        userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.ADMINISTRATOR.key))
+        every { userRepository.findByUsername(username) } returns userEntity
+
+        val resultingAuthentication = provider.authenticate(authentication)
+
+        assertThat(resultingAuthentication.authorities).isEmpty()
+    }
+
     @Test
     fun `authenticate with expired token fails`() {
         val username = "SUBJ"
         val tokenValue = "TOKEN"
-        val perm1 = "PERM1"
         val expiration = Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.MIN))
 
         val authentication = TafelJwtAuthentication(tokenValue = tokenValue)
@@ -90,7 +151,6 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1),
             ),
         )
 
