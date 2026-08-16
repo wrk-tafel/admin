@@ -239,7 +239,8 @@ describe('Accessibility', () => {
   // Links to the always-latest release asset rather than a version pinned to this checkout, so the
   // link keeps working after every release without a code change - see release.yml's
   // github-release job. Asserted on the link itself (not by following it) since it points at an
-  // external GitHub URL a spec shouldn't actually navigate to.
+  // external GitHub URL a spec shouldn't actually navigate to (and following it would only trigger
+  // a download - see the template comment on why there is no target="_blank").
   it('links the user guide from the user menu', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
@@ -248,8 +249,7 @@ describe('Accessibility', () => {
     cy.byTestId('usermenu-userguide')
       .should('contain.text', 'Benutzerhandbuch')
       .and('have.attr', 'href', 'https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf')
-      .and('have.attr', 'target', '_blank')
-      .and('have.attr', 'rel', 'noopener');
+      .and('not.have.attr', 'target');
   });
 
   it('lets the keyboard reach and expand a collapsible nav group', () => {
