@@ -124,7 +124,7 @@ export class ScannerComponent {
   });
 
   private async registerScanner(): Promise<ScannerRegistration | undefined> {
-    const storageKey = 'scanner-id';
+    const storageKey = 'tafel.scanner.id';
     const storageValue = localStorage.getItem(storageKey);
 
     let existingScannerId;
