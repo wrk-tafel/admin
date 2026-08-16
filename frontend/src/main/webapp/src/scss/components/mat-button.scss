@@ -2,6 +2,17 @@
   box-shadow: none !important;
 }
 
+/* A button assembled from a text-button variant (matButton="filled"/"outlined"/...) with only a
+   mat-icon and no label text is still laid out as if a label were about to follow: Material
+   reserves space for one via an asymmetric margin (-8px start / +8px end) on the icon, which
+   visibly shifts an icon-only button's content off-center. matIconButton is the component built
+   for a true icon-only affordance and doesn't have this margin, but the icon-only buttons in this
+   app need the filled/outlined coloring that only the text-button variants provide - so neutralize
+   the margin here instead, whenever there's no label text to make room for. */
+.mat-mdc-button-base > .mat-icon:has(+ .mdc-button__label:empty) {
+  margin: 0 !important;
+}
+
 /* Support legacy "btn-success" / "btn-danger" utility classes on Material buttons
    and ensure the background color applies in normal, hover, focus and active states. */
 .mat-mdc-button:not([disabled]):not(.mat-mdc-button-disabled),
