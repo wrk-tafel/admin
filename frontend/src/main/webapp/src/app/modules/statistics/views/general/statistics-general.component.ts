@@ -26,8 +26,9 @@ import {
 } from '../../components/statistics-comparison';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faSave} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
 
 const DATE_FORMAT = 'DD.MM.YYYY';
 
@@ -45,10 +46,12 @@ const DATE_FORMAT = 'DD.MM.YYYY';
     MatInputModule,
     MatSelectModule,
     StatisticsPanelComponent,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class StatisticsGeneralComponent {
+  private readonly registerIcons = registerSvgIcons({save: saveIcon});
+
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
@@ -153,8 +156,8 @@ export class StatisticsGeneralComponent {
         'beneficiaryCustomersWithChildren',
         'singleParentHouseholds'
       ]),
-      group('Notschlafstellen', ['sheltersCount', 'sheltersAverage', 'sheltersPersonsCount']),
-      group('Transport- / Logistik', ['shopsCount', 'shopItemsTotal', 'shopItemsAverage'])
+      group('Transport- / Logistik', ['shopsCount', 'shopItemsTotal', 'shopItemsAverage']),
+      group('Notschlafstellen', ['sheltersCount', 'sheltersAverage', 'sheltersPersonsCount'])
     ];
   });
 
@@ -270,7 +273,6 @@ export class StatisticsGeneralComponent {
     return `${dayjs(range.from).format(DATE_FORMAT)} - ${dayjs(range.to).format(DATE_FORMAT)}`;
   }
 
-  protected readonly faSave = faSave;
 }
 
 export interface StatisticsPanelGroup {

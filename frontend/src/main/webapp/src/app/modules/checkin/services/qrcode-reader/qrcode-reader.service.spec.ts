@@ -3,7 +3,7 @@ import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
 import { Result } from '@zxing/library';
 
 describe('QRCodeReaderService', () => {
-    const LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
+    const LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'tafel.qrcodeReader.lastCameraId';
     const testCameras = [
         { deviceId: '1', label: 'cam1' } as MediaDeviceInfo,
         { deviceId: '2', label: 'a cam2' } as MediaDeviceInfo

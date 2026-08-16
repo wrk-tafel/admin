@@ -2,7 +2,7 @@
   <mat-card-header>
     <mat-card-title>
       <div class="flex items-center gap-2">
-        <fa-icon [icon]="faEnvelope" />
+        <mat-icon svgIcon="mail" />
         <h2 class="tafel-h5 mb-0 mt-1">E-Mail Empfänger</h2>
       </div>
     </mat-card-title>
@@ -40,7 +40,7 @@
                                 [attr.aria-label]="'Weitere E-Mail Adresse hinzufügen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
                                 matTooltip="Weitere E-Mail Adresse hinzufügen"
                                 matTooltipPosition="above">
-                          <fa-icon [icon]="faPlus"></fa-icon>
+                          <mat-icon svgIcon="add"></mat-icon>
                         </button>
                       </div>
                     </div>
@@ -71,7 +71,7 @@
                                     (click)="removeAddress(i, j, k)"
                                     [attr.aria-label]="'E-Mail Adresse ' + (k + 1) + ' entfernen - ' + getRecipientTypeLabel(recipient.get('recipientType')!.value)"
                                     matTooltip="E-Mail Adresse entfernen">
-                              <fa-icon [icon]="faTrashCan"></fa-icon>
+                              <mat-icon svgIcon="delete"></mat-icon>
                             </button>
                           </div>
                         </div>

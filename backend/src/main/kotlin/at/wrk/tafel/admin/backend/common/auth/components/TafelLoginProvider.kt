@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.BadCredentialsException
@@ -17,6 +18,8 @@ class TafelLoginProvider(
     private val userDetailsService: UserDetailsService,
     private val passwordEncoder: PasswordEncoder,
     private val loginAttemptService: LoginAttemptService,
+    private val loginAuditService: LoginAuditService,
+    private val upgradePasswordHash: (username: String, upgradedHash: String) -> Unit,
 ) : AbstractUserDetailsAuthenticationProvider() {
 
     companion object {
@@ -42,6 +45,7 @@ class TafelLoginProvider(
         try {
             val result = super.authenticate(authentication)
             loginAttemptService.recordSuccess(username)
+            loginAuditService.recordLogin(result.principal as TafelUser)
             log.info("Login successful for user '{}'", sanitizeForLog(username))
             return result
         } catch (e: BadCredentialsException) {
@@ -64,8 +68,16 @@ class TafelLoginProvider(
         userDetails: UserDetails,
         authentication: UsernamePasswordAuthenticationToken,
     ) {
-        if (!passwordEncoder.matches(authentication.credentials as String, userDetails.password)) {
+        val rawPassword = authentication.credentials as String
+        if (!passwordEncoder.matches(rawPassword, userDetails.password)) {
             throw BadCredentialsException("Password wrong for user '${authentication.name}'")
+        }
+
+        // The stored hash was produced with Argon2 parameters older than the currently configured
+        // ones (see SecurityArgon2Properties) - re-encode it with the raw password we just verified
+        // so this user is migrated onto the current parameters without a forced password reset.
+        if (passwordEncoder.upgradeEncoding(userDetails.password)) {
+            upgradePasswordHash(userDetails.username, passwordEncoder.encode(rawPassword)!!)
         }
     }
 }

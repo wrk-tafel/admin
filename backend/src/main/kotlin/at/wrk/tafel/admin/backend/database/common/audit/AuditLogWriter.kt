@@ -52,6 +52,11 @@ class AuditLogWriter(
      * One change, not yet written. [changedFields] is already rendered - holding on to the live
      * entity instead would mean reading it again at commit time, by which point it may have moved on
      * or, for a delete, be gone.
+     *
+     * [actorOverride] is for the one case where the actor is known but [AuditActorProvider] cannot
+     * see it: a login, written before `SecurityContextHolder` holds anything for the request (this
+     * app is stateless, and the JWT that would populate it does not exist yet). Every other caller
+     * leaves it `null` and gets the transaction's `SecurityContext`-resolved actor, as before.
      */
     data class PendingEntry(
         val entityType: String,
@@ -59,6 +64,7 @@ class AuditLogWriter(
         val businessKey: String?,
         val operation: AuditOperation,
         val changedFields: Map<String, List<Any?>>,
+        val actorOverride: Actor? = null,
     )
 
     /**
@@ -184,10 +190,13 @@ class AuditLogWriter(
     }
 
     /**
-     * Who a batch of entries is stamped with. Carried as one value because all four are resolved
-     * together, from the same account, and are meaningless apart from each other.
+     * Who an entry is stamped with. Carried as one value because all four are resolved together,
+     * from the same account, and are meaningless apart from each other. Normally resolved once per
+     * transaction from the `SecurityContext` ([writeBufferedEntries]); a [PendingEntry] can instead
+     * supply its own via [PendingEntry.actorOverride], for the one write whose actor is known
+     * upfront but not through the `SecurityContext` - see there.
      */
-    private data class Actor(
+    data class Actor(
         val username: String?,
         val userId: Long?,
         val firstname: String?,
@@ -197,8 +206,9 @@ class AuditLogWriter(
     private fun toEntity(
         entry: PendingEntry,
         occurredAt: LocalDateTime,
-        actor: Actor,
+        defaultActor: Actor,
     ): AuditLogEntity {
+        val actor = entry.actorOverride ?: defaultActor
         val entity = AuditLogEntity(
             occurredAt = occurredAt,
             entityType = entry.entityType,

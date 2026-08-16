@@ -10,9 +10,19 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatRadioModule} from '@angular/material/radio';
 import {MatStepperModule} from '@angular/material/stepper';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
-import {faCheck, faCircleExclamation, faTriangleExclamation, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import errorIcon from '@material-symbols/svg-400/outlined/error-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import locationOnIcon from '@material-symbols/svg-400/outlined/location_on-fill.svg';
+import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
+import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
+import euroIcon from '@material-symbols/svg-400/outlined/euro-fill.svg';
+import wcIcon from '@material-symbols/svg-400/outlined/wc-fill.svg';
+import flagIcon from '@material-symbols/svg-400/outlined/flag-fill.svg';
+import apartmentIcon from '@material-symbols/svg-400/outlined/apartment-fill.svg';
 import {
   CustomerApiService,
   CustomerData,
@@ -54,7 +64,7 @@ export interface CustomerMergeCell {
 export interface CustomerMergeConflictRow {
   field: CustomerMergeField;
   label: string;
-  icon?: IconDefinition;
+  icon?: string;
   cells: CustomerMergeCell[];
 }
 
@@ -79,9 +89,23 @@ export interface CustomerMergePersonGroup {
   templateUrl: 'customer-merge.component.html',
   styleUrls: ['customer-merge.component.scss'],
   providers: [DatePipe],
-  imports: [MatCardModule, MatButtonModule, MatCheckboxModule, MatRadioModule, MatStepperModule, FaIconComponent, DatePipe]
+  imports: [MatCardModule, MatButtonModule, MatCheckboxModule, MatRadioModule, MatStepperModule, MatIcon, DatePipe]
 })
 export class CustomerMergeComponent {
+  private readonly registerIcons = registerSvgIcons({
+    check: checkIcon,
+    close: closeIcon,
+    error: errorIcon,
+    warning: warningIcon,
+    location_on: locationOnIcon,
+    call: callIcon,
+    mail: mailIcon,
+    euro: euroIcon,
+    wc: wcIcon,
+    flag: flagIcon,
+    apartment: apartmentIcon
+  });
+
   // Input signal - aliased to match the route resolver data key (see customer.routes.ts) since the
   // unaliased name below is already used for the locally-writable linkedSignal counterpart.
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -289,8 +313,4 @@ export class CustomerMergeComponent {
     this.customerApiService.mergeCustomers(targetId, sourceCustomerIds, fieldSelections).subscribe(observer);
   }
 
-  protected readonly faCheck = faCheck;
-  protected readonly faCircleExclamation = faCircleExclamation;
-  protected readonly faTriangleExclamation = faTriangleExclamation;
-  protected readonly faXmark = faXmark;
 }

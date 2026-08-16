@@ -15,8 +15,6 @@ import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CarList} from '../../../../api/car-api.service';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faRoute} from '@fortawesome/free-solid-svg-icons';
 import {
   FoodCollectionRecordingBasedataComponent
 } from '../food-collection-recording-basedata/food-collection-recording-basedata.component';
@@ -37,6 +35,8 @@ import {toSignal} from '@angular/core/rxjs-interop';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {combineTabStatus, TabStatus} from '../../services/food-collection-tab-status';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 
 // Matches the Tailwind `md` breakpoint the two item layouts have always been switched at.
 const DESKTOP_BREAKPOINT = '(min-width: 768px)';
@@ -54,7 +54,6 @@ const DESKTOP_BREAKPOINT = '(min-width: 768px)';
     MatFormFieldModule,
     MatSelectModule,
     MatIcon,
-    FaIconComponent,
     FoodCollectionRecordingBasedataComponent,
     FoodCollectionRecordingKmComponent,
     FoodCollectionRecordingItemsDesktopComponent,
@@ -62,6 +61,8 @@ const DESKTOP_BREAKPOINT = '(min-width: 768px)';
   ]
 })
 export class FoodCollectionRecordingComponent {
+  private readonly registerIcons = registerSvgIcons({route: routeIcon});
+
   routeList = model.required<RouteList>();
   carList = model.required<CarList>();
   foodCategories = model.required<FoodCategory[]>();
@@ -238,7 +239,6 @@ export class FoodCollectionRecordingComponent {
     });
   }
 
-  protected readonly faRoute = faRoute;
 }
 
 export interface SelectedRouteData {

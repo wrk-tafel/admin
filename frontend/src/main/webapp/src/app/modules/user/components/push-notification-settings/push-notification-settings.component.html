@@ -19,13 +19,13 @@
       @if (permissionBlocked()) {
         <p class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
            testid="push-permission-blocked">
-          <fa-icon [icon]="faTriangleExclamation" class="mt-0.5"></fa-icon>
+          <mat-icon svgIcon="warning" class="mt-0.5"></mat-icon>
           <span>{{ permissionBlockedHint }}</span>
         </p>
       }
 
       <div class="flex items-center gap-3">
-        <fa-icon [icon]="enabled() ? faBell : faBellSlash"></fa-icon>
+        <mat-icon [svgIcon]="enabled() ? 'notifications' : 'notifications_off'"></mat-icon>
         <mat-slide-toggle
           testid="push-notifications-toggle"
           [checked]="enabled()"
@@ -49,7 +49,7 @@
         @for (device of devices(); track device.id) {
           <div testid="push-device" [attr.data-device-id]="device.id" class="flex items-center justify-between gap-2 py-2 border-t border-gray-200">
             <div class="flex min-w-0 items-center gap-3">
-              <fa-icon testid="push-device-icon" [icon]="deviceIcon(device)" class="text-gray-500"></fa-icon>
+              <mat-icon testid="push-device-icon" [svgIcon]="deviceIcon(device)" class="text-gray-500"></mat-icon>
               <div class="min-w-0">
                 <div testid="push-device-label" class="truncate">
                   <!-- The icon is decorative, so the device type is spelled out for screen readers here. -->
@@ -75,13 +75,13 @@
                   >
                     @switch (status.state) {
                       @case ('pending') {
-                        <fa-icon [icon]="faSpinner" [animation]="'spin'"></fa-icon>
+                        <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>
                       }
                       @case ('success') {
-                        <fa-icon [icon]="faCircleCheck"></fa-icon>
+                        <mat-icon svgIcon="check_circle"></mat-icon>
                       }
                       @default {
-                        <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+                        <mat-icon svgIcon="warning"></mat-icon>
                       }
                     }
                     <span>{{ status.text }}</span>
@@ -99,7 +99,7 @@
                 [attr.aria-label]="'Test-Benachrichtigung senden'"
                 matTooltip="Test-Benachrichtigung an dieses Gerät senden"
               >
-                <fa-icon [icon]="faPaperPlane"></fa-icon>
+                <mat-icon svgIcon="send"></mat-icon>
               </button>
               <!--
                 Renaming is reversible and touches nothing but a label, so it stays a neutral
@@ -114,7 +114,7 @@
                 [attr.aria-label]="'Gerät benennen'"
                 matTooltip="Gerät umbenennen"
               >
-                <fa-icon [icon]="faPen"></fa-icon>
+                <mat-icon svgIcon="edit"></mat-icon>
               </button>
               <button
                 type="button"
@@ -125,7 +125,7 @@
                 [attr.aria-label]="'Gerät entfernen'"
                 matTooltip="Gerät entfernen - es erhält danach keine Benachrichtigungen mehr"
               >
-                <fa-icon [icon]="faTrashCan"></fa-icon>
+                <mat-icon svgIcon="delete"></mat-icon>
               </button>
             </div>
           </div>
@@ -163,7 +163,7 @@
     @if (!preferences().masterEnabled) {
       <p class="mt-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
          testid="push-master-disabled-hint">
-        <fa-icon [icon]="faBellSlash" class="mt-0.5"></fa-icon>
+        <mat-icon svgIcon="notifications_off" class="mt-0.5"></mat-icon>
         <span>
           Der Hauptschalter ist deaktiviert - die Einstellungen unten bleiben gespeichert, wirken aber
           erst wieder, sobald er aktiviert ist.

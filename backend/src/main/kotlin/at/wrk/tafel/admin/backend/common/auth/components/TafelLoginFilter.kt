@@ -52,10 +52,10 @@ class TafelLoginFilter(
     public override fun obtainPassword(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.credentials as String
 
     /**
-     * When [TafelUser.passwordChangeRequired] is true, the issued JWT is deliberately weaker: no
-     * authorities at all, and a shorter `expirationTimePwdChangeInSeconds` expiration instead of
-     * the normal one - a security gate that forces the user through the change-password flow
-     * before any real permissions are granted.
+     * When [TafelUser.passwordChangeRequired] is true, the issued JWT gets a shorter
+     * `expirationTimePwdChangeInSeconds` expiration instead of the normal one. The token itself
+     * carries no permissions - [TafelJwtAuthProvider] grants none while the flag is still set in
+     * the DB, which is what actually gates access before the change-password flow completes.
      */
     public override fun successfulAuthentication(
         request: HttpServletRequest,
@@ -72,11 +72,9 @@ class TafelLoginFilter(
                 } else {
                     applicationProperties.security.jwtToken.expirationTimeInSeconds
                 }
-            val authorities = if (user.passwordChangeRequired) emptyList() else user.authorities
 
             val token: String = jwtTokenService.generateToken(
                 username = user.username,
-                authorities = authorities,
                 expirationSeconds = expirationTimeInSeconds,
             )
 

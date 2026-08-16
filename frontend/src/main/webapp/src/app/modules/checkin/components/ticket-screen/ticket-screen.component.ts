@@ -1,9 +1,10 @@
 import {Component, computed, DestroyRef, effect, inject, input, signal, Signal} from '@angular/core';
 import {DatePipe} from '@angular/common';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faLinkSlash} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {SseService} from '../../../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 
 // Mirrors DistributionTicketScreenController.TICKET_SCREEN_TITLE (backend). The "previous ticket"
 // caption and the optional chime only make sense while an actual ticket number is on screen, not
@@ -17,9 +18,11 @@ const CHANGE_ANIMATION_DURATION_MILLIS = 700;
     selector: 'tafel-ticket-screen',
     templateUrl: 'ticket-screen.component.html',
     styleUrl: 'ticket-screen.component.scss',
-    imports: [FaIconComponent, DatePipe]
+    imports: [MatIcon, DatePipe]
 })
 export class TicketScreenComponent {
+  private readonly registerIcons = registerSvgIcons({link_off: linkOffIcon});
+
   private readonly sseService = inject(SseService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -57,8 +60,6 @@ export class TicketScreenComponent {
   private changeAnimationTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   private audioContext: AudioContext | null = null;
-
-  protected readonly faLinkSlash = faLinkSlash;
 
   constructor() {
     effect(() => {

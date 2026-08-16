@@ -6,8 +6,6 @@ import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
-import {faCheck, faEye, faEyeSlash, faXmark} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {MatDivider} from '@angular/material/list';
 import {MatIcon} from '@angular/material/icon';
@@ -15,6 +13,11 @@ import {MatProgressBar} from '@angular/material/progress-bar';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../http/suppress-error-toast.token';
 import {AuthenticationService} from '../../security/authentication.service';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
+import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 
 /**
  * Client-side mirror of the rules `WebSecurityConfig`'s Passay `DefaultPasswordValidator` enforces
@@ -43,7 +46,6 @@ interface PasswordStrength {
     FormField,
     CommonModule,
     TafelAutofocusDirective,
-    FaIconComponent,
     MatFormField,
     MatLabel,
     MatError,
@@ -55,6 +57,13 @@ interface PasswordStrength {
   ]
 })
 export class PasswordChangeFormComponent {
+  private readonly registerIcons = registerSvgIcons({
+    visibility: visibilityIcon,
+    visibility_off: visibilityOffIcon,
+    check: checkIcon,
+    close: closeIcon
+  });
+
   private readonly userApiService = inject(UserApiService);
   private readonly authenticationService = inject(AuthenticationService);
 
@@ -238,9 +247,5 @@ export class PasswordChangeFormComponent {
     this.passwordForm().reset();
   }
 
-  protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
-  protected readonly faCheck = faCheck;
-  protected readonly faXmark = faXmark;
   protected readonly visibleErrorMessages = visibleErrorMessages;
 }

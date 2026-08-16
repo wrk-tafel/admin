@@ -208,6 +208,11 @@ class HouseholdEntity(
                     cb.greaterThanOrEqualTo(validUntil, LocalDate.now()),
                 )
             }
+
+            fun lockedHousehold(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val locked: Expression<Boolean> = root["locked"]
+                cb.isTrue(locked)
+            }
         }
     }
 }

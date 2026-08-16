@@ -10,9 +10,8 @@
             </mat-option>
           }
         </mat-select>
-        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-          <fa-icon [icon]="faTruck"></fa-icon>
-        </mat-icon>
+        <mat-icon matPrefix svgIcon="local_shipping"
+                  class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
         @if (car.errors?.required && car.touched) {
           <mat-error>Pflichtfeld</mat-error>
         }
@@ -48,7 +47,7 @@
           <div testid="selectedDriverDescription">{{ selectedDriver()!.personnelNumber }} {{ selectedDriver()!.firstname }} {{ selectedDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedDriverRemoveButton" class="button-danger" aria-label="Fahrer entfernen"
                   (click)="resetDriver()">
-            <fa-icon [icon]="faRemove"></fa-icon>
+            <mat-icon svgIcon="close"></mat-icon>
           </button>
         </div>
       }
@@ -81,7 +80,7 @@
           <div testid="selectedCoDriverDescription">{{ selectedCoDriver()!.personnelNumber }} {{ selectedCoDriver()!.firstname }} {{ selectedCoDriver()!.lastname }}</div>
           <button type="button" matButton="filled" testid="selectedCoDriverRemoveButton" class="button-danger" aria-label="Beifahrer entfernen"
                   (click)="resetCoDriver()">
-            <fa-icon [icon]="faRemove"></fa-icon>
+            <mat-icon svgIcon="close"></mat-icon>
           </button>
         </div>
       }

@@ -8,6 +8,10 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -17,6 +21,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
@@ -167,6 +172,60 @@ internal class PushBroadcastServiceTest {
         service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
 
         verify(exactly = 0) { pushSubscriptionRepository.delete(any()) }
+    }
+
+    /**
+     * A failure is otherwise only visible as one `logger.warn` per subscription with nothing above
+     * it, so "the push service was down for ten minutes" and "one phone is unreachable" look the
+     * same in the logs. This summary line is what makes an outage greppable as one event.
+     */
+    @Test
+    fun `logs a warning summary line when a broadcast has failures`() {
+        val sent = subscriptionOf(id = 10, userId = 100)
+        val failed = subscriptionOf(id = 11, userId = 101)
+        val expired = subscriptionOf(id = 12, userId = 102)
+        every { pushSubscriptionRepository.findAll() } returns listOf(sent, failed, expired)
+        every { webPushSenderService.send(sent, any()) } returns PushSendResult.SENT
+        every { webPushSenderService.send(failed, any()) } returns PushSendResult.FAILED
+        every { webPushSenderService.send(expired, any()) } returns PushSendResult.EXPIRED
+
+        withLogAppender { logAppender ->
+            service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
+
+            val summary = logAppender.list.single { it.level == Level.WARN && it.formattedMessage.contains("Broadcast") }
+            assertThat(summary.formattedMessage)
+                .contains("DISTRIBUTION_STARTED")
+                .contains("1 sent")
+                .contains("1 failed")
+                .contains("1 expired")
+                .contains("0 not-configured")
+        }
+    }
+
+    @Test
+    fun `logs an info summary line when a broadcast has no failures`() {
+        val sent = subscriptionOf(id = 10, userId = 100)
+        every { pushSubscriptionRepository.findAll() } returns listOf(sent)
+        every { webPushSenderService.send(sent, any()) } returns PushSendResult.SENT
+
+        withLogAppender { logAppender ->
+            service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
+
+            assertThat(logAppender.list).noneMatch { it.level == Level.WARN }
+            val summary = logAppender.list.single { it.level == Level.INFO }
+            assertThat(summary.formattedMessage).contains("DISTRIBUTION_STARTED").contains("1 sent")
+        }
+    }
+
+    private fun withLogAppender(block: (ListAppender<ILoggingEvent>) -> Unit) {
+        val logger = LoggerFactory.getLogger(PushBroadcastService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            block(logAppender)
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 
     @Test

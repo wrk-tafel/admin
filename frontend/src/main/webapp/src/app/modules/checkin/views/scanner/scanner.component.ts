@@ -3,11 +3,15 @@ import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.se
 import {MatButtonModule} from '@angular/material/button';
 import {MatSelect, MatSelectModule} from '@angular/material/select';
 import {FormsModule} from '@angular/forms';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faBolt, faCircleCheck, faLinkSlash, faRotate} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 
 import {ScannerApiService, ScannerRegistration} from '../../../../api/scanner-api.service';
 import {firstValueFrom} from 'rxjs';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import boltIcon from '@material-symbols/svg-400/outlined/bolt-fill.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle-fill.svg';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
+import refreshIcon from '@material-symbols/svg-400/outlined/refresh-fill.svg';
 
 // How long a scan's full-screen confirmation stays up before the video preview takes back over.
 const SCAN_FEEDBACK_DURATION_MS = 2000;
@@ -29,10 +33,17 @@ const RESCAN_COOLDOWN_MS = 3000;
     MatSelect,
     MatSelectModule,
     FormsModule,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class ScannerComponent {
+  private readonly registerIcons = registerSvgIcons({
+    bolt: boltIcon,
+    check_circle: checkCircleIcon,
+    link_off: linkOffIcon,
+    refresh: refreshIcon
+  });
+
   private readonly qrCodeReaderService = inject(QRCodeReaderService);
   private readonly scannerApiService = inject(ScannerApiService);
   private readonly destroyRef = inject(DestroyRef);
@@ -124,7 +135,7 @@ export class ScannerComponent {
   });
 
   private async registerScanner(): Promise<ScannerRegistration | undefined> {
-    const storageKey = 'scanner-id';
+    const storageKey = 'tafel.scanner.id';
     const storageValue = localStorage.getItem(storageKey);
 
     let existingScannerId;
@@ -277,11 +288,6 @@ export class ScannerComponent {
   set selectedCamera(camera: MediaDeviceInfo) {
     this.currentCamera.set(camera);
   }
-
-  protected readonly faBolt = faBolt;
-  protected readonly faLinkSlash = faLinkSlash;
-  protected readonly faCircleCheck = faCircleCheck;
-  protected readonly faRotate = faRotate;
 
 }
 

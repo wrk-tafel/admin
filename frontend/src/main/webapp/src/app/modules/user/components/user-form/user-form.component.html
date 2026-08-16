@@ -38,11 +38,16 @@
               <div testid="selectedEmployeeDescription">{{selectedEmployee()!.personnelNumber}} {{selectedEmployee()!.firstname}} {{selectedEmployee()!.lastname}}</div>
               <button type="button" matButton="filled" class="button-danger" testid="selectedEmployeeRemoveButton"
                       aria-label="Mitarbeiter-Verknüpfung entfernen" (click)="resetSelectedEmployee()">
-                <fa-icon [icon]="faRemove"></fa-icon>
+                <mat-icon svgIcon="close"></mat-icon>
               </button>
             </div>
           }
         </div>
+      </div>
+      <div class="flex items-center gap-1 mt-2">
+        <span class="tafel-h6 font-semibold">Name des Mitarbeiters</span>
+        <tafel-info-tooltip testId="employee-name-info-tooltip"
+                            text="Wird aus dem über die Personalnummer-Suche verknüpften Mitarbeiter übernommen und kann hier korrigiert werden - die Änderung wirkt sich auf den Mitarbeiter-Datensatz aus."></tafel-info-tooltip>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
         <mat-form-field>
@@ -75,7 +80,7 @@
                 [attr.aria-expanded]="passwordResetExpanded()" aria-controls="password-reset-panel"
                 (click)="togglePasswordResetSection()">
           <span class="tafel-h5">Passwort zurücksetzen</span>
-          <fa-icon [icon]="passwordResetExpanded() ? faChevronUp : faChevronDown"></fa-icon>
+          <mat-icon [svgIcon]="passwordResetExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"></mat-icon>
         </button>
         @if (!passwordResetExpanded()) {
           <div class="text-sm text-gray-500 -mt-1">Leer lassen, um das bestehende Passwort beizubehalten.</div>
@@ -101,9 +106,7 @@
                     (click)="togglePasswordVisibility()" testid="passwordVisibilityToggle"
                     [attr.aria-label]="passwordTextVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
                     [attr.aria-pressed]="passwordTextVisible()">
-              <mat-icon class="!flex !items-center !justify-center !leading-none !p-3 box-content">
-                <fa-icon [icon]="passwordTextVisible() ? faEye : faEyeSlash"></fa-icon>
-              </mat-icon>
+              <mat-icon [svgIcon]="passwordTextVisible() ? 'visibility' : 'visibility_off'" class="!flex !items-center !justify-center !leading-none !p-3 box-content"></mat-icon>
             </button>
             @for (errorMessage of visibleErrorMessages(userForm.password()); track errorMessage) {
               <mat-error>{{errorMessage}}</mat-error>
@@ -119,9 +122,7 @@
                     (click)="togglePasswordRepeatVisibility()" testid="passwordRepeatVisibilityToggle"
                     [attr.aria-label]="passwordRepeatTextVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
                     [attr.aria-pressed]="passwordRepeatTextVisible()">
-              <mat-icon class="!flex !items-center !justify-center !leading-none !p-3 box-content">
-                <fa-icon [icon]="passwordRepeatTextVisible() ? faEye : faEyeSlash"></fa-icon>
-              </mat-icon>
+              <mat-icon [svgIcon]="passwordRepeatTextVisible() ? 'visibility' : 'visibility_off'" class="!flex !items-center !justify-center !leading-none !p-3 box-content"></mat-icon>
             </button>
             @for (errorMessage of visibleErrorMessages(userForm.passwordRepeat()); track errorMessage) {
               <mat-error>{{errorMessage}}</mat-error>
@@ -134,7 +135,7 @@
           </button>
           @if (userForm.password().value()) {
             <button type="button" testid="copy-password-button" matButton="outlined" (click)="copyPassword()">
-              <fa-icon [icon]="faCopy" class="me-2"></fa-icon>In Zwischenablage kopieren
+              <mat-icon svgIcon="content_copy" class="me-2"></mat-icon>In Zwischenablage kopieren
             </button>
           }
         </div>

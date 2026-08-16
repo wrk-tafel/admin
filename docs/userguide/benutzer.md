@@ -42,6 +42,8 @@ Beim Anlegen bzw. Bearbeiten werden Benutzername, Personalnummer, Nachname und V
 
 Die Personalnummer wird nicht mehr frei eingetippt, sondern über die Mitarbeiter-Suche (Lupe neben dem Feld) mit einem echten Mitarbeiter verknüpft: liefert die Suche genau einen Treffer, wird dieser automatisch übernommen; bei mehreren Treffern erscheint eine Auswahl; findet sich keiner, kann direkt ein neuer Mitarbeiter angelegt werden. Der verknüpfte Mitarbeiter wird danach als Karte mit einem Entfernen-Button angezeigt; ohne verknüpften Mitarbeiter lässt sich das Formular nicht speichern.
 
+Nachname und Vorname werden dabei automatisch aus dem verknüpften Mitarbeiter übernommen (das Info-Symbol (ⓘ) neben "Name des Mitarbeiters" weist darauf hin) und lassen sich dort weiterhin korrigieren – die Änderung wirkt sich dann auch auf den Mitarbeiter-Datensatz aus. Wird die Verknüpfung entfernt, werden beide Felder wieder geleert.
+
 ![Benutzer bearbeiten](images/benutzer-bearbeiten.jpg)
 
 Beim Anlegen eines neuen Benutzers sind Passwort und Passwort-Wiederholung Pflichtfelder. Über **Passwort generieren** wird automatisch ein sicheres Passwort erzeugt, direkt lesbar angezeigt (nicht als Punkte) und in die Zwischenablage kopierbar (Button neben "Passwort generieren") – gedacht, um es unmittelbar an die neue Kollegin/den neuen Kollegen weiterzugeben. Dabei wird automatisch "Passwort-Änderung beim nächsten Login erforderlich" aktiviert, da ein weitergegebenes Passwort sinnvollerweise beim ersten Login ersetzt wird. Über das Augen-Symbol lässt sich ein eingegebenes Passwort ein-/ausblenden; werden Passwort und Passwort-Wiederholung befüllt, müssen beide übereinstimmen. Die geltenden Passwortregeln (Länge, verbotene Wörter etc.) werden direkt neben den Passwortfeldern angezeigt, nicht erst als Fehlermeldung nach dem Speichern.
@@ -75,7 +77,7 @@ Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewäh
 
 ## Anmelde-Versuche
 
-Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt; ab wie vielen Fehlversuchen und für wie lange, steht im Einleitungstext über der Liste, und die Fehlversuche werden gegen diese Grenze gezählt ("3 von 10").
+Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt; ab wie vielen Fehlversuchen und für wie lange, steht im Einleitungstext über der Liste, und die Fehlversuche werden gegen diese Grenze gezählt ("3 von 10"). *Erfolgreiche* Logins stehen nicht hier, sondern im [Änderungsprotokoll](aenderungsprotokoll.md).
 
 Gesperrte Konten stehen immer an erster Stelle der Liste. Bei ihnen zeigt der Status nicht nur, bis wann die Sperre gilt, sondern auch, wie lange sie noch dauert ("Gesperrt bis 14:32 - noch 12 Min.") – damit ist entscheidbar, ob das Ablaufen abgewartet oder die Sperre aufgehoben wird. Über das Suchfeld kann nach einem Benutzernamen gesucht werden, mit dem Filter **Nur gesperrte** wird die Liste auf die aktuell gesperrten Konten eingeschränkt. Der Button neben der Überschrift lädt die Liste neu, daneben steht der Zeitpunkt des letzten Ladens ("Stand 14:20:05") – nützlich, während jemand gerade weitere Anmeldeversuche macht.
 

@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 .dialog-header-warning,
 .dialog-header-info,
 .dialog-header-danger,
@@ -7,7 +9,9 @@
 
 .dialog-header-warning {
   background-color: var(--tafel-severity-warning);
-  --mat-dialog-subhead-color: var(--tafel-severity-on-warning);
+  @include mat.dialog-overrides((
+    subhead-color: var(--tafel-severity-on-warning),
+  ));
 }
 
 .dialog-header-info {
@@ -24,16 +28,18 @@
 
 // Tighter corners/padding and a larger content font than Material's M3 defaults, plus white
 // title text for tafel-dialog's colored severity header (dialog-header-* above) - every one of
-// these has a matching Material theming custom property, so set those instead of fighting the
-// cascade with raw !important overrides.
+// these has a matching Material theming token, so set those instead of fighting the cascade with
+// raw !important overrides.
 :root {
-  --mat-dialog-container-shape: 8px;
-  --mat-dialog-headline-padding: 0 0 0 0.3rem;
-  --mat-dialog-subhead-color: white;
-  // tafel-dialog always renders <mat-dialog-actions>, which makes Material apply the
-  // "with-actions" content padding instead of the plain one - set both so this stays correct
-  // even if a dialog without actions is ever added.
-  --mat-dialog-content-padding: 1rem;
-  --mat-dialog-with-actions-content-padding: 1rem;
-  --mat-dialog-supporting-text-size: 1rem;
+  @include mat.dialog-overrides((
+    container-shape: 8px,
+    headline-padding: 0 0 0 0.3rem,
+    subhead-color: white,
+    // tafel-dialog always renders <mat-dialog-actions>, which makes Material apply the
+    // "with-actions" content padding instead of the plain one - set both so this stays correct
+    // even if a dialog without actions is ever added.
+    content-padding: 1rem,
+    with-actions-content-padding: 1rem,
+    supporting-text-size: 1rem,
+  ));
 }

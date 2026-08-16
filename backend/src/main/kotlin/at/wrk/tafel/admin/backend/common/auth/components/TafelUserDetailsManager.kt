@@ -160,6 +160,19 @@ class TafelUserDetailsManager(
         }
     }
 
+    /**
+     * Re-persists [username]'s password hash as [upgradedHash], with no re-validation of the
+     * password itself - [TafelLoginProvider] calls this right after a successful login whose
+     * stored hash was produced with older Argon2 parameters than [PasswordEncoder] is currently
+     * configured with, so an existing user migrates onto the current parameters on their next
+     * login rather than needing a bulk rehash or a forced password reset.
+     */
+    fun upgradePasswordHash(username: String, upgradedHash: String) {
+        val userEntity = userRepository.findByUsername(username) ?: return
+        userEntity.password = upgradedHash
+        userRepository.save(userEntity)
+    }
+
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser = TafelUser(

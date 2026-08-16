@@ -1160,7 +1160,10 @@ WITH shapes (idx, entity_type, entity_id, business_key, operation, changed_field
            (10, 'StaticValue', 1, 'INCOME_LIMIT', 'UPDATE',
             '{"amount": ["1200.00", "1250.00"]}'),
            (11, 'MailRecipient', 1, 'DAILY_REPORT', 'UPDATE',
-            '{"address": ["alt@wrk.at", "neu@wrk.at"]}')
+            '{"address": ["alt@wrk.at", "neu@wrk.at"]}'),
+           -- A login carries no field diff (see LoginAuditService) - null rather than '{}', exactly
+           -- what a real one is stored as.
+           (12, 'UserLogin', 200, 'testuser', 'LOGIN', NULL)
 )
 INSERT INTO audit_log (id, occurred_at, actor_user_id, actor_username, actor_firstname,
                        actor_lastname, entity_type, entity_id,
@@ -1177,7 +1180,7 @@ SELECT n,
        shapes.operation,
        shapes.changed_fields::jsonb
 FROM generate_series(1, 100) AS n
-         JOIN shapes ON shapes.idx = n % 12;
+         JOIN shapes ON shapes.idx = n % 13;
 
 
 -- A single customer with a full history, so the "Verlauf" tab on the customer detail screen shows

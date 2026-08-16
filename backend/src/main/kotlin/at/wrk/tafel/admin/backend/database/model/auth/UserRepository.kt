@@ -2,14 +2,28 @@ package at.wrk.tafel.admin.backend.database.model.auth
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.LocalDateTime
 
 interface UserRepository :
     JpaRepository<UserEntity, Long>,
     JpaSpecificationExecutor<UserEntity> {
 
     fun findByUsername(username: String): UserEntity?
+
+    /**
+     * Deliberately a bulk update rather than loading the entity and saving it back: every login
+     * would otherwise bump `updated_at` (misplacing the account in the user search's "most recently
+     * updated" ordering, see [UserEntity.Specs.orderBySearchRelevance]) and produce an audit_log
+     * entry for a field nobody needs a history of - see [at.wrk.tafel.admin.backend.database.common.audit.AuditScope]
+     * on why `login_attempts` is excluded for the same reason. A bulk `@Modifying` query never
+     * reaches a Hibernate event, so it naturally sidesteps both.
+     */
+    @Modifying
+    @Query("update User u set u.lastLogin = :lastLogin where u.username = :username")
+    fun updateLastLogin(@Param("username") username: String, @Param("lastLogin") lastLogin: LocalDateTime)
 
     fun findByEmployeePersonnelNumber(personnelNumber: String): UserEntity?
 

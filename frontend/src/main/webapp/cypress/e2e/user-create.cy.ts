@@ -66,8 +66,6 @@ describe('User Create', () => {
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
       linkEmployee('test-personnelNumber-' + userRandomId);
-      cy.byTestId('lastnameInput').type('test-lastname');
-      cy.byTestId('firstnameInput').type('test-firstname');
 
       // "tafel" is one of the words the backend's password validator rejects outright (and it is
       // below the minimum length too) - the rejection has to come back as a 400 carrying its
@@ -128,8 +126,6 @@ describe('User Create', () => {
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
       linkEmployee('test-personnelNumber-' + userRandomId);
-      cy.byTestId('lastnameInput').type('test-lastname');
-      cy.byTestId('firstnameInput').type('test-firstname');
 
       // leaving the password fields empty blocks saving and shows the validation message
       cy.byTestId('passwordInput').click();
@@ -143,6 +139,23 @@ describe('User Create', () => {
       cy.byTestId('save-button').should('be.enabled').click();
 
       cy.url().should('contain', '/benutzer/detail');
+    });
+  });
+
+  it('lastname/firstname are filled in from the linked employee and cleared when the link is removed', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      cy.byTestId('usernameInput').type('test-username-' + userRandomId);
+      linkEmployee('test-personnelNumber-' + userRandomId);
+
+      cy.byTestId('lastnameInput').should('have.value', 'employee-lastname');
+      cy.byTestId('firstnameInput').should('have.value', 'employee-firstname');
+
+      cy.byTestId('selectedEmployeeRemoveButton').click();
+
+      cy.byTestId('lastnameInput').should('have.value', '');
+      cy.byTestId('firstnameInput').should('have.value', '');
     });
   });
 
@@ -218,8 +231,6 @@ describe('User Create', () => {
   function fillUserForm(username: string, personnelNumber: string) {
     cy.byTestId('usernameInput').type(username);
     linkEmployee(personnelNumber);
-    cy.byTestId('lastnameInput').type('test-lastname');
-    cy.byTestId('firstnameInput').type('test-firstname');
     cy.byTestId('generate-password-button').click();
   }
 

@@ -14,7 +14,7 @@
 
     @if (customerDuplicatesData()?.items?.length === 0) {
       <div class="flex flex-col items-center gap-3 py-10 text-center" testid="no-duplicates-message">
-        <fa-icon [icon]="faCircleCheck" class="text-5xl text-green-600"></fa-icon>
+        <mat-icon svgIcon="check_circle" class="!w-12 !h-12 text-green-600"></mat-icon>
         <h2 class="tafel-h4 font-bold">Keine Duplikate gefunden!</h2>
         <p>Alle möglichen Duplikate wurden bereits geprüft.</p>
       </div>
@@ -46,7 +46,7 @@
                       <div class="flex flex-wrap items-center gap-2">
                         <button matButton="filled" class="button-success" [attr.testid]="'duplicate-merge-button-' + candidate.id"
                                 (click)="startMerge(candidate)" aria-label="Diesen Kunden mit den anderen zusammenführen">
-                          <fa-icon [icon]="faCheck" class="me-1"></fa-icon>Zusammenführen
+                          <mat-icon svgIcon="check" class="me-1"></mat-icon>Zusammenführen
                         </button>
                         <button matButton="outlined" [attr.testid]="'duplicate-detail-button-' + candidate.id"
                                 (click)="showCustomerDetail(candidate.id!)">Details</button>

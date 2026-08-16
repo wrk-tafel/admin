@@ -9,7 +9,7 @@
           </span>
         </div>
         <button matButton="filled" class="button-success" testid="addShopButton" (click)="addShop()">
-          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          <mat-icon svgIcon="add" class="me-2"></mat-icon>
           Filiale anlegen
         </button>
       </div>
@@ -25,13 +25,13 @@
     <div class="mb-2 flex flex-wrap items-center gap-3">
       <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
         <mat-label>Filiale suchen</mat-label>
-        <fa-icon matPrefix [icon]="faMagnifyingGlass" class="ms-3 me-2 text-slate-400"></fa-icon>
+        <mat-icon svgIcon="search" matPrefix class="ms-3 me-2 text-slate-400"></mat-icon>
         <input matInput [formControl]="searchControl" testid="shops-search-input"
                placeholder="Nummer, Name, Adresse oder Ansprechperson"/>
         @if (searchControl.value) {
           <button matIconButton matSuffix type="button" aria-label="Suche zurücksetzen"
                   testid="shops-search-clear-button" (click)="clearSearch()">
-            <fa-icon [icon]="faXmark"></fa-icon>
+            <mat-icon svgIcon="close"></mat-icon>
           </button>
         }
       </mat-form-field>
@@ -64,7 +64,7 @@
               <span class="font-medium">{{ view.shop.name }}</span>
               <span class="text-sm text-slate-500">{{ view.address }}</span>
               <span [class]="view.foodUnitClass">{{ view.foodUnitLabel }}</span>
-              <fa-icon class="ms-auto text-slate-500" [icon]="isExpanded(view.shop.id) ? faChevronUp : faChevronDown"></fa-icon>
+              <mat-icon [svgIcon]="isExpanded(view.shop.id) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="ms-auto text-slate-500"></mat-icon>
             </button>
             <!-- both actions stay reachable without expanding the shop first -->
             <tafel-enabled-toggle [enabled]="view.shop.enabled" [label]="'Filiale ' + view.shop.name"
@@ -73,7 +73,7 @@
             <button matButton="filled" [attr.testid]="'editShopButton-' + i"
                     [disabled]="!view.shop.enabled" [attr.aria-label]="'Filiale ' + view.shop.name + ' bearbeiten'"
                     (click)="editShop(view.shop)">
-              <fa-icon [icon]="faPencil"></fa-icon>
+              <mat-icon svgIcon="edit"></mat-icon>
             </button>
           </div>
 
@@ -88,7 +88,7 @@
                 <a class="text-blue-700 underline" [href]="view.mapUrl" target="_blank" rel="noopener"
                    [attr.aria-label]="'Adresse von ' + view.shop.name + ' in Karte öffnen (in neuem Tab)'"
                    [attr.testid]="'shops-map-link-' + i">
-                  <fa-icon [icon]="faLocationDot" class="me-1"></fa-icon>Karte
+                  <mat-icon svgIcon="location_on" class="me-1"></mat-icon>Karte
                 </a>
               </dd>
             </div>
@@ -139,7 +139,7 @@
 
           @if (view.shop.note) {
             <div class="mt-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-              <fa-icon [icon]="faNoteSticky" class="mt-0.5"></fa-icon>
+              <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
               <span class="whitespace-pre-line">{{ view.shop.note }}</span>
             </div>
           }
@@ -154,7 +154,7 @@
       } @empty {
         @if (loaded()) {
           <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="shops-empty">
-            <fa-icon [icon]="faShop" size="2x"></fa-icon>
+            <mat-icon svgIcon="storefront" class="!w-8 !h-8"></mat-icon>
             @if (filtered()) {
               <span>{{ emptyMessage() }}</span>
             } @else {

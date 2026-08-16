@@ -71,7 +71,7 @@
                target="_blank" rel="noopener" matButton="filled" class="shrink-0 !inline-flex !items-center !justify-center"
                (click)="$event.stopPropagation()"
                [attr.aria-label]="'Vorschau von ' + file.displayName + ' öffnen (in neuem Tab)'">
-              <fa-icon [icon]="faEye" class="block"></fa-icon>
+              <mat-icon svgIcon="visibility" class="block"></mat-icon>
             </a>
             <label [for]="'scannerFile-' + file.fileName" class="min-w-0">
               <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>

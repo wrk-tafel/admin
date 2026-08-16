@@ -17,9 +17,16 @@ import {MatInputModule} from '@angular/material/input';
 import {MatDivider} from '@angular/material/list';
 import {MatDialog} from '@angular/material/dialog';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faCheck, faChevronLeft, faChevronRight, faEuroSign, faLink, faLinkSlash, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left-fill.svg';
+import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right-fill.svg';
+import euroIcon from '@material-symbols/svg-400/outlined/euro-fill.svg';
+import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {CustomerApiService} from '../../../../api/customer-api.service';
 import {HttpErrorResponse} from '@angular/common/http';
@@ -49,10 +56,20 @@ type MonitorMode = 'startTime' | 'current';
     CurrencyPipe,
     MatButtonToggleModule,
     MatTooltipModule,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class TicketScreenControlComponent {
+  private readonly registerIcons = registerSvgIcons({
+    check: checkIcon,
+    chevron_left: chevronLeftIcon,
+    chevron_right: chevronRightIcon,
+    euro: euroIcon,
+    link: linkIcon,
+    link_off: linkOffIcon,
+    close: closeIcon
+  });
+
   private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);
   private readonly urlHelperService = inject(UrlHelperService);
   private readonly toastr = inject(TafelToastrService);
@@ -99,13 +116,6 @@ export class TicketScreenControlComponent {
   /** The live-preview miniature's own SSE connection state, for its "Monitor verbunden/getrennt" badge. */
   readonly previewConnected = computed(() => this.ticketScreenPreview()?.connected() ?? true);
 
-  protected readonly faCheck = faCheck;
-  protected readonly faChevronLeft = faChevronLeft;
-  protected readonly faChevronRight = faChevronRight;
-  protected readonly faEuroSign = faEuroSign;
-  protected readonly faXmark = faXmark;
-  protected readonly faLink = faLink;
-  protected readonly faLinkSlash = faLinkSlash;
 
   constructor() {
     // Populate the current-ticket card and cost-contribution panel for whichever ticket is already

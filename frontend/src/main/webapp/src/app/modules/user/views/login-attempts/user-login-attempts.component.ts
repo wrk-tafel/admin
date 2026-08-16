@@ -21,15 +21,18 @@ import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {LoginAttemptItem, LoginAttemptSettingsResponse, UserApiService} from '../../../../api/user-api.service';
 import {PagedResponse, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {faArrowsRotate, faLockOpen, faUserShield} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {ResetLoginAttemptDialogComponent} from './dialogs/reset-login-attempt-dialog.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import syncIcon from '@material-symbols/svg-400/outlined/sync-fill.svg';
+import lockOpenIcon from '@material-symbols/svg-400/outlined/lock_open-fill.svg';
+import shieldPersonIcon from '@material-symbols/svg-400/outlined/shield_person-fill.svg';
 
 /** Long enough not to search on every keystroke of a username, short enough to feel immediate. */
 const SEARCH_DEBOUNCE_MS = 400;
@@ -87,13 +90,15 @@ export interface LoginAttemptRow extends LoginAttemptItem {
     MatInputModule,
     ReactiveFormsModule,
     DatePipe,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     MatTooltipModule,
     RouterLink
   ]
 })
 export class UserLoginAttemptsComponent {
+  private readonly registerIcons = registerSvgIcons({sync: syncIcon, lock_open: lockOpenIcon, shield_person: shieldPersonIcon});
+
   private readonly userApiService = inject(UserApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
@@ -249,8 +254,5 @@ export class UserLoginAttemptsComponent {
     return new Date(timestamp).toDateString() === new Date(now).toDateString();
   }
 
-  protected readonly faArrowsRotate = faArrowsRotate;
-  protected readonly faLockOpen = faLockOpen;
-  protected readonly faUserShield = faUserShield;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

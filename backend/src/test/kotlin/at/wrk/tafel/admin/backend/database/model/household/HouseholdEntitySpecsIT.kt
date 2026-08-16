@@ -234,6 +234,26 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `lockedHousehold matches only locked households`() {
+        val tag = "Findme${generateRandomLong()}"
+        val lockedHousehold = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { locked = true },
+        )
+        val unlockedHousehold = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { locked = false },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.lockedHousehold().and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id }).contains(lockedHousehold.id).doesNotContain(unlockedHousehold.id)
+    }
+
+    @Test
     fun `orderBySearchRelevance sorts the verbatim match before the merely similar one`() {
         val tag = distinctiveNumber()
         val fuzzyHit = persistHousehold(customizeMainPerson = { lastname = "Findmr$tag" })

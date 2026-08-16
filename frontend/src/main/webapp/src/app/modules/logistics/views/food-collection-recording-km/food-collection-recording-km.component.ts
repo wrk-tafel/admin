@@ -4,12 +4,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {faGauge} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FoodCollectionSaveKmRequest, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {Observable} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import speedIcon from '@material-symbols/svg-400/outlined/speed-fill.svg';
 
 /**
  * The mileage is read off the car when it is back from the route, long after the route's base data
@@ -27,11 +27,12 @@ import {TabStatus} from '../../services/food-collection-tab-status';
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIcon,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class FoodCollectionRecordingKmComponent {
+  private readonly registerIcons = registerSvgIcons({speed: speedIcon});
+
   static readonly KM_DIFFERENCE_WARNING_THRESHOLD = 350;
 
   selectedRouteData = input<SelectedRouteData>();
@@ -172,6 +173,4 @@ export class FoodCollectionRecordingKmComponent {
   get kmEnd() {
     return this.form.get('kmEnd')!;
   }
-
-  protected readonly faGauge = faGauge;
 }

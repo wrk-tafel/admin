@@ -9,11 +9,14 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatButton} from '@angular/material/button';
 import {MatTooltip} from '@angular/material/tooltip';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faPlus, faTrashCan, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {RouteData, RouteStopData} from '../../../../../api/route-api.service';
 import {ShopItem} from '../../../../../api/shop-api.service';
+import {registerSvgIcons} from '../../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
 
 export interface RouteEditDialogData {
   route?: RouteData;
@@ -62,10 +65,12 @@ function timeToMinutes(time: string): number {
     MatSlideToggleModule,
     MatButton,
     MatTooltip,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class RouteEditDialogComponent {
+  private readonly registerIcons = registerSvgIcons({add: addIcon, delete: deleteIcon, warning: warningIcon});
+
   readonly dialogRef = inject(MatDialogRef<RouteEditDialogComponent>);
   readonly data: RouteEditDialogData = inject(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
@@ -199,7 +204,4 @@ export class RouteEditDialogComponent {
     this.dialogRef.close();
   }
 
-  protected readonly faPlus = faPlus;
-  protected readonly faTrashCan = faTrashCan;
-  protected readonly faTriangleExclamation = faTriangleExclamation;
 }

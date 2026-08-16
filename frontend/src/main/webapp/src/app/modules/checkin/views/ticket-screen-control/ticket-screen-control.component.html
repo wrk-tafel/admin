@@ -22,14 +22,14 @@
                       [disabled]="isShowingPreviousTicket() || currentDistribution() === null || (currentTicket()?.processedTicketsCount ?? 0) === 0"
                       (click)="showPreviousTicket()"
                       matTooltip="Ticket zurück" aria-label="Ticket zurück">
-                <fa-icon [icon]="faChevronLeft"></fa-icon>
+                <mat-icon svgIcon="chevron_left"></mat-icon>
               </button>
               <div class="text-sm uppercase tracking-wide text-gray-500">Aktuelles Ticket</div>
               <button type="button" matIconButton testid="show-forwardticket-button"
                       [disabled]="isShowingNextTicket() || currentDistribution() === null || stepsBack() === 0"
                       (click)="showNextTicketAgain()"
                       matTooltip="Ticket vor" aria-label="Ticket vor">
-                <fa-icon [icon]="faChevronRight"></fa-icon>
+                <mat-icon svgIcon="chevron_right"></mat-icon>
               </button>
             </div>
             <div class="text-7xl sm:text-8xl font-bold leading-none" testid="current-ticket-number">{{ currentTicket()?.ticketNumber ?? '-' }}</div>
@@ -55,13 +55,13 @@
         <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 sm:gap-10">
           <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success !text-lg !py-3 !px-8"
                   (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() === null">
-            <fa-icon [icon]="faCheck"></fa-icon>
-            <fa-icon [icon]="faEuroSign"></fa-icon>
+            <mat-icon svgIcon="check"></mat-icon>
+            <mat-icon svgIcon="euro"></mat-icon>
             Weiter (bezahlt)
           </button>
           <button testid="costcontribution-paid-no-button" matButton="outlined" class="button-danger !text-lg !py-3 !px-8"
                   (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() === null">
-            <fa-icon [icon]="faXmark"></fa-icon>
+            <mat-icon svgIcon="close"></mat-icon>
             Weiter (nicht bezahlt)
           </button>
         </div>
@@ -121,7 +121,7 @@
             <tafel-ticket-screen></tafel-ticket-screen>
             <span class="badge absolute top-2 right-2" role="status" testid="preview-connection-state"
                   [class.badge-success]="previewConnected()" [class.badge-danger]="!previewConnected()">
-              <fa-icon [icon]="previewConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
+              <mat-icon [svgIcon]="previewConnected() ? 'link' : 'link_off'" class="!w-3.5 !h-3.5 align-text-bottom" aria-hidden="true"></mat-icon>
               Monitor<span class="sr-only"> {{ previewConnected() ? 'verbunden' : 'getrennt' }}</span>
             </span>
           </div>

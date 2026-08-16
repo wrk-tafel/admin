@@ -86,13 +86,13 @@ class TafelLoginFilterTest {
         val relativeBaseUrl = "/test-base/"
 
         every { authResult.principal } returns testUser
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns token
+        every { jwtTokenService.generateToken(any(), any()) } returns token
         every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationTime
         every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, testUser.authorities, expirationTime) }
+        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, expirationTime) }
 
         verify {
             jsonMapper.writeValueAsString(
@@ -122,13 +122,13 @@ class TafelLoginFilterTest {
         val relativeBaseUrl = "/test-base/"
 
         every { authResult.principal } returns testUser.copy(passwordChangeRequired = true)
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns token
+        every { jwtTokenService.generateToken(any(), any()) } returns token
         every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
         every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), expirationTime) }
+        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, expirationTime) }
         verify {
             jsonMapper.writeValueAsString(
                 withArg<LoginResponse> { response ->

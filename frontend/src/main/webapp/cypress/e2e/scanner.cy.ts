@@ -5,7 +5,7 @@ describe('Scanner', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.clearLocalStorage('scanner-id');
+    cy.clearLocalStorage('tafel.scanner.id');
   });
 
   it('pairing phase shows the scanner number huge, then hands over to the scanning phase once the camera is ready', () => {

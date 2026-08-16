@@ -8,7 +8,7 @@
                     [attr.testid]="'recorded-route-chip-' + i"
                     [attr.aria-label]="route.name + (route.recorded ? ' erfasst' : ' ausstehend')">
             @if (route.recorded) {
-              <fa-icon [icon]="faCheck" aria-hidden="true" class="mr-1"></fa-icon>
+              <mat-icon svgIcon="check" aria-hidden="true" class="!w-4 !h-4 mr-1"></mat-icon>
             }
             {{ route.name }}
           </mat-chip>

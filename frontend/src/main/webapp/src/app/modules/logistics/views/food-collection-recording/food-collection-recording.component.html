@@ -20,9 +20,8 @@
               <mat-option [value]="route" [attr.testid]="'routeInput-option-' + route.id">{{ route.name }}</mat-option>
             }
           </mat-select>
-          <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-            <fa-icon [icon]="faRoute"></fa-icon>
-          </mat-icon>
+          <mat-icon matPrefix svgIcon="route"
+                    class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
         </mat-form-field>
       </div>
     </div>

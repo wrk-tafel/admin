@@ -13,8 +13,14 @@ import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/bu
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {faChevronLeft, faChevronRight, faFileCsv, faRotate, faSearch, faUserPlus} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left-fill.svg';
+import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right-fill.svg';
+import csvIcon from '@material-symbols/svg-400/outlined/csv-fill.svg';
+import refreshIcon from '@material-symbols/svg-400/outlined/refresh-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
+import personAddIcon from '@material-symbols/svg-400/outlined/person_add-fill.svg';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 
@@ -43,12 +49,21 @@ export interface OverviewRow {
     MatButtonToggleModule,
     FormsModule,
     CommonModule,
-    FaIconComponent,
+    MatIcon,
     FormatCustomerAddressPipe,
     MatTooltipModule
   ]
 })
 export class CustomerOverviewComponent {
+  private readonly registerIcons = registerSvgIcons({
+    chevron_left: chevronLeftIcon,
+    chevron_right: chevronRightIcon,
+    csv: csvIcon,
+    refresh: refreshIcon,
+    search: searchIcon,
+    person_add: personAddIcon
+  });
+
   // Input signals - aliased to match the route resolver data keys (see customer.routes.ts) since the
   // unaliased names below are already used for the locally-writable linkedSignal counterparts
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -178,10 +193,4 @@ export class CustomerOverviewComponent {
 
   displayedColumns = ['type', 'id', 'name', 'address', 'persons', 'validity', 'date', 'actions'];
 
-  protected readonly faUserPlus = faUserPlus;
-  protected readonly faRotate = faRotate;
-  protected readonly faSearch = faSearch;
-  protected readonly faFileCsv = faFileCsv;
-  protected readonly faChevronLeft = faChevronLeft;
-  protected readonly faChevronRight = faChevronRight;
 }

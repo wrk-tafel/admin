@@ -8,8 +8,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faPlus, faRemove} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -28,6 +27,9 @@ import {
 } from '../../services/food-collection-return-items';
 import {Observable} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-desktop',
@@ -39,12 +41,14 @@ import {TabStatus} from '../../services/food-collection-tab-status';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    FaIconComponent,
+    MatIcon,
     NgClass,
     MatTooltipModule
   ]
 })
 export class FoodCollectionRecordingItemsDesktopComponent {
+  private readonly registerIcons = registerSvgIcons({add: addIcon, close: closeIcon});
+
   foodCategories = model.required<FoodCategory[]>();
   foodReturnCategories = model.required<FoodReturnCategory[]>();
   selectedRouteData = input<SelectedRouteData>();
@@ -378,7 +382,5 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   }
 
   protected readonly isControlInvalid = isControlInvalid;
-  protected readonly faPlus = faPlus;
-  protected readonly faRemove = faRemove;
   protected readonly maxDescriptionLength = RETURN_ITEM_DESCRIPTION_MAX_LENGTH;
 }

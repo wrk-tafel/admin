@@ -86,6 +86,23 @@ describe('AuditEntryListComponent', () => {
       .toBe('Nr. 1234');
   });
 
+  // A username is not a record number - "Nr." in front of one reads as if it were.
+  it('shows the bare username for a login entry, without a "Nr." prefix', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'UserLogin', operation: 'LOGIN', businessKey: 'test-user', entityId: 7, changes: []}
+    ], true).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('test-user');
+  });
+
+  it('shows the bare username for a user entry too, same reasoning', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'User', businessKey: 'test-user', entityId: 7}
+    ], true).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('test-user');
+  });
+
   it('attributes an entry without an acting user to the system', () => {
     const element: HTMLElement = createComponent([{...entry, actorUsername: undefined}]).nativeElement;
 
@@ -101,6 +118,16 @@ describe('AuditEntryListComponent', () => {
     }]).nativeElement;
 
     expect(element.querySelector('[testid="audit-entry-0-actor"]')?.textContent?.trim()).toBe('test-user');
+  });
+
+  it('marks a login entry with its own colour, distinct from a plain change', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'UserLogin', operation: 'LOGIN', changes: []}
+    ]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-operation"]')?.className).toContain('bg-blue-700');
+    expect(element.querySelector('[testid="audit-entry-0-operation"]')?.textContent?.trim()).toBe('Angemeldet');
+    expect(element.querySelector('[testid="audit-entry-0-entityType"]')?.textContent?.trim()).toBe('Login');
   });
 
   it('says so when an entry carries no field changes', () => {
@@ -164,6 +191,12 @@ describe('AuditEntryListComponent', () => {
 
     it('links a user entry to the account by its id, since the key is only the username', () => {
       const link = subjectLink([{...entry, entityType: 'User', businessKey: 'test-user', entityId: 7}]);
+
+      expect(link?.getAttribute('href')).toBe('/benutzer/detail/7');
+    });
+
+    it('links a login entry to the account it belongs to, same as a user entry', () => {
+      const link = subjectLink([{...entry, entityType: 'UserLogin', operation: 'LOGIN', businessKey: 'test-user', entityId: 7}]);
 
       expect(link?.getAttribute('href')).toBe('/benutzer/detail/7');
     });

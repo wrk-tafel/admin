@@ -4,25 +4,24 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {MatButton, MatIconButton} from '@angular/material/button';
-import {
-  faChevronDown,
-  faChevronUp,
-  faDiamondTurnRight,
-  faMagnifyingGlass,
-  faNoteSticky,
-  faPencil,
-  faPlus,
-  faRoute,
-  faXmark
-} from '@fortawesome/free-solid-svg-icons';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {forkJoin} from 'rxjs';
 import {RouteApiService, RouteData, RouteStopData} from '../../../../api/route-api.service';
 import {ShopApiService, ShopItem} from '../../../../api/shop-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2-fill.svg';
+import directionsIcon from '@material-symbols/svg-400/outlined/directions-fill.svg';
+import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {formatShopAddress} from '../../../../common/util/format-shop-address.util';
 import {
@@ -80,12 +79,24 @@ const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
     TafelEnabledFilterComponent,
     TafelEnabledToggleComponent,
     ReactiveFormsModule,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     MatIconButton
   ]
 })
 export class SettingsRoutesComponent {
+  private readonly registerIcons = registerSvgIcons({
+    add: addIcon,
+    search: searchIcon,
+    close: closeIcon,
+    keyboard_arrow_up: keyboardArrowUpIcon,
+    keyboard_arrow_down: keyboardArrowDownIcon,
+    edit: editIcon,
+    sticky_note_2: stickyNote2Icon,
+    directions: directionsIcon,
+    route: routeIcon
+  });
+
   private readonly routeApiService = inject(RouteApiService);
   private readonly shopApiService = inject(ShopApiService);
   private readonly toastr = inject(TafelToastrService);
@@ -278,15 +289,6 @@ export class SettingsRoutesComponent {
     };
   }
 
-  protected readonly faPencil = faPencil;
-  protected readonly faPlus = faPlus;
-  protected readonly faMagnifyingGlass = faMagnifyingGlass;
-  protected readonly faXmark = faXmark;
-  protected readonly faNoteSticky = faNoteSticky;
-  protected readonly faRoute = faRoute;
-  protected readonly faDiamondTurnRight = faDiamondTurnRight;
-  protected readonly faChevronDown = faChevronDown;
-  protected readonly faChevronUp = faChevronUp;
 }
 
 // the backend sends a LocalTime ("14:00:00"), of which only hours and minutes are ever maintained

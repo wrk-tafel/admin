@@ -88,7 +88,9 @@
             [disabled]="customerData()?.locked || !!printing()"
             [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
       @if (printing()) {
-        <fa-icon [icon]="faSpinner" [animation]="'spin'"></fa-icon>&nbsp;Wird erstellt...
+        <ng-container>
+          <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>&nbsp;Wird erstellt...
+        </ng-container>
       } @else {
         Daten ausdrucken ▾
       }
@@ -234,7 +236,7 @@
                                 matTooltip="Adresse in die Zwischenablage kopieren" aria-label="Adresse in die Zwischenablage kopieren"
                                 [cdkCopyToClipboard]="customerData()?.address | formatCustomerAddress"
                                 (cdkCopyToClipboardCopied)="onAddressCopied($event)">
-                          <fa-icon [icon]="faCopy"></fa-icon>
+                          <mat-icon svgIcon="content_copy"></mat-icon>
                         </button>
                       }
                     </div>
@@ -308,7 +310,7 @@
                     </h2>
                     <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
                             matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
-                      <fa-icon [icon]="faPlus"></fa-icon>
+                      <mat-icon svgIcon="add"></mat-icon>
                     </button>
                   </div>
                 </mat-card-header>
@@ -350,7 +352,7 @@
       <mat-tab>
         <ng-template mat-tab-label>
           <span testid="additionalpersons-tab-label">
-            <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
+            <mat-icon svgIcon="group"></mat-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
           </span>
         </ng-template>
         <div>
@@ -439,11 +441,11 @@
                                context that would tell one card's buttons from the next one's -->
                           <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
                                   matTooltip="Dokument herunterladen" [attr.aria-label]="'Dokument ' + doc.fileName + ' herunterladen'">
-                            <fa-icon [icon]="faDownload"></fa-icon>
+                            <mat-icon svgIcon="download"></mat-icon>
                           </button>
                           <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
                                   matTooltip="Dokument löschen" [attr.aria-label]="'Dokument ' + doc.fileName + ' löschen'">
-                            <fa-icon [icon]="faTrashCan"></fa-icon>
+                            <mat-icon svgIcon="delete"></mat-icon>
                           </button>
                         </div>
                       </mat-card-content>

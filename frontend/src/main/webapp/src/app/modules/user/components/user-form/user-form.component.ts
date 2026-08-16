@@ -9,8 +9,6 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatIcon} from '@angular/material/icon';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faChevronDown, faChevronUp, faCopy, faEye, faEyeSlash, faRemove} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {groupPermissionsByCategory, PermissionGroup} from '../../../../common/util/permission-grouping.util';
@@ -19,6 +17,14 @@ import {AuthenticationService} from '../../../../common/security/authentication.
 import {
   TafelEmployeeSearchCreateComponent
 } from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
+import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off-fill.svg';
+import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy-fill.svg';
 
 /**
  * Mirrors `UserPermissions.ADMINISTRATOR` on the backend. Kept as a constant rather than inline, so
@@ -38,12 +44,21 @@ const ADMINISTRATOR_PERMISSION = 'ADMINISTRATOR';
         MatInputModule,
         MatCheckboxModule,
         MatIcon,
-        FaIconComponent,
         TafelAutofocusDirective,
-        TafelEmployeeSearchCreateComponent
+        TafelEmployeeSearchCreateComponent,
+        TafelInfoTooltipComponent
     ]
 })
 export class UserFormComponent {
+  private readonly registerIcons = registerSvgIcons({
+    close: closeIcon,
+    keyboard_arrow_up: keyboardArrowUpIcon,
+    keyboard_arrow_down: keyboardArrowDownIcon,
+    visibility: visibilityIcon,
+    visibility_off: visibilityOffIcon,
+    content_copy: contentCopyIcon
+  });
+
   userData = input<UserData>();
   permissionsData = input<UserPermission[]>();
   userDataChange = output<UserData>();
@@ -307,15 +322,25 @@ export class UserFormComponent {
     }
   }
 
+  /**
+   * The lastname/firstname fields save onto the linked employee (see `resolveEmployee` on the
+   * backend), so they're kept in sync with whichever employee the personnel-number search resolved
+   * - typing a name there is for correcting the employee's name, not for entering an independent
+   * one that would otherwise silently overwrite it on save.
+   */
   public setSelectedEmployee(employee: EmployeeData) {
     this.selectedEmployee.set(employee);
     this.userForm.personnelNumber().value.set(employee.personnelNumber);
     this.userForm.personnelNumber().markAsTouched();
+    this.userForm.lastname().value.set(employee.lastname);
+    this.userForm.firstname().value.set(employee.firstname);
   }
 
   public resetSelectedEmployee() {
     this.selectedEmployee.set(null);
     this.userForm.personnelNumber().value.set('');
+    this.userForm.lastname().value.set('');
+    this.userForm.firstname().value.set('');
   }
 
   /**
@@ -356,12 +381,6 @@ export class UserFormComponent {
   // Expose utility functions for template use
   protected readonly visibleErrorMessages = visibleErrorMessages;
 
-  protected readonly faEyeSlash = faEyeSlash;
-  protected readonly faEye = faEye;
-  protected readonly faCopy = faCopy;
-  protected readonly faRemove = faRemove;
-  protected readonly faChevronDown = faChevronDown;
-  protected readonly faChevronUp = faChevronUp;
 }
 
 export interface UserFormModel {

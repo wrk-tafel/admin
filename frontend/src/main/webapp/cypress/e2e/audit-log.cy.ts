@@ -67,6 +67,18 @@ describe('Änderungsprotokoll', () => {
     });
   });
 
+  it('records the login the test session itself just made', () => {
+    cy.visit('/aenderungsprotokoll');
+
+    cy.byTestId('audit-filter-entityType').click();
+    cy.get('mat-option').contains('Login').click();
+
+    cy.byTestId('audit-entry-list').should('exist');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Login');
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Angemeldet');
+    cy.byTestId('audit-entry-0-actor').should('have.text', 'e2etest (E2E Test)');
+  });
+
   it('groups the entries under the day they happened on', () => {
     cy.createDummyCustomer().then(() => {
       cy.visit('/aenderungsprotokoll');

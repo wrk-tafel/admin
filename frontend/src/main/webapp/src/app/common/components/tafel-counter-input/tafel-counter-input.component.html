@@ -9,7 +9,7 @@
   <button matButton="outlined" [attr.aria-label]="label() + ' verringern'" (click)="onDecrementClick()"
           (pointerdown)="startHoldDecrement()" (pointerup)="stopHold()" (pointerleave)="stopHold()"
           (pointercancel)="stopHold()" [attr.testid]="testId() + '-decrement-button'">
-    <fa-icon [icon]="faMinus"></fa-icon>
+    <mat-icon svgIcon="remove"></mat-icon>
   </button>
   <input [attr.testid]="testId() + '-input'" type="number" name="valueInput" [attr.aria-label]="label()"
          class="w-16 text-center border border-gray-300 rounded-md py-1.5"
@@ -17,6 +17,6 @@
   <button matButton="outlined" [attr.aria-label]="label() + ' erhöhen'" (click)="onIncrementClick()"
           (pointerdown)="startHoldIncrement()" (pointerup)="stopHold()" (pointerleave)="stopHold()"
           (pointercancel)="stopHold()" [attr.testid]="testId() + '-increment-button'">
-    <fa-icon [icon]="faPlus"></fa-icon>
+    <mat-icon svgIcon="add"></mat-icon>
   </button>
 </div>

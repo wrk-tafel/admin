@@ -136,6 +136,15 @@ security:
   loginAttempts:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
+  # Argon2id tuning for password hashes (WebSecurityConfig.passwordEncoder). A change here only
+  # affects newly-created hashes; an existing user's hash is migrated onto it lazily, on their next
+  # successful login, rather than needing a bulk rehash (see
+  # TafelLoginProvider.additionalAuthenticationChecks). saltLength/hashLength are left at their
+  # defaults (16/32 bytes) below since raising them invalidates nothing but also buys nothing here.
+  argon2:
+    memory: 131072 # KiB
+    iterations: 3
+    parallelism: 1
 
 # Swagger UI/OpenAPI docs are only browsable on developer machines (see application-local.yml) -
 # never exposed in production or e2e/testdata environments

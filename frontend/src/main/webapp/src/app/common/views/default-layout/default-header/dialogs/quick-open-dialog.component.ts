@@ -7,12 +7,10 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {catchError, debounceTime, distinctUntilChanged, map, of, switchMap} from 'rxjs';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
-import {faUser} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {TafelAutofocusDirective} from '../../../../../common/directive/tafel-autofocus.directive';
-import {ITafelNavData, navigationMenuItems} from '../../navigation-menuItems';
+import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../navigation-menuItems';
 import {AuthenticationService} from '../../../../../common/security/authentication.service';
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
@@ -20,7 +18,7 @@ import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.
 export interface QuickOpenNavEntry {
   label: string;
   url: string;
-  icon?: IconDefinition;
+  icon?: string;
 }
 
 /**
@@ -75,7 +73,7 @@ const CUSTOMER_RESULT_LIMIT = 5;
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
-    FaIconComponent
+    MatIcon
   ],
   templateUrl: 'quick-open-dialog.component.html',
   host: {
@@ -83,6 +81,8 @@ const CUSTOMER_RESULT_LIMIT = 5;
   }
 })
 export class QuickOpenDialogComponent {
+  private readonly registerIcons = registerNavigationIcons();
+
   readonly dialogRef = inject(MatDialogRef<QuickOpenDialogComponent>);
   private readonly router = inject(Router);
   private readonly authenticationService = inject(AuthenticationService);
@@ -123,7 +123,7 @@ export class QuickOpenDialogComponent {
         if (!this.canSearchCustomers() || query.length < MIN_CUSTOMER_SEARCH_CHARS) {
           return of(null);
         }
-        return this.customerApiService.searchCustomer(query, null, null, null, undefined, CUSTOMER_RESULT_LIMIT).pipe(
+        return this.customerApiService.searchCustomer(query, null, null, null, null, undefined, CUSTOMER_RESULT_LIMIT).pipe(
           map(result => result.items ?? []),
           catchError(() => of<CustomerData[]>([]))
         );
@@ -189,6 +189,4 @@ export class QuickOpenDialogComponent {
   private resultButtons(): HTMLElement[] {
     return Array.from(this.resultList().nativeElement.querySelectorAll<HTMLElement>('button[data-quick-open-result]'));
   }
-
-  protected readonly faUser = faUser;
 }
