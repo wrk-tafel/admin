@@ -28,6 +28,8 @@
                           (selectionChange)="toggleFilter(costContribution, $event.selected)">Unkostenbeitrag offen</mat-chip-option>
         <mat-chip-option testid="filter-valid" [selected]="valid()"
                           (selectionChange)="toggleFilter(valid, $event.selected)">Derzeit bezugsberechtigt</mat-chip-option>
+        <mat-chip-option testid="filter-locked" [selected]="locked()"
+                          (selectionChange)="toggleFilter(locked, $event.selected)">Gesperrt</mat-chip-option>
       </mat-chip-listbox>
     </div>
 

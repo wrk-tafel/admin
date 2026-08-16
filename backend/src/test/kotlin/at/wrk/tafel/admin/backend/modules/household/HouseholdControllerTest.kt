@@ -434,6 +434,7 @@ class HouseholdControllerTest {
                 true,
                 true,
                 true,
+                true,
             )
         } returns testSearchResult
 
@@ -443,6 +444,7 @@ class HouseholdControllerTest {
             postProcessing = true,
             costContribution = true,
             valid = true,
+            locked = true,
         )
 
         verify {
@@ -452,6 +454,7 @@ class HouseholdControllerTest {
                 postProcessing = true,
                 costContribution = true,
                 valid = true,
+                locked = true,
             )
         }
         assertThat(response.items).hasSize(1)

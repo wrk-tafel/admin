@@ -8,7 +8,7 @@ export class QRCodeReaderService {
     delayBetweenScanAttempts: 250,
     delayBetweenScanSuccess: 250
   });
-  private readonly LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
+  private readonly LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'tafel.qrcodeReader.lastCameraId';
   // Chrome/Firefox/Safari all put a hint in MediaDeviceInfo.label once camera permission was
   // granted (e.g. "camera2 0, facing back", "Back Camera", "Rückkamera") - there is no
   // cross-browser way to read facingMode before a stream is opened, so this label heuristic is

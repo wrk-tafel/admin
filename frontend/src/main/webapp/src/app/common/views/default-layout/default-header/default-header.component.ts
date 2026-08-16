@@ -7,7 +7,17 @@ import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faBars, faBell, faCircleQuestion, faKey, faLink, faLinkSlash, faLock, faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons';
+import {
+  faBars,
+  faBell,
+  faBook,
+  faCircleQuestion,
+  faKey,
+  faLink,
+  faLinkSlash,
+  faLock,
+  faMagnifyingGlass
+} from '@fortawesome/free-solid-svg-icons';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
@@ -127,6 +137,7 @@ export class DefaultHeaderComponent {
   protected readonly faCircleQuestion = faCircleQuestion;
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
   protected readonly faBell = faBell;
+  protected readonly faBook = faBook;
   protected readonly faKey = faKey;
   protected readonly faLock = faLock;
   protected readonly faLink = faLink;

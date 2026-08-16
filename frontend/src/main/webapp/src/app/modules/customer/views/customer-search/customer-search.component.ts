@@ -42,6 +42,7 @@ const QUERY_PARAMS = {
   postProcessing: 'unvollstaendig',
   costContribution: 'unkostenbeitrag',
   valid: 'bezugsberechtigt',
+  locked: 'gesperrt',
   page: 'seite',
   pageSize: 'anzahl',
 } as const;
@@ -85,6 +86,7 @@ export class CustomerSearchComponent {
   postProcessing = signal(false);
   costContribution = signal(false);
   valid = signal(false);
+  locked = signal(false);
 
   // Use a signal so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
@@ -194,6 +196,7 @@ export class CustomerSearchComponent {
       this.postProcessing() || undefined,
       this.costContribution() || undefined,
       this.valid() || undefined,
+      this.locked() || undefined,
       request.page,
       request.pageSize,
     ).pipe(
@@ -275,6 +278,7 @@ export class CustomerSearchComponent {
     this.postProcessing.set(params.get(QUERY_PARAMS.postProcessing) === 'true');
     this.costContribution.set(params.get(QUERY_PARAMS.costContribution) === 'true');
     this.valid.set(params.get(QUERY_PARAMS.valid) === 'true');
+    this.locked.set(params.get(QUERY_PARAMS.locked) === 'true');
 
     const page = Number(params.get(QUERY_PARAMS.page));
     const pageSize = Number(params.get(QUERY_PARAMS.pageSize));
@@ -294,6 +298,7 @@ export class CustomerSearchComponent {
         [QUERY_PARAMS.postProcessing]: this.postProcessing() ? 'true' : null,
         [QUERY_PARAMS.costContribution]: this.costContribution() ? 'true' : null,
         [QUERY_PARAMS.valid]: this.valid() ? 'true' : null,
+        [QUERY_PARAMS.locked]: this.locked() ? 'true' : null,
         [QUERY_PARAMS.page]: response.currentPage > 1 ? response.currentPage : null,
         [QUERY_PARAMS.pageSize]: response.pageSize !== DEFAULT_PAGE_SIZE ? response.pageSize : null,
       }

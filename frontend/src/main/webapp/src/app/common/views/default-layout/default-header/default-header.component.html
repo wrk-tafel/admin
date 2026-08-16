@@ -95,6 +95,16 @@
         <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
           <fa-icon [icon]="faBell"></fa-icon> Benachrichtigungen
         </a>
+        <!--
+          No target="_blank"/rel: GitHub's release-asset URL always answers with
+          Content-Disposition: attachment (baked into the signed redirect it issues, not something
+          this link can override), so the browser downloads the PDF rather than navigating to it -
+          "open in a new tab" would be misleading here.
+        -->
+        <a mat-menu-item href="https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf"
+           testid="usermenu-userguide">
+          <fa-icon [icon]="faBook"></fa-icon> Benutzerhandbuch
+        </a>
         <mat-divider></mat-divider>
         <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
           <fa-icon [icon]="faLock"></fa-icon> Abmelden
