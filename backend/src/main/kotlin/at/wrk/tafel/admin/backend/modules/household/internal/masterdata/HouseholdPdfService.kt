@@ -72,6 +72,7 @@ class HouseholdPdfService(
                 employer = mainPerson.employer ?: "-",
                 income = formatIncome(mainPerson.income),
                 incomeDueDate = mainPerson.incomeDue?.format(DATE_FORMATTER) ?: "-",
+                validUntilDate = household.validUntil.format(DATE_FORMATTER),
                 additionalPersons = additionalPersons.map { mapAdditionalPerson(it) },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,

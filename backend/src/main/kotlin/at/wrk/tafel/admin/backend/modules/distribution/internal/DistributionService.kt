@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdL
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenTicketResponse
+import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.util.MimeTypeUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -191,7 +193,10 @@ class DistributionService(
             }
             .count()
 
+        val logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
         val data = HouseholdListPdfModel(
+            logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+            logoBytes = logoBytes,
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,
             countHouseholdsOverall = countHouseholds,
