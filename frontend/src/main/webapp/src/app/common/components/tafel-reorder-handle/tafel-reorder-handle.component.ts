@@ -2,7 +2,7 @@ import {Component, input, output} from '@angular/core';
 import {MatIcon} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import dragIndicatorIcon from '@material-symbols/svg-400/outlined/drag_indicator.svg';
+import dragIndicatorIcon from '@material-symbols/svg-400/outlined/drag_indicator-fill.svg';
 
 /**
  * The grip that reorders a record in a sortable list.

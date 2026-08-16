@@ -10,12 +10,12 @@ import {MatButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import infoIcon from '@material-symbols/svg-400/outlined/info.svg';
-import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up.svg';
-import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down.svg';
-import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
-import homeIcon from '@material-symbols/svg-400/outlined/home.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import infoIcon from '@material-symbols/svg-400/outlined/info-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import homeIcon from '@material-symbols/svg-400/outlined/home-fill.svg';
 import {
   TafelReorderHandleComponent
 } from '../../../../common/components/tafel-reorder-handle/tafel-reorder-handle.component';

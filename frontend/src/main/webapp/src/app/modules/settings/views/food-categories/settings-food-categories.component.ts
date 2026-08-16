@@ -22,11 +22,11 @@ import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
-import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
-import package2Icon from '@material-symbols/svg-400/outlined/package_2.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import package2Icon from '@material-symbols/svg-400/outlined/package_2-fill.svg';
 import {
   TafelReorderHandleComponent
 } from '../../../../common/components/tafel-reorder-handle/tafel-reorder-handle.component';

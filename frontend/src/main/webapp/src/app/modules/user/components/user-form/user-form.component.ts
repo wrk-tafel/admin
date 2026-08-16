@@ -19,12 +19,12 @@ import {
 } from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
-import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up.svg';
-import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down.svg';
-import visibilityIcon from '@material-symbols/svg-400/outlined/visibility.svg';
-import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off.svg';
-import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
+import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off-fill.svg';
+import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy-fill.svg';
 
 /**
  * Mirrors `UserPermissions.ADMINISTRATOR` on the backend. Kept as a constant rather than inline, so

@@ -3,7 +3,7 @@ import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 
 interface RouteChipView {
   name: string;

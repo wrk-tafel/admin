@@ -3,8 +3,8 @@ import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import removeIcon from '@material-symbols/svg-400/outlined/remove.svg';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
+import removeIcon from '@material-symbols/svg-400/outlined/remove-fill.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 
 // Long enough that a normal tap never triggers the repeat, short enough that holding down for a
 // larger amount doesn't feel like waiting.

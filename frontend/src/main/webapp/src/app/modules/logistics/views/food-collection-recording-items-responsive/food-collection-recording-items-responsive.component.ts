@@ -35,8 +35,8 @@ import {
 import {Observable} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 
 // How long the "Synchronisiert ✓" confirmation stays up once the offline queue has emptied out -
 // long enough to notice, short enough not to linger once it's no longer news.

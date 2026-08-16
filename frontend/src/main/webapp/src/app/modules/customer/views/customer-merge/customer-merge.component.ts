@@ -12,17 +12,17 @@ import {MatRadioModule} from '@angular/material/radio';
 import {MatStepperModule} from '@angular/material/stepper';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
-import errorIcon from '@material-symbols/svg-400/outlined/error.svg';
-import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
-import locationOnIcon from '@material-symbols/svg-400/outlined/location_on.svg';
-import callIcon from '@material-symbols/svg-400/outlined/call.svg';
-import mailIcon from '@material-symbols/svg-400/outlined/mail.svg';
-import euroIcon from '@material-symbols/svg-400/outlined/euro.svg';
-import wcIcon from '@material-symbols/svg-400/outlined/wc.svg';
-import flagIcon from '@material-symbols/svg-400/outlined/flag.svg';
-import apartmentIcon from '@material-symbols/svg-400/outlined/apartment.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import errorIcon from '@material-symbols/svg-400/outlined/error-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import locationOnIcon from '@material-symbols/svg-400/outlined/location_on-fill.svg';
+import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
+import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
+import euroIcon from '@material-symbols/svg-400/outlined/euro-fill.svg';
+import wcIcon from '@material-symbols/svg-400/outlined/wc-fill.svg';
+import flagIcon from '@material-symbols/svg-400/outlined/flag-fill.svg';
+import apartmentIcon from '@material-symbols/svg-400/outlined/apartment-fill.svg';
 import {
   CustomerApiService,
   CustomerData,

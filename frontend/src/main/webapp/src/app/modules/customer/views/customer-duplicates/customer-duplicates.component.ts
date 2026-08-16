@@ -14,8 +14,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
-import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle-fill.svg';
 
 type DuplicateComparisonFieldKind = 'date' | 'text';
 

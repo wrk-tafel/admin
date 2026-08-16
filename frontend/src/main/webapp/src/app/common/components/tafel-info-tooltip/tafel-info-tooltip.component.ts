@@ -2,7 +2,7 @@ import {Component, input} from '@angular/core';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import infoIcon from '@material-symbols/svg-400/outlined/info.svg';
+import infoIcon from '@material-symbols/svg-400/outlined/info-fill.svg';
 
 /**
  * Small info icon next to a label whose meaning isn't obvious from the label alone. The

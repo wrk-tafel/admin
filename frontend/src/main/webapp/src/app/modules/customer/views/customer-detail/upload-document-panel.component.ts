@@ -12,7 +12,7 @@ import {DocumentType, documentTypeLabel} from '../../../../api/customer-document
 import {DocumentScannerApiService, ScannerFileItem} from '../../../../api/document-scanner-api.service';
 import {ConfigApiService} from '../../../../api/config-api.service';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import visibilityIcon from '@material-symbols/svg-400/outlined/visibility.svg';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
 
 export type UploadDocumentPanelResult =
   | { mode: 'upload'; documentType: DocumentType; file: File }

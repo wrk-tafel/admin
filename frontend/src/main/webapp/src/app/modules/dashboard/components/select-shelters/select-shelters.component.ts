@@ -6,7 +6,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {SelectSheltersDialogComponent} from './dialogs/select-shelters-dialog.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import calculateIcon from '@material-symbols/svg-400/outlined/calculate.svg';
+import calculateIcon from '@material-symbols/svg-400/outlined/calculate-fill.svg';
 
 @Component({
   selector: 'tafel-select-shelters',

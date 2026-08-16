@@ -9,10 +9,10 @@ import {StatisticsDetailData} from '../../../api/statistics-api.service';
 import {computeDelta, formatStatisticsValue} from './statistics-comparison';
 import {StatisticsDetailDialogComponent} from './statistics-detail-dialog.component';
 import {registerSvgIcons} from '../../../common/util/svg-icon.util';
-import openInFullIcon from '@material-symbols/svg-400/outlined/open_in_full.svg';
-import arrowUpwardIcon from '@material-symbols/svg-400/outlined/arrow_upward.svg';
-import arrowDownwardIcon from '@material-symbols/svg-400/outlined/arrow_downward.svg';
-import removeIcon from '@material-symbols/svg-400/outlined/remove.svg';
+import openInFullIcon from '@material-symbols/svg-400/outlined/open_in_full-fill.svg';
+import arrowUpwardIcon from '@material-symbols/svg-400/outlined/arrow_upward-fill.svg';
+import arrowDownwardIcon from '@material-symbols/svg-400/outlined/arrow_downward-fill.svg';
+import removeIcon from '@material-symbols/svg-400/outlined/remove-fill.svg';
 
 /**
  * Roughly what a card's sparkline has to name its periods in: the width of its chart area, and what

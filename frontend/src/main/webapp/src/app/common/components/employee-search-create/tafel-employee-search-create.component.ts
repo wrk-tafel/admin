@@ -6,7 +6,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {CreateEmployeeDialogComponent} from './dialogs/create-employee-dialog.component';
 import {SelectEmployeeDialogComponent} from './dialogs/select-employee-dialog.component';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
 
 @Component({
     selector: 'tafel-employee-search-create',

@@ -4,7 +4,7 @@ import {ActivatedRoute} from '@angular/router';
 import {MatIcon} from '@angular/material/icon';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import fullscreenIcon from '@material-symbols/svg-400/outlined/fullscreen.svg';
+import fullscreenIcon from '@material-symbols/svg-400/outlined/fullscreen-fill.svg';
 
 @Component({
     selector: 'tafel-ticket-screen-fullscreen',

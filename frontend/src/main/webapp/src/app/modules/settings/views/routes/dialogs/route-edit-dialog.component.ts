@@ -14,9 +14,9 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 import {RouteData, RouteStopData} from '../../../../../api/route-api.service';
 import {ShopItem} from '../../../../../api/shop-api.service';
 import {registerSvgIcons} from '../../../../../common/util/svg-icon.util';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
-import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
 
 export interface RouteEditDialogData {
   route?: RouteData;

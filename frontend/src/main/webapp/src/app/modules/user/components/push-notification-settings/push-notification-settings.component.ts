@@ -20,17 +20,17 @@ import {
 } from '../../../../api/push-api.service';
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import notificationsIcon from '@material-symbols/svg-400/outlined/notifications.svg';
-import notificationsOffIcon from '@material-symbols/svg-400/outlined/notifications_off.svg';
-import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
-import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
-import sendIcon from '@material-symbols/svg-400/outlined/send.svg';
-import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity.svg';
-import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle.svg';
-import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
-import mobile2Icon from '@material-symbols/svg-400/outlined/mobile_2.svg';
-import desktopWindowsIcon from '@material-symbols/svg-400/outlined/desktop_windows.svg';
-import questionMarkIcon from '@material-symbols/svg-400/outlined/question_mark.svg';
+import notificationsIcon from '@material-symbols/svg-400/outlined/notifications-fill.svg';
+import notificationsOffIcon from '@material-symbols/svg-400/outlined/notifications_off-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import sendIcon from '@material-symbols/svg-400/outlined/send-fill.svg';
+import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import mobile2Icon from '@material-symbols/svg-400/outlined/mobile_2-fill.svg';
+import desktopWindowsIcon from '@material-symbols/svg-400/outlined/desktop_windows-fill.svg';
+import questionMarkIcon from '@material-symbols/svg-400/outlined/question_mark-fill.svg';
 
 const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types: []};
 

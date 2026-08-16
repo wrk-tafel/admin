@@ -16,10 +16,10 @@ import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new.svg';
-import saveIcon from '@material-symbols/svg-400/outlined/save.svg';
-import personIcon from '@material-symbols/svg-400/outlined/person.svg';
-import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
+import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new-fill.svg';
+import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
 
 @Component({
   selector: 'tafel-customer-above-limit',

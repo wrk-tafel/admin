@@ -9,17 +9,17 @@ import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import inventory2Icon from '@material-symbols/svg-400/outlined/inventory_2.svg';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
-import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left.svg';
-import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right.svg';
-import directionsIcon from '@material-symbols/svg-400/outlined/directions.svg';
-import locationOnIcon from '@material-symbols/svg-400/outlined/location_on.svg';
-import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2.svg';
-import callIcon from '@material-symbols/svg-400/outlined/call.svg';
-import routeIcon from '@material-symbols/svg-400/outlined/route.svg';
-import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt.svg';
-import personIcon from '@material-symbols/svg-400/outlined/person.svg';
+import inventory2Icon from '@material-symbols/svg-400/outlined/inventory_2-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left-fill.svg';
+import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right-fill.svg';
+import directionsIcon from '@material-symbols/svg-400/outlined/directions-fill.svg';
+import locationOnIcon from '@material-symbols/svg-400/outlined/location_on-fill.svg';
+import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2-fill.svg';
+import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
+import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
+import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import {
   RouteApiService,
   RouteData,

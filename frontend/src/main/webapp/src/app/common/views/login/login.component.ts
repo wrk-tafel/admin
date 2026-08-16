@@ -12,11 +12,11 @@ import {MatIcon} from '@angular/material/icon';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
 import {ConfigApiService} from '../../../api/config-api.service';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import personIcon from '@material-symbols/svg-400/outlined/person.svg';
-import keyIcon from '@material-symbols/svg-400/outlined/key.svg';
-import visibilityIcon from '@material-symbols/svg-400/outlined/visibility.svg';
-import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off.svg';
-import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import keyIcon from '@material-symbols/svg-400/outlined/key-fill.svg';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
+import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
 
 @Component({
   selector: 'tafel-login',

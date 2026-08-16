@@ -3,10 +3,10 @@ import {MAT_SNACK_BAR_DATA, MatSnackBarRef} from '@angular/material/snack-bar';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle.svg';
-import errorIcon from '@material-symbols/svg-400/outlined/error.svg';
-import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle-fill.svg';
+import errorIcon from '@material-symbols/svg-400/outlined/error-fill.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 
 // deliberately only the three traffic-light states - every toast in the app is one of these
 export type TafelSnackbarSeverity = 'success' | 'error' | 'warning';

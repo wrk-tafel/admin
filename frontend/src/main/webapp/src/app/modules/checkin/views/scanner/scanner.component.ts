@@ -8,10 +8,10 @@ import {MatIcon} from '@angular/material/icon';
 import {ScannerApiService, ScannerRegistration} from '../../../../api/scanner-api.service';
 import {firstValueFrom} from 'rxjs';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import boltIcon from '@material-symbols/svg-400/outlined/bolt.svg';
-import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle.svg';
-import linkOffIcon from '@material-symbols/svg-400/outlined/link_off.svg';
-import refreshIcon from '@material-symbols/svg-400/outlined/refresh.svg';
+import boltIcon from '@material-symbols/svg-400/outlined/bolt-fill.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle-fill.svg';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
+import refreshIcon from '@material-symbols/svg-400/outlined/refresh-fill.svg';
 
 // How long a scan's full-screen confirmation stays up before the video preview takes back over.
 const SCAN_FEEDBACK_DURATION_MS = 2000;

@@ -9,7 +9,7 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
 import {Observable} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import speedIcon from '@material-symbols/svg-400/outlined/speed.svg';
+import speedIcon from '@material-symbols/svg-400/outlined/speed-fill.svg';
 
 /**
  * The mileage is read off the car when it is back from the route, long after the route's base data

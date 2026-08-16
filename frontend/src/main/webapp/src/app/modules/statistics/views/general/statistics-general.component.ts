@@ -28,7 +28,7 @@ import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import saveIcon from '@material-symbols/svg-400/outlined/save.svg';
+import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
 
 const DATE_FORMAT = 'DD.MM.YYYY';
 

@@ -30,9 +30,9 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {ResetLoginAttemptDialogComponent} from './dialogs/reset-login-attempt-dialog.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import syncIcon from '@material-symbols/svg-400/outlined/sync.svg';
-import lockOpenIcon from '@material-symbols/svg-400/outlined/lock_open.svg';
-import shieldPersonIcon from '@material-symbols/svg-400/outlined/shield_person.svg';
+import syncIcon from '@material-symbols/svg-400/outlined/sync-fill.svg';
+import lockOpenIcon from '@material-symbols/svg-400/outlined/lock_open-fill.svg';
+import shieldPersonIcon from '@material-symbols/svg-400/outlined/shield_person-fill.svg';
 
 /** Long enough not to search on every keystroke of a username, short enough to feel immediate. */
 const SEARCH_DEBOUNCE_MS = 400;

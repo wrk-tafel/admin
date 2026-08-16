@@ -8,8 +8,8 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
-import localShippingIcon from '@material-symbols/svg-400/outlined/local_shipping.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import localShippingIcon from '@material-symbols/svg-400/outlined/local_shipping-fill.svg';
 import {
   TafelEmployeeSearchCreateComponent
 } from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';

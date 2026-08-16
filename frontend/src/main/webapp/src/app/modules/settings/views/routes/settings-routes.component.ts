@@ -13,15 +13,15 @@ import {RouteApiService, RouteData, RouteStopData} from '../../../../api/route-a
 import {ShopApiService, ShopItem} from '../../../../api/shop-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
-import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up.svg';
-import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down.svg';
-import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
-import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2.svg';
-import directionsIcon from '@material-symbols/svg-400/outlined/directions.svg';
-import routeIcon from '@material-symbols/svg-400/outlined/route.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2-fill.svg';
+import directionsIcon from '@material-symbols/svg-400/outlined/directions-fill.svg';
+import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {formatShopAddress} from '../../../../common/util/format-shop-address.util';
 import {

@@ -19,15 +19,15 @@ import {MatButton} from '@angular/material/button';
 import {ConfigApiService} from '../../../../api/config-api.service';
 import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
 import {registerSvgIcons} from '../../../util/svg-icon.util';
-import menuIcon from '@material-symbols/svg-400/outlined/menu.svg';
-import helpIcon from '@material-symbols/svg-400/outlined/help.svg';
-import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
-import notificationsIcon from '@material-symbols/svg-400/outlined/notifications.svg';
-import bookIcon from '@material-symbols/svg-400/outlined/book.svg';
-import keyIcon from '@material-symbols/svg-400/outlined/key.svg';
-import lockIcon from '@material-symbols/svg-400/outlined/lock.svg';
-import linkIcon from '@material-symbols/svg-400/outlined/link.svg';
-import linkOffIcon from '@material-symbols/svg-400/outlined/link_off.svg';
+import menuIcon from '@material-symbols/svg-400/outlined/menu-fill.svg';
+import helpIcon from '@material-symbols/svg-400/outlined/help-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
+import notificationsIcon from '@material-symbols/svg-400/outlined/notifications-fill.svg';
+import bookIcon from '@material-symbols/svg-400/outlined/book-fill.svg';
+import keyIcon from '@material-symbols/svg-400/outlined/key-fill.svg';
+import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
+import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 
 @Component({
   selector: 'tafel-default-header',

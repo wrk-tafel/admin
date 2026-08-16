@@ -28,8 +28,8 @@ import {
 import {Observable} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-desktop',

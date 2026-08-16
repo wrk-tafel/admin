@@ -36,7 +36,7 @@ import {BreakpointObserver} from '@angular/cdk/layout';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {combineTabStatus, TabStatus} from '../../services/food-collection-tab-status';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import routeIcon from '@material-symbols/svg-400/outlined/route.svg';
+import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 
 // Matches the Tailwind `md` breakpoint the two item layouts have always been switched at.
 const DESKTOP_BREAKPOINT = '(min-width: 768px)';

@@ -4,7 +4,7 @@ import {MatIcon} from '@angular/material/icon';
 import {SseService} from '../../../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import linkOffIcon from '@material-symbols/svg-400/outlined/link_off.svg';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 
 // Mirrors DistributionTicketScreenController.TICKET_SCREEN_TITLE (backend). The "previous ticket"
 // caption and the optional chime only make sense while an actual ticket number is on screen, not

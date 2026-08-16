@@ -33,7 +33,7 @@ import {AuthenticationService} from '../../../../common/security/authentication.
 import {MatIcon} from '@angular/material/icon';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import saveIcon from '@material-symbols/svg-400/outlined/save.svg';
+import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
 
 export const SCHOOL_AGE_PRESET = {ageMin: 6, ageMax: 15};
 export const MIN_AGE = 0;

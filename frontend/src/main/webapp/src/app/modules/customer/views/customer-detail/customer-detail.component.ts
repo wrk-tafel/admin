@@ -74,12 +74,12 @@ import {
   CustomerValidityState
 } from '../../../../common/util/customer-validity.util';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy.svg';
-import downloadIcon from '@material-symbols/svg-400/outlined/download.svg';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity.svg';
-import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
-import groupIcon from '@material-symbols/svg-400/outlined/group.svg';
+import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy-fill.svg';
+import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import groupIcon from '@material-symbols/svg-400/outlined/group-fill.svg';
 
 // Matches the Tailwind `lg` breakpoint this template's action/tab layout switches at.
 const DESKTOP_BREAKPOINT = '(min-width: 1024px)';

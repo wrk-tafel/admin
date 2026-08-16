@@ -10,9 +10,9 @@ import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../a
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import mailIcon from '@material-symbols/svg-400/outlined/mail.svg';
-import addIcon from '@material-symbols/svg-400/outlined/add.svg';
-import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
+import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 
 @Component({
   selector: 'tafel-mail-recipients',

@@ -10,7 +10,7 @@ import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import mailIcon from '@material-symbols/svg-400/outlined/mail.svg';
+import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
 
 @Component({
   selector: 'tafel-send-mails',

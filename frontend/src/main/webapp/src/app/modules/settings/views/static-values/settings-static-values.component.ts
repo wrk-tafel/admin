@@ -29,11 +29,11 @@ import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import historyIcon from '@material-symbols/svg-400/outlined/history.svg';
-import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new.svg';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
-import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
+import historyIcon from '@material-symbols/svg-400/outlined/history-fill.svg';
+import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
 import {
   StaticValueChangeDialogComponent,

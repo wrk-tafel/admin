@@ -7,7 +7,7 @@ import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import downloadIcon from '@material-symbols/svg-400/outlined/download.svg';
+import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 
 @Component({
   selector: 'tafel-registered-customers',

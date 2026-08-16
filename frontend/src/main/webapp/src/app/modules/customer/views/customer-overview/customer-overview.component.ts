@@ -15,12 +15,12 @@ import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
-import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left.svg';
-import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right.svg';
-import csvIcon from '@material-symbols/svg-400/outlined/csv.svg';
-import refreshIcon from '@material-symbols/svg-400/outlined/refresh.svg';
-import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
-import personAddIcon from '@material-symbols/svg-400/outlined/person_add.svg';
+import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left-fill.svg';
+import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right-fill.svg';
+import csvIcon from '@material-symbols/svg-400/outlined/csv-fill.svg';
+import refreshIcon from '@material-symbols/svg-400/outlined/refresh-fill.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
+import personAddIcon from '@material-symbols/svg-400/outlined/person_add-fill.svg';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 

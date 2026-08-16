@@ -8,7 +8,7 @@ import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../.
 import {TafelDialogComponent} from '../../tafel-dialog/tafel-dialog.component';
 import {PAGE_SIZE_OPTIONS} from '../../../api/paged-response';
 import {registerSvgIcons} from '../../../util/svg-icon.util';
-import touchAppIcon from '@material-symbols/svg-400/outlined/touch_app.svg';
+import touchAppIcon from '@material-symbols/svg-400/outlined/touch_app-fill.svg';
 
 export interface SelectEmployeeDialogData {
   initialResponse: EmployeeListResponse;

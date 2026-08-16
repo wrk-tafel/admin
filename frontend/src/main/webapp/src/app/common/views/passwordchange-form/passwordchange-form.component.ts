@@ -14,10 +14,10 @@ import {visibleErrorMessages} from '../../util/signal-form-helper';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../http/suppress-error-toast.token';
 import {AuthenticationService} from '../../security/authentication.service';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import visibilityIcon from '@material-symbols/svg-400/outlined/visibility.svg';
-import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off.svg';
-import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
-import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility-fill.svg';
+import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 
 /**
  * Client-side mirror of the rules `WebSecurityConfig`'s Passay `DefaultPasswordValidator` enforces

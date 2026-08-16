@@ -15,10 +15,10 @@ import {DistributionItem} from '../../../api/distribution-api.service';
 import {ConfigApiService} from '../../../api/config-api.service';
 import {TafelTitleStrategy} from '../../util/tafel-title-strategy';
 import {registerSvgIcons} from '../../util/svg-icon.util';
-import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down.svg';
-import keyboardArrowRightIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_right.svg';
-import keyboardDoubleArrowLeftIcon from '@material-symbols/svg-400/outlined/keyboard_double_arrow_left.svg';
-import keyboardDoubleArrowRightIcon from '@material-symbols/svg-400/outlined/keyboard_double_arrow_right.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
+import keyboardArrowRightIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_right-fill.svg';
+import keyboardDoubleArrowLeftIcon from '@material-symbols/svg-400/outlined/keyboard_double_arrow_left-fill.svg';
+import keyboardDoubleArrowRightIcon from '@material-symbols/svg-400/outlined/keyboard_double_arrow_right-fill.svg';
 
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
