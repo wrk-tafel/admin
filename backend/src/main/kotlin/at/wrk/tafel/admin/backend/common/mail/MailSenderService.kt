@@ -105,7 +105,7 @@ class MailSenderService(
             return
         }
 
-        val messageHelper = MimeMessageHelper(MimeMessage(COMPOSE_SESSION), true)
+        val messageHelper = MimeMessageHelper(MimeMessage(COMPOSE_SESSION), true, "UTF-8")
 
         val configuredPrefix = mailProperties.subjectPrefix
         val subjectPrefix = if (configuredPrefix.isNullOrBlank()) "" else "$configuredPrefix "

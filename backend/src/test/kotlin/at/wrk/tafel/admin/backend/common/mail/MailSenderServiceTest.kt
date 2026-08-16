@@ -112,6 +112,32 @@ internal class MailSenderServiceTest {
         )
     }
 
+    // Regression guard for a bug where MimeMessageHelper was built without an explicit charset,
+    // so JavaMail fell back to the platform's default charset instead of UTF-8 - mangling every
+    // umlaut/ß in both the subject and the body into replacement characters.
+    @Test
+    fun `sendTextMail successfully - preserves non-ASCII characters`() {
+        val fromAddress = "from-address"
+        every { properties.mail!!.from } returns fromAddress
+        every { properties.mail!!.subjectPrefix } returns null
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+
+        val subject = "Änderung äöüß"
+        val text = "Liebe Grüße äöüß €"
+        service.sendTextMail(MailType.DAILY_REPORT, subject, text)
+
+        val mailMessageSlot = slot<MimeMessage>()
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+
+        val mailMessage = mailMessageSlot.captured
+        assertThat(mailMessage.subject).isEqualTo(subject)
+
+        mailMessage.saveChanges()
+        val textPart = findPartByMimeType(mailMessage, "text/plain")
+        assertThat(textPart).isNotNull
+        assertThat(textPart!!.content).isEqualTo(text)
+    }
+
     @Test
     fun `sendTextMail successfully - no subject prefix configured`() {
         val fromAddress = "from-address"
