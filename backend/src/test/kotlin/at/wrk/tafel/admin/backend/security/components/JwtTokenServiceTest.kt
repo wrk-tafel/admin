@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
@@ -15,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
@@ -49,52 +47,12 @@ class JwtTokenServiceTest {
     fun `getClaimsFromToken - valid token generated and parsed`() {
         val token = jwtTokenService.generateToken(
             "test-user",
-            listOf(
-                SimpleGrantedAuthority("dummy-role"),
-            ),
             expirationSeconds = 100,
         )
 
         val claims = jwtTokenService.getClaimsFromToken(token)
 
-        assertThat(claims["permissions"] as List<*>).contains("dummy-role")
-    }
-
-    /**
-     * ADMINISTRATOR grants everything, and the token is the single place that is turned into a
-     * concrete permission list - every `@PreAuthorize`, the frontend's route guards and its
-     * `tafelIfPermission` directive all read what lands here.
-     */
-    @Test
-    fun `generateToken - the administrator permission is written out as every permission`() {
-        val token = jwtTokenService.generateToken(
-            "admin-user",
-            listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
-            expirationSeconds = 100,
-        )
-
-        val permissions = jwtTokenService.getClaimsFromToken(token)["permissions"] as List<*>
-
-        assertThat(permissions).containsExactlyInAnyOrderElementsOf(UserPermissions.entries.map { it.key })
-    }
-
-    @Test
-    fun `generateToken - a user without the administrator permission keeps exactly what was granted`() {
-        val token = jwtTokenService.generateToken(
-            "normal-user",
-            listOf(
-                SimpleGrantedAuthority(UserPermissions.CHECKIN.key),
-                SimpleGrantedAuthority(UserPermissions.USER_MANAGEMENT.key),
-            ),
-            expirationSeconds = 100,
-        )
-
-        val permissions = jwtTokenService.getClaimsFromToken(token)["permissions"] as List<*>
-
-        assertThat(permissions).containsExactlyInAnyOrder(
-            UserPermissions.CHECKIN.key,
-            UserPermissions.USER_MANAGEMENT.key,
-        )
+        assertThat(claims.subject).isEqualTo("test-user")
     }
 
     @Test

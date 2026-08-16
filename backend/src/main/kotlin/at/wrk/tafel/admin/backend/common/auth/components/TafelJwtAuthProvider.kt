@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import io.jsonwebtoken.JwtException
 import org.springframework.security.authentication.AuthenticationProvider
@@ -8,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.CredentialsExpiredException
 import org.springframework.security.authentication.DisabledException
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.*
 
@@ -19,9 +22,11 @@ class TafelJwtAuthProvider(
     override fun supports(authentication: Class<*>): Boolean = authentication == TafelJwtAuthentication::class.java
 
     /**
-     * A validly-signed, unexpired JWT is not sufficient on its own - the referenced user may have
-     * been disabled or deleted after the token was issued, so this re-checks the user's `enabled`
-     * state in the DB on every authenticated request rather than trusting the token's claims alone.
+     * A validly-signed, unexpired JWT proves identity only - it carries no permissions claim. The
+     * referenced user's authorities (and `enabled`/`passwordChangeRequired` state) are read fresh
+     * from the DB on every authenticated request instead, so a permission change an administrator
+     * makes takes effect on the user's very next request rather than only after their token expires
+     * and they log in again.
      */
     override fun authenticate(authentication: Authentication): TafelJwtAuthentication {
         try {
@@ -38,13 +43,36 @@ class TafelJwtAuthProvider(
                 throw DisabledException("User '${claims.subject}' is disabled or doesn't exist")
             }
 
-            val permissionClaims = claims[JwtTokenService.PERMISSIONS_CLAIM_KEY]
-
-            val mappedPermissions =
-                if (permissionClaims is List<*>) permissionClaims.map { SimpleGrantedAuthority(it as String) } else emptyList()
-            return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, mappedPermissions)
+            return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, effectivePermissions(userEntity))
         } catch (e: JwtException) {
             throw BadCredentialsException(e.message, e)
         }
+    }
+
+    /**
+     * A pending forced password change deliberately grants no permissions at all - the user must
+     * clear that before any real access. Otherwise [UserPermissions.ADMINISTRATOR] is expanded into
+     * every permission, since it grants everything; doing that here - the one place a request's
+     * authorities are computed - is what makes it hold for every consumer at once: `@PreAuthorize`
+     * on the backend reads these authorities, `/api/users/info` echoes them, and the frontend's
+     * route guards and `tafelIfPermission` directive go by that same list.
+     *
+     * Deliberately *not* done when a user is loaded for the user-management screens: what is stored
+     * against the account stays the single `ADMINISTRATOR` entry, so the permission editor keeps
+     * showing what was actually assigned instead of every box ticked - and saving such a user cannot
+     * silently write the expanded set back.
+     */
+    private fun effectivePermissions(userEntity: UserEntity): List<GrantedAuthority> {
+        if (userEntity.passwordChangeRequired) {
+            return emptyList()
+        }
+
+        val granted = userEntity.authorities.map { it.name }
+        val expanded = if (granted.contains(UserPermissions.ADMINISTRATOR.key)) {
+            UserPermissions.entries.map { it.key }
+        } else {
+            granted
+        }
+        return expanded.map { SimpleGrantedAuthority(it) }
     }
 }
