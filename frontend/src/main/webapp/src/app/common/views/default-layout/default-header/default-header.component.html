@@ -95,6 +95,10 @@
         <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
           <fa-icon [icon]="faBell"></fa-icon> Benachrichtigungen
         </a>
+        <a mat-menu-item href="https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf"
+           target="_blank" rel="noopener" testid="usermenu-userguide">
+          <fa-icon [icon]="faBook"></fa-icon> Benutzerhandbuch
+        </a>
         <mat-divider></mat-divider>
         <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
           <fa-icon [icon]="faLock"></fa-icon> Abmelden
