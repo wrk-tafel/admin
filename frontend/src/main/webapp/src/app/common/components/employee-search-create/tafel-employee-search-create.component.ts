@@ -1,21 +1,24 @@
 import {Component, inject, input, output} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faSearch} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {CreateEmployeeDialogComponent} from './dialogs/create-employee-dialog.component';
 import {SelectEmployeeDialogComponent} from './dialogs/select-employee-dialog.component';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
 
 @Component({
     selector: 'tafel-employee-search-create',
     templateUrl: 'tafel-employee-search-create.component.html',
     imports: [
-        FaIconComponent,
+        MatIcon,
         MatButtonModule,
     ]
 })
 export class TafelEmployeeSearchCreateComponent {
+  private readonly registerIcons = registerSvgIcons({search: searchIcon});
+
   searchInput = input.required<string>();
   testIdPrefix = input<string>();
   selectedEmployee = output<EmployeeData>();
@@ -56,6 +59,4 @@ export class TafelEmployeeSearchCreateComponent {
         }
       });
   }
-
-  protected readonly faSearch = faSearch;
 }

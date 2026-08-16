@@ -1,8 +1,10 @@
 import {Component, DestroyRef, inject, input, linkedSignal, output} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import removeIcon from '@material-symbols/svg-400/outlined/remove.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add.svg';
 
 // Long enough that a normal tap never triggers the repeat, short enough that holding down for a
 // larger amount doesn't feel like waiting.
@@ -14,11 +16,13 @@ const REPEAT_INTERVAL_MS = 120;
     templateUrl: 'tafel-counter-input.component.html',
     imports: [
         MatButtonModule,
-        FaIconComponent,
+        MatIcon,
         FormsModule
     ]
 })
 export class TafelCounterInputComponent {
+  private readonly registerIcons = registerSvgIcons({add: addIcon, remove: removeIcon});
+
   testId = input.required<string>();
   /** Names the counter for assistive technology, e.g. the food category it counts. */
   label = input.required<string>();
@@ -38,9 +42,6 @@ export class TafelCounterInputComponent {
   // pointerup (a tap and a release-after-hold look identical to the browser) doesn't apply once more
   // on top of what the repeat already applied.
   private suppressNextClick = false;
-
-  protected readonly faPlus = faPlus;
-  protected readonly faMinus = faMinus;
 
   constructor() {
     this.destroyRef.onDestroy(() => this.stopHold());

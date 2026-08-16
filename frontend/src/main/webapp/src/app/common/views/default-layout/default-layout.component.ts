@@ -5,16 +5,20 @@ import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {map} from 'rxjs';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faAngleDown, faAngleRight, faAnglesLeft, faAnglesRight} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
-import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
+import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {ConfigApiService} from '../../../api/config-api.service';
 import {TafelTitleStrategy} from '../../util/tafel-title-strategy';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down.svg';
+import keyboardArrowRightIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_right.svg';
+import keyboardDoubleArrowLeftIcon from '@material-symbols/svg-400/outlined/keyboard_double_arrow_left.svg';
+import keyboardDoubleArrowRightIcon from '@material-symbols/svg-400/outlined/keyboard_double_arrow_right.svg';
 
 // Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
 // desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
@@ -34,7 +38,7 @@ const EXPANDED_GROUPS_STORAGE_KEY = 'tafel.sidenav.expandedGroups';
     RouterLinkActive,
     RouterOutlet,
     MatSidenavModule,
-    FaIconComponent,
+    MatIcon,
     NgClass,
     DatePipe,
     NgOptimizedImage,
@@ -60,6 +64,14 @@ export class DefaultLayoutComponent {
     // way the signals can change, not just the two toggle methods.
     effect(() => this.persistToStorage(COLLAPSED_STORAGE_KEY, String(this.collapsed())));
     effect(() => this.persistToStorage(EXPANDED_GROUPS_STORAGE_KEY, JSON.stringify([...this.expandedItems()])));
+
+    registerSvgIcons({
+      keyboard_arrow_down: keyboardArrowDownIcon,
+      keyboard_arrow_right: keyboardArrowRightIcon,
+      keyboard_double_arrow_left: keyboardDoubleArrowLeftIcon,
+      keyboard_double_arrow_right: keyboardDoubleArrowRightIcon
+    });
+    registerNavigationIcons();
   }
 
   // The sidenav is always "opened" in `side` mode - collapsing only shrinks its width via a CSS class,
@@ -237,8 +249,4 @@ export class DefaultLayoutComponent {
     }
   }
 
-  protected readonly faAngleRight = faAngleRight;
-  protected readonly faAngleDown = faAngleDown;
-  protected readonly faAnglesRight = faAnglesRight;
-  protected readonly faAnglesLeft = faAnglesLeft;
 }

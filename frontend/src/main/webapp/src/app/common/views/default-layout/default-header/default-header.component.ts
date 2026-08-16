@@ -6,18 +6,7 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {
-  faBars,
-  faBell,
-  faBook,
-  faCircleQuestion,
-  faKey,
-  faLink,
-  faLinkSlash,
-  faLock,
-  faMagnifyingGlass
-} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
@@ -29,6 +18,16 @@ import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
 import {MatButton} from '@angular/material/button';
 import {ConfigApiService} from '../../../../api/config-api.service';
 import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
+import {registerSvgIcons} from '../../../util/svg-icon.util';
+import menuIcon from '@material-symbols/svg-400/outlined/menu.svg';
+import helpIcon from '@material-symbols/svg-400/outlined/help.svg';
+import searchIcon from '@material-symbols/svg-400/outlined/search.svg';
+import notificationsIcon from '@material-symbols/svg-400/outlined/notifications.svg';
+import bookIcon from '@material-symbols/svg-400/outlined/book.svg';
+import keyIcon from '@material-symbols/svg-400/outlined/key.svg';
+import lockIcon from '@material-symbols/svg-400/outlined/lock.svg';
+import linkIcon from '@material-symbols/svg-400/outlined/link.svg';
+import linkOffIcon from '@material-symbols/svg-400/outlined/link_off.svg';
 
 @Component({
   selector: 'tafel-default-header',
@@ -40,7 +39,7 @@ import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
     MatTooltipModule,
     NgClass,
     NgOptimizedImage,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     DatePipe
   ]
@@ -95,6 +94,18 @@ export class DefaultHeaderComponent {
     };
     document.addEventListener('keydown', quickOpenShortcut);
     inject(DestroyRef).onDestroy(() => document.removeEventListener('keydown', quickOpenShortcut));
+
+    registerSvgIcons({
+      menu: menuIcon,
+      help: helpIcon,
+      search: searchIcon,
+      notifications: notificationsIcon,
+      book: bookIcon,
+      key: keyIcon,
+      lock: lockIcon,
+      link: linkIcon,
+      link_off: linkOffIcon
+    });
   }
 
   public openQuickOpenDialog() {
@@ -132,14 +143,4 @@ export class DefaultHeaderComponent {
         }
       });
   }
-
-  protected readonly faBars = faBars;
-  protected readonly faCircleQuestion = faCircleQuestion;
-  protected readonly faMagnifyingGlass = faMagnifyingGlass;
-  protected readonly faBell = faBell;
-  protected readonly faBook = faBook;
-  protected readonly faKey = faKey;
-  protected readonly faLock = faLock;
-  protected readonly faLink = faLink;
-  protected readonly faLinkSlash = faLinkSlash;
 }

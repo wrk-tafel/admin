@@ -2,5 +2,5 @@
         [attr.aria-label]="label() + ', Position ' + position() + ' von ' + count() + ', mit den Pfeiltasten verschieben'"
         (keydown)="onKeydown($event)"
         matTooltip="Zum Ändern der Reihenfolge ziehen oder mit den Pfeiltasten verschieben">
-  <fa-icon [icon]="faGripVertical"></fa-icon>
+  <mat-icon svgIcon="drag_indicator"></mat-icon>
 </button>

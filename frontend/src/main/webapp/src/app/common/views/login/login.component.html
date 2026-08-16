@@ -8,7 +8,7 @@
     -->
     <div testid="environmentLabel" role="status"
          class="w-full py-2 px-4 flex items-center justify-center gap-2 bg-amber-100 text-amber-900 border-b border-amber-300 text-sm font-semibold uppercase tracking-wide">
-      <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+      <mat-icon svgIcon="warning" class="!w-4 !h-4"></mat-icon>
       <span>{{ environmentLabel() }}</span>
     </div>
   }
@@ -39,9 +39,8 @@
             <div class="mb-4">
               <mat-form-field class="w-full">
                 <mat-label>Benutzername</mat-label>
-                <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                  <fa-icon [icon]="faUser"></fa-icon>
-                </mat-icon>
+                <mat-icon matPrefix svgIcon="person"
+                          class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
                 <input #usernameInput [formField]="loginForm.username" matInput testid="username" type="text"
                        autocomplete="username" tafelAutofocus
                        (animationstart)="onAutofill($event, 'username')">
@@ -54,9 +53,8 @@
             <div class="mb-4">
               <mat-form-field class="w-full">
                 <mat-label>Passwort</mat-label>
-                <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-                  <fa-icon [icon]="faKey"></fa-icon>
-                </mat-icon>
+                <mat-icon matPrefix svgIcon="key"
+                          class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
                 <input [formField]="loginForm.password" matInput testid="password"
                        [type]="passwordVisible() ? 'text' : 'password'"
                        autocomplete="current-password"
@@ -76,9 +74,8 @@
                     rule used to give this icon while it was a direct child of the suffix container -
                     without it the padding eats into the 20px box instead of adding to it.
                   -->
-                  <mat-icon class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 box-content">
-                    <fa-icon [icon]="passwordVisible() ? faEye : faEyeSlash"></fa-icon>
-                  </mat-icon>
+                  <mat-icon [svgIcon]="passwordVisible() ? 'visibility' : 'visibility_off'"
+                            class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 box-content"></mat-icon>
                 </button>
                 @for (message of visibleErrorMessages(loginForm.password()); track message) {
                   <mat-error class="block">{{ message }}</mat-error>
@@ -92,7 +89,7 @@
                   of ever reliably coexisting with it.
                 -->
                 <div testid="capsLockWarning" role="status" class="mt-1 flex items-center gap-1 text-xs text-amber-700">
-                  <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+                  <mat-icon svgIcon="warning" class="!w-3.5 !h-3.5"></mat-icon>
                   <span>Feststelltaste ist aktiviert</span>
                 </div>
               }

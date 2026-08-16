@@ -9,10 +9,14 @@ import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {MatError, MatFormField, MatInput, MatLabel, MatPrefix, MatSuffix} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faEye, faEyeSlash, faKey, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
 import {ConfigApiService} from '../../../api/config-api.service';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import personIcon from '@material-symbols/svg-400/outlined/person.svg';
+import keyIcon from '@material-symbols/svg-400/outlined/key.svg';
+import visibilityIcon from '@material-symbols/svg-400/outlined/visibility.svg';
+import visibilityOffIcon from '@material-symbols/svg-400/outlined/visibility_off.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
 
 @Component({
   selector: 'tafel-login',
@@ -31,11 +35,18 @@ import {ConfigApiService} from '../../../api/config-api.service';
     MatError,
     MatPrefix,
     MatSuffix,
-    MatIcon,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class LoginComponent {
+  private readonly registerIcons = registerSvgIcons({
+    person: personIcon,
+    key: keyIcon,
+    visibility: visibilityIcon,
+    visibility_off: visibilityOffIcon,
+    warning: warningIcon
+  });
+
   private readonly authenticationService = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -173,11 +184,6 @@ export class LoginComponent {
   }
 
   protected readonly visibleErrorMessages = visibleErrorMessages;
-  protected readonly faUser = faUser;
-  protected readonly faKey = faKey;
-  protected readonly faEye = faEye;
-  protected readonly faEyeSlash = faEyeSlash;
-  protected readonly faTriangleExclamation = faTriangleExclamation;
 }
 
 function formatDurationInMinutes(durationInSeconds: number): string {

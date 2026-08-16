@@ -9,6 +9,11 @@
 .tafel-snackbar-icon {
   flex-shrink: 0;
   margin-top: 0.2rem;
+  // mat-icon fixes its own box at 24px via width/height rather than font-size, so overriding those
+  // (not font-size) is what actually resizes it - !important guards against Angular Material's own
+  // component style winning the cascade order.
+  width: 1.1rem !important;
+  height: 1.1rem !important;
   font-size: 1.1rem;
 }
 

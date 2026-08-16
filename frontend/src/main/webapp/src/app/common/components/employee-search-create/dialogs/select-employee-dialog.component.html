@@ -11,7 +11,7 @@
             <span>{{ employee.personnelNumber }} {{ employee.firstname }} {{ employee.lastname }}</span>
             <button matButton="outlined" aria-label="Mitarbeiter auswählen" (click)="selectEmployee(employee)"
                     [attr.testid]="'select-employee-button-' + i">
-              <fa-icon [icon]="faHandPointer"></fa-icon>
+              <mat-icon svgIcon="touch_app"></mat-icon>
             </button>
           </div>
         </mat-card-content>

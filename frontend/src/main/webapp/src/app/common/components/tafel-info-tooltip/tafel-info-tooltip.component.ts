@@ -1,7 +1,8 @@
 import {Component, input} from '@angular/core';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import infoIcon from '@material-symbols/svg-400/outlined/info.svg';
 
 /**
  * Small info icon next to a label whose meaning isn't obvious from the label alone. The
@@ -15,12 +16,12 @@ import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
   templateUrl: 'tafel-info-tooltip.component.html',
   imports: [
     MatTooltipModule,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class TafelInfoTooltipComponent {
+  private readonly registerIcons = registerSvgIcons({info: infoIcon});
+
   text = input.required<string>();
   testId = input<string>('info-tooltip');
-
-  protected readonly faCircleInfo = faCircleInfo;
 }

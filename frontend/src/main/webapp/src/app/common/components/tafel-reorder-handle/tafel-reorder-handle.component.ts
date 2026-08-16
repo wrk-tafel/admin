@@ -1,7 +1,8 @@
 import {Component, input, output} from '@angular/core';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faGripVertical} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {registerSvgIcons} from '../../util/svg-icon.util';
+import dragIndicatorIcon from '@material-symbols/svg-400/outlined/drag_indicator.svg';
 
 /**
  * The grip that reorders a record in a sortable list.
@@ -17,11 +18,13 @@ import {MatTooltipModule} from '@angular/material/tooltip';
   selector: 'tafel-reorder-handle',
   templateUrl: 'tafel-reorder-handle.component.html',
   imports: [
-    FaIconComponent,
+    MatIcon,
     MatTooltipModule
   ]
 })
 export class TafelReorderHandleComponent {
+  private readonly registerIcons = registerSvgIcons({drag_indicator: dragIndicatorIcon});
+
   /** Names the record this handle belongs to, e.g. "Fahrzeug Bus 1". */
   label = input.required<string>();
   /** The record's current place in the list, counted from 1 for the announcement. */
@@ -50,6 +53,4 @@ export class TafelReorderHandleComponent {
     event.preventDefault();
     this.move.emit(offset);
   }
-
-  protected readonly faGripVertical = faGripVertical;
 }

@@ -18,13 +18,13 @@
     <div class="flex items-center gap-2 min-w-0">
       <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
-        <fa-icon [icon]="faBars"></fa-icon>
+        <mat-icon svgIcon="menu" class="!w-5 !h-5"></mat-icon>
       </button>
 
       <button (click)="openQuickOpenDialog()" testid="quickOpenButton" aria-label="Schnellsuche öffnen (Strg+K)"
               matTooltip="Schnellsuche (Strg+K)"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
-        <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+        <mat-icon svgIcon="search" class="!w-5 !h-5"></mat-icon>
       </button>
 
       <!--
@@ -33,7 +33,7 @@
       -->
       <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
               class="!h-7 !px-2 !text-xs !min-w-0 sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium shrink-0">
-        <fa-icon [icon]="faCircleQuestion" class="sm:hidden" aria-hidden="true"></fa-icon>
+        <mat-icon svgIcon="help" class="sm:hidden !w-5 !h-5" aria-hidden="true"></mat-icon>
         <span class="hidden sm:inline">Support-Anfrage</span>
       </button>
 
@@ -77,7 +77,7 @@
         rather than silently turning red.
       -->
       <span class="badge" role="status" testid="connection-state-badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">
-        <fa-icon [icon]="sseConnected() ? faLink : faLinkSlash" aria-hidden="true"></fa-icon>
+        <mat-icon [svgIcon]="sseConnected() ? 'link' : 'link_off'" class="!w-3.5 !h-3.5 align-text-bottom" aria-hidden="true"></mat-icon>
         <!-- icon-only below `sm` (room for the page title); the sr-only state text stays either way -->
         <span class="hidden sm:inline">Live-Verbindung</span><span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
       </span>
@@ -90,10 +90,10 @@
         <!-- --tafel-background-secondary (defined in _theme.scss) is the same variable the sidebar itself uses (default-layout.component.scss). -->
         <div class="px-6 py-2 text-xs uppercase tracking-wide text-gray-100 font-semibold bg-[var(--tafel-background-secondary)]">Benutzer</div>
         <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
-          <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
+          <mat-icon svgIcon="key"></mat-icon> Passwort ändern
         </a>
         <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
-          <fa-icon [icon]="faBell"></fa-icon> Benachrichtigungen
+          <mat-icon svgIcon="notifications"></mat-icon> Benachrichtigungen
         </a>
         <!--
           No target="_blank"/rel: GitHub's release-asset URL always answers with
@@ -103,11 +103,11 @@
         -->
         <a mat-menu-item href="https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf"
            testid="usermenu-userguide">
-          <fa-icon [icon]="faBook"></fa-icon> Benutzerhandbuch
+          <mat-icon svgIcon="book"></mat-icon> Benutzerhandbuch
         </a>
         <mat-divider></mat-divider>
         <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
-          <fa-icon [icon]="faLock"></fa-icon> Abmelden
+          <mat-icon svgIcon="lock"></mat-icon> Abmelden
         </a>
       </mat-menu>
     </div>
