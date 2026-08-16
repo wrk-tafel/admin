@@ -2,45 +2,175 @@
 <html lang="de">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <style>
             body {
-                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #F2F2F2;
+                font-family: Arial, Helvetica, sans-serif;
+                color: #1A1A1A;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            .tafel-wrapper {
+                width: 100%;
+                background-color: #F2F2F2;
+                padding: 24px 0;
+            }
+            .tafel-card {
+                width: 100%;
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #FFFFFF;
+                border: 1px solid #D9D9D9;
+            }
+            .tafel-header {
+                padding: 20px 32px;
+                border-bottom: 3px solid #C8102E;
+            }
+            .tafel-header-title {
+                font-size: 16px;
+                font-weight: bold;
+            }
+            .tafel-body {
+                padding: 28px 32px;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            .tafel-body p {
+                margin: 0 0 16px;
+            }
+            .tafel-footer {
+                padding: 16px 32px 24px;
+                border-top: 1px solid #D9D9D9;
+                font-size: 11px;
+                line-height: 1.5;
+                color: #6B6B6B;
+            }
+            .tafel-section-title {
+                margin: 24px 0 12px;
+                padding-bottom: 4px;
+                border-bottom: 1px solid #D9D9D9;
+                font-size: 12px;
+                font-weight: bold;
+                letter-spacing: .03em;
+                text-transform: uppercase;
+                color: #6B6B6B;
+            }
+            .tafel-note {
+                padding: 10px 14px;
+                background-color: #FBEAEA;
+                border-left: 3px solid #C8102E;
+            }
+            .tafel-empty {
+                color: #6B6B6B;
+                font-style: italic;
+            }
+            .tafel-table {
+                width: 100%;
+                font-size: 13px;
+            }
+            .tafel-table td {
+                padding: 6px 0;
+                border-bottom: 1px solid #D9D9D9;
+                vertical-align: top;
+            }
+            .tafel-label {
+                width: 40%;
+                padding-right: 12px;
+                color: #6B6B6B;
             }
         </style>
     </head>
     <body>
-        <p>Liebe Kolleginnen und Kollegen,</p>
-        <br/>
-        <div>
+        <table role="presentation" class="tafel-wrapper" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td align="center">
+                    <table role="presentation" class="tafel-card" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td class="tafel-header">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td class="tafel-header-title" valign="middle">TÖ Tafel 1030</td>
+                                        <td align="right" valign="middle"><img src="cid:logo" alt="TÖ Tafel Logo" height="32"/></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tafel-body">
+                                <p>Liebe Kolleginnen und Kollegen,</p>
+                                <div>
     <p>Es wurde eine Support-Anfrage aus der Anwendung gesendet.</p>
-    <br/>
+
+    <div class="tafel-section-title">Anfrage</div>
     
-    <p><strong>Titel:</strong>&#160;&lt;b&gt;kaputt&lt;/b&gt;</p>
-    <br/>
-    <p><strong>Anliegen:</strong></p>
-    <p style="white-space: pre-wrap">&lt;script&gt;alert(1)&lt;/script&gt;</p>
-    <br/>
-    <p><h3>Technische Infos</h3></p>
-    <p><strong>Gemeldet von:</strong>&#160;test-user (Max Mustermann)</p>
-    <p><strong>Zeitpunkt:</strong>&#160;22.03.2026 10:15:30</p>
-    <p><strong>Umgebung:</strong>&#160;PROD</p>
-    <p><strong>Version:</strong>&#160;1.2.3 (Build 2026-03-20T10:00:00Z)</p>
-    <p><strong>Seite:</strong>&#160;unbekannt</p>
-    <p><strong>Browser:</strong>&#160;unbekannt</p>
-    <p><strong>Fenster/Bildschirm:</strong>&#160;unbekannt / unbekannt</p>
-    <p><strong>Sprache/Zeitzone:</strong>&#160;unbekannt / unbekannt</p>
-    <p><strong>Screenshot:</strong>&#160;<span>nicht mitgesendet</span></p>
-    <br/>
-    <p><strong>Letzte Fehler im Browser:</strong></p>
+    <table role="presentation" class="tafel-table" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td class="tafel-label">Titel</td>
+            <td>&lt;b&gt;kaputt&lt;/b&gt;</td>
+        </tr>
+    </table>
+    <p style="white-space: pre-wrap; margin-top: 12px;">&lt;script&gt;alert(1)&lt;/script&gt;</p>
+
+    <div class="tafel-section-title">Technische Infos</div>
+    <table role="presentation" class="tafel-table" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td class="tafel-label">Gemeldet von</td>
+            <td>test-user (Max Mustermann)</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Zeitpunkt</td>
+            <td>22.03.2026 10:15:30</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Umgebung</td>
+            <td>PROD</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Version</td>
+            <td>1.2.3 (Build 2026-03-20T10:00:00Z)</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Seite</td>
+            <td>unbekannt</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Browser</td>
+            <td>unbekannt</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Fenster/Bildschirm</td>
+            <td>unbekannt / unbekannt</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Sprache/Zeitzone</td>
+            <td>unbekannt / unbekannt</td>
+        </tr>
+        <tr>
+            <td class="tafel-label">Screenshot</td>
+            <td><span>nicht mitgesendet</span></td>
+        </tr>
+    </table>
+
+    <div class="tafel-section-title">Letzte Fehler im Browser</div>
     
-    <div>
-        <p>Keine</p>
-    </div>
+    <p class="tafel-empty">Keine</p>
 </div>
-        <br/>
-        <p>Liebe Grüße,<br>
-        TÖ Tafel 1030</p>
-        <br/>
-        <img src="cid:logo" alt="TÖ Tafel Logo"/>
+                                <p style="margin-top: 24px; margin-bottom: 0;">Liebe Grüße,<br/>TÖ Tafel 1030</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tafel-footer">
+                                Wiener Rotes Kreuz – Team Österreich Tafel<br/>
+                                Safargasse 4, 1030 Wien
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </body>
 </html>

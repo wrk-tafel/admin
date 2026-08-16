@@ -1,29 +1,23 @@
 <div th:fragment="content">
-    Infos zur Ausgabe vom [( ${distributionDate} )].
-    <br/>
-    <br/>
-    <p><strong>Anmerkungen:</strong></p>
-    <div th:if="${notes}">
-        <p>[( ${notes} )]</p>
-    </div>
-    <div th:unless="${notes}">
-        <p>Keine</p>
-    </div>
-    <br/>
-    <p><h3>Retourkisten</h3></p>
-    <br/>
+    <p>Infos zur Ausgabe vom [( ${distributionDate} )].</p>
+    <div class="tafel-section-title">Anmerkungen</div>
+    <div th:if="${notes}" class="tafel-note">[( ${notes} )]</div>
+    <p th:unless="${notes}" class="tafel-empty">Keine</p>
+
+    <div class="tafel-section-title">Retourkisten</div>
     <div th:if="${!#lists.isEmpty(returnBoxes.routes)}">
-        <div th:each="route : ${returnBoxes.routes}">
-            <p><h4>[( ${route.name} )]</h4></p>
-            <div th:each="shop : ${route.shops}">
-                <p><strong>[( ${shop.name} )]</strong>&nbsp;[( ${shop.address} )]</p>
-                <p>- [( ${shop.returnBoxes} )]</p>
-            </div>
-            <br/>
+        <div th:each="route : ${returnBoxes.routes}" style="margin-bottom: 16px;">
+            <div style="font-weight: bold; margin-bottom: 6px;">[( ${route.name} )]</div>
+            <table role="presentation" class="tafel-table" cellpadding="0" cellspacing="0" border="0">
+                <tr th:each="shop : ${route.shops}">
+                    <td>
+                        <strong>[( ${shop.name} )]</strong><br/>
+                        <span style="color: #6B6B6B;">[( ${shop.address} )]</span>
+                    </td>
+                    <td>[( ${shop.returnBoxes} )]</td>
+                </tr>
+            </table>
         </div>
     </div>
-    <div th:if="${#lists.isEmpty(returnBoxes.routes)}">
-        <p>Keine</p>
-        <br/>
-    </div>
+    <p th:if="${#lists.isEmpty(returnBoxes.routes)}" class="tafel-empty">Keine</p>
 </div>

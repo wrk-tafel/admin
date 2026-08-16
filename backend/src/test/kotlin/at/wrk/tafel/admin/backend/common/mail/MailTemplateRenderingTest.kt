@@ -127,7 +127,7 @@ class MailTemplateRenderingTest {
 
         val rendered = render("mails/support-request-mail", context)
 
-        assertThat(rendered).contains("<p style=\"white-space: pre-wrap\">Erste Zeile\nZweite Zeile</p>")
+        assertThat(rendered).contains("<p style=\"white-space: pre-wrap; margin-top: 12px;\">Erste Zeile\nZweite Zeile</p>")
     }
 
     @Test
