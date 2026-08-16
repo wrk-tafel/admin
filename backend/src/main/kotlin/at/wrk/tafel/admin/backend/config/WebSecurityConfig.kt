@@ -170,7 +170,14 @@ class WebSecurityConfig(
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        val argon2PasswordEncoder = Argon2PasswordEncoder(16, 32, 1, 16384, 2)
+        val argon2Properties = applicationProperties.security.argon2
+        val argon2PasswordEncoder = Argon2PasswordEncoder(
+            argon2Properties.saltLength,
+            argon2Properties.hashLength,
+            argon2Properties.parallelism,
+            argon2Properties.memory,
+            argon2Properties.iterations,
+        )
         return DelegatingPasswordEncoder("argon2", mapOf("argon2" to argon2PasswordEncoder))
     }
 
@@ -181,7 +188,13 @@ class WebSecurityConfig(
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
 
     @Bean
-    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(tafelUserDetailsManager(), passwordEncoder(), loginAttemptService, loginAuditService)
+    fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(
+        tafelUserDetailsManager(),
+        passwordEncoder(),
+        loginAttemptService,
+        loginAuditService,
+        tafelUserDetailsManager()::upgradePasswordHash,
+    )
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)

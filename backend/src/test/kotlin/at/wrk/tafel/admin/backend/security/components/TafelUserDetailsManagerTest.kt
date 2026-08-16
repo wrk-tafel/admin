@@ -674,6 +674,31 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
+    fun `upgradePasswordHash persists the given hash without validation`() {
+        every { userRepository.findByUsername(testUser.username) } returns testUserEntity
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.upgradePasswordHash(testUser.username, "upgraded-hash")
+
+        verify(exactly = 1) {
+            userRepository.save(
+                withArg {
+                    assertThat(it.password).isEqualTo("upgraded-hash")
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `upgradePasswordHash for an unknown user does nothing`() {
+        every { userRepository.findByUsername("unknown") } returns null
+
+        manager.upgradePasswordHash("unknown", "upgraded-hash")
+
+        verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    @Test
     fun `deleteUser not found`() {
         every { userRepository.findByUsername(any()) } returns null
 

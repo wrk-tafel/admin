@@ -29,6 +29,7 @@ internal class TafelLoginProviderTest {
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var loginAttemptService: LoginAttemptService
     private lateinit var loginAuditService: LoginAuditService
+    private lateinit var upgradedHashes: MutableList<Pair<String, String>>
     private lateinit var provider: TafelLoginProvider
 
     private val testUser = TafelUser(
@@ -54,7 +55,11 @@ internal class TafelLoginProviderTest {
         loginAuditService = mockk(relaxed = true)
 
         every { passwordEncoder.encode(any()) } returns "fallback-hash"
-        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, loginAuditService)
+        every { passwordEncoder.upgradeEncoding(any()) } returns false
+        upgradedHashes = mutableListOf()
+        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, loginAuditService) { username, upgradedHash ->
+            upgradedHashes.add(username to upgradedHash)
+        }
 
         logger = LoggerFactory.getLogger(TafelLoginProvider::class.java) as Logger
         logAppender = ListAppender<ILoggingEvent>().apply { start() }
@@ -100,6 +105,35 @@ internal class TafelLoginProviderTest {
         verify { loginAuditService.recordLogin(testUser) }
         assertThat(logAppender.list.single().level).isEqualTo(Level.INFO)
         assertThat(logAppender.list.single().formattedMessage).contains("user")
+        assertThat(upgradedHashes).isEmpty()
+    }
+
+    @Test
+    fun `successful login with a hash from older argon2 parameters upgrades it`() {
+        every { loginAttemptService.isLocked("user") } returns false
+        every { userDetailsService.loadUserByUsername("user") } returns testUser
+        every { passwordEncoder.matches("pwd", "encoded-password") } returns true
+        every { passwordEncoder.upgradeEncoding("encoded-password") } returns true
+        every { passwordEncoder.encode("pwd") } returns "re-encoded-password"
+
+        val result = provider.authenticate(UsernamePasswordAuthenticationToken("user", "pwd"))
+
+        assertThat(result.isAuthenticated).isTrue
+        assertThat(upgradedHashes).containsExactly("user" to "re-encoded-password")
+    }
+
+    @Test
+    fun `unauthenticated login attempt doesnt trigger an upgrade`() {
+        every { loginAttemptService.isLocked("user") } returns false
+        every { userDetailsService.loadUserByUsername("user") } returns testUser
+        every { passwordEncoder.matches("wrong-pwd", "encoded-password") } returns false
+
+        assertThrows<BadCredentialsException> {
+            provider.authenticate(UsernamePasswordAuthenticationToken("user", "wrong-pwd"))
+        }
+
+        verify(exactly = 0) { passwordEncoder.upgradeEncoding(any()) }
+        assertThat(upgradedHashes).isEmpty()
     }
 
     @Test

@@ -24,6 +24,7 @@ data class ApplicationProperties(
 data class SecurityProperties(
     val jwtToken: SecurityJwtTokenProperties,
     val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties(),
+    val argon2: SecurityArgon2Properties = SecurityArgon2Properties(),
 )
 
 data class SecurityLoginAttemptsProperties(
@@ -42,4 +43,26 @@ data class SecurityJwtTokenProperties(
 data class SecurityJwtTokenSecretProperties(
     val value: String,
     val algorithm: String,
+)
+
+/**
+ * Tuning for the Argon2id hash `WebSecurityConfig.passwordEncoder` verifies and creates every
+ * password with (Spring Security's `Argon2PasswordEncoder` always uses the Argon2id variant, so
+ * there is no separate "which Argon2 variant" setting here). Constructor-bound like the rest of
+ * [ApplicationProperties] - the encoder bean is built once at startup from these, so changing any
+ * of them needs a restart.
+ *
+ * A password's stored hash embeds the parameters it was created with (the PHC string format), so
+ * `matches` keeps verifying an existing hash correctly no matter what this changes to - only
+ * `encode` (a login with a new/changed password) picks up new values immediately. An existing
+ * user's hash is migrated onto the current parameters lazily, the next time they log in
+ * successfully, rather than needing a bulk rehash or a forced reset - see
+ * `TafelLoginProvider.additionalAuthenticationChecks`.
+ */
+data class SecurityArgon2Properties(
+    val saltLength: Int = 16,
+    val hashLength: Int = 32,
+    val parallelism: Int = 1,
+    val memory: Int = 131072,
+    val iterations: Int = 3,
 )

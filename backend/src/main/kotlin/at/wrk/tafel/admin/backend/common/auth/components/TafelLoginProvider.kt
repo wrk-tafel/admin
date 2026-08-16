@@ -19,6 +19,7 @@ class TafelLoginProvider(
     private val passwordEncoder: PasswordEncoder,
     private val loginAttemptService: LoginAttemptService,
     private val loginAuditService: LoginAuditService,
+    private val upgradePasswordHash: (username: String, upgradedHash: String) -> Unit,
 ) : AbstractUserDetailsAuthenticationProvider() {
 
     companion object {
@@ -67,8 +68,16 @@ class TafelLoginProvider(
         userDetails: UserDetails,
         authentication: UsernamePasswordAuthenticationToken,
     ) {
-        if (!passwordEncoder.matches(authentication.credentials as String, userDetails.password)) {
+        val rawPassword = authentication.credentials as String
+        if (!passwordEncoder.matches(rawPassword, userDetails.password)) {
             throw BadCredentialsException("Password wrong for user '${authentication.name}'")
+        }
+
+        // The stored hash was produced with Argon2 parameters older than the currently configured
+        // ones (see SecurityArgon2Properties) - re-encode it with the raw password we just verified
+        // so this user is migrated onto the current parameters without a forced password reset.
+        if (passwordEncoder.upgradeEncoding(userDetails.password)) {
+            upgradePasswordHash(userDetails.username, passwordEncoder.encode(rawPassword)!!)
         }
     }
 }
