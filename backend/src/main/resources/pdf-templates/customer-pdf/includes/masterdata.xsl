@@ -66,7 +66,7 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell padding="1.5mm" number-columns-spanned="2">
-                        <xsl:variable name="addressLine1">
+                        <xsl:variable name="streetValue">
                             <xsl:value-of select="$data/address/street"/>
                             <xsl:if test="$data/address/houseNumber != ''">
                                 <xsl:value-of select="concat(' ', $data/address/houseNumber)"/>
@@ -78,15 +78,23 @@
                                 <xsl:value-of select="concat(' Top ', $data/address/door)"/>
                             </xsl:if>
                         </xsl:variable>
-                        <xsl:variable name="addressLine2">
+                        <xsl:call-template name="field-with-label">
+                            <xsl:with-param name="value" select="$streetValue"/>
+                            <xsl:with-param name="label" select="'Straße'"/>
+                        </xsl:call-template>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell padding="1.5mm" number-columns-spanned="2">
+                        <xsl:variable name="cityValue">
                             <xsl:if test="$data/address/postalCode != ''">
                                 <xsl:value-of select="concat($data/address/postalCode, ' ')"/>
                             </xsl:if>
                             <xsl:value-of select="$data/address/city"/>
                         </xsl:variable>
                         <xsl:call-template name="field-with-label">
-                            <xsl:with-param name="value" select="concat($addressLine1, '&#xA;', $addressLine2)"/>
-                            <xsl:with-param name="label" select="'Adresse'"/>
+                            <xsl:with-param name="value" select="$cityValue"/>
+                            <xsl:with-param name="label" select="'PLZ / Ort'"/>
                         </xsl:call-template>
                     </fo:table-cell>
                 </fo:table-row>
@@ -162,6 +170,16 @@
                                                border-bottom="0.25mm solid {$tafelHairline}">
                                     <fo:block font-weight="bold" font-size="10pt" color="{$tafelInk}" space-after="1mm">
                                         <xsl:value-of select="concat(./lastname, ' ', ./firstname)"/>
+                                        <xsl:if test="./excludeFromHousehold = 'true'">
+                                            <xsl:text>  </xsl:text>
+                                            <fo:inline padding-top="0.3mm" padding-bottom="0.3mm" padding-left="1.5mm"
+                                                       padding-right="1.5mm" font-size="7pt"
+                                                       font-weight="bold" color="{$tafelAccent}"
+                                                       border="0.3mm solid {$tafelAccent}"
+                                                       background-color="{$tafelAccentTint}">
+                                                NICHT IM HAUSHALT
+                                            </fo:inline>
+                                        </xsl:if>
                                     </fo:block>
                                     <fo:block font-size="8.5pt" color="{$tafelMuted}">
                                         <xsl:value-of select="./birthDate"/>

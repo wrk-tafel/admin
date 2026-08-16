@@ -93,6 +93,7 @@ class HouseholdPdfService(
         employer = person.employer ?: "-",
         income = formatIncome(person.income),
         incomeDueDate = person.incomeDue?.format(DATE_FORMATTER) ?: "-",
+        excludeFromHousehold = person.excludeFromHousehold,
     )
 
     private fun formatIncome(income: BigDecimal?): String = income
