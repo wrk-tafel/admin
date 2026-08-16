@@ -43,6 +43,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -56,6 +57,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.util.MimeTypeUtils
 import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -742,8 +744,12 @@ internal class DistributionServiceTest {
         }
 
         val pdfModel = householdListPdfModelSlot.captured
-        assertThat(pdfModel).isEqualTo(
+        assertThat(pdfModel.logoContentType).isEqualTo(MimeTypeUtils.IMAGE_PNG_VALUE)
+        assertThat(pdfModel.logoBytes).isNotNull()
+        assertThat(pdfModel).usingRecursiveComparison().ignoringFields("logoContentType", "logoBytes").isEqualTo(
             HouseholdListPdfModel(
+                logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+                logoBytes = ByteArray(0),
                 title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
                 halftimeTicketNumber = 51,
                 countHouseholdsOverall = 3,
@@ -1426,7 +1432,10 @@ internal class DistributionServiceTest {
 
     @Test
     fun `generate customerlist pdf - compare`() {
+        val logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
         val pdfModel = HouseholdListPdfModel(
+            logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+            logoBytes = logoBytes,
             title = "Kundenliste zur Ausgabe vom 01.01.2026",
             halftimeTicketNumber = 51,
             countHouseholdsOverall = 3,
