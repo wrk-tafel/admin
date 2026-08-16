@@ -8,20 +8,18 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {
-  faBoxesStacked,
-  faCheck,
-  faChevronLeft,
-  faChevronRight,
-  faDiamondTurnRight,
-  faLocationDot,
-  faNoteSticky,
-  faPhone,
-  faRoute,
-  faRotateLeft,
-  faUser
-} from '@fortawesome/free-solid-svg-icons';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import inventory2Icon from '@material-symbols/svg-400/outlined/inventory_2.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
+import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left.svg';
+import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right.svg';
+import directionsIcon from '@material-symbols/svg-400/outlined/directions.svg';
+import locationOnIcon from '@material-symbols/svg-400/outlined/location_on.svg';
+import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2.svg';
+import callIcon from '@material-symbols/svg-400/outlined/call.svg';
+import routeIcon from '@material-symbols/svg-400/outlined/route.svg';
+import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person.svg';
 import {
   RouteApiService,
   RouteData,
@@ -81,11 +79,24 @@ interface StopView {
     MatProgressBar,
     MatSelectModule,
     MatIcon,
-    FaIconComponent,
     TafelInfoTooltipComponent
   ]
 })
 export class RouteGuidanceComponent {
+  private readonly registerIcons = registerSvgIcons({
+    inventory_2: inventory2Icon,
+    check: checkIcon,
+    chevron_left: chevronLeftIcon,
+    chevron_right: chevronRightIcon,
+    directions: directionsIcon,
+    location_on: locationOnIcon,
+    sticky_note_2: stickyNote2Icon,
+    call: callIcon,
+    route: routeIcon,
+    restart_alt: restartAltIcon,
+    person: personIcon
+  });
+
   routeList = model.required<RouteList>();
 
   private readonly routeApiService = inject(RouteApiService);
@@ -445,16 +456,5 @@ export class RouteGuidanceComponent {
     return buildSingleDestinationMapsUrl(shop.address);
   }
 
-  protected readonly faBoxesStacked = faBoxesStacked;
-  protected readonly faCheck = faCheck;
-  protected readonly faChevronLeft = faChevronLeft;
-  protected readonly faChevronRight = faChevronRight;
-  protected readonly faDiamondTurnRight = faDiamondTurnRight;
-  protected readonly faLocationDot = faLocationDot;
-  protected readonly faNoteSticky = faNoteSticky;
-  protected readonly faPhone = faPhone;
-  protected readonly faRoute = faRoute;
-  protected readonly faRotateLeft = faRotateLeft;
-  protected readonly faUser = faUser;
   protected readonly infoText = INFO_TEXT;
 }

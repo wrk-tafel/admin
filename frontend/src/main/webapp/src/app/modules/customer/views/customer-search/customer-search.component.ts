@@ -16,9 +16,12 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatChipsModule} from '@angular/material/chips';
 import {CommonModule} from '@angular/common';
-import {faLock, faPencil, faUser} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import lockIcon from '@material-symbols/svg-400/outlined/lock.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
@@ -67,7 +70,7 @@ const QUERY_PARAMS = {
     MatPaginatorModule,
     MatChipsModule,
     CommonModule,
-    FaIconComponent,
+    MatIcon,
     TafelAutofocusDirective,
     FormatCustomerAddressPipe,
     MatTooltipModule,
@@ -76,6 +79,8 @@ const QUERY_PARAMS = {
   ]
 })
 export class CustomerSearchComponent {
+  private readonly registerIcons = registerSvgIcons({lock: lockIcon, person: personIcon, edit: editIcon});
+
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -308,9 +313,6 @@ export class CustomerSearchComponent {
   // columns for mat-table
   displayedColumns = ['icon', 'id', 'name', 'birthDate', 'address', 'personsCount', 'issuedAt', 'validUntil', 'actions'];
 
-  protected readonly faPencil = faPencil;
-  protected readonly faUser = faUser;
-  protected readonly faLock = faLock;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }
 

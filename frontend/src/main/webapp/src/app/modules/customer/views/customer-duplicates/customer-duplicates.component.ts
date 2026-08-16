@@ -8,12 +8,14 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {DatePipe, NgClass} from '@angular/common';
-import {faCheck, faCircleCheck} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle.svg';
 
 type DuplicateComparisonFieldKind = 'date' | 'text';
 
@@ -35,10 +37,12 @@ interface DuplicateComparisonField {
     DatePipe,
     NgClass,
     MatButtonModule,
-    FaIconComponent
+    MatIcon
   ]
 })
 export class CustomerDuplicatesComponent {
+  private readonly registerIcons = registerSvgIcons({check: checkIcon, check_circle: checkCircleIcon});
+
   // Input signal - aliased to match the route resolver data key (see customer.routes.ts) since the
   // unaliased name below is already used for the locally-writable linkedSignal counterpart
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -209,8 +213,6 @@ export class CustomerDuplicatesComponent {
     return customer.id!;
   }
 
-  protected readonly faCheck = faCheck;
-  protected readonly faCircleCheck = faCircleCheck;
   // Not enabled here (hidePageSize stays true) - page size is fixed at 1 pair per page, which
   // mergeCustomers() below relies on. Only kept for structural consistency with the other pages.
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;

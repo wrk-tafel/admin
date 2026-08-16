@@ -1,22 +1,25 @@
 import {Component, inject, input, output} from '@angular/core';
 import {MatButton} from '@angular/material/button';
-import {faCalculator} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {SelectSheltersDialogComponent} from './dialogs/select-shelters-dialog.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import calculateIcon from '@material-symbols/svg-400/outlined/calculate.svg';
 
 @Component({
   selector: 'tafel-select-shelters',
   templateUrl: 'select-shelters.component.html',
   imports: [
     MatButton,
-    FaIconComponent,
+    MatIcon,
     MatTooltipModule
   ]
 })
 export class SelectSheltersComponent {
+  private readonly registerIcons = registerSvgIcons({calculate: calculateIcon});
+
   private readonly dialog = inject(MatDialog);
 
   public readonly sheltersList = input<ShelterItem[]>();
@@ -36,6 +39,4 @@ export class SelectSheltersComponent {
       }
     });
   }
-
-  protected readonly faCalculator = faCalculator;
 }

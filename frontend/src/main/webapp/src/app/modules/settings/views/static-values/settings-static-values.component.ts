@@ -22,13 +22,18 @@ import {
   StaticValueListResponse,
   StaticValueTypeEnum
 } from '../../../../api/settings-api.service';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
-import {faArrowUpRightFromSquare, faCheck, faClockRotateLeft, faPencil, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import historyIcon from '@material-symbols/svg-400/outlined/history.svg';
+import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
 import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
 import {
   StaticValueChangeDialogComponent,
@@ -110,7 +115,7 @@ export const AUDIT_LOG_QUERY_PARAMS = {art: 'StaticValue'};
     MatRowDef,
     MatTable,
     MatHeaderCellDef,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     CurrencyPipe,
     ReactiveFormsModule,
@@ -122,6 +127,14 @@ export const AUDIT_LOG_QUERY_PARAMS = {art: 'StaticValue'};
   ]
 })
 export class SettingsStaticValuesComponent {
+  private readonly registerIcons = registerSvgIcons({
+    history: historyIcon,
+    open_in_new: openInNewIcon,
+    check: checkIcon,
+    close: closeIcon,
+    edit: editIcon
+  });
+
   private readonly settingsApiService = inject(SettingsApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
@@ -264,9 +277,4 @@ export class SettingsStaticValuesComponent {
   }
 
   protected readonly auditLogQueryParams = AUDIT_LOG_QUERY_PARAMS;
-  protected readonly faPencil = faPencil;
-  protected readonly faCheck = faCheck;
-  protected readonly faXmark = faXmark;
-  protected readonly faClockRotateLeft = faClockRotateLeft;
-  protected readonly faArrowUpRightFromSquare = faArrowUpRightFromSquare;
 }

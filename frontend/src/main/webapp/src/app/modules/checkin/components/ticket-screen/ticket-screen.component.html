@@ -9,7 +9,7 @@
          instead of a small corner badge - a stale ticket number that still looks current would
          actively mislead the queue, so this needs to be impossible to miss. -->
     <div testid="connectionState" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-[3cqh] bg-black/85 text-center px-[3cqw]" role="status">
-      <fa-icon [icon]="faLinkSlash" aria-hidden="true" class="text-white text-[9cqmin]"></fa-icon>
+      <mat-icon svgIcon="link_off" aria-hidden="true" class="text-white !w-[9cqmin] !h-[9cqmin]"></mat-icon>
       <div class="text-white text-[7cqmin] font-semibold">Verbindung getrennt</div>
       @if (lastUpdateAt(); as lastUpdate) {
         <div testid="lastUpdateText" class="text-white/80 text-[4cqmin]">letzte Anzeige {{ lastUpdate | date:'HH:mm' }}</div>

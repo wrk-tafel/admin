@@ -8,9 +8,9 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faEnvelope} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import mailIcon from '@material-symbols/svg-400/outlined/mail.svg';
 
 @Component({
   selector: 'tafel-send-mails',
@@ -28,11 +28,12 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatDatepickerModule,
     FormsModule,
     DatePipe,
-    FaIconComponent,
     MatCardFooter
   ]
 })
 export class SendMailsComponent {
+  private readonly registerIcons = registerSvgIcons({mail: mailIcon});
+
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastr = inject(TafelToastrService);
 
@@ -65,5 +66,4 @@ export class SendMailsComponent {
     }
   }
 
-  protected readonly faEnvelope = faEnvelope;
 }

@@ -8,8 +8,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faPlus, faRemove} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {
   FoodCollectionCategoryWithAmount,
   FoodCollectionItem,
@@ -35,6 +34,9 @@ import {
 } from '../../services/food-collection-return-items';
 import {Observable} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
 
 // How long the "Synchronisiert ✓" confirmation stays up once the offline queue has emptied out -
 // long enough to notice, short enough not to linger once it's no longer news.
@@ -50,11 +52,13 @@ const SYNC_CONFIRMATION_DURATION_MS = 4000;
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    FaIconComponent,
+    MatIcon,
     TafelCounterInputComponent
   ]
 })
 export class FoodCollectionRecordingItemsResponsiveComponent {
+  private readonly registerIcons = registerSvgIcons({add: addIcon, close: closeIcon});
+
   foodCategories = model.required<FoodCategory[]>();
   foodReturnCategories = model.required<FoodReturnCategory[]>();
   selectedRouteData = input<SelectedRouteData>();
@@ -479,7 +483,5 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     return this.returnItems.at(index) as FormGroup;
   }
 
-  protected readonly faPlus = faPlus;
-  protected readonly faRemove = faRemove;
   protected readonly maxDescriptionLength = RETURN_ITEM_DESCRIPTION_MAX_LENGTH;
 }

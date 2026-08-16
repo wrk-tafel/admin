@@ -5,7 +5,7 @@
         <h2 class="tafel-h5 mb-0 mt-1">Grenzwerte</h2>
         <a *tafelIfPermission="'AUDIT_LOG'" matButton="outlined" testid="static-values-audit-link"
            routerLink="/aenderungsprotokoll" [queryParams]="auditLogQueryParams">
-          <fa-icon [icon]="faClockRotateLeft" class="me-2"></fa-icon>
+          <mat-icon svgIcon="history" class="me-2"></mat-icon>
           Wer hat zuletzt geändert?
         </a>
       </div>
@@ -24,7 +24,7 @@
           @if (group.key === 'income') {
             <a *tafelIfPermission="'CUSTOMERS_ABOVE_LIMIT'" matButton="outlined"
                testid="static-values-above-limit-link" routerLink="/kunden/ueber-limit">
-              <fa-icon [icon]="faArrowUpRightFromSquare" class="me-2"></fa-icon>
+              <mat-icon svgIcon="open_in_new" class="me-2"></mat-icon>
               Kunden über Limit ansehen
             </a>
           }
@@ -75,18 +75,18 @@
                       <button matButton="filled" [attr.testid]="'saveStaticValueButton-' + row.index"
                               matTooltip="Änderungen speichern" (click)="saveEdit(section, row)"
                               [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' speichern'">
-                        <fa-icon [icon]="faCheck"></fa-icon>
+                        <mat-icon svgIcon="check"></mat-icon>
                       </button>
                       <button matButton="outlined" class="ml-2" [attr.testid]="'cancelStaticValueButton-' + row.index"
                               matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()"
                               [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(section, row) + ' abbrechen'">
-                        <fa-icon [icon]="faXmark"></fa-icon>
+                        <mat-icon svgIcon="close"></mat-icon>
                       </button>
                     } @else {
                       <button matButton="filled" [attr.testid]="'editStaticValueButton-' + row.index"
                               matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
                               [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">
-                        <fa-icon [icon]="faPencil"></fa-icon>
+                        <mat-icon svgIcon="edit"></mat-icon>
                       </button>
                     }
                   </td>
@@ -130,19 +130,19 @@
                         <button matButton="filled" [attr.testid]="'saveStaticValueButtonMobile-' + row.index"
                                 matTooltip="Änderungen speichern" (click)="saveEdit(section, row)"
                                 [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' speichern'">
-                          <fa-icon [icon]="faCheck"></fa-icon>
+                          <mat-icon svgIcon="check"></mat-icon>
                         </button>
                         <button matButton="outlined" [attr.testid]="'cancelStaticValueButtonMobile-' + row.index"
                                 matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()"
                                 [attr.aria-label]="'Bearbeiten des Betrags für ' + rowLabel(section, row) + ' abbrechen'">
-                          <fa-icon [icon]="faXmark"></fa-icon>
+                          <mat-icon svgIcon="close"></mat-icon>
                         </button>
                       } @else {
                         <button matButton="filled"
                                 [attr.testid]="'editStaticValueButtonMobile-' + row.index"
                                 matTooltip="Betrag bearbeiten" (click)="startEdit(row.staticValue)"
                                 [attr.aria-label]="'Betrag für ' + rowLabel(section, row) + ' bearbeiten'">
-                          <fa-icon [icon]="faPencil"></fa-icon>
+                          <mat-icon svgIcon="edit"></mat-icon>
                         </button>
                       }
                     </mat-card-actions>

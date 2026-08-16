@@ -4,11 +4,15 @@ import {MatCardModule} from '@angular/material/card';
 import {MatDialog} from '@angular/material/dialog';
 import {BaseChartDirective} from 'ng2-charts';
 import {TooltipItem} from 'chart.js';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faArrowDown, faArrowUp, faMinus, faUpRightAndDownLeftFromCenter} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {StatisticsDetailData} from '../../../api/statistics-api.service';
 import {computeDelta, formatStatisticsValue} from './statistics-comparison';
 import {StatisticsDetailDialogComponent} from './statistics-detail-dialog.component';
+import {registerSvgIcons} from '../../../common/util/svg-icon.util';
+import openInFullIcon from '@material-symbols/svg-400/outlined/open_in_full.svg';
+import arrowUpwardIcon from '@material-symbols/svg-400/outlined/arrow_upward.svg';
+import arrowDownwardIcon from '@material-symbols/svg-400/outlined/arrow_downward.svg';
+import removeIcon from '@material-symbols/svg-400/outlined/remove.svg';
 
 /**
  * Roughly what a card's sparkline has to name its periods in: the width of its chart area, and what
@@ -36,10 +40,17 @@ function shortenPeriodLabel(label: string | undefined): string {
     CommonModule,
     MatCardModule,
     BaseChartDirective,
-    FaIconComponent,
+    MatIcon,
   ]
 })
 export class StatisticsPanelComponent {
+  private readonly registerIcons = registerSvgIcons({
+    open_in_full: openInFullIcon,
+    arrow_upward: arrowUpwardIcon,
+    arrow_downward: arrowDownwardIcon,
+    remove: removeIcon
+  });
+
   private readonly dialog = inject(MatDialog);
   private readonly locale = inject(LOCALE_ID);
 
@@ -244,10 +255,6 @@ export class StatisticsPanelComponent {
     return formatStatisticsValue(value, this.data()?.unit, this.locale);
   }
 
-  protected readonly faArrowUp = faArrowUp;
-  protected readonly faArrowDown = faArrowDown;
-  protected readonly faMinus = faMinus;
-  protected readonly faUpRightAndDownLeftFromCenter = faUpRightAndDownLeftFromCenter;
 }
 
 export interface StatisticsPanelData {

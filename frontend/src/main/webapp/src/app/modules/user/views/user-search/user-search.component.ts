@@ -15,13 +15,16 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatChipsModule, MatChipSelectionChange} from '@angular/material/chips';
 import {CommonModule} from '@angular/common';
-import {faLock, faPencil, faUser} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import lockIcon from '@material-symbols/svg-400/outlined/lock.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
 
 /** Long enough not to search on every keystroke, short enough to still feel immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -66,7 +69,7 @@ const QUERY_PARAMS = {
     MatPaginatorModule,
     MatChipsModule,
     CommonModule,
-    FaIconComponent,
+    MatIcon,
     TafelAutofocusDirective,
     MatTooltipModule,
     TafelInfoTooltipComponent,
@@ -74,6 +77,8 @@ const QUERY_PARAMS = {
   ]
 })
 export class UserSearchComponent {
+  private readonly registerIcons = registerSvgIcons({lock: lockIcon, person: personIcon, edit: editIcon});
+
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -296,9 +301,6 @@ export class UserSearchComponent {
   // columns for mat-table
   displayedColumns = ['icon', 'id', 'name', 'personnelNumber', 'status', 'actions'];
 
-  protected readonly faPencil = faPencil;
-  protected readonly faUser = faUser;
-  protected readonly faLock = faLock;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }
 

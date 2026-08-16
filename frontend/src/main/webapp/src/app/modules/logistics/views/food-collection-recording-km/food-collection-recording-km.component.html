@@ -5,9 +5,7 @@
       <mat-form-field class="w-full">
         <mat-label>KM Start</mat-label>
         <input matInput testid="kmStartInput" type="number" formControlName="kmStart">
-        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-          <fa-icon [icon]="faGauge"></fa-icon>
-        </mat-icon>
+        <mat-icon matPrefix svgIcon="speed" class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
         @if (kmStart.errors?.min && kmStart.touched) {
           <mat-error>Muss mindestens 1 sein</mat-error>
         }
@@ -20,9 +18,7 @@
       <mat-form-field class="w-full">
         <mat-label>KM Ende</mat-label>
         <input matInput testid="kmEndInput" type="number" formControlName="kmEnd">
-        <mat-icon matPrefix class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500">
-          <fa-icon [icon]="faGauge"></fa-icon>
-        </mat-icon>
+        <mat-icon matPrefix svgIcon="speed" class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
         @if (kmEnd.errors?.min && kmEnd.touched) {
           <mat-error>Muss mindestens 1 sein</mat-error>
         }

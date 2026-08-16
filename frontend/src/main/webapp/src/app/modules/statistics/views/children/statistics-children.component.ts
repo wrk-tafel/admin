@@ -30,9 +30,10 @@ import {
 } from '../../../../api/statistics-api.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faSave} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import saveIcon from '@material-symbols/svg-400/outlined/save.svg';
 
 export const SCHOOL_AGE_PRESET = {ageMin: 6, ageMax: 15};
 export const MIN_AGE = 0;
@@ -65,7 +66,7 @@ export function ageRangeValidator(group: AbstractControl): ValidationErrors | nu
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    FaIconComponent,
+    MatIcon,
     MatCell,
     MatCellDef,
     MatColumnDef,
@@ -82,6 +83,8 @@ export function ageRangeValidator(group: AbstractControl): ValidationErrors | nu
   ]
 })
 export class StatisticsChildrenComponent {
+  private readonly registerIcons = registerSvgIcons({save: saveIcon});
+
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly authenticationService = inject(AuthenticationService);
@@ -217,7 +220,6 @@ export class StatisticsChildrenComponent {
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 
-  protected readonly faSave = faSave;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
   protected readonly schoolAgePreset = SCHOOL_AGE_PRESET;
   protected readonly minAge = MIN_AGE;

@@ -50,8 +50,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {CommonModule} from '@angular/common';
-import {faCopy, faDownload, faPlus, faSpinner, faTrashCan, faUsers} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {FormatIssuerPipe} from '../../../../common/pipes/format-issuer.pipe';
@@ -74,6 +73,13 @@ import {
   customerValidityStateText,
   CustomerValidityState
 } from '../../../../common/util/customer-validity.util';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy.svg';
+import downloadIcon from '@material-symbols/svg-400/outlined/download.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add.svg';
+import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
+import groupIcon from '@material-symbols/svg-400/outlined/group.svg';
 
 // Matches the Tailwind `lg` breakpoint this template's action/tab layout switches at.
 const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
@@ -87,7 +93,7 @@ const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
-    FaIconComponent,
+    MatIcon,
     MatTabsModule,
     BirthdateAgePipe,
     GenderLabelPipe,
@@ -106,6 +112,15 @@ const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
   ]
 })
 export class CustomerDetailComponent {
+  private readonly registerIcons = registerSvgIcons({
+    content_copy: contentCopyIcon,
+    download: downloadIcon,
+    add: addIcon,
+    progress_activity: progressActivityIcon,
+    delete: deleteIcon,
+    group: groupIcon
+  });
+
   // Input signals - aliased to match the route resolver data keys (see customer.routes.ts) since the
   // unaliased names below are already used for the locally-writable linkedSignal counterparts
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -533,12 +548,6 @@ export class CustomerDetailComponent {
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 
-  protected readonly faUsers = faUsers;
-  protected readonly faPlus = faPlus;
-  protected readonly faDownload = faDownload;
-  protected readonly faTrashCan = faTrashCan;
-  protected readonly faCopy = faCopy;
-  protected readonly faSpinner = faSpinner;
   protected readonly documentTypeLabel = documentTypeLabel;
   protected readonly Number = Number;
   protected readonly CustomerValidityState = CustomerValidityState;

@@ -5,7 +5,7 @@
         <h2 class="tafel-h5 mb-0 mt-1">Anmelde-Versuche</h2>
         <button matButton="filled" testid="refreshLoginAttemptsButton" matTooltip="Liste aktualisieren"
                 (click)="refresh()" aria-label="Liste aktualisieren">
-          <fa-icon [icon]="faArrowsRotate"></fa-icon>
+          <mat-icon svgIcon="sync"></mat-icon>
         </button>
         @if (lastUpdatedAt(); as updatedAt) {
           <span class="text-sm font-normal text-slate-500" testid="login-attempts-updated-at">
@@ -101,7 +101,7 @@
           @if (loginAttempt.locked) {
             <button matButton="filled" [attr.testid]="'unlockLoginAttemptButton-' + i" (click)="unlock(loginAttempt)"
                     [attr.aria-label]="'Sperre für ' + loginAttempt.username + ' aufheben'">
-              <fa-icon [icon]="faLockOpen"></fa-icon>
+              <mat-icon svgIcon="lock_open"></mat-icon>
               Entsperren
             </button>
           } @else {
@@ -165,7 +165,7 @@
               @if (loginAttempt.locked) {
                 <button matButton="filled" [attr.testid]="'unlockLoginAttemptButtonMobile-' + i" (click)="unlock(loginAttempt)"
                         [attr.aria-label]="'Sperre für ' + loginAttempt.username + ' aufheben'">
-                  <fa-icon [icon]="faLockOpen"></fa-icon>
+                  <mat-icon svgIcon="lock_open"></mat-icon>
                   Entsperren
                 </button>
               } @else {
@@ -184,7 +184,7 @@
          list nothing at all, so neither can carry this on its own. -->
     @if (loginAttempts() && rows().length === 0) {
       <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="login-attempts-empty">
-        <fa-icon [icon]="faUserShield" size="2x"></fa-icon>
+        <mat-icon svgIcon="shield_person" class="!w-8 !h-8"></mat-icon>
         @if (searchControl.value.trim()) {
           <span>Keine Anmelde-Versuche für "{{ searchControl.value.trim() }}".</span>
         } @else if (statusFilter() === 'LOCKED') {

@@ -27,10 +27,14 @@ import {
   PersonnelNumberAvailabilityResponse
 } from '../../../../api/employee-api.service';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
-import {faCheck, faPencil, faPlus, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check.svg';
+import closeIcon from '@material-symbols/svg-400/outlined/close.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -73,7 +77,7 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
     MatTable,
     MatHeaderCellDef,
     MatPaginatorModule,
-    FaIconComponent,
+    MatIcon,
     MatButton,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -83,6 +87,8 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
   ]
 })
 export class SettingsEmployeesComponent {
+  private readonly registerIcons = registerSvgIcons({add: addIcon, check: checkIcon, close: closeIcon, edit: editIcon});
+
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
@@ -248,9 +254,5 @@ export class SettingsEmployeesComponent {
     });
   }
 
-  protected readonly faPencil = faPencil;
-  protected readonly faPlus = faPlus;
-  protected readonly faCheck = faCheck;
-  protected readonly faXmark = faXmark;
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

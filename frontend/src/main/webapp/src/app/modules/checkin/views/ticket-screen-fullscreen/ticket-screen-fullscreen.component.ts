@@ -1,25 +1,26 @@
 import {Component, DestroyRef, inject, OnInit, signal} from '@angular/core';
 import {DOCUMENT} from '@angular/common';
 import {ActivatedRoute} from '@angular/router';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faExpand} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import fullscreenIcon from '@material-symbols/svg-400/outlined/fullscreen.svg';
 
 @Component({
     selector: 'tafel-ticket-screen-fullscreen',
     templateUrl: 'ticket-screen-fullscreen.component.html',
     imports: [
         TicketScreenComponent,
-        FaIconComponent
+        MatIcon
     ]
 })
 export class TicketScreenFullscreenComponent implements OnInit {
+  private readonly registerIcons = registerSvgIcons({fullscreen: fullscreenIcon});
+
   private readonly document = inject(DOCUMENT);
   private readonly window = inject(Window);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
-
-  protected readonly faExpand = faExpand;
 
   // Opt-in via the URL (?sound=1) rather than on by default: a chime is only wanted in rooms
   // where the monitor hangs out of direct view, and this is the one route that ever sets it - the

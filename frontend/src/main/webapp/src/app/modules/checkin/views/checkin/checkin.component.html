@@ -55,7 +55,7 @@
            style="border-color: var(--tafel-border-color);" testid="lastAcceptedCheckin">
         <span>Zuletzt angenommen: Kunde Nr. {{ last.customerId }} → Ticket {{ last.ticketNumber }}</span>
         <button matButton (click)="undoLastCheckin()" testid="undoLastCheckinButton">
-          <fa-icon [icon]="faRotateLeft"></fa-icon>
+          <mat-icon svgIcon="restart_alt"></mat-icon>
           Rückgängig
         </button>
       </div>
@@ -86,7 +86,7 @@
         @if ((customer()?.pendingCostContribution ?? 0) > 0) {
           <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded mt-2 tall:mt-3"
                style="color: var(--tafel-severity-danger);" testid="pendingCostContributionChip">
-            <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+            <mat-icon svgIcon="warning" class="!w-5 !h-5"></mat-icon>
             Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
           </div>
         }
@@ -115,7 +115,7 @@
           <div class="flex flex-wrap items-baseline gap-x-3">
             <span class="font-semibold inline-flex items-center gap-2">
               @if ((customerNotes()?.length ?? 0) > 0) {
-                <fa-icon [icon]="faNoteSticky" style="color: var(--tafel-severity-warning);"></fa-icon>
+                <mat-icon svgIcon="sticky_note_2" class="!w-4 !h-4" style="color: var(--tafel-severity-warning);"></mat-icon>
               }
               Aktuellste Notiz
             </span>
@@ -200,7 +200,7 @@
               @if (ticketNumberEdit() === true) {
                 <button matButton="filled" class="button-danger" testid="deleteTicketButton" (click)="deleteTicket()"
                         matTooltip="Zugewiesenes Ticket wieder entfernen" aria-label="Zugewiesenes Ticket wieder entfernen">
-                  <fa-icon [icon]="faTrashCan"></fa-icon>
+                  <mat-icon svgIcon="delete"></mat-icon>
                 </button>
               }
             }

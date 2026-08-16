@@ -5,12 +5,14 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {faEnvelope, faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {CommonModule} from '@angular/common';
 import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../api/settings-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import mailIcon from '@material-symbols/svg-400/outlined/mail.svg';
+import addIcon from '@material-symbols/svg-400/outlined/add.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
 
 @Component({
   selector: 'tafel-mail-recipients',
@@ -24,13 +26,14 @@ import {isControlInvalid, isControlValid} from '../../../../common/util/reactive
     MatButtonModule,
     MatTabsModule,
     MatIconModule,
-    FaIconComponent,
     ReactiveFormsModule,
     CommonModule,
     MatTooltipModule
   ]
 })
 export class MailRecipientsComponent {
+  private readonly registerIcons = registerSvgIcons({mail: mailIcon, add: addIcon, delete: deleteIcon});
+
   private readonly settingsApiService = inject(SettingsApiService);
   private readonly fb = inject(FormBuilder);
   private readonly toastr = inject(TafelToastrService);
@@ -146,9 +149,6 @@ export class MailRecipientsComponent {
     return this.RecipientTypeLabels[recipientType];
   }
 
-  protected readonly faTrashCan = faTrashCan;
-  protected readonly faPlus = faPlus;
-  protected readonly faEnvelope = faEnvelope;
   protected readonly isControlInvalid = isControlInvalid;
   protected readonly isControlValid = isControlValid;
 }

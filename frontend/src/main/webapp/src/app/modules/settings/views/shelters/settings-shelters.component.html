@@ -9,7 +9,7 @@
           </span>
         </div>
         <button matButton="filled" class="button-success" testid="addShelterButton" (click)="addShelter()">
-          <fa-icon [icon]="faPlus" class="me-2"></fa-icon>
+          <mat-icon svgIcon="add" class="me-2"></mat-icon>
           Notschlafstelle anlegen
         </button>
       </div>
@@ -21,7 +21,7 @@
       Ausgabetags ausgewählt werden können.
     </p>
     <p class="mb-4 flex items-start gap-2 text-sm text-slate-600" testid="shelters-order-hint">
-      <fa-icon [icon]="faCircleInfo" class="mt-0.5 text-slate-400"></fa-icon>
+      <mat-icon svgIcon="info" class="mt-0.5 text-slate-400"></mat-icon>
       <span>Die Reihenfolge gilt auch für die Auswahl im Dashboard und für den Tagesbericht.</span>
     </p>
 
@@ -55,8 +55,7 @@
               <span class="font-medium">{{ shelter.name }}</span>
               <span class="text-sm text-slate-500">{{ shelter | formatShelterAddress }}</span>
               <span class="text-sm text-slate-500">{{ shelter.personsCount }} Personen</span>
-              <fa-icon class="ms-auto text-slate-500"
-                       [icon]="isExpanded(shelter.id) ? faChevronUp : faChevronDown"></fa-icon>
+              <mat-icon [svgIcon]="isExpanded(shelter.id) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="ms-auto text-slate-500"></mat-icon>
             </button>
             <!-- both actions stay reachable without expanding the shelter first -->
             <tafel-enabled-toggle [enabled]="shelter.enabled" [label]="'Notschlafstelle ' + shelter.name"
@@ -66,7 +65,7 @@
                     [disabled]="!shelter.enabled" (click)="editShelter(shelter)"
                     matTooltip="Notschlafstelle bearbeiten"
                     [attr.aria-label]="'Notschlafstelle ' + shelter.name + ' bearbeiten'">
-              <fa-icon [icon]="faPencil"></fa-icon>
+              <mat-icon svgIcon="edit"></mat-icon>
             </button>
           </div>
 
@@ -111,7 +110,7 @@
 
             @if (shelter.note) {
               <div class="mt-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-                <fa-icon [icon]="faCircleInfo" class="mt-0.5"></fa-icon>
+                <mat-icon svgIcon="info" class="mt-0.5"></mat-icon>
                 <span class="whitespace-pre-line">{{ shelter.note }}</span>
               </div>
             }
@@ -126,7 +125,7 @@
       } @empty {
         @if (loaded()) {
           <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="shelters-empty">
-            <fa-icon [icon]="faHouseChimney" size="2x"></fa-icon>
+            <mat-icon svgIcon="home" class="!w-8 !h-8"></mat-icon>
             @if (enabledFilter() === 'DISABLED') {
               <span>Keine Notschlafstelle ist deaktiviert.</span>
             } @else if (enabledFilter() === 'ENABLED') {

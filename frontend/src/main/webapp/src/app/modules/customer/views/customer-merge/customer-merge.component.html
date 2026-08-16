@@ -55,7 +55,7 @@
                 <div class="flex flex-col md:flex-row gap-2 py-3 border-t border-gray-200" [attr.testid]="'merge-field-row-' + row.field">
                   <div class="w-full md:w-48 md:shrink-0 font-bold flex items-center gap-2">
                     @if (row.icon) {
-                      <fa-icon [icon]="row.icon"></fa-icon>
+                      <mat-icon [svgIcon]="row.icon"></mat-icon>
                     }
                     {{row.label}}
                   </div>
@@ -131,7 +131,7 @@
                   <div class="flex flex-wrap justify-between items-center gap-2 py-2 border-t border-gray-200"
                        [attr.testid]="'merge-person-' + group.sourceCustomerId + '-' + item.index">
                     <div class="flex items-center gap-2">
-                      <fa-icon [icon]="item.entry.duplicate ? faXmark : faCheck"></fa-icon>
+                      <mat-icon [svgIcon]="item.entry.duplicate ? 'close' : 'check'"></mat-icon>
                       {{personLabel(item.entry)}}
                     </div>
                     <span class="badge" [class.badge-success]="!item.entry.duplicate" [class.badge-warning]="item.entry.duplicate">
@@ -151,7 +151,7 @@
               @for (collision of preview()!.distributionCollisions; track collision.distributionId + '-' + collision.sourceCustomerId) {
                 <div class="flex items-start gap-2"
                      [attr.testid]="'merge-distribution-collision-' + collision.distributionId + '-' + collision.sourceCustomerId">
-                  <fa-icon [icon]="faCircleExclamation" class="mt-1"></fa-icon>
+                  <mat-icon svgIcon="error" class="mt-1"></mat-icon>
                   <div>
                     Ausgabe {{collision.distributionStartedAt | date : 'dd.MM.yyyy'}}: Ticketnummer {{collision.targetTicketNumber}} bleibt bestehen,
                     Ticketnummer {{collision.sourceTicketNumber}} von Kunde Nr. {{collision.sourceCustomerId}} wird verworfen.
@@ -172,7 +172,7 @@
 
           <div class="tafel-banner-error" testid="merge-danger-banner">
             <div class="flex items-start gap-3">
-              <fa-icon [icon]="faTriangleExclamation" class="mt-1"></fa-icon>
+              <mat-icon svgIcon="warning" class="mt-1"></mat-icon>
               <div>
                 <div class="font-bold">Diese Aktion kann nicht rückgängig gemacht werden.</div>
                 <div>

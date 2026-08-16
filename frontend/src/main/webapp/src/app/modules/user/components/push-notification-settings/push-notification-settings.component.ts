@@ -1,21 +1,7 @@
 import {Component, computed, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatSlideToggle, MatSlideToggleChange} from '@angular/material/slide-toggle';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {
-  IconDefinition,
-  faBell,
-  faBellSlash,
-  faCircleCheck,
-  faDesktop,
-  faMobileScreen,
-  faPaperPlane,
-  faPen,
-  faQuestion,
-  faSpinner,
-  faTrashCan,
-  faTriangleExclamation
-} from '@fortawesome/free-solid-svg-icons';
+import {MatIcon} from '@angular/material/icon';
 import {DatePipe} from '@angular/common';
 import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
@@ -33,6 +19,18 @@ import {
   pushNotificationTypeLabel
 } from '../../../../api/push-api.service';
 import {RenameDeviceDialogComponent} from './dialogs/rename-device-dialog.component';
+import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import notificationsIcon from '@material-symbols/svg-400/outlined/notifications.svg';
+import notificationsOffIcon from '@material-symbols/svg-400/outlined/notifications_off.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit.svg';
+import sendIcon from '@material-symbols/svg-400/outlined/send.svg';
+import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity.svg';
+import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle.svg';
+import warningIcon from '@material-symbols/svg-400/outlined/warning.svg';
+import mobile2Icon from '@material-symbols/svg-400/outlined/mobile_2.svg';
+import desktopWindowsIcon from '@material-symbols/svg-400/outlined/desktop_windows.svg';
+import questionMarkIcon from '@material-symbols/svg-400/outlined/question_mark.svg';
 
 const DEFAULT_PREFERENCES: PushPreferencesResponse = {masterEnabled: true, types: []};
 
@@ -58,13 +56,27 @@ const PERMISSION_BLOCKED_HINT = 'Benachrichtigungen sind in diesem Browser block
     MatCardTitle,
     MatCardContent,
     MatSlideToggle,
-    FaIconComponent,
+    MatIcon,
     DatePipe,
     MatButton,
     MatTooltipModule
   ]
 })
 export class PushNotificationSettingsComponent {
+  private readonly registerIcons = registerSvgIcons({
+    notifications: notificationsIcon,
+    notifications_off: notificationsOffIcon,
+    delete: deleteIcon,
+    edit: editIcon,
+    send: sendIcon,
+    progress_activity: progressActivityIcon,
+    check_circle: checkCircleIcon,
+    warning: warningIcon,
+    mobile_2: mobile2Icon,
+    desktop_windows: desktopWindowsIcon,
+    question_mark: questionMarkIcon
+  });
+
   private readonly pushNotificationService = inject(PushNotificationService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
@@ -251,14 +263,14 @@ export class PushNotificationSettingsComponent {
    * A custom label replaces the browser/OS text, so the icon is what still says what kind of device
    * an entry is once someone has named it "Tafel Ausgabe 1".
    */
-  protected deviceIcon(device: PushDeviceItem): IconDefinition {
+  protected deviceIcon(device: PushDeviceItem): string {
     switch (userAgentDeviceType(device.userAgent)) {
       case 'mobile':
-        return faMobileScreen;
+        return 'mobile_2';
       case 'desktop':
-        return faDesktop;
+        return 'desktop_windows';
       default:
-        return faQuestion;
+        return 'question_mark';
     }
   }
 
@@ -351,12 +363,4 @@ export class PushNotificationSettingsComponent {
 
   protected readonly permissionBlockedHint = PERMISSION_BLOCKED_HINT;
 
-  protected readonly faBell = faBell;
-  protected readonly faBellSlash = faBellSlash;
-  protected readonly faTrashCan = faTrashCan;
-  protected readonly faPen = faPen;
-  protected readonly faPaperPlane = faPaperPlane;
-  protected readonly faSpinner = faSpinner;
-  protected readonly faCircleCheck = faCircleCheck;
-  protected readonly faTriangleExclamation = faTriangleExclamation;
 }
