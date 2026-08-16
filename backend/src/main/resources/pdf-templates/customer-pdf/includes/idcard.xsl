@@ -174,20 +174,21 @@
                             </xsl:variable>
                             <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="$streetValue"/>
-                                <xsl:with-param name="label" select="'Straße'"/>
+                                <xsl:with-param name="label" select="'Straße / Hausnummer / Stiege / Top'"/>
                             </xsl:call-template>
                         </fo:table-cell>
                     </fo:table-row>
                     <fo:table-row>
-                        <fo:table-cell number-columns-spanned="2" padding-bottom="3mm">
-                            <xsl:variable name="cityValue">
-                                <xsl:value-of select="customer/address/postalCode"/>
-                                <xsl:value-of select="' '"/>
-                                <xsl:value-of select="customer/address/city"/>
-                            </xsl:variable>
+                        <fo:table-cell padding-right="2mm" padding-bottom="3mm">
                             <xsl:call-template name="field-with-label">
-                                <xsl:with-param name="value" select="$cityValue"/>
-                                <xsl:with-param name="label" select="'PLZ / Ort'"/>
+                                <xsl:with-param name="value" select="customer/address/postalCode"/>
+                                <xsl:with-param name="label" select="'PLZ'"/>
+                            </xsl:call-template>
+                        </fo:table-cell>
+                        <fo:table-cell padding-bottom="3mm">
+                            <xsl:call-template name="field-with-label">
+                                <xsl:with-param name="value" select="customer/address/city"/>
+                                <xsl:with-param name="label" select="'Ort'"/>
                             </xsl:call-template>
                         </fo:table-cell>
                     </fo:table-row>

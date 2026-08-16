@@ -80,21 +80,21 @@
                         </xsl:variable>
                         <xsl:call-template name="field-with-label">
                             <xsl:with-param name="value" select="$streetValue"/>
-                            <xsl:with-param name="label" select="'Straße'"/>
+                            <xsl:with-param name="label" select="'Straße / Hausnummer / Stiege / Top'"/>
                         </xsl:call-template>
                     </fo:table-cell>
                 </fo:table-row>
                 <fo:table-row>
-                    <fo:table-cell padding="1.5mm" number-columns-spanned="2">
-                        <xsl:variable name="cityValue">
-                            <xsl:if test="$data/address/postalCode != ''">
-                                <xsl:value-of select="concat($data/address/postalCode, ' ')"/>
-                            </xsl:if>
-                            <xsl:value-of select="$data/address/city"/>
-                        </xsl:variable>
+                    <fo:table-cell padding="1.5mm">
                         <xsl:call-template name="field-with-label">
-                            <xsl:with-param name="value" select="$cityValue"/>
-                            <xsl:with-param name="label" select="'PLZ / Ort'"/>
+                            <xsl:with-param name="value" select="$data/address/postalCode"/>
+                            <xsl:with-param name="label" select="'PLZ'"/>
+                        </xsl:call-template>
+                    </fo:table-cell>
+                    <fo:table-cell padding="1.5mm">
+                        <xsl:call-template name="field-with-label">
+                            <xsl:with-param name="value" select="$data/address/city"/>
+                            <xsl:with-param name="label" select="'Ort'"/>
                         </xsl:call-template>
                     </fo:table-cell>
                 </fo:table-row>

@@ -33,6 +33,7 @@ import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValida
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -493,7 +494,13 @@ class HouseholdService(
                     mainPerson?.lastname,
                     mainPerson?.firstname,
                 ).joinToString("-") { it.toString() }
-            val filename = "$filenamePrefix-$householdName".lowercase().replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
+            // StringUtils.stripAccents strips diacritics generally (é, ñ, ...) but - like
+            // java.text.Normalizer underneath it - leaves "ß" alone (it has no Unicode
+            // decomposition), so without the explicit replace it still collapses to a lone "-" in
+            // the ASCII-only regex below, e.g. "Großfamilie" -> "gro-familie" instead of "gross...".
+            val filename = StringUtils.stripAccents("$filenamePrefix-$householdName").lowercase()
+                .replace("ß", "ss")
+                .replace("[^a-z0-9]".toRegex(), "-") + ".pdf"
             return HouseholdPdfResult(filename = filename, bytes = bytes)
         }
         return null
