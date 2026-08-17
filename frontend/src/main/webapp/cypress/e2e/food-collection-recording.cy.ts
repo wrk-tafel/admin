@@ -350,6 +350,39 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  it('marks the route tab complete when driver/co-driver are picked via the search icon without typing first', () => {
+    // Regression test for #3343: clicking the search icon with an empty input used to leave the
+    // underlying text control empty forever, permanently failing its required validator even
+    // though an employee chip was shown as selected.
+    enterRouteData();
+
+    cy.byTestId('driver-employee-search-button').click();
+    cy.byTestId('driver-select-employee-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('select-employee-button-0').click();
+      });
+    cy.byTestId('selectedDriverDescription').should('be.visible');
+
+    cy.byTestId('codriver-employee-search-button').click();
+    cy.byTestId('codriver-select-employee-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('select-employee-button-1').click();
+      });
+    cy.byTestId('selectedCoDriverDescription').should('be.visible');
+
+    cy.byTestId('route-tab-status-invalid').should('not.exist');
+    cy.byTestId('route-tab-status-unsaved').should('be.visible');
+
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+    saveAndConfirmKmDiff();
+    assertSavedToast();
+
+    cy.byTestId('route-tab-status-complete').scrollIntoView().should('be.visible');
+  });
+
   it('warns when amounts are entered before the route base data is complete', () => {
     enterRouteData(); // route + car only, no driver/co-driver
     cy.byTestId('basedata-missing-warning').should('not.exist');
