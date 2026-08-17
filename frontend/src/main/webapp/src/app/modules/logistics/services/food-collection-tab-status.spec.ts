@@ -8,7 +8,7 @@ describe('combineTabStatus', () => {
   });
 
   it('reports the single defined status unchanged', () => {
-    expect(combineTabStatus(undefined, 'complete')).toBe('complete');
+    expect(combineTabStatus(undefined, 'unsaved')).toBe('unsaved');
     expect(combineTabStatus('unsaved', undefined)).toBe('unsaved');
   });
 
@@ -24,6 +24,15 @@ describe('combineTabStatus', () => {
 
   it('complete only when every defined status is complete', () => {
     expect(combineTabStatus('complete', 'complete')).toBe('complete');
+  });
+
+  // A section that still has nothing entered (undefined) is not the same as one that is
+  // genuinely done - a required section left untouched must not let the combined tab read
+  // "complete" (see #3332: the "Waren" tab showed complete with item amounts saved and the
+  // mileage fields still empty).
+  it('is unsaved, not complete, while one section is still untouched and another is complete', () => {
+    expect(combineTabStatus(undefined, 'complete')).toBe('unsaved');
+    expect(combineTabStatus('complete', undefined)).toBe('unsaved');
   });
 
 });

@@ -15,7 +15,7 @@
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell padding="5mm">
-                        <fo:block font-size="11pt" font-weight="bold" color="{$tafelAccent}" space-after="3mm">
+                        <fo:block font-size="11pt" font-weight="bold" color="{$tafelInk}" space-after="3mm">
                             Bezugskarte
                         </fo:block>
                         <xsl:call-template name="stat-row">
@@ -86,7 +86,7 @@
                         <fo:block margin-top="3mm">
                             <fo:inline padding="1mm 4mm" border="0.3mm solid {$tafelAccent}"
                                        background-color="{$tafelAccentTint}" font-weight="bold"
-                                       color="{$tafelAccent}" font-size="11pt">
+                                       color="{$tafelInk}" font-size="11pt">
                                 <xsl:value-of select="customer/id"/>
                             </fo:inline>
                         </fo:block>
@@ -128,7 +128,7 @@
     </xsl:template>
     <xsl:template name="inside-left">
         <fo:block>
-            <fo:block font-size="11pt" font-weight="bold" color="{$tafelAccent}" space-after="3mm">
+            <fo:block font-size="11pt" font-weight="bold" color="{$tafelInk}" space-after="3mm">
                 Hauptbezieher
             </fo:block>
             <fo:table table-layout="fixed" width="100%">
@@ -212,7 +212,7 @@
     </xsl:template>
     <xsl:template name="inside-right">
         <fo:block>
-            <fo:block font-size="11pt" font-weight="bold" color="{$tafelAccent}" space-after="3mm">
+            <fo:block font-size="11pt" font-weight="bold" color="{$tafelInk}" space-after="3mm">
                 Weitere Personen
             </fo:block>
             <xsl:choose>

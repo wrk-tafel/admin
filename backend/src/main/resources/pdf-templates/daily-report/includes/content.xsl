@@ -143,7 +143,7 @@
                             <fo:block font-weight="bold" color="{$tafelInk}">Personen gesamt</fo:block>
                         </fo:table-cell>
                         <fo:table-cell padding-top="2mm" text-align="right">
-                            <fo:block font-weight="bold" color="{$tafelAccent}">
+                            <fo:block font-weight="bold" color="{$tafelInk}">
                                 <xsl:value-of select="personsInSheltersTotalCount"/>
                             </fo:block>
                         </fo:table-cell>
