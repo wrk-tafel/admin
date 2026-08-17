@@ -174,7 +174,7 @@
                                             <xsl:text>  </xsl:text>
                                             <fo:inline padding-top="0.3mm" padding-bottom="0.3mm" padding-left="1.5mm"
                                                        padding-right="1.5mm" font-size="7pt"
-                                                       font-weight="bold" color="{$tafelAccent}"
+                                                       font-weight="bold" color="{$tafelInk}"
                                                        border="0.3mm solid {$tafelAccent}"
                                                        background-color="{$tafelAccentTint}">
                                                 NICHT IM HAUSHALT

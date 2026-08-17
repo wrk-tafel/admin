@@ -27,7 +27,7 @@
                         </xsl:call-template>
                         <xsl:if test="halftimeTicketNumber">
                             <fo:block background-color="{$tafelAccentTint}" padding="3mm" space-after="5mm">
-                                <fo:block font-weight="bold" color="{$tafelAccent}" space-after="2mm">
+                                <fo:block font-weight="bold" color="{$tafelInk}" space-after="2mm">
                                     Halbzeit – nach Ticketnummer: <xsl:value-of select="halftimeTicketNumber"/>
                                 </fo:block>
                                 <fo:table table-layout="fixed" width="100%">
@@ -105,7 +105,7 @@
                                 </fo:table-row>
                                 <xsl:if test="ticketNumber = ../../halftimeTicketNumber">
                                     <fo:table-row background-color="{$tafelAccentTint}">
-                                        <fo:table-cell number-columns-spanned="4" font-weight="bold" color="{$tafelAccent}"
+                                        <fo:table-cell number-columns-spanned="4" font-weight="bold" color="{$tafelInk}"
                                                        display-align="center" text-align="center" padding="2mm" font-size="14pt">
                                             <fo:block>HALBZEIT</fo:block>
                                         </fo:table-cell>

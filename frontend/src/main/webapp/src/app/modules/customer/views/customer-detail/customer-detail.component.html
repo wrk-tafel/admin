@@ -14,7 +14,7 @@
      regardless of viewport. On desktop the action buttons sit in its top-right corner; narrow
      screens render them below the tabs instead (the #customerActions template exists exactly once
      in the DOM, placed by isDesktopLayout, so its menus and testids are never duplicated). -->
-<mat-card testid="customer-identity-header" class="mb-4">
+<mat-card testid="customer-identity-header" class="mb-2">
   <mat-card-content>
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-1">
       <div>
@@ -92,11 +92,16 @@
           The button's `matButton` directive only routes a `mat-icon` into its dedicated
           icon-before-label slot when it is a *direct* child of the button in the template - here
           it sits behind this `@if`, so it lands as ordinary inline content inside the button's
-          text label instead. There it is just an inline-block image next to a text node, so its
-          default `vertical-align: baseline` left it sitting visibly higher than the text - hence
-          the explicit `inline-flex items-center` instead of relying on Material's own spacing.
+          text label instead: a `display: block` element (`.mdc-button__label`) that does not
+          center its own children. `inline-flex items-center` lines the icon and text up with each
+          other, but the resulting box (24px, the icon's height) is shorter than the label's own
+          line box (30px, sized off the button's text metrics) - and block layout starts a child at
+          its top rather than centering it, so all of that leftover space landed below the group
+          instead of split evenly above and below. `align-middle` (`vertical-align: middle`)
+          positions the inline-level box against the label's line box the way normal inline content
+          would be, which is what actually centers it.
         -->
-        <span class="inline-flex items-center gap-1.5">
+        <span class="inline-flex items-center gap-1.5 align-middle">
           <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>
           <span>Wird erstellt...</span>
         </span>
