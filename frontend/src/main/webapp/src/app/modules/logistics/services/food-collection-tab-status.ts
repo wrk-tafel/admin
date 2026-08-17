@@ -9,18 +9,21 @@ export type TabStatus = 'complete' | 'unsaved' | 'invalid';
 
 /**
  * Combines the status of several sections that share one tab (e.g. mileage + item amounts on
- * "Waren") into the tab's own badge: invalid outranks unsaved, which outranks complete, so the tab
- * always reports its worst section. `undefined` only when every section has nothing entered.
+ * "Waren") into the tab's own badge: invalid outranks everything else, and the combination is only
+ * "complete" once every section that has anything entered is `complete` - one section still
+ * `undefined` (nothing entered there yet) while another is `complete` holds the tab at `unsaved`
+ * rather than showing "complete" while a required section is still outstanding (see #3332).
+ * `undefined` only when every section has nothing entered.
  */
 export function combineTabStatus(...statuses: (TabStatus | undefined)[]): TabStatus | undefined {
+  if (statuses.every(status => status === undefined)) {
+    return undefined;
+  }
   if (statuses.some(status => status === 'invalid')) {
     return 'invalid';
   }
-  if (statuses.some(status => status === 'unsaved')) {
-    return 'unsaved';
-  }
-  if (statuses.some(status => status === 'complete')) {
+  if (statuses.every(status => status === 'complete')) {
     return 'complete';
   }
-  return undefined;
+  return 'unsaved';
 }

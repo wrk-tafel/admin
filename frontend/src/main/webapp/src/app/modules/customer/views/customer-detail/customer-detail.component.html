@@ -88,9 +88,18 @@
             [disabled]="customerData()?.locked || !!printing()"
             [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">
       @if (printing()) {
-        <ng-container>
-          <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>&nbsp;Wird erstellt...
-        </ng-container>
+        <!--
+          The button's `matButton` directive only routes a `mat-icon` into its dedicated
+          icon-before-label slot when it is a *direct* child of the button in the template - here
+          it sits behind this `@if`, so it lands as ordinary inline content inside the button's
+          text label instead. There it is just an inline-block image next to a text node, so its
+          default `vertical-align: baseline` left it sitting visibly higher than the text - hence
+          the explicit `inline-flex items-center` instead of relying on Material's own spacing.
+        -->
+        <span class="inline-flex items-center gap-1.5">
+          <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>
+          <span>Wird erstellt...</span>
+        </span>
       } @else {
         Daten ausdrucken ▾
       }

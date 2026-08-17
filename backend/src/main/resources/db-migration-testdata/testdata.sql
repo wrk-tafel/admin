@@ -967,21 +967,21 @@ VALUES (1, NOW(), NOW(), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- other employees
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (2000, NOW(), NOW(), '02000', 'Driver', '1');
+VALUES (2000, NOW(), NOW(), '02000', 'Fahrer', '1');
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (2100, NOW(), NOW(), '02100', 'CoDriver', '1');
+VALUES (2100, NOW(), NOW(), '02100', 'Beifahrer', '1');
 
 -- cars
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
-VALUES (1, NOW(), NOW(), 'W-NC-123', 'Nice Car 123');
+VALUES (1, NOW(), NOW(), 'W-NC-123', 'Lieferwagen 123');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
-VALUES (2, NOW(), NOW(), 'W-NC-456', 'Nice Car 456');
+VALUES (2, NOW(), NOW(), 'W-NC-456', 'Lieferwagen 456');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
-VALUES (3, NOW(), NOW(), 'W-NC-789', 'Nice Car 789');
+VALUES (3, NOW(), NOW(), 'W-NC-789', 'Lieferwagen 789');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name, enabled)
-VALUES (4, NOW(), NOW(), 'W-NC-111', 'Old Car 1 disabled', false);
+VALUES (4, NOW(), NOW(), 'W-NC-111', 'Stillgelegter Lieferwagen 1', false);
 INSERT INTO cars (id, created_at, updated_at, license_plate, name, enabled)
-VALUES (5, NOW(), NOW(), 'W-NC-222', 'Old Car 2 disabled', false);
+VALUES (5, NOW(), NOW(), 'W-NC-222', 'Stillgelegter Lieferwagen 2', false);
 
 -- food collection for route 1
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,

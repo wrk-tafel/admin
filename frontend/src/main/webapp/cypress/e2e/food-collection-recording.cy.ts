@@ -324,7 +324,7 @@ describe('Food Collection Recording', () => {
 
       // car alone, driver/co-driver still missing - already invalid, doesn't need to be dirty first
       cy.byTestId('carInput').click();
-      cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
+      cy.get('mat-option').contains('W-NC-123 (Lieferwagen 123)').click();
       cy.byTestId('route-tab-status-invalid').should('be.visible');
 
       selectDriver();
@@ -334,6 +334,9 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('select-items-tab').click();
       cy.byTestId('waren-tab-status-complete').should('not.exist');
+      // "Waren" only reads complete once both the amounts and the mileage are in - amounts alone
+      // (or mileage alone) leave it at "unsaved", see #3332
+      cy.byTestId('category-1-shop-20-input').clear().type('3');
       enterKmData();
       // the km inputs sit at the bottom of the items tab, so entering them scrolls the tab header
       // (which carries the badges) out of the scrollport - scroll back up like a user would
@@ -512,7 +515,7 @@ describe('Food Collection Recording', () => {
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();
     cy.byTestId('carInput').click();
-    cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
+    cy.get('mat-option').contains('W-NC-123 (Lieferwagen 123)').click();
   }
 
   function enterKmData() {
