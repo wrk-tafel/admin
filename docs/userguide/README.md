@@ -176,7 +176,7 @@ Eine Ausnahme ist die Warenerfassung: Sie wird auf schmalen Bildschirmen nicht a
 
 An zwei Stellen blendet die Anwendung zusätzliche Erklärungen ein, ohne dass die Oberfläche dadurch voller wird.
 
-**Schaltflächen mit reinem Symbol** (Lupe, Stift, Mistkübel, Auge, Plus, Haken usw.) zeigen ihre Funktion als Kurzhinweis an, sobald man mit der Maus darauf stehen bleibt. Damit muss die Bedeutung eines Symbols nicht auswendig gewusst werden – im Beispiel die Lupe im Suchergebnis der Kunden-Suche:
+**Schaltflächen mit reinem Symbol** (Lupe, Stift, Mistkübel, Auge, Plus, Haken usw.) zeigen ihre Funktion als Kurzhinweis an, sobald man mit der Maus darauf stehen bleibt. Damit muss die Bedeutung eines Symbols nicht auswendig gewusst werden – im Beispiel der Stift im Suchergebnis der Kunden-Suche:
 
 ![Kurzhinweis an einer Symbol-Schaltfläche](images/tooltip-symbol-schaltflaeche.jpg)
 
