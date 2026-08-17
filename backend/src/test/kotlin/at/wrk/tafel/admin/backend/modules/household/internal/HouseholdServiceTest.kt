@@ -1140,6 +1140,26 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `generate pdf household - umlauts and ß are transliterated, not just dropped`() {
+        val household = HouseholdEntity(householdId = 115, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            id = 1
+            firstname = "Georg"
+            lastname = "Großfamilie"
+        }
+        household.persons = mutableListOf(mainPerson)
+        household.mainPerson = mainPerson
+
+        val pdfBytes = ByteArray(10)
+        every { householdRepository.findByHouseholdId(any()) } returns household
+        every { householdPdfService.generateMasterdataPdf(any()) } returns pdfBytes
+
+        val result = service.generatePdf(1, HouseholdPdfType.MASTERDATA)
+
+        assertThat(result?.filename).isEqualTo("stammdaten-115-grossfamilie-georg.pdf")
+    }
+
+    @Test
     fun `generate pdf household - IDCARD type`() {
         val testHouseholdEntity = testHouseholdEntityWithMainPerson()
 

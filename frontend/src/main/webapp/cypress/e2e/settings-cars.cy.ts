@@ -9,7 +9,7 @@ describe('Settings - Cars', () => {
 
   it('lists cars', () => {
     cy.byTestId('cars-table').should('exist');
-    cy.byTestId('cars-row-0').should('contain.text', 'Nice Car');
+    cy.byTestId('cars-row-0').should('contain.text', 'Lieferwagen');
   });
 
   it('creates a new car and stores its license plate in upper case', () => {

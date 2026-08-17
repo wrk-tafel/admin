@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
+    <xsl:include href="/pdf-templates/common/includes/branding.xsl"/>
     <xsl:template match="data">
         <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
             <fo:layout-master-set>
@@ -12,34 +13,33 @@
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
                 <fo:static-content flow-name="xsl-region-after">
-                    <fo:block font-size="10pt" text-align="right" padding-top="0.25cm" padding-bottom="0.25cm">
+                    <fo:block font-size="10pt" color="{$tafelMuted}" text-align="right" padding-top="0.25cm" padding-bottom="0.25cm">
                         Seite <fo:page-number/> von <fo:page-number-citation-last ref-id="main"/>
                     </fo:block>
                 </fo:static-content>
                 <fo:flow flow-name="xsl-region-body">
                     <fo:block font-family="Helvetica" id="main">
-                        <fo:block font-size="20pt" font-weight="bold" space-after="0.5cm">
-                            <xsl:value-of select="title"/>
-                        </fo:block>
+                        <xsl:call-template name="document-header">
+                            <xsl:with-param name="title" select="title"/>
+                            <xsl:with-param name="logoContentType" select="logoContentType"/>
+                            <xsl:with-param name="logoBytes" select="logoBytes"/>
+                            <xsl:with-param name="logoWidth" select="'3.2cm'"/>
+                        </xsl:call-template>
                         <xsl:if test="halftimeTicketNumber">
-                            <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
-                                <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
-                            </fo:block>
-                            <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
+                            <fo:block background-color="{$tafelAccentTint}" padding="3mm" space-after="5mm">
+                                <fo:block font-weight="bold" color="{$tafelInk}" space-after="2mm">
+                                    Halbzeit – nach Ticketnummer: <xsl:value-of select="halftimeTicketNumber"/>
+                                </fo:block>
                                 <fo:table table-layout="fixed" width="100%">
                                     <fo:table-column column-width="50%"/>
                                     <fo:table-column column-width="50%"/>
                                     <fo:table-body>
                                         <fo:table-row>
                                             <fo:table-cell>
-                                                <fo:block>
-                                                    <xsl:value-of select="'Anzahl Haushalte: '"/><xsl:value-of select="countHouseholdsOverall"/>
-                                                </fo:block>
+                                                <fo:block>Anzahl Haushalte: <xsl:value-of select="countHouseholdsOverall"/></fo:block>
                                             </fo:table-cell>
                                             <fo:table-cell>
-                                                <fo:block>
-                                                    <xsl:value-of select="'Anzahl Personen: '"/><xsl:value-of select="countPersonsOverall"/>
-                                                </fo:block>
+                                                <fo:block>Anzahl Personen: <xsl:value-of select="countPersonsOverall"/></fo:block>
                                             </fo:table-cell>
                                         </fo:table-row>
                                     </fo:table-body>
@@ -56,23 +56,23 @@
     </xsl:template>
     <xsl:template name="customerlist">
         <fo:block start-indent="0pt" end-indent="0pt">
-            <fo:table table-layout="fixed" width="100%" border-width="1pt" border-style="solid">
+            <fo:table table-layout="fixed" width="100%" border="0.25mm solid {$tafelHairline}">
                 <fo:table-column column-width="30%"/>
                 <fo:table-column column-width="30%"/>
                 <fo:table-column column-width="20%"/>
                 <fo:table-column column-width="20%"/>
-                <fo:table-header background-color="#D3D3D3">
+                <fo:table-header background-color="{$tafelAccent}">
                     <fo:table-row>
-                        <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
+                        <fo:table-cell font-weight="bold" color="white" text-align="center" padding="2mm">
                             <fo:block>Ticket</fo:block>
                         </fo:table-cell>
-                        <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
+                        <fo:table-cell font-weight="bold" color="white" text-align="center" padding="2mm">
                             <fo:block>Kundennummer</fo:block>
                         </fo:table-cell>
-                        <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
+                        <fo:table-cell font-weight="bold" color="white" text-align="center" padding="2mm">
                             <fo:block>Personen im Haushalt</fo:block>
                         </fo:table-cell>
-                        <fo:table-cell font-weight="bold" text-align="center" padding="5pt">
+                        <fo:table-cell font-weight="bold" color="white" text-align="center" padding="2mm">
                             <fo:block>davon unter 3 Jahren</fo:block>
                         </fo:table-cell>
                     </fo:table-row>
@@ -81,31 +81,32 @@
                     <xsl:choose>
                         <xsl:when test="households/households">
                             <xsl:for-each select="households/households">
-                                <fo:table-row border-width="1pt" border-style="solid">
-                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                <fo:table-row border-bottom="0.25mm solid {$tafelHairline}">
+                                    <fo:table-cell text-align="center" display-align="center" padding="2mm">
                                         <fo:block>
                                             <xsl:value-of select="ticketNumber"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                    <fo:table-cell text-align="center" display-align="center" padding="2mm">
                                         <fo:block>
                                             <xsl:value-of select="householdId"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                    <fo:table-cell text-align="center" display-align="center" padding="2mm">
                                         <fo:block>
                                             <xsl:value-of select="countPersons"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell text-align="center" display-align="center" padding="5pt">
+                                    <fo:table-cell text-align="center" display-align="center" padding="2mm">
                                         <fo:block>
                                             <xsl:value-of select="countInfants"/>
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
                                 <xsl:if test="ticketNumber = ../../halftimeTicketNumber">
-                                    <fo:table-row border-width="1pt" border-style="solid">
-                                        <fo:table-cell number-columns-spanned="4" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt" font-size="14pt">
+                                    <fo:table-row background-color="{$tafelAccentTint}">
+                                        <fo:table-cell number-columns-spanned="4" font-weight="bold" color="{$tafelInk}"
+                                                       display-align="center" text-align="center" padding="2mm" font-size="14pt">
                                             <fo:block>HALBZEIT</fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>
@@ -113,8 +114,8 @@
                             </xsl:for-each>
                         </xsl:when>
                     <xsl:otherwise>
-                        <fo:table-row border-width="1pt" border-style="solid">
-                            <fo:table-cell number-columns-spanned="4" text-align="center" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                        <fo:table-row>
+                            <fo:table-cell number-columns-spanned="4" text-align="center" font-weight="bold" display-align="center" padding="2mm">
                                 <fo:block>Keine Kunden angemeldet</fo:block>
                             </fo:table-cell>
                         </fo:table-row>

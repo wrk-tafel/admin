@@ -14,7 +14,9 @@
 
     @if (customerDuplicatesData()?.items?.length === 0) {
       <div class="flex flex-col items-center gap-3 py-10 text-center" testid="no-duplicates-message">
-        <mat-icon svgIcon="check_circle" class="!w-12 !h-12 text-green-600"></mat-icon>
+        <div class="text-green-600">
+          <mat-icon svgIcon="check_circle" class="!w-12 !h-12"></mat-icon>
+        </div>
         <h2 class="tafel-h4 font-bold">Keine Duplikate gefunden!</h2>
         <p>Alle möglichen Duplikate wurden bereits geprüft.</p>
       </div>

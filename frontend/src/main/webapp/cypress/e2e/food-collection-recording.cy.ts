@@ -324,7 +324,7 @@ describe('Food Collection Recording', () => {
 
       // car alone, driver/co-driver still missing - already invalid, doesn't need to be dirty first
       cy.byTestId('carInput').click();
-      cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
+      cy.get('mat-option').contains('W-NC-123 (Lieferwagen 123)').click();
       cy.byTestId('route-tab-status-invalid').should('be.visible');
 
       selectDriver();
@@ -334,6 +334,9 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('select-items-tab').click();
       cy.byTestId('waren-tab-status-complete').should('not.exist');
+      // "Waren" only reads complete once both the amounts and the mileage are in - amounts alone
+      // (or mileage alone) leave it at "unsaved", see #3332
+      cy.byTestId('category-1-shop-20-input').clear().type('3');
       enterKmData();
       // the km inputs sit at the bottom of the items tab, so entering them scrolls the tab header
       // (which carries the badges) out of the scrollport - scroll back up like a user would
@@ -345,6 +348,39 @@ describe('Food Collection Recording', () => {
       cy.byTestId('route-tab-status-complete').scrollIntoView().should('be.visible');
       cy.byTestId('waren-tab-status-complete').scrollIntoView().should('be.visible');
     });
+  });
+
+  it('marks the route tab complete when driver/co-driver are picked via the search icon without typing first', () => {
+    // Regression test for #3343: clicking the search icon with an empty input used to leave the
+    // underlying text control empty forever, permanently failing its required validator even
+    // though an employee chip was shown as selected.
+    enterRouteData();
+
+    cy.byTestId('driver-employee-search-button').click();
+    cy.byTestId('driver-select-employee-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('select-employee-button-0').click();
+      });
+    cy.byTestId('selectedDriverDescription').should('be.visible');
+
+    cy.byTestId('codriver-employee-search-button').click();
+    cy.byTestId('codriver-select-employee-dialog')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('select-employee-button-1').click();
+      });
+    cy.byTestId('selectedCoDriverDescription').should('be.visible');
+
+    cy.byTestId('route-tab-status-invalid').should('not.exist');
+    cy.byTestId('route-tab-status-unsaved').should('be.visible');
+
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+    saveAndConfirmKmDiff();
+    assertSavedToast();
+
+    cy.byTestId('route-tab-status-complete').scrollIntoView().should('be.visible');
   });
 
   it('warns when amounts are entered before the route base data is complete', () => {
@@ -512,7 +548,7 @@ describe('Food Collection Recording', () => {
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();
     cy.byTestId('carInput').click();
-    cy.get('mat-option').contains('W-NC-123 (Nice Car 123)').click();
+    cy.get('mat-option').contains('W-NC-123 (Lieferwagen 123)').click();
   }
 
   function enterKmData() {

@@ -29,11 +29,18 @@
 
       <!--
         Icon-only below `sm` - the header has to leave room for the page title next to it,
-        and the `aria-label` names the button either way.
+        and the `aria-label` names the button either way. `!hidden` (not plain `hidden`): Tailwind
+        v4 emits utilities inside `@layer utilities`, which loses to Angular Material's own
+        unlayered `.mat-icon` display rule at equal specificity regardless of source order, so a
+        plain `sm:hidden` silently never hid the icon on desktop - only the `!important` from the
+        `!` variant outranks it. `!m-0` neutralizes Material's default icon-before-label margin
+        (asymmetric, meant to leave a gutter before the label that follows): icon and label are
+        never shown together here, so that gutter only ever pushed the icon off-center on mobile,
+        where it is briefly the button's sole visible content.
       -->
       <button (click)="openSupportDialog()" matButton="filled" testid="supportButton" aria-label="Support-Anfrage senden"
               class="!h-7 !px-2 !text-xs !min-w-0 sm:!h-9 sm:!px-3 sm:!text-sm flex items-center justify-center rounded-md hover:bg-gray-100 font-medium shrink-0">
-        <mat-icon svgIcon="help" class="sm:hidden !w-5 !h-5" aria-hidden="true"></mat-icon>
+        <mat-icon svgIcon="help" class="sm:!hidden !w-5 !h-5 !m-0" aria-hidden="true"></mat-icon>
         <span class="hidden sm:inline">Support-Anfrage</span>
       </button>
 
@@ -42,12 +49,16 @@
         visible indication, since the sidebar starts closed there. The real `h1` (sr-only, rendered
         by the shell's `<main>`) already gives a screen reader that information, so this is
         `aria-hidden` rather than a second heading announcing the same title twice.
+        Centered on desktop (`lg`, matching the sidebar's own mobile/desktop breakpoint): positioned
+        absolutely against the header's `relative` outer wrapper so it sits in the middle of the
+        whole header regardless of how wide the button groups either side of it are, rather than
+        just centered in the leftover space next to them.
       -->
       @if (pageTitle()) {
         <!-- text tight against the tags: the indentation would otherwise collapse into leading/
              trailing spaces, and the e2e spec asserts this title's exact text -->
         <span aria-hidden="true" testid="page-title"
-              class="truncate text-sm font-semibold text-slate-700">{{ pageTitle() }}</span>
+              class="truncate text-sm font-semibold text-slate-700 lg:absolute lg:left-1/2 lg:top-1/2 lg:max-w-[40%] lg:-translate-x-1/2 lg:-translate-y-1/2">{{ pageTitle() }}</span>
       }
     </div>
 

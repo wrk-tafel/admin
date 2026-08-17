@@ -263,6 +263,30 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.hasInvalidInput()).toEqual(true);
   });
 
+  it('should fill the search inputs when a driver/co-driver is picked without typing first (#3343)', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', {
+      ...mockRouteData,
+      foodCollectionData: null
+    });
+
+    fixture.detectChanges();
+
+    component.car.setValue(mockCarList.cars[0]);
+
+    // simulates clicking the "Mitarbeiter suchen" icon with an empty search field: the text
+    // controls are still empty, only the (selectedEmployee) output fires
+    component.setSelectedDriver(mockEmployees[0]);
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    expect(component.driverSearchInput.value).toEqual('D1');
+    expect(component.coDriverSearchInput.value).toEqual('D2');
+    expect(component.hasInvalidInput()).toEqual(false);
+  });
+
   it('should reset driver when resetDriver is called', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;

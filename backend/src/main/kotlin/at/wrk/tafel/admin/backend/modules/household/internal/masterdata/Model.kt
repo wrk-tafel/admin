@@ -55,6 +55,7 @@ data class PdfCustomerData(
     val employer: String,
     val income: String? = null,
     val incomeDueDate: String? = null,
+    val validUntilDate: String,
     val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
     val idCard: PdfIdCardData? = null,
 )
@@ -79,6 +80,7 @@ data class PdfAdditionalPersonData(
     val employer: String? = null,
     val income: String? = null,
     val incomeDueDate: String? = null,
+    val excludeFromHousehold: Boolean = false,
 )
 
 @ExcludeFromTestCoverage

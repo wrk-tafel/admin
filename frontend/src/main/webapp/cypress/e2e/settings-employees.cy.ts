@@ -46,9 +46,9 @@ describe('Settings - Employees', () => {
   it('searches while the search input is typed, without a search button', () => {
     cy.byTestId('searchEmployeeButton').should('not.exist');
 
-    cy.byTestId('employeeSearchInput').type('Driver');
+    cy.byTestId('employeeSearchInput').type('Fahrer');
 
-    cy.byTestId('employees-table').should('contain.text', 'Driver');
+    cy.byTestId('employees-table').should('contain.text', 'Fahrer');
     cy.byTestId('employees-table').should('not.contain.text', 'Scanner');
     cy.byTestId('employeesSearchAnnouncement').should('contain.text', 'Mitarbeiter gefunden');
   });
@@ -66,7 +66,7 @@ describe('Settings - Employees', () => {
       .and('have.attr', 'href', '/benutzer/detail/100');
 
     cy.byTestId('employeeSearchInput').clear().type('02000');
-    cy.byTestId('employees-table').should('contain.text', 'Driver');
+    cy.byTestId('employees-table').should('contain.text', 'Fahrer');
     cy.byTestId('employeeNoUserAccount-0').should('be.visible');
   });
 
@@ -91,7 +91,7 @@ describe('Settings - Employees', () => {
     cy.byTestId('employeeCreateFirstnameInput').type('Duplicate');
     cy.byTestId('employeeCreateLastnameInput').type('Attempt');
 
-    cy.byTestId('employeeCreateDuplicateHint').should('contain.text', 'Driver 1');
+    cy.byTestId('employeeCreateDuplicateHint').should('contain.text', 'Fahrer 1');
     cy.byTestId('employeeCreateSaveButton').click();
     cy.byTestId('employee-create-dialog').should('be.visible');
 
@@ -119,7 +119,7 @@ describe('Settings - Employees', () => {
       cy.byTestId('editEmployeeButton-0').click();
       cy.byTestId('employeePersonnelNumberInput-0').should('be.visible').clear().type('02000');
 
-      cy.byTestId('employeeDuplicateHint-0').should('contain.text', 'Driver 1');
+      cy.byTestId('employeeDuplicateHint-0').should('contain.text', 'Fahrer 1');
       cy.byTestId('saveEmployeeButton-0').should('be.disabled');
     });
   });

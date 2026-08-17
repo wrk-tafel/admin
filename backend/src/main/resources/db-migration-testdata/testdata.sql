@@ -456,10 +456,10 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
 values (1142, NOW(), NOW(), 114, false, 'Ben', 'Beihilfenknapp', CURRENT_DATE - interval '7 year', 'MALE', 2, false, true);
 UPDATE households SET main_person_id = 114 WHERE id = 114;
 
--- household above the income limit (couple, 3 children, the eldest 16 - old enough to count as an
--- adult for the limit, young enough to still receive family allowance): income 2700+1900=4600 +
--- allowances 743.80 (171.80+2x148.00 Familienbeihilfe, 3x70.90 Kinderabsetzbetrag, 3x21.10
--- Geschwisterstaffel) = 5343.80 vs. limit 3837.00 + 914.00 (+100.00 tolerance) -> 492.80 over;
+-- household above the income limit (couple, income 2700+1900=4600 comfortably clears the limit on
+-- its own regardless of the exact family-allowance credit) and, since it's also "Großfamilie", the
+-- one used to stress-test the household PDFs (master data sheet / ID card) with a long "weitere
+-- Personen" list - 14 additional persons in total, one of them (Ben) excluded from the household;
 -- validity runs out soon, so the list shows a near-term "Gültig bis" date too
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
@@ -483,6 +483,40 @@ values (1153, NOW(), NOW(), 115, false, 'Moritz', 'Großfamilie', CURRENT_DATE -
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, exclude_household, receives_family_allowance)
 values (1154, NOW(), NOW(), 115, false, 'Paul', 'Großfamilie', CURRENT_DATE - interval '4 year', 'MALE', 1, false, true);
+-- 10 more children, purely to stress-test the household PDFs (master data sheet / ID card) with a
+-- large "weitere Personen" list - each one also carries an employer so the PDFs' Arbeitgeber field
+-- is exercised for every entry, not just the two adults. Ben (17) is excluded from the household
+-- (exclude_household=true) to also cover a household whose person list and headcount disagree
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1155, NOW(), NOW(), 115, false, 'Anna', 'Großfamilie', CURRENT_DATE - interval '1 year', 'FEMALE', 1, 'Krabbelstube', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1156, NOW(), NOW(), 115, false, 'Felix', 'Großfamilie', CURRENT_DATE - interval '2 year', 'MALE', 1, 'Krabbelstube', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1157, NOW(), NOW(), 115, false, 'Sophie', 'Großfamilie', CURRENT_DATE - interval '5 year', 'FEMALE', 1, 'Kindergarten Erdberg', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1158, NOW(), NOW(), 115, false, 'Jonas', 'Großfamilie', CURRENT_DATE - interval '6 year', 'MALE', 1, 'Kindergarten Erdberg', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1159, NOW(), NOW(), 115, false, 'Marie', 'Großfamilie', CURRENT_DATE - interval '7 year', 'FEMALE', 1, 'Volksschule Simmering', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1160, NOW(), NOW(), 115, false, 'Elias', 'Großfamilie', CURRENT_DATE - interval '8 year', 'MALE', 1, 'Volksschule Simmering', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1161, NOW(), NOW(), 115, false, 'Laura', 'Großfamilie', CURRENT_DATE - interval '10 year', 'FEMALE', 1, 'Volksschule Simmering', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1162, NOW(), NOW(), 115, false, 'Noah', 'Großfamilie', CURRENT_DATE - interval '11 year', 'MALE', 1, 'Mittelschule Erdberg', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1163, NOW(), NOW(), 115, false, 'Julia', 'Großfamilie', CURRENT_DATE - interval '13 year', 'FEMALE', 1, 'Mittelschule Erdberg', false, true);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, exclude_household, receives_family_allowance)
+values (1164, NOW(), NOW(), 115, false, 'Ben', 'Großfamilie', CURRENT_DATE - interval '17 year', 'MALE', 1, 'BHAK Simmering', true, true);
 UPDATE households SET main_person_id = 115 WHERE id = 115;
 
 -- customer duplicates - fuzzy name/address matches for the "Kunden-Duplikate" screen
@@ -933,21 +967,21 @@ VALUES (1, NOW(), NOW(), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- other employees
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (2000, NOW(), NOW(), '02000', 'Driver', '1');
+VALUES (2000, NOW(), NOW(), '02000', 'Fahrer', '1');
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (2100, NOW(), NOW(), '02100', 'CoDriver', '1');
+VALUES (2100, NOW(), NOW(), '02100', 'Beifahrer', '1');
 
 -- cars
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
-VALUES (1, NOW(), NOW(), 'W-NC-123', 'Nice Car 123');
+VALUES (1, NOW(), NOW(), 'W-NC-123', 'Lieferwagen 123');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
-VALUES (2, NOW(), NOW(), 'W-NC-456', 'Nice Car 456');
+VALUES (2, NOW(), NOW(), 'W-NC-456', 'Lieferwagen 456');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
-VALUES (3, NOW(), NOW(), 'W-NC-789', 'Nice Car 789');
+VALUES (3, NOW(), NOW(), 'W-NC-789', 'Lieferwagen 789');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name, enabled)
-VALUES (4, NOW(), NOW(), 'W-NC-111', 'Old Car 1 disabled', false);
+VALUES (4, NOW(), NOW(), 'W-NC-111', 'Stillgelegter Lieferwagen 1', false);
 INSERT INTO cars (id, created_at, updated_at, license_plate, name, enabled)
-VALUES (5, NOW(), NOW(), 'W-NC-222', 'Old Car 2 disabled', false);
+VALUES (5, NOW(), NOW(), 'W-NC-222', 'Stillgelegter Lieferwagen 2', false);
 
 -- food collection for route 1
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,

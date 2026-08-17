@@ -72,6 +72,7 @@ class HouseholdPdfService(
                 employer = mainPerson.employer ?: "-",
                 income = formatIncome(mainPerson.income),
                 incomeDueDate = mainPerson.incomeDue?.format(DATE_FORMATTER) ?: "-",
+                validUntilDate = household.validUntil.format(DATE_FORMATTER),
                 additionalPersons = additionalPersons.map { mapAdditionalPerson(it) },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
@@ -92,6 +93,7 @@ class HouseholdPdfService(
         employer = person.employer ?: "-",
         income = formatIncome(person.income),
         incomeDueDate = person.incomeDue?.format(DATE_FORMATTER) ?: "-",
+        excludeFromHousehold = person.excludeFromHousehold,
     )
 
     private fun formatIncome(income: BigDecimal?): String = income
