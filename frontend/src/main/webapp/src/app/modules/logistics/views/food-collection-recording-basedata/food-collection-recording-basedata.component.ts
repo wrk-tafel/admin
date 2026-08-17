@@ -96,11 +96,9 @@ export class FoodCollectionRecordingBasedataComponent {
         // personnel numbers and names and so can return several employees - or none, once an
         // employee has been renamed.
         if (foodCollectionData.driver) {
-          this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
           this.setSelectedDriver(foodCollectionData.driver);
         }
         if (foodCollectionData.coDriver) {
-          this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
           this.setSelectedCoDriver(foodCollectionData.coDriver);
         }
       }
@@ -147,11 +145,13 @@ export class FoodCollectionRecordingBasedataComponent {
   }
 
   setSelectedDriver(employee: EmployeeData) {
+    this.driverSearchInput.setValue(employee.personnelNumber);
     this.selectedDriver.set(employee);
     this.driverSearchInput.updateValueAndValidity();
   }
 
   setSelectedCoDriver(employee: EmployeeData) {
+    this.coDriverSearchInput.setValue(employee.personnelNumber);
     this.selectedCoDriver.set(employee);
     this.coDriverSearchInput.updateValueAndValidity();
   }

@@ -116,6 +116,9 @@ describe('Customer Duplicates', () => {
     cy.visit('/kunden/duplikate');
 
     cy.byTestId('no-duplicates-message').should('be.visible').and('contain.text', 'Keine Duplikate gefunden!');
+    // Regression test for #3339: the icon rendered in Material's default on-surface color instead
+    // of green - text-green-600 is oklch(0.627 0.194 149.214) under Tailwind v4's default palette.
+    cy.byTestId('no-duplicates-message').find('mat-icon').should('have.css', 'color', 'oklch(0.627 0.194 149.214)');
   });
 
   it('the "kein Duplikat" action is only offered on the similar candidates, not the anchor itself', () => {
