@@ -45,7 +45,7 @@
     "@zxing/library": "0.23.0",
     "chart.js": "4.5.1",
     "core-js": "3.50.0",
-    "dayjs": "1.11.21",
+    "dayjs": "1.11.22",
     "html-to-image": "1.11.13",
     "ng2-charts": "10.0.0",
     "ngx-cookie-service": "22.0.0",
