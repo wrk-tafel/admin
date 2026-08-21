@@ -388,6 +388,29 @@ since it lives outside the code you're editing. On every update or regeneration,
   visually extends into that region; crop
   those to the sidebar only, not the header. When taking a new screenshot, crop it the same way
   before adding it.
+- **Verify a screenshot actually rendered before committing it** — a Chart.js canvas or a camera
+  `<video>` element captured before its first frame paints shows as a large solid-black area
+  instead of the real content, and is easy to miss on a quick look. Re-check any freshly taken
+  screenshot (e.g. with a quick script scanning for an unexpectedly high percentage of near-black
+  pixels) rather than assuming the capture succeeded because the action didn't error.
+- **The dev/local machine's camera dropdown only ever offers virtual webcams** (e.g. "ManyCam
+  Virtual Webcam", "Twitch Virtual Cam") — there is no physical camera to point at anything
+  meaningful, so the Scanner screen's pairing-view video preview will show whatever those tools
+  happen to be feeding. The pairing view's "Bereit" status is also only reachable for a single
+  render frame in practice — `hasStartedScanning` flips to `true` the instant the camera stream
+  starts, which simultaneously switches the layout to the scanning phase, so normal interaction
+  can never catch pairing+"Bereit" together. To capture it anyway, drive the component's signals
+  directly from the browser console: `const c = window.ng.getComponent(document.querySelector(
+  'tafel-scanner')); await c.qrCodeReaderService.restart(c.currentCamera().deviceId);
+  c.readyState.set(true); c.hasStartedScanning.set(false);` — this renders the real template with
+  real (if browser-console-forced) signal values, not a mockup.
+- **Environment banner**: a non-production backend (`local`/`e2e`/any deployed non-prod
+  environment) shows an amber `<LABEL>-UMGEBUNG` pill centered over the header (see
+  `default-header.component.html`). Since screenshots are cropped to exclude the header (see the
+  cropping rule above), this normally never appears — the one deliberate exception is
+  `login-umgebungskennzeichnung.jpg`, which documents that exact feature on the login page's own
+  (differently styled) banner. Double-check a newly captured screenshot doesn't leak the header
+  pill, especially for the handful of screenshots that intentionally keep the header.
 - **Cross-chapter markdown links** (e.g. `[Kunden](kunden.md)`) must stay as plain file links in the
   source `.md` files — that's what makes them work on GitHub/in an IDE. Every chapter file's top
   carries an explicit `<a id="kapitel-<name>"></a>` anchor, and any sub-heading another chapter
