@@ -450,6 +450,30 @@ internal class DashboardServiceTest {
             )
             foodCollections = listOf(testFoodCollectionRoute1Entity)
         }
+        val testStatistic = DistributionStatisticEntity(distribution = testLastDistributionEntity)
+        testStatistic.shelters = mutableListOf(
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = testShelter1.name,
+                addressStreet = testShelter1.addressStreet,
+                addressHouseNumber = testShelter1.addressHouseNumber,
+                addressPostalCode = testShelter1.addressPostalCode,
+                addressCity = testShelter1.addressCity,
+                personsCount = testShelter1.personsCount,
+                sortOrder = testShelter1.sortOrder,
+            ).apply { id = testShelter1.id },
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = testShelter2.name,
+                addressStreet = testShelter2.addressStreet,
+                addressHouseNumber = testShelter2.addressHouseNumber,
+                addressPostalCode = testShelter2.addressPostalCode,
+                addressCity = testShelter2.addressCity,
+                personsCount = testShelter2.personsCount,
+                sortOrder = testShelter2.sortOrder,
+            ).apply { id = testShelter2.id },
+        )
+        testLastDistributionEntity.statistic = testStatistic
         every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns testLastDistributionEntity
 
         val countRegisteredCustomers = 3
@@ -465,6 +489,27 @@ internal class DashboardServiceTest {
         // only testDistributionHouseholdEntity1 is processed
         assertThat(lastDistribution.countProcessedTickets).isEqualTo(1)
         assertThat(lastDistribution.foodAmountTotal).isEqualTo(BigDecimal(140))
+        assertThat(lastDistribution.sheltersCount).isEqualTo(2)
+        // testShelter1.personsCount (1) + testShelter2.personsCount (2)
+        assertThat(lastDistribution.personsInSheltersCount).isEqualTo(3)
+    }
+
+    @Test
+    fun `get last distribution data is shelter-less when the closed distribution has no statistic`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val closedAt = LocalDateTime.now().minusDays(3)
+        val testLastDistributionEntity = DistributionEntity(startedAt = closedAt, startedByUser = testUserEntity).apply {
+            id = 456
+            endedAt = closedAt.plusHours(4)
+        }
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns testLastDistributionEntity
+
+        val data = service.getData()
+
+        val lastDistribution = data.lastDistribution!!
+        assertThat(lastDistribution.sheltersCount).isEqualTo(0)
+        assertThat(lastDistribution.personsInSheltersCount).isEqualTo(0)
     }
 
     @Test

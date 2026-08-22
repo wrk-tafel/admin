@@ -132,6 +132,8 @@ export interface DashboardLastDistributionData {
   registeredPersons: number;
   countProcessedTickets: number;
   foodAmountTotal: number;
+  sheltersCount: number;
+  personsInSheltersCount: number;
 }
 
 export interface DashboardOrganizationOverviewData {

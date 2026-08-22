@@ -189,7 +189,10 @@ above).
   filename out of the `Content-Disposition` response header.
 - **`LastDistributionSummaryComponent`**: purely presentational, like the other panels - takes
   `summary: DashboardLastDistributionData | null` and renders its own placeholder text when `null`
-  (no distribution has ever been closed) rather than leaving itself blank.
+  (no distribution has ever been closed) rather than leaving itself blank. Six figures in total:
+  customers/persons/tickets/food-amount plus `sheltersCount`/`personsInSheltersCount` - the latter
+  two are `0`/`0` (not a placeholder) when that distribution's statistic had no shelters selected,
+  same "zero is a real answer" rule the other four figures already follow.
 - **`StatTileComponent`** (`tafel-stat-tile`): the one generic panel here - `label`/`value`/`testId`
   inputs rather than a dedicated component per figure, since the eight organization-overview tiles are
   otherwise identical. `testId` (not a plain `testid` attribute) because the component renders the
@@ -203,7 +206,15 @@ above).
   `computed()` (same pattern `AuditEntryListComponent` uses for its own per-section permission checks).
   Renders each surviving link as a `routerLink`-driven `mat-raised-button`, and a placeholder message
   when the filtered list is empty rather than rendering nothing - consistent with
-  `LastDistributionSummaryComponent`'s null-summary placeholder above.
+  `LastDistributionSummaryComponent`'s null-summary placeholder above. **Every `url` here must be a
+  leaf route, never a parent-only path like `/einstellungen`** - `settings.routes.ts` (and several
+  other feature route files) has no `''`-path child, so navigating there directly renders a blank
+  `<router-outlet>`. The sidebar never hits this because `DefaultLayoutComponent`'s template renders a
+  parent item with `children` as a `<button>` that only toggles expansion, not an `<a routerLink>` -
+  the `url` on those nav items is otherwise-unused data, not a proof the bare path itself resolves to
+  anything. The `settings` entry here links to `/einstellungen/fahrzeuge` for exactly this reason;
+  check a new link actually renders something before adding it, rather than assuming a path that
+  "looks like" the section root works.
 - Every panel card visually communicates "warning" vs "success" vs "primary" via `computed()`
   color functions comparing recorded vs. total counts (e.g. `TicketsProcessedComponent
   .panelColor`, `RecordedFoodCollectionsComponent.panelColor`) — no shared logic between them, so

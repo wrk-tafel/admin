@@ -77,6 +77,10 @@ data class DashboardLastDistributionData(
     val registeredPersons: Int,
     val countProcessedTickets: Int,
     val foodAmountTotal: BigDecimal,
+    /** How many shelters were selected on that distribution's end-of-day statistic - 0 if none were (or it was never filled in). */
+    val sheltersCount: Int,
+    /** Sum of `DistributionStatisticShelterEntity.personsCount` across those shelters - the same frozen snapshot the statistic itself keeps. */
+    val personsInSheltersCount: Int,
 )
 
 /**

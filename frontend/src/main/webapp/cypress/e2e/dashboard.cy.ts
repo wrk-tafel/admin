@@ -148,6 +148,9 @@ describe('Dashboard', () => {
     // the ticket was registered but never processed via the ticket screen
     cy.byTestId('last-distribution-tickets').should('have.text', '0');
     cy.byTestId('last-distribution-food-amount').invoke('text').invoke('trim').should('equal', '0,00 kg');
+    // cy.closeDistribution() always selects shelters 1 and 2 (100 + 50 persons) from the testdata
+    cy.byTestId('last-distribution-shelters').should('have.text', '2');
+    cy.byTestId('last-distribution-shelter-persons').should('have.text', '150');
 
     // organization-wide counts, filled from the seeded testdata rather than anything this spec set
     // up itself - just asserted as real (positive) numbers rather than pinned exact values, since

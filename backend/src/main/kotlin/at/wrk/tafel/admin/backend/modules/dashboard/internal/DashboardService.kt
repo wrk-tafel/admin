@@ -91,12 +91,16 @@ class DashboardService(
         val lastDistribution = distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()
             ?: return null
 
+        val shelters = lastDistribution.statistic?.shelters ?: emptyList()
+
         return DashboardLastDistributionData(
             date = lastDistribution.startedAt.toLocalDate(),
             registeredCustomers = getRegisteredCustomers(lastDistribution),
             registeredPersons = getRegisteredPersons(lastDistribution),
             countProcessedTickets = countProcessedTickets(lastDistribution),
             foodAmountTotal = getFoodAmountTotal(lastDistribution),
+            sheltersCount = shelters.size,
+            personsInSheltersCount = shelters.sumOf { it.personsCount },
         )
     }
 

@@ -25,14 +25,16 @@ Only three source files (plus `package-info.java`):
   without diffing two lists itself); `lastDistribution` and `organizationOverview` stay `null`. If none
   is open, every one of those day-specific fields is `null` instead, and two fields are populated so the
   overview page still has something to show: `lastDistribution`, from the most recently closed
-  distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`) - `null`
-  there too on a fresh installation that has never closed one - and `organizationOverview`, eight
-  organization-wide counts (active households/persons/users/cars/shelters/routes/shops, plus employees)
-  read straight off `HouseholdRepository`, `PersonRepository`, `UserRepository`, `CarRepository`,
-  `ShelterRepository`, `RouteRepository`, `ShopRepository` and `EmployeeRepository`. The frontend shows
-  the day-specific panels while a distribution is open, and the last-distribution summary plus the
-  organization overview tiles (plus a row of permission-gated quick links to fill whatever space is
-  still left) otherwise.
+  distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`) - customer/
+  person/ticket/food-amount counts the same way the active branch computes them, plus `sheltersCount`/
+  `personsInSheltersCount` read off that distribution's own `statistic?.shelters` (the same frozen
+  snapshot `getStatisticsData()` reads `selectedShelterNames` from, see below) - `null` there too on a
+  fresh installation that has never closed one - and `organizationOverview`, eight organization-wide
+  counts (active households/persons/users/cars/shelters/routes/shops, plus employees) read straight off
+  `HouseholdRepository`, `PersonRepository`, `UserRepository`, `CarRepository`, `ShelterRepository`,
+  `RouteRepository`, `ShopRepository` and `EmployeeRepository`. The frontend shows the day-specific
+  panels while a distribution is open, and the last-distribution summary plus the organization overview
+  tiles (plus a row of permission-gated quick links to fill whatever space is still left) otherwise.
 - **`DashboardResponseModel`** (`DashboardData`, `DashboardTicketsData`, `DashboardStatisticsData`,
   `DashboardLogisticsData`, `DashboardLastDistributionData`, `DashboardOrganizationOverviewData`) – Plain
   DTOs serialized straight onto the SSE stream as JSON.

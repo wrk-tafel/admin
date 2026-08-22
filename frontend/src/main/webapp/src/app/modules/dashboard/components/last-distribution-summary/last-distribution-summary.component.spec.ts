@@ -21,6 +21,8 @@ describe('LastDistributionSummaryComponent', () => {
       registeredPersons: 84,
       countProcessedTickets: 40,
       foodAmountTotal: 123.456,
+      sheltersCount: 2,
+      personsInSheltersCount: 15,
     };
 
     const fixture = TestBed.createComponent(LastDistributionSummaryComponent);
@@ -32,6 +34,8 @@ describe('LastDistributionSummaryComponent', () => {
     expect(fixture.debugElement.query(By.css('[testid="last-distribution-tickets"]')).nativeElement.textContent).toBe('40');
     const foodAmountText = fixture.debugElement.query(By.css('[testid="last-distribution-food-amount"]')).nativeElement.textContent;
     expect(foodAmountText.trim()).toBe('123,46 kg');
+    expect(fixture.debugElement.query(By.css('[testid="last-distribution-shelters"]')).nativeElement.textContent).toBe('2');
+    expect(fixture.debugElement.query(By.css('[testid="last-distribution-shelter-persons"]')).nativeElement.textContent).toBe('15');
   });
 
   it('renders a placeholder when no distribution has ever been closed', () => {

@@ -18,7 +18,10 @@ const QUICK_LINKS: QuickLink[] = [
   {testId: 'users-search', label: 'Benutzer suchen', url: '/benutzer/suchen', permission: 'USER_MANAGEMENT'},
   {testId: 'statistics', label: 'Statistiken', url: '/statistiken/allgemein', permission: 'STATISTICS'},
   {testId: 'audit-log', label: 'Änderungsprotokoll', url: '/aenderungsprotokoll', permission: 'AUDIT_LOG'},
-  {testId: 'settings', label: 'Einstellungen', url: '/einstellungen', permission: 'SETTINGS'},
+  // '/einstellungen' alone has no matching route (settings.routes.ts has no '' path - the sidebar
+  // never navigates there itself, see DefaultLayoutComponent's template, only expands its children)
+  // and renders a blank page, so this links straight to its first child screen instead.
+  {testId: 'settings', label: 'Einstellungen', url: '/einstellungen/fahrzeuge', permission: 'SETTINGS'},
 ];
 
 @Component({

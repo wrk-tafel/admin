@@ -190,7 +190,7 @@ Auf Touch-Geräten erscheinen die Kurzhinweise, wenn man das Symbol kurz gedrüc
 
 ## Übersicht (Dashboard)
 
-Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages. **Status** ist dabei immer sichtbar. Solange keine Ausgabe läuft, zeigt die Übersicht anstelle der tagesbezogenen Kennzahlen eine kurze Zusammenfassung der zuletzt abgeschlossenen Ausgabe (Kunden, Personen, bearbeitete Tickets, erfasste Warenmenge) – wurde noch nie eine Ausgabe abgeschlossen, erscheint stattdessen ein Hinweistext:
+Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages. **Status** ist dabei immer sichtbar. Solange keine Ausgabe läuft, zeigt die Übersicht anstelle der tagesbezogenen Kennzahlen eine kurze Zusammenfassung der zuletzt abgeschlossenen Ausgabe (Kunden, Personen, bearbeitete Tickets, erfasste Warenmenge sowie Anzahl der genutzten Notschlafstellen und der Personen darin) – wurde noch nie eine Ausgabe abgeschlossen, erscheint stattdessen ein Hinweistext:
 
 ![Übersicht](images/dashboard.jpg)
 

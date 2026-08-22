@@ -797,6 +797,21 @@ SELECT 6 + i,
        false
 FROM generate_series(1, 135) AS i;
 
+-- an end-of-day statistic for distribution 9000 too, with two shelters, so the dashboard's "Letzte
+-- Ausgabe" summary has real "Notschlafstellen"/"Personen in Notschlafstellen" figures instead of
+-- zero - shelters here are a frozen name/address/persons_count snapshot (see DashboardService's
+-- comment on why), not a reference to the `shelters` table, so this doesn't depend on it existing yet.
+INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, employee_count)
+VALUES (9000, NOW(), NOW(), 9000, 8);
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id,
+                                               name, address_street, address_housenumber,
+                                               address_postalcode, address_city, persons_count, sort_order)
+VALUES (9001, NOW(), NOW(), 9000, 'Shelter 1', 'Erdberg', '1', 1030, 'Wien', 100, 1);
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id,
+                                               name, address_street, address_housenumber,
+                                               address_postalcode, address_city, persons_count, sort_order)
+VALUES (9002, NOW(), NOW(), 9000, 'Shelter 2 with a very long name', 'Erdberg', '2', 1030, 'Wien', 50, 2);
+
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
