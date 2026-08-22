@@ -1,16 +1,23 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
@@ -53,6 +60,27 @@ internal class DashboardServiceTest {
 
     @RelaxedMockK
     private lateinit var routeStopCompletionRepository: RouteStopCompletionRepository
+
+    @RelaxedMockK
+    private lateinit var householdRepository: HouseholdRepository
+
+    @RelaxedMockK
+    private lateinit var personRepository: PersonRepository
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var carRepository: CarRepository
+
+    @RelaxedMockK
+    private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
+    private lateinit var shopRepository: ShopRepository
+
+    @RelaxedMockK
+    private lateinit var employeeRepository: EmployeeRepository
 
     @InjectMockKs
     private lateinit var service: DashboardService
@@ -348,6 +376,7 @@ internal class DashboardServiceTest {
     @Test
     fun `get data without active distribution`() {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns null
 
         val data = service.getData()
 
@@ -358,8 +387,138 @@ internal class DashboardServiceTest {
         assertThat(data.statistics).isNull()
         assertThat(data.logistics).isNull()
         assertThat(data.notes).isNull()
+        assertThat(data.lastDistribution).isNull()
+        assertThat(data.organizationOverview).isNotNull
 
         verify { distributionRepository.findFirstByOrderByIdDesc() }
         verify(exactly = 0) { distributionHouseholdRepository.countAllByDistributionId(any()) }
+    }
+
+    @Test
+    fun `get data with an active distribution never populates lastDistribution or organizationOverview`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val data = service.getData()
+
+        assertThat(data.lastDistribution).isNull()
+        assertThat(data.organizationOverview).isNull()
+        verify(exactly = 0) { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() }
+        verify(exactly = 0) { householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(any()) }
+    }
+
+    @Test
+    fun `get organization overview data counts active households, persons, users, cars, shelters, routes, shops and employees`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(LocalDate.now()) } returns 137
+        every { personRepository.countActive(LocalDate.now()) } returns 142
+        every { userRepository.countByEnabledTrue() } returns 12
+        every { carRepository.countByEnabledIsTrue() } returns 4
+        every { shelterRepository.countByEnabledIsTrue() } returns 3
+        every { routeRepository.countByEnabledIsTrue() } returns 5
+        every { shopRepository.countByEnabledIsTrue() } returns 20
+        every { employeeRepository.count() } returns 15
+
+        val data = service.getData()
+
+        val overview = data.organizationOverview!!
+        assertThat(overview.activeHouseholdsCount).isEqualTo(137)
+        assertThat(overview.activePersonsCount).isEqualTo(142)
+        assertThat(overview.activeUsersCount).isEqualTo(12)
+        assertThat(overview.activeCarsCount).isEqualTo(4)
+        assertThat(overview.activeSheltersCount).isEqualTo(3)
+        assertThat(overview.activeRoutesCount).isEqualTo(5)
+        assertThat(overview.activeShopsCount).isEqualTo(20)
+        assertThat(overview.employeesCount).isEqualTo(15)
+    }
+
+    @Test
+    fun `get last distribution data summarizes the most recently closed distribution`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val closedAt = LocalDateTime.now().minusDays(3)
+        val testLastDistributionEntity = DistributionEntity(startedAt = closedAt, startedByUser = testUserEntity).apply {
+            id = 456
+            endedAt = closedAt.plusHours(4)
+            households = listOf(
+                testDistributionHouseholdEntity1,
+                testDistributionHouseholdEntity2,
+                testDistributionHouseholdEntity3,
+            )
+            foodCollections = listOf(testFoodCollectionRoute1Entity)
+        }
+        val testStatistic = DistributionStatisticEntity(distribution = testLastDistributionEntity)
+        testStatistic.shelters = mutableListOf(
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = testShelter1.name,
+                addressStreet = testShelter1.addressStreet,
+                addressHouseNumber = testShelter1.addressHouseNumber,
+                addressPostalCode = testShelter1.addressPostalCode,
+                addressCity = testShelter1.addressCity,
+                personsCount = testShelter1.personsCount,
+                sortOrder = testShelter1.sortOrder,
+            ).apply { id = testShelter1.id },
+            DistributionStatisticShelterEntity(
+                statistic = testStatistic,
+                name = testShelter2.name,
+                addressStreet = testShelter2.addressStreet,
+                addressHouseNumber = testShelter2.addressHouseNumber,
+                addressPostalCode = testShelter2.addressPostalCode,
+                addressCity = testShelter2.addressCity,
+                personsCount = testShelter2.personsCount,
+                sortOrder = testShelter2.sortOrder,
+            ).apply { id = testShelter2.id },
+        )
+        testLastDistributionEntity.statistic = testStatistic
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns testLastDistributionEntity
+
+        val countRegisteredCustomers = 3
+        every { distributionHouseholdRepository.countAllByDistributionId(testLastDistributionEntity.id!!) } returns countRegisteredCustomers
+
+        val data = service.getData()
+
+        val lastDistribution = data.lastDistribution!!
+        assertThat(lastDistribution.date).isEqualTo(closedAt.toLocalDate())
+        assertThat(lastDistribution.registeredCustomers).isEqualTo(countRegisteredCustomers)
+        // 3 main persons + household 1's one additional person that is not excluded from the household
+        assertThat(lastDistribution.registeredPersons).isEqualTo(4)
+        // only testDistributionHouseholdEntity1 is processed
+        assertThat(lastDistribution.countProcessedTickets).isEqualTo(1)
+        assertThat(lastDistribution.foodAmountTotal).isEqualTo(BigDecimal(140))
+        assertThat(lastDistribution.sheltersCount).isEqualTo(2)
+        // testShelter1.personsCount (1) + testShelter2.personsCount (2)
+        assertThat(lastDistribution.personsInSheltersCount).isEqualTo(3)
+    }
+
+    @Test
+    fun `get last distribution data is shelter-less when the closed distribution has no statistic`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val closedAt = LocalDateTime.now().minusDays(3)
+        val testLastDistributionEntity = DistributionEntity(startedAt = closedAt, startedByUser = testUserEntity).apply {
+            id = 456
+            endedAt = closedAt.plusHours(4)
+        }
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns testLastDistributionEntity
+
+        val data = service.getData()
+
+        val lastDistribution = data.lastDistribution!!
+        assertThat(lastDistribution.sheltersCount).isEqualTo(0)
+        assertThat(lastDistribution.personsInSheltersCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `get last distribution data is null when no distribution has ever been closed`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns null
+
+        val data = service.getData()
+
+        assertThat(data.lastDistribution).isNull()
     }
 }

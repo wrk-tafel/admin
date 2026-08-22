@@ -60,6 +60,8 @@ internal class DashboardControllerTest {
                 ),
             ),
             notes = "test-notes",
+            lastDistribution = null,
+            organizationOverview = null,
         )
         every { service.getData() } returns data
 

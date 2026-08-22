@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.LocalDate
 
 interface PersonRepository :
     JpaRepository<PersonEntity, Long>,
@@ -47,4 +48,17 @@ interface PersonRepository :
         @Param("targetHousehold") targetHousehold: HouseholdEntity,
         @Param("personIds") personIds: Collection<Long>,
     ): Int
+
+    /**
+     * Everyone a currently entitled, unlocked household gets food for - what the dashboard's
+     * "Personen gesamt" tile shows while no distribution is active. Same formula as
+     * `DashboardService.getRegisteredPersons`/the customer-list PDF: excluded additional persons
+     * don't count. `date` is a parameter rather than `CURRENT_DATE` baked into the query so the
+     * count stays testable with a fixed reference date.
+     */
+    @Query(
+        "select count(p) from Person p join p.household h " +
+            "where h.locked = false and h.validUntil >= :date and p.excludeFromHousehold = false",
+    )
+    fun countActive(@Param("date") date: LocalDate): Int
 }

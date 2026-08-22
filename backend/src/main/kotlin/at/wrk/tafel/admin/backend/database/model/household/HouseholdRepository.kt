@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface HouseholdRepository :
@@ -44,4 +45,11 @@ interface HouseholdRepository :
     fun findAllByProlongedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<HouseholdEntity>
 
     fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int
+
+    /**
+     * Every household still entitled today and not locked - what the dashboard's "Kunden gesamt"
+     * tile shows while no distribution is active. `date` is a parameter rather than `CURRENT_DATE`
+     * baked into the query so the count stays testable with a fixed reference date.
+     */
+    fun countByLockedFalseAndValidUntilGreaterThanEqual(date: LocalDate): Int
 }

@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.dashboard
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import java.math.BigDecimal
+import java.time.LocalDate
 
 @ExcludeFromTestCoverage
 data class DashboardData(
@@ -12,6 +13,22 @@ data class DashboardData(
     val statistics: DashboardStatisticsData?,
     val logistics: DashboardLogisticsData?,
     val notes: String?,
+    /**
+     * A snapshot of the most recently closed distribution, only ever set while no distribution is
+     * currently open - the frontend shows this in place of the day-specific panels above, which
+     * would otherwise all be empty. `null` both while a distribution is active and when none has
+     * ever been closed yet.
+     */
+    val lastDistribution: DashboardLastDistributionData?,
+    /**
+     * Organization-wide counts, populated in the same case as [lastDistribution] - while no
+     * distribution is active, so the overview page has more to show than the status card and the
+     * last-distribution summary. Not refreshed by every household/user/car change (see
+     * `DashboardController`'s `dashboard_update` trigger tables) - only as fresh as the last time
+     * something distribution-related pushed a new snapshot, which is acceptable for a background
+     * figure like this one.
+     */
+    val organizationOverview: DashboardOrganizationOverviewData?,
 )
 
 @ExcludeFromTestCoverage
@@ -51,4 +68,37 @@ data class DashboardRouteProgressItem(
     val routeName: String,
     val completedStops: Int,
     val totalStops: Int,
+)
+
+@ExcludeFromTestCoverage
+data class DashboardLastDistributionData(
+    val date: LocalDate,
+    val registeredCustomers: Int,
+    val registeredPersons: Int,
+    val countProcessedTickets: Int,
+    val foodAmountTotal: BigDecimal,
+    /** How many shelters were selected on that distribution's end-of-day statistic - 0 if none were (or it was never filled in). */
+    val sheltersCount: Int,
+    /** Sum of `DistributionStatisticShelterEntity.personsCount` across those shelters - the same frozen snapshot the statistic itself keeps. */
+    val personsInSheltersCount: Int,
+)
+
+/**
+ * Currently entitled/enabled, as opposed to a historic total - so the figures stay meaningful (a
+ * household whose validity lapsed years ago isn't still a "customer", a disabled route isn't still
+ * driven). The frontend shows each figure behind its own permission check (`CUSTOMER` for the two
+ * household-derived ones, `USER_MANAGEMENT`, `SETTINGS` for employees, `LOGISTICS` for the rest),
+ * matching the permission that figure's own screen needs - the backend sends all eight regardless,
+ * same as [DashboardStatisticsData] already does for a viewer without `LOGISTICS`.
+ */
+@ExcludeFromTestCoverage
+data class DashboardOrganizationOverviewData(
+    val activeHouseholdsCount: Int,
+    val activePersonsCount: Int,
+    val activeUsersCount: Int,
+    val activeCarsCount: Int,
+    val activeSheltersCount: Int,
+    val activeRoutesCount: Int,
+    val activeShopsCount: Int,
+    val employeesCount: Int,
 )
