@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,6 +30,28 @@ jobs:
         uses: paulhatch/semantic-version@502226b17e3e242e4befd0a45690fcbb27dd1373 # v6.0.3
         with:
           tag_prefix: ""
+      # CHANGELOG.md is maintained by hand, one bullet per user-facing change, always added under
+      # "## [Unreleased]" (see CLAUDE.md's "Changelog" section). This step never parses that
+      # heading - it diffs CHANGELOG.md against the previous release tag and keeps only added
+      # bullet lines, so the extracted delta is correct even if "## [Unreleased]" hasn't been
+      # renamed to a version yet, and unaffected by how many commits landed in between.
+      - name: Extract changelog entries added since the last release
+        id: changelog
+        run: |
+          previous_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$previous_tag" ]; then
+            entries="_Erstes Release._"
+          else
+            entries=$(git diff "${previous_tag}"...HEAD -- CHANGELOG.md | grep -E '^\+- ' | sed 's/^\+//' || true)
+            if [ -z "$entries" ]; then
+              entries="_Keine dokumentierten Änderungen für dieses Release._"
+            fi
+          fi
+          {
+            echo "changelog<<CHANGELOG_EOF"
+            echo "$entries"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
@@ -128,9 +151,12 @@ jobs:
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ needs.version.outputs.version }}
-          generate_release_notes: true
           files: tafel-admin-benutzerhandbuch.pdf
           body: |
+            ## Änderungen
+
+            ${{ needs.version.outputs.changelog }}
+
             ## User guide
 
             The German user guide for this version:
