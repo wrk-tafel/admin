@@ -8,12 +8,14 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLastDistributionData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardRouteProgressItem
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardTicketsData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Service
@@ -36,6 +38,7 @@ class DashboardService(
                 statistics = getStatisticsData(currentDistribution),
                 logistics = getLogisticsData(currentDistribution),
                 notes = currentDistribution.notes,
+                lastDistribution = null,
             )
         } ?: DashboardData(
             registeredCustomers = null,
@@ -44,18 +47,34 @@ class DashboardService(
             statistics = null,
             logistics = null,
             notes = null,
+            lastDistribution = getLastDistributionData(),
         )
     }
 
-    private fun getTicketsData(currentDistribution: DistributionEntity): DashboardTicketsData {
-        val countProcessedTickets = currentDistribution.households.count { it.processed == true }
-        val countTotalTickets = currentDistribution.households.size
+    /**
+     * A compact summary of the most recently closed distribution, shown in place of the day-specific
+     * panels while none is currently open - `null` on a fresh installation where no distribution has
+     * ever been closed yet.
+     */
+    private fun getLastDistributionData(): DashboardLastDistributionData? {
+        val lastDistribution = distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()
+            ?: return null
 
-        return DashboardTicketsData(
-            countProcessedTickets = countProcessedTickets,
-            countTotalTickets = countTotalTickets,
+        return DashboardLastDistributionData(
+            date = lastDistribution.startedAt.toLocalDate(),
+            registeredCustomers = getRegisteredCustomers(lastDistribution),
+            registeredPersons = getRegisteredPersons(lastDistribution),
+            countProcessedTickets = countProcessedTickets(lastDistribution),
+            foodAmountTotal = getFoodAmountTotal(lastDistribution),
         )
     }
+
+    private fun getTicketsData(currentDistribution: DistributionEntity): DashboardTicketsData = DashboardTicketsData(
+        countProcessedTickets = countProcessedTickets(currentDistribution),
+        countTotalTickets = currentDistribution.households.size,
+    )
+
+    private fun countProcessedTickets(distribution: DistributionEntity): Int = distribution.households.count { it.processed == true }
 
     private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int = distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
 
@@ -91,13 +110,15 @@ class DashboardService(
             allRouteNames = enabledRoutes
                 .sortedWith(compareBy({ it.number }, { it.name }))
                 .map { it.name },
-            foodAmountTotal = currentDistribution.foodCollections
-                .flatMap { it.items ?: emptyList() }
-                .map { it.weight }
-                .sumOf { it },
+            foodAmountTotal = getFoodAmountTotal(currentDistribution),
             routeProgress = getRouteProgress(enabledRoutes),
         )
     }
+
+    private fun getFoodAmountTotal(distribution: DistributionEntity): BigDecimal = distribution.foodCollections
+        .flatMap { it.items ?: emptyList() }
+        .map { it.weight }
+        .sumOf { it }
 
     /**
      * The stop counts behind the route guidance screen, for every route that is still driven.

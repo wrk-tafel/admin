@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.dashboard
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import java.math.BigDecimal
+import java.time.LocalDate
 
 @ExcludeFromTestCoverage
 data class DashboardData(
@@ -12,6 +13,13 @@ data class DashboardData(
     val statistics: DashboardStatisticsData?,
     val logistics: DashboardLogisticsData?,
     val notes: String?,
+    /**
+     * A snapshot of the most recently closed distribution, only ever set while no distribution is
+     * currently open - the frontend shows this in place of the day-specific panels above, which
+     * would otherwise all be empty. `null` both while a distribution is active and when none has
+     * ever been closed yet.
+     */
+    val lastDistribution: DashboardLastDistributionData?,
 )
 
 @ExcludeFromTestCoverage
@@ -51,4 +59,13 @@ data class DashboardRouteProgressItem(
     val routeName: String,
     val completedStops: Int,
     val totalStops: Int,
+)
+
+@ExcludeFromTestCoverage
+data class DashboardLastDistributionData(
+    val date: LocalDate,
+    val registeredCustomers: Int,
+    val registeredPersons: Int,
+    val countProcessedTickets: Int,
+    val foodAmountTotal: BigDecimal,
 )

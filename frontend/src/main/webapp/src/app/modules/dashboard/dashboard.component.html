@@ -5,43 +5,52 @@
      height the same way. -->
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-2">
   <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
-  <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
-  <tafel-registered-persons [count]="data()?.registeredPersons"></tafel-registered-persons>
-  <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets ?? null"
-                           [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
-  </tafel-tickets-processed>
+  @if (isDistributionActive()) {
+    <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
+    <tafel-registered-persons [count]="data()?.registeredPersons"></tafel-registered-persons>
+    <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets ?? null"
+                             [countTotalTickets]="data()?.tickets?.countTotalTickets ?? null">
+    </tafel-tickets-processed>
+  } @else {
+    <!-- No distribution is open, so the day-specific panels below would all just show dashes -
+         a small summary of the most recently closed distribution instead. -->
+    <tafel-last-distribution-summary class="lg:col-span-3" [summary]="data()?.lastDistribution ?? null">
+    </tafel-last-distribution-summary>
+  }
 </div>
-<mat-divider class="!my-3"></mat-divider>
-<div class="grid grid-cols-1 lg:grid-cols-5 gap-2">
-  <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
-                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
-  </tafel-recorded-food-collections>
-  <tafel-recorded-route-names class="lg:col-span-2"
-                              [allRouteNames]="data()?.logistics?.allRouteNames ?? null"
-                              [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
-  </tafel-recorded-route-names>
-  <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
-  </tafel-food-amount>
-</div>
-<!-- Only once a driver has actually ticked a stop off today. The route guidance screen is optional,
-     and a deployment that doesn't use it would otherwise carry a panel of permanent zeroes on a
-     dashboard that has to fit on one screen. The backend decides that, not this template: it sends
-     an empty list until the first stop of the day is done (see DashboardService.getRouteProgress). -->
-@if (routeProgress(); as progress) {
-  <div class="mt-2">
-    <tafel-route-progress [routeProgress]="progress"></tafel-route-progress>
+@if (isDistributionActive()) {
+  <mat-divider class="!my-3"></mat-divider>
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-2">
+    <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
+                                     [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
+    </tafel-recorded-food-collections>
+    <tafel-recorded-route-names class="lg:col-span-2"
+                                [allRouteNames]="data()?.logistics?.allRouteNames ?? null"
+                                [recordedRouteNames]="data()?.logistics?.recordedRouteNames ?? null">
+    </tafel-recorded-route-names>
+    <tafel-food-amount class="lg:col-span-2" [amount]="data()?.logistics?.foodAmountTotal ?? null">
+    </tafel-food-amount>
+  </div>
+  <!-- Only once a driver has actually ticked a stop off today. The route guidance screen is optional,
+       and a deployment that doesn't use it would otherwise carry a panel of permanent zeroes on a
+       dashboard that has to fit on one screen. The backend decides that, not this template: it sends
+       an empty list until the first stop of the day is done (see DashboardService.getRouteProgress). -->
+  @if (routeProgress(); as progress) {
+    <div class="mt-2">
+      <tafel-route-progress [routeProgress]="progress"></tafel-route-progress>
+    </div>
+  }
+  <mat-divider class="!my-3"></mat-divider>
+  <!-- The last row takes whatever the rows above it left over, so the screen is exactly full whether
+       or not "Routen unterwegs" is there. Only from lg: up: below that breakpoint the panels are
+       stacked in one column and there is more of them than a phone screen holds, so squeezing them
+       into it would leave every field unusably short. -->
+  <div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
+    <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
+                                         [employeeCountInput]="data()?.statistics?.employeeCount"
+                                         [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">
+    </tafel-distribution-statistics-input>
+    <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
+    </tafel-distribution-notes-input>
   </div>
 }
-<mat-divider class="!my-3"></mat-divider>
-<!-- The last row takes whatever the rows above it left over, so the screen is exactly full whether
-     or not "Routen unterwegs" is there. Only from lg: up: below that breakpoint the panels are
-     stacked in one column and there is more of them than a phone screen holds, so squeezing them
-     into it would leave every field unusably short. -->
-<div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
-  <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
-                                       [employeeCountInput]="data()?.statistics?.employeeCount"
-                                       [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">
-  </tafel-distribution-statistics-input>
-  <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
-  </tafel-distribution-notes-input>
-</div>

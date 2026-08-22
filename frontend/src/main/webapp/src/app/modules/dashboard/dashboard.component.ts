@@ -17,7 +17,11 @@ import {
   DistributionNotesInputComponent
 } from './components/distribution-notes-input/distribution-notes-input.component';
 import {TicketsProcessedComponent} from './components/tickets-processed/tickets-processed.component';
+import {
+  LastDistributionSummaryComponent
+} from './components/last-distribution-summary/last-distribution-summary.component';
 import {SseService} from '../../common/sse/sse.service';
+import {GlobalStateService} from '../../common/state/global-state.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {MatDivider} from '@angular/material/list';
 
@@ -40,18 +44,31 @@ import {MatDivider} from '@angular/material/list';
     FoodAmountComponent,
     DistributionNotesInputComponent,
     TicketsProcessedComponent,
+    LastDistributionSummaryComponent,
     MatDivider,
   ]
 })
 
 export class DashboardComponent {
   private readonly sseService = inject(SseService);
+  private readonly globalStateService = inject(GlobalStateService);
 
   readonly sheltersData = input<ShelterListResponse>();
 
   readonly data: Signal<DashboardData | undefined> = toSignal(
     this.sseService.listen<DashboardData>('/sse/dashboard')
   );
+
+  /**
+   * Whether a distribution is currently open - read from `GlobalStateService` rather than derived
+   * locally, so this stays in sync with every other module reading the same `/sse/distributions`
+   * stream (see the module README). Drives which half of the template is shown: the day-specific
+   * panels while active, a summary of the last closed distribution otherwise.
+   */
+  readonly isDistributionActive = computed(() => {
+    const distribution = this.globalStateService.getCurrentDistribution()();
+    return !!distribution && !distribution.endedAt;
+  });
 
   /**
    * The route progress, or `undefined` while nothing has been ticked off today - the template
@@ -72,6 +89,8 @@ export interface DashboardData {
   statistics?: DashboardStatisticsData;
   logistics?: DashboardLogisticsData;
   notes?: string;
+  /** Only set while no distribution is currently open - see {@link DashboardComponent.isDistributionActive}. */
+  lastDistribution?: DashboardLastDistributionData;
 }
 
 export interface DashboardTicketsData {
@@ -99,4 +118,12 @@ export interface DashboardRouteProgressData {
   routeName: string;
   completedStops: number;
   totalStops: number;
+}
+
+export interface DashboardLastDistributionData {
+  date: Date;
+  registeredCustomers: number;
+  registeredPersons: number;
+  countProcessedTickets: number;
+  foodAmountTotal: number;
 }

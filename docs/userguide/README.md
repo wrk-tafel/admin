@@ -190,11 +190,14 @@ Auf Touch-Geräten erscheinen die Kurzhinweise, wenn man das Symbol kurz gedrüc
 
 ## Übersicht (Dashboard)
 
-Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages.
+Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags sowie Kennzahlen des Tages. **Status** ist dabei immer sichtbar. Solange keine Ausgabe läuft, zeigt die Übersicht anstelle der tagesbezogenen Kennzahlen eine kurze Zusammenfassung der zuletzt abgeschlossenen Ausgabe (Kunden, Personen, bearbeitete Tickets, erfasste Warenmenge) – wurde noch nie eine Ausgabe abgeschlossen, erscheint stattdessen ein Hinweistext:
 
 ![Übersicht](images/dashboard.jpg)
 
 - **Status**: Zeigt an, ob der Ausgabetag "Geöffnet" oder "Geschlossen" ist. Mit **Tag starten** wird eine neue Ausgabe begonnen, mit **Tag beenden** wird sie abgeschlossen (dabei werden u. a. die Mitarbeiterzahl und die genutzten Notschlafstellen abgefragt).
+
+Sobald eine Ausgabe läuft, zeigt die Übersicht stattdessen die folgenden tagesbezogenen Kennzahlen:
+
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
 - **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im Haushalt" markierte Personen zählen nicht mit.
 - **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.

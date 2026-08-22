@@ -14,16 +14,21 @@ Only three source files (plus `package-info.java`):
   time that notification fires. It never queries the database itself.
 - **`internal/DashboardService`** – Builds the `DashboardData` snapshot from scratch on every call
   (`getData()`). Looks up the current open distribution
-  (`DistributionRepository.getCurrentDistribution()`), and if none is open, returns an all-null
-  `DashboardData` (the frontend renders this as "no active distribution"). If one is open, it assembles
+  (`DistributionRepository.getCurrentDistribution()`). If one is open, it assembles
   ticket counts, registered-household count, registered-person count (one per household plus its
   not-excluded additional persons - the same formula as `DistributionStatisticService` and the
   customer-list PDF), statistics (employee count + shelter names), and logistics
   (food collections vs. total routes, total food weight, the enabled routes' names both recorded and in
   full - the frontend renders the latter as chips so the routes that haven't handed in yet are visible
-  without diffing two lists itself).
+  without diffing two lists itself); `lastDistribution` stays `null`. If none is open, every one of
+  those day-specific fields is `null` instead, and `lastDistribution` is populated from the most
+  recently closed distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`)
+  - `null` there too on a fresh installation that has never closed one. The frontend shows the
+  day-specific panels while `lastDistribution` is `null` and a distribution is open, and a compact
+  summary of `lastDistribution` otherwise.
 - **`DashboardResponseModel`** (`DashboardData`, `DashboardTicketsData`, `DashboardStatisticsData`,
-  `DashboardLogisticsData`) – Plain DTOs serialized straight onto the SSE stream as JSON.
+  `DashboardLogisticsData`, `DashboardLastDistributionData`) – Plain DTOs serialized straight onto
+  the SSE stream as JSON.
 
 ## The `allowedDependencies = {}` puzzle
 
@@ -126,7 +131,8 @@ notification.
 - `DashboardService.getData()` is called on every SSE push, not just once — it re-runs several JPA queries
   and one `routeRepository.findAll()` per refresh. This is fine at Tafel's data volumes but is not a
   cheap/cached read.
-- If there is no currently open distribution, `getData()` returns an all-null `DashboardData`; controllers
-  and the frontend must treat `null` as "nothing to show", not "zero".
+- If there is no currently open distribution, `getData()`'s day-specific fields are all `null`;
+  controllers and the frontend must treat `null` as "nothing to show", not "zero". `lastDistribution`
+  is the one field that is populated in exactly that case instead.
 - `foodAmountTotal` sums the stored `weight` across every item of every food collection of the *current*
   distribution only — it has no relation to the historic per-year totals computed in the `reporting` module.

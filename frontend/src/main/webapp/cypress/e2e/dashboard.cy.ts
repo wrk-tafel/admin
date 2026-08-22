@@ -129,6 +129,27 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
+  it('shows a summary of the last closed distribution once none is active', () => {
+    cy.createDistribution();
+    // household 100 from the testdata has no additional persons, so registered customers/persons match
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
+    cy.closeDistribution();
+
+    cy.visit('/');
+
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
+    // the day-specific panels have nothing to show anymore, so they're left out entirely
+    cy.byTestId('customers-count').should('not.exist');
+    cy.byTestId('distribution-statistics-employee-count-input').should('not.exist');
+    cy.byTestId('distribution-notes-textarea').should('not.exist');
+
+    cy.byTestId('last-distribution-customers').should('have.text', '1');
+    cy.byTestId('last-distribution-persons').should('have.text', '1');
+    // the ticket was registered but never processed via the ticket screen
+    cy.byTestId('last-distribution-tickets').should('have.text', '0');
+    cy.byTestId('last-distribution-food-amount').invoke('text').invoke('trim').should('equal', '0,00 kg');
+  });
+
   it('dashboard content and actions usable on phone', () => {
     // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
     // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.

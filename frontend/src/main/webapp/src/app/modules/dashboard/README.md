@@ -28,16 +28,30 @@ readonly data: Signal<DashboardData | undefined> = toSignal(
 `registeredPersons` (everyone those households get food for: main persons plus their
 not-excluded additional persons), `tickets` (processed/total), `logistics` (food collection + food amount counters, `allRouteNames`
 - every enabled route, not just the recorded ones, see "Route chips" below - plus
-`routeProgress` - the stops each route has ticked off today in the route guidance screen) and
+`routeProgress` - the stops each route has ticked off today in the route guidance screen),
 `statistics`
-(current employee count / selected shelter names) plus free-text `notes`. The template
-(`dashboard.component.html`) reads `data()` and passes slices of it down as `@Input`-style
-signal inputs to the presentational child components (`tafel-registered-customers`,
+(current employee count / selected shelter names), free-text `notes`, and `lastDistribution` (a
+compact summary of the most recently closed distribution - see "No active distribution" below).
+The template (`dashboard.component.html`) reads `data()` and passes slices of it down as
+`@Input`-style signal inputs to the presentational child components (`tafel-registered-customers`,
 `tafel-registered-persons`, `tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-recorded-route-names`,
-`tafel-route-progress`, `tafel-food-amount`, `tafel-distribution-statistics-input`, `tafel-distribution-notes-input`). None of those children
+`tafel-route-progress`, `tafel-food-amount`, `tafel-distribution-statistics-input`,
+`tafel-distribution-notes-input`, `tafel-last-distribution-summary`). None of those children
 know about SSE at all — they are pure `input()`-driven display/edit components. This keeps the
 "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
 render it" concern in the leaf components.
+
+## No active distribution
+
+`DashboardComponent` derives `isDistributionActive` from `GlobalStateService.getCurrentDistribution()`
+(the same source `DistributionStateComponent` uses, see below) and switches the template on it: while
+a distribution is open, the day-specific panels render as described above; while none is, they would
+all just show dashes, so the template leaves them out entirely (`registered-customers`/
+`registered-persons`/`tickets-processed`, the whole logistics row, route progress, and the
+statistics/notes form) and instead shows `tafel-last-distribution-summary`, fed from
+`data()?.lastDistribution`. That field is populated by the backend only in exactly this case - `null`
+both while a distribution is active and on a fresh installation where none has ever been closed. The
+`tafel-distribution-state` "Status" card (start/close controls) stays visible either way.
 
 Because the SSE stream only pushes deltas the backend decides are relevant, several fields on
 `data()` are `undefined` on partial/initial payloads (e.g. `data()?.registeredCustomers`). The
@@ -100,6 +114,8 @@ dashboard/
     distribution-notes-input/           # free-text notes form for the distribution
     select-shelters/                    # multi-select shelter picker + its dialog, used by
                                          # distribution-statistics-input only
+    last-distribution-summary/          # summary of the most recently closed distribution, shown
+                                         # in place of the day-specific panels while none is active
 ```
 
 Every component under `components/` is a standalone, presentational-ish component using
@@ -142,6 +158,9 @@ though every other panel here is open to `isAuthenticated()` alone.
 - **`RegisteredCustomersComponent`**: the customer-list download button is only visible while a
   distribution is active (`*tafelIfDistributionActive`), and downloads a PDF by parsing the
   filename out of the `Content-Disposition` response header.
+- **`LastDistributionSummaryComponent`**: purely presentational, like the other panels - takes
+  `summary: DashboardLastDistributionData | null` and renders its own placeholder text when `null`
+  (no distribution has ever been closed) rather than leaving itself blank.
 - Every panel card visually communicates "warning" vs "success" vs "primary" via `computed()`
   color functions comparing recorded vs. total counts (e.g. `TicketsProcessedComponent
   .panelColor`, `RecordedFoodCollectionsComponent.panelColor`) — no shared logic between them, so
@@ -156,9 +175,10 @@ though every other panel here is open to `isAuthenticated()` alone.
   `tafel-tickets-processed`) render their "-" placeholder only on an explicit `null`, so they need
   the `?? null` seen in `dashboard.component.html` - passing bare `undefined` silently breaks their
   `!== null` template check.
-- Don't add a new "is a distribution active" flag scoped to this module — always go through
-  `GlobalStateService.getCurrentDistribution()` so `checkin`/`logistics`/other modules stay in
-  sync with the same `/sse/distributions` stream.
+- Don't add a new "is a distribution active" flag scoped to this module — always derive it from
+  `GlobalStateService.getCurrentDistribution()`, as `DashboardComponent.isDistributionActive` and
+  `DistributionStateComponent.isDistributionActive` both do, so `checkin`/`logistics`/other modules
+  stay in sync with the same `/sse/distributions` stream.
 - `distribution-statistics-input` and `distribution-notes-input` both reset their own local state
   via an `effect()` keyed off `GlobalStateService`'s distribution signal — if you add a new input
   field to the end-of-day form, remember to also reset it in `distributionEffect`.
