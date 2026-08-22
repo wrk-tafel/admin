@@ -29,6 +29,9 @@ interface UserRepository :
 
     fun existsByUsername(username: String): Boolean
 
+    /** What the dashboard's "Benutzer" tile shows while no distribution is active. */
+    fun countByEnabledTrue(): Int
+
     /**
      * Counts the *enabled* users holding [authority], excluding [excludedUserId] - which is the
      * user about to be changed, so the answer is "would anyone else still hold it afterwards?".

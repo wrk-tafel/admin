@@ -129,6 +129,41 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
+  it('shows a summary of the last closed distribution and organization-wide counts once none is active', () => {
+    cy.createDistribution();
+    // household 100 from the testdata has no additional persons, so registered customers/persons match
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
+    cy.closeDistribution();
+
+    cy.visit('/');
+
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
+    // the day-specific panels have nothing to show anymore, so they're left out entirely
+    cy.byTestId('customers-count').should('not.exist');
+    cy.byTestId('distribution-statistics-employee-count-input').should('not.exist');
+    cy.byTestId('distribution-notes-textarea').should('not.exist');
+
+    cy.byTestId('last-distribution-customers').should('have.text', '1');
+    cy.byTestId('last-distribution-persons').should('have.text', '1');
+    // the ticket was registered but never processed via the ticket screen
+    cy.byTestId('last-distribution-tickets').should('have.text', '0');
+    cy.byTestId('last-distribution-food-amount').invoke('text').invoke('trim').should('equal', '0,00 kg');
+    // cy.closeDistribution() always selects shelters 1 and 2 (100 + 50 persons) from the testdata
+    cy.byTestId('last-distribution-shelters').should('have.text', '2');
+    cy.byTestId('last-distribution-shelter-persons').should('have.text', '150');
+
+    // organization-wide counts, filled from the seeded testdata rather than anything this spec set
+    // up itself - just asserted as real (positive) numbers rather than pinned exact values, since
+    // other specs sharing this database can add/close households of their own. e2etest (loginDefault)
+    // holds every permission, so all eight tiles are visible.
+    [
+      'active-households-count', 'active-persons-count', 'active-users-count', 'active-cars-count',
+      'active-shelters-count', 'active-routes-count', 'active-shops-count', 'employees-count'
+    ].forEach(testId => {
+      cy.byTestId(testId).invoke('text').should('match', /^\d+$/).and('not.equal', '0');
+    });
+  });
+
   it('dashboard content and actions usable on phone', () => {
     // Both grids collapse to a single column below the lg: (1024px) breakpoint - same
     // arrangement as tablet, but still worth verifying the mobile nav chrome doesn't break it.

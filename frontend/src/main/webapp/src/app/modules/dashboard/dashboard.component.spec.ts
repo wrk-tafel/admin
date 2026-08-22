@@ -6,12 +6,13 @@ import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {SseService} from '../../common/sse/sse.service';
 import {GlobalStateService} from '../../common/state/global-state.service';
-import {signal} from '@angular/core';
+import {signal, WritableSignal} from '@angular/core';
 import {DistributionItem} from '../../api/distribution-api.service';
 import {TafelToastrService} from '../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('DashboardComponent', () => {
   let sseService: MockedObject<SseService>;
+  let currentDistribution: WritableSignal<DistributionItem | null>;
 
   const mockDistribution: DistributionItem = {
     id: 1,
@@ -19,9 +20,11 @@ describe('DashboardComponent', () => {
   };
 
   beforeEach((() => {
+    currentDistribution = signal(mockDistribution);
+
     const globalStateServiceMock = {
       getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
-        .mockReturnValue(signal(mockDistribution).asReadonly()),
+        .mockReturnValue(currentDistribution.asReadonly()),
       getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
     };
 
@@ -81,6 +84,35 @@ describe('DashboardComponent', () => {
 
     expect(component.data()).toEqual(mockData);
     expect(sseService.listen).toHaveBeenCalledWith('/sse/dashboard');
+  });
+
+  it('isDistributionActive is true while a distribution is open', () => {
+    sseService.listen.mockReturnValueOnce(of({}));
+
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.isDistributionActive()).toBe(true);
+  });
+
+  it('isDistributionActive is false once the distribution has ended', () => {
+    sseService.listen.mockReturnValueOnce(of({}));
+    currentDistribution.set({...mockDistribution, endedAt: new Date()});
+
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.isDistributionActive()).toBe(false);
+  });
+
+  it('isDistributionActive is false when no distribution has been received yet', () => {
+    sseService.listen.mockReturnValueOnce(of({}));
+    currentDistribution.set(null);
+
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.isDistributionActive()).toBe(false);
   });
 
 });

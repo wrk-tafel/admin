@@ -679,25 +679,31 @@ VALUES (3, NOW(), NOW(), 100, 102, 3, true, true);
 INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
 VALUES (4, NOW(), NOW(), 100, 103, 4, true, true);
 
--- a closed, recent distribution + one new and one renewed household so "Kunden-Übersicht" isn't
--- empty by default - the window is bracketed tightly around "now" so none of this script's other
--- households (which all share this transaction's NOW() as their own created_at) spill into it.
+-- a closed distribution from yesterday + one new and one renewed household so "Kunden-Übersicht"
+-- isn't empty by default - the window is bracketed tightly around "yesterday" so none of this
+-- script's other households (which all share this transaction's NOW() as their own created_at)
+-- spill into it, and dated a day back rather than today so a fresh local/e2e run - which starts
+-- with no distribution of its own yet - doesn't show "Letzte Ausgabe am <today's date>" on the
+-- dashboard while nothing has actually happened today.
 --
 -- Its id is the highest of any distribution this script writes, and deliberately so: with no
 -- distribution picked, "Kunden-Übersicht" shows the one with the highest id (see
 -- HouseholdService.getHouseholdsOverview), which has to be this one rather than one of the
--- three years of past distributions further down.
+-- three years of past distributions further down. It also has the most recent started_at of any
+-- distribution here, which makes it the one the dashboard's "Letzte Ausgabe" summary picks
+-- (DashboardService.getLastDistributionData) once both households below are registered into it -
+-- without that registration the summary would show an all-zero distribution instead of demo data.
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
-VALUES (9000, NOW(), NOW(), NOW() - interval '3 hours', NOW() - interval '1 hour', 300, 300, 'Für Kunden-Übersicht Demo-Daten');
+VALUES (9000, NOW(), NOW(), NOW() - interval '1 day 3 hours', NOW() - interval '1 day 1 hour', 300, 300, 'Für Kunden-Übersicht Demo-Daten');
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
-values (140, NOW() - interval '90 minutes', NOW() - interval '90 minutes', 140, 100, null, 'Neubaugasse', '20', null, null,
+values (140, NOW() - interval '1 day 90 minutes', NOW() - interval '1 day 90 minutes', 140, 100, null, 'Neubaugasse', '20', null, null,
         '1070', 'Wien', '00436601234567', 'neu.kunde@wrk.at', '2999-12-31', 0);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
-values (140, NOW() - interval '90 minutes', NOW() - interval '90 minutes', 140, true, 'Julia', 'Neukunde', '1992-02-14', 'FEMALE', 1,
+values (140, NOW() - interval '1 day 90 minutes', NOW() - interval '1 day 90 minutes', 140, true, 'Julia', 'Neukunde', '1992-02-14', 'FEMALE', 1,
         'Stadt Wien', 300.00, '2999-12-31', false, false);
 UPDATE households SET main_person_id = 140 WHERE id = 140;
 
@@ -705,12 +711,106 @@ INSERT INTO households (id, created_at, updated_at, household_id, employee_id, m
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution, prolonged_at)
 values (141, NOW() - interval '400 days', NOW() - interval '400 days', 141, 100, null, 'Landstraßer Hauptstraße', '30', null, null,
-        '1030', 'Wien', '00436607654321', 'verlaengert.kunde@wrk.at', '2999-12-31', 0, NOW() - interval '80 minutes');
+        '1030', 'Wien', '00436607654321', 'verlaengert.kunde@wrk.at', '2999-12-31', 0, NOW() - interval '1 day 80 minutes');
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      country_id, employer, income, income_due, exclude_household, receives_family_allowance)
 values (141, NOW() - interval '400 days', NOW() - interval '400 days', 141, true, 'Stefan', 'Verlaengert', '1978-08-08', 'MALE', 1,
         'Rotes Kreuz Wien', 450.00, '2999-12-31', false, false);
 UPDATE households SET main_person_id = 141 WHERE id = 141;
+
+-- registers both households above into distribution 9000, so it also has real figures to show on
+-- the dashboard's "Letzte Ausgabe" summary instead of an all-zero distribution.
+INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
+VALUES (5, NOW(), NOW(), 9000, 140, 1, true, false);
+INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
+VALUES (6, NOW(), NOW(), 9000, 141, 2, true, false);
+
+-- 135 more households, registered into distribution 9000 alongside the two above, so its numbers
+-- add up to a round, realistic-looking day on the dashboard's "Letzte Ausgabe" summary: 137 Kunden,
+-- 142 Personen, 137 bearbeitete Tickets. First/last names are drawn from two lists by index, same
+-- approach as the three-year statistics history further down.
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_postalcode, address_city,
+                        valid_until, pending_cost_contribution)
+SELECT 5000 + i,
+       NOW() - interval '1 day 2 hours',
+       NOW() - interval '1 day 2 hours',
+       6000 + i,
+       100,
+       null,
+       (ARRAY ['Simmeringer Hauptstraße','Quellenstraße','Triester Straße','Gudrunstraße',
+           'Laxenburger Straße','Wienerbergstraße','Absberggasse','Hardtmuthgasse',
+           'Puchsbaumgasse','Fernkorngasse'])[1 + (i % 10)],
+       (1 + (i % 60))::text,
+       (ARRAY [1030,1100,1110,1120])[1 + (i % 4)],
+       'Wien',
+       '2999-12-31',
+       0
+FROM generate_series(0, 134) AS i;
+
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
+                     birth_date, gender, country_id, exclude_household, receives_family_allowance)
+SELECT 6000 + i,
+       NOW() - interval '1 day 2 hours',
+       NOW() - interval '1 day 2 hours',
+       5000 + i,
+       true,
+       (ARRAY ['Anna','Bernd','Clara','David','Elena','Fatima','Goran','Hanna','Igor','Jasmin',
+           'Katrin','Lukas','Milan','Nadja','Omar','Petra','Quirin','Ruslan','Selma','Tomas'])[1 + (i % 20)],
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((i / 20) % 8)],
+       (CURRENT_DATE - interval '1 year' * (20 + (i % 50)))::date,
+       CASE WHEN i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
+       1,
+       false,
+       false
+FROM generate_series(0, 134) AS i;
+
+UPDATE households SET main_person_id = 6000 + (id - 5000) WHERE id BETWEEN 5000 AND 5134;
+
+-- five of the new households also have one additional (non-excluded) member, so "Personen gesamt"/
+-- the summary's person count (142) comes out a few higher than the household count (137) instead
+-- of being exactly one person per household.
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
+                     birth_date, gender, country_id, exclude_household, receives_family_allowance)
+SELECT 7000 + i,
+       NOW() - interval '1 day 2 hours',
+       NOW() - interval '1 day 2 hours',
+       5000 + i,
+       false,
+       'Kind',
+       'Mitbewohner',
+       (CURRENT_DATE - interval '1 year' * (5 + i))::date,
+       CASE WHEN i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
+       1,
+       false,
+       false
+FROM generate_series(0, 4) AS i;
+
+INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
+SELECT 6 + i,
+       NOW(),
+       NOW(),
+       9000,
+       5000 + (i - 1),
+       2 + i,
+       true,
+       false
+FROM generate_series(1, 135) AS i;
+
+-- an end-of-day statistic for distribution 9000 too, with two shelters, so the dashboard's "Letzte
+-- Ausgabe" summary has real "Notschlafstellen"/"Personen in Notschlafstellen" figures instead of
+-- zero - shelters here are a frozen name/address/persons_count snapshot (see DashboardService's
+-- comment on why), not a reference to the `shelters` table, so this doesn't depend on it existing yet.
+INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, employee_count)
+VALUES (9000, NOW(), NOW(), 9000, 8);
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id,
+                                               name, address_street, address_housenumber,
+                                               address_postalcode, address_city, persons_count, sort_order)
+VALUES (9001, NOW(), NOW(), 9000, 'Shelter 1', 'Erdberg', '1', 1030, 'Wien', 100, 1);
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id,
+                                               name, address_street, address_housenumber,
+                                               address_postalcode, address_city, persons_count, sort_order)
+VALUES (9002, NOW(), NOW(), 9000, 'Shelter 2 with a very long name', 'Erdberg', '2', 1030, 'Wien', 50, 2);
 
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
@@ -1092,6 +1192,15 @@ VALUES (3, 31, 'Klappkisten schwarz', 3);
 -- a zero is "nothing came back", not an empty crate to carry - guidance must not list it
 INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
 VALUES (3, 31, 'Ströck Kisten', 0);
+
+-- a single food collection for distribution 9000 too, so the dashboard's "Letzte Ausgabe" summary
+-- has a non-zero "Erfasste Warenmenge" as well - one KG-measured shop/category combo is enough,
+-- the exact split doesn't matter for that figure.
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
+                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+VALUES (9000, NOW(), NOW(), 9000, 1, 1, 2000, 2100, 150000, 150180);
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
+VALUES (9000, 6, 2, 5230, 5230);
 
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,

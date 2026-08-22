@@ -9,6 +9,9 @@ import java.time.LocalDate
 interface RouteRepository : JpaRepository<RouteEntity, Long> {
     fun findByEnabledIsTrue(): List<RouteEntity>
 
+    /** What the dashboard's "Routen" tile shows while no distribution is active. */
+    fun countByEnabledIsTrue(): Int
+
     /** every route with at least one stop at this shop - distinct, since a route may stop there twice */
     fun findDistinctByStopsShopId(shopId: Long): List<RouteEntity>
 

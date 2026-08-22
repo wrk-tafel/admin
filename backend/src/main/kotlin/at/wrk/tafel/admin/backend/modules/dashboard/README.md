@@ -1,9 +1,11 @@
 # Dashboard Module
 
-This module serves the single overview screen shown to employees while a distribution is running: registered
+This module serves the single overview screen shown to employees. While a distribution is running: registered
 household count, ticket processing progress, logistics/food-collection progress, the selected shelters and
-employee count for the current statistic, and free-text distribution notes. There is exactly one endpoint,
-and it is a long-lived Server-Sent-Events (SSE) stream, not a request/response poll.
+employee count for the current statistic, and free-text distribution notes. While none is: a summary of the
+most recently closed distribution and a handful of organization-wide counts, so the page still has something
+to show. There is exactly one endpoint, and it is a long-lived Server-Sent-Events (SSE) stream, not a
+request/response poll.
 
 ## Components
 
@@ -14,16 +16,28 @@ Only three source files (plus `package-info.java`):
   time that notification fires. It never queries the database itself.
 - **`internal/DashboardService`** – Builds the `DashboardData` snapshot from scratch on every call
   (`getData()`). Looks up the current open distribution
-  (`DistributionRepository.getCurrentDistribution()`), and if none is open, returns an all-null
-  `DashboardData` (the frontend renders this as "no active distribution"). If one is open, it assembles
+  (`DistributionRepository.getCurrentDistribution()`). If one is open, it assembles
   ticket counts, registered-household count, registered-person count (one per household plus its
   not-excluded additional persons - the same formula as `DistributionStatisticService` and the
   customer-list PDF), statistics (employee count + shelter names), and logistics
   (food collections vs. total routes, total food weight, the enabled routes' names both recorded and in
   full - the frontend renders the latter as chips so the routes that haven't handed in yet are visible
-  without diffing two lists itself).
+  without diffing two lists itself); `lastDistribution` and `organizationOverview` stay `null`. If none
+  is open, every one of those day-specific fields is `null` instead, and two fields are populated so the
+  overview page still has something to show: `lastDistribution`, from the most recently closed
+  distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`) - customer/
+  person/ticket/food-amount counts the same way the active branch computes them, plus `sheltersCount`/
+  `personsInSheltersCount` read off that distribution's own `statistic?.shelters` (the same frozen
+  snapshot `getStatisticsData()` reads `selectedShelterNames` from, see below) - `null` there too on a
+  fresh installation that has never closed one - and `organizationOverview`, eight organization-wide
+  counts (active households/persons/users/cars/shelters/routes/shops, plus employees) read straight off
+  `HouseholdRepository`, `PersonRepository`, `UserRepository`, `CarRepository`, `ShelterRepository`,
+  `RouteRepository`, `ShopRepository` and `EmployeeRepository`. The frontend shows the day-specific
+  panels while a distribution is open, and the last-distribution summary plus the organization overview
+  tiles (plus a row of permission-gated quick links to fill whatever space is still left) otherwise.
 - **`DashboardResponseModel`** (`DashboardData`, `DashboardTicketsData`, `DashboardStatisticsData`,
-  `DashboardLogisticsData`) – Plain DTOs serialized straight onto the SSE stream as JSON.
+  `DashboardLogisticsData`, `DashboardLastDistributionData`, `DashboardOrganizationOverviewData`) – Plain
+  DTOs serialized straight onto the SSE stream as JSON.
 
 ## The `allowedDependencies = {}` puzzle
 
@@ -48,6 +62,14 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 ```
+
+`organizationOverview` reaches further still - straight into `database.model.household`,
+`database.model.person`, `database.model.auth`, `database.model.base` and (again)
+`database.model.logistics` - for the same reason: it reads `HouseholdRepository`/`PersonRepository`/
+`UserRepository`/`CarRepository`/`ShelterRepository`/`RouteRepository`/`ShopRepository`/
+`EmployeeRepository` directly rather than depending on the `household`/`logistics`/`base` modules' own
+services (user accounts have no `ApplicationModule` of their own to depend on in the first place -
+`UserController` lives under `common.auth`).
 
 `database.model.*` is shared persistence infrastructure, not an `ApplicationModule` package under
 `modules.*` — Spring Modulith's dependency check only enforces boundaries between `modules.*` packages, so
@@ -119,14 +141,28 @@ module — or anywhere in application code — ever calls `saveOutboxEntry("dash
 you need to add a trigger for it in a new Flyway migration (following the `R__00059` pattern) — adding a
 Kotlin-side event publish call in `distribution`/`logistics` will *not* make the dashboard refresh, because
 the dashboard module has no code path listening for anything except the DB-level `dashboard_update`
-notification.
+notification. `organizationOverview` deliberately does *not* get this treatment: `households`, `persons`,
+`users`, `cars`, `shelters`, `routes`, `shops` and `employees` carry no `dashboard_update` trigger, so
+those eight counts are only as fresh as the last time something distribution-related pushed a new
+snapshot (or a client (re)connects) - acceptable for a background figure that fills otherwise-empty
+space, not something to build a trigger migration for.
 
 ## Gotchas
 
 - `DashboardService.getData()` is called on every SSE push, not just once — it re-runs several JPA queries
   and one `routeRepository.findAll()` per refresh. This is fine at Tafel's data volumes but is not a
   cheap/cached read.
-- If there is no currently open distribution, `getData()` returns an all-null `DashboardData`; controllers
-  and the frontend must treat `null` as "nothing to show", not "zero".
+- If there is no currently open distribution, `getData()`'s day-specific fields are all `null`;
+  controllers and the frontend must treat `null` as "nothing to show", not "zero". `lastDistribution`
+  is the one field that is populated in exactly that case instead.
 - `foodAmountTotal` sums the stored `weight` across every item of every food collection of the *current*
   distribution only — it has no relation to the historic per-year totals computed in the `reporting` module.
+- `organizationOverview`'s counts are all "currently entitled/enabled", not historic totals - a
+  household whose validity lapsed years ago, a disabled car/route/shop/shelter, or a disabled user
+  account don't count. `employeesCount` is the one exception: `EmployeeEntity` has no enabled/active
+  concept at all, so it is a plain `EmployeeRepository.count()` over every row. The frontend gates each
+  figure behind the permission its own screen needs (`CUSTOMER`, `USER_MANAGEMENT`, `SETTINGS` for
+  employees, `LOGISTICS` for the rest); the backend does not filter by the viewer's permissions at all,
+  same as `statistics` already doesn't for a viewer without `LOGISTICS` - `isAuthenticated()` on
+  `DashboardController` is the actual security boundary for this endpoint, permission directives
+  client-side are UX only.

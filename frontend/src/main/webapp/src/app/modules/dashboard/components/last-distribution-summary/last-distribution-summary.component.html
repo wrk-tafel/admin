@@ -1,0 +1,36 @@
+<mat-card class="h-full mat-card-primary">
+  <mat-card-content class="!p-4">
+    @if (summary(); as s) {
+      <h2 class="tafel-h4 mb-1">Letzte Ausgabe am {{ s.date | date: 'dd.MM.yyyy' }}</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div>
+          <div class="text-sm opacity-80">Kunden</div>
+          <div testid="last-distribution-customers" class="text-2xl font-bold leading-none whitespace-nowrap">{{ s.registeredCustomers }}</div>
+        </div>
+        <div>
+          <div class="text-sm opacity-80">Personen</div>
+          <div testid="last-distribution-persons" class="text-2xl font-bold leading-none whitespace-nowrap">{{ s.registeredPersons }}</div>
+        </div>
+        <div>
+          <div class="text-sm opacity-80">Tickets bearbeitet</div>
+          <div testid="last-distribution-tickets" class="text-2xl font-bold leading-none whitespace-nowrap">{{ s.countProcessedTickets }}</div>
+        </div>
+        <div>
+          <div class="text-sm opacity-80">Warenmenge</div>
+          <div testid="last-distribution-food-amount" class="text-2xl font-bold leading-none whitespace-nowrap">{{ (s.foodAmountTotal | number: '1.2-2') }} kg</div>
+        </div>
+        <div>
+          <div class="text-sm opacity-80">Notschlafstellen</div>
+          <div testid="last-distribution-shelters" class="text-2xl font-bold leading-none whitespace-nowrap">{{ s.sheltersCount }}</div>
+        </div>
+        <div>
+          <div class="text-sm opacity-80">Personen in Notschlafstellen</div>
+          <div testid="last-distribution-shelter-persons" class="text-2xl font-bold leading-none whitespace-nowrap">{{ s.personsInSheltersCount }}</div>
+        </div>
+      </div>
+    } @else {
+      <h2 class="tafel-h4 mb-1">Letzte Ausgabe</h2>
+      <div testid="last-distribution-empty" class="text-lg">Noch keine Ausgabe abgeschlossen.</div>
+    }
+  </mat-card-content>
+</mat-card>
