@@ -151,10 +151,23 @@ describe('Dashboard', () => {
 
     // organization-wide counts, filled from the seeded testdata rather than anything this spec set
     // up itself - just asserted as real (positive) numbers rather than pinned exact values, since
-    // other specs sharing this database can add/close households of their own.
-    ['active-households-count', 'active-persons-count', 'active-users-count', 'active-cars-count'].forEach(testId => {
+    // other specs sharing this database can add/close households of their own. e2etest (loginDefault)
+    // holds every permission, so all eight tiles are visible.
+    [
+      'active-households-count', 'active-persons-count', 'active-users-count', 'active-cars-count',
+      'active-shelters-count', 'active-routes-count', 'active-shops-count', 'employees-count'
+    ].forEach(testId => {
       cy.byTestId(testId).invoke('text').should('match', /^\d+$/).and('not.equal', '0');
     });
+
+    // the quick-links panel fills whatever space the tiles above leave over (see the module README) -
+    // asserted here by a couple of its permission-gated shortcuts actually navigating.
+    cy.byTestId('quick-link-customers-search').should('be.visible').click();
+    cy.url().should('include', '/kunden/suchen');
+
+    cy.visit('/');
+    cy.byTestId('quick-link-settings').should('be.visible').click();
+    cy.url().should('include', '/einstellungen');
   });
 
   it('dashboard content and actions usable on phone', () => {

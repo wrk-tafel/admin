@@ -80,12 +80,12 @@ data class DashboardLastDistributionData(
 )
 
 /**
- * Currently entitled and not locked/disabled, as opposed to a historic total - so the figures stay
- * meaningful (a household whose validity lapsed years ago isn't still a "customer"). The frontend
- * shows each figure behind its own permission check (`CUSTOMER` for the two household-derived ones,
- * `USER_MANAGEMENT`, `LOGISTICS`), matching the permission that screen's own data needs - the
- * backend sends all four regardless, same as [DashboardStatisticsData] already does for a viewer
- * without `LOGISTICS`.
+ * Currently entitled/enabled, as opposed to a historic total - so the figures stay meaningful (a
+ * household whose validity lapsed years ago isn't still a "customer", a disabled route isn't still
+ * driven). The frontend shows each figure behind its own permission check (`CUSTOMER` for the two
+ * household-derived ones, `USER_MANAGEMENT`, `SETTINGS` for employees, `LOGISTICS` for the rest),
+ * matching the permission that figure's own screen needs - the backend sends all eight regardless,
+ * same as [DashboardStatisticsData] already does for a viewer without `LOGISTICS`.
  */
 @ExcludeFromTestCoverage
 data class DashboardOrganizationOverviewData(
@@ -93,4 +93,8 @@ data class DashboardOrganizationOverviewData(
     val activePersonsCount: Int,
     val activeUsersCount: Int,
     val activeCarsCount: Int,
+    val activeSheltersCount: Int,
+    val activeRoutesCount: Int,
+    val activeShopsCount: Int,
+    val employeesCount: Int,
 )

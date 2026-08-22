@@ -54,10 +54,15 @@
     </tafel-distribution-notes-input>
   </div>
 } @else {
-  <!-- Fills the rest of the otherwise-empty page with a few organization-wide figures - each
-       gated behind the permission that figure's own screen needs, since the backend sends all of
-       them regardless of the viewer's permissions (see DashboardOrganizationOverviewData). -->
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 mt-2">
+  <!-- Fills the rest of the otherwise-empty page with organization-wide figures and a row of
+       shortcuts - each tile gated behind the permission that figure's own screen needs, since the
+       backend sends all of them regardless of the viewer's permissions (see
+       DashboardOrganizationOverviewData). The quick-links panel at the end carries `lg:flex-1` -
+       the same technique the active-distribution view above uses on its own last row - so it grows
+       to take up whatever space the tiles above it left over, and the page ends exactly at the fold
+       here too, regardless of how many tiles a given viewer's permissions show. -->
+  <mat-divider class="!my-3"></mat-divider>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-2">
     <tafel-stat-tile *tafelIfPermission="'CUSTOMER'" [testId]="'active-households-count'" label="Kunden gesamt"
                      [value]="data()?.organizationOverview?.activeHouseholdsCount ?? null">
     </tafel-stat-tile>
@@ -70,5 +75,19 @@
     <tafel-stat-tile *tafelIfPermission="'LOGISTICS'" [testId]="'active-cars-count'" label="Fahrzeuge"
                      [value]="data()?.organizationOverview?.activeCarsCount ?? null">
     </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'LOGISTICS'" [testId]="'active-shelters-count'" label="Notschlafstellen"
+                     [value]="data()?.organizationOverview?.activeSheltersCount ?? null">
+    </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'LOGISTICS'" [testId]="'active-routes-count'" label="Routen"
+                     [value]="data()?.organizationOverview?.activeRoutesCount ?? null">
+    </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'LOGISTICS'" [testId]="'active-shops-count'" label="Filialen"
+                     [value]="data()?.organizationOverview?.activeShopsCount ?? null">
+    </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'SETTINGS'" [testId]="'employees-count'" label="Mitarbeiter"
+                     [value]="data()?.organizationOverview?.employeesCount ?? null">
+    </tafel-stat-tile>
   </div>
+  <mat-divider class="!my-3"></mat-divider>
+  <tafel-quick-links class="lg:min-h-0 lg:flex-1"></tafel-quick-links>
 }

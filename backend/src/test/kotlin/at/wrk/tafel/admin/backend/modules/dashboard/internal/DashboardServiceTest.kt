@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -14,6 +15,8 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEnt
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
@@ -69,6 +72,15 @@ internal class DashboardServiceTest {
 
     @RelaxedMockK
     private lateinit var carRepository: CarRepository
+
+    @RelaxedMockK
+    private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
+    private lateinit var shopRepository: ShopRepository
+
+    @RelaxedMockK
+    private lateinit var employeeRepository: EmployeeRepository
 
     @InjectMockKs
     private lateinit var service: DashboardService
@@ -399,12 +411,16 @@ internal class DashboardServiceTest {
     }
 
     @Test
-    fun `get organization overview data counts active households, persons, users and cars`() {
+    fun `get organization overview data counts active households, persons, users, cars, shelters, routes, shops and employees`() {
         every { distributionRepository.findFirstByOrderByIdDesc() } returns null
         every { householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(LocalDate.now()) } returns 137
         every { personRepository.countActive(LocalDate.now()) } returns 142
         every { userRepository.countByEnabledTrue() } returns 12
         every { carRepository.countByEnabledIsTrue() } returns 4
+        every { shelterRepository.countByEnabledIsTrue() } returns 3
+        every { routeRepository.countByEnabledIsTrue() } returns 5
+        every { shopRepository.countByEnabledIsTrue() } returns 20
+        every { employeeRepository.count() } returns 15
 
         val data = service.getData()
 
@@ -413,6 +429,10 @@ internal class DashboardServiceTest {
         assertThat(overview.activePersonsCount).isEqualTo(142)
         assertThat(overview.activeUsersCount).isEqualTo(12)
         assertThat(overview.activeCarsCount).isEqualTo(4)
+        assertThat(overview.activeSheltersCount).isEqualTo(3)
+        assertThat(overview.activeRoutesCount).isEqualTo(5)
+        assertThat(overview.activeShopsCount).isEqualTo(20)
+        assertThat(overview.employeesCount).isEqualTo(15)
     }
 
     @Test

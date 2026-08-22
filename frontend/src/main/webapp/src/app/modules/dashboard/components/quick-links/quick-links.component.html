@@ -1,0 +1,14 @@
+<mat-card class="h-full mat-card-primary">
+  <mat-card-content class="!p-4">
+    <h2 class="tafel-h4 mb-2">Schnellzugriff</h2>
+    @if (links().length) {
+      <div class="flex flex-wrap gap-2">
+        @for (link of links(); track link.url) {
+          <a mat-raised-button [routerLink]="link.url" [attr.testid]="'quick-link-' + link.testId">{{ link.label }}</a>
+        }
+      </div>
+    } @else {
+      <div testid="quick-links-empty" class="text-lg">Keine Schnellzugriffe verfügbar.</div>
+    }
+  </mat-card-content>
+</mat-card>

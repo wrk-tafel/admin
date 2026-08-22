@@ -26,11 +26,13 @@ Only three source files (plus `package-info.java`):
   is open, every one of those day-specific fields is `null` instead, and two fields are populated so the
   overview page still has something to show: `lastDistribution`, from the most recently closed
   distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`) - `null`
-  there too on a fresh installation that has never closed one - and `organizationOverview`, a handful of
-  organization-wide counts (active households/persons/users/cars) read straight off `HouseholdRepository`,
-  `PersonRepository`, `UserRepository` and `CarRepository`. The frontend shows the day-specific panels
-  while a distribution is open, and the last-distribution summary plus the organization overview tiles
-  otherwise.
+  there too on a fresh installation that has never closed one - and `organizationOverview`, eight
+  organization-wide counts (active households/persons/users/cars/shelters/routes/shops, plus employees)
+  read straight off `HouseholdRepository`, `PersonRepository`, `UserRepository`, `CarRepository`,
+  `ShelterRepository`, `RouteRepository`, `ShopRepository` and `EmployeeRepository`. The frontend shows
+  the day-specific panels while a distribution is open, and the last-distribution summary plus the
+  organization overview tiles (plus a row of permission-gated quick links to fill whatever space is
+  still left) otherwise.
 - **`DashboardResponseModel`** (`DashboardData`, `DashboardTicketsData`, `DashboardStatisticsData`,
   `DashboardLogisticsData`, `DashboardLastDistributionData`, `DashboardOrganizationOverviewData`) – Plain
   DTOs serialized straight onto the SSE stream as JSON.
@@ -60,11 +62,12 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 ```
 
 `organizationOverview` reaches further still - straight into `database.model.household`,
-`database.model.person`, `database.model.auth` and (again) `database.model.logistics` - for the same
-reason: it reads `HouseholdRepository`/`PersonRepository`/`UserRepository`/`CarRepository` directly
-rather than depending on the `household`/`logistics` modules' own services (user accounts have no
-`ApplicationModule` of their own to depend on in the first place - `UserController` lives under
-`common.auth`).
+`database.model.person`, `database.model.auth`, `database.model.base` and (again)
+`database.model.logistics` - for the same reason: it reads `HouseholdRepository`/`PersonRepository`/
+`UserRepository`/`CarRepository`/`ShelterRepository`/`RouteRepository`/`ShopRepository`/
+`EmployeeRepository` directly rather than depending on the `household`/`logistics`/`base` modules' own
+services (user accounts have no `ApplicationModule` of their own to depend on in the first place -
+`UserController` lives under `common.auth`).
 
 `database.model.*` is shared persistence infrastructure, not an `ApplicationModule` package under
 `modules.*` — Spring Modulith's dependency check only enforces boundaries between `modules.*` packages, so
@@ -137,9 +140,10 @@ you need to add a trigger for it in a new Flyway migration (following the `R__00
 Kotlin-side event publish call in `distribution`/`logistics` will *not* make the dashboard refresh, because
 the dashboard module has no code path listening for anything except the DB-level `dashboard_update`
 notification. `organizationOverview` deliberately does *not* get this treatment: `households`, `persons`,
-`users` and `cars` carry no `dashboard_update` trigger, so those four counts are only as fresh as the last
-time something distribution-related pushed a new snapshot (or a client (re)connects) - acceptable for a
-background figure that fills otherwise-empty space, not something to build a trigger migration for.
+`users`, `cars`, `shelters`, `routes`, `shops` and `employees` carry no `dashboard_update` trigger, so
+those eight counts are only as fresh as the last time something distribution-related pushed a new
+snapshot (or a client (re)connects) - acceptable for a background figure that fills otherwise-empty
+space, not something to build a trigger migration for.
 
 ## Gotchas
 
@@ -151,9 +155,12 @@ background figure that fills otherwise-empty space, not something to build a tri
   is the one field that is populated in exactly that case instead.
 - `foodAmountTotal` sums the stored `weight` across every item of every food collection of the *current*
   distribution only — it has no relation to the historic per-year totals computed in the `reporting` module.
-- `organizationOverview`'s four counts are all "currently entitled/enabled", not historic totals - a
-  household whose validity lapsed years ago, a disabled car, or a disabled user account don't count. The
-  frontend gates each figure behind the permission its own screen needs (`CUSTOMER`, `USER_MANAGEMENT`,
-  `LOGISTICS`); the backend does not filter by the viewer's permissions at all, same as `statistics`
-  already doesn't for a viewer without `LOGISTICS` - `isAuthenticated()` on `DashboardController` is the
-  actual security boundary for this endpoint, permission directives client-side are UX only.
+- `organizationOverview`'s counts are all "currently entitled/enabled", not historic totals - a
+  household whose validity lapsed years ago, a disabled car/route/shop/shelter, or a disabled user
+  account don't count. `employeesCount` is the one exception: `EmployeeEntity` has no enabled/active
+  concept at all, so it is a plain `EmployeeRepository.count()` over every row. The frontend gates each
+  figure behind the permission its own screen needs (`CUSTOMER`, `USER_MANAGEMENT`, `SETTINGS` for
+  employees, `LOGISTICS` for the rest); the backend does not filter by the viewer's permissions at all,
+  same as `statistics` already doesn't for a viewer without `LOGISTICS` - `isAuthenticated()` on
+  `DashboardController` is the actual security boundary for this endpoint, permission directives
+  client-side are UX only.

@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -10,6 +11,8 @@ import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLastDistributionData
@@ -33,6 +36,9 @@ class DashboardService(
     private val personRepository: PersonRepository,
     private val userRepository: UserRepository,
     private val carRepository: CarRepository,
+    private val shelterRepository: ShelterRepository,
+    private val shopRepository: ShopRepository,
+    private val employeeRepository: EmployeeRepository,
 ) {
 
     @Transactional(readOnly = true)
@@ -69,6 +75,10 @@ class DashboardService(
             activePersonsCount = personRepository.countActive(today),
             activeUsersCount = userRepository.countByEnabledTrue(),
             activeCarsCount = carRepository.countByEnabledIsTrue(),
+            activeSheltersCount = shelterRepository.countByEnabledIsTrue(),
+            activeRoutesCount = routeRepository.countByEnabledIsTrue(),
+            activeShopsCount = shopRepository.countByEnabledIsTrue(),
+            employeesCount = employeeRepository.count().toInt(),
         )
     }
 

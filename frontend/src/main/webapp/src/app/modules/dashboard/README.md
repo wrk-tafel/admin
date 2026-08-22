@@ -32,16 +32,17 @@ not-excluded additional persons), `tickets` (processed/total), `logistics` (food
 `routeProgress` - the stops each route has ticked off today in the route guidance screen),
 `statistics`
 (current employee count / selected shelter names), free-text `notes`, `lastDistribution` (a
-compact summary of the most recently closed distribution) and `organizationOverview` (a handful of
+compact summary of the most recently closed distribution) and `organizationOverview` (eight
 organization-wide counts) - see "No active distribution" below for the latter two.
 The template (`dashboard.component.html`) reads `data()` and passes slices of it down as
 `@Input`-style signal inputs to the presentational child components (`tafel-registered-customers`,
 `tafel-registered-persons`, `tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-recorded-route-names`,
 `tafel-route-progress`, `tafel-food-amount`, `tafel-distribution-statistics-input`,
-`tafel-distribution-notes-input`, `tafel-last-distribution-summary`, `tafel-stat-tile`). None of
-those children know about SSE at all — they are pure `input()`-driven display/edit components. This
-keeps the "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the
-"how do we render it" concern in the leaf components.
+`tafel-distribution-notes-input`, `tafel-last-distribution-summary`, `tafel-stat-tile`,
+`tafel-quick-links`). None of those children know about SSE at all — they are pure `input()`-driven
+display/edit components (`tafel-quick-links` reads no SSE data at all, see below). This keeps the
+"how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
+render it" concern in the leaf components.
 
 ## No active distribution
 
@@ -51,16 +52,29 @@ a distribution is open, the day-specific panels render as described above; while
 all just show dashes, so the template leaves them out entirely (`registered-customers`/
 `registered-persons`/`tickets-processed`, the whole logistics row, route progress, and the
 statistics/notes form) and instead shows `tafel-last-distribution-summary`, fed from
-`data()?.lastDistribution`, plus a row of `tafel-stat-tile`s fed from `data()?.organizationOverview`
-(active households/persons/users/cars). Both fields are populated by the backend only in exactly this
-case - `null` while a distribution is active, and `lastDistribution` (only) is also `null` on a fresh
-installation where none has ever been closed. The `tafel-distribution-state` "Status" card
-(start/close controls) stays visible either way.
+`data()?.lastDistribution`, a grid of `tafel-stat-tile`s fed from `data()?.organizationOverview`
+(active households/persons/users/cars/shelters/routes/shops, plus employees), and a `tafel-quick-links`
+panel of shortcuts to common screens. All three are populated/shown only in exactly this case -
+`data()?.lastDistribution` and `data()?.organizationOverview` are `null` while a distribution is
+active, and `lastDistribution` (only) is also `null` on a fresh installation where none has ever been
+closed. The `tafel-distribution-state` "Status" card (start/close controls) stays visible either way.
 
 Each `tafel-stat-tile` is individually wrapped in `*tafelIfPermission` matching the permission its own
-screen needs (`CUSTOMER` for the two household-derived tiles, `USER_MANAGEMENT`, `LOGISTICS`) - the
-backend sends all four regardless of the viewer's permissions, same as `statistics` already does for a
-viewer without `LOGISTICS` (see "Route chips" below).
+screen needs (`CUSTOMER` for the two household-derived tiles, `USER_MANAGEMENT`, `SETTINGS` for
+employees, `LOGISTICS` for the rest) - the backend sends all eight regardless of the viewer's
+permissions, same as `statistics` already does for a viewer without `LOGISTICS` (see "Route chips"
+below). `tafel-quick-links` filters its *own* list of links by permission internally (see "Notable
+component details" below) rather than being wrapped itself, since different links need different
+permissions.
+
+**Filling the page without a scrollbar:** `tafel-quick-links` carries `lg:min-h-0 lg:flex-1` directly
+on the `<tafel-quick-links>` tag - the same technique the active-distribution view's last row already
+uses (see the template's top comment and "Notable component details" below) - so it grows to absorb
+whatever vertical space the stat-tile grid above it left over, rather than the page ending partway down
+with a blank gap underneath. This matters more here than in the active view: how many stat tiles a
+given viewer's permissions show varies (a `LOGISTICS`-only viewer sees five tiles, a `CUSTOMER`-only
+viewer sees two), so a fixed-height layout could never reliably reach the fold for every permission
+combination - a growing last element does, regardless of how much or little sits above it.
 
 Because the SSE stream only pushes deltas the backend decides are relevant, several fields on
 `data()` are `undefined` on partial/initial payloads (e.g. `data()?.registeredCustomers`). The
@@ -126,7 +140,9 @@ dashboard/
     last-distribution-summary/          # summary of the most recently closed distribution, shown
                                          # in place of the day-specific panels while none is active
     stat-tile/                          # generic label+figure card, used for the organization
-                                         # overview row shown alongside the summary above
+                                         # overview grid shown alongside the summary above
+    quick-links/                        # permission-filtered shortcut buttons, the last (growing)
+                                         # element shown while no distribution is active
 ```
 
 Every component under `components/` is a standalone, presentational-ish component using
@@ -175,10 +191,19 @@ above).
   `summary: DashboardLastDistributionData | null` and renders its own placeholder text when `null`
   (no distribution has ever been closed) rather than leaving itself blank.
 - **`StatTileComponent`** (`tafel-stat-tile`): the one generic panel here - `label`/`value`/`testId`
-  inputs rather than a dedicated component per figure, since the four organization-overview tiles are
+  inputs rather than a dedicated component per figure, since the eight organization-overview tiles are
   otherwise identical. `testId` (not a plain `testid` attribute) because the component renders the
   attribute itself internally onto its value `<div>`, following the same `tafel-counter-input`/
-  `tafel-dialog` convention the rest of the codebase uses for that.
+  `tafel-dialog` convention the rest of the codebase uses for that - see the Gotchas entry below on
+  what goes wrong if a caller passes it as a static attribute instead of a bound one.
+- **`QuickLinksComponent`** (`tafel-quick-links`): a fixed list of `{label, url, permission}` entries
+  (`common.ts`-style routes already listed in `navigation-menuItems.ts`, duplicated here rather than
+  imported from there since that file mixes in sidebar-only concerns - titles, nested children, icons
+  - this component doesn't need), filtered down via `AuthenticationService.hasPermission()` in a
+  `computed()` (same pattern `AuditEntryListComponent` uses for its own per-section permission checks).
+  Renders each surviving link as a `routerLink`-driven `mat-raised-button`, and a placeholder message
+  when the filtered list is empty rather than rendering nothing - consistent with
+  `LastDistributionSummaryComponent`'s null-summary placeholder above.
 - Every panel card visually communicates "warning" vs "success" vs "primary" via `computed()`
   color functions comparing recorded vs. total counts (e.g. `TicketsProcessedComponent
   .panelColor`, `RecordedFoodCollectionsComponent.panelColor`) — no shared logic between them, so
@@ -206,7 +231,19 @@ above).
   against all three without needing per-palette Material token overrides. Guard a new one on
   `!== null` rather than `@if (percent(); as p)` - a real 0% is falsy and would otherwise render as
   "no bar at all".
-- `organizationOverview`'s four counts are not refreshed by every household/user/car change - only by
-  whatever `dashboard_update` trigger fires next (see the backend module's README) or the next time a
-  client (re)connects. Fine for a background figure that only fills otherwise-empty space; don't build
-  UI around it updating live the way the day-specific panels do.
+- `organizationOverview`'s counts are not refreshed by every household/user/car/route/shop/shelter/
+  employee change - only by whatever `dashboard_update` trigger fires next (see the backend module's
+  README) or the next time a client (re)connects. Fine for a background figure that only fills
+  otherwise-empty space; don't build UI around it updating live the way the day-specific panels do.
+- **A `tafel-stat-tile`'s `[testId]` must be a bound (bracketed) binding, never a bare
+  `testId="..."` attribute.** Angular still writes a plain attribute-style binding onto the host
+  element as a literal `testid="..."` DOM attribute *in addition to* passing the value through to the
+  `testId` input, even when the input name only differs from `testid` by case - the two aren't the
+  same binding target the way `[testId]="expr"` is. That collided with the component's own
+  `[attr.testid]="testId()"` on its inner value `<div>`, so `cy.byTestId('active-households-count')`
+  matched two elements (the host tag and the value div) and concatenated both texts - caught by
+  actually running the Cypress spec against a live backend, not by `npm run lint`'s
+  `no-restricted-syntax` rule, which only checks the attribute *name*'s case, not whether it's a
+  static or bound attribute. `[testId]="'literal-string'"` (as `dashboard.component.html` does for
+  every stat tile) avoids the reflection entirely - the same reason `tafel-counter-input`'s callers
+  already use `[testId]="'category-' + category.id"` rather than a bare attribute.
