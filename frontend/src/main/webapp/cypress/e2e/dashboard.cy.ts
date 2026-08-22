@@ -162,15 +162,6 @@ describe('Dashboard', () => {
     ].forEach(testId => {
       cy.byTestId(testId).invoke('text').should('match', /^\d+$/).and('not.equal', '0');
     });
-
-    // the quick-links panel fills whatever space the tiles above leave over (see the module README) -
-    // asserted here by a couple of its permission-gated shortcuts actually navigating.
-    cy.byTestId('quick-link-customers-search').should('be.visible').click();
-    cy.url().should('include', '/kunden/suchen');
-
-    cy.visit('/');
-    cy.byTestId('quick-link-settings').should('be.visible').click();
-    cy.url().should('include', '/einstellungen');
   });
 
   it('dashboard content and actions usable on phone', () => {

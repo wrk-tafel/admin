@@ -38,11 +38,10 @@ The template (`dashboard.component.html`) reads `data()` and passes slices of it
 `@Input`-style signal inputs to the presentational child components (`tafel-registered-customers`,
 `tafel-registered-persons`, `tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-recorded-route-names`,
 `tafel-route-progress`, `tafel-food-amount`, `tafel-distribution-statistics-input`,
-`tafel-distribution-notes-input`, `tafel-last-distribution-summary`, `tafel-stat-tile`,
-`tafel-quick-links`). None of those children know about SSE at all — they are pure `input()`-driven
-display/edit components (`tafel-quick-links` reads no SSE data at all, see below). This keeps the
-"how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
-render it" concern in the leaf components.
+`tafel-distribution-notes-input`, `tafel-last-distribution-summary`, `tafel-stat-tile`). None of
+those children know about SSE at all — they are pure `input()`-driven display/edit components. This
+keeps the "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the
+"how do we render it" concern in the leaf components.
 
 ## No active distribution
 
@@ -52,29 +51,28 @@ a distribution is open, the day-specific panels render as described above; while
 all just show dashes, so the template leaves them out entirely (`registered-customers`/
 `registered-persons`/`tickets-processed`, the whole logistics row, route progress, and the
 statistics/notes form) and instead shows `tafel-last-distribution-summary`, fed from
-`data()?.lastDistribution`, a grid of `tafel-stat-tile`s fed from `data()?.organizationOverview`
-(active households/persons/users/cars/shelters/routes/shops, plus employees), and a `tafel-quick-links`
-panel of shortcuts to common screens. All three are populated/shown only in exactly this case -
-`data()?.lastDistribution` and `data()?.organizationOverview` are `null` while a distribution is
-active, and `lastDistribution` (only) is also `null` on a fresh installation where none has ever been
-closed. The `tafel-distribution-state` "Status" card (start/close controls) stays visible either way.
+`data()?.lastDistribution`, and a grid of `tafel-stat-tile`s fed from `data()?.organizationOverview`
+(active households/persons/users/cars/shelters/routes/shops, plus employees). Both are populated/shown
+only in exactly this case - `null` while a distribution is active, and `lastDistribution` (only) is
+also `null` on a fresh installation where none has ever been closed. The `tafel-distribution-state`
+"Status" card (start/close controls) stays visible either way.
 
 Each `tafel-stat-tile` is individually wrapped in `*tafelIfPermission` matching the permission its own
 screen needs (`CUSTOMER` for the two household-derived tiles, `USER_MANAGEMENT`, `SETTINGS` for
 employees, `LOGISTICS` for the rest) - the backend sends all eight regardless of the viewer's
 permissions, same as `statistics` already does for a viewer without `LOGISTICS` (see "Route chips"
-below). `tafel-quick-links` filters its *own* list of links by permission internally (see "Notable
-component details" below) rather than being wrapped itself, since different links need different
-permissions.
+below).
 
-**Filling the page without a scrollbar:** `tafel-quick-links` carries `lg:min-h-0 lg:flex-1` directly
-on the `<tafel-quick-links>` tag - the same technique the active-distribution view's last row already
-uses (see the template's top comment and "Notable component details" below) - so it grows to absorb
-whatever vertical space the stat-tile grid above it left over, rather than the page ending partway down
-with a blank gap underneath. This matters more here than in the active view: how many stat tiles a
-given viewer's permissions show varies (a `LOGISTICS`-only viewer sees five tiles, a `CUSTOMER`-only
-viewer sees two), so a fixed-height layout could never reliably reach the fold for every permission
-combination - a growing last element does, regardless of how much or little sits above it.
+**Filling the page without a scrollbar:** the stat-tile grid carries `lg:min-h-0 lg:flex-1
+auto-rows-fr` - the same growing-last-element technique the active-distribution view's last row
+already uses (see the template's top comment), just applied to the tiles' own row height instead of a
+dedicated trailing element: `flex-1` lets the grid absorb whatever vertical space is left after the
+summary panel above it, and `auto-rows-fr` splits that space evenly across however many tile rows
+there are, so the cards themselves grow taller rather than leaving blank page background underneath.
+This matters more here than in the active view: how many stat tiles a given viewer's permissions show
+varies (a `LOGISTICS`-only viewer sees five, a `CUSTOMER`-only viewer sees two), so a fixed-height
+layout could never reliably reach the fold for every permission combination - a growing grid does,
+regardless of how much or little sits above it.
 
 Because the SSE stream only pushes deltas the backend decides are relevant, several fields on
 `data()` are `undefined` on partial/initial payloads (e.g. `data()?.registeredCustomers`). The
@@ -141,8 +139,6 @@ dashboard/
                                          # in place of the day-specific panels while none is active
     stat-tile/                          # generic label+figure card, used for the organization
                                          # overview grid shown alongside the summary above
-    quick-links/                        # permission-filtered shortcut buttons, the last (growing)
-                                         # element shown while no distribution is active
 ```
 
 Every component under `components/` is a standalone, presentational-ish component using
@@ -199,22 +195,6 @@ above).
   attribute itself internally onto its value `<div>`, following the same `tafel-counter-input`/
   `tafel-dialog` convention the rest of the codebase uses for that - see the Gotchas entry below on
   what goes wrong if a caller passes it as a static attribute instead of a bound one.
-- **`QuickLinksComponent`** (`tafel-quick-links`): a fixed list of `{label, url, permission}` entries
-  (`common.ts`-style routes already listed in `navigation-menuItems.ts`, duplicated here rather than
-  imported from there since that file mixes in sidebar-only concerns - titles, nested children, icons
-  - this component doesn't need), filtered down via `AuthenticationService.hasPermission()` in a
-  `computed()` (same pattern `AuditEntryListComponent` uses for its own per-section permission checks).
-  Renders each surviving link as a `routerLink`-driven `mat-raised-button`, and a placeholder message
-  when the filtered list is empty rather than rendering nothing - consistent with
-  `LastDistributionSummaryComponent`'s null-summary placeholder above. **Every `url` here must be a
-  leaf route, never a parent-only path like `/einstellungen`** - `settings.routes.ts` (and several
-  other feature route files) has no `''`-path child, so navigating there directly renders a blank
-  `<router-outlet>`. The sidebar never hits this because `DefaultLayoutComponent`'s template renders a
-  parent item with `children` as a `<button>` that only toggles expansion, not an `<a routerLink>` -
-  the `url` on those nav items is otherwise-unused data, not a proof the bare path itself resolves to
-  anything. The `settings` entry here links to `/einstellungen/fahrzeuge` for exactly this reason;
-  check a new link actually renders something before adding it, rather than assuming a path that
-  "looks like" the section root works.
 - Every panel card visually communicates "warning" vs "success" vs "primary" via `computed()`
   color functions comparing recorded vs. total counts (e.g. `TicketsProcessedComponent
   .panelColor`, `RecordedFoodCollectionsComponent.panelColor`) — no shared logic between them, so

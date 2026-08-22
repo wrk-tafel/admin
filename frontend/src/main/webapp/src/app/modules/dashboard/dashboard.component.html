@@ -54,15 +54,15 @@
     </tafel-distribution-notes-input>
   </div>
 } @else {
-  <!-- Fills the rest of the otherwise-empty page with organization-wide figures and a row of
-       shortcuts - each tile gated behind the permission that figure's own screen needs, since the
-       backend sends all of them regardless of the viewer's permissions (see
-       DashboardOrganizationOverviewData). The quick-links panel at the end carries `lg:flex-1` -
-       the same technique the active-distribution view above uses on its own last row - so it grows
-       to take up whatever space the tiles above it left over, and the page ends exactly at the fold
-       here too, regardless of how many tiles a given viewer's permissions show. -->
+  <!-- Fills the rest of the otherwise-empty page with organization-wide figures - each tile gated
+       behind the permission that figure's own screen needs, since the backend sends all of them
+       regardless of the viewer's permissions (see DashboardOrganizationOverviewData). This grid
+       carries `lg:flex-1` and `auto-rows-fr` - the same growing-last-row technique the
+       active-distribution view above uses, applied to the tiles themselves (via taller rows) rather
+       than a dedicated last element - so it grows to take up whatever space is left, and the page
+       ends exactly at the fold regardless of how many tiles a given viewer's permissions show. -->
   <mat-divider class="!my-3"></mat-divider>
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-2">
+  <div class="grid grid-cols-1 lg:grid-cols-4 lg:min-h-0 lg:flex-1 auto-rows-fr gap-2">
     <tafel-stat-tile *tafelIfPermission="'CUSTOMER'" [testId]="'active-households-count'" label="Kunden gesamt"
                      [value]="data()?.organizationOverview?.activeHouseholdsCount ?? null">
     </tafel-stat-tile>
@@ -88,6 +88,4 @@
                      [value]="data()?.organizationOverview?.employeesCount ?? null">
     </tafel-stat-tile>
   </div>
-  <mat-divider class="!my-3"></mat-divider>
-  <tafel-quick-links class="lg:min-h-0 lg:flex-1"></tafel-quick-links>
 }
