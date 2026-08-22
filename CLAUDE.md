@@ -421,6 +421,28 @@ since it lives outside the code you're editing. On every update or regeneration,
   filename list in the `sed` rewrite rules in the `userguide-pdf` job of
   `.github/workflows/release.yml`.
 
+## Changelog
+
+`CHANGELOG.md` at the repo root is a concise, German-language, user-facing changelog — one short
+bullet per notable change, not a commit log. **Any user-facing feature or fix must add a bullet
+under `## [Unreleased]` as part of the same PR** — this is easy to forget since it lives outside
+the code being changed, same as the user guide rule above. Skip it only for changes with no
+user-visible effect (pure refactors, CI/build/test-only changes, internal chores).
+
+- Every bullet is one **single, unwrapped line** starting with `- ` — never wrap a long entry onto
+  a continuation line. `release.yml`'s extraction step matches lines by that exact prefix; a
+  wrapped continuation line would silently be dropped from the generated release notes.
+- Versioned sections (`## [1.8.1] - 2026-08-21`, newest first) are the historical record for
+  humans reading the file on GitHub. Nothing automated renames `## [Unreleased]` to the version
+  that was actually released — that heading is cosmetic and kept accurate by hand: when you next
+  add a bullet under `## [Unreleased]` and it still describes something already shipped (check
+  `git tag`/the GitHub Releases page), rename it to `## [<released-version>] - <release-date>`
+  first, then add a fresh `## [Unreleased]` above it with your new bullet.
+- `release.yml`'s `version` job extracts the delta for the GitHub release body itself, and does
+  **not** rely on that heading: it diffs `CHANGELOG.md` between the previous release tag and the
+  current commit and keeps only the added `- ` lines, so the extracted delta is correct even if
+  `## [Unreleased]` hasn't been renamed yet, regardless of how many commits landed in between.
+
 ## Architecture Decision Records
 
 `docs/architecture/adr/` holds the ADRs — one record per architectural decision, with the context
