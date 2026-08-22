@@ -1,16 +1,20 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
@@ -53,6 +57,18 @@ internal class DashboardServiceTest {
 
     @RelaxedMockK
     private lateinit var routeStopCompletionRepository: RouteStopCompletionRepository
+
+    @RelaxedMockK
+    private lateinit var householdRepository: HouseholdRepository
+
+    @RelaxedMockK
+    private lateinit var personRepository: PersonRepository
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var carRepository: CarRepository
 
     @InjectMockKs
     private lateinit var service: DashboardService
@@ -360,13 +376,14 @@ internal class DashboardServiceTest {
         assertThat(data.logistics).isNull()
         assertThat(data.notes).isNull()
         assertThat(data.lastDistribution).isNull()
+        assertThat(data.organizationOverview).isNotNull
 
         verify { distributionRepository.findFirstByOrderByIdDesc() }
         verify(exactly = 0) { distributionHouseholdRepository.countAllByDistributionId(any()) }
     }
 
     @Test
-    fun `get data with an active distribution never populates lastDistribution`() {
+    fun `get data with an active distribution never populates lastDistribution or organizationOverview`() {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
@@ -376,7 +393,26 @@ internal class DashboardServiceTest {
         val data = service.getData()
 
         assertThat(data.lastDistribution).isNull()
+        assertThat(data.organizationOverview).isNull()
         verify(exactly = 0) { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() }
+        verify(exactly = 0) { householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(any()) }
+    }
+
+    @Test
+    fun `get organization overview data counts active households, persons, users and cars`() {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(LocalDate.now()) } returns 137
+        every { personRepository.countActive(LocalDate.now()) } returns 142
+        every { userRepository.countByEnabledTrue() } returns 12
+        every { carRepository.countByEnabledIsTrue() } returns 4
+
+        val data = service.getData()
+
+        val overview = data.organizationOverview!!
+        assertThat(overview.activeHouseholdsCount).isEqualTo(137)
+        assertThat(overview.activePersonsCount).isEqualTo(142)
+        assertThat(overview.activeUsersCount).isEqualTo(12)
+        assertThat(overview.activeCarsCount).isEqualTo(4)
     }
 
     @Test

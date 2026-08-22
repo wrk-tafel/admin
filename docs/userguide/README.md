@@ -196,6 +196,8 @@ Die Übersicht ist die Startseite und zeigt den aktuellen Status des Ausgabetags
 
 - **Status**: Zeigt an, ob der Ausgabetag "Geöffnet" oder "Geschlossen" ist. Mit **Tag starten** wird eine neue Ausgabe begonnen, mit **Tag beenden** wird sie abgeschlossen (dabei werden u. a. die Mitarbeiterzahl und die genutzten Notschlafstellen abgefragt).
 
+Darunter zeigt die Übersicht, solange keine Ausgabe läuft, zusätzlich ein paar organisationsweite Kennzahlen – wie viele Kunden und Personen insgesamt aktuell gültig (und nicht gesperrt) sind, sowie die Anzahl der aktiven Benutzer und Fahrzeuge. Jede dieser Kacheln ist an dieselbe Berechtigung geknüpft wie der jeweilige Verwaltungsbereich (**Kunden gesamt**/**Personen gesamt** an die Kundenverwaltung, **Benutzer** an die Benutzerverwaltung, **Fahrzeuge** an die Transport/Logistik-Berechtigung) und erscheint nur, wenn diese vorhanden ist.
+
 Sobald eine Ausgabe läuft, zeigt die Übersicht stattdessen die folgenden tagesbezogenen Kennzahlen:
 
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.

@@ -725,6 +725,78 @@ VALUES (5, NOW(), NOW(), 9000, 140, 1, true, false);
 INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
 VALUES (6, NOW(), NOW(), 9000, 141, 2, true, false);
 
+-- 135 more households, registered into distribution 9000 alongside the two above, so its numbers
+-- add up to a round, realistic-looking day on the dashboard's "Letzte Ausgabe" summary: 137 Kunden,
+-- 142 Personen, 137 bearbeitete Tickets. First/last names are drawn from two lists by index, same
+-- approach as the three-year statistics history further down.
+INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+                        address_street, address_housenumber, address_postalcode, address_city,
+                        valid_until, pending_cost_contribution)
+SELECT 5000 + i,
+       NOW() - interval '1 day 2 hours',
+       NOW() - interval '1 day 2 hours',
+       6000 + i,
+       100,
+       null,
+       (ARRAY ['Simmeringer Hauptstraße','Quellenstraße','Triester Straße','Gudrunstraße',
+           'Laxenburger Straße','Wienerbergstraße','Absberggasse','Hardtmuthgasse',
+           'Puchsbaumgasse','Fernkorngasse'])[1 + (i % 10)],
+       (1 + (i % 60))::text,
+       (ARRAY [1030,1100,1110,1120])[1 + (i % 4)],
+       'Wien',
+       '2999-12-31',
+       0
+FROM generate_series(0, 134) AS i;
+
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
+                     birth_date, gender, country_id, exclude_household, receives_family_allowance)
+SELECT 6000 + i,
+       NOW() - interval '1 day 2 hours',
+       NOW() - interval '1 day 2 hours',
+       5000 + i,
+       true,
+       (ARRAY ['Anna','Bernd','Clara','David','Elena','Fatima','Goran','Hanna','Igor','Jasmin',
+           'Katrin','Lukas','Milan','Nadja','Omar','Petra','Quirin','Ruslan','Selma','Tomas'])[1 + (i % 20)],
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((i / 20) % 8)],
+       (CURRENT_DATE - interval '1 year' * (20 + (i % 50)))::date,
+       CASE WHEN i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
+       1,
+       false,
+       false
+FROM generate_series(0, 134) AS i;
+
+UPDATE households SET main_person_id = 6000 + (id - 5000) WHERE id BETWEEN 5000 AND 5134;
+
+-- five of the new households also have one additional (non-excluded) member, so "Personen gesamt"/
+-- the summary's person count (142) comes out a few higher than the household count (137) instead
+-- of being exactly one person per household.
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
+                     birth_date, gender, country_id, exclude_household, receives_family_allowance)
+SELECT 7000 + i,
+       NOW() - interval '1 day 2 hours',
+       NOW() - interval '1 day 2 hours',
+       5000 + i,
+       false,
+       'Kind',
+       'Mitbewohner',
+       (CURRENT_DATE - interval '1 year' * (5 + i))::date,
+       CASE WHEN i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
+       1,
+       false,
+       false
+FROM generate_series(0, 4) AS i;
+
+INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
+SELECT 6 + i,
+       NOW(),
+       NOW(),
+       9000,
+       5000 + (i - 1),
+       2 + i,
+       true,
+       false
+FROM generate_series(1, 135) AS i;
+
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
@@ -1105,6 +1177,15 @@ VALUES (3, 31, 'Klappkisten schwarz', 3);
 -- a zero is "nothing came back", not an empty crate to carry - guidance must not list it
 INSERT INTO food_collections_return_items (food_collection_id, shop_id, description, amount)
 VALUES (3, 31, 'Ströck Kisten', 0);
+
+-- a single food collection for distribution 9000 too, so the dashboard's "Letzte Ausgabe" summary
+-- has a non-zero "Erfasste Warenmenge" as well - one KG-measured shop/category combo is enough,
+-- the exact split doesn't matter for that figure.
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
+                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+VALUES (9000, NOW(), NOW(), 9000, 1, 1, 2000, 2100, 150000, 150180);
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
+VALUES (9000, 6, 2, 5230, 5230);
 
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,

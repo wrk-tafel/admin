@@ -1,0 +1,6 @@
+<mat-card class="h-full mat-card-primary">
+  <mat-card-content class="!p-4">
+    <h2 class="tafel-h4 mb-1">{{ label() }}</h2>
+    <div [attr.testid]="testId()" class="text-4xl leading-none">{{ value() ?? '-' }}</div>
+  </mat-card-content>
+</mat-card>

@@ -20,6 +20,7 @@ import {TicketsProcessedComponent} from './components/tickets-processed/tickets-
 import {
   LastDistributionSummaryComponent
 } from './components/last-distribution-summary/last-distribution-summary.component';
+import {StatTileComponent} from './components/stat-tile/stat-tile.component';
 import {SseService} from '../../common/sse/sse.service';
 import {GlobalStateService} from '../../common/state/global-state.service';
 import {toSignal} from '@angular/core/rxjs-interop';
@@ -45,6 +46,7 @@ import {MatDivider} from '@angular/material/list';
     DistributionNotesInputComponent,
     TicketsProcessedComponent,
     LastDistributionSummaryComponent,
+    StatTileComponent,
     MatDivider,
   ]
 })
@@ -91,6 +93,8 @@ export interface DashboardData {
   notes?: string;
   /** Only set while no distribution is currently open - see {@link DashboardComponent.isDistributionActive}. */
   lastDistribution?: DashboardLastDistributionData;
+  /** Only set while no distribution is currently open - see {@link DashboardComponent.isDistributionActive}. */
+  organizationOverview?: DashboardOrganizationOverviewData;
 }
 
 export interface DashboardTicketsData {
@@ -126,4 +130,11 @@ export interface DashboardLastDistributionData {
   registeredPersons: number;
   countProcessedTickets: number;
   foodAmountTotal: number;
+}
+
+export interface DashboardOrganizationOverviewData {
+  activeHouseholdsCount: number;
+  activePersonsCount: number;
+  activeUsersCount: number;
+  activeCarsCount: number;
 }

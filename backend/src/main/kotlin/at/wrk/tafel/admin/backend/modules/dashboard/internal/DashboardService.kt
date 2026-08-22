@@ -1,15 +1,20 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLastDistributionData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardOrganizationOverviewData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardRouteProgressItem
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardTicketsData
@@ -24,6 +29,10 @@ class DashboardService(
     private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val routeRepository: RouteRepository,
     private val routeStopCompletionRepository: RouteStopCompletionRepository,
+    private val householdRepository: HouseholdRepository,
+    private val personRepository: PersonRepository,
+    private val userRepository: UserRepository,
+    private val carRepository: CarRepository,
 ) {
 
     @Transactional(readOnly = true)
@@ -39,6 +48,7 @@ class DashboardService(
                 logistics = getLogisticsData(currentDistribution),
                 notes = currentDistribution.notes,
                 lastDistribution = null,
+                organizationOverview = null,
             )
         } ?: DashboardData(
             registeredCustomers = null,
@@ -48,6 +58,17 @@ class DashboardService(
             logistics = null,
             notes = null,
             lastDistribution = getLastDistributionData(),
+            organizationOverview = getOrganizationOverviewData(),
+        )
+    }
+
+    private fun getOrganizationOverviewData(): DashboardOrganizationOverviewData {
+        val today = LocalDate.now()
+        return DashboardOrganizationOverviewData(
+            activeHouseholdsCount = householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(today),
+            activePersonsCount = personRepository.countActive(today),
+            activeUsersCount = userRepository.countByEnabledTrue(),
+            activeCarsCount = carRepository.countByEnabledIsTrue(),
         )
     }
 

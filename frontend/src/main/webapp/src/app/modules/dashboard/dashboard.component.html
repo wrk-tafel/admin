@@ -53,4 +53,22 @@
     <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
     </tafel-distribution-notes-input>
   </div>
+} @else {
+  <!-- Fills the rest of the otherwise-empty page with a few organization-wide figures - each
+       gated behind the permission that figure's own screen needs, since the backend sends all of
+       them regardless of the viewer's permissions (see DashboardOrganizationOverviewData). -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 mt-2">
+    <tafel-stat-tile *tafelIfPermission="'CUSTOMER'" [testId]="'active-households-count'" label="Kunden gesamt"
+                     [value]="data()?.organizationOverview?.activeHouseholdsCount ?? null">
+    </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'CUSTOMER'" [testId]="'active-persons-count'" label="Personen gesamt"
+                     [value]="data()?.organizationOverview?.activePersonsCount ?? null">
+    </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'USER_MANAGEMENT'" [testId]="'active-users-count'" label="Benutzer"
+                     [value]="data()?.organizationOverview?.activeUsersCount ?? null">
+    </tafel-stat-tile>
+    <tafel-stat-tile *tafelIfPermission="'LOGISTICS'" [testId]="'active-cars-count'" label="Fahrzeuge"
+                     [value]="data()?.organizationOverview?.activeCarsCount ?? null">
+    </tafel-stat-tile>
+  </div>
 }

@@ -129,7 +129,7 @@ describe('Dashboard', () => {
     cy.closeDistribution();
   });
 
-  it('shows a summary of the last closed distribution once none is active', () => {
+  it('shows a summary of the last closed distribution and organization-wide counts once none is active', () => {
     cy.createDistribution();
     // household 100 from the testdata has no additional persons, so registered customers/persons match
     cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
@@ -148,6 +148,13 @@ describe('Dashboard', () => {
     // the ticket was registered but never processed via the ticket screen
     cy.byTestId('last-distribution-tickets').should('have.text', '0');
     cy.byTestId('last-distribution-food-amount').invoke('text').invoke('trim').should('equal', '0,00 kg');
+
+    // organization-wide counts, filled from the seeded testdata rather than anything this spec set
+    // up itself - just asserted as real (positive) numbers rather than pinned exact values, since
+    // other specs sharing this database can add/close households of their own.
+    ['active-households-count', 'active-persons-count', 'active-users-count', 'active-cars-count'].forEach(testId => {
+      cy.byTestId(testId).invoke('text').should('match', /^\d+$/).and('not.equal', '0');
+    });
   });
 
   it('dashboard content and actions usable on phone', () => {

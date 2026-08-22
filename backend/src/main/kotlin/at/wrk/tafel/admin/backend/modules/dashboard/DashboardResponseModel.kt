@@ -20,6 +20,15 @@ data class DashboardData(
      * ever been closed yet.
      */
     val lastDistribution: DashboardLastDistributionData?,
+    /**
+     * Organization-wide counts, populated in the same case as [lastDistribution] - while no
+     * distribution is active, so the overview page has more to show than the status card and the
+     * last-distribution summary. Not refreshed by every household/user/car change (see
+     * `DashboardController`'s `dashboard_update` trigger tables) - only as fresh as the last time
+     * something distribution-related pushed a new snapshot, which is acceptable for a background
+     * figure like this one.
+     */
+    val organizationOverview: DashboardOrganizationOverviewData?,
 )
 
 @ExcludeFromTestCoverage
@@ -68,4 +77,20 @@ data class DashboardLastDistributionData(
     val registeredPersons: Int,
     val countProcessedTickets: Int,
     val foodAmountTotal: BigDecimal,
+)
+
+/**
+ * Currently entitled and not locked/disabled, as opposed to a historic total - so the figures stay
+ * meaningful (a household whose validity lapsed years ago isn't still a "customer"). The frontend
+ * shows each figure behind its own permission check (`CUSTOMER` for the two household-derived ones,
+ * `USER_MANAGEMENT`, `LOGISTICS`), matching the permission that screen's own data needs - the
+ * backend sends all four regardless, same as [DashboardStatisticsData] already does for a viewer
+ * without `LOGISTICS`.
+ */
+@ExcludeFromTestCoverage
+data class DashboardOrganizationOverviewData(
+    val activeHouseholdsCount: Int,
+    val activePersonsCount: Int,
+    val activeUsersCount: Int,
+    val activeCarsCount: Int,
 )

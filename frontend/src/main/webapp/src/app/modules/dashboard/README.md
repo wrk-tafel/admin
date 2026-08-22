@@ -1,11 +1,12 @@
 # Dashboard Module
 
-This module renders the "Übersicht" (overview) landing page — the operational cockpit shown
-while a food distribution ("Ausgabe") is running. It shows whether a distribution is currently
-open, how many customers have registered, how many tickets have been processed, how much food
-has been recorded/collected, and lets staff enter end-of-day statistics (employee count, shelter
-occupancy) and free-text notes. Almost everything on this page is either live (pushed via SSE) or
-gated behind an active distribution.
+This module renders the "Übersicht" (overview) landing page. While a food distribution ("Ausgabe")
+is running, it's the operational cockpit: whether a distribution is currently open, how many
+customers have registered, how many tickets have been processed, how much food has been
+recorded/collected, and lets staff enter end-of-day statistics (employee count, shelter occupancy)
+and free-text notes. While none is running, it instead shows a summary of the most recently closed
+distribution and a handful of organization-wide counts. Almost everything on this page is either
+live (pushed via SSE) or gated behind an active distribution.
 
 ## Live data: two independent SSE channels
 
@@ -30,16 +31,17 @@ not-excluded additional persons), `tickets` (processed/total), `logistics` (food
 - every enabled route, not just the recorded ones, see "Route chips" below - plus
 `routeProgress` - the stops each route has ticked off today in the route guidance screen),
 `statistics`
-(current employee count / selected shelter names), free-text `notes`, and `lastDistribution` (a
-compact summary of the most recently closed distribution - see "No active distribution" below).
+(current employee count / selected shelter names), free-text `notes`, `lastDistribution` (a
+compact summary of the most recently closed distribution) and `organizationOverview` (a handful of
+organization-wide counts) - see "No active distribution" below for the latter two.
 The template (`dashboard.component.html`) reads `data()` and passes slices of it down as
 `@Input`-style signal inputs to the presentational child components (`tafel-registered-customers`,
 `tafel-registered-persons`, `tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-recorded-route-names`,
 `tafel-route-progress`, `tafel-food-amount`, `tafel-distribution-statistics-input`,
-`tafel-distribution-notes-input`, `tafel-last-distribution-summary`). None of those children
-know about SSE at all — they are pure `input()`-driven display/edit components. This keeps the
-"how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the "how do we
-render it" concern in the leaf components.
+`tafel-distribution-notes-input`, `tafel-last-distribution-summary`, `tafel-stat-tile`). None of
+those children know about SSE at all — they are pure `input()`-driven display/edit components. This
+keeps the "how do we get fresh data" concern in exactly one place (`DashboardComponent`) and the
+"how do we render it" concern in the leaf components.
 
 ## No active distribution
 
@@ -49,9 +51,16 @@ a distribution is open, the day-specific panels render as described above; while
 all just show dashes, so the template leaves them out entirely (`registered-customers`/
 `registered-persons`/`tickets-processed`, the whole logistics row, route progress, and the
 statistics/notes form) and instead shows `tafel-last-distribution-summary`, fed from
-`data()?.lastDistribution`. That field is populated by the backend only in exactly this case - `null`
-both while a distribution is active and on a fresh installation where none has ever been closed. The
-`tafel-distribution-state` "Status" card (start/close controls) stays visible either way.
+`data()?.lastDistribution`, plus a row of `tafel-stat-tile`s fed from `data()?.organizationOverview`
+(active households/persons/users/cars). Both fields are populated by the backend only in exactly this
+case - `null` while a distribution is active, and `lastDistribution` (only) is also `null` on a fresh
+installation where none has ever been closed. The `tafel-distribution-state` "Status" card
+(start/close controls) stays visible either way.
+
+Each `tafel-stat-tile` is individually wrapped in `*tafelIfPermission` matching the permission its own
+screen needs (`CUSTOMER` for the two household-derived tiles, `USER_MANAGEMENT`, `LOGISTICS`) - the
+backend sends all four regardless of the viewer's permissions, same as `statistics` already does for a
+viewer without `LOGISTICS` (see "Route chips" below).
 
 Because the SSE stream only pushes deltas the backend decides are relevant, several fields on
 `data()` are `undefined` on partial/initial payloads (e.g. `data()?.registeredCustomers`). The
@@ -116,6 +125,8 @@ dashboard/
                                          # distribution-statistics-input only
     last-distribution-summary/          # summary of the most recently closed distribution, shown
                                          # in place of the day-specific panels while none is active
+    stat-tile/                          # generic label+figure card, used for the organization
+                                         # overview row shown alongside the summary above
 ```
 
 Every component under `components/` is a standalone, presentational-ish component using
@@ -141,7 +152,9 @@ those two only need `RouteRepository.findByEnabledIsTrue().size`, whereas this p
 enabled route's *name*, sourced straight from `DashboardService.getLogisticsData()` alongside
 `recordedRouteNames` rather than from a separate `/routes/active` call - that endpoint requires the
 `LOGISTICS` permission, which would make the route status invisible to any user without it even
-though every other panel here is open to `isAuthenticated()` alone.
+though every day-specific panel here is open to `isAuthenticated()` alone (the organization-overview
+tiles shown while no distribution is active are the one exception - see "No active distribution"
+above).
 
 ## Notable component details
 
@@ -161,6 +174,11 @@ though every other panel here is open to `isAuthenticated()` alone.
 - **`LastDistributionSummaryComponent`**: purely presentational, like the other panels - takes
   `summary: DashboardLastDistributionData | null` and renders its own placeholder text when `null`
   (no distribution has ever been closed) rather than leaving itself blank.
+- **`StatTileComponent`** (`tafel-stat-tile`): the one generic panel here - `label`/`value`/`testId`
+  inputs rather than a dedicated component per figure, since the four organization-overview tiles are
+  otherwise identical. `testId` (not a plain `testid` attribute) because the component renders the
+  attribute itself internally onto its value `<div>`, following the same `tafel-counter-input`/
+  `tafel-dialog` convention the rest of the codebase uses for that.
 - Every panel card visually communicates "warning" vs "success" vs "primary" via `computed()`
   color functions comparing recorded vs. total counts (e.g. `TicketsProcessedComponent
   .panelColor`, `RecordedFoodCollectionsComponent.panelColor`) — no shared logic between them, so
@@ -188,3 +206,7 @@ though every other panel here is open to `isAuthenticated()` alone.
   against all three without needing per-palette Material token overrides. Guard a new one on
   `!== null` rather than `@if (percent(); as p)` - a real 0% is falsy and would otherwise render as
   "no bar at all".
+- `organizationOverview`'s four counts are not refreshed by every household/user/car change - only by
+  whatever `dashboard_update` trigger fires next (see the backend module's README) or the next time a
+  client (re)connects. Fine for a background figure that only fills otherwise-empty space; don't build
+  UI around it updating live the way the day-specific panels do.
