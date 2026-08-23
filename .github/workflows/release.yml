@@ -157,11 +157,6 @@ jobs:
           # hand-written Release Notes section below since that's the last section in `body`.
           generate_release_notes: true
           body: |
-            ## Benutzerhandbuch
-
-            Das Benutzerhandbuch für diese Version:
-            [tafel-admin-benutzerhandbuch.pdf](https://github.com/wrk-tafel/admin/releases/download/${{ needs.version.outputs.version }}/tafel-admin-benutzerhandbuch.pdf)
-
             ## Docker Image
 
             ```
@@ -169,6 +164,11 @@ jobs:
             ```
 
             Auch getaggt als `latest`. Alle Tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
+
+            ## Benutzerhandbuch
+
+            Das Benutzerhandbuch für diese Version:
+            [tafel-admin-benutzerhandbuch.pdf](https://github.com/wrk-tafel/admin/releases/download/${{ needs.version.outputs.version }}/tafel-admin-benutzerhandbuch.pdf)
 
             ## Release Notes
 
