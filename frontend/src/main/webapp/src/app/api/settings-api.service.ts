@@ -10,8 +10,12 @@ export class SettingsApiService {
     return this.http.get<MailRecipients>('/settings/mail-recipients');
   }
 
-  saveMailRecipients(data: MailRecipients): Observable<void> {
-    return this.http.put<void>('/settings/mail-recipients', data);
+  saveMailRecipients(data: MailRecipients): Observable<MailRecipients> {
+    return this.http.put<MailRecipients>('/settings/mail-recipients', data);
+  }
+
+  deleteMailRecipient(id: number): Observable<void> {
+    return this.http.delete<void>(`/settings/mail-recipients/${id}`);
   }
 
   getStaticValues(): Observable<StaticValueListResponse> {
@@ -35,7 +39,12 @@ export interface MailRecipientsPerMailType {
 
 export interface MailRecipient {
   recipientType: RecipientTypeEnum;
-  addresses: string[];
+  addresses: MailRecipientAddressItem[];
+}
+
+export interface MailRecipientAddressItem {
+  id: number | null;
+  address: string;
 }
 
 export enum MailTypeEnum {

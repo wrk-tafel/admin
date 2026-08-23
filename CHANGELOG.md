@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Die Release-Notes auf GitHub sind jetzt durchgehend auf Deutsch und enthalten wieder einen Link zum vollständigen Änderungsprotokoll.
+- E-Mail-Empfänger: Entfernen eines bereits gespeicherten Empfängers wirkt jetzt sofort, ohne "Speichern".
 
 ## [1.9.0] - 2026-08-22
 - Übersicht: solange keine Ausgabe läuft, füllt eine Zusammenfassung der letzten Ausgabe (Kunden, Personen, Tickets, Warenmenge, Notschlafstellen) zusammen mit organisationsweiten Kennzahlen (Haushalte, Personen, Benutzer, Fahrzeuge, Notschlafstellen, Routen, Filialen, Mitarbeiter:innen) die Seite, statt leere Tageskacheln zu zeigen.
