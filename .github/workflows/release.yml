@@ -157,21 +157,21 @@ jobs:
 
             ${{ needs.version.outputs.changelog }}
 
-            ## User guide
+            ## Benutzerhandbuch
 
-            The German user guide for this version:
+            Das Benutzerhandbuch für diese Version:
             [tafel-admin-benutzerhandbuch.pdf](https://github.com/wrk-tafel/admin/releases/download/${{ needs.version.outputs.version }}/tafel-admin-benutzerhandbuch.pdf)
 
-            Always the latest version:
+            Immer die aktuellste Version:
             https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf
 
-            ## Docker image
+            ## Docker-Image
 
             ```
             ghcr.io/wrk-tafel/admin:${{ needs.version.outputs.version }}
             ```
 
-            Also tagged `latest`. All tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
+            Auch getaggt als `latest`. Alle Tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [version, github-release]
