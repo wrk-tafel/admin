@@ -21,7 +21,6 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
-      full_changelog: ${{ steps.changelog.outputs.full_changelog }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,29 +37,20 @@ jobs:
       # renamed to a version yet, and unaffected by how many commits landed in between.
       - name: Extract changelog entries added since the last release
         id: changelog
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
         run: |
           previous_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -z "$previous_tag" ]; then
             entries="_Erstes Release._"
-            full_changelog=""
           else
             entries=$(git diff "${previous_tag}"...HEAD -- CHANGELOG.md | grep -E '^\+- ' | sed 's/^\+//' || true)
             if [ -z "$entries" ]; then
               entries="_Keine dokumentierten Änderungen für dieses Release._"
             fi
-            full_changelog="**Vollständiges Änderungsprotokoll**: https://github.com/${GITHUB_REPOSITORY}/compare/${previous_tag}...${VERSION}"
           fi
           {
             echo "changelog<<CHANGELOG_EOF"
             echo "$entries"
             echo "CHANGELOG_EOF"
-          } >> "$GITHUB_OUTPUT"
-          {
-            echo "full_changelog<<FULL_CHANGELOG_EOF"
-            echo "$full_changelog"
-            echo "FULL_CHANGELOG_EOF"
           } >> "$GITHUB_OUTPUT"
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
@@ -162,13 +152,11 @@ jobs:
         with:
           tag_name: ${{ needs.version.outputs.version }}
           files: tafel-admin-benutzerhandbuch.pdf
+          # Appended after `body` by the action itself - this is what gives every release its
+          # "What's Changed" PR list and "Full Changelog" comparison link, directly below the
+          # hand-written Release-Notes section below since that's the last section in `body`.
+          generate_release_notes: true
           body: |
-            ## Release-Notes
-
-            ${{ needs.version.outputs.changelog }}
-
-            ${{ needs.version.outputs.full_changelog }}
-
             ## Benutzerhandbuch
 
             Das Benutzerhandbuch für diese Version:
@@ -184,6 +172,10 @@ jobs:
             ```
 
             Auch getaggt als `latest`. Alle Tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
+
+            ## Release-Notes
+
+            ${{ needs.version.outputs.changelog }}
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: [version, github-release]
