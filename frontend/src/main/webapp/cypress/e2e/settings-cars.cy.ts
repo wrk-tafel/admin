@@ -218,6 +218,12 @@ describe('Settings - Cars', () => {
       cy.checkAccessibility('[testid="cars-table"]');
     });
 
+    it('has no violations while the delete confirmation dialog is open', () => {
+      cy.get('[testid^="deleteCarButton-"]').first().click();
+
+      cy.checkDialogAccessibility();
+    });
+
     it('has no violations while a card is edited inline on phone', () => {
       cy.viewport(PHONE_VIEWPORT);
       cy.reload();
@@ -265,6 +271,37 @@ describe('Settings - Cars', () => {
         expect($handle.attr('aria-label')).to.contain(movedRecord);
       });
     });
+  });
+
+  it('keeps the car when the delete confirmation is cancelled', () => {
+    cy.byTestId('cars-table').contains('tr', 'W-NC-222').within(() => {
+      cy.get('[testid^="deleteCarButton-"]').click();
+    });
+
+    cy.byTestId('car-delete-confirm-dialog').should('be.visible');
+    cy.byTestId('cancelButton').click();
+
+    cy.byTestId('cars-table').should('contain.text', 'W-NC-222');
+  });
+
+  it('refuses to delete a car that is already used in a food collection', () => {
+    cy.byTestId('cars-table').contains('tr', 'W-NC-123').within(() => {
+      cy.get('[testid^="deleteCarButton-"]').click();
+    });
+    cy.byTestId('okButton').click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'verwendet');
+    cy.byTestId('cars-table').should('contain.text', 'W-NC-123');
+  });
+
+  it('deletes a car that was never used', () => {
+    cy.byTestId('cars-table').contains('tr', 'W-NC-222').within(() => {
+      cy.get('[testid^="deleteCarButton-"]').click();
+    });
+    cy.byTestId('okButton').click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'gelöscht');
+    cy.byTestId('cars-table').should('not.contain.text', 'W-NC-222');
   });
 
 });

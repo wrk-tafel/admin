@@ -151,6 +151,14 @@ DB level — it only governs `modules`-to-`modules` traffic.
 - **Permission split, same shape as food categories:** `getActiveCars()` requires
   `isAuthenticated()` (frontend route-level `LOGISTICS` gating already restricts who reaches it),
   while `getAllCars()` plus create/update/reorder all require `SETTINGS`.
+- `deleteCar()` is a real hard delete, unlike shelters/food categories which only ever get
+  soft-disabled via `enabled` — a car is never snapshotted anywhere in reporting (see
+  `FoodCollectionEntity`), so nothing depends on an old car's name/plate surviving. The only thing
+  that can block it is an actual recorded food collection: `FoodCollectionRepository.existsByCarId`
+  is checked up front and turned into a `ConflictException` (409) rather than letting the
+  database's own FK `RESTRICT` on `food_collections.car_id` surface as a raw error. `enabled` is
+  still the everyday way to retire a car from the dropdown; delete only ever succeeds for a car
+  that was created and never actually used on a route.
 
 ### Food categories (`FoodCategoriesController`, `internal/FoodCategoryService`)
 - `FoodCategoryEntity` (`food_categories`) has `weightPerUnit` (`BigDecimal`), `sortOrder`, and

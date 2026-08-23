@@ -16,8 +16,9 @@
     <p class="mb-4 text-sm text-slate-600">
       Fahrzeuge, die bei der Warenerfassung einer Route zugeordnet werden können. Die Reihenfolge
       dieser Liste ist die Reihenfolge der Auswahlliste in der Warenerfassung. Ein deaktiviertes
-      Fahrzeug steht dort nicht mehr zur Auswahl, wird aber nicht gelöscht - bereits erfasste
-      Warenerfassungen verweisen darauf.
+      Fahrzeug steht dort nicht mehr zur Auswahl. Gelöscht werden kann ein Fahrzeug nur, solange es
+      in keiner Warenerfassung verwendet wurde - danach verweisen bereits erfasste
+      Warenerfassungen darauf und das Löschen wird abgelehnt.
     </p>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
@@ -101,6 +102,10 @@
                     [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
               <mat-icon svgIcon="edit"></mat-icon>
             </button>
+            <button matButton="outlined" class="ml-2 button-danger" [attr.testid]="'deleteCarButton-' + i" matTooltip="Fahrzeug löschen"
+                    (click)="deleteCar(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' löschen'">
+              <mat-icon svgIcon="delete"></mat-icon>
+            </button>
           }
         </td>
       </ng-container>
@@ -170,6 +175,10 @@
                 <button matButton="filled" [attr.testid]="'editCarButtonMobile-' + i" matTooltip="Fahrzeug bearbeiten"
                         [disabled]="!car.enabled" (click)="startEdit(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' bearbeiten'">
                   <mat-icon svgIcon="edit"></mat-icon>
+                </button>
+                <button matButton="outlined" class="button-danger" [attr.testid]="'deleteCarButtonMobile-' + i" matTooltip="Fahrzeug löschen"
+                        (click)="deleteCar(car)" [attr.aria-label]="'Fahrzeug ' + car.name + ' löschen'">
+                  <mat-icon svgIcon="delete"></mat-icon>
                 </button>
               }
             </mat-card-actions>
