@@ -157,7 +157,7 @@ jobs:
           # hand-written changelog/user-guide/image sections below.
           generate_release_notes: true
           body: |
-            ## Änderungen
+            ## Release-Notes
 
             ${{ needs.version.outputs.changelog }}
 
