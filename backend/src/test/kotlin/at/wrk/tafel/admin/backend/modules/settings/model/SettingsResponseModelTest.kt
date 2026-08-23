@@ -35,7 +35,10 @@ class SettingsResponseModelTest {
                 MailRecipientsPerMailType(
                     mailType = "DISTRIBUTION",
                     recipients = listOf(
-                        MailRecipientAdresses(recipientType = MailRecipientType.TO, addresses = listOf("test@example.com")),
+                        MailRecipientAdresses(
+                            recipientType = MailRecipientType.TO,
+                            addresses = listOf(MailRecipientAddressItem(address = "test@example.com")),
+                        ),
                     ),
                 ),
             ),

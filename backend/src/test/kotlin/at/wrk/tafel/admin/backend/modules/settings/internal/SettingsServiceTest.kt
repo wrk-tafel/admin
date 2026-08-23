@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAddressItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -31,9 +32,9 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
-import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
@@ -75,22 +76,22 @@ class SettingsServiceTest {
                             MailRecipientAdresses(
                                 recipientType = MailRecipientType.TO,
                                 addresses = listOf(
-                                    testMailRecipient_DR_TO1.address!!,
-                                    testMailRecipient_DR_TO2.address!!,
+                                    MailRecipientAddressItem(id = testMailRecipient_DR_TO1.id, address = testMailRecipient_DR_TO1.address),
+                                    MailRecipientAddressItem(id = testMailRecipient_DR_TO2.id, address = testMailRecipient_DR_TO2.address),
                                 ),
                             ),
                             MailRecipientAdresses(
                                 recipientType = MailRecipientType.CC,
                                 addresses = listOf(
-                                    testMailRecipient_DR_CC1.address!!,
-                                    testMailRecipient_DR_CC2.address!!,
+                                    MailRecipientAddressItem(id = testMailRecipient_DR_CC1.id, address = testMailRecipient_DR_CC1.address),
+                                    MailRecipientAddressItem(id = testMailRecipient_DR_CC2.id, address = testMailRecipient_DR_CC2.address),
                                 ),
                             ),
                             MailRecipientAdresses(
                                 recipientType = MailRecipientType.BCC,
                                 addresses = listOf(
-                                    testMailRecipient_DR_BCC1.address!!,
-                                    testMailRecipient_DR_BCC2.address!!,
+                                    MailRecipientAddressItem(id = testMailRecipient_DR_BCC1.id, address = testMailRecipient_DR_BCC1.address),
+                                    MailRecipientAddressItem(id = testMailRecipient_DR_BCC2.id, address = testMailRecipient_DR_BCC2.address),
                                 ),
                             ),
                         ),
@@ -101,7 +102,7 @@ class SettingsServiceTest {
     }
 
     @Test
-    fun `update mail recipients`() {
+    fun `update mail recipients creates new addresses without touching deleteAll`() {
         val updatedSettings = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
@@ -109,41 +110,47 @@ class SettingsServiceTest {
                     recipients = listOf(
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.TO,
-                            addresses = listOf("to1", "to2"),
+                            addresses = listOf(MailRecipientAddressItem(address = "to1"), MailRecipientAddressItem(address = "to2")),
                         ),
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.CC,
-                            addresses = listOf("cc1", "cc2"),
+                            addresses = listOf(MailRecipientAddressItem(address = "cc1"), MailRecipientAddressItem(address = "cc2")),
                         ),
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.BCC,
-                            addresses = listOf("bcc1", "bcc2"),
+                            addresses = listOf(MailRecipientAddressItem(address = "bcc1"), MailRecipientAddressItem(address = "bcc2")),
                         ),
                     ),
                 ),
             ),
         )
+        every { mailRecipientRepository.findAllById(emptyList()) } returns emptyList()
 
         service.updateMailRecipients(updatedSettings)
 
+        verify(exactly = 0) { mailRecipientRepository.deleteAll() }
         val recipientsSlot = slot<List<MailRecipientEntity>>()
-        verifyOrder {
-            mailRecipientRepository.deleteAll()
-            mailRecipientRepository.saveAll(capture(recipientsSlot))
-        }
+        verify { mailRecipientRepository.saveAll(capture(recipientsSlot)) }
 
-        assertThat(recipientsSlot.captured).containsExactly(
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.TO, address = "TO"),
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.TO, address = "TO"),
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "CC"),
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "CC"),
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.BCC, address = "BCC"),
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.BCC, address = "BCC"),
+        assertThat(recipientsSlot.captured).extracting("mailType", "recipientType", "address").containsExactly(
+            tuple(MailType.DAILY_REPORT, RecipientType.TO, "to1"),
+            tuple(MailType.DAILY_REPORT, RecipientType.TO, "to2"),
+            tuple(MailType.DAILY_REPORT, RecipientType.CC, "cc1"),
+            tuple(MailType.DAILY_REPORT, RecipientType.CC, "cc2"),
+            tuple(MailType.DAILY_REPORT, RecipientType.BCC, "bcc1"),
+            tuple(MailType.DAILY_REPORT, RecipientType.BCC, "bcc2"),
         )
     }
 
     @Test
-    fun `update, filter and sanitize mail recipients`() {
+    fun `update mail recipients updates an existing address in place, keeping its id`() {
+        val existing = MailRecipientEntity(
+            mailType = MailType.DAILY_REPORT,
+            recipientType = RecipientType.TO,
+            address = "old@test.com",
+        ).apply { id = 42 }
+        every { mailRecipientRepository.findAllById(listOf(42L)) } returns listOf(existing)
+
         val updatedSettings = MailRecipientsRequest(
             mailRecipients = listOf(
                 MailRecipientsPerMailType(
@@ -151,11 +158,7 @@ class SettingsServiceTest {
                     recipients = listOf(
                         MailRecipientAdresses(
                             recipientType = MailRecipientType.TO,
-                            addresses = listOf("     "),
-                        ),
-                        MailRecipientAdresses(
-                            recipientType = MailRecipientType.CC,
-                            addresses = listOf("      c  c1         "),
+                            addresses = listOf(MailRecipientAddressItem(id = 42L, address = "new@test.com")),
                         ),
                     ),
                 ),
@@ -164,15 +167,73 @@ class SettingsServiceTest {
 
         service.updateMailRecipients(updatedSettings)
 
-        val recipientsSlot = slot<List<MailRecipientEntity>>()
-        verifyOrder {
-            mailRecipientRepository.deleteAll()
-            mailRecipientRepository.saveAll(capture(recipientsSlot))
-        }
+        assertThat(existing.address).isEqualTo("new@test.com")
+        verify(exactly = 0) { mailRecipientRepository.deleteAll() }
+        verify { mailRecipientRepository.saveAll(listOf(existing)) }
+    }
 
-        assertThat(recipientsSlot.captured).containsExactly(
-            MailRecipientEntity(mailType = MailType.DAILY_REPORT, recipientType = RecipientType.CC, address = "c c1"),
+    @Test
+    fun `update mail recipients filters out blank addresses`() {
+        val updatedSettings = MailRecipientsRequest(
+            mailRecipients = listOf(
+                MailRecipientsPerMailType(
+                    mailType = MailType.DAILY_REPORT.name,
+                    recipients = listOf(
+                        MailRecipientAdresses(
+                            recipientType = MailRecipientType.TO,
+                            addresses = listOf(MailRecipientAddressItem(address = "     ")),
+                        ),
+                        MailRecipientAdresses(
+                            recipientType = MailRecipientType.CC,
+                            addresses = listOf(MailRecipientAddressItem(address = "      c  c1         ")),
+                        ),
+                    ),
+                ),
+            ),
         )
+        every { mailRecipientRepository.findAllById(emptyList()) } returns emptyList()
+
+        service.updateMailRecipients(updatedSettings)
+
+        val recipientsSlot = slot<List<MailRecipientEntity>>()
+        verify { mailRecipientRepository.saveAll(capture(recipientsSlot)) }
+
+        assertThat(recipientsSlot.captured).extracting("mailType", "recipientType", "address").containsExactly(
+            tuple(MailType.DAILY_REPORT, RecipientType.CC, "      c  c1         "),
+        )
+    }
+
+    @Test
+    fun `delete mail recipient`() {
+        every { mailRecipientRepository.existsById(1L) } returns true
+
+        service.deleteMailRecipient(1L)
+
+        verify { mailRecipientRepository.deleteById(1L) }
+    }
+
+    @Test
+    fun `delete mail recipient fails when id is not found`() {
+        every { mailRecipientRepository.existsById(99L) } returns false
+
+        assertThatThrownBy { service.deleteMailRecipient(99L) }
+            .isInstanceOf(NotFoundException::class.java)
+
+        verify(exactly = 0) { mailRecipientRepository.deleteById(any()) }
+    }
+
+    @Test
+    fun `delete mail recipient logs the deletion`() {
+        every { mailRecipientRepository.existsById(1L) } returns true
+
+        withLogAppender(SettingsService::class.java) { logAppender ->
+            service.deleteMailRecipient(1L)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Deleted mail recipient")
+            }
+        }
     }
 
     @Test
@@ -334,11 +395,12 @@ class SettingsServiceTest {
                 MailRecipientsPerMailType(
                     mailType = MailType.DAILY_REPORT.name,
                     recipients = listOf(
-                        MailRecipientAdresses(recipientType = MailRecipientType.TO, addresses = listOf("to1")),
+                        MailRecipientAdresses(recipientType = MailRecipientType.TO, addresses = listOf(MailRecipientAddressItem(address = "to1"))),
                     ),
                 ),
             ),
         )
+        every { mailRecipientRepository.findAllById(emptyList()) } returns emptyList()
 
         withLogAppender(SettingsService::class.java) { logAppender ->
             service.updateMailRecipients(updatedSettings)

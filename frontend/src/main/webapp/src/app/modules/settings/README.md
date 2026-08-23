@@ -96,7 +96,7 @@ A thin composition of two independent, self-contained components — the view
 itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent]`.
 
 - **`mail-recipients.component.ts`**: builds a nested reactive form —
-  `mailRecipients: FormArray` of `{ mailType, recipients: FormArray of { recipientType, addresses: FormArray<string> } }` —
+  `mailRecipients: FormArray` of `{ mailType, recipients: FormArray of { recipientType, addresses: FormArray of { id, address } } }` —
   from the cross product of `MailTypeEnum` (`DAILY_REPORT`, `STATISTICS`,
   `RETURN_BOXES`) and `RecipientTypeEnum` (`TO`, `CC`, `BCC`), both from
   `settings-api.service.ts`. It's populated inside an `effect()` in the
@@ -106,6 +106,15 @@ itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent
   `Record<..., string>` maps on the component (`MailTypeLabels`,
   `RecipientTypeLabels`) rather than extracted to a separate labels file (contrast
   with `static-value-types.ts` below).
+  - **`removeAddress()` deletes immediately for an already-persisted address** (its `id` control is
+    non-null): it calls `SettingsApiService.deleteMailRecipient(id)` and only splices the row out of
+    the form on success — there is no "Speichern" step for a deletion. A freshly added, not-yet-saved
+    address (`id` still `null`) is just spliced out of the form locally, no API call.
+  - **`save()` patches the ids `saveMailRecipients()` returns back into the still-mounted form**
+    (`applySavedIds()`) rather than reloading — a freshly created address is submitted with `id`
+    null and only gets a real id once persisted, and patching in place (matched by
+    mailType/recipientType, in submission order) avoids resetting the selected `mat-tab-group` tab
+    that a full reload-and-rebuild would cause.
 - **`send-mails.component.ts`**: lets an admin pick a past distribution
   (`DistributionApiService.getDistributions()`) and re-trigger its mail
   post-processors via `DistributionApiService.sendMails(id)` — useful when the

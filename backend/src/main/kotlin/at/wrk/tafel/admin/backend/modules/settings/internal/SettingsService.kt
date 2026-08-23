@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAddressItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
@@ -57,31 +58,59 @@ class SettingsService(
             recipients = groupedByType.entries.map { recipientsPerType ->
                 MailRecipientAdresses(
                     recipientType = MailRecipientType.valueOf(recipientsPerType.key.name.uppercase()),
-                    addresses = recipientsPerType.value.map { it.address },
+                    addresses = recipientsPerType.value.map { MailRecipientAddressItem(id = it.id, address = it.address) },
                 )
             },
         )
     }
 
+    // An upsert, not a diff: deletion of a single row is a separate, real DELETE (see
+    // deleteMailRecipient) invoked immediately by the frontend, so this only ever needs to add new
+    // addresses (id == null) and update the text of existing ones (id present) - it never deletes,
+    // which keeps an untouched row's id (and thus its eligibility for that immediate delete) stable
+    // across saves. Returns the persisted state (with the ids newly-created addresses were assigned)
+    // so the frontend can make those rows deletable without a separate reload.
     @Transactional
-    fun updateMailRecipients(settings: MailRecipientsRequest) {
-        val recipients = settings.mailRecipients.flatMap { mailRecipient ->
-            mailRecipient.recipients.flatMap { (updatedRecipientType, updatedRecipients) ->
-                updatedRecipients
-                    .filter { it.trim().isNotBlank() }
-                    .map { updatedRecipient ->
-                        MailRecipientEntity(
-                            mailType = MailType.valueOf(mailRecipient.mailType),
-                            recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase()),
-                            address = updatedRecipient,
-                        )
-                    }
+    fun updateMailRecipients(settings: MailRecipientsRequest): MailRecipientsResponse {
+        val requestedItems = settings.mailRecipients.flatMap { mailRecipient ->
+            mailRecipient.recipients.flatMap { (updatedRecipientType, updatedAddresses) ->
+                updatedAddresses
+                    .filter { it.address.trim().isNotBlank() }
+                    .map { addressItem -> Triple(mailRecipient.mailType, updatedRecipientType, addressItem) }
             }
         }
 
-        mailRecipientRepository.deleteAll()
-        mailRecipientRepository.saveAll(recipients)
-        log.info("Updated mail recipients ({} entries across {} mail type(s))", recipients.size, settings.mailRecipients.size)
+        val existingById = mailRecipientRepository.findAllById(requestedItems.mapNotNull { it.third.id })
+            .associateBy { it.id }
+
+        val toSave = requestedItems.map { (mailType, recipientType, addressItem) ->
+            val entity = addressItem.id?.let { existingById[it] }
+            if (entity != null) {
+                entity.mailType = MailType.valueOf(mailType)
+                entity.recipientType = RecipientType.valueOf(recipientType.name.uppercase())
+                entity.address = addressItem.address
+                entity
+            } else {
+                MailRecipientEntity(
+                    mailType = MailType.valueOf(mailType),
+                    recipientType = RecipientType.valueOf(recipientType.name.uppercase()),
+                    address = addressItem.address,
+                )
+            }
+        }
+
+        mailRecipientRepository.saveAll(toSave)
+        log.info("Updated mail recipients ({} entries across {} mail type(s))", toSave.size, settings.mailRecipients.size)
+        return getMailRecipients()
+    }
+
+    @Transactional
+    fun deleteMailRecipient(id: Long) {
+        if (!mailRecipientRepository.existsById(id)) {
+            throw NotFoundException("E-Mail Empfänger (ID: $id) nicht vorhanden!")
+        }
+        mailRecipientRepository.deleteById(id)
+        log.info("Deleted mail recipient {}", id)
     }
 
     // Only ever shows the row currently valid "today" per (type, countAdults, countChildren, age) -

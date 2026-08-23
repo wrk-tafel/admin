@@ -25,7 +25,7 @@ Was ein deaktivierter Eintrag konkret bedeutet — wo er nicht mehr zur Auswahl 
 
 ## E-Mail-Empfänger
 
-Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Über die grünen **+**-Buttons können weitere Empfänger hinzugefügt, über die roten Buttons einzelne Empfänger entfernt werden. Jede Adresse muss ein gültiges E-Mail-Format haben; ungültige Einträge werden rot markiert (auch der jeweilige Reiter), zusätzlich erscheint die Meldung "Ungültige E-Mail Adresse".
+Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Über die grünen **+**-Buttons können weitere Empfänger hinzugefügt werden; neu hinzugefügte Adressen werden erst mit **Speichern** übernommen. Über die roten Buttons wird ein bereits gespeicherter Empfänger sofort entfernt, ohne dass **Speichern** nötig ist. Jede Adresse muss ein gültiges E-Mail-Format haben; ungültige Einträge werden rot markiert (auch der jeweilige Reiter), zusätzlich erscheint die Meldung "Ungültige E-Mail Adresse".
 
 ![E-Mail-Empfänger](images/einstellungen-email.jpg)
 

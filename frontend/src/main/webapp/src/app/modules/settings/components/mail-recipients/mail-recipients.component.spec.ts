@@ -26,7 +26,8 @@ describe('MailRecipients', () => {
                     provide: SettingsApiService,
                     useValue: {
                         getMailRecipients: vi.fn().mockName('SettingsApiService.getMailRecipients'),
-                        saveMailRecipients: vi.fn().mockName('SettingsApiService.saveMailRecipients')
+                        saveMailRecipients: vi.fn().mockName('SettingsApiService.saveMailRecipients'),
+                        deleteMailRecipient: vi.fn().mockName('SettingsApiService.deleteMailRecipient')
                     }
                 },
                 {
@@ -51,7 +52,7 @@ describe('MailRecipients', () => {
                 recipients: [
                     {
                         recipientType: RecipientTypeEnum.TO,
-                        addresses: ['to1@test.com']
+                        addresses: [{id: 1, address: 'to1@test.com'}]
                     }
                 ]
             },
@@ -60,7 +61,7 @@ describe('MailRecipients', () => {
                 recipients: [
                     {
                         recipientType: RecipientTypeEnum.BCC,
-                        addresses: ['bcc1@test.com']
+                        addresses: [{id: 2, address: 'bcc1@test.com'}]
                     }
                 ]
             }
@@ -77,7 +78,7 @@ describe('MailRecipients', () => {
         const fixture = TestBed.createComponent(MailRecipientsComponent);
         const component = fixture.componentInstance;
         apiService.getMailRecipients.mockReturnValue(of(testData));
-        apiService.saveMailRecipients.mockReturnValue(of(undefined));
+        apiService.saveMailRecipients.mockReturnValue(of(testData));
         vi.spyOn(component.form, 'valid', 'get').mockReturnValue(true);
         vi.spyOn(component.form, 'getRawValue').mockReturnValue(testData);
         const markAllAsTouchedSpy = vi.spyOn(component.form, 'markAllAsTouched');
@@ -133,17 +134,48 @@ describe('MailRecipients', () => {
         expect(component.getAddressesOfRecipientTypeIndex(1, 0).length).toBe(1);
     });
 
-    it('remove address', () => {
+    it('remove a persisted address deletes it via the API', () => {
         const fixture = TestBed.createComponent(MailRecipientsComponent);
         const component = fixture.componentInstance;
         apiService.getMailRecipients.mockReturnValue(of(testData));
+        apiService.deleteMailRecipient.mockReturnValue(of(undefined));
         fixture.detectChanges(); // Trigger effect in constructor
 
         expect(component.getAddressesOfRecipientTypeIndex(0, 0).length).toBe(1);
 
         component.removeAddress(0, 0, 0);
 
+        expect(apiService.deleteMailRecipient).toHaveBeenCalledWith(1);
         expect(component.getAddressesOfRecipientTypeIndex(0, 0).length).toBe(0);
+        expect(toastr.success).toHaveBeenCalledWith('E-Mail Adresse entfernt!');
+    });
+
+    it('remove a persisted address keeps the row and shows an error toast when the delete fails', () => {
+        const fixture = TestBed.createComponent(MailRecipientsComponent);
+        const component = fixture.componentInstance;
+        apiService.getMailRecipients.mockReturnValue(of(testData));
+        apiService.deleteMailRecipient.mockReturnValue(throwError(() => new Error('Delete failed')));
+        fixture.detectChanges(); // Trigger effect in constructor
+
+        component.removeAddress(0, 0, 0);
+
+        expect(component.getAddressesOfRecipientTypeIndex(0, 0).length).toBe(1);
+        expect(toastr.error).toHaveBeenCalledWith('Entfernen fehlgeschlagen!');
+    });
+
+    it('remove a not-yet-saved address only splices it locally, without calling the API', () => {
+        const fixture = TestBed.createComponent(MailRecipientsComponent);
+        const component = fixture.componentInstance;
+        apiService.getMailRecipients.mockReturnValue(of(testData));
+        fixture.detectChanges(); // Trigger effect in constructor
+
+        component.addAddress(1, 0);
+        expect(component.getAddressesOfRecipientTypeIndex(1, 0).length).toBe(1);
+
+        component.removeAddress(1, 0, 0);
+
+        expect(component.getAddressesOfRecipientTypeIndex(1, 0).length).toBe(0);
+        expect(apiService.deleteMailRecipient).not.toHaveBeenCalled();
     });
 
 });

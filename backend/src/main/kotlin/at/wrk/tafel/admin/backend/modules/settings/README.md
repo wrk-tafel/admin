@@ -26,14 +26,15 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
 ## Components
 
 - **`SettingsController`** — two independent endpoint groups:
-  - `GET`/`POST /api/settings/mail-recipients`
-  - `GET /api/settings/static-values`, `POST /api/settings/static-values/{staticValueId}`
+  - `GET`/`PUT /api/settings/mail-recipients`, `DELETE /api/settings/mail-recipients/{id}`
+  - `GET /api/settings/static-values`, `PUT /api/settings/static-values/{staticValueId}`
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).
 - **`model/SettingsResponseModel.kt`** — `MailRecipientsRequest` / `MailRecipientsResponse` /
-  `MailRecipientsPerMailType` / `MailRecipientAdresses` (note the model's own `MailRecipientType`
-  enum duplicates `database.model.base.RecipientType` value-for-value: `TO`/`CC`/`BCC` — the
-  service converts between them by name via `.uppercase()`/`.valueOf(...)`, not by direct reuse).
+  `MailRecipientsPerMailType` / `MailRecipientAdresses` / `MailRecipientAddressItem` (note the
+  model's own `MailRecipientType` enum duplicates `database.model.base.RecipientType`
+  value-for-value: `TO`/`CC`/`BCC` — the service converts between them by name via
+  `.uppercase()`/`.valueOf(...)`, not by direct reuse).
 - **`model/StaticValueSettingsModel.kt`** — `StaticValueListResponse` / `StaticValueRequest` /
   `StaticValueResponse`.
 
@@ -44,12 +45,16 @@ Modeled as flat rows in `mail_recipients`: `(mailType, recipientType, address)`,
 `RecipientType` is `TO`/`CC`/`BCC`.
 
 - `getMailRecipients()` groups the flat rows back into nested `MailType -> RecipientType ->
-  [addresses]` for the UI.
-- `updateMailRecipients()` is a **full delete-then-insert**, not a diff:
-  `mailRecipientRepository.deleteAll()` followed by `saveAll(recipients)` built fresh from the
-  request. Blank/whitespace-only addresses are filtered out before insert. There is no history —
-  saving is destructive and unconditional; if two admins edit concurrently, the last save wins and
-  silently discards the other's changes.
+  [addresses]` for the UI, each address carrying its row id (`MailRecipientAddressItem`).
+- `updateMailRecipients()` is an **upsert, not a diff, and never deletes**: an address with a
+  matching id has its `mailType`/`recipientType`/`address` updated in place, an address with no id
+  is inserted, and blank/whitespace-only addresses are filtered out before either. Deleting a single
+  address is a separate `deleteMailRecipient()` call - see below - so a row's id stays stable across
+  saves. There is no history — an edited address is overwritten unconditionally; if two admins edit
+  the same address concurrently, the last save wins and silently discards the other's change.
+- `deleteMailRecipient(id)` is a real per-row delete (`existsById` + `deleteById`, `NotFoundException`
+  if the id doesn't exist) invoked immediately by the frontend when an already-persisted address is
+  removed - not deferred to the next save, unlike the mail-type/recipient-type grouping above.
 - **The settings module never sends mail itself.** The actual consumer is
   `common.mail.MailSenderService`, which calls `mailRecipientRepository.findAllByMailType(mailType)`
   directly (bypassing `SettingsService`/this module entirely) to build the to/cc/bcc lists when

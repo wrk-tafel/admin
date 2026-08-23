@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.settings
 
 import at.wrk.tafel.admin.backend.modules.settings.internal.SettingsService
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
+import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import io.mockk.every
@@ -34,9 +35,21 @@ class SettingsControllerTest {
     @Test
     fun `update mail recipient settings`() {
         val settings = MailRecipientsRequest(emptyList())
-        settingsController.updateMailRecipientSettings(settings)
+        val updatedSettings = MailRecipientsResponse(emptyList())
+        every { settingsService.updateMailRecipients(settings) } returns updatedSettings
 
+        val response = settingsController.updateMailRecipientSettings(settings)
+
+        assertThat(response).isEqualTo(updatedSettings)
         verify(exactly = 1) { settingsService.updateMailRecipients(settings) }
+    }
+
+    @Test
+    fun `delete mail recipient setting`() {
+        val response = settingsController.deleteMailRecipientSetting(42L)
+
+        assertThat(response.statusCode.value()).isEqualTo(204)
+        verify(exactly = 1) { settingsService.deleteMailRecipient(42L) }
     }
 
     @Test
