@@ -162,9 +162,6 @@ jobs:
             Das Benutzerhandbuch für diese Version:
             [tafel-admin-benutzerhandbuch.pdf](https://github.com/wrk-tafel/admin/releases/download/${{ needs.version.outputs.version }}/tafel-admin-benutzerhandbuch.pdf)
 
-            Immer die aktuellste Version:
-            https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf
-
             ## Docker-Image
 
             ```
