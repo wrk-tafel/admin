@@ -5,8 +5,10 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
-- Übersicht: solange keine Ausgabe läuft, füllt eine Zusammenfassung der letzten Ausgabe (Kunden, Personen, Tickets, Warenmenge, Notschlafstellen) zusammen mit organisationsweiten Kennzahlen (Haushalte, Personen, Benutzer, Fahrzeuge, Notschlafstellen, Routen, Filialen, Mitarbeiter:innen) die Seite, statt leere Tageskacheln zu zeigen.
 - Die Release-Notes auf GitHub sind jetzt durchgehend auf Deutsch und enthalten wieder einen Link zum vollständigen Änderungsprotokoll.
+
+## [1.9.0] - 2026-08-22
+- Übersicht: solange keine Ausgabe läuft, füllt eine Zusammenfassung der letzten Ausgabe (Kunden, Personen, Tickets, Warenmenge, Notschlafstellen) zusammen mit organisationsweiten Kennzahlen (Haushalte, Personen, Benutzer, Fahrzeuge, Notschlafstellen, Routen, Filialen, Mitarbeiter:innen) die Seite, statt leere Tageskacheln zu zeigen.
 
 ## [1.8.1] - 2026-08-21
 - Interne Wartungsarbeiten (Dokumentation, Abhängigkeiten), keine sichtbaren Funktionsänderungen.

@@ -446,10 +446,15 @@ one that touches application code.
   wrapped continuation line would silently be dropped from the generated release notes.
 - Versioned sections (`## [1.8.1] - 2026-08-21`, newest first) are the historical record for
   humans reading the file on GitHub. Nothing automated renames `## [Unreleased]` to the version
-  that was actually released — that heading is cosmetic and kept accurate by hand: when you next
-  add a bullet under `## [Unreleased]` and it still describes something already shipped (check
-  `git tag`/the GitHub Releases page), rename it to `## [<released-version>] - <release-date>`
-  first, then add a fresh `## [Unreleased]` above it with your new bullet.
+  that was actually released — that heading is cosmetic and kept accurate by hand. **Before adding
+  a bullet under `## [Unreleased]`, always check first whether it is stale**: run
+  `gh release list --limit 5` (or check the GitHub Releases page/`git tag`) and compare against
+  the existing `## [Unreleased]` bullets — if the most recent release's date is *after* those
+  bullets were added (they already shipped), rename the heading to
+  `## [<released-version>] - <release-date>` (matching the release's own date) *first*, then add a
+  fresh `## [Unreleased]` above it with your new bullet. Do this check every time, even when the
+  task at hand has nothing to do with releasing — an unrelated task is exactly when a stale
+  `## [Unreleased]` from a prior release goes unnoticed.
 - `release.yml`'s `version` job extracts the delta for the GitHub release body itself, and does
   **not** rely on that heading: it diffs `CHANGELOG.md` between the previous release tag and the
   current commit and keeps only the added `- ` lines, so the extracted delta is correct even if
