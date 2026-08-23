@@ -154,7 +154,7 @@ jobs:
           files: tafel-admin-benutzerhandbuch.pdf
           # Appended after `body` by the action itself - this is what gives every release its
           # "What's Changed" PR list and "Full Changelog" comparison link, directly below the
-          # hand-written Release-Notes section below since that's the last section in `body`.
+          # hand-written Release Notes section below since that's the last section in `body`.
           generate_release_notes: true
           body: |
             ## Benutzerhandbuch
@@ -162,7 +162,7 @@ jobs:
             Das Benutzerhandbuch für diese Version:
             [tafel-admin-benutzerhandbuch.pdf](https://github.com/wrk-tafel/admin/releases/download/${{ needs.version.outputs.version }}/tafel-admin-benutzerhandbuch.pdf)
 
-            ## Docker-Image
+            ## Docker Image
 
             ```
             ghcr.io/wrk-tafel/admin:${{ needs.version.outputs.version }}
@@ -170,7 +170,7 @@ jobs:
 
             Auch getaggt als `latest`. Alle Tags: https://github.com/wrk-tafel/admin/pkgs/container/admin
 
-            ## Release-Notes
+            ## Release Notes
 
             ${{ needs.version.outputs.changelog }}
   deploy-test:
