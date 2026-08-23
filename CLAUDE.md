@@ -429,6 +429,18 @@ under `## [Unreleased]` as part of the same PR** — this is easy to forget sinc
 the code being changed, same as the user guide rule above. Skip it only for changes with no
 user-visible effect (pure refactors, CI/build/test-only changes, internal chores).
 
+**"CI/build/test-only" means the change has no effect on anything a user or administrator ever
+reads or sees — it is not a blanket exemption for anything that happens to live in a workflow
+file.** A change to `release.yml`'s `body:` template (release-notes wording/structure/language), a
+PDF/mail template, an error message, or generated documentation is user-facing even though the
+diff sits in CI/template code, and needs its own `CHANGELOG.md` bullet just like a feature would.
+Before treating any change as changelog-exempt, ask specifically "does this alter text or behavior
+a person outside the team will read or encounter" — not "does this touch application code" — and
+when in doubt, add the bullet. **This check happens once per task, right before considering the
+task done — not only when a diff happens to sit under `backend/` or `frontend/`.** A task that
+touches `.github/workflows/`, `docs/`, or any template/resource file still needs the same check as
+one that touches application code.
+
 - Every bullet is one **single, unwrapped line** starting with `- ` — never wrap a long entry onto
   a continuation line. `release.yml`'s extraction step matches lines by that exact prefix; a
   wrapped continuation line would silently be dropped from the generated release notes.
