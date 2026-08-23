@@ -43,7 +43,8 @@ describe('SettingsCarsComponent', () => {
       getAllCars: vi.fn(() => of<CarList>({cars: [testCar1, testCar2]})),
       updateCar: vi.fn(() => of(testCar1)),
       createCar: vi.fn(() => of(testCar1)),
-      reorderCars: vi.fn(() => of<CarList>({cars: [testCar2, testCar1]}))
+      reorderCars: vi.fn(() => of<CarList>({cars: [testCar2, testCar1]})),
+      deleteCar: vi.fn(() => of(undefined))
     };
 
     toastrMock = {
@@ -292,6 +293,48 @@ describe('SettingsCarsComponent', () => {
 
     expect(toastrMock.error).toHaveBeenCalled();
     expect(carApiMock.getAllCars).toHaveBeenCalledTimes(2);
+  });
+
+  it('deleteCar() deletes the car and reloads once the confirm dialog is accepted', () => {
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of(true)})) as any;
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['deleteCar'](testCar1);
+
+    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {carName: testCar1.name}
+    }));
+    expect(carApiMock.deleteCar).toHaveBeenCalledWith(testCar1.id);
+    expect(toastrMock.success).toHaveBeenCalled();
+    expect(carApiMock.getAllCars).toHaveBeenCalledTimes(2);
+  });
+
+  it('deleteCar() does nothing when the confirm dialog is cancelled', () => {
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of(undefined)})) as any;
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['deleteCar'](testCar1);
+
+    expect(carApiMock.deleteCar).not.toHaveBeenCalled();
+  });
+
+  it('deleteCar() shows an error toast when the car is still in use', () => {
+    carApiMock.deleteCar = vi.fn(() => throwError(() => new Error('failed')));
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of(true)})) as any;
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['deleteCar'](testCar1);
+
+    expect(toastrMock.error).toHaveBeenCalled();
   });
 
 });

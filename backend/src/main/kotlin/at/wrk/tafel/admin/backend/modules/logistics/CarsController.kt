@@ -50,4 +50,13 @@ class CarsController(
         carService.reorderCars(request.carIds)
         return CarListResponse(cars = carService.getAllCars())
     }
+
+    @DeleteMapping("/{carId}")
+    @PreAuthorize("hasAuthority('SETTINGS')")
+    fun deleteCar(
+        @PathVariable carId: Long,
+    ): ResponseEntity<Unit> {
+        carService.deleteCar(carId)
+        return ResponseEntity.noContent().build()
+    }
 }

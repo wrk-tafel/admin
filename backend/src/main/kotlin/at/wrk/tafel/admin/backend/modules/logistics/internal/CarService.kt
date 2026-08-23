@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarResponse
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class CarService(
     private val carRepository: CarRepository,
+    private val foodCollectionRepository: FoodCollectionRepository,
 ) {
 
     companion object {
@@ -56,6 +59,24 @@ class CarService(
         val savedEntity = carRepository.save(carEntity)
         log.info("Updated car {} ({})", savedEntity.id, sanitizeForLog(savedEntity.licensePlate))
         return mapCar(savedEntity)
+    }
+
+    /**
+     * A car is never snapshotted anywhere in reporting (unlike shelters), so the only thing that
+     * blocks deletion is an actual food collection recorded against it - checked here rather than
+     * left to the database's FK RESTRICT so the caller gets a clear 409 instead of a raw DB error.
+     */
+    @Transactional
+    fun deleteCar(carId: Long) {
+        val carEntity = carRepository.findByIdOrNull(carId)
+            ?: throw NotFoundException("Fahrzeug (ID: $carId) nicht vorhanden!")
+
+        if (foodCollectionRepository.existsByCarId(carId)) {
+            throw ConflictException("Fahrzeug wird bereits in einer Warenerfassung verwendet und kann nicht gelöscht werden!")
+        }
+
+        carRepository.delete(carEntity)
+        log.info("Deleted car {} ({})", carId, sanitizeForLog(carEntity.licensePlate))
     }
 
     @Transactional

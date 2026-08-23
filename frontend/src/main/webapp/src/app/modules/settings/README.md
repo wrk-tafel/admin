@@ -55,11 +55,13 @@ is reserved for the two pieces shared by the `email` view specifically.
 
 ## Active/inactive is the same on every screen here
 
-No record in this module is ever deleted — `shelters`, `food-categories`,
+No record in this module is deleted by default — `shelters`, `food-categories`,
 `food-return-categories`, `cars`, `shops` and `routes` all deactivate instead,
 because recorded distributions and food collections point at what they hold.
 Every one of those six screens therefore shows and switches that state the same
-way, and a screen that gains an `enabled` flag follows suit:
+way, and a screen that gains an `enabled` flag follows suit. `cars` is the one
+exception with a real delete action alongside it — see the `cars` section below
+for why that's safe there and not (yet) on the other five:
 
 - **The switch is the status.** One `tafel-enabled-toggle`
   (`common/components/tafel-enabled-toggle/`) per record, labelled "Aktiv",
@@ -297,6 +299,17 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
   dropdown (`CarDataResolver`) — same relationship as food categories'
   enabled/active split. The car itself stays in this list, greyed and with its
   Aktiv switch off: recorded food collections point at it, so it is kept.
+- **`deleteCar()` is a real hard delete**, unlike every other screen in this
+  module — a car is never snapshotted anywhere in reporting (unlike shelters,
+  see the backend's `logistics` README), so a car that was never actually used
+  on a route can be removed outright rather than just disabled. `CarApiService.
+  deleteCar()` calls `DELETE /api/cars/{id}`; the button opens
+  `CarDeleteConfirmDialogComponent` (`views/cars/dialogs/`) first, since the
+  action can't be undone. The backend still rejects it with a 409 once the car
+  turns out to be referenced by a recorded food collection — the confirm
+  dialog can't know that in advance, so the error toast (via
+  `extractErrorMessage`) is what actually tells the admin why. Delete is
+  offered regardless of the car's `enabled` state, unlike edit.
 
 ## `employees` (`SettingsEmployeesComponent`)
 

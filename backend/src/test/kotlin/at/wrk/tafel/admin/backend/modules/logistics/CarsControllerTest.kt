@@ -104,4 +104,14 @@ class CarsControllerTest {
         )
         verify { carService.reorderCars(request.carIds) }
     }
+
+    @Test
+    fun `delete car`() {
+        every { carService.deleteCar(1L) } returns Unit
+
+        val response = controller.deleteCar(1L)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { carService.deleteCar(1L) }
+    }
 }

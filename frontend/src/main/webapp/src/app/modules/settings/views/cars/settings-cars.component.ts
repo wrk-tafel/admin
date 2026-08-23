@@ -1,10 +1,16 @@
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {
   CarCreateDialogComponent,
   CarCreateDialogData,
   CarCreateDialogResult
 } from './dialogs/car-create-dialog.component';
+import {
+  CarDeleteConfirmDialogComponent,
+  CarDeleteConfirmDialogData
+} from './dialogs/car-delete-confirm-dialog.component';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
@@ -28,6 +34,7 @@ import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 import localShippingIcon from '@material-symbols/svg-400/outlined/local_shipping-fill.svg';
 import {
@@ -93,6 +100,7 @@ export class SettingsCarsComponent {
     add: addIcon,
     check: checkIcon,
     close: closeIcon,
+    delete: deleteIcon,
     edit: editIcon,
     local_shipping: localShippingIcon
   });
@@ -224,6 +232,29 @@ export class SettingsCarsComponent {
         });
       }
     });
+  }
+
+  /**
+   * A car is hard-deleted rather than just disabled, so this asks first - and the backend still
+   * rejects it with a 409 if the car turns out to be referenced by a recorded food collection,
+   * which the confirm dialog can't know in advance.
+   */
+  protected deleteCar(car: CarData) {
+    const data: CarDeleteConfirmDialogData = {carName: car.name};
+    this.dialog.open(CarDeleteConfirmDialogComponent, {data})
+      .afterClosed().subscribe(confirmed => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.carApiService.deleteCar(car.id).subscribe({
+          next: () => {
+            this.toastr.success(`Fahrzeug ${car.name} gelöscht`, 'Erfolgreich');
+            this.loadCars();
+          },
+          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen')
+        });
+      });
   }
 
   /**

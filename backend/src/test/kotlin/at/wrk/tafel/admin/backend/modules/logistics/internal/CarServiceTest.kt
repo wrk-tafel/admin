@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.CarResponse
@@ -28,6 +30,9 @@ class CarServiceTest {
 
     @RelaxedMockK
     private lateinit var carRepository: CarRepository
+
+    @RelaxedMockK
+    private lateinit var foodCollectionRepository: FoodCollectionRepository
 
     @InjectMockKs
     private lateinit var service: CarService
@@ -294,6 +299,62 @@ class CarServiceTest {
             assertThat(logAppender.list).anySatisfy {
                 assertThat(it.level).isEqualTo(Level.INFO)
                 assertThat(it.formattedMessage).contains("Reordered cars").contains("[1]")
+            }
+        }
+    }
+
+    @Test
+    fun `delete car removes it when not referenced by any food collection`() {
+        val existingEntity = CarEntity(licensePlate = "W-DEL-1", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Deletable Car"
+        }
+        every { carRepository.findByIdOrNull(99L) } returns existingEntity
+        every { foodCollectionRepository.existsByCarId(99L) } returns false
+
+        service.deleteCar(99L)
+
+        verify { carRepository.delete(existingEntity) }
+    }
+
+    @Test
+    fun `delete car throws exception when not found`() {
+        every { carRepository.findByIdOrNull(99L) } returns null
+
+        val exception = assertThrows<NotFoundException> { service.deleteCar(99L) }
+        assertThat(exception.body.detail).isEqualTo("Fahrzeug (ID: 99) nicht vorhanden!")
+    }
+
+    @Test
+    fun `delete car throws conflict when referenced by a food collection`() {
+        val existingEntity = CarEntity(licensePlate = "W-DEL-1", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Used Car"
+        }
+        every { carRepository.findByIdOrNull(99L) } returns existingEntity
+        every { foodCollectionRepository.existsByCarId(99L) } returns true
+
+        val exception = assertThrows<ConflictException> { service.deleteCar(99L) }
+        assertThat(exception.body.detail)
+            .isEqualTo("Fahrzeug wird bereits in einer Warenerfassung verwendet und kann nicht gelöscht werden!")
+        verify(exactly = 0) { carRepository.delete(any()) }
+    }
+
+    @Test
+    fun `delete car logs the deletion`() {
+        val existingEntity = CarEntity(licensePlate = "W-DEL-1", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Deletable Car"
+        }
+        every { carRepository.findByIdOrNull(99L) } returns existingEntity
+        every { foodCollectionRepository.existsByCarId(99L) } returns false
+
+        withLogAppender(CarService::class.java) { logAppender ->
+            service.deleteCar(99L)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Deleted car").contains("99").contains("W-DEL-1")
             }
         }
     }

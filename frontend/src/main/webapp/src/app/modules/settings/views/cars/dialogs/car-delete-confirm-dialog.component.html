@@ -1,0 +1,13 @@
+<tafel-dialog testId="car-delete-confirm-dialog" type="warning" title="Fahrzeug löschen">
+  <div tafel-dialog-content>
+    <div class="mb-2" testid="message">
+      Das Fahrzeug <span class="font-bold">{{ data.carName }}</span> wird endgültig gelöscht. Das ist
+      nur möglich, solange es in keiner Warenerfassung verwendet wurde.
+    </div>
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>
