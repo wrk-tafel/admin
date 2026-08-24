@@ -203,14 +203,19 @@ values (101, NOW(), NOW(), 101, true, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      income, income_due, country_id, receives_family_allowance)
 values (1011, NOW(), NOW(), 101, false, 'Kind 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
+-- Offset by extra days (not just whole years) so these two never land on the exact same
+-- calendar date as household 103's "Kind N" persons below (CURRENT_DATE - interval 'N year') -
+-- the household-save duplicate check (HouseholdDuplicationService) flags an exact birth_date
+-- match with a similar name as a likely duplicate, which a same-day match here would trigger
+-- for every update to household 101, not just ones that actually touch person data.
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance)
-values (1012, NOW(), NOW(), 101, false, 'Kind 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE',
+values (1012, NOW(), NOW(), 101, false, 'Kind 2', 'Musterfrau', CURRENT_DATE - interval '2 year' - interval '15 days', 'FEMALE',
         'Stadt Wien', null, null, 1,
         true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1013, NOW(), NOW(), 101, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null,
+values (1013, NOW(), NOW(), 101, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - interval '2 year' - interval '45 days', 'MALE', 'WRK', null,
         null, 1, true,
         true);
 UPDATE households SET main_person_id = 101 WHERE id = 101;

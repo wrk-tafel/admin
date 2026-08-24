@@ -253,10 +253,17 @@ Cypress.Commands.add(
   'createCustomer',
   // The backend speaks households/persons - translate in both directions here so the specs keep
   // working with the flat CustomerData shape (same split as in CustomerApiService).
+  //
+  // Defaults force=true: these commands exist to set up baseline test data reliably, not to probe
+  // the create/update conflict paths (income limit, duplicate detection) - those are exercised
+  // through the real UI flow elsewhere. Without this, two unrelated specs' randomly-generated
+  // dummy customers can trip the fuzzy duplicate check (soundex ignores the numeric suffix that's
+  // otherwise the only difference between them) and fail with an unexpected 409. A spec that
+  // specifically wants to see a conflict passes force: false explicitly.
   (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
     cy.request({
       method: 'POST',
-      url: `/api/households?force=${force ?? false}`,
+      url: `/api/households?force=${force ?? true}`,
       body: customerToHousehold(data)
     }).then((response) => {
       response.body = {...response.body, data: householdToCustomer(response.body?.data)};
@@ -266,10 +273,11 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   'updateCustomer',
+  // See createCustomer above for why force defaults to true here too.
   (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
     cy.request({
       method: 'PUT',
-      url: `/api/households/${data.id}?force=${force ?? false}`,
+      url: `/api/households/${data.id}?force=${force ?? true}`,
       body: customerToHousehold(data)
     }).then((response) => {
       response.body = {...response.body, data: householdToCustomer(response.body?.data)};

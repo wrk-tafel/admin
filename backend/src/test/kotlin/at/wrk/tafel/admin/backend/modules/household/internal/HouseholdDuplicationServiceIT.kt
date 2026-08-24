@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
 
@@ -85,6 +87,99 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
         val result = householdDuplicationService.findDuplicates(page = null)
 
         assertThat(result.totalCount).isEqualTo(0)
+    }
+
+    @Test
+    @Transactional
+    fun `findPotentialDuplicates - main person name+address match is found`() {
+        val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Marie",
+            mainPersonLastname = "Huber",
+            addressStreet = "Hauptstraße",
+            addressHouseNumber = "5",
+            addressDoor = null,
+            persons = emptyList(),
+            excludeHouseholdId = null,
+        )
+
+        assertThat(result).hasSize(1)
+        assertThat(result.single().householdId).isEqualTo(household1.householdId)
+    }
+
+    @Test
+    @Transactional
+    fun `findPotentialDuplicates - excludes the household itself on update`() {
+        val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Maria",
+            mainPersonLastname = "Huber",
+            addressStreet = "Hauptstraße",
+            addressHouseNumber = "5",
+            addressDoor = null,
+            persons = emptyList(),
+            excludeHouseholdId = household1.householdId,
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    @Transactional
+    fun `findPotentialDuplicates - person-level match ignores address`() {
+        val household1 = persistHousehold(firstname = "Karl", lastname = "Berger", street = "Hauptstraße", houseNumber = "5")
+        val duplicatePersonBirthDate = LocalDate.now().minusYears(10)
+        val additionalPerson = PersonEntity(household = household1, country = testCountry, isMainPerson = false).apply {
+            firstname = "Anna"
+            lastname = "Berger"
+            birthDate = duplicatePersonBirthDate
+        }
+        household1.persons.add(additionalPerson)
+        testEntityManager.persist(household1)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Someone",
+            mainPersonLastname = "Else",
+            addressStreet = "A completely different street",
+            addressHouseNumber = "99",
+            addressDoor = null,
+            persons = listOf(PersonNameAndBirthDate(firstname = "Anna", lastname = "Berger", birthDate = duplicatePersonBirthDate)),
+            excludeHouseholdId = null,
+        )
+
+        assertThat(result).hasSize(1)
+        assertThat(result.single().householdId).isEqualTo(household1.householdId)
+    }
+
+    @Test
+    @Transactional
+    fun `findPotentialDuplicates - no match returns empty`() {
+        persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Completely",
+            mainPersonLastname = "Different",
+            addressStreet = "Nirgendwo",
+            addressHouseNumber = "1",
+            addressDoor = null,
+            persons = emptyList(),
+            excludeHouseholdId = null,
+        )
+
+        assertThat(result).isEmpty()
     }
 
     private fun persistHousehold(firstname: String, lastname: String, street: String, houseNumber: String): HouseholdEntity {

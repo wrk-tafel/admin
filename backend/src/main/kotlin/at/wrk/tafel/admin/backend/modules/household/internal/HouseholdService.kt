@@ -57,6 +57,7 @@ class HouseholdService(
     private val documentStorageService: DocumentStorageService,
     private val distributionRepository: DistributionRepository,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val householdDuplicationService: HouseholdDuplicationService,
 ) {
 
     companion object {
@@ -89,6 +90,10 @@ class HouseholdService(
 
     @Transactional
     fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
+        if (!force) {
+            checkForDuplicates(household, excludeHouseholdId = null)
+        }
+
         val entity = householdConverter.mapHouseholdToEntity(household)
 
         val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
@@ -129,6 +134,10 @@ class HouseholdService(
         force: Boolean,
         isSupervisor: Boolean,
     ): HouseholdUpdateResponse {
+        if (!force) {
+            checkForDuplicates(household, excludeHouseholdId = householdId)
+        }
+
         val existingEntity = householdRepository.getReferenceByHouseholdId(householdId)
         val mappedEntity = householdConverter.mapHouseholdToEntity(household, existingEntity)
 
@@ -185,6 +194,45 @@ class HouseholdService(
 
         savedEntity.mainPerson = savedEntity.persons.firstOrNull { it.isMainPerson }
         return householdRepository.saveAndFlush(savedEntity)
+    }
+
+    /**
+     * The proactive counterpart to the `/kunden/duplikate` review queue: warns before a household is
+     * even written, rather than only afterwards, via [HouseholdDuplicationService.findPotentialDuplicates].
+     * Reuses the same [force] flag [createHousehold]/[updateHousehold] already use for the income-limit
+     * check above rather than a dedicated one - an operator who confirms "trotzdem speichern" is trusted
+     * to have reviewed every warning on that save, not asked to re-confirm once per check.
+     */
+    private fun checkForDuplicates(household: HouseholdRequest, excludeHouseholdId: Long?) {
+        val mainPerson = household.mainPerson() ?: return
+        val mainPersonFirstname = mainPerson.firstname ?: return
+        val mainPersonLastname = mainPerson.lastname ?: return
+
+        val personsToCheck = household.persons.mapNotNull { person ->
+            val firstname = person.firstname
+            val lastname = person.lastname
+            val birthDate = person.birthDate
+            if (firstname != null && lastname != null && birthDate != null) {
+                PersonNameAndBirthDate(firstname = firstname, lastname = lastname, birthDate = birthDate)
+            } else {
+                null
+            }
+        }
+
+        val candidates = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = mainPersonFirstname,
+            mainPersonLastname = mainPersonLastname,
+            addressStreet = household.address.street,
+            addressHouseNumber = household.address.houseNumber,
+            addressDoor = household.address.door,
+            persons = personsToCheck,
+            excludeHouseholdId = excludeHouseholdId,
+        )
+
+        if (candidates.isNotEmpty()) {
+            val matches = candidates.joinToString(", ") { "Kunde Nr. ${it.householdId} (${it.personName})" }
+            throw ConflictException("Möglicherweise bereits vorhanden: $matches")
+        }
     }
 
     @Transactional(readOnly = true)
