@@ -10,7 +10,7 @@ import {
   PersonnelNumberAvailabilityResponse
 } from '../../../../api/employee-api.service';
 import {MatDialog} from '@angular/material/dialog';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
@@ -49,6 +49,7 @@ describe('SettingsEmployeesComponent', () => {
       findEmployees: vi.fn(() => of<EmployeeListResponse>(listResponse)),
       updateEmployee: vi.fn(() => of(testEmployee1)),
       saveEmployee: vi.fn(() => of(testEmployee1)),
+      deleteEmployee: vi.fn(() => of(undefined)),
       checkPersonnelNumberAvailability: vi.fn(() => of<PersonnelNumberAvailabilityResponse>({available: true})),
     };
 
@@ -239,5 +240,47 @@ describe('SettingsEmployeesComponent', () => {
 
     expect(element.querySelector('[testid="employeeUserAccountLink-0"]')).toBeNull();
     expect(element.querySelector('[testid="employeeUserAccountChip-0"]')?.textContent).toContain('Benutzerkonto vorhanden');
+  });
+
+  it('deleteEmployee() deletes the employee and reloads once the confirm dialog is accepted', () => {
+    const dialog = TestBed.inject(MatDialog);
+    (dialog.open as any).mockReturnValueOnce({afterClosed: () => of(true)});
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['deleteEmployee'](testEmployee2);
+
+    expect(dialog.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {employeeName: `${testEmployee2.firstname} ${testEmployee2.lastname}`}
+    }));
+    expect(employeeApiMock.deleteEmployee).toHaveBeenCalledWith(testEmployee2.id);
+    expect(toastrMock.success).toHaveBeenCalled();
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledTimes(2);
+  });
+
+  it('deleteEmployee() does nothing when the confirm dialog is cancelled', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['deleteEmployee'](testEmployee2);
+
+    expect(employeeApiMock.deleteEmployee).not.toHaveBeenCalled();
+  });
+
+  it('deleteEmployee() shows an error toast when a user account is still linked', () => {
+    (employeeApiMock.deleteEmployee as any).mockReturnValue(throwError(() => new Error('failed')));
+    const dialog = TestBed.inject(MatDialog);
+    (dialog.open as any).mockReturnValueOnce({afterClosed: () => of(true)});
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['deleteEmployee'](testEmployee1);
+
+    expect(toastrMock.error).toHaveBeenCalled();
   });
 });

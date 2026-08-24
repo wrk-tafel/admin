@@ -174,6 +174,34 @@ internal class HouseholdNoteServiceTest {
     }
 
     @Test
+    fun `get notes - author is shown as deleted once the linked employee was deleted`() {
+        val householdId = 123L
+        val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
+            this.id = 1
+            this.employee = null
+            this.createdAt = LocalDateTime.now()
+        }
+
+        val selectedPage = 1
+        val pageRequest = PageRequest.of(selectedPage - 1, PaginationDefaults.DEFAULT_PAGE_SIZE)
+        val pagedResult = PageImpl(listOf(noteEntity), pageRequest, 1)
+        every {
+            householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest)
+        } returns pagedResult
+
+        val searchResult = service.getNotes(householdId, selectedPage)
+
+        assertThat(searchResult.items).containsExactly(
+            HouseholdNoteItem(
+                id = 1,
+                author = "Mitarbeiter gelöscht",
+                timestamp = noteEntity.createdAt!!,
+                note = "note 1",
+            ),
+        )
+    }
+
+    @Test
     fun `create new note`() {
         val note = "test note"
 

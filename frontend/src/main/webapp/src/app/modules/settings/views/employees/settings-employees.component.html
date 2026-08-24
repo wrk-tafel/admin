@@ -12,9 +12,10 @@
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600" testid="employeesCaption">
       Mitarbeiterstammdaten, auf denen die Benutzerkonten sowie die Fahrer/Beifahrer-Zuordnung in
-      der Warenerfassung basieren. Mitarbeiter können weder gelöscht noch deaktiviert werden — ihre
-      Personalnummer bleibt in bereits erfassten Ausgabetagen und Kundendaten referenziert; nicht
-      mehr aktive Mitarbeiter bleiben daher in der Liste stehen.
+      der Warenerfassung basieren. Mitarbeiter können jederzeit gelöscht werden — bereits erfasste
+      Kundendaten, Notizen und Warenerfassungen, die auf einen gelöschten Mitarbeiter verweisen,
+      bleiben erhalten und zeigen stattdessen "Mitarbeiter gelöscht" an. Ist ein Benutzerkonto mit
+      dem Mitarbeiter verknüpft, muss dieses zuerst entfernt werden.
     </p>
 
     <div class="flex items-center gap-2 mb-4">
@@ -128,6 +129,10 @@
                     (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
               <mat-icon svgIcon="edit"></mat-icon>
             </button>
+            <button matButton="outlined" class="ml-2 button-danger" [attr.testid]="'deleteEmployeeButton-' + i" matTooltip="Mitarbeiter löschen"
+                    (click)="deleteEmployee(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' löschen'">
+              <mat-icon svgIcon="delete"></mat-icon>
+            </button>
           }
         </td>
       </ng-container>
@@ -213,6 +218,10 @@
                 <button matButton="filled" [attr.testid]="'editEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter bearbeiten"
                         (click)="startEdit(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' bearbeiten'">
                   <mat-icon svgIcon="edit"></mat-icon>
+                </button>
+                <button matButton="outlined" class="button-danger" [attr.testid]="'deleteEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter löschen"
+                        (click)="deleteEmployee(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' löschen'">
+                  <mat-icon svgIcon="delete"></mat-icon>
                 </button>
               }
             </mat-card-actions>

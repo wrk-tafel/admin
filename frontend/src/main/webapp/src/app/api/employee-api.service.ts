@@ -42,6 +42,10 @@ export class EmployeeApiService {
     return this.http.put<EmployeeData>(`/employees/${employeeId}`, employeeRequest);
   }
 
+  deleteEmployee(employeeId: number): Observable<void> {
+    return this.http.delete<void>(`/employees/${employeeId}`);
+  }
+
 }
 
 export type EmployeeListResponse = PagedResponse<EmployeeData>;

@@ -1,0 +1,15 @@
+<tafel-dialog testId="employee-delete-confirm-dialog" type="warning" title="Mitarbeiter löschen">
+  <div tafel-dialog-content>
+    <div class="mb-2" testid="message">
+      Der Mitarbeiter <span class="font-bold">{{ data.employeeName }}</span> wird endgültig gelöscht.
+      Bereits erfasste Kundendaten, Notizen und Warenerfassungen, die auf ihn verweisen, bleiben
+      erhalten und zeigen stattdessen "Mitarbeiter gelöscht" an. Das ist nur möglich, solange kein
+      Benutzerkonto mit dem Mitarbeiter verknüpft ist.
+    </div>
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>
