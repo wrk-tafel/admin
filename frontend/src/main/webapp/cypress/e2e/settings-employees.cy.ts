@@ -53,8 +53,8 @@ describe('Settings - Employees', () => {
     cy.byTestId('employeesSearchAnnouncement').should('contain.text', 'Mitarbeiter gefunden');
   });
 
-  it('says that employees are neither deleted nor disabled', () => {
-    cy.byTestId('employeesCaption').should('contain.text', 'weder gelöscht noch deaktiviert');
+  it('says that employees can always be deleted', () => {
+    cy.byTestId('employeesCaption').should('contain.text', 'jederzeit gelöscht werden');
   });
 
   it('shows which employees a user account references', () => {
@@ -186,6 +186,62 @@ describe('Settings - Employees', () => {
     });
   });
 
+  it('keeps the employee when the delete confirmation is cancelled', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const personnelNumber = 'DEL-CANCEL-' + randomId;
+
+      cy.byTestId('addEmployeeButton').click();
+      cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type(personnelNumber);
+      cy.byTestId('employeeCreateFirstnameInput').type('Delete');
+      cy.byTestId('employeeCreateLastnameInput').type('Cancel');
+      cy.byTestId('employeeCreateSaveButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+
+      cy.byTestId('employeeSearchInput').type(personnelNumber);
+      cy.byTestId('employees-row-0').should('contain.text', personnelNumber);
+      cy.byTestId('deleteEmployeeButton-0').click();
+
+      cy.byTestId('employee-delete-confirm-dialog').should('be.visible');
+      cy.byTestId('cancelButton').click();
+
+      cy.byTestId('employees-table').should('contain.text', personnelNumber);
+    });
+  });
+
+  it('deletes an employee that has no linked user account', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const personnelNumber = 'DEL-OK-' + randomId;
+
+      cy.byTestId('addEmployeeButton').click();
+      cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type(personnelNumber);
+      cy.byTestId('employeeCreateFirstnameInput').type('Delete');
+      cy.byTestId('employeeCreateLastnameInput').type('Ok');
+      cy.byTestId('employeeCreateSaveButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+
+      cy.byTestId('employeeSearchInput').type(personnelNumber);
+      cy.byTestId('employees-row-0').should('contain.text', personnelNumber);
+      cy.byTestId('deleteEmployeeButton-0').click();
+      cy.byTestId('okButton').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gelöscht');
+      cy.byTestId('employees-table').should('not.contain.text', personnelNumber);
+    });
+  });
+
+  it('refuses to delete an employee that still has a linked user account', () => {
+    // '00000' is the e2e login user's own employee record (user 100) - deleting it is always
+    // rejected, so this is safe to run against the shared fixture without corrupting it for
+    // other specs.
+    cy.byTestId('employeeSearchInput').type('00000');
+    cy.byTestId('employees-row-0').should('contain.text', '00000');
+    cy.byTestId('deleteEmployeeButton-0').click();
+    cy.byTestId('okButton').click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'Benutzerkonto');
+    cy.byTestId('employees-table').should('contain.text', '00000');
+  });
+
   it('renders as a card list on phone and stays usable', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.reload();
@@ -261,6 +317,12 @@ describe('Settings - Employees', () => {
       cy.byTestId('employeeLastnameInputMobile-0').should('be.visible');
 
       cy.checkAccessibility('[testid="employees-cards"]');
+    });
+
+    it('has no violations while the delete confirmation dialog is open', () => {
+      cy.byTestId('deleteEmployeeButton-0').click();
+
+      cy.checkDialogAccessibility();
     });
 
   });

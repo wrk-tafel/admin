@@ -1,8 +1,14 @@
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {HttpErrorResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {RouterLink} from '@angular/router';
 import {EmployeeCreateDialogComponent, EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
+import {
+  EmployeeDeleteConfirmDialogComponent,
+  EmployeeDeleteConfirmDialogData
+} from './dialogs/employee-delete-confirm-dialog.component';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {FormControl, ReactiveFormsModule, ValidationErrors} from '@angular/forms';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
@@ -34,6 +40,7 @@ import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {MatChipsModule} from '@angular/material/chips';
@@ -87,7 +94,7 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
   ]
 })
 export class SettingsEmployeesComponent {
-  private readonly registerIcons = registerSvgIcons({add: addIcon, check: checkIcon, close: closeIcon, edit: editIcon});
+  private readonly registerIcons = registerSvgIcons({add: addIcon, check: checkIcon, close: closeIcon, delete: deleteIcon, edit: editIcon});
 
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly toastr = inject(TafelToastrService);
@@ -236,6 +243,31 @@ export class SettingsEmployeesComponent {
       },
       error: () => this.toastr.error('Erstellen fehlgeschlagen', 'Fehler')
     });
+  }
+
+  /**
+   * An employee is hard-deleted rather than just disabled, so this asks first - deletion always
+   * succeeds even once the employee is referenced elsewhere (household issuer, note author, food
+   * collection driver/co-driver), those references are simply cleared. The backend still rejects it
+   * with a 409 if a user account is linked to the employee, which the confirm dialog can't know in
+   * advance.
+   */
+  protected deleteEmployee(employee: EmployeeData) {
+    const data: EmployeeDeleteConfirmDialogData = {employeeName: `${employee.firstname} ${employee.lastname}`};
+    this.dialog.open(EmployeeDeleteConfirmDialogComponent, {data})
+      .afterClosed().subscribe(confirmed => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.employeeApiService.deleteEmployee(employee.id).subscribe({
+          next: () => {
+            this.toastr.success(`Mitarbeiter ${employee.firstname} ${employee.lastname} gelöscht`, 'Erfolgreich');
+            this.loadEmployees(this.employees()?.currentPage, this.employees()?.pageSize);
+          },
+          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen')
+        });
+      });
   }
 
   /**

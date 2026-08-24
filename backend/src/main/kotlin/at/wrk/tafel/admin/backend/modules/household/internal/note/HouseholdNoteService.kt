@@ -32,11 +32,14 @@ class HouseholdNoteService(
         )
     }
 
+    /**
+     * A note's author is always set on creation (see [createNewNote]), so a missing [HouseholdNoteEntity.employee]
+     * here only ever means that employee has since been deleted - employees are personal data and stay
+     * deletable even once referenced by a note (`household_notes.employee_id` is `on delete set null`).
+     */
     private fun mapNote(entity: HouseholdNoteEntity): HouseholdNoteItem {
         val employee = entity.employee
-        val userDisplayString = listOfNotNull(employee?.personnelNumber, employee?.firstname, employee?.lastname)
-            .joinToString(" ")
-            .ifBlank { null }
+        val userDisplayString = employee?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" } ?: "Mitarbeiter gelöscht"
 
         return HouseholdNoteItem(
             id = entity.id!!,

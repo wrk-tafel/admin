@@ -36,15 +36,15 @@ describe('FormatIssuerPipe', () => {
     expect(result).toBe('von EMP456 Anna Schmidt');
   });
 
-  it('should return empty string for undefined issuer', () => {
+  it('should show a deleted-employee placeholder for undefined issuer', () => {
     const result = pipe.transform(undefined);
 
-    expect(result).toBe('');
+    expect(result).toBe('von Mitarbeiter gelöscht');
   });
 
-  it('should return empty string for null issuer', () => {
+  it('should show a deleted-employee placeholder for null issuer', () => {
     const result = pipe.transform(null);
 
-    expect(result).toBe('');
+    expect(result).toBe('von Mitarbeiter gelöscht');
   });
 });

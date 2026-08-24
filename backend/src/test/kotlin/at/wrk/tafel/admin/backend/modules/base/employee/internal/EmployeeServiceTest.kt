@@ -13,6 +13,10 @@ import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeUserAccount
 import at.wrk.tafel.admin.backend.modules.base.employee.PersonnelNumberAvailabilityResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -23,6 +27,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -271,5 +276,56 @@ class EmployeeServiceTest {
             )
         }
         assertThat(exception.body.detail).isEqualTo("Mitarbeiter 00002 ist bereits vorhanden!")
+    }
+
+    @Test
+    fun `delete employee removes it when not linked to a user account`() {
+        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = 99 }
+        every { employeeRepository.findByIdOrNull(99L) } returns existingEntity
+        every { userRepository.existsByEmployeeId(99L) } returns false
+
+        employeeService.deleteEmployee(99L)
+
+        verify { employeeRepository.delete(existingEntity) }
+    }
+
+    @Test
+    fun `delete employee throws exception when not found`() {
+        every { employeeRepository.findByIdOrNull(99L) } returns null
+
+        val exception = assertThrows<NotFoundException> { employeeService.deleteEmployee(99L) }
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter (ID: 99) nicht vorhanden!")
+    }
+
+    @Test
+    fun `delete employee throws conflict when linked to a user account`() {
+        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = 99 }
+        every { employeeRepository.findByIdOrNull(99L) } returns existingEntity
+        every { userRepository.existsByEmployeeId(99L) } returns true
+
+        val exception = assertThrows<ConflictException> { employeeService.deleteEmployee(99L) }
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter hat ein Benutzerkonto und kann nicht gelöscht werden!")
+        verify(exactly = 0) { employeeRepository.delete(any<EmployeeEntity>()) }
+    }
+
+    @Test
+    fun `delete employee logs the deletion`() {
+        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = 99 }
+        every { employeeRepository.findByIdOrNull(99L) } returns existingEntity
+        every { userRepository.existsByEmployeeId(99L) } returns false
+
+        val logger = LoggerFactory.getLogger(EmployeeService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(logAppender)
+        try {
+            employeeService.deleteEmployee(99L)
+
+            assertThat(logAppender.list).anySatisfy {
+                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.formattedMessage).contains("Deleted employee").contains("99").contains("00001")
+            }
+        } finally {
+            logger.detachAppender(logAppender)
+        }
     }
 }

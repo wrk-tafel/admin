@@ -164,7 +164,7 @@ Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal ver
 
 ## Mitarbeiter
 
-Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die [Benutzerkonten](benutzer.md) sowie die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basieren. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung oder Löschfunktion, nur Anlegen und Bearbeiten: Personalnummern bleiben in bereits erfassten Ausgabetagen und Kundendaten referenziert, nicht mehr aktive Mitarbeiter bleiben daher in der Liste stehen. Dieser Hinweis steht auch über der Liste.
+Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die [Benutzerkonten](benutzer.md) sowie die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basieren. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden. Dieser Hinweis steht auch über der Liste.
 
 Die Spalte **Benutzerkonto** zeigt, ob ein [Benutzerkonto](benutzer.md) auf die Personalnummer verweist. Mit der Berechtigung "Benutzerverwaltung" ist der Kontoname ein Link direkt auf die Benutzer-Details; ohne diese Berechtigung steht dort nur "Benutzerkonto vorhanden". Mitarbeiter ohne Konto sind als "Kein Benutzerkonto" gekennzeichnet.
 
@@ -173,3 +173,7 @@ Die Spalte **Benutzerkonto** zeigt, ob ein [Benutzerkonto](benutzer.md) auf die 
 Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Zeichen). Ist die eingegebene Personalnummer bereits vergeben, wird das noch während der Eingabe gemeldet ("Personalnummer bereits vergeben") — samt Namen des bestehenden Mitarbeiters und dem Button **Mitarbeiter öffnen**, der den Dialog schließt, die Liste auf diesen Mitarbeiter filtert und ihn zum Bearbeiten öffnet. Dieselbe Prüfung läuft beim Bearbeiten einer Zeile; solange die Nummer vergeben ist, lässt sich nicht speichern. Fahrer und Beifahrer können auch direkt in der [Warenerfassung](logistik.md) angelegt werden — mit denselben Feldern und Regeln, es entsteht derselbe Mitarbeiter-Datensatz.
 
 ![Mitarbeiter anlegen](images/einstellungen-mitarbeiter-anlegen.jpg)
+
+Über den roten Papierkorb-Button kann ein Mitarbeiter endgültig gelöscht werden — auch wenn er bereits als Aussteller einer Kundenerfassung, als Verfasser einer Notiz oder als Fahrer/Beifahrer einer Warenerfassung aufscheint: diese Verweise bleiben erhalten und zeigen dort stattdessen "Mitarbeiter gelöscht" an. Nur solange noch ein Benutzerkonto mit dem Mitarbeiter verknüpft ist, lehnt die Anwendung das Löschen ab und weist mit einer Fehlermeldung darauf hin — das Benutzerkonto muss dann zuerst gelöscht oder mit einem anderen Mitarbeiter verknüpft werden. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
+
+![Mitarbeiter löschen](images/einstellungen-mitarbeiter-loeschen.jpg)
