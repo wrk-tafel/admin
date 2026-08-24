@@ -1462,9 +1462,16 @@ SET created_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0),
     updated_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0)
 WHERE id BETWEEN 100 AND 139;
 
--- 0 to 3 children per household, aged 2 to 18. The ages straddle the 15-year mark on purpose:
+-- 0 to 3 children per household, aged 4 to 24. The ages straddle the 15-year mark on purpose:
 -- "Haushalte mit Kindern (Alter <= 15)" measures the age at each point of the timeline, so a child
 -- who is 17 today still counted two years ago - which is what makes that key figure move.
+--
+-- The lastname above is shared by a group of 20 consecutive households (160 households / 8
+-- lastnames), so the birth-date offset is built from each household's position within its own
+-- group (0-19, unique by construction) rather than from a small modulus of h.id - a modulus
+-- smaller than the 20-household group would otherwise guarantee, by the pigeonhole principle, that
+-- two households in the same group land on the same offset and (with a shared k) the exact same
+-- "Kind k"/lastname/birth_date triple, which HouseholdDuplicationService then flags as a duplicate.
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
                      birth_date, gender, country_id, income, income_due, exclude_household,
                      receives_family_allowance)
@@ -1475,7 +1482,7 @@ SELECT 3200 + (row_number() OVER (ORDER BY h.id, k))::int,
        false,
        'Kind ' || k,
        (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((h.id - 2000) / 20)],
-       (CURRENT_DATE - interval '1 year' * (2 + ((h.id + k) % 17)))::date,
+       (CURRENT_DATE - interval '1 year' * (2 + ((h.id - 2000) % 20) + k))::date,
        CASE WHEN (h.id + k) % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
        1 + (h.id % 5),
        null,
