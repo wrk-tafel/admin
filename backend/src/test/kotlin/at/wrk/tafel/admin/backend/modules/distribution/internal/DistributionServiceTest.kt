@@ -2,6 +2,9 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
@@ -111,6 +114,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var eventPublisher: ApplicationEventPublisher
+
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -732,6 +738,14 @@ internal class DistributionServiceTest {
         val expectedFormattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy").format(date)
         assertThat(result?.filename).isEqualTo("kundenliste-ausgabe-$expectedFormattedDate.pdf")
         assertThat(result?.bytes).isEqualTo(bytes)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo(AuditScope.DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE)
+        assertThat(entrySlot.captured.entityId).isEqualTo(123L)
+        assertThat(entrySlot.captured.businessKey).isEqualTo(expectedFormattedDate)
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
 
         val householdListPdfModelSlot = slot<HouseholdListPdfModel>()
         verify {

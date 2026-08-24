@@ -103,6 +103,19 @@ describe('AuditEntryListComponent', () => {
     expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('test-user');
   });
 
+  // A scanner-folder filename and a distribution's formatted date are not record numbers either.
+  it('shows the bare business key for a scanner file or distribution household list read, without a "Nr." prefix', () => {
+    const scannerElement: HTMLElement = createComponent([
+      {...entry, entityType: 'ScannerFile', operation: 'READ', businessKey: 'scan1.pdf', entityId: undefined, changes: []}
+    ], true).nativeElement;
+    expect(scannerElement.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('scan1.pdf');
+
+    const distributionElement: HTMLElement = createComponent([
+      {...entry, entityType: 'DistributionHouseholdList', operation: 'READ', businessKey: '25.08.2026', changes: []}
+    ], true).nativeElement;
+    expect(distributionElement.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('25.08.2026');
+  });
+
   it('attributes an entry without an acting user to the system', () => {
     const element: HTMLElement = createComponent([{...entry, actorUsername: undefined}]).nativeElement;
 
@@ -135,6 +148,24 @@ describe('AuditEntryListComponent', () => {
 
     expect(element.querySelector('[testid="audit-entry-0-nochanges"]')).not.toBeNull();
     expect(element.querySelector('[testid="audit-entry-0-changes"]')).toBeNull();
+  });
+
+  // A read never changed anything - "no field changes recorded" would misleadingly imply one was
+  // expected, so a READ entry gets neither that message nor an (empty) diff table.
+  it('shows neither a diff table nor the "no changes" message for a read entry', () => {
+    const element: HTMLElement = createComponent([{...entry, operation: 'READ', entityType: 'Document', changes: []}]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-nochanges"]')).toBeNull();
+    expect(element.querySelector('[testid="audit-entry-0-changes"]')).toBeNull();
+  });
+
+  it('marks a read entry with its own colour and label', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'Document', operation: 'READ', changes: []}
+    ]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-operation"]')?.className).toContain('bg-amber-700');
+    expect(element.querySelector('[testid="audit-entry-0-operation"]')?.textContent?.trim()).toBe('Abgerufen');
   });
 
   it('falls back to the technical field name when there is no German label', () => {

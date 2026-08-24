@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -58,6 +60,7 @@ class HouseholdService(
     private val distributionRepository: DistributionRepository,
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
+    private val auditLogWriter: AuditLogWriter,
 ) {
 
     companion object {
@@ -516,10 +519,26 @@ class HouseholdService(
         return if (!validUntil.isBefore(LocalDate.now())) "Gültig" else "Ungültig"
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Not read-only: Stammdatenblatt/ID card generation is one of the sensitive-handful reads
+     * recorded in `audit_log` (see issue #3180), and [AuditLogWriter.record]'s write only takes
+     * effect for a transaction that actually commits as one - see [AuditLogWriter]'s `beforeCommit`.
+     */
+    @Transactional
     fun generatePdf(householdId: Long, type: HouseholdPdfType): HouseholdPdfResult? {
         val household = householdRepository.findByHouseholdId(householdId)
         if (household != null) {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = "Household",
+                    entityId = household.id,
+                    businessKey = household.householdId.toString(),
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+
+
             val filenamePrefix: String
             val bytes: ByteArray
 

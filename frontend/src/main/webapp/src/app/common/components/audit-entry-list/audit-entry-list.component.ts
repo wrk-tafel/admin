@@ -16,11 +16,12 @@ import {AuthenticationService} from '../../security/authentication.service';
 const HOUSEHOLD_SCOPED_ENTITY_TYPES = ['Household', 'Person', 'HouseholdNote', 'Document'];
 
 /**
- * The entity types whose business key is a username rather than a number - "Nr." reads as a record
- * number, which a username never is (see `AuditScope`'s `businessKey` for `User`/`UserAuthority`/
- * the login entry `LoginAuditService` writes).
+ * The entity types whose business key is free text rather than a record number - "Nr." reads as a
+ * record number, which none of these are: a username (`User`/`UserAuthority`/the login entry
+ * `LoginAuditService` writes), a scanner-folder filename, or a distribution's formatted date (see
+ * `AuditScope`'s `businessKey` for each).
  */
-const USERNAME_SCOPED_ENTITY_TYPES = ['User', 'UserAuthority', 'UserLogin'];
+const PLAIN_BUSINESS_KEY_ENTITY_TYPES = ['User', 'UserAuthority', 'UserLogin', 'ScannerFile', 'DistributionHouseholdList'];
 
 /** One day's entries, as the list renders them under a single heading. */
 interface AuditEntryDayGroup {
@@ -124,7 +125,7 @@ export class AuditEntryListComponent {
 
   /** The business key as shown next to an entry: "Nr. 1234" for a record number, the bare username where it is one. */
   protected businessKeyLabel(entry: AuditEntryItem): string {
-    return USERNAME_SCOPED_ENTITY_TYPES.includes(entry.entityType) ? `${entry.businessKey}` : `Nr. ${entry.businessKey}`;
+    return PLAIN_BUSINESS_KEY_ENTITY_TYPES.includes(entry.entityType) ? `${entry.businessKey}` : `Nr. ${entry.businessKey}`;
   }
 
   protected operationLabel(operation: AuditOperation): string {
@@ -175,6 +176,8 @@ export class AuditEntryListComponent {
         return 'bg-red-600 text-white';
       case 'LOGIN':
         return 'bg-blue-700 text-white';
+      case 'READ':
+        return 'bg-amber-700 text-white';
       default:
         return 'bg-slate-600 text-white';
     }

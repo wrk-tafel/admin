@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -88,6 +90,9 @@ class HouseholdServiceTest {
 
     @RelaxedMockK
     private lateinit var householdDuplicationService: HouseholdDuplicationService
+
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
 
     @InjectMockKs
     private lateinit var service: HouseholdService
@@ -1226,11 +1231,12 @@ class HouseholdServiceTest {
         val result = service.generatePdf(1, HouseholdPdfType.MASTERDATA)
 
         assertThat(result).isNull()
+        verify(exactly = 0) { auditLogWriter.record(any()) }
     }
 
     @Test
     fun `generate pdf household - found`() {
-        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson().apply { id = 42 }
 
         val pdfBytes = ByteArray(10)
         every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity
@@ -1241,6 +1247,14 @@ class HouseholdServiceTest {
         assertThat(result).isNotNull
         assertThat(result?.filename).isEqualTo("stammdaten-100-mustermann-max.pdf")
         assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo("Household")
+        assertThat(entrySlot.captured.entityId).isEqualTo(42L)
+        assertThat(entrySlot.captured.businessKey).isEqualTo("100")
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
     }
 
     @Test
