@@ -84,4 +84,14 @@ class EmployeeControllerTest {
         assertThat(result).isEqualTo(updatedEmployee)
         verify { employeeService.updateEmployee(employeeId, employeeUpdateRequest) }
     }
+
+    @Test
+    fun `delete employee`() {
+        every { employeeService.deleteEmployee(1L) } returns Unit
+
+        val response = employeeController.deleteEmployee(1L)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { employeeService.deleteEmployee(1L) }
+    }
 }

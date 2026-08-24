@@ -86,6 +86,9 @@ class HouseholdServiceTest {
     @RelaxedMockK
     private lateinit var tafelAdminProperties: TafelAdminProperties
 
+    @RelaxedMockK
+    private lateinit var householdDuplicationService: HouseholdDuplicationService
+
     @InjectMockKs
     private lateinit var service: HouseholdService
 
@@ -402,6 +405,67 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `create household - duplicate found and force=false should throw exception`() {
+        val birthDate = LocalDate.now().minusYears(30)
+        val testHouseholdRequest = HouseholdRequest(
+            address = HouseholdAddress(street = "street", houseNumber = "1", postalCode = 1010, city = "Wien"),
+            persons = listOf(
+                Person(
+                    isMainPerson = true,
+                    firstname = "Max",
+                    lastname = "Mustermann",
+                    birthDate = birthDate,
+                    gender = null,
+                    country = testCountry,
+                ),
+            ),
+        )
+
+        every {
+            householdDuplicationService.findPotentialDuplicates(
+                mainPersonFirstname = "Max",
+                mainPersonLastname = "Mustermann",
+                addressStreet = "street",
+                addressHouseNumber = "1",
+                addressDoor = null,
+                persons = listOf(PersonNameAndBirthDate(firstname = "Max", lastname = "Mustermann", birthDate = birthDate)),
+                excludeHouseholdId = null,
+            )
+        } returns listOf(HouseholdDuplicateCandidate(householdId = 555, personName = "Max Mustermann"))
+
+        val exception = assertThrows<ConflictException> {
+            service.createHousehold(testHouseholdRequest, force = false, isSupervisor = false)
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Möglicherweise bereits vorhanden: Kunde Nr. 555 (Max Mustermann)")
+        assertThat(exception.statusCode).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
+        verify(exactly = 0) { householdRepository.saveAndFlush(any()) }
+    }
+
+    @Test
+    fun `create household - duplicate found and force=true should save without checking`() {
+        val testHouseholdRequest = mockk<HouseholdRequest>(relaxed = true)
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        val testHouseholdEntity = HouseholdEntity(householdId = 1, validUntil = LocalDate.now())
+
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+        every { householdConverter.mapHouseholdToEntity(testHouseholdRequest) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4"),
+        )
+
+        val result = service.createHousehold(testHouseholdRequest, force = true, isSupervisor = false)
+
+        assertThat(result).isEqualTo(HouseholdCreationResponse(data = testHouseholdResponse, errorMsg = null))
+        verify(exactly = 0) { householdDuplicationService.findPotentialDuplicates(any(), any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
     fun `update household is valid`() {
         val householdId = 123L
 
@@ -435,6 +499,46 @@ class HouseholdServiceTest {
         verify(exactly = 1) { householdRepository.saveAndFlush(testHouseholdEntity) }
         assertThat(testHouseholdEntity.mainPerson).isEqualTo(existingMainPerson)
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(testHouseholdUpdate, testHouseholdEntity) }
+    }
+
+    @Test
+    fun `update household - duplicate found and force=false should throw exception excluding itself`() {
+        val householdId = 123L
+        val birthDate = LocalDate.now().minusYears(30)
+        val testHouseholdUpdate = HouseholdRequest(
+            id = householdId,
+            address = HouseholdAddress(street = "street", houseNumber = "1", postalCode = 1010, city = "Wien"),
+            persons = listOf(
+                Person(
+                    isMainPerson = true,
+                    firstname = "Max",
+                    lastname = "Mustermann",
+                    birthDate = birthDate,
+                    gender = null,
+                    country = testCountry,
+                ),
+            ),
+        )
+
+        every {
+            householdDuplicationService.findPotentialDuplicates(
+                mainPersonFirstname = "Max",
+                mainPersonLastname = "Mustermann",
+                addressStreet = "street",
+                addressHouseNumber = "1",
+                addressDoor = null,
+                persons = listOf(PersonNameAndBirthDate(firstname = "Max", lastname = "Mustermann", birthDate = birthDate)),
+                excludeHouseholdId = householdId,
+            )
+        } returns listOf(HouseholdDuplicateCandidate(householdId = 555, personName = "Max Mustermann"))
+
+        val exception = assertThrows<ConflictException> {
+            service.updateHousehold(householdId, testHouseholdUpdate, force = false, isSupervisor = false)
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Möglicherweise bereits vorhanden: Kunde Nr. 555 (Max Mustermann)")
+        assertThat(exception.statusCode).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
+        verify(exactly = 0) { householdRepository.saveAndFlush(any()) }
     }
 
     @Test

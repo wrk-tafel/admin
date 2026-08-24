@@ -203,14 +203,19 @@ values (101, NOW(), NOW(), 101, true, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      income, income_due, country_id, receives_family_allowance)
 values (1011, NOW(), NOW(), 101, false, 'Kind 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
+-- Offset by extra days (not just whole years) so these two never land on the exact same
+-- calendar date as household 103's "Kind N" persons below (CURRENT_DATE - interval 'N year') -
+-- the household-save duplicate check (HouseholdDuplicationService) flags an exact birth_date
+-- match with a similar name as a likely duplicate, which a same-day match here would trigger
+-- for every update to household 101, not just ones that actually touch person data.
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance)
-values (1012, NOW(), NOW(), 101, false, 'Kind 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE',
+values (1012, NOW(), NOW(), 101, false, 'Kind 2', 'Musterfrau', CURRENT_DATE - interval '2 year' - interval '15 days', 'FEMALE',
         'Stadt Wien', null, null, 1,
         true);
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
                      employer, income, income_due, country_id, receives_family_allowance, exclude_household)
-values (1013, NOW(), NOW(), 101, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null,
+values (1013, NOW(), NOW(), 101, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - interval '2 year' - interval '45 days', 'MALE', 'WRK', null,
         null, 1, true,
         true);
 UPDATE households SET main_person_id = 101 WHERE id = 101;
@@ -1457,9 +1462,16 @@ SET created_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0),
     updated_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0)
 WHERE id BETWEEN 100 AND 139;
 
--- 0 to 3 children per household, aged 2 to 18. The ages straddle the 15-year mark on purpose:
+-- 0 to 3 children per household, aged 4 to 24. The ages straddle the 15-year mark on purpose:
 -- "Haushalte mit Kindern (Alter <= 15)" measures the age at each point of the timeline, so a child
 -- who is 17 today still counted two years ago - which is what makes that key figure move.
+--
+-- The lastname above is shared by a group of 20 consecutive households (160 households / 8
+-- lastnames), so the birth-date offset is built from each household's position within its own
+-- group (0-19, unique by construction) rather than from a small modulus of h.id - a modulus
+-- smaller than the 20-household group would otherwise guarantee, by the pigeonhole principle, that
+-- two households in the same group land on the same offset and (with a shared k) the exact same
+-- "Kind k"/lastname/birth_date triple, which HouseholdDuplicationService then flags as a duplicate.
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
                      birth_date, gender, country_id, income, income_due, exclude_household,
                      receives_family_allowance)
@@ -1470,7 +1482,7 @@ SELECT 3200 + (row_number() OVER (ORDER BY h.id, k))::int,
        false,
        'Kind ' || k,
        (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((h.id - 2000) / 20)],
-       (CURRENT_DATE - interval '1 year' * (2 + ((h.id + k) % 17)))::date,
+       (CURRENT_DATE - interval '1 year' * (2 + ((h.id - 2000) % 20) + k))::date,
        CASE WHEN (h.id + k) % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
        1 + (h.id % 5),
        null,

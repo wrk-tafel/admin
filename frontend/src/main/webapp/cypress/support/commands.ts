@@ -253,10 +253,17 @@ Cypress.Commands.add(
   'createCustomer',
   // The backend speaks households/persons - translate in both directions here so the specs keep
   // working with the flat CustomerData shape (same split as in CustomerApiService).
+  //
+  // Defaults force=true: these commands exist to set up baseline test data reliably, not to probe
+  // the create/update conflict paths (income limit, duplicate detection) - those are exercised
+  // through the real UI flow elsewhere. Without this, two unrelated specs' randomly-generated
+  // dummy customers can trip the fuzzy duplicate check (soundex ignores the numeric suffix that's
+  // otherwise the only difference between them) and fail with an unexpected 409. A spec that
+  // specifically wants to see a conflict passes force: false explicitly.
   (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
     cy.request({
       method: 'POST',
-      url: `/api/households?force=${force ?? false}`,
+      url: `/api/households?force=${force ?? true}`,
       body: customerToHousehold(data)
     }).then((response) => {
       response.body = {...response.body, data: householdToCustomer(response.body?.data)};
@@ -266,10 +273,11 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   'updateCustomer',
+  // See createCustomer above for why force defaults to true here too.
   (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> =>
     cy.request({
       method: 'PUT',
-      url: `/api/households/${data.id}?force=${force ?? false}`,
+      url: `/api/households/${data.id}?force=${force ?? true}`,
       body: customerToHousehold(data)
     }).then((response) => {
       response.body = {...response.body, data: householdToCustomer(response.body?.data)};
@@ -277,17 +285,25 @@ Cypress.Commands.add(
     })
 );
 
+// The backend's birthDate/incomeDue/validUntil are LocalDate (date-only). Sending a Date object
+// straight into a cy.request() JSON body serializes it via Date.prototype.toJSON(), which is
+// always UTC - in a timezone ahead of UTC that shifts a local calendar date to the previous day.
+// Formatting in local time here keeps the sent date identical to what the UI would type in.
+function toLocalDateString(date?: Date): string | undefined {
+  return date ? dayjs(date).format('YYYY-MM-DD') : undefined;
+}
+
 function customerToHousehold(data: CustomerData) {
   const mainPerson = {
     isMainPerson: true,
     firstname: data.firstname,
     lastname: data.lastname,
-    birthDate: data.birthDate,
+    birthDate: toLocalDateString(data.birthDate),
     gender: data.gender,
     country: data.country,
     employer: data.employer,
     income: data.income,
-    incomeDue: data.incomeDue,
+    incomeDue: toLocalDateString(data.incomeDue),
     excludeFromHousehold: false,
     receivesFamilyAllowance: false
   };
@@ -296,12 +312,12 @@ function customerToHousehold(data: CustomerData) {
     isMainPerson: false,
     firstname: person.firstname,
     lastname: person.lastname,
-    birthDate: person.birthDate,
+    birthDate: toLocalDateString(person.birthDate),
     gender: person.gender,
     country: person.country,
     employer: person.employer,
     income: person.income,
-    incomeDue: person.incomeDue,
+    incomeDue: toLocalDateString(person.incomeDue),
     excludeFromHousehold: person.excludeFromHousehold,
     receivesFamilyAllowance: person.receivesFamilyAllowance
   }));
@@ -311,7 +327,7 @@ function customerToHousehold(data: CustomerData) {
     address: data.address,
     telephoneNumber: data.telephoneNumber,
     email: data.email,
-    validUntil: data.validUntil,
+    validUntil: toLocalDateString(data.validUntil),
     locked: data.locked,
     lockReason: data.lockReason,
     persons: [mainPerson, ...additionalPersons]

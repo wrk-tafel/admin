@@ -29,6 +29,9 @@ interface UserRepository :
 
     fun existsByUsername(username: String): Boolean
 
+    /** Whether an employee is linked to a user account - what `EmployeeService.deleteEmployee` checks. */
+    fun existsByEmployeeId(employeeId: Long): Boolean
+
     /** What the dashboard's "Benutzer" tile shows while no distribution is active. */
     fun countByEnabledTrue(): Int
 

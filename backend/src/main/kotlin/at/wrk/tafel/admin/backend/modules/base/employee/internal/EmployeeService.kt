@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
@@ -12,6 +13,7 @@ import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeUserAccount
 import at.wrk.tafel.admin.backend.modules.base.employee.PersonnelNumberAvailabilityResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
@@ -23,6 +25,10 @@ class EmployeeService(
     private val employeeRepository: EmployeeRepository,
     private val userRepository: UserRepository,
 ) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(EmployeeService::class.java)
+    }
 
     fun findEmployees(searchInput: String? = null, page: Int? = null, pageSize: Int? = null): EmployeeListResponse {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize), Sort.by("id"))
@@ -102,6 +108,32 @@ class EmployeeService(
 
         val savedEntity = employeeRepository.save(employeeEntity)
         return mapEntityToEmployee(savedEntity)
+    }
+
+    /**
+     * Employees are personal data and stay deletable even once referenced elsewhere - as the issuer
+     * of a household, the author of a household note, or the driver/co-driver of a food collection.
+     * Those FKs are `on delete set null` (see `R__00106_employee_delete_set_null.sql`), so the delete
+     * always succeeds and the reference is simply cleared; the reader shows "Mitarbeiter gelöscht"
+     * wherever such a now-empty reference is displayed (`HouseholdNoteService.mapNote`, the frontend's
+     * `formatIssuer` pipe).
+     *
+     * The one thing that still blocks a delete is a linked user account: unlike those references,
+     * `users.employee_id` is the account's *identity* - personnel number/first/last name have no
+     * separate storage on `users` at all - so nulling it out would leave a working login with no name
+     * anywhere (search, audit log, PDFs). Delete or unlink the user account first.
+     */
+    @Transactional
+    fun deleteEmployee(employeeId: Long) {
+        val employeeEntity = employeeRepository.findByIdOrNull(employeeId)
+            ?: throw NotFoundException("Mitarbeiter (ID: $employeeId) nicht vorhanden!")
+
+        if (userRepository.existsByEmployeeId(employeeId)) {
+            throw ConflictException("Mitarbeiter hat ein Benutzerkonto und kann nicht gelöscht werden!")
+        }
+
+        employeeRepository.delete(employeeEntity)
+        log.info("Deleted employee {} ({})", employeeId, sanitizeForLog(employeeEntity.personnelNumber))
     }
 
     private fun mapEntityToEmployee(it: EmployeeEntity) = EmployeeResponse(

@@ -81,4 +81,12 @@ describe('EmployeeApiService', () => {
     expect(req.request.body).toEqual(mockUpdateEmployeeRequest);
   });
 
+  it('delete employee', () => {
+    apiService.deleteEmployee(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/employees/1'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });
