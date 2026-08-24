@@ -14,4 +14,14 @@ enum class AuditOperation {
 
     /** A successful login - see [AuditScope.USER_LOGIN_ENTITY_TYPE]. */
     LOGIN,
+
+    /**
+     * A read of something sensitive enough to be worth recording on its own - a document download,
+     * a household PDF export, a distribution's customer list export. Written explicitly by the
+     * controller-level action, the same way [AuditLogWriter.record] is used for any other write
+     * Hibernate's events cannot see - a read never reaches those events at all. [AuditLogWriter]'s
+     * `changedFields` is left empty for these: a diff has no meaning for something that changed
+     * nothing.
+     */
+    READ,
 }

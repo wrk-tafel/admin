@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
@@ -50,6 +52,9 @@ internal class HouseholdDocumentServiceTest {
     @RelaxedMockK
     private lateinit var documentScannerWatcherService: DocumentScannerWatcherService
 
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
+
     private lateinit var service: HouseholdDocumentService
 
     private val tafelAdminProperties = TafelAdminProperties()
@@ -67,6 +72,7 @@ internal class HouseholdDocumentServiceTest {
             scannerFileService,
             documentScannerWatcherService,
             tafelAdminProperties,
+            auditLogWriter,
         )
 
         every { userRepository.findByUsername(any()) } returns testUserEntity
@@ -227,6 +233,14 @@ internal class HouseholdDocumentServiceTest {
         assertThat(result.fileName).isEqualTo("ausweis.jpg")
         assertThat(result.contentType).isEqualTo("image/jpeg")
         assertThat(result.bytes).isEqualTo("bytes".toByteArray())
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo("Document")
+        assertThat(entrySlot.captured.entityId).isEqualTo(7L)
+        assertThat(entrySlot.captured.businessKey).isEqualTo("100")
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
     }
 
     @Test

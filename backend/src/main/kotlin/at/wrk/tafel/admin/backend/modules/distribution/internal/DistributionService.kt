@@ -2,6 +2,9 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -53,6 +56,7 @@ class DistributionService(
     private val routeRepository: RouteRepository,
     private val advisoryLockService: AdvisoryLockService,
     private val eventPublisher: ApplicationEventPublisher,
+    private val auditLogWriter: AuditLogWriter,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -175,11 +179,26 @@ class DistributionService(
         }
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Not read-only: the Kundenliste export is one of the sensitive-handful reads recorded in
+     * `audit_log` (see issue #3180), and [AuditLogWriter.record]'s write only takes effect for a
+     * transaction that actually commits as one - see [AuditLogWriter]'s `beforeCommit`.
+     */
+    @Transactional
     fun generateHouseholdListPdf(): HouseholdListPdfResult? {
         val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = AuditScope.DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE,
+                entityId = currentDistribution.id,
+                businessKey = formattedDate,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
         val sortedHouseholds = distributionHouseholdRepository.findByDistributionId(currentDistribution.id!!)
             .sortedBy { it.ticketNumber }
         val countHouseholds = sortedHouseholds.size

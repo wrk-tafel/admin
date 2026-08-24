@@ -20,6 +20,12 @@ describe('Customer Detail', () => {
   it('generate pdf and opens for download', () => {
     cy.visit('/kunden/detail/101');
     generateAndDownloadPdf('stammdaten-101-musterfrau-eva.pdf');
+
+    // Generating the Stammdatenblatt is one of the GDPR-sensitive reads recorded in the audit
+    // trail (issue #3180) - proven here against the real backend, not just a mocked unit test.
+    cy.byTestId('history-tab-label').click();
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
   });
 
   it('generate pdf and opens for download with less data from customer', () => {
@@ -367,6 +373,13 @@ describe('Customer Detail', () => {
         cy.readFile(downloadedFilePath, 'binary', {timeout: 15000})
           .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
 
+        // The download itself is one of the GDPR-sensitive reads recorded in the audit trail
+        // (issue #3180) - proven here against the real backend, not just a mocked unit test.
+        cy.byTestId('history-tab-label').click();
+        cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+        cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Dokument');
+        cy.byTestId('documents-tab-label').click();
+
         cy.byTestId('document-0-deleteButton').click();
         cy.byTestId('deletedocument-dialog').should('be.visible');
         cy.byTestId('deletedocument-dialog').within(() => {
@@ -470,6 +483,31 @@ describe('Customer Detail', () => {
         // the panel's scanner list is live (SSE) and stays mounted (no dialog reopen needed)
         cy.byTestId('noScannerFiles', {timeout: 10000}).should('be.visible');
       });
+    });
+
+    it('records viewing a scanner file preview in the audit trail', () => {
+      cy.task('clearScannerInbox');
+      const scannerFileName = 'scan-e2e-preview-test.pdf';
+      cy.task('writeScannerFile', {fileName: scannerFileName, content: '%PDF-1.1 test content'});
+
+      cy.visit('/kunden/detail/100');
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('documentSourceScanner').click();
+
+      // The preview link opens in a new tab (target="_blank"), which Cypress cannot follow -
+      // requesting the exact href it points to exercises the same authenticated call a click would.
+      cy.byTestId('scannerFilePreview-' + scannerFileName, {timeout: 10000}).should('be.visible');
+      cy.byTestId('scannerFilePreview-' + scannerFileName).invoke('attr', 'href').then((href) => cy.request(href as string));
+
+      cy.visit('/aenderungsprotokoll');
+      cy.byTestId('audit-filter-entityType').click();
+      cy.get('mat-option').contains('Scanner-Datei').click();
+
+      cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Scanner-Datei');
+      // The scanner file's name is the business key here, shown without a "Nr." prefix and with no
+      // link (it belongs to no household or user screen).
+      cy.byTestId('audit-entry-0-businessKey').should('have.text', scannerFileName);
     });
 
     /**

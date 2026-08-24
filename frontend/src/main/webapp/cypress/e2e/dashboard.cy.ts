@@ -67,6 +67,16 @@ describe('Dashboard', () => {
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
 
+    // Generating the Kundenliste is one of the GDPR-sensitive reads recorded in the audit trail
+    // (issue #3180) - proven here against the real backend, not just a mocked unit test.
+    cy.visit('/aenderungsprotokoll');
+    cy.byTestId('audit-filter-entityType').click();
+    cy.get('mat-option').contains('Kundenliste (Ausgabe)').click();
+
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kundenliste (Ausgabe)');
+    cy.byTestId('audit-entry-0-businessKey').should('have.text', formattedDate);
+
     // --> CLOSED
     cy.closeDistribution();
   });
