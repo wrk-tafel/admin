@@ -185,7 +185,7 @@ class HouseholdDuplicationService(
             addressStreet,
             addressHouseNumber,
             addressDoor,
-        )
+        ).toList()
 
         val personMatches = persons.flatMap { person ->
             jdbcTemplate.query(
