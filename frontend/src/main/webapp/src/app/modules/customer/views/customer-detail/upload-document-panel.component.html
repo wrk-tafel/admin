@@ -5,6 +5,10 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <p class="text-sm mb-4" testid="uploadDocumentHint">
+      Nur Dokumente hochladen, die für die Prüfung des Anspruchs notwendig sind – möglichst ohne
+      Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
+    </p>
     <mat-form-field class="w-full">
       <mat-label>Dokumenttyp</mat-label>
       <mat-select testid="documentTypeInput" [ngModel]="documentType()" (ngModelChange)="documentType.set($event)">

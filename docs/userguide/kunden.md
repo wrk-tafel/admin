@@ -40,7 +40,7 @@ Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihre
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
 - **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren** und **Kunde löschen** (jeweils mit Sicherheitsabfrage) in einem Menü.
 - Ist gerade ein Ausgabetag aktiv, kann dem Kunden rechts oben eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über den Papierkorb-Button wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
-- Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden; bei mehreren Notizen können über **Alle Notizen anzeigen** alle bisherigen Notizen eingesehen werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip.
+- Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden; bei mehreren Notizen können über **Alle Notizen anzeigen** alle bisherigen Notizen eingesehen werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. Im Dialog weist ein Hinweis darauf hin, nur für die Prüfung des Anspruchs notwendige Angaben festzuhalten – keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
 
 Telefonnummer und E-Mail-Adresse sind als Links hinterlegt (öffnen die Telefon- bzw. Mail-App); über den Kopieren-Button neben "Adresse" lässt sich die Adresse in die Zwischenablage kopieren, etwa um sie in ein anderes System einzutragen.
 
@@ -67,7 +67,7 @@ Neue Dokumente können über die Quelle-Auswahl auf zwei Arten hochgeladen werde
 
 Der Scanner-Ordner ist optional: Ist er für die aktuelle Installation nicht eingerichtet oder deaktiviert, wird die Quelle-Auswahl gar nicht angezeigt und Dokumente werden ausschließlich vom Gerät hochgeladen. Die Administration kann den Scanner-Ordner auch im laufenden Betrieb ein- oder ausschalten: Die Quelle-Auswahl erscheint bzw. verschwindet dann von selbst, ohne dass die Seite neu geladen werden muss. War gerade **Scanner** ausgewählt, wird automatisch auf **Datei hochladen** zurückgeschaltet.
 
-Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden.
+Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden. Ein Hinweis erinnert daran, nur für die Prüfung des Anspruchs notwendige Dokumente hochzuladen – möglichst ohne Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
 
 ![Dokumente](images/kunden-detail-dokumente.jpg)
 
