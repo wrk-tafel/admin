@@ -429,15 +429,32 @@ under `## [Unreleased]` as part of the same PR** — this is easy to forget sinc
 the code being changed, same as the user guide rule above. Skip it only for changes with no
 user-visible effect (pure refactors, CI/build/test-only changes, internal chores).
 
+**"CI/build/test-only" means the change has no effect on anything a user or administrator ever
+reads or sees — it is not a blanket exemption for anything that happens to live in a workflow
+file.** A change to `release.yml`'s `body:` template (release-notes wording/structure/language), a
+PDF/mail template, an error message, or generated documentation is user-facing even though the
+diff sits in CI/template code, and needs its own `CHANGELOG.md` bullet just like a feature would.
+Before treating any change as changelog-exempt, ask specifically "does this alter text or behavior
+a person outside the team will read or encounter" — not "does this touch application code" — and
+when in doubt, add the bullet. **This check happens once per task, right before considering the
+task done — not only when a diff happens to sit under `backend/` or `frontend/`.** A task that
+touches `.github/workflows/`, `docs/`, or any template/resource file still needs the same check as
+one that touches application code.
+
 - Every bullet is one **single, unwrapped line** starting with `- ` — never wrap a long entry onto
   a continuation line. `release.yml`'s extraction step matches lines by that exact prefix; a
   wrapped continuation line would silently be dropped from the generated release notes.
 - Versioned sections (`## [1.8.1] - 2026-08-21`, newest first) are the historical record for
   humans reading the file on GitHub. Nothing automated renames `## [Unreleased]` to the version
-  that was actually released — that heading is cosmetic and kept accurate by hand: when you next
-  add a bullet under `## [Unreleased]` and it still describes something already shipped (check
-  `git tag`/the GitHub Releases page), rename it to `## [<released-version>] - <release-date>`
-  first, then add a fresh `## [Unreleased]` above it with your new bullet.
+  that was actually released — that heading is cosmetic and kept accurate by hand. **Before adding
+  a bullet under `## [Unreleased]`, always check first whether it is stale**: run
+  `gh release list --limit 5` (or check the GitHub Releases page/`git tag`) and compare against
+  the existing `## [Unreleased]` bullets — if the most recent release's date is *after* those
+  bullets were added (they already shipped), rename the heading to
+  `## [<released-version>] - <release-date>` (matching the release's own date) *first*, then add a
+  fresh `## [Unreleased]` above it with your new bullet. Do this check every time, even when the
+  task at hand has nothing to do with releasing — an unrelated task is exactly when a stale
+  `## [Unreleased]` from a prior release goes unnoticed.
 - `release.yml`'s `version` job extracts the delta for the GitHub release body itself, and does
   **not** rely on that heading: it diffs `CHANGELOG.md` between the previous release tag and the
   current commit and keeps only the added `- ` lines, so the extracted delta is correct even if

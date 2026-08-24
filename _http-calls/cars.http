@@ -1,2 +1,5 @@
 ### Fetch all cars
 GET {{baseApiPath}}/cars
+
+### Delete a car - rejected with 409 if it is referenced by a recorded food collection
+DELETE {{baseApiPath}}/cars/1

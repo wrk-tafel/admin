@@ -22,4 +22,7 @@ interface FoodCollectionRepository : JpaRepository<FoodCollectionEntity, Long> {
         routeId: Long,
         distributionId: Long,
     ): FoodCollectionEntity?
+
+    /** Whether a car is referenced by any recorded food collection - what `CarService.deleteCar` checks. */
+    fun existsByCarId(carId: Long): Boolean
 }

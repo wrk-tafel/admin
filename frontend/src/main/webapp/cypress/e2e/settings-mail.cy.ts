@@ -11,6 +11,13 @@ describe('Dashboard', () => {
   it('change email recipients', () => {
     cy.byTestId('mailtype-tab-STATISTICS').click();
 
+    // A remove click on an already-persisted address deletes it immediately via a real REST call -
+    // there is no "Speichern" step for a deletion, so this needs its own intercept.
+    cy.intercept('DELETE', '/api/settings/mail-recipients/*').as('deleteRecipient');
+    cy.intercept('PUT', '/api/settings/mail-recipients').as('saveRecipients');
+    // Also intercept subsequent GET so we can wait for reload to finish
+    cy.intercept('GET', '/api/settings/mail-recipients').as('loadRecipients');
+
     // Modify
     cy.byTestId('add-recipient-button-STATISTICS-CC').click();
 
@@ -18,15 +25,13 @@ describe('Dashboard', () => {
     cy.byTestId('email-input-STATISTICS-CC-0').type('test-cc@email.com');
 
     cy.byTestId('remove-recipient-button-STATISTICS-TO-0').click();
+    cy.wait('@deleteRecipient').its('response.statusCode').should('eq', 204);
     cy.byTestId('add-recipient-button-STATISTICS-TO').click();
 
     cy.byTestId('email-input-STATISTICS-TO-0').clear();
     cy.byTestId('email-input-STATISTICS-TO-0').type('test-to@email.com');
 
     // Save - verify POST success via intercept
-    cy.intercept('PUT', '/api/settings/mail-recipients').as('saveRecipients');
-    // Also intercept subsequent GET so we can wait for reload to finish
-    cy.intercept('GET', '/api/settings/mail-recipients').as('loadRecipients');
     cy.byTestId('save-button').click();
     cy.wait('@saveRecipients').its('response.statusCode').should('eq', 200);
 
@@ -36,9 +41,9 @@ describe('Dashboard', () => {
     cy.byTestId('email-input-STATISTICS-TO-0').should('have.value', 'test-to@email.com');
     cy.byTestId('email-input-STATISTICS-CC-0').should('have.value', 'test-cc@email.com');
 
-    // Reset
+    // Reset - both are now persisted, so removing them deletes immediately; no save needed
     cy.byTestId('remove-recipient-button-STATISTICS-CC-0').click();
-    cy.byTestId('save-button').click();
+    cy.wait('@deleteRecipient').its('response.statusCode').should('eq', 204);
   });
 
   it('recipients stack in a single column with dividers and the add/save flow works on phone', () => {
@@ -50,6 +55,7 @@ describe('Dashboard', () => {
     // (scoped to the active tab body - other tabs stay mounted off-screen for animation purposes)
     cy.get('.mat-mdc-tab-body-active hr').should('be.visible');
 
+    cy.intercept('DELETE', '/api/settings/mail-recipients/*').as('deleteRecipient');
     cy.intercept('PUT', '/api/settings/mail-recipients').as('saveRecipients');
     cy.intercept('GET', '/api/settings/mail-recipients').as('loadRecipients');
 
@@ -102,9 +108,9 @@ describe('Dashboard', () => {
       cy.byTestId(`mailtype-tab-${mailType}`).click();
       cy.get(inputSelector).eq(countBefore).should('have.value', email);
 
-      // Reset
+      // Reset - the address is now persisted, so removing it deletes immediately; no save needed
       cy.byTestId(`remove-recipient-button-${mailType}-${recipientType}-${countBefore}`).click();
-      cy.byTestId('save-button').click();
+      cy.wait('@deleteRecipient').its('response.statusCode').should('eq', 204);
     });
   }
 

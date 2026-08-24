@@ -42,7 +42,7 @@ describe('SettingsApiService', () => {
           recipients: [
             {
               recipientType: RecipientTypeEnum.TO,
-              addresses: ['to1@test.com']
+              addresses: [{id: 1, address: 'to1@test.com'}]
             }
           ]
         },
@@ -51,7 +51,7 @@ describe('SettingsApiService', () => {
           recipients: [
             {
               recipientType: RecipientTypeEnum.BCC,
-              addresses: ['bcc1@test.com']
+              addresses: [{id: 2, address: 'bcc1@test.com'}]
             }
           ]
         }
@@ -65,6 +65,14 @@ describe('SettingsApiService', () => {
     httpMock.verify();
 
     expect(req.request.body).toEqual(testData);
+  });
+
+  it('delete mail recipient', () => {
+    apiService.deleteMailRecipient(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/settings/mail-recipients/1'});
+    req.flush(null);
+    httpMock.verify();
   });
 
   it('get static values', () => {

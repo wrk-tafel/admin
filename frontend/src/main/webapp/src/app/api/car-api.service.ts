@@ -26,6 +26,10 @@ export class CarApiService {
     return this.http.post<CarList>('/cars/reorder', {carIds});
   }
 
+  deleteCar(carId: number): Observable<void> {
+    return this.http.delete<void>(`/cars/${carId}`);
+  }
+
 }
 
 export interface CarList {

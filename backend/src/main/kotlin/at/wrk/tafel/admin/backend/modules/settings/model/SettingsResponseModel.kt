@@ -24,7 +24,15 @@ data class MailRecipientsPerMailType(
 @ExcludeFromTestCoverage
 data class MailRecipientAdresses(
     val recipientType: MailRecipientType,
-    val addresses: List<String>,
+    val addresses: List<@Valid MailRecipientAddressItem>,
+)
+
+// address is filtered/trimmed rather than @NotBlank-validated in SettingsService.updateMailRecipients -
+// a blank entry (e.g. a freshly added, not-yet-filled-in row) is silently dropped, not rejected.
+@ExcludeFromTestCoverage
+data class MailRecipientAddressItem(
+    val id: Long? = null,
+    val address: String,
 )
 
 @ExcludeFromTestCoverage

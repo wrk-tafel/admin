@@ -55,11 +55,13 @@ is reserved for the two pieces shared by the `email` view specifically.
 
 ## Active/inactive is the same on every screen here
 
-No record in this module is ever deleted — `shelters`, `food-categories`,
+No record in this module is deleted by default — `shelters`, `food-categories`,
 `food-return-categories`, `cars`, `shops` and `routes` all deactivate instead,
 because recorded distributions and food collections point at what they hold.
 Every one of those six screens therefore shows and switches that state the same
-way, and a screen that gains an `enabled` flag follows suit:
+way, and a screen that gains an `enabled` flag follows suit. `cars` is the one
+exception with a real delete action alongside it — see the `cars` section below
+for why that's safe there and not (yet) on the other five:
 
 - **The switch is the status.** One `tafel-enabled-toggle`
   (`common/components/tafel-enabled-toggle/`) per record, labelled "Aktiv",
@@ -96,7 +98,7 @@ A thin composition of two independent, self-contained components — the view
 itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent]`.
 
 - **`mail-recipients.component.ts`**: builds a nested reactive form —
-  `mailRecipients: FormArray` of `{ mailType, recipients: FormArray of { recipientType, addresses: FormArray<string> } }` —
+  `mailRecipients: FormArray` of `{ mailType, recipients: FormArray of { recipientType, addresses: FormArray of { id, address } } }` —
   from the cross product of `MailTypeEnum` (`DAILY_REPORT`, `STATISTICS`,
   `RETURN_BOXES`) and `RecipientTypeEnum` (`TO`, `CC`, `BCC`), both from
   `settings-api.service.ts`. It's populated inside an `effect()` in the
@@ -106,6 +108,15 @@ itself has no logic, just `imports: [MailRecipientsComponent, SendMailsComponent
   `Record<..., string>` maps on the component (`MailTypeLabels`,
   `RecipientTypeLabels`) rather than extracted to a separate labels file (contrast
   with `static-value-types.ts` below).
+  - **`removeAddress()` deletes immediately for an already-persisted address** (its `id` control is
+    non-null): it calls `SettingsApiService.deleteMailRecipient(id)` and only splices the row out of
+    the form on success — there is no "Speichern" step for a deletion. A freshly added, not-yet-saved
+    address (`id` still `null`) is just spliced out of the form locally, no API call.
+  - **`save()` patches the ids `saveMailRecipients()` returns back into the still-mounted form**
+    (`applySavedIds()`) rather than reloading — a freshly created address is submitted with `id`
+    null and only gets a real id once persisted, and patching in place (matched by
+    mailType/recipientType, in submission order) avoids resetting the selected `mat-tab-group` tab
+    that a full reload-and-rebuild would cause.
 - **`send-mails.component.ts`**: lets an admin pick a past distribution
   (`DistributionApiService.getDistributions()`) and re-trigger its mail
   post-processors via `DistributionApiService.sendMails(id)` — useful when the
@@ -288,6 +299,17 @@ CRUD + drag-and-drop reordering for cars (Fahrzeuge), structurally the twin of
   dropdown (`CarDataResolver`) — same relationship as food categories'
   enabled/active split. The car itself stays in this list, greyed and with its
   Aktiv switch off: recorded food collections point at it, so it is kept.
+- **`deleteCar()` is a real hard delete**, unlike every other screen in this
+  module — a car is never snapshotted anywhere in reporting (unlike shelters,
+  see the backend's `logistics` README), so a car that was never actually used
+  on a route can be removed outright rather than just disabled. `CarApiService.
+  deleteCar()` calls `DELETE /api/cars/{id}`; the button opens
+  `CarDeleteConfirmDialogComponent` (`views/cars/dialogs/`) first, since the
+  action can't be undone. The backend still rejects it with a 409 once the car
+  turns out to be referenced by a recorded food collection — the confirm
+  dialog can't know that in advance, so the error toast (via
+  `extractErrorMessage`) is what actually tells the admin why. Delete is
+  offered regardless of the car's `enabled` state, unlike edit.
 
 ## `employees` (`SettingsEmployeesComponent`)
 

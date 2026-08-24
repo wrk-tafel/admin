@@ -14,7 +14,7 @@ Das Drag-Handle (⋮⋮) lässt sich nicht nur mit der Maus ziehen: Wird es mit 
 
 ## Aktiv und inaktiv
 
-Gelöscht wird in diesem Bereich nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen) und [Routen](#routen) werden nur deaktiviert, weil bereits erfasste Ausgabetage und Warenerfassungen darauf verweisen. Alle sechs Listen zeigen und schalten diesen Zustand gleich:
+Gelöscht wird in diesem Bereich in der Regel nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen) und [Routen](#routen) werden nur deaktiviert, weil bereits erfasste Ausgabetage und Warenerfassungen darauf verweisen. Alle sechs Listen zeigen und schalten diesen Zustand gleich (bei [Fahrzeugen](#fahrzeuge) gibt es zusätzlich eine echte Löschfunktion, siehe dort):
 
 - In jeder Zeile steht der Schalter **Aktiv**. Er zeigt den Zustand und ändert ihn — eine eigene Kennzeichnung daneben gibt es nicht.
 - Ein deaktivierter Eintrag bleibt in der Liste stehen, wird aber grau dargestellt, und sein **Bearbeiten**-Button ist gesperrt: Er muss zuerst wieder aktiviert werden.
@@ -25,7 +25,7 @@ Was ein deaktivierter Eintrag konkret bedeutet — wo er nicht mehr zur Auswahl 
 
 ## E-Mail-Empfänger
 
-Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Über die grünen **+**-Buttons können weitere Empfänger hinzugefügt, über die roten Buttons einzelne Empfänger entfernt werden. Jede Adresse muss ein gültiges E-Mail-Format haben; ungültige Einträge werden rot markiert (auch der jeweilige Reiter), zusätzlich erscheint die Meldung "Ungültige E-Mail Adresse".
+Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automatisch versendete E-Mails gepflegt, getrennt nach den Reitern **Tagesreport**, **Statistiken** und **Retourkisten**. Über die grünen **+**-Buttons können weitere Empfänger hinzugefügt werden; neu hinzugefügte Adressen werden erst mit **Speichern** übernommen. Über die roten Buttons wird ein bereits gespeicherter Empfänger sofort entfernt, ohne dass **Speichern** nötig ist. Jede Adresse muss ein gültiges E-Mail-Format haben; ungültige Einträge werden rot markiert (auch der jeweilige Reiter), zusätzlich erscheint die Meldung "Ungültige E-Mail Adresse".
 
 ![E-Mail-Empfänger](images/einstellungen-email.jpg)
 
@@ -114,9 +114,13 @@ Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fens
 
 ![Bereits vorhandenes Kennzeichen](images/einstellungen-fahrzeuge-duplikat.jpg)
 
-Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Sie werden nicht gelöscht (bereits erfasste Warenerfassungen verweisen darauf), sondern bleiben ausgegraut in der Liste stehen und können dort jederzeit wieder aktiviert werden — mit dem Filter **Inaktiv** zeigt die Liste genau diese Fahrzeuge (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Ein Fahrzeug, das bereits in einer Warenerfassung verwendet wurde, wird deshalb nicht gelöscht, sondern bleibt ausgegraut in der Liste stehen und kann dort jederzeit wieder aktiviert werden — mit dem Filter **Inaktiv** zeigt die Liste genau diese Fahrzeuge (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 ![Deaktivierte Fahrzeuge](images/einstellungen-fahrzeuge-deaktiviert.jpg)
+
+Über den roten Papierkorb-Button kann ein Fahrzeug endgültig gelöscht werden — unabhängig davon, ob es gerade aktiv oder deaktiviert ist. Das funktioniert nur, solange das Fahrzeug noch in keiner Warenerfassung verwendet wurde; danach lehnt die Anwendung das Löschen ab und weist mit einer Fehlermeldung darauf hin, dass das Fahrzeug bereits verwendet wird. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
+
+![Fahrzeug löschen](images/einstellungen-fahrzeuge-loeschen.jpg)
 
 <a id="filialen"></a>
 

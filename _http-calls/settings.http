@@ -1,54 +1,64 @@
 ### Get mail-recipient settings
 GET {{baseApiPath}}/settings/mail-recipients
 
-### Update mail-recipient settings
+### Update mail-recipient settings - an upsert: an address with a matching id is updated in place,
+### an address with no id is created; deleting one is the separate DELETE call below instead.
 PUT {{baseApiPath}}/settings/mail-recipients
 Content-Type: application/json
 
 {
-  "settings": [
+  "mailRecipients": [
     {
-      "mailType": {
-        "name": "DAILY_REPORT",
-        "label": "Tagesreport"
-      },
-      "recipients": {
-        "to": [
-          "dailyreport-to1@domain.com",
-          "dailyreport-to2@domain.com"
-        ],
-        "cc": [
-          "dailyreport-cc@domain.com"
-        ],
-        "bcc": [
-          "dailyreport-bcc@domain.com"
-        ]
-      }
+      "mailType": "DAILY_REPORT",
+      "recipients": [
+        {
+          "recipientType": "TO",
+          "addresses": [
+            {"id": 1, "address": "dailyreport-to1@domain.com"},
+            {"address": "dailyreport-to2@domain.com"}
+          ]
+        },
+        {
+          "recipientType": "CC",
+          "addresses": [
+            {"address": "dailyreport-cc@domain.com"}
+          ]
+        },
+        {
+          "recipientType": "BCC",
+          "addresses": [
+            {"address": "dailyreport-bcc@domain.com"}
+          ]
+        }
+      ]
     },
     {
-      "mailType": {
-        "name": "STATISTICS",
-        "label": "Statistiken"
-      },
-      "recipients": {
-        "to": [
-          "statistics-to@domain.com"
-        ]
-      }
+      "mailType": "STATISTICS",
+      "recipients": [
+        {
+          "recipientType": "TO",
+          "addresses": [
+            {"address": "statistics-to@domain.com"}
+          ]
+        }
+      ]
     },
     {
-      "mailType": {
-        "name": "RETURN_BOXES",
-        "label": "Retourkisten"
-      },
-      "recipients": {
-        "to": [
-          "returnboxes-to@domain.com"
-        ]
-      }
+      "mailType": "RETURN_BOXES",
+      "recipients": [
+        {
+          "recipientType": "TO",
+          "addresses": [
+            {"address": "returnboxes-to@domain.com"}
+          ]
+        }
+      ]
     }
   ]
 }
+
+### Delete a single mail recipient address
+DELETE {{baseApiPath}}/settings/mail-recipients/1
 
 ### Get static values
 GET {{baseApiPath}}/settings/static-values

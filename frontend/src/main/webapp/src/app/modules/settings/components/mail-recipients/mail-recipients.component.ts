@@ -6,7 +6,13 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../api/settings-api.service';
+import {
+  MailRecipientAddressItem,
+  MailRecipients,
+  MailTypeEnum,
+  RecipientTypeEnum,
+  SettingsApiService
+} from '../../../../api/settings-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
@@ -72,12 +78,19 @@ export class MailRecipientsComponent {
     });
   }
 
-  createAddressesPerTypeGroup(recipientType: RecipientTypeEnum, addresses: string[]): FormGroup {
+  createAddressesPerTypeGroup(recipientType: RecipientTypeEnum, addresses: MailRecipientAddressItem[]): FormGroup {
     return this.fb.group({
       recipientType: this.fb.control<RecipientTypeEnum>(recipientType),
       addresses: this.fb.array(
-        addresses.map(address => this.createAddressControl(address))
+        addresses.map(address => this.createAddressGroup(address))
       )
+    });
+  }
+
+  private createAddressGroup(item: MailRecipientAddressItem): FormGroup {
+    return this.fb.group({
+      id: this.fb.control<number | null>(item.id),
+      address: this.createAddressControl(item.address)
     });
   }
 
@@ -91,14 +104,32 @@ export class MailRecipientsComponent {
 
   addAddress(mailTypeIndex: number, recipientTypeIndex: number) {
     const addresses = this.getAddressesOfRecipientTypeIndex(mailTypeIndex, recipientTypeIndex);
-    addresses.push(this.createAddressControl(''));
+    addresses.push(this.createAddressGroup({id: null, address: ''}));
 
     this.form.markAllAsTouched();
   }
 
+  /**
+   * A row already persisted (has an id) is deleted immediately via a real REST call - there is no
+   * "Speichern" step for a deletion. A row added but not yet saved (id is still null) only exists in
+   * the form, so it's just spliced out locally.
+   */
   removeAddress(mailTypeIndex: number, recipientTypeIndex: number, addressIndex: number) {
-    const recipientsPerMailType = this.getRecipientsForMailTypeIndex(mailTypeIndex);
-    (recipientsPerMailType.at(recipientTypeIndex).get('addresses') as FormArray).removeAt(addressIndex);
+    const addresses = this.getAddressesOfRecipientTypeIndex(mailTypeIndex, recipientTypeIndex);
+    const id = addresses.at(addressIndex).get('id')!.value as number | null;
+
+    if (id === null) {
+      addresses.removeAt(addressIndex);
+      return;
+    }
+
+    this.settingsApiService.deleteMailRecipient(id).subscribe({
+      next: () => {
+        addresses.removeAt(addressIndex);
+        this.toastr.success('E-Mail Adresse entfernt!');
+      },
+      error: () => this.toastr.error('Entfernen fehlgeschlagen!')
+    });
   }
 
   save() {
@@ -106,8 +137,9 @@ export class MailRecipientsComponent {
 
     if (this.form.valid) {
       const observer = {
-        next: () => {
+        next: (response: MailRecipients) => {
           this.toastr.success('Einstellungen gespeichert!');
+          this.applySavedIds(response);
         },
         error: () => {
           this.toastr.error('Speichern fehlgeschlagen!');
@@ -115,6 +147,45 @@ export class MailRecipientsComponent {
       };
       this.settingsApiService.saveMailRecipients(this.form.getRawValue()).subscribe(observer);
     }
+  }
+
+  /**
+   * A freshly added address is submitted with id null and only gets a real id once persisted - patch
+   * it into the still-mounted form (rather than reloading, which would reset the selected tab) so the
+   * row becomes immediately deletable via removeAddress() without a page refresh.
+   */
+  private applySavedIds(response: MailRecipients) {
+    this.mailRecipientArray.controls.forEach(mailTypeGroup => {
+      const mailType = mailTypeGroup.value.mailType as MailTypeEnum;
+      const recipientsArray = mailTypeGroup.get('recipients') as FormArray;
+
+      recipientsArray.controls.forEach(recipientGroup => {
+        const recipientType = recipientGroup.value.recipientType as RecipientTypeEnum;
+        const addressesArray = recipientGroup.get('addresses') as FormArray;
+
+        const knownIds = new Set(
+          addressesArray.controls
+            .map(addressGroup => addressGroup.get('id')!.value as number | null)
+            .filter((id): id is number => id !== null)
+        );
+
+        const newlyAssignedIds = response.mailRecipients
+          .filter(recipient => recipient.mailType === mailType)
+          .flatMap(recipient => recipient.recipients)
+          .filter(recipient => recipient.recipientType === recipientType)
+          .flatMap(recipient => recipient.addresses)
+          .map(address => address.id)
+          .filter((id): id is number => id !== null && !knownIds.has(id));
+
+        const unsavedGroups = addressesArray.controls.filter(addressGroup => addressGroup.get('id')!.value === null);
+        unsavedGroups.forEach((addressGroup, index) => {
+          const assignedId = newlyAssignedIds[index];
+          if (assignedId !== undefined) {
+            addressGroup.get('id')!.setValue(assignedId, {emitEvent: false});
+          }
+        });
+      });
+    });
   }
 
   get mailRecipientArray(): FormArray {

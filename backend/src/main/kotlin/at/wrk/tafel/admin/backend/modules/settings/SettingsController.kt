@@ -7,7 +7,9 @@ import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -26,8 +28,12 @@ class SettingsController(
     fun getMailRecipientSettings(): MailRecipientsResponse = settingsService.getMailRecipients()
 
     @PutMapping("/mail-recipients")
-    fun updateMailRecipientSettings(@Valid @RequestBody settings: MailRecipientsRequest) {
-        settingsService.updateMailRecipients(settings)
+    fun updateMailRecipientSettings(@Valid @RequestBody settings: MailRecipientsRequest): MailRecipientsResponse = settingsService.updateMailRecipients(settings)
+
+    @DeleteMapping("/mail-recipients/{id}")
+    fun deleteMailRecipientSetting(@PathVariable id: Long): ResponseEntity<Unit> {
+        settingsService.deleteMailRecipient(id)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/static-values")
