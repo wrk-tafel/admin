@@ -285,17 +285,25 @@ Cypress.Commands.add(
     })
 );
 
+// The backend's birthDate/incomeDue/validUntil are LocalDate (date-only). Sending a Date object
+// straight into a cy.request() JSON body serializes it via Date.prototype.toJSON(), which is
+// always UTC - in a timezone ahead of UTC that shifts a local calendar date to the previous day.
+// Formatting in local time here keeps the sent date identical to what the UI would type in.
+function toLocalDateString(date?: Date): string | undefined {
+  return date ? dayjs(date).format('YYYY-MM-DD') : undefined;
+}
+
 function customerToHousehold(data: CustomerData) {
   const mainPerson = {
     isMainPerson: true,
     firstname: data.firstname,
     lastname: data.lastname,
-    birthDate: data.birthDate,
+    birthDate: toLocalDateString(data.birthDate),
     gender: data.gender,
     country: data.country,
     employer: data.employer,
     income: data.income,
-    incomeDue: data.incomeDue,
+    incomeDue: toLocalDateString(data.incomeDue),
     excludeFromHousehold: false,
     receivesFamilyAllowance: false
   };
@@ -304,12 +312,12 @@ function customerToHousehold(data: CustomerData) {
     isMainPerson: false,
     firstname: person.firstname,
     lastname: person.lastname,
-    birthDate: person.birthDate,
+    birthDate: toLocalDateString(person.birthDate),
     gender: person.gender,
     country: person.country,
     employer: person.employer,
     income: person.income,
-    incomeDue: person.incomeDue,
+    incomeDue: toLocalDateString(person.incomeDue),
     excludeFromHousehold: person.excludeFromHousehold,
     receivesFamilyAllowance: person.receivesFamilyAllowance
   }));
@@ -319,7 +327,7 @@ function customerToHousehold(data: CustomerData) {
     address: data.address,
     telephoneNumber: data.telephoneNumber,
     email: data.email,
-    validUntil: data.validUntil,
+    validUntil: toLocalDateString(data.validUntil),
     locked: data.locked,
     lockReason: data.lockReason,
     persons: [mainPerson, ...additionalPersons]
