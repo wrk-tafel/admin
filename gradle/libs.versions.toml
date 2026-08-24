@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
-spring-boot = "4.1.0"
+spring-boot = "4.1.1"
 spring-modulith = "2.1.0"
 # Release train "Oakwood" - the first line compatible with Spring Boot 4.1. Only spring-cloud-context
 # is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
