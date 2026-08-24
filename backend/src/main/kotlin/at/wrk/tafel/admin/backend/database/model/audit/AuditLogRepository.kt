@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.model.audit
 
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -67,6 +68,29 @@ interface AuditLogRepository :
         nativeQuery = true,
     )
     fun deleteAllByOccurredAtBeforeSkipLocked(@Param("cutoff") cutoff: LocalDateTime): Int
+
+    /**
+     * Who read more than [threshold] entries of [operation] since [since] - the query behind GDPR
+     * gap G11's breach-detection threshold (`ExcessiveReadAccessDetectionService`). Grouped rather
+     * than fetched row-by-row: a session downloading hundreds of documents in an hour must cost one
+     * query here, not one row loaded per document.
+     */
+    @Query(
+        """
+            SELECT a.actorUsername AS username, COUNT(a) AS readCount
+            FROM AuditLog a
+            WHERE a.operation = :operation
+              AND a.actorUsername IS NOT NULL
+              AND a.occurredAt >= :since
+            GROUP BY a.actorUsername
+            HAVING COUNT(a) > :threshold
+        """,
+    )
+    fun findActorsWithOperationCountAbove(
+        @Param("operation") operation: AuditOperation,
+        @Param("since") since: LocalDateTime,
+        @Param("threshold") threshold: Long,
+    ): List<AuditActorOperationCountProjection>
 }
 
 /**
@@ -78,4 +102,10 @@ interface AuditActorProjection {
     val username: String
     val firstname: String?
     val lastname: String?
+}
+
+/** One actor's tally, as [AuditLogRepository.findActorsWithOperationCountAbove] reads them. */
+interface AuditActorOperationCountProjection {
+    val username: String
+    val readCount: Long
 }

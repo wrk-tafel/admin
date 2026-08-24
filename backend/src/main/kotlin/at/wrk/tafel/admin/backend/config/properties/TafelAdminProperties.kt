@@ -119,6 +119,27 @@ class TafelAdminAuditProperties {
      * age out on this clock like everything else.
      */
     var retentionDays: Long = 30
+
+    var breachDetection: TafelAdminAuditBreachDetectionProperties = TafelAdminAuditBreachDetectionProperties()
+}
+
+/**
+ * GDPR gap G11's breach-detection threshold - see `ExcessiveReadAccessDetectionService`, which reads
+ * this per run so an operator can tune it on a running deployment without a restart.
+ *
+ * `tafeladmin.audit.breachDetectionCron` - how often the check runs, default hourly - is deliberately
+ * *not* a field here, for the same reason `cleanupCron` above isn't: `@Scheduled` fixes its expression
+ * at bean creation, so it lives in `application.yml` as a plain placeholder instead.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminAuditBreachDetectionProperties {
+    /**
+     * How many `READ` entries by one user within the trailing hour count as worth telling an
+     * administrator about. Deliberately a single fixed threshold rather than a learned baseline - an
+     * application this size has no "normal" to compare against, and a threshold nobody understands is
+     * one nobody trusts. Set to 0 (or less) to switch the check off entirely.
+     */
+    var readThreshold: Int = 20
 }
 
 /**
