@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.SingleColumnRowMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 /**
  * Fuzzy-matches households against each other to surface likely duplicate registrations for
@@ -105,6 +106,104 @@ class HouseholdDuplicationService(
                     AND dismissal.household_id_high = compare.household_id
               )
         """.trimIndent()
+
+        // Same fuzzy name+address rules as MAIN_PERSON_CTE/DUPLICATE_CONDITIONS, but parameterized
+        // against literal in-flight values instead of self-joining persisted rows - used by
+        // findPotentialDuplicates. The `? IS NULL OR ...` exclusion matches every household when a
+        // `null` id is bound, which is what a create (no household to exclude yet) passes. Every
+        // bind parameter is explicitly cast (`::bigint`/`::text`/`::date`) - `concat()`/`soundex()`/
+        // `levenshtein()` are polymorphic, so Postgres can't infer a parameter's type from them alone,
+        // and a parameter used only once (address_door is often unset) has no other occurrence to
+        // infer it from either; left uncast, a `null` bind fails with "could not determine data type
+        // of parameter $n" instead of a normal 0-row result.
+        private val MAIN_PERSON_SIMILARITY_SQL = """
+            SELECT h.household_id as householdId, p.firstname as firstname, p.lastname as lastname
+            FROM households h
+                     JOIN persons p ON p.id = h.main_person_id
+            WHERE (?::bigint IS NULL OR h.household_id <> ?::bigint)
+              AND soundex(p.lastname) = soundex(?::text)
+              AND soundex(p.firstname) = soundex(?::text)
+              AND levenshtein(lower(concat(p.firstname, p.lastname)), lower(concat(?::text, ?::text))) < 4
+              AND levenshtein(
+                          lower(concat(h.address_street, h.address_housenumber, h.address_door)),
+                          lower(concat(?::text, ?::text, ?::text))
+                  ) < 10
+        """.trimIndent()
+
+        // Person-level equivalent: fuzzy name plus an exact birth date match against every person in
+        // the system (main or additional), address ignored - a person carries no address of its own,
+        // and a re-registered duplicate may well have been entered at a different one.
+        private val PERSON_SIMILARITY_SQL = """
+            SELECT h.household_id as householdId, p.firstname as firstname, p.lastname as lastname
+            FROM persons p
+                     JOIN households h ON h.id = p.household_id
+            WHERE (?::bigint IS NULL OR h.household_id <> ?::bigint)
+              AND p.birth_date = ?::date
+              AND soundex(p.lastname) = soundex(?::text)
+              AND soundex(p.firstname) = soundex(?::text)
+              AND levenshtein(lower(concat(p.firstname, p.lastname)), lower(concat(?::text, ?::text))) < 4
+        """.trimIndent()
+    }
+
+    /**
+     * The proactive counterpart to [findDuplicates]: checks a household's not-yet-saved data for
+     * likely duplicates against already-persisted data, so [HouseholdService.createHousehold]/
+     * [HouseholdService.updateHousehold] can warn before writing it instead of only surfacing the
+     * duplicate afterwards in the [findDuplicates] review queue.
+     *
+     * Two independent signals, since a person carries no address of its own:
+     * - the main person's name (fuzzy, same soundex/Levenshtein rules as [findDuplicates]) together
+     *   with the household's address - the same signal [findDuplicates] uses to flag two households
+     *   as duplicates of each other.
+     * - every person's (main and additional) name (fuzzy) together with an exact birth date match
+     *   against every person already in the system, address ignored - this is what catches a single
+     *   household member re-registered under a new household at a different address, which the
+     *   address-anchored check above would otherwise miss.
+     *
+     * [excludeHouseholdId] is the household being saved itself (`null` on create), so an update never
+     * flags itself as its own duplicate.
+     */
+    @Transactional(readOnly = true)
+    fun findPotentialDuplicates(
+        mainPersonFirstname: String,
+        mainPersonLastname: String,
+        addressStreet: String?,
+        addressHouseNumber: String?,
+        addressDoor: String?,
+        persons: List<PersonNameAndBirthDate>,
+        excludeHouseholdId: Long?,
+    ): List<HouseholdDuplicateCandidate> {
+        val householdMatches = jdbcTemplate.query(
+            MAIN_PERSON_SIMILARITY_SQL,
+            DataClassRowMapper(HouseholdDuplicateCandidateRow::class.java),
+            excludeHouseholdId,
+            excludeHouseholdId,
+            mainPersonLastname,
+            mainPersonFirstname,
+            mainPersonFirstname,
+            mainPersonLastname,
+            addressStreet,
+            addressHouseNumber,
+            addressDoor,
+        )
+
+        val personMatches = persons.flatMap { person ->
+            jdbcTemplate.query(
+                PERSON_SIMILARITY_SQL,
+                DataClassRowMapper(HouseholdDuplicateCandidateRow::class.java),
+                excludeHouseholdId,
+                excludeHouseholdId,
+                person.birthDate,
+                person.lastname,
+                person.firstname,
+                person.firstname,
+                person.lastname,
+            )
+        }
+
+        return (householdMatches + personMatches)
+            .distinctBy { it.householdId }
+            .map { HouseholdDuplicateCandidate(householdId = it.householdId, personName = "${it.firstname} ${it.lastname}") }
     }
 
     @Transactional(readOnly = true)
@@ -208,4 +307,26 @@ data class HouseholdDuplicateSearchResult(
 data class HouseholdDuplicateSearchResultItem(
     val household: HouseholdResponse,
     val similarHouseholds: List<HouseholdResponse>,
+)
+
+/** A [findPotentialDuplicates] input: one household member's name and birth date to check. */
+@ExcludeFromTestCoverage
+data class PersonNameAndBirthDate(
+    val firstname: String,
+    val lastname: String,
+    val birthDate: LocalDate,
+)
+
+@ExcludeFromTestCoverage
+data class HouseholdDuplicateCandidateRow(
+    val householdId: Long,
+    val firstname: String,
+    val lastname: String,
+)
+
+/** A [findPotentialDuplicates] result: an already-registered household with a matching person. */
+@ExcludeFromTestCoverage
+data class HouseholdDuplicateCandidate(
+    val householdId: Long,
+    val personName: String,
 )

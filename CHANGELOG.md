@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Mitarbeiter können jetzt jederzeit endgültig gelöscht werden; bereits erfasste Kundendaten, Notizen und Warenerfassungen, die auf einen gelöschten Mitarbeiter verweisen, zeigen stattdessen "Mitarbeiter gelöscht" an. Ist noch ein Benutzerkonto mit dem Mitarbeiter verknüpft, muss dieses zuerst entfernt werden.
+- Kunden anlegen/bearbeiten warnt jetzt beim Speichern, wenn Name und Adresse einem bereits vorhandenen Kunden ähneln oder eine Person mit gleichem Namen und Geburtsdatum schon in einem anderen Haushalt erfasst ist - erst nach Bestätigung wird trotzdem gespeichert.
 
 ## [1.10.0] - 2026-08-24
 - Die Release-Notes auf GitHub sind jetzt durchgehend auf Deutsch und enthalten wieder einen Link zum vollständigen Änderungsprotokoll.

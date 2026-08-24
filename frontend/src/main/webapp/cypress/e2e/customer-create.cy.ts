@@ -161,6 +161,61 @@ describe('Customer Creation', () => {
     });
   });
 
+  it('blocks saving an exact duplicate until the operator confirms, then saves it anyway', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const birthDate = getBirthDateForAge(45);
+      const lastname = 'Bereits' + randomNumber;
+      const firstname = 'Vorhanden' + randomNumber;
+
+      cy.createCustomer({
+        firstname,
+        lastname,
+        birthDate,
+        gender: Gender.MALE,
+        country: {id: 165, code: 'AT', name: 'Österreich'},
+        telephoneNumber: '0123456789',
+        email: 'existing.duplicate@test.com',
+        employer: 'employer',
+        income: 500,
+        address: {street: 'Duplikatstraße', houseNumber: '1', city: 'Wien', postalCode: 1010},
+        validUntil: dayjs().add(1, 'year').toDate()
+      }).then((response) => {
+        const existingCustomerId = response.body.data.id;
+
+        // the same name+birthdate+address as the customer just created above via the API
+        cy.byTestId('lastnameInput').type(lastname);
+        cy.byTestId('firstnameInput').type(firstname);
+        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('YYYY-MM-DD'));
+        cy.byTestId('genderInput').click();
+        cy.byTestId('genderInput-option-MALE').click();
+        cy.byTestId('countryInput').click();
+        cy.byTestId('countryInput-option-165').click();
+        cy.byTestId('telephoneNumberInput').type('0664123132123');
+        cy.byTestId('streetInput').type('Duplikatstraße');
+        cy.byTestId('houseNumberInput').type('1');
+        cy.byTestId('postalCodeInput').type('1010');
+        cy.byTestId('cityInput').type('Wien');
+        cy.byTestId('employerInput').type('Test Employer');
+        cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
+
+        cy.byTestId('save-button').should('be.enabled').click();
+
+        cy.byTestId('confirm-customer-save-dialog')
+          .should('be.visible')
+          .within(() => {
+            cy.byTestId('title').contains('Kunde speichern');
+            cy.byTestId('message')
+              .contains('Möglicherweise bereits vorhanden')
+              .and('contain.text', 'Kunde Nr. ' + existingCustomerId);
+            cy.byTestId('header').should('have.class', 'dialog-header-warning');
+            cy.byTestId('ok-button').click();
+          });
+
+        cy.url().should('include', '/kunden/detail');
+      });
+    });
+  });
+
   it('renders additional persons as expansion panels, auto-expanding only the newly-added one', () => {
     enterAdditionalPersonData(0, {
       id: 0,
@@ -264,11 +319,14 @@ describe('Customer Creation', () => {
     it('supervisor should be able to override with warning on customer creation', () => {
       enterCustomerData();
       cy.byTestId('incomeInput').type('10000');
+      // a fixed literal name here would collide with createCustomer()'s own additional person of
+      // the same name+birthdate saved by an earlier test in this run - see the comment on
+      // enterCustomerData above.
       enterAdditionalPersonData(0, {
         id: 0,
         key: 0,
         receivesFamilyAllowance: false,
-        lastname: 'Add',
+        lastname: 'Add' + Math.floor(Math.random() * 1_000_000_000),
         firstname: 'Adult 1',
         birthDate: getBirthDateForAge(30),
         gender: Gender.MALE,
@@ -317,11 +375,15 @@ describe('Customer Creation', () => {
       cy.byTestId('incomeInput').type('500');
     }
 
+    // Shared across all three - a fixed literal "Add" lastname+birthdate would make every call
+    // after the first one in this run collide with an earlier call's additional person of the
+    // same name+birthdate - see the comment on enterCustomerData above.
+    const additionalPersonLastname = 'Add' + Math.floor(Math.random() * 1_000_000_000);
     enterAdditionalPersonData(0, {
       id: 0,
       key: 0,
       receivesFamilyAllowance: false,
-      lastname: 'Add',
+      lastname: additionalPersonLastname,
       firstname: 'Adult 1',
       birthDate: getBirthDateForAge(30),
       gender: Gender.MALE,
@@ -334,7 +396,7 @@ describe('Customer Creation', () => {
       id: 1,
       key: 1,
       receivesFamilyAllowance: false,
-      lastname: 'Add',
+      lastname: additionalPersonLastname,
       firstname: 'Child 1',
       birthDate: getBirthDateForAge(3),
       gender: Gender.FEMALE,
@@ -346,7 +408,7 @@ describe('Customer Creation', () => {
       id: 2,
       key: 2,
       receivesFamilyAllowance: true,
-      lastname: 'Add',
+      lastname: additionalPersonLastname,
       firstname: 'Child 2',
       birthDate: getBirthDateForAge(8),
       gender: Gender.MALE,
@@ -360,9 +422,17 @@ describe('Customer Creation', () => {
     cy.byTestId('validate-button').click();
   }
 
+  // Several tests in this file submit this data as a real save via the actual form, which now runs
+  // into the backend's duplicate check (see HouseholdService.checkForDuplicates) - a fixed literal
+  // name+address would make every test after the first one collide with data an earlier test in this
+  // same run already saved. A genuinely random (not clock-derived) suffix keeps every call unique:
+  // cy.getAnyRandomNumber() is unsuitable here since it's timestamp-based, so two calls made close
+  // together in the same run can differ in only one or two digits - close enough that the fuzzy
+  // duplicate check's Levenshtein distance still flags them as a match.
   function enterCustomerData(age = 25) {
-    cy.byTestId('lastnameInput').type('Mustermann');
-    cy.byTestId('firstnameInput').type('Max');
+    const uniqueSuffix = Math.floor(Math.random() * 1_000_000_000);
+    cy.byTestId('lastnameInput').type('Mustermann' + uniqueSuffix);
+    cy.byTestId('firstnameInput').type('Max' + uniqueSuffix);
     cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(age)).format('YYYY-MM-DD'));
     cy.byTestId('genderInput').click();
     cy.byTestId('genderInput-option-MALE').click();
