@@ -495,9 +495,8 @@ describe('Customer Detail', () => {
 
       // The preview link opens in a new tab (target="_blank"), which Cypress cannot follow -
       // requesting the exact href it points to exercises the same authenticated call a click would.
-      cy.byTestId('scannerFilePreview-' + scannerFileName, {timeout: 10000})
-        .should('have.attr', 'href')
-        .then((href) => cy.request(href));
+      cy.byTestId('scannerFilePreview-' + scannerFileName, {timeout: 10000}).should('be.visible');
+      cy.byTestId('scannerFilePreview-' + scannerFileName).invoke('attr', 'href').then((href) => cy.request(href as string));
 
       cy.visit('/aenderungsprotokoll');
       cy.byTestId('audit-filter-entityType').click();
