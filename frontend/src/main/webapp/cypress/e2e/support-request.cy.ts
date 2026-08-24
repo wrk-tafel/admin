@@ -16,6 +16,7 @@ describe('Support request', () => {
     cy.checkDialogAccessibility();
 
     cy.byTestId('supportHint').should('contain.text', 'technische Infos');
+    cy.byTestId('supportHint').should('contain.text', 'Kundennummer');
 
     cy.byTestId('okButton').should('be.disabled');
 

@@ -359,6 +359,7 @@ describe('Customer Detail', () => {
 
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('uploadDocumentHint').should('be.visible');
         cy.byTestId('documentTypeInput').click();
         cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
         cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
@@ -1018,6 +1019,7 @@ describe('Customer Detail', () => {
       cy.visit('/kunden/detail/103');
 
       cy.byTestId('addnote-button').click();
+      cy.byTestId('noteHint').should('be.visible');
       cy.checkDialogAccessibility();
       cy.byTestId('cancelButton').click();
 
