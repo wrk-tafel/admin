@@ -1,6 +1,6 @@
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {RouterLink} from '@angular/router';
 import {EmployeeCreateDialogComponent, EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
@@ -41,12 +41,14 @@ import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 /** Long enough not to search on every keystroke of a name, short enough to feel immediate. */
 const SEARCH_DEBOUNCE_MS = 400;
@@ -94,12 +96,20 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
   ]
 })
 export class SettingsEmployeesComponent {
-  private readonly registerIcons = registerSvgIcons({add: addIcon, check: checkIcon, close: closeIcon, delete: deleteIcon, edit: editIcon});
+  private readonly registerIcons = registerSvgIcons({
+    add: addIcon,
+    check: checkIcon,
+    close: closeIcon,
+    delete: deleteIcon,
+    download: downloadIcon,
+    edit: editIcon
+  });
 
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly fileHelperService = inject(FileHelperService);
 
   private _employees = signal<EmployeeListResponse | null>(null);
   protected employees = this._employees;
@@ -268,6 +278,24 @@ export class SettingsEmployeesComponent {
           error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen')
         });
       });
+  }
+
+  /**
+   * The GDPR Art. 15/20 data takeout (issue #3394) for this employee - the only export path for
+   * someone with no linked user account, since they have no `users` row for `UserApiService`'s
+   * export endpoints to key off.
+   */
+  protected exportEmployee(employee: EmployeeData) {
+    this.employeeApiService.exportEmployee(employee.id).subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.toastr.error('Datenexport fehlgeschlagen!')
+    });
+  }
+
+  private processPdfResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition')!;
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   /**

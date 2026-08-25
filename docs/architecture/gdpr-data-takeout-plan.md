@@ -31,7 +31,27 @@ rows, and — see [§4](#4-open-questions) — arguably its `audit_log` entries.
 **A staff member**: their `users` row (username, enabled state, `passwordChangeRequired`,
 `lastLogin` — never the Argon2 hash, see [§3](#3-design--staff-takeout)), their
 `user_authorities`, the linked `employees` row (personnel number, name), and — same open question —
-their `audit_log` entries and `AuditScope.USER_LOGIN_ENTITY_TYPE` login history.
+their `audit_log` entries and `AuditScope.USER_LOGIN_ENTITY_TYPE` login history. This assumes a
+`users` row exists at all — an `employees` row can stand entirely on its own (a driver/co-driver who
+never logs in), in which case "the whole record" is just that row's personnel number and name; see
+[G14](gdpr-compliance.md#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open)
+([#3394](https://github.com/wrk-tafel/admin/issues/3394)).
+
+**Scope: personal data about the subject, not every record that happens to name them.** None of the
+three exports (household, staff, employee-without-account) follow references *into* other tables the
+way `EmployeeRetentionService`'s query does - a staff export does not pull in every household this
+person issued, every note they authored, every food collection they drove/co-drove, or every route
+stop they completed, even though `households.employee_id`, `household_notes.employee_id`,
+`food_collections.driver_employee_id`/`co_driver_employee_id` and
+`routes_stops_completions.employee_id` all reference an employee. This is deliberate, not an
+oversight: those rows are substantively the *other* subject's data (a household's own case record,
+a note about a household) with the staff member's name attached only as attribution - the same
+reasoning that already excludes `audit_log` entries below. Answering "what does this record hold
+about me" is what Art. 15/20 asks; walking every table an id appears in would instead answer "what
+have I ever touched," which is a different, much larger question this plan does not take on. An
+attributed reference does not disappear when the person who made it is exported or later erased -
+see [§6](#6-compatibility-with-a-future-erasure-feature)'s note on `HouseholdNoteService`/`formatIssuer`
+already rendering "Mitarbeiter gelöscht" for exactly that case.
 
 ## 2. Design — customer takeout
 
@@ -76,6 +96,19 @@ requested in person or by mail and acted on by staff, so an operator-triggered e
 *only* way in (see [§4](#4-open-questions)). A staff member is already authenticated against their
 own account, so self-service is the default entry point here, with the admin-triggered endpoint
 covering the same "on someone's behalf" need the household design has no equivalent gap for.
+
+Both endpoints above are keyed by a `userId`, which is exactly what an `employees` row with no
+linked `users` row never has - `EmployeeExportService` (G14, issue #3394) closes that separately,
+keyed by `employeeId` instead: `GET /api/employees/{employeeId}/export`, behind `SETTINGS` (the
+permission `EmployeeController` itself already requires) rather than `USER_MANAGEMENT`, since there
+is no self-service angle for someone who has no account to authenticate with in the first place.
+Master data only - personnel number, name, created date - since that is the entirety of what an
+`EmployeeEntity` holds on its own.
+
+One person, one export: since a `users` row's own export already carries its linked employee's
+personnel number and name, `EmployeeExportService` refuses (409) an employee a `users` row
+references, and the frontend hides the button for that case - otherwise a person with an account
+would end up with two takeout documents, one of them a strict subset of the other.
 
 ## 4. Open questions
 
@@ -142,6 +175,12 @@ though nothing here builds it:
   would also have to purge — see
   [G10](gdpr-compliance.md#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), which
   already tracks exactly that failure mode for other stores.
+- [§1](#1-what-the-whole-record-means-per-subject)'s "Scope" note excludes records that merely
+  reference a staff member (a household they issued, a note they authored) from that person's own
+  takeout - which is only workable because erasing that person already has defined behavior at those
+  references today: `EmployeeService.deleteEmployee` nulls the FK and the reader shows "Mitarbeiter
+  gelöscht" wherever it's displayed (`HouseholdNoteService.mapNote`, the frontend's `formatIssuer`
+  pipe). A future erasure feature doesn't have to invent that handling; it already exists.
 
 Household erasure itself already exists in part —
 [`HouseholdService.deleteHouseholdByHouseholdId`](../../backend/src/main/kotlin/at/wrk/tafel/admin/backend/modules/household/internal/HouseholdService.kt)
@@ -158,6 +197,9 @@ there is no equivalent for staff accounts at all. None of that is this plan's to
 - [#3363](https://github.com/wrk-tafel/admin/issues/3363) (G12, staff) — implement
   [§3](#3-design--staff-takeout): the self-service and admin-triggered export endpoints. **Done** -
   `UserExportService`/`UserController`.
+- [#3394](https://github.com/wrk-tafel/admin/issues/3394) (G14, staff without a `users` row) — the
+  gap #3363 left open for an employee with no linked user account. **Done** -
+  `EmployeeExportService`/`EmployeeController`.
 - [§5](#5-recording-the-export-itself)'s audit write is small enough to land inside each of the two
   issues above rather than as its own — the `AuditOperation.EXPORT` value only needs to exist once.
 

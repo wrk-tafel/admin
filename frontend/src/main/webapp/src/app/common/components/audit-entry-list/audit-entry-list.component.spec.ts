@@ -116,6 +116,15 @@ describe('AuditEntryListComponent', () => {
     expect(distributionElement.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('25.08.2026');
   });
 
+  // A personnel number is not a record number either.
+  it('shows the bare business key for an employee export read, without a "Nr." prefix', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'Employee', operation: 'READ', businessKey: '02000', changes: []}
+    ], true).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('02000');
+  });
+
   it('attributes an entry without an acting user to the system', () => {
     const element: HTMLElement = createComponent([{...entry, actorUsername: undefined}]).nativeElement;
 

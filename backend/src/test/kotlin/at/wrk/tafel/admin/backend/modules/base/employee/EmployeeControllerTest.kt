@@ -1,6 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.base.employee
 
+import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportFileResult
+import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService
 import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeService
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -8,7 +11,9 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
@@ -16,6 +21,9 @@ class EmployeeControllerTest {
 
     @RelaxedMockK
     private lateinit var employeeService: EmployeeService
+
+    @RelaxedMockK
+    private lateinit var employeeExportService: EmployeeExportService
 
     @InjectMockKs
     private lateinit var employeeController: EmployeeController
@@ -93,5 +101,30 @@ class EmployeeControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify { employeeService.deleteEmployee(1L) }
+    }
+
+    @Test
+    fun `export employee`() {
+        val testFilename = "mitarbeiterdaten-00001.pdf"
+        every { employeeExportService.exportEmployeeById(1L) } returns EmployeeExportFileResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = employeeController.exportEmployee(1L)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `export employee - not found`() {
+        every { employeeExportService.exportEmployeeById(1L) } returns null
+
+        val exception = assertThrows<NotFoundException> { employeeController.exportEmployee(1L) }
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter (ID: 1) nicht gefunden!")
     }
 }

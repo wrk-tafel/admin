@@ -8,6 +8,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Im Benutzermenü kann jetzt unter "Meine Daten exportieren" eine DSGVO-Auskunft zum eigenen Benutzerkonto (Benutzername, Mitarbeiter-Stammdaten, Berechtigungen, Aktiv-Status, letzter Login) als PDF-Datei heruntergeladen werden; auf der Benutzerdetailseite steht derselbe Export für andere Benutzer:innen zur Verfügung.
 - In der Kundenansicht kann unter "Weitere Aktionen" jetzt eine ZIP-Datei mit den vollständigen Kundendaten (Stammdaten, weitere Personen, Notizen, Teilnahme-Historie, Dokumentenliste) als PDF-Datei sowie allen hochgeladenen Dokumenten heruntergeladen werden, für die Beantwortung einer DSGVO-Auskunftsanfrage.
 - Der Dokumente-Tab in der Kundenansicht (Ausweise, Einkommensnachweise) benötigt jetzt die eigene Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung; bestehende Benutzer:innen mit Kundenverwaltung erhalten die neue Berechtigung automatisch mit.
+- In der Mitarbeiterverwaltung kann jetzt pro Mitarbeiter eine DSGVO-Auskunft (Personalnummer, Name, Anlagedatum) als PDF-Datei heruntergeladen werden - der einzige Auskunftsweg für Mitarbeiter:innen ohne eigenes Benutzerkonto, z. B. reine Fahrer:innen.
 
 ## [1.12.0] - 2026-08-25
 - Beim Erfassen einer Notiz und beim Hochladen eines Dokuments erinnert jetzt ein Hinweis daran, nur für die Anspruchsprüfung notwendige Angaben zu erfassen - keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
