@@ -106,6 +106,10 @@
         <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
           <mat-icon svgIcon="notifications"></mat-icon> Benachrichtigungen
         </a>
+        <!-- The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363). -->
+        <button mat-menu-item testid="usermenu-export" (click)="exportUserData()">
+          <mat-icon svgIcon="download"></mat-icon> Meine Daten exportieren
+        </button>
         <!--
           No target="_blank"/rel: GitHub's release-asset URL always answers with
           Content-Disposition: attachment (baked into the signed redirect it issues, not something

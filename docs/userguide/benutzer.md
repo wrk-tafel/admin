@@ -34,6 +34,8 @@ Die Detailansicht zeigt Name, Benutzername, Personalnummer, ob eine Passwortänd
 
 Über **Benutzer bearbeiten** gelangt man zur Bearbeitungsmaske. Über das Dropdown **Benutzer-Status ändern** kann der Benutzer aktiviert bzw. deaktiviert werden (je nach aktuellem Status wird nur die passende Option angezeigt); zusätzlich steht dort, getrennt durch eine Trennlinie, **Benutzer löschen** zur Verfügung, um den Benutzer unwiderruflich zu entfernen.
 
+Über **Daten exportieren (PDF)** lässt sich eine DSGVO-Datenauskunft (Art. 15/20) zu diesem Benutzerkonto als PDF-Datei herunterladen – Stammdaten (Benutzername, Personalnummer, Name, Aktiv-Status, letzter Login) und alle zugewiesenen Berechtigungen. Nützlich, wenn eine Auskunftsanfrage im Namen einer anderen Person gestellt wird, etwa durch die Personalabteilung oder nach dem Ausscheiden aus dem Verein. Für die eigenen Daten steht derselbe Export auch über das Benutzermenü zur Verfügung (Benutzer-Icon oben rechts, **Meine Daten exportieren**).
+
 ![Benutzer-Status ändern](images/benutzer-status-aendern.jpg)
 
 ## Benutzer anlegen / bearbeiten

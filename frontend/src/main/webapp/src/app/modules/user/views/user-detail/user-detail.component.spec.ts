@@ -5,8 +5,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UserDetailComponent } from './user-detail.component';
 import { UserApiService, UserData, UserPermission } from '../../../../api/user-api.service';
 import { By } from '@angular/platform-browser';
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 describe('UserDetailComponent', () => {
     const mockUser: UserData = {
@@ -33,6 +35,7 @@ describe('UserDetailComponent', () => {
     let userApiService: MockedObject<UserApiService>;
     let router: MockedObject<Router>;
     let toastr: MockedObject<TafelToastrService>;
+    let fileHelperService: MockedObject<FileHelperService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -44,7 +47,8 @@ describe('UserDetailComponent', () => {
                     provide: UserApiService,
                     useValue: {
                         updateUser: vi.fn().mockName('UserApiService.updateUser'),
-                        deleteUser: vi.fn().mockName('UserApiService.deleteUser')
+                        deleteUser: vi.fn().mockName('UserApiService.deleteUser'),
+                        exportUserById: vi.fn().mockName('UserApiService.exportUserById')
                     }
                 },
                 {
@@ -52,6 +56,12 @@ describe('UserDetailComponent', () => {
                     useValue: {
                         success: vi.fn().mockName('TafelToastrService.success'),
                         error: vi.fn().mockName('TafelToastrService.error')
+                    }
+                },
+                {
+                    provide: FileHelperService,
+                    useValue: {
+                        downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
                     }
                 },
                 {
@@ -77,6 +87,7 @@ describe('UserDetailComponent', () => {
         userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+        fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
     });
 
     function createFixture(userData: UserData = mockUser): ComponentFixture<UserDetailComponent> {
@@ -157,6 +168,35 @@ describe('UserDetailComponent', () => {
         fixture.componentInstance.editUser();
 
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/bearbeiten', mockUser.id]);
+    });
+
+    it('exports this user\'s data (GDPR takeout) as a downloadable PDF', () => {
+        const fixture = createFixture();
+        const component = fixture.componentInstance;
+
+        const response = new HttpResponse({
+            status: 200,
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-username.pdf'}),
+            body: new Blob()
+        });
+        userApiService.exportUserById.mockReturnValueOnce(of(response));
+
+        component.exportUserData();
+
+        expect(userApiService.exportUserById).toHaveBeenCalledWith(mockUser.id);
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-username.pdf', response.body);
+    });
+
+    it('shows an error toast when the export fails', () => {
+        const fixture = createFixture();
+        const component = fixture.componentInstance;
+
+        userApiService.exportUserById.mockReturnValueOnce(throwError(() => new Error('failed')));
+
+        component.exportUserData();
+
+        expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
+        expect(toastr.error).toHaveBeenCalledWith('Datenexport fehlgeschlagen!');
     });
 
     it('permissions grouped by category (collapsed, granted only)', () => {

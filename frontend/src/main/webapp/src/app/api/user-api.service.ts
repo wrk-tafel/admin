@@ -1,4 +1,4 @@
-import {HttpClient, HttpContext, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
@@ -13,6 +13,16 @@ export class UserApiService {
 
   getUserForId(userId: number): Observable<UserData> {
     return this.http.get<UserData>('/users/' + userId);
+  }
+
+  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a PDF. */
+  exportUser(): Observable<HttpResponse<Blob>> {
+    return this.http.get('/users/export', {responseType: 'blob', observe: 'response'});
+  }
+
+  /** The same takeout as {@link exportUser}, admin-triggered for someone else's account. */
+  exportUserById(userId: number): Observable<HttpResponse<Blob>> {
+    return this.http.get('/users/' + userId + '/export', {responseType: 'blob', observe: 'response'});
   }
 
   getUserForPersonnelNumber(personnelNumber: string, context?: HttpContext): Observable<UserData> {

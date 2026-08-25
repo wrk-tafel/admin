@@ -1,4 +1,5 @@
 import {Component, computed, inject, input, linkedSignal, signal} from '@angular/core';
+import {HttpResponse} from '@angular/common/http';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
@@ -14,6 +15,7 @@ import {
   PermissionOverviewGroup
 } from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 @Component({
     selector: 'tafel-user-detail',
@@ -36,6 +38,7 @@ export class UserDetailComponent {
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
+  private readonly fileHelperService = inject(FileHelperService);
 
   // Writable signal that resets from input, but can be locally updated after API calls
   readonly currentUserData = linkedSignal(() => this.userData());
@@ -83,6 +86,24 @@ export class UserDetailComponent {
 
   editUser() {
     this.router.navigate(['/benutzer/bearbeiten', this.currentUserData().id]);
+  }
+
+  /**
+   * The GDPR Art. 15/20 data takeout for this user's account (issue #3363), admin-triggered on
+   * their behalf - e.g. an HR-style request, or one made after they've left. Same PDF as the
+   * self-service export in the user menu.
+   */
+  exportUserData() {
+    this.userApiService.exportUserById(this.currentUserData().id!).subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.toastr.error('Datenexport fehlgeschlagen!')
+    });
+  }
+
+  private processPdfResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition')!;
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   private changeUserState(enabled: boolean) {

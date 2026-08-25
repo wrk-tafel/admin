@@ -1,3 +1,4 @@
+import * as path from 'path';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('General', () => {
@@ -469,6 +470,30 @@ describe('Shell', () => {
     cy.visit('/uebersicht');
 
     cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
+  });
+
+  // The GDPR Art. 15/20 data takeout for a staff member's own account (issue #3363).
+  it('downloads the caller\'s own data export (GDPR takeout) from the user menu', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-export').should('contain.text', 'Meine Daten exportieren').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-e2etest.pdf');
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
+
+    // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
+    // proven here against the real backend, not just a mocked unit test.
+    cy.visit('/aenderungsprotokoll');
+    cy.byTestId('audit-filter-entityType').click();
+    cy.get('mat-option').contains('Benutzer').click();
+
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Benutzer');
   });
 
 });
