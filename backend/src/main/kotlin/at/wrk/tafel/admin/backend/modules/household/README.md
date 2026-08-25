@@ -114,8 +114,7 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
   gates.
 - `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD` or `PRIVACY_NOTICE` - the
   latter a printable privacy-notice/consent sheet for the customer to sign at intake, GDPR G2/#3177;
-  its text is a placeholder until the operator supplies the real wording, see
-  `docs/architecture/gdpr-compliance.md`).
+  see `docs/architecture/gdpr-compliance.md`).
 - `generatePrivacyNoticeTemplatePdf` (`GET /households/privacy-notice-template`, flat like
   `/above-limit`/`/overview` below rather than nested under `/{householdId}`) streams the same
   privacy-notice sheet with no household reference - reachable from the customer search screen, for
@@ -341,9 +340,11 @@ in-process via the `qrcode` library, with the Tafel logo overlaid.
 deliberately less than `PdfData`, since the notice sheet is a static text plus a signature line, not
 a data export. There is no stored consent field anywhere in the application: the printed, signed
 sheet handed to the customer at intake and filed outside the app is the whole record (GDPR G2,
-issue #3177). The notice text in `includes/privacy-notice.xsl` is a placeholder, clearly marked as
-such on the rendered page - it needs the operator's actual privacy-notice wording (legal basis,
-purposes, retention, contact) before going live, see `docs/architecture/gdpr-compliance.md` and
+issue #3177). The notice text in `includes/privacy-notice.xsl` - purpose, legal basis, retention,
+rights and contact - is written for this intake flow; controller identity, DPO contact and the
+rights/complaints wording come from the organisation's own published privacy notice (see the file's
+own header comment for the source and date checked), since that page has no section covering
+Team-Österreich-Tafel/aid-recipient data at all. See `docs/architecture/gdpr-compliance.md` and
 issue #3185.
 
 `generatePrivacyNoticeTemplatePdf` is the reference-less sibling: the same template with
