@@ -23,12 +23,13 @@ object PushNotificationTypeTargeting {
 
     private val REQUIRED_PERMISSIONS: Map<PushNotificationType, Set<UserPermissions>> = mapOf(
         // Everything about how the distribution day is progressing is open to the whole team - the
-        // types tracing that day are absent from this map on purpose. Restricted are only the two
-        // ends of the spectrum: the reminder that something was left undone, and the technical
-        // failures that are nobody's business but the people who fix them.
+        // types tracing that day are absent from this map on purpose. Restricted are only the
+        // reminder that something was left undone, and the technical/security notifications that are
+        // nobody's business but the people who maintain the application.
         PushNotificationType.DISTRIBUTION_STILL_OPEN to setOf(UserPermissions.DISTRIBUTION_LCM, UserPermissions.SUPERVISOR),
         PushNotificationType.USER_LOCKED_OUT to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.REPORT_MAIL_FAILED to setOf(UserPermissions.ADMINISTRATOR),
+        PushNotificationType.EXCESSIVE_READ_ACCESS to setOf(UserPermissions.ADMINISTRATOR),
     )
 
     /**
@@ -51,6 +52,7 @@ object PushNotificationTypeTargeting {
         PushNotificationType.FOOD_COLLECTION_COMPLETED to "logistik/warenerfassung",
         PushNotificationType.USER_LOCKED_OUT to "benutzer/anmelde-versuche",
         PushNotificationType.REPORT_MAIL_FAILED to "einstellungen/email",
+        PushNotificationType.EXCESSIVE_READ_ACCESS to "aenderungsprotokoll",
     )
 
     /**

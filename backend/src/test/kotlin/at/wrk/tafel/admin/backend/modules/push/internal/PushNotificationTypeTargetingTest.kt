@@ -65,7 +65,11 @@ internal class PushNotificationTypeTargetingTest {
      */
     @Test
     fun `the technical types require ADMINISTRATOR and are not granted by supervising a distribution`() {
-        val technicalTypes = listOf(PushNotificationType.USER_LOCKED_OUT, PushNotificationType.REPORT_MAIL_FAILED)
+        val technicalTypes = listOf(
+            PushNotificationType.USER_LOCKED_OUT,
+            PushNotificationType.REPORT_MAIL_FAILED,
+            PushNotificationType.EXCESSIVE_READ_ACCESS,
+        )
 
         technicalTypes.forEach { type ->
             assertThat(PushNotificationTypeTargeting.isAllowedFor(type, listOf(UserPermissions.ADMINISTRATOR.key)))

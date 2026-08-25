@@ -121,7 +121,7 @@ describe('PushNotifications', () => {
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
     // here - the filtered case is the separate test below.
-    cy.byTestId('push-type-preference').should('have.length', 10);
+    cy.byTestId('push-type-preference').should('have.length', 11);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -129,7 +129,7 @@ describe('PushNotifications', () => {
     // Switching the master off overrules the per-type settings rather than discarding them, so they
     // stay on screen and inert - hiding them read as "my settings are gone".
     cy.byTestId('push-master-disabled-hint').should('be.visible');
-    cy.byTestId('push-type-preference').should('have.length', 10);
+    cy.byTestId('push-type-preference').should('have.length', 11);
     cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('be.disabled');
     // The hint and the disabled section exist only after this click, so no other accessibility gate
     // sees them - see cypress/support/accessibility.ts
@@ -161,6 +161,7 @@ describe('PushNotifications', () => {
     cy.get('[testid="push-type-preference"][data-type="ALL_TICKETS_PROCESSED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="USER_LOCKED_OUT"]').should('not.exist');
     cy.get('[testid="push-type-preference"][data-type="REPORT_MAIL_FAILED"]').should('not.exist');
+    cy.get('[testid="push-type-preference"][data-type="EXCESSIVE_READ_ACCESS"]').should('not.exist');
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]').should('not.exist');
 
     // A group with nothing left in it is dropped rather than shown as a bare heading, so the two
@@ -191,6 +192,17 @@ describe('PushNotifications', () => {
           'FOOD_HANDOUT_STARTED',
           'ALL_TICKETS_PROCESSED',
           'DISTRIBUTION_CLOSED'
+        ]);
+      });
+
+    cy.get('[testid="push-type-group"][data-group="Technisches"]')
+      .find('[testid="push-type-preference"]')
+      .then(items => {
+        const order = [...items].map(item => item.getAttribute('data-type'));
+        expect(order).to.deep.equal([
+          'REPORT_MAIL_FAILED',
+          'USER_LOCKED_OUT',
+          'EXCESSIVE_READ_ACCESS'
         ]);
       });
   });
