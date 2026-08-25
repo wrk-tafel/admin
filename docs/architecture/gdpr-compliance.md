@@ -359,7 +359,11 @@ plan covering "either customers or internal employees" — the original review (
 the customer side.
 
 What remains open: same as G5, `audit_log` entries about the user are deliberately excluded from the
-export — left as an unanswered permission-boundary question in the takeout plan's §4.
+export — left as an unanswered permission-boundary question in the takeout plan's §4. Settled, not
+open: the export does not follow references *into* other tables either - a household this person
+issued, a note they authored, a food collection they drove - since that data is substantively the
+referenced record's own, with this person's name attached only as attribution. See the takeout
+plan's §1 "Scope" note.
 
 ### G13 A system user or employee account now expires too, mirroring G1
 
@@ -427,7 +431,10 @@ behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeContro
 requires, since there is no self-service angle for an employee with no account of their own.
 
 What remains open: same as G5/G12, `audit_log` entries about the employee are excluded from the
-export.
+export. Settled, not open, same as G12: this export is master data about the employee themselves
+only - it does not follow the reverse references above (issuer/author/driver) back into the
+household, note or food collection rows that name them, since those rows are substantively that
+other record's own data. See the takeout plan's §1 "Scope" note.
 
 ## 5. Checked and found fine
 

@@ -37,6 +37,22 @@ never logs in), in which case "the whole record" is just that row's personnel nu
 [G14](gdpr-compliance.md#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open)
 ([#3394](https://github.com/wrk-tafel/admin/issues/3394)).
 
+**Scope: personal data about the subject, not every record that happens to name them.** None of the
+three exports (household, staff, employee-without-account) follow references *into* other tables the
+way `EmployeeRetentionService`'s query does - a staff export does not pull in every household this
+person issued, every note they authored, every food collection they drove/co-drove, or every route
+stop they completed, even though `households.employee_id`, `household_notes.employee_id`,
+`food_collections.driver_employee_id`/`co_driver_employee_id` and
+`routes_stops_completions.employee_id` all reference an employee. This is deliberate, not an
+oversight: those rows are substantively the *other* subject's data (a household's own case record,
+a note about a household) with the staff member's name attached only as attribution - the same
+reasoning that already excludes `audit_log` entries below. Answering "what does this record hold
+about me" is what Art. 15/20 asks; walking every table an id appears in would instead answer "what
+have I ever touched," which is a different, much larger question this plan does not take on. An
+attributed reference does not disappear when the person who made it is exported or later erased -
+see [§6](#6-compatibility-with-a-future-erasure-feature)'s note on `HouseholdNoteService`/`formatIssuer`
+already rendering "Mitarbeiter gelöscht" for exactly that case.
+
 ## 2. Design — customer takeout
 
 Mirrors the existing `HouseholdController.generatePdf` endpoint
@@ -154,6 +170,12 @@ though nothing here builds it:
   would also have to purge — see
   [G10](gdpr-compliance.md#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), which
   already tracks exactly that failure mode for other stores.
+- [§1](#1-what-the-whole-record-means-per-subject)'s "Scope" note excludes records that merely
+  reference a staff member (a household they issued, a note they authored) from that person's own
+  takeout - which is only workable because erasing that person already has defined behavior at those
+  references today: `EmployeeService.deleteEmployee` nulls the FK and the reader shows "Mitarbeiter
+  gelöscht" wherever it's displayed (`HouseholdNoteService.mapNote`, the frontend's `formatIssuer`
+  pipe). A future erasure feature doesn't have to invent that handling; it already exists.
 
 Household erasure itself already exists in part —
 [`HouseholdService.deleteHouseholdByHouseholdId`](../../backend/src/main/kotlin/at/wrk/tafel/admin/backend/modules/household/internal/HouseholdService.kt)
