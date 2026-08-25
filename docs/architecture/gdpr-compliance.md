@@ -26,7 +26,8 @@ Two things to be clear about before reading on:
 | `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
 | `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
-| `users`, `user_authorities`, `employees` | staff | username, Argon2 password hash, permissions, personnel number, name | until the account is deleted |
+| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions | until deleted by hand, or disabled and untouched for longer than `tafeladmin.userDeletion.retentionYears` (`UserRetentionService`, 3 years by default) - never for an `ADMINISTRATOR` account, see G13 |
+| `employees` | staff | personnel number, name | until deleted by hand, or unlinked from any user account and untouched for longer than `tafeladmin.employeeDeletion.retentionYears` (`EmployeeRetentionService`, 7 years by default) - see G13 |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
@@ -96,7 +97,7 @@ Worth recording, because it is the part that does not need work:
 
 ## 4. Gaps
 
-Ordered by how exposed they leave the operator, not by how hard they are to fix. G12 is the one
+Ordered by how exposed they leave the operator, not by how hard they are to fix. G12 and G13 are the
 exception — appended after the original review rather than re-ranked into it, so the existing G1–G11
 numbering (and the issues already filed against it) stays stable.
 
@@ -322,6 +323,46 @@ the customer side.
 together with G5 as one shared plan. Tracked in
 [#3363](https://github.com/wrk-tafel/admin/issues/3363).
 
+### G13 A system user or employee account now expires too, mirroring G1
+
+**Art. 5(1)(e), Art. 17(1)(a).** Same obligation as G1, for the other data subject who gets a login:
+personal data must be kept no longer than necessary, and must be erased once the purpose is gone. A
+`users` row - and the `employees` row behind it - otherwise stayed in the database, permissions and
+all, until an administrator opened it and pressed delete; nothing expired it on its own the way G1's
+`HouseholdRetentionService` now does for a household.
+
+Unlike a household, neither entity has a field that encodes "no longer relevant" the way
+`validUntil` does, which is why this needed its own decision rather than reusing G1's job outright:
+
+- **`users`** (`UserRetentionService`) treats `enabled = false` as the trigger - a disabled account
+  can never log in again to move any clock, while an *enabled* account that simply hasn't logged in
+  yet (a fresh account, or one whose owner is on long leave) is never touched. The moment measured is
+  `updated_at` rather than `lastLogin`, since only `updated_at` moves again if an administrator
+  revisits a disabled row - exactly the signal that it isn't abandoned yet. **An `ADMINISTRATOR`
+  account is never a candidate, full stop, regardless of `enabled` or age** - stricter than
+  `UserController`'s manual safeguards, which only ever protect the *last* enabled one. Deletion goes
+  through `TafelUserDetailsManager.deleteUser`, the same method the manual `DELETE
+  /api/users/{userId}` endpoint uses, and defaults to 3 years - the general civil-law limitation
+  period under Austrian law (ABGB Section 1489) - as a defensible floor, not a final legal-basis
+  answer.
+- **`employees`** (`EmployeeRetentionService`) is deliberately a separate job with its own, longer
+  window: an employee is a shared record other modules reference by a plain, non-cascading FK
+  (household issuer, household notes, food collection driver/co-driver) that already tolerates a
+  missing employee by design - `EmployeeService.deleteEmployee` lets a staff member delete one by hand
+  at any time, showing "Mitarbeiter gelöscht" wherever such a reference is displayed, and only refuses
+  when a user account is still linked. This job mirrors that: it only ever considers an employee with
+  no linked user account, again measured from `updated_at`, defaulting to 7 years - the same UGB/BAO
+  Section 132 bookkeeping floor as `householdDeletion.retentionYears`, since an unlinked employee is
+  most often still the issuer or driver of record on a household's or food collection's own
+  bookkeeping-relevant history.
+
+Both jobs are configurable and switchable per deployment
+(`tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*`, read per use), run nightly after
+`HouseholdRetentionService` (06:00) at 06:15/06:30, and claim their candidates with `FOR UPDATE SKIP
+LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both windows are floors picked
+without a documented legal-basis decision (see G2), and there is no report of what either job is about
+to delete before it runs.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -373,6 +414,7 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
 | 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3181](https://github.com/wrk-tafel/admin/issues/3181), [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
 | 9 | [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
+| 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 
 G3, G9 and G4 are worth doing regardless of what the operator decides. Everything from G2 downwards
 depends on answers that come from outside this repository — which makes

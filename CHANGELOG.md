@@ -10,6 +10,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Das Änderungsprotokoll erfasst jetzt zusätzlich zu Änderungen auch eine kleine, gezielte Auswahl an Zugriffen auf sensible Kundendaten: den Download eines Dokuments, das Ansehen einer Scanner-Datei sowie die Erstellung des Stammdatenblatts, des Ausweises oder der Kundenliste einer Ausgabe.
 - Administrator:innen werden jetzt per Push benachrichtigt, wenn ein Benutzerkonto innerhalb einer Stunde ungewöhnlich viele sensible Kundendaten abruft.
 - Haushalte werden jetzt automatisch endgültig gelöscht (inkl. Personen, Notizen, Dokumenten und Ausgabe-Teilnahmen), sobald ihre Gültigkeit seit mehr als 7 Jahren abgelaufen ist.
+- Deaktivierte Benutzerkonten werden jetzt automatisch endgültig gelöscht, sobald sie seit mehr als 3 Jahren nicht mehr bearbeitet wurden (Administrator-Konten ausgenommen); nicht mehr mit einem Benutzerkonto verknüpfte Mitarbeiter:innen werden nach 7 Jahren ebenso endgültig gelöscht.
 
 ## [1.11.0] - 2026-08-24
 - Mitarbeiter können jetzt jederzeit endgültig gelöscht werden; bereits erfasste Kundendaten, Notizen und Warenerfassungen, die auf einen gelöschten Mitarbeiter verweisen, zeigen stattdessen "Mitarbeiter gelöscht" an. Ist noch ein Benutzerkonto mit dem Mitarbeiter verknüpft, muss dieses zuerst entfernt werden.

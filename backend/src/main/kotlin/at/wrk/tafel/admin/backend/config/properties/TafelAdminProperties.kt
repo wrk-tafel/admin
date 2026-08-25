@@ -39,6 +39,8 @@ class TafelAdminProperties {
     var distribution: TafelAdminDistributionProperties = TafelAdminDistributionProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var householdDeletion: TafelAdminHouseholdRetentionProperties = TafelAdminHouseholdRetentionProperties()
+    var userDeletion: TafelAdminUserRetentionProperties = TafelAdminUserRetentionProperties()
+    var employeeDeletion: TafelAdminEmployeeRetentionProperties = TafelAdminEmployeeRetentionProperties()
     var mail: TafelAdminMailProperties? = null
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
@@ -129,6 +131,95 @@ class TafelAdminHouseholdRetentionProperties {
      * application itself does not yet record a legal basis per household (see gap G2). Raise or lower
      * it per deployment; it is re-read per use, so a change takes effect without a restart. A value of
      * 0 or less keeps every household instead of deleting them all.
+     */
+    var retentionYears: Long = 7
+}
+
+/**
+ * GDPR gap G13 (`docs/architecture/gdpr-compliance.md`) - mirrors [TafelAdminHouseholdRetentionProperties]
+ * (G1) for the other data subject who gets a login: a `users` row otherwise stays in the database,
+ * permissions and all, until an administrator opens it and presses delete. `enabled` and
+ * `retentionYears` are read per use, so an operator can widen the window or switch the job off on a
+ * running deployment (`ConfigFileReloadService`).
+ *
+ * Unlike a household, [at.wrk.tafel.admin.backend.database.model.auth.UserEntity] has no field that
+ * encodes "no longer relevant" the way `validUntil` does. `enabled = false` is the closest thing, and
+ * is deliberately what this is measured against rather than `lastLogin`: a disabled account can never
+ * log in again to move that clock, while an *enabled* account that simply hasn't logged in yet (a
+ * fresh account, or one whose owner is on long leave) is not something an automatic job should ever
+ * touch. The moment used is
+ * [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity.updatedAt] - for a
+ * disabled account that only moves again if an administrator revisits the row, which is exactly the
+ * signal that it isn't abandoned yet.
+ *
+ * An account holding the `ADMINISTRATOR` permission is never a candidate, full stop - regardless of
+ * `enabled` or age. `UserController`'s manual safeguards only ever protect the *last* enabled
+ * administrator; this job is stricter and keeps that permission out of its reach entirely, since
+ * losing every administrator to an unattended nightly job is not a risk worth trading for a smaller
+ * database.
+ *
+ * Deletion goes through [at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager.deleteUser],
+ * the same method the manual `DELETE /api/users/{userId}` endpoint uses. That method leaves the
+ * linked `employees` row untouched by design - it is a shared record other modules reference
+ * independently (household issuer, household notes, food collection driver/co-driver) - so it gets
+ * its own clock, see [TafelAdminEmployeeRetentionProperties].
+ *
+ * `tafeladmin.userDeletion.cleanupCron` - default 06:15 daily, after `householdDeletion` at 06:00 -
+ * is deliberately *not* a field here, for the same reason as `householdDeletion.cleanupCron`:
+ * `@Scheduled` fixes its expression at bean creation, so it lives in `application.yml` as a plain
+ * placeholder. See `UserRetentionService`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminUserRetentionProperties {
+    /**
+     * Kill switch for the whole job, independent of [retentionYears].
+     */
+    var enabled: Boolean = true
+
+    /**
+     * How long a *disabled* account is kept, measured from the last time its row was written to
+     * (see the class KDoc for why that stands in for "last login"). Defaults to 3 - the general
+     * civil-law limitation period under Austrian law (ABGB Section 1489) - as a defensible floor,
+     * not a final legal-basis answer; the actual period is the operator's call, same as
+     * `householdDeletion.retentionYears`. A value of 0 or less keeps every account instead of
+     * deleting them all. An *enabled* account is never a candidate, regardless of this value.
+     */
+    var retentionYears: Long = 3
+}
+
+/**
+ * GDPR gap G13, the `employees` half - see [TafelAdminUserRetentionProperties] for `users`. An
+ * employee is a shared record other modules reference by a plain, non-cascading FK (household
+ * issuer, household notes, food collection driver/co-driver) that already tolerates a missing
+ * employee by design (`EmployeeService.deleteEmployee`'s KDoc shows "Mitarbeiter gelöscht" wherever
+ * such a reference is displayed) - so this job deletes an employee the moment nothing still needs it
+ * kept, exactly like a manual delete already can, just triggered by age instead of a person pressing
+ * delete.
+ *
+ * An employee with a linked user account is never a candidate - that account's own retention
+ * ([TafelAdminUserRetentionProperties]) has to remove the account first, same as
+ * `EmployeeService.deleteEmployee` itself refuses a linked employee. The moment used is again
+ * [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity.updatedAt].
+ * `retentionYears` defaults to 7 - the same UGB/BAO Section 132 bookkeeping floor as
+ * `householdDeletion.retentionYears` - since an unlinked employee is most often still the issuer or
+ * driver on record for a household's or a food collection's own bookkeeping-relevant history.
+ *
+ * `tafeladmin.employeeDeletion.cleanupCron` - default 06:30 daily, after `userDeletion` at 06:15 so
+ * an employee whose only user account is deleted the same night is a candidate for the very next run
+ * rather than waiting an extra day - is a plain `application.yml` placeholder for the same
+ * startup-only reason as the others.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminEmployeeRetentionProperties {
+    /**
+     * Kill switch for the whole job, independent of [retentionYears].
+     */
+    var enabled: Boolean = true
+
+    /**
+     * How long an *unlinked* employee (no user account referencing it) is kept before automatic
+     * deletion. A value of 0 or less keeps every employee instead of deleting them all. An employee
+     * with a linked user account is never a candidate, regardless of this value.
      */
     var retentionYears: Long = 7
 }

@@ -1,0 +1,68 @@
+package at.wrk.tafel.admin.backend.modules.base.employee.internal
+
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.LocalDateTime
+
+/**
+ * GDPR gap G13 - the `employees` half of what `UserRetentionService` does for `users`. An unlinked
+ * employee (no user account referencing it) is deleted through the same [EmployeeService.deleteEmployee]
+ * a staff member's manual delete uses, once its row hasn't been written to in longer than the
+ * configured window - see `TafelAdminEmployeeRetentionProperties`'s KDoc for why that window
+ * defaults longer than the one on `users`.
+ *
+ * [EmployeeRepository.findExpiredEmployeeIdsSkipLocked] already excludes any employee with a linked
+ * user account, so `deleteEmployee`'s own guard against that never actually fires here - it stays in
+ * place because that method is also the manual `DELETE /api/employees/{employeeId}` endpoint's, and
+ * is what protects against a user account getting (re)linked between the candidate select and this
+ * transaction's delete.
+ *
+ * Runs once a night, at 06:30 - after `UserRetentionService` (06:15), so an employee whose only user
+ * account is deleted the same night is a candidate for the very next run rather than an extra day.
+ */
+@Service
+class EmployeeRetentionService(
+    private val employeeRepository: EmployeeRepository,
+    private val employeeService: EmployeeService,
+    private val properties: TafelAdminProperties,
+    private val clock: Clock,
+) {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(EmployeeRetentionService::class.java)
+    }
+
+    @Scheduled(cron = "\${tafeladmin.employeeDeletion.cleanupCron:0 30 6 * * *}")
+    @Transactional
+    fun cleanupExpiredEmployees() {
+        if (!properties.employeeDeletion.enabled) {
+            logger.debug("Employee retention is disabled - keeping every unlinked employee regardless of age")
+            return
+        }
+
+        val retentionYears = properties.employeeDeletion.retentionYears
+        if (retentionYears <= 0) {
+            logger.debug("Employee retention is disabled (retentionYears={}) - keeping every employee", retentionYears)
+            return
+        }
+
+        val cutoff = LocalDateTime.now(clock).minusYears(retentionYears)
+        val expiredEmployeeIds = employeeRepository.findExpiredEmployeeIdsSkipLocked(cutoff)
+        if (expiredEmployeeIds.isEmpty()) {
+            return
+        }
+
+        expiredEmployeeIds.forEach { employeeService.deleteEmployee(it) }
+        logger.info(
+            "Deleted {} unlinked employee(s) untouched since before {} ({} year(s) retention)",
+            expiredEmployeeIds.size,
+            cutoff,
+            retentionYears,
+        )
+    }
+}

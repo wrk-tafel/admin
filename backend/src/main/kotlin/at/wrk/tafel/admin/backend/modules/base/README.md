@@ -64,6 +64,12 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
   `UserRepository.findAccountsByEmployeeIds` for the linked accounts — one query per page, not one
   per row. Reaching `database/model/auth` straight from here is the ambient-lower-layer pattern
   described below, not a `base`→`auth` module dependency (there is no `auth` module).
+- `internal/EmployeeRetentionService`: GDPR gap G13
+  (`docs/architecture/gdpr-compliance.md`) — a nightly job that deletes an employee once it has no
+  linked user account and its row hasn't been written to in longer than
+  `tafeladmin.employeeDeletion.retentionYears` (7 years by default), through the same
+  `EmployeeService.deleteEmployee` a staff member's manual delete uses. Mirrors
+  `common/auth/components/UserRetentionService` for `users`, which has its own, shorter window.
 - **Backend consumer:** the `logistics` module (`FoodCollectionService`, `FoodCollectionsModel`),
   which declares `base::employee` in its `allowedDependencies` — this is a Spring Modulith
   named-interface dependency between backend modules, not the same thing as "who calls the REST

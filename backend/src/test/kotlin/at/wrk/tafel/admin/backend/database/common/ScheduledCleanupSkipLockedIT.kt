@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.common
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxEntity
 import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
@@ -11,6 +12,11 @@ import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
+import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -19,20 +25,23 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jdbc.core.JdbcTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
 /**
- * The six retention cleanups against a real database.
+ * The eight retention cleanups against a real database.
  *
  * Five of them are native `DELETE ... WHERE id IN (SELECT ... FOR UPDATE SKIP LOCKED)` statements,
  * which nothing else can check: a native query is parsed by Postgres the first time it runs, not
  * when the context starts, so a typo in one of them would surface as a failing nightly job in
- * production and nowhere earlier. The household one is a plain `SELECT ... FOR UPDATE SKIP LOCKED` -
- * it only claims candidate ids, since the actual deletion has to go through
- * `HouseholdService.deleteHouseholdByHouseholdId` for its cascades - but is exposed to exactly the
- * same class of bug. The mocked repositories of the services' unit tests cannot see any of this SQL.
+ * production and nowhere earlier. The household, user and employee ones are a plain
+ * `SELECT ... FOR UPDATE SKIP LOCKED` - they only claim candidate ids, since the actual deletion has
+ * to go through a service method for its cascades (`HouseholdService.deleteHouseholdByHouseholdId`,
+ * `TafelUserDetailsManager.deleteUser`, `EmployeeService.deleteEmployee`) - but are exposed to
+ * exactly the same class of bug. The mocked repositories of the services' unit tests cannot see any
+ * of this SQL.
  *
  * Every fixture is dated to the year 2000 and asserted by id, because these tables are shared by
  * every IT class in the run - and other classes' contexts keep their own pollers and cleanups going
@@ -47,6 +56,14 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
         val CUTOFF_DATE: LocalDate = LocalDate.of(2000, 6, 1)
         val STILL_RECENT_DATE: LocalDate = LocalDate.of(2000, 12, 1)
         val STILL_RECENT: LocalDateTime = LocalDateTime.of(2000, 12, 1, 0, 0)
+
+        /**
+         * Shared across every test method rather than an instance field - JUnit5 creates a fresh
+         * `ScheduledCleanupSkipLockedIT` instance per test method by default, so an instance field
+         * would restart at 0 for each one and collide on a uniquely-constrained fixture value (e.g.
+         * `employees.personnel_number`) between two different tests that both use `givenUser`.
+         */
+        var fixtureCounter = 0
     }
 
     @Autowired
@@ -68,9 +85,16 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
     private lateinit var householdRepository: HouseholdRepository
 
     @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Autowired
+    private lateinit var employeeRepository: EmployeeRepository
+
+    @Autowired
     private lateinit var dataSource: DataSource
 
-    private var fixtureCounter = 0
+    @Autowired
+    private lateinit var jdbcTemplate: JdbcTemplate
 
     @Test
     fun `sse outbox cleanup deletes what is past the cutoff and nothing else`() {
@@ -155,6 +179,63 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
         assertThat(candidates).containsExactly(expired)
         assertThat(candidates).doesNotContain(kept)
+    }
+
+    /**
+     * Only the candidate-selection query, not the actual deletion - see the household test above for
+     * why. Also proves `enabled = false` is required: an enabled account untouched just as long is
+     * never a candidate, regardless of `updated_at`.
+     *
+     * `contains`, not `containsExactly`: unlike `households`/`validUntil`, more than one test in this
+     * class plants a disabled, non-administrator account backdated to [LONG_AGO] (see the
+     * administrator-exclusion test below), so another test's leftover fixture can legitimately show
+     * up here too - what matters is that *this* one does, and the still-recent/enabled ones don't.
+     */
+    @Test
+    fun `user deletion candidates select disabled accounts untouched since before the cutoff`() {
+        val expired = givenUser(enabled = false, updatedAt = LONG_AGO)
+        val keptStillRecent = givenUser(enabled = false, updatedAt = STILL_RECENT)
+        val keptEnabled = givenUser(enabled = true, updatedAt = LONG_AGO)
+
+        val candidates = userRepository.findExpiredUserIdsSkipLocked(CUTOFF, UserPermissions.ADMINISTRATOR.key)
+
+        assertThat(candidates).contains(expired)
+        assertThat(candidates).doesNotContain(keptStillRecent, keptEnabled)
+    }
+
+    /**
+     * The one exclusion `enabled = false` alone doesn't cover: a disabled administrator is still
+     * never a candidate, unlike every other disabled account just as old - see
+     * `TafelAdminUserRetentionProperties`'s KDoc for why this job is stricter here than the manual
+     * "last administrator" safeguards in `UserController`. `contains`, not `containsExactly` - see
+     * the test above for why.
+     */
+    @Test
+    fun `user deletion candidates exclude a disabled administrator regardless of age`() {
+        val keptAdministrator = givenUser(enabled = false, updatedAt = LONG_AGO, administrator = true)
+        val expired = givenUser(enabled = false, updatedAt = LONG_AGO)
+
+        val candidates = userRepository.findExpiredUserIdsSkipLocked(CUTOFF, UserPermissions.ADMINISTRATOR.key)
+
+        assertThat(candidates).contains(expired)
+        assertThat(candidates).doesNotContain(keptAdministrator)
+    }
+
+    /**
+     * Only the candidate-selection query, not the actual deletion - see the household test above for
+     * why. Also proves the linked-account exclusion: an employee an account still references is never
+     * a candidate, regardless of `updated_at`.
+     */
+    @Test
+    fun `employee deletion candidates select unlinked employees untouched since before the cutoff and nothing else`() {
+        val expired = givenEmployee(updatedAt = LONG_AGO)
+        val keptStillRecent = givenEmployee(updatedAt = STILL_RECENT)
+        val keptLinked = givenEmployee(updatedAt = LONG_AGO, linkedToUser = true)
+
+        val candidates = employeeRepository.findExpiredEmployeeIdsSkipLocked(CUTOFF)
+
+        assertThat(candidates).containsExactly(expired)
+        assertThat(candidates).doesNotContain(keptStillRecent, keptLinked)
     }
 
     /**
@@ -257,6 +338,59 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
             ),
         )
         return householdId
+    }
+
+    /**
+     * `updated_at` is Hibernate-generated (`@UpdateTimestamp`), so a value assigned on the entity
+     * before `save` is always overwritten with the real current time - it has to be backdated with a
+     * direct SQL update afterwards instead, same as [givenEmployee] below.
+     *
+     * The employee is built transient and saved through `UserEntity`'s own `PERSIST` cascade rather
+     * than saved separately first - handing `save` an already-persisted (and by then detached)
+     * `EmployeeEntity` throws `PersistentObjectException`, since a `PERSIST` cascade only ever
+     * applies to a still-transient association.
+     */
+    private fun givenUser(enabled: Boolean, updatedAt: LocalDateTime, administrator: Boolean = false): Long {
+        val number = fixtureCounter++
+        val newUser = UserEntity(
+            username = "cleanup-skip-locked-user-$number",
+            password = "irrelevant",
+            employee = EmployeeEntity(personnelNumber = "cleanup-skip-locked-user-$number", firstname = "first", lastname = "last"),
+            enabled = enabled,
+        )
+        if (administrator) {
+            newUser.authorities.add(UserAuthorityEntity(user = newUser, name = UserPermissions.ADMINISTRATOR.key))
+        }
+
+        val user = userRepository.save(newUser)
+        jdbcTemplate.update("UPDATE users SET updated_at = ? WHERE id = ?", updatedAt, user.id)
+        return user.id!!
+    }
+
+    /**
+     * [linkedToUser] adds a user account referencing the employee, so it is never a candidate - built
+     * together with the employee through `UserEntity`'s `PERSIST` cascade for the same reason
+     * [givenUser] above does.
+     */
+    private fun givenEmployee(updatedAt: LocalDateTime, linkedToUser: Boolean = false): Long {
+        val number = fixtureCounter++
+        val employeeId = if (linkedToUser) {
+            userRepository.save(
+                UserEntity(
+                    username = "cleanup-skip-locked-employee-$number",
+                    password = "irrelevant",
+                    employee = EmployeeEntity(personnelNumber = "cleanup-skip-locked-employee-$number", firstname = "first", lastname = "last"),
+                    enabled = true,
+                ),
+            ).employee.id!!
+        } else {
+            employeeRepository.save(
+                EmployeeEntity(personnelNumber = "cleanup-skip-locked-employee-$number", firstname = "first", lastname = "last"),
+            ).id!!
+        }
+
+        jdbcTemplate.update("UPDATE employees SET updated_at = ? WHERE id = ?", updatedAt, employeeId)
+        return employeeId
     }
 }
 
