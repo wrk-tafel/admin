@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
@@ -113,7 +114,7 @@ class AuditLogWriter(
             // every application write path runs in a transaction, so this means a new one doesn't.
             logger.warn(
                 "Dropping audit entry for {} {} - no active transaction synchronization",
-                entry.entityType,
+                sanitizeForLog(entry.entityType),
                 entry.entityId,
             )
             return
