@@ -63,6 +63,7 @@ class HouseholdExportService(
         private const val PDF_ENTRY_NAME = "datenexport.pdf"
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
         private const val PDF_STYLESHEET_PATH = "/pdf-templates/household-export/export-document.xsl"
+        private const val TABLE_CLOSE_TAG = "</table>\n"
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
 
@@ -250,7 +251,7 @@ class HouseholdExportService(
             append("<h2>Stammdaten</h2>\n")
             append("<table>\n")
             masterDataFields.forEach { append("<tr><td class=\"label\">${it.label.esc()}</td><td>${it.value.esc()}</td></tr>\n") }
-            append("</table>\n")
+            append(TABLE_CLOSE_TAG)
 
             append("<h2>Personen</h2>\n")
             appendPersonsTable(personRows)
@@ -287,7 +288,7 @@ class HouseholdExportService(
             append("<td>${person.excludeFromHousehold.esc()}</td>")
             append("</tr>\n")
         }
-        append("</table>\n")
+        append(TABLE_CLOSE_TAG)
     }
 
     private fun StringBuilder.appendNotesTable(noteRows: List<HouseholdExportNoteRow>) {
@@ -300,7 +301,7 @@ class HouseholdExportService(
         noteRows.forEach { note ->
             append("<tr><td>${note.timestamp.esc()}</td><td>${note.author.esc()}</td><td>${note.note.esc()}</td></tr>\n")
         }
-        append("</table>\n")
+        append(TABLE_CLOSE_TAG)
     }
 
     private fun StringBuilder.appendAttendancesTable(attendanceRows: List<HouseholdExportAttendanceRow>) {
@@ -320,7 +321,7 @@ class HouseholdExportService(
             append("<td>${attendance.costContributionPaid.esc()}</td>")
             append("</tr>\n")
         }
-        append("</table>\n")
+        append(TABLE_CLOSE_TAG)
     }
 
     private fun StringBuilder.appendDocumentsTable(documentRows: List<HouseholdExportDocumentRow>) {
@@ -333,7 +334,7 @@ class HouseholdExportService(
         documentRows.forEach { document ->
             append("<tr><td>${document.fileName.esc()}</td><td>${document.documentType.esc()}</td><td>${document.uploadedAt.esc()}</td></tr>\n")
         }
-        append("</table>\n")
+        append(TABLE_CLOSE_TAG)
     }
 
     private fun buildHouseholdPdf(
