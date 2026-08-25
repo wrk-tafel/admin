@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 describe('Global quick-open', () => {
 
   beforeEach(() => {
@@ -65,6 +67,19 @@ describe('Global quick-open', () => {
     // ArrowUp from the first entry returns to the input
     cy.focused().type('{uparrow}');
     cy.focused().should('have.attr', 'testid', 'quickOpenInput');
+  });
+
+  it('downloads the reference-less privacy notice template from the "Aktionen" section', () => {
+    openPaletteViaShortcut();
+    cy.byTestId('quickOpenInput').type('Datenschutz');
+    cy.byTestId('quickOpenDownloadPrivacyNoticeTemplate').click();
+
+    cy.byTestId('quick-open-dialog').should('not.exist');
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-vorlage.pdf');
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
   it('shows the no-customers state for a query matching nothing', () => {

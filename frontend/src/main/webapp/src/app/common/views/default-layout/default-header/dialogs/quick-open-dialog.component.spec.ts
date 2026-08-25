@@ -6,6 +6,7 @@ import {provideLocationMocks} from '@angular/common/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {MatDialogRef} from '@angular/material/dialog';
+import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {of} from 'rxjs';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 
@@ -14,6 +15,7 @@ import {ITafelNavData} from '../../navigation-menuItems';
 import {AuthenticationService} from '../../../../../common/security/authentication.service';
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
+import {FileHelperService} from '../../../../../common/util/file-helper.service';
 
 const SEARCH_DEBOUNCE_WAIT_MS = 300;
 
@@ -91,6 +93,7 @@ describe('flattenNavigationItems', () => {
 describe('QuickOpenDialogComponent', () => {
   let authenticationService: MockedObject<AuthenticationService>;
   let customerApiService: MockedObject<CustomerApiService>;
+  let fileHelperService: MockedObject<FileHelperService>;
   let dialogRef: MockedObject<MatDialogRef<QuickOpenDialogComponent>>;
   let router: Router;
 
@@ -128,7 +131,14 @@ describe('QuickOpenDialogComponent', () => {
         {
           provide: CustomerApiService,
           useValue: {
-            searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer')
+            searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer'),
+            generatePrivacyNoticeTemplate: vi.fn().mockName('CustomerApiService.generatePrivacyNoticeTemplate')
+          }
+        },
+        {
+          provide: FileHelperService,
+          useValue: {
+            downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
           }
         },
         {
@@ -142,6 +152,7 @@ describe('QuickOpenDialogComponent', () => {
 
     authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
+    fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
     dialogRef = TestBed.inject(MatDialogRef) as MockedObject<MatDialogRef<QuickOpenDialogComponent>>;
     router = TestBed.inject(Router);
   });
@@ -244,6 +255,51 @@ describe('QuickOpenDialogComponent', () => {
     expect(component.customerResults()).toBeNull();
   });
 
+  it('shows the privacy notice template action for an empty query', () => {
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.showPrivacyNoticeTemplateAction()).toBe(true);
+  });
+
+  it('filters the privacy notice template action out for a non-matching query', () => {
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('fahrzeuge');
+    fixture.detectChanges();
+
+    expect(component.showPrivacyNoticeTemplateAction()).toBe(false);
+  });
+
+  it('hides the privacy notice template action without the CUSTOMER permission', () => {
+    authenticationService.hasPermission.mockImplementation(permission => permission !== 'CUSTOMER');
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.showPrivacyNoticeTemplateAction()).toBe(false);
+  });
+
+  it('downloads the privacy notice template and closes the dialog', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-vorlage.pdf'}),
+      body: new Blob()
+    });
+    customerApiService.generatePrivacyNoticeTemplate.mockReturnValue(of(response));
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.downloadPrivacyNoticeTemplate();
+
+    expect(dialogRef.close).toHaveBeenCalled();
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-vorlage.pdf', response.body);
+  });
+
   it('announces the result counts for the screen reader status region', async () => {
     customerApiService.searchCustomer.mockReturnValue(searchResult([testCustomer]));
     const fixture = TestBed.createComponent(QuickOpenDialogComponent);
@@ -251,6 +307,7 @@ describe('QuickOpenDialogComponent', () => {
     const component = fixture.componentInstance;
 
     expect(component.resultAnnouncement()).not.toContain('Kunden');
+    expect(component.resultAnnouncement()).toContain('1 Aktion');
 
     component.query.set('Muster');
     fixture.detectChanges();
