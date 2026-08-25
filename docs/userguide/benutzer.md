@@ -56,12 +56,14 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 
 | Kategorie | Berechtigungen |
 |---|---|
-| Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kundenverwaltung, Scanner |
+| Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kunden-Dokumente, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
 | Verwaltung | Änderungsprotokoll, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
 
 Die Berechtigung **Änderungsprotokoll** gibt Einsicht in den Verlauf aller Änderungen – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Änderungsprotokoll](aenderungsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
+
+Die Berechtigung **Kunden-Dokumente** gibt Zugriff auf den Reiter "Dokumente" der Kunden-Detailseite (hochgeladene Ausweise, Einkommensnachweise und der Import aus dem Scanner-Ordner, siehe [Kunden](kunden.md)). Auch sie ist bewusst von "Kundenverwaltung" getrennt, da diese Dokumente zu den sensibelsten Daten im System gehören und nicht jede Person, die Kundendaten bearbeiten darf, sie auch einsehen muss. Ohne diese Berechtigung ist der Reiter auf der Kunden-Detailseite nicht sichtbar.
 
 Die Berechtigung **Administrator** ist eine Sonderrolle für jene Personen, die die Anwendung technisch betreuen: sie schließt automatisch **alle anderen Berechtigungen** mit ein, unabhängig davon, was sonst noch angehakt ist. In der Berechtigungsliste des Benutzers bleibt trotzdem nur "Administrator" markiert – die übrigen Berechtigungen ergeben sich erst bei der Anmeldung.
 

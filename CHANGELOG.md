@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Der Dokumente-Tab in der Kundenansicht (Ausweise, Einkommensnachweise) benötigt jetzt die eigene Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung; bestehende Benutzer:innen mit Kundenverwaltung erhalten die neue Berechtigung automatisch mit.
+
+## [1.12.0] - 2026-08-25
 - Beim Erfassen einer Notiz und beim Hochladen eines Dokuments erinnert jetzt ein Hinweis daran, nur für die Anspruchsprüfung notwendige Angaben zu erfassen - keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
 - Die Support-Anfrage weist jetzt im Dialog selbst darauf hin, bei einem Kundenanliegen die Kundennummer statt des Namens zu verwenden und die Kundenseite vor dem Öffnen zu verlassen, falls deren Inhalt nicht als Screenshot mitgeschickt werden soll.
 - Das Änderungsprotokoll erfasst jetzt zusätzlich zu Änderungen auch eine kleine, gezielte Auswahl an Zugriffen auf sensible Kundendaten: den Download eines Dokuments, das Ansehen einer Scanner-Datei sowie die Erstellung des Stammdatenblatts, des Ausweises oder der Kundenliste einer Ausgabe.
