@@ -182,6 +182,7 @@ data class IncomeCalculationDetails(
 enum class HouseholdPdfType {
     MASTERDATA,
     IDCARD,
+    PRIVACY_NOTICE,
 }
 
 @ExcludeFromTestCoverage

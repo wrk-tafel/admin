@@ -551,6 +551,11 @@ class HouseholdService(
                     filenamePrefix = "ausweis"
                     bytes = householdPdfService.generateIdCardPdf(household)
                 }
+
+                HouseholdPdfType.PRIVACY_NOTICE -> {
+                    filenamePrefix = "datenschutzerklaerung"
+                    bytes = householdPdfService.generatePrivacyNoticePdf(household)
+                }
             }
 
             val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }

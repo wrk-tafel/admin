@@ -33,6 +33,26 @@ class HouseholdPdfService(
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl")
     }
 
+    /**
+     * A printable sheet an operator hands the customer at intake to read and sign, filed outside the
+     * application - there is no stored consent field, this document is the whole record (GDPR G2,
+     * issue #3177). Unlike [createHouseholdPdfData], it carries only what the notice text needs - no
+     * income/employer/additional-persons data.
+     */
+    fun generatePrivacyNoticePdf(household: HouseholdEntity): ByteArray {
+        val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }
+        val logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
+
+        val data = PrivacyNoticePdfData(
+            logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+            logoBytes = logoBytes,
+            householdId = household.householdId,
+            fullName = listOfNotNull(mainPerson?.firstname, mainPerson?.lastname).joinToString(" ").ifBlank { "-" },
+            issuedAtDate = LocalDate.now().format(DATE_FORMATTER),
+        )
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
+    }
+
     private fun createHouseholdPdfData(household: HouseholdEntity): PdfData {
         val issuer = household.issuer?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" }
 

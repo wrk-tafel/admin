@@ -112,7 +112,10 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
-- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA` or `IDCARD`).
+- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD` or `PRIVACY_NOTICE` - the
+  latter a printable privacy-notice/consent sheet for the customer to sign at intake, GDPR G2/#3177;
+  its text is a placeholder until the operator supplies the real wording, see
+  `docs/architecture/gdpr-compliance.md`).
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
@@ -316,15 +319,24 @@ differently depending on the caller's role:
 - Supervisor with `force=true`: saved as-is (validity untouched), no error.
 
 ### `HouseholdPdfService` (`internal/masterdata`)
-Generates the household's PDFs (master data sheet or ID card) using
+Generates the household's PDFs (master data sheet, ID card or privacy-notice sheet) using
 `PDFService` (in `common/pdf`), which renders Apache FOP XSL-FO templates from
 `backend/src/main/resources/pdf-templates/customer-pdf/` (`masterdata-document.xsl`,
-`idcard-document.xsl` - note: still under a `customer-pdf`
+`idcard-document.xsl`, `privacy-notice-document.xsl` - note: still under a `customer-pdf`
 directory, matching the "customer" legacy naming). `Model.kt` in the same package defines the
 XML-serializable `PdfData`/`PdfCustomerData`/`PdfAddressData`/`PdfAdditionalPersonData`/
-`PdfIdCardData` tree that gets marshalled to XML and fed to the XSL-FO transform. The ID card also
-embeds a QR code (containing the household's `household_id`) generated in-process via the `qrcode`
-library, with the Tafel logo overlaid.
+`PdfIdCardData`/`PrivacyNoticePdfData` tree that gets marshalled to XML and fed to the XSL-FO
+transform. The ID card also embeds a QR code (containing the household's `household_id`) generated
+in-process via the `qrcode` library, with the Tafel logo overlaid.
+
+`generatePrivacyNoticePdf` carries only the household's id, main person's name and today's date -
+deliberately less than `PdfData`, since the notice sheet is a static text plus a signature line, not
+a data export. There is no stored consent field anywhere in the application: the printed, signed
+sheet handed to the customer at intake and filed outside the app is the whole record (GDPR G2,
+issue #3177). The notice text in `includes/privacy-notice.xsl` is a placeholder, clearly marked as
+such on the rendered page - it needs the operator's actual privacy-notice wording (legal basis,
+purposes, retention, contact) before going live, see `docs/architecture/gdpr-compliance.md` and
+issue #3185.
 
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,

@@ -106,3 +106,37 @@ data class PdfIdCardData(
         return result
     }
 }
+
+@JsonRootName("data")
+@ExcludeFromTestCoverage
+data class PrivacyNoticePdfData(
+    val logoContentType: String,
+    val logoBytes: ByteArray,
+    val householdId: Long,
+    val fullName: String,
+    val issuedAtDate: String,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PrivacyNoticePdfData
+
+        if (logoContentType != other.logoContentType) return false
+        if (!logoBytes.contentEquals(other.logoBytes)) return false
+        if (householdId != other.householdId) return false
+        if (fullName != other.fullName) return false
+        if (issuedAtDate != other.issuedAtDate) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = logoContentType.hashCode()
+        result = 31 * result + logoBytes.contentHashCode()
+        result = 31 * result + householdId.hashCode()
+        result = 31 * result + fullName.hashCode()
+        result = 31 * result + issuedAtDate.hashCode()
+        return result
+    }
+}

@@ -158,4 +158,27 @@ class HouseholdPdfServiceTest {
 
         document.close()
     }
+
+    @Test
+    fun `generate privacy notice pdf`() {
+        val pdfBytes = service.generatePrivacyNoticePdf(testHousehold)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "privacynotice-result.pdf"), pdfBytes)
+
+        val document: PDDocument = Loader.loadPDF(pdfBytes)
+        val pdfRenderer = PDFRenderer(document)
+
+        assertThat(document.numberOfPages).isEqualTo(1)
+
+        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/privacynotice-actual.png"))
+        ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "privacynotice-expected.png"))
+        val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
+        ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "privacynotice-actual.png"))
+
+        val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
+        comparisonResult.writeResultTo(File(comparisonResultDirectory, "privacynotice-diff.png"))
+
+        assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        document.close()
+    }
 }
