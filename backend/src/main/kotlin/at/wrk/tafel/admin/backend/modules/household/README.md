@@ -334,6 +334,18 @@ no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id`
 timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
 frontend needs the id as a stable list key.
 
+### `HouseholdRetentionService` (`internal`)
+GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
+deletes every household whose `validUntil` is further in the past than
+`tafeladmin.householdDeletion.retentionYears` (default 7 years), and everything attached to it -
+persons, notes, documents (rows and files on disk) and attendance history. Candidate ids are
+selected and locked with `FOR UPDATE SKIP LOCKED`
+(`HouseholdRepository.findExpiredHouseholdIdsSkipLocked`) inside the same transaction that then
+deletes each of them through `HouseholdService.deleteHouseholdByHouseholdId` - the same method a
+staff member's manual delete uses - so a second instance's run skips a household this one already
+claimed (ADR-0047) instead of racing it. `tafeladmin.householdDeletion.enabled` is a kill switch
+independent of the retention window. Modelled directly on `AuditRetentionService`.
+
 ## Gotchas / best practices
 
 1. **Never bypass `saveWithMainPerson`.** Any new code path that persists a `HouseholdEntity`

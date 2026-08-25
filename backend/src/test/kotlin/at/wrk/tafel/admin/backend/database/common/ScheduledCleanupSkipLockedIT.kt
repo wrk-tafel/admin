@@ -13,20 +13,26 @@ import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
 /**
- * The five retention cleanups against a real database.
+ * The six retention cleanups against a real database.
  *
- * Their deletes are native `DELETE ... WHERE id IN (SELECT ... FOR UPDATE SKIP LOCKED)`, which
- * nothing else can check: a native query is parsed by Postgres the first time it runs, not when the
- * context starts, so a typo in one of them would surface as a failing nightly job in production and
- * nowhere earlier. The mocked repositories of the services' unit tests cannot see the SQL at all.
+ * Five of them are native `DELETE ... WHERE id IN (SELECT ... FOR UPDATE SKIP LOCKED)` statements,
+ * which nothing else can check: a native query is parsed by Postgres the first time it runs, not
+ * when the context starts, so a typo in one of them would surface as a failing nightly job in
+ * production and nowhere earlier. The household one is a plain `SELECT ... FOR UPDATE SKIP LOCKED` -
+ * it only claims candidate ids, since the actual deletion has to go through
+ * `HouseholdService.deleteHouseholdByHouseholdId` for its cascades - but is exposed to exactly the
+ * same class of bug. The mocked repositories of the services' unit tests cannot see any of this SQL.
  *
  * Every fixture is dated to the year 2000 and asserted by id, because these tables are shared by
  * every IT class in the run - and other classes' contexts keep their own pollers and cleanups going
@@ -37,6 +43,9 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
     private companion object {
         val LONG_AGO: LocalDateTime = LocalDateTime.of(2000, 1, 1, 0, 0)
         val CUTOFF: LocalDateTime = LocalDateTime.of(2000, 6, 1, 0, 0)
+        val LONG_AGO_DATE: LocalDate = LocalDate.of(2000, 1, 1)
+        val CUTOFF_DATE: LocalDate = LocalDate.of(2000, 6, 1)
+        val STILL_RECENT_DATE: LocalDate = LocalDate.of(2000, 12, 1)
         val STILL_RECENT: LocalDateTime = LocalDateTime.of(2000, 12, 1, 0, 0)
     }
 
@@ -54,6 +63,9 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var scannerRegistrationRepository: ScannerRegistrationRepository
+
+    @Autowired
+    private lateinit var householdRepository: HouseholdRepository
 
     @Autowired
     private lateinit var dataSource: DataSource
@@ -125,6 +137,24 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
         assertThat(deleted).isEqualTo(1)
         assertThat(scannerRegistrationRepository.findById(expired)).isEmpty()
         assertThat(scannerRegistrationRepository.findById(kept)).isPresent()
+    }
+
+    /**
+     * Only the candidate-selection query, not the actual deletion - that happens through
+     * `HouseholdService.deleteHouseholdByHouseholdId` for its cascades, which is a service-layer
+     * concern the mocked `HouseholdRetentionServiceTest` already covers. This is the one place that
+     * proves the native `FOR UPDATE SKIP LOCKED` select itself is valid SQL and matches on `valid_until`
+     * the way `HouseholdRetentionService` expects.
+     */
+    @Test
+    fun `household deletion candidates select what is past the cutoff and nothing else`() {
+        val expired = givenHousehold(LONG_AGO_DATE)
+        val kept = givenHousehold(STILL_RECENT_DATE)
+
+        val candidates = householdRepository.findExpiredHouseholdIdsSkipLocked(CUTOFF_DATE)
+
+        assertThat(candidates).containsExactly(expired)
+        assertThat(candidates).doesNotContain(kept)
     }
 
     /**
@@ -215,7 +245,23 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
             scannerId = SCANNER_ID_BASE + registrationTime.year + registrationTime.monthValue,
         ),
     ).id!!
+
+    /** Returns the business `household_id`, since that is what the query under test selects. */
+    private fun givenHousehold(validUntil: LocalDate): Long {
+        val householdId = HOUSEHOLD_ID_BASE + fixtureCounter++
+        householdRepository.save(
+            HouseholdEntity(
+                householdId = householdId,
+                validUntil = validUntil,
+                locked = false,
+            ),
+        )
+        return householdId
+    }
 }
 
 /** Far above anything the scanner-registration tests hand out, so these fixtures collide with none of them. */
 private const val SCANNER_ID_BASE = 90000
+
+/** Far above `TestdataGenerator.generateRandomLong()`'s range, so these fixtures collide with none of them. */
+private const val HOUSEHOLD_ID_BASE = 90_000_000_000_000L
