@@ -168,7 +168,7 @@ export class CustomerDetailComponent {
   readonly hasAuditPermission = computed(() => this.authenticationService.hasPermission('AUDIT_LOG'));
 
   /** Which PDF is currently being generated, so the triggering print action can show a busy state. */
-  readonly printing = signal<'MASTERDATA' | 'IDCARD' | null>(null);
+  readonly printing = signal<'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE' | null>(null);
 
   readonly validityState = computed(() => computeCustomerValidityState(this.customerData()?.validUntil));
   readonly validityColor = computed(() => customerValidityStateColor(this.validityState()));
@@ -229,6 +229,16 @@ export class CustomerDetailComponent {
   printIdCard() {
     this.printing.set('IDCARD');
     this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD').subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.printing.set(null),
+      complete: () => this.printing.set(null)
+    });
+  }
+
+  /** Downloads the printable privacy-notice/consent sheet for the customer to sign at intake (GDPR G2). */
+  printPrivacyNotice() {
+    this.printing.set('PRIVACY_NOTICE');
+    this.customerApiService.generatePdf(this.customerData().id!, 'PRIVACY_NOTICE').subscribe({
       next: (response) => this.processPdfResponse(response),
       error: () => this.printing.set(null),
       complete: () => this.printing.set(null)

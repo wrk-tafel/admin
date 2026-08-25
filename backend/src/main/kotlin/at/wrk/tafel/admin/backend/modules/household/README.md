@@ -112,13 +112,23 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
-- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA` or `IDCARD`).
+- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD` or `PRIVACY_NOTICE` - the
+  latter a printable privacy-notice/consent sheet for the customer to sign at intake, GDPR G2/#3177;
+  see `docs/architecture/gdpr-compliance.md`).
+- `generatePrivacyNoticeTemplatePdf` (`GET /households/privacy-notice-template`, flat like
+  `/above-limit`/`/overview` below rather than nested under `/{householdId}`) streams the same
+  privacy-notice sheet with no household reference - reachable from the customer search screen, for
+  a walk-in before a case record exists.
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
 (paginated search with `HouseholdEntity.Specs` JPA specifications - one free-text `searchInput`
 matched against the trigger-maintained `search_text` column plus the postProcessing/
-cost-contribution/valid filters, see `SearchTextSpecs`), `getHouseholdsAboveLimit`,
+cost-contribution/valid/locked/`missingPrivacyNotice` filters, see `SearchTextSpecs`).
+`missingPrivacyNotice` (`HouseholdEntity.Specs.missingPrivacyNoticeDocument()`) is a `NOT EXISTS`
+subquery over `household_documents` for `documentType = PRIVACY_NOTICE` - it reads the same signal
+`DocumentType.PRIVACY_NOTICE` uploads write (GDPR G2, issue #3177), not a stored consent flag; there
+still is none. `getHouseholdsAboveLimit`,
 `getHouseholdsOverview`, `generatePdf`,
 `deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
@@ -316,15 +326,34 @@ differently depending on the caller's role:
 - Supervisor with `force=true`: saved as-is (validity untouched), no error.
 
 ### `HouseholdPdfService` (`internal/masterdata`)
-Generates the household's PDFs (master data sheet or ID card) using
+Generates the household's PDFs (master data sheet, ID card or privacy-notice sheet) using
 `PDFService` (in `common/pdf`), which renders Apache FOP XSL-FO templates from
 `backend/src/main/resources/pdf-templates/customer-pdf/` (`masterdata-document.xsl`,
-`idcard-document.xsl` - note: still under a `customer-pdf`
+`idcard-document.xsl`, `privacy-notice-document.xsl` - note: still under a `customer-pdf`
 directory, matching the "customer" legacy naming). `Model.kt` in the same package defines the
 XML-serializable `PdfData`/`PdfCustomerData`/`PdfAddressData`/`PdfAdditionalPersonData`/
-`PdfIdCardData` tree that gets marshalled to XML and fed to the XSL-FO transform. The ID card also
-embeds a QR code (containing the household's `household_id`) generated in-process via the `qrcode`
-library, with the Tafel logo overlaid.
+`PdfIdCardData`/`PrivacyNoticePdfData` tree that gets marshalled to XML and fed to the XSL-FO
+transform. The ID card also embeds a QR code (containing the household's `household_id`) generated
+in-process via the `qrcode` library, with the Tafel logo overlaid.
+
+`generatePrivacyNoticePdf` carries only the household's id, main person's name and today's date -
+deliberately less than `PdfData`, since the notice sheet is a static text plus a signature line, not
+a data export. There is no stored consent field anywhere in the application: the printed, signed
+sheet handed to the customer at intake and filed outside the app is the whole record (GDPR G2,
+issue #3177). The notice text in `includes/privacy-notice.xsl` - purpose, legal basis, retention,
+rights and contact - is written for this intake flow; controller identity, DPO contact and the
+rights/complaints wording come from the organisation's own published privacy notice (see the file's
+own header comment for the source and date checked), since that page has no section covering
+Team-Österreich-Tafel/aid-recipient data at all. See `docs/architecture/gdpr-compliance.md` and
+issue #3185.
+
+`generatePrivacyNoticeTemplatePdf` is the reference-less sibling: the same template with
+`householdId`/`fullName`/`issuedAtDate` all blank. `branding.xsl`'s shared `field-with-label`
+renders a blank value as a non-breaking space rather than nothing, so the "Name"/"Ort, Datum"/
+"Unterschrift" lines all keep the same height whether or not there is text above them - a genuinely
+empty `fo:block` collapses to zero height in FOP, which visibly misaligns the accent-rule
+"underline" next to fields that do have a value. `privacy-notice.xsl`'s subtitle ("Kundennummer …")
+is likewise omitted entirely, not shown blank, when `householdId` is empty.
 
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,
@@ -333,6 +362,18 @@ the authoring employee and a timestamp. Simple create/list (paginated, 5 per pag
 no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
 timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
 frontend needs the id as a stable list key.
+
+### `HouseholdRetentionService` (`internal`)
+GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
+deletes every household whose `validUntil` is further in the past than
+`tafeladmin.householdDeletion.retentionYears` (default 7 years), and everything attached to it -
+persons, notes, documents (rows and files on disk) and attendance history. Candidate ids are
+selected and locked with `FOR UPDATE SKIP LOCKED`
+(`HouseholdRepository.findExpiredHouseholdIdsSkipLocked`) inside the same transaction that then
+deletes each of them through `HouseholdService.deleteHouseholdByHouseholdId` - the same method a
+staff member's manual delete uses - so a second instance's run skips a household this one already
+claimed (ADR-0047) instead of racing it. `tafeladmin.householdDeletion.enabled` is a kill switch
+independent of the retention window. Modelled directly on `AuditRetentionService`.
 
 ## Gotchas / best practices
 

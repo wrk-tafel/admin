@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -52,4 +53,23 @@ interface HouseholdRepository :
      * baked into the query so the count stays testable with a fixed reference date.
      */
     fun countByLockedFalseAndValidUntilGreaterThanEqual(date: LocalDate): Int
+
+    /**
+     * Candidate ids for `HouseholdRetentionService` (GDPR gap G1) - the business `household_id` of
+     * every household whose `validUntil` is further in the past than the configured retention
+     * window, locked for the caller's transaction so a second instance's poll skips a household this
+     * one is already deleting rather than racing it (see ADR-0047). Native and set-based because
+     * `FOR UPDATE SKIP LOCKED` has no derived-query equivalent. Returns the business number rather
+     * than the JPA primary key since that is what `HouseholdService.deleteHouseholdByHouseholdId`
+     * takes.
+     */
+    @Query(
+        value = """
+            SELECT household_id FROM households
+            WHERE valid_until < :cutoff
+            FOR UPDATE SKIP LOCKED
+        """,
+        nativeQuery = true,
+    )
+    fun findExpiredHouseholdIdsSkipLocked(@Param("cutoff") cutoff: LocalDate): List<Long>
 }

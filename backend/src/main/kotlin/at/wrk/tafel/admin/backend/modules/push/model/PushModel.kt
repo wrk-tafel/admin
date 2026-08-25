@@ -100,6 +100,7 @@ enum class PushNotificationType {
     FOOD_COLLECTION_COMPLETED,
     USER_LOCKED_OUT,
     REPORT_MAIL_FAILED,
+    EXCESSIVE_READ_ACCESS,
 }
 
 @ExcludeFromTestCoverage

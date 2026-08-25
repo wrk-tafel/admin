@@ -20,11 +20,22 @@ describe('Customer Detail', () => {
   it('generate pdf and opens for download', () => {
     cy.visit('/kunden/detail/101');
     generateAndDownloadPdf('stammdaten-101-musterfrau-eva.pdf');
+
+    // Generating the Stammdatenblatt is one of the GDPR-sensitive reads recorded in the audit
+    // trail (issue #3180) - proven here against the real backend, not just a mocked unit test.
+    cy.byTestId('history-tab-label').click();
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
   });
 
   it('generate pdf and opens for download with less data from customer', () => {
     cy.visit('/kunden/detail/100');
     generateAndDownloadPdf('stammdaten-100-mustermann-max-single.pdf');
+  });
+
+  it('generate privacy notice pdf and opens for download', () => {
+    cy.visit('/kunden/detail/101');
+    generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');
   });
 
   it('edit customer', () => {
@@ -312,7 +323,7 @@ describe('Customer Detail', () => {
     });
   });
 
-  function generateAndDownloadPdf(expectedFilename: string) {
+  function generateAndDownloadPdf(expectedFilename: string, buttonTestId = 'printMasterdataButton') {
     cy.intercept('/api/households/*/generate-pdf**', request => {
       request.on('response', function (response) {
         expect(response.statusCode).is.lessThan(500);
@@ -320,7 +331,7 @@ describe('Customer Detail', () => {
     });
 
     cy.byTestId('printMenuButton').click();
-    cy.byTestId('printMasterdataButton').click();
+    cy.byTestId(buttonTestId).click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, expectedFilename);
@@ -353,6 +364,7 @@ describe('Customer Detail', () => {
 
         cy.byTestId('documents-tab-label').click();
         cy.byTestId('upload-document-panel').should('be.visible');
+        cy.byTestId('uploadDocumentHint').should('be.visible');
         cy.byTestId('documentTypeInput').click();
         cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
         cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
@@ -366,6 +378,13 @@ describe('Customer Detail', () => {
         cy.readFile(downloadedFilePath, 'binary', {timeout: 15000})
           .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(0));
 
+        // The download itself is one of the GDPR-sensitive reads recorded in the audit trail
+        // (issue #3180) - proven here against the real backend, not just a mocked unit test.
+        cy.byTestId('history-tab-label').click();
+        cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+        cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Dokument');
+        cy.byTestId('documents-tab-label').click();
+
         cy.byTestId('document-0-deleteButton').click();
         cy.byTestId('deletedocument-dialog').should('be.visible');
         cy.byTestId('deletedocument-dialog').within(() => {
@@ -373,6 +392,21 @@ describe('Customer Detail', () => {
         });
 
         cy.byTestId('upload-document-panel').should('be.visible');
+      });
+    });
+
+    it('uploads a signed privacy notice as its own document type', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PRIVACY_NOTICE').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-typeText').should('have.text', 'Datenschutzerklärung (unterschrieben)');
       });
     });
 
@@ -469,6 +503,31 @@ describe('Customer Detail', () => {
         // the panel's scanner list is live (SSE) and stays mounted (no dialog reopen needed)
         cy.byTestId('noScannerFiles', {timeout: 10000}).should('be.visible');
       });
+    });
+
+    it('records viewing a scanner file preview in the audit trail', () => {
+      cy.task('clearScannerInbox');
+      const scannerFileName = 'scan-e2e-preview-test.pdf';
+      cy.task('writeScannerFile', {fileName: scannerFileName, content: '%PDF-1.1 test content'});
+
+      cy.visit('/kunden/detail/100');
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('documentSourceScanner').click();
+
+      // The preview link opens in a new tab (target="_blank"), which Cypress cannot follow -
+      // requesting the exact href it points to exercises the same authenticated call a click would.
+      cy.byTestId('scannerFilePreview-' + scannerFileName, {timeout: 10000}).should('be.visible');
+      cy.byTestId('scannerFilePreview-' + scannerFileName).invoke('attr', 'href').then((href) => cy.request(href as string));
+
+      cy.visit('/aenderungsprotokoll');
+      cy.byTestId('audit-filter-entityType').click();
+      cy.get('mat-option').contains('Scanner-Datei').click();
+
+      cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Scanner-Datei');
+      // The scanner file's name is the business key here, shown without a "Nr." prefix and with no
+      // link (it belongs to no household or user screen).
+      cy.byTestId('audit-entry-0-businessKey').should('have.text', scannerFileName);
     });
 
     /**
@@ -980,6 +1039,7 @@ describe('Customer Detail', () => {
       cy.visit('/kunden/detail/103');
 
       cy.byTestId('addnote-button').click();
+      cy.byTestId('noteHint').should('be.visible');
       cy.checkDialogAccessibility();
       cy.byTestId('cancelButton').click();
 

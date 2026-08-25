@@ -431,10 +431,13 @@ class HouseholdControllerTest {
             householdService.getHouseholds(
                 any(),
                 testSearchResult.currentPage,
-                true,
-                true,
-                true,
-                true,
+                HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                ),
             )
         } returns testSearchResult
 
@@ -445,16 +448,20 @@ class HouseholdControllerTest {
             costContribution = true,
             valid = true,
             locked = true,
+            missingPrivacyNotice = true,
         )
 
         verify {
             householdService.getHouseholds(
                 searchInput = " muster ",
                 page = testSearchResult.currentPage,
-                postProcessing = true,
-                costContribution = true,
-                valid = true,
-                locked = true,
+                filters = HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                ),
             )
         }
         assertThat(response.items).hasSize(1)
@@ -470,7 +477,7 @@ class HouseholdControllerTest {
             pageSize = 10,
         )
         every {
-            householdService.getHouseholds(null, null, null, null, null)
+            householdService.getHouseholds(null, null, HouseholdSearchFilters())
         } returns testSearchResult
 
         val response = controller.getHouseholds()
@@ -479,9 +486,7 @@ class HouseholdControllerTest {
             householdService.getHouseholds(
                 searchInput = null,
                 page = null,
-                postProcessing = null,
-                costContribution = null,
-                valid = null,
+                filters = HouseholdSearchFilters(),
             )
         }
         assertThat(response.items).hasSize(1)
@@ -510,6 +515,26 @@ class HouseholdControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
 
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `generate privacy notice template pdf`() {
+        val testFilename = "datenschutzerklaerung-vorlage.pdf"
+        every { householdService.generatePrivacyNoticeTemplatePdf() } returns HouseholdPdfResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.generatePrivacyNoticeTemplatePdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
         assertThat(
             response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
         ).isEqualTo("inline; filename=$testFilename")

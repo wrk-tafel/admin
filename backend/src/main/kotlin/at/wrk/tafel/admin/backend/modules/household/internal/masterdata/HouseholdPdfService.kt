@@ -21,6 +21,7 @@ class HouseholdPdfService(
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
     }
 
     fun generateMasterdataPdf(household: HouseholdEntity): ByteArray {
@@ -31,6 +32,42 @@ class HouseholdPdfService(
     fun generateIdCardPdf(household: HouseholdEntity): ByteArray {
         val data = createHouseholdPdfData(household)
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl")
+    }
+
+    /**
+     * A printable sheet an operator hands the customer at intake to read and sign, filed outside the
+     * application - there is no stored consent field, this document is the whole record (GDPR G2,
+     * issue #3177). Unlike [createHouseholdPdfData], it carries only what the notice text needs - no
+     * income/employer/additional-persons data.
+     */
+    fun generatePrivacyNoticePdf(household: HouseholdEntity): ByteArray {
+        val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }
+
+        val data = PrivacyNoticePdfData(
+            logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+            logoBytes = loadLogoBytes(),
+            householdId = household.householdId.toString(),
+            fullName = listOfNotNull(mainPerson?.firstname, mainPerson?.lastname).joinToString(" ").ifBlank { "-" },
+            issuedAtDate = LocalDate.now().format(DATE_FORMATTER),
+        )
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
+    }
+
+    /**
+     * The blank counterpart to [generatePrivacyNoticePdf] - a template an operator can print and hand
+     * to a walk-in before a household even exists, with no household/name/date reference to fill in.
+     * Reached from the customer search screen, not customer-detail, since that is where staff stand
+     * before a case record exists.
+     */
+    fun generatePrivacyNoticeTemplatePdf(): ByteArray {
+        val data = PrivacyNoticePdfData(
+            logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+            logoBytes = loadLogoBytes(),
+            householdId = "",
+            fullName = "",
+            issuedAtDate = "",
+        )
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
     }
 
     private fun createHouseholdPdfData(household: HouseholdEntity): PdfData {
@@ -45,11 +82,9 @@ class HouseholdPdfService(
                 .filter { it.birthDate != null }
                 .count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
-        val logoBytes =
-            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-            logoBytes = logoBytes,
+            logoBytes = loadLogoBytes(),
             issuer = issuer,
             issuedAtDate = household.createdAt!!.format(DATE_FORMATTER),
             customer = PdfCustomerData(
@@ -104,14 +139,13 @@ class HouseholdPdfService(
         ?: "-"
 
     private fun generateQRCode(data: String): ByteArray {
-        val logoBytes =
-            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
-
         val qrCode = QRCode.ofSquares()
             .withErrorCorrectionLevel(ErrorCorrectionLevel.MEDIUM)
             .withInformationDensity(6)
-            .withLogo(logoBytes, 250, 119)
+            .withLogo(loadLogoBytes(), 250, 119)
             .build(data)
         return qrCode.renderToBytes()
     }
+
+    private fun loadLogoBytes(): ByteArray = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
 }

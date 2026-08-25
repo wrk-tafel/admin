@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.util.unit.DataSize
 import java.time.Duration
+import java.time.Period
 
 /**
  * Mutable, JavaBean-bound on purpose - that is what makes this application's configuration
@@ -38,6 +39,9 @@ class TafelAdminProperties {
     var checkin: TafelAdminCheckinProperties = TafelAdminCheckinProperties()
     var distribution: TafelAdminDistributionProperties = TafelAdminDistributionProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
+    var householdDeletion: TafelAdminHouseholdRetentionProperties = TafelAdminHouseholdRetentionProperties()
+    var userDeletion: TafelAdminUserRetentionProperties = TafelAdminUserRetentionProperties()
+    var employeeDeletion: TafelAdminEmployeeRetentionProperties = TafelAdminEmployeeRetentionProperties()
     var mail: TafelAdminMailProperties? = null
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
@@ -86,6 +90,150 @@ class TafelAdminFeaturesProperties {
 }
 
 /**
+ * GDPR gap G1 (`docs/architecture/gdpr-compliance.md`) - a household stays in the database in full,
+ * including its persons, notes, documents and attendance history, until an operator decides
+ * otherwise. `enabled` and `retentionYears` are read per use, so an operator can widen the window or
+ * switch the job off on a running deployment (`ConfigFileReloadService`).
+ *
+ * The window is measured from [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.validUntil],
+ * not from the last distribution attended - a household that was never eligible again after its
+ * `validUntil` passed has just as much a claim to being forgotten as one that also stopped attending.
+ * Deletion goes through [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.deleteHouseholdByHouseholdId],
+ * the same method a staff member's manual delete uses - which is also why documents and attendance
+ * history (`distributions_households`) don't get their own retention window: that method already
+ * cascades to persons and documents (removing the files on disk too) and the database cascades
+ * `household_notes` and `distributions_households` on the same delete, so master data, documents and
+ * attendance history age out together rather than needing three separate clocks. Per
+ * `docs/architecture/adr/0020-reports-are-frozen-snapshots.md`, the year-end statistics aggregates
+ * are snapshotted at close time and stay correct once the underlying `distributions_households` rows
+ * are gone - that ADR separately notes that some point-in-time exporters still read the live
+ * `distribution.households` relation rather than the snapshot, a pre-existing gap this feature
+ * neither causes nor fixes, but worth knowing before re-generating a historical export for a
+ * distribution whose households have since aged out.
+ *
+ * `tafeladmin.householdDeletion.cleanupCron` - when the retention job runs, default 06:00 daily - is
+ * deliberately *not* a field here, for the same reason as `tafeladmin.audit.cleanupCron`: `@Scheduled`
+ * fixes its expression at bean creation, so it is startup-only. It lives in `application.yml` as a
+ * plain placeholder. See `HouseholdRetentionService`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminHouseholdRetentionProperties {
+    /**
+     * Kill switch for the whole job, independent of [retentionYears] - if the deletion ever needs to
+     * be paused (e.g. while the operator is still deciding the right window, or after an incident),
+     * this turns it off without touching the number.
+     */
+    var enabled: Boolean = true
+
+    /**
+     * How many years past `validUntil` a household, and everything attached to it, is kept before
+     * automatic deletion. Defaults to 7 - the Austrian bookkeeping retention period (UGB/BAO Section
+     * 132) for records touching cost contributions - as a defensible floor even though the
+     * application itself does not yet record a legal basis per household (see gap G2). Raise or lower
+     * it per deployment; it is re-read per use, so a change takes effect without a restart. A value of
+     * 0 or less keeps every household instead of deleting them all.
+     */
+    var retentionYears: Long = 7
+}
+
+/**
+ * GDPR gap G13 (`docs/architecture/gdpr-compliance.md`) - mirrors [TafelAdminHouseholdRetentionProperties]
+ * (G1) for the other data subject who gets a login: a `users` row otherwise stays in the database,
+ * permissions and all, until an administrator opens it and presses delete. `enabled` and
+ * `retentionTime` are read per use, so an operator can widen the window or switch the job off on a
+ * running deployment (`ConfigFileReloadService`).
+ *
+ * The candidate measure is
+ * [at.wrk.tafel.admin.backend.database.model.auth.UserEntity.lastLogin] - the actual, direct signal
+ * for "is anyone still using this account", rather than an inferred proxy like `enabled` or
+ * `updatedAt`. An account that has never logged in at all (`lastLogin == null`) is measured from
+ * `createdAt` instead, so a long-forgotten never-used account still ages out rather than being
+ * permanently exempt. This applies regardless of `enabled` - a still-enabled account nobody has used
+ * in the configured window is exactly what this job is for.
+ *
+ * An account holding the `ADMINISTRATOR` permission is never a candidate, full stop - regardless of
+ * `enabled` or age. `UserController`'s manual safeguards only ever protect the *last* enabled
+ * administrator; this job is stricter and keeps that permission out of its reach entirely, since
+ * losing every administrator to an unattended nightly job is not a risk worth trading for a smaller
+ * database.
+ *
+ * Deletion goes through [at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager.deleteUser],
+ * the same method the manual `DELETE /api/users/{userId}` endpoint uses. That method leaves the
+ * linked `employees` row untouched by design - it is a shared record other modules reference
+ * independently (household issuer, household notes, food collection driver/co-driver) - so it gets
+ * its own clock, see [TafelAdminEmployeeRetentionProperties].
+ *
+ * `tafeladmin.userDeletion.cleanupCron` - default 06:15 daily, after `householdDeletion` at 06:00 -
+ * is deliberately *not* a field here, for the same reason as `householdDeletion.cleanupCron`:
+ * `@Scheduled` fixes its expression at bean creation, so it lives in `application.yml` as a plain
+ * placeholder. See `UserRetentionService`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminUserRetentionProperties {
+    /**
+     * Kill switch for the whole job, independent of [retentionTime].
+     */
+    var enabled: Boolean = true
+
+    /**
+     * How long an account is kept without a login (see the class KDoc for the `createdAt` fallback
+     * on an account that has never logged in). A [Period] rather than a [java.time.Duration] so a
+     * deployment can express it the way an operator actually thinks about it - `7y`, `18m`, `730d` -
+     * via Spring Boot's simple `Period` parsing (`y`/`m`/`w`/`d` suffixes); `Duration` has no year/month
+     * unit at all, since neither has a fixed length. Defaults to 7 years, the same floor as
+     * `householdDeletion.retentionYears` and [TafelAdminEmployeeRetentionProperties.retentionTime] -
+     * one unified retention window across the application rather than three separately reasoned ones,
+     * even though this one isn't itself tied to that bookkeeping period; widen or shorten it per
+     * deployment. A zero or negative period ([Period.isZero]/[Period.isNegative] - the latter true as
+     * soon as *any* field is negative, so don't mix positive and negative fields in one value) keeps
+     * every account instead of deleting them all. An account holding `ADMINISTRATOR` is never a
+     * candidate, regardless of this value.
+     */
+    var retentionTime: Period = Period.ofYears(7)
+}
+
+/**
+ * GDPR gap G13, the `employees` half - see [TafelAdminUserRetentionProperties] for `users`. An
+ * employee is a shared record other modules reference by a plain, non-cascading FK (household
+ * issuer, household notes, food collection driver/co-driver, route stop completion recorder) that
+ * already tolerates a missing employee by design (`EmployeeService.deleteEmployee`'s KDoc shows
+ * "Mitarbeiter gelöscht" wherever such a reference is displayed) - so this job deletes an employee
+ * the moment nothing still needs it kept, exactly like a manual delete already can, just triggered by
+ * age instead of a person pressing delete.
+ *
+ * An employee referenced anywhere - a linked user account included - is never a candidate; see
+ * `EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc for the full list of tables checked.
+ * This job is deliberately *stricter* here than a manual delete, which is allowed to blank a still-live
+ * reference (`ON DELETE SET NULL`) the moment a person chooses to: an unattended nightly job should
+ * never do that to a record that is itself well within its own retention window. The moment used is
+ * [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity.updatedAt].
+ *
+ * `tafeladmin.employeeDeletion.cleanupCron` - default 06:30 daily, after `userDeletion` at 06:15 so
+ * an employee whose only user account is deleted the same night is a candidate for the very next run
+ * rather than waiting an extra day - is a plain `application.yml` placeholder for the same
+ * startup-only reason as the others.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminEmployeeRetentionProperties {
+    /**
+     * Kill switch for the whole job, independent of [retentionTime].
+     */
+    var enabled: Boolean = true
+
+    /**
+     * How long an employee referenced by nothing else is kept before automatic deletion - a [Period]
+     * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 7 years, the
+     * same unified floor as `householdDeletion.retentionYears` and
+     * [TafelAdminUserRetentionProperties.retentionTime], even though an employee this job ever
+     * actually reaches is - by definition - not the issuer/driver/recorder of anything still on
+     * record, so no bookkeeping period specifically applies to it. A zero or negative period keeps
+     * every employee instead of deleting them all. An employee referenced anywhere is never a
+     * candidate, regardless of this value.
+     */
+    var retentionTime: Period = Period.ofYears(7)
+}
+
+/**
  * The audit trail (`audit_log`) - see ADR-0039.
  *
  * Both values are read per use, so an operator can widen the retention window or switch recording
@@ -119,6 +267,27 @@ class TafelAdminAuditProperties {
      * age out on this clock like everything else.
      */
     var retentionDays: Long = 30
+
+    var breachDetection: TafelAdminAuditBreachDetectionProperties = TafelAdminAuditBreachDetectionProperties()
+}
+
+/**
+ * GDPR gap G11's breach-detection threshold - see `ExcessiveReadAccessDetectionService`, which reads
+ * this per run so an operator can tune it on a running deployment without a restart.
+ *
+ * `tafeladmin.audit.breachDetectionCron` - how often the check runs, default hourly - is deliberately
+ * *not* a field here, for the same reason `cleanupCron` above isn't: `@Scheduled` fixes its expression
+ * at bean creation, so it lives in `application.yml` as a plain placeholder instead.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminAuditBreachDetectionProperties {
+    /**
+     * How many `READ` entries by one user within the trailing hour count as worth telling an
+     * administrator about. Deliberately a single fixed threshold rather than a learned baseline - an
+     * application this size has no "normal" to compare against, and a threshold nobody understands is
+     * one nobody trusts. Set to 0 (or less) to switch the check off entirely.
+     */
+    var readThreshold: Int = 20
 }
 
 /**

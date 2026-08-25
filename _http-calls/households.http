@@ -7,6 +7,9 @@ GET {{baseApiPath}}/households?searchInput=muster
 ### Search for households (fuzzy search combined with the filters)
 GET {{baseApiPath}}/households?searchInput=muster&valid=true&costContribution=true
 
+### Search for households with no PRIVACY_NOTICE document uploaded
+GET {{baseApiPath}}/households?missingPrivacyNotice=true
+
 ### Validate household
 POST {{baseApiPath}}/households/validate
 Content-Type: application/json
@@ -186,6 +189,14 @@ Content-Type: application/json
 
 ### Get idcard pdf
 GET {{baseApiPath}}/households/100/generate-pdf?type=IDCARD
+Content-Type: application/json
+
+### Get privacy notice pdf
+GET {{baseApiPath}}/households/100/generate-pdf?type=PRIVACY_NOTICE
+Content-Type: application/json
+
+### Get privacy notice pdf (blank template, no household reference)
+GET {{baseApiPath}}/households/privacy-notice-template
 Content-Type: application/json
 
 ### Get duplicates

@@ -171,10 +171,19 @@ tafeladmin:
   # actually used for - questioning a recent change - rather than by how long it might conceivably
   # be interesting. Raise it per deployment if a longer trail is genuinely needed; a value of 0 or
   # less keeps every entry instead of deleting them all.
+  #
+  # breachDetection.readThreshold - GDPR gap G11's threshold check (ExcessiveReadAccessDetectionService):
+  # more than this many READ entries by one user within the trailing hour notifies administrators via
+  # push. Read per use, so it can be tuned on a running deployment; 0 or less switches the check off.
+  # breachDetectionCron - how often that check runs, default hourly - is startup-only for the same
+  # reason cleanupCron is.
   audit:
     enabled: true
     retentionDays: 30
     cleanupCron: "0 0 5 * * *"
+    breachDetection:
+      readThreshold: 20
+    breachDetectionCron: "0 0 * * * *"
   # Check-in via handheld scanners. A scanner refreshes its registration while it is in use, so this
   # only has to outlast the gaps within a distribution day: long enough that a scanner switched off
   # over lunch keeps its id, short enough that ids of devices put away for good are handed out again.
@@ -194,6 +203,58 @@ tafeladmin:
   # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
   features:
     scannerFolderEnabled: true
+  # GDPR gap G1 (docs/architecture/gdpr-compliance.md) - deletes a household, and everything attached
+  # to it (persons, notes, documents on disk, attendance history), once its validUntil has been in the
+  # past for longer than retentionYears. Runs through the same HouseholdService.deleteHouseholdByHouseholdId
+  # a staff member's manual delete uses, so there is only the one retention window rather than a
+  # separate one per data class - see HouseholdRetentionService. `enabled` and `retentionYears` are
+  # read per use and take effect on a running deployment; `cleanupCron` does not, for the same reason
+  # as audit.cleanupCron above. 06:00 is a quiet slot after the audit/document-storage cleanups at
+  # 05:00, so a night's deletions do not overlap with each other's transactions.
+  #
+  # retentionYears defaults to 7, the Austrian bookkeeping retention period (UGB/BAO Section 132) for
+  # records touching cost contributions - a defensible floor, not a final answer; the actual period is
+  # the operator's call. A value of 0 or less keeps every household instead of deleting them all.
+  householdDeletion:
+    enabled: true
+    retentionYears: 7
+    cleanupCron: "0 0 6 * * *"
+  # GDPR gap G13 (docs/architecture/gdpr-compliance.md), the "users" half - mirrors householdDeletion
+  # above for staff accounts. Candidate accounts are measured by lastLogin (falling back to createdAt
+  # for an account that has never logged in), regardless of enabled - see
+  # TafelAdminUserRetentionProperties for why. An account holding ADMINISTRATOR is never a candidate,
+  # full stop, regardless of enabled or age. Deletion goes through TafelUserDetailsManager.deleteUser,
+  # the same method the manual DELETE /api/users/{userId} endpoint uses, which leaves the linked
+  # employees row untouched - see employeeDeletion below. `enabled`/`retentionTime` are read per use;
+  # `cleanupCron` is startup-only, for the same reason as householdDeletion.cleanupCron. 06:15 is a
+  # quiet slot after householdDeletion at 06:00.
+  #
+  # retentionTime is a Period (y/m/w/d suffixes, e.g. "7y", "18m", "730d" - unlike a Duration, which
+  # has no year/month unit at all) rather than a plain year count, so it can be expressed however an
+  # operator actually thinks about it. Defaults to 7y - unified with householdDeletion.retentionYears
+  # and employeeDeletion.retentionTime below as one consistent retention floor across the application,
+  # even though it isn't itself tied to householdDeletion's bookkeeping period; widen or shorten per
+  # deployment. A zero or negative period keeps every account instead of deleting them all.
+  userDeletion:
+    enabled: true
+    retentionTime: 7y
+    cleanupCron: "0 15 6 * * *"
+  # GDPR gap G13, the "employees" half - see userDeletion above. Deletes an employee once it is
+  # referenced by nothing else at all - not just no linked user account, also no household issuer, no
+  # household note author, no food collection driver/co-driver, no route stop completion recorder (see
+  # EmployeeRepository.findExpiredEmployeeIdsSkipLocked for the full list) - and its row hasn't been
+  # written to in longer than retentionTime, through the same EmployeeService.deleteEmployee a staff
+  # member's manual delete uses. 06:30 runs after userDeletion (06:15) so an employee whose only
+  # account is deleted the same night is already a candidate on the very next run.
+  #
+  # retentionTime defaults to 7y, the same unified floor as userDeletion.retentionTime and
+  # householdDeletion.retentionYears, even though an employee this job ever reaches is by definition
+  # not the issuer/driver/recorder of anything still on record, so no bookkeeping period specifically
+  # applies to it. A zero or negative period keeps every employee instead of deleting them all.
+  employeeDeletion:
+    enabled: true
+    retentionTime: 7y
+    cleanupCron: "0 30 6 * * *"
   # Watches the config files this application was started with - in production the operator-managed
   # /app/config/config.yml bind-mounted into the container - and re-binds tafeladmin.* whenever one
   # of them changes, so a setting can be flipped without restarting the container. See

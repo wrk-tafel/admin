@@ -4,10 +4,13 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lockedHousehold
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.missingPrivacyNoticeDocument
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.orderBySearchRelevance
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
@@ -58,6 +61,7 @@ class HouseholdService(
     private val distributionRepository: DistributionRepository,
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
+    private val auditLogWriter: AuditLogWriter,
 ) {
 
     companion object {
@@ -239,10 +243,7 @@ class HouseholdService(
     fun getHouseholds(
         searchInput: String? = null,
         page: Int?,
-        postProcessing: Boolean?,
-        costContribution: Boolean?,
-        valid: Boolean?,
-        locked: Boolean? = null,
+        filters: HouseholdSearchFilters = HouseholdSearchFilters(),
         pageSize: Int? = null,
     ): HouseholdSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
@@ -252,10 +253,11 @@ class HouseholdService(
             Specification.allOf(
                 listOf(
                     searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
-                    if (postProcessing != null) postProcessingNecessary() else null,
-                    if (costContribution != null) pendingCostContribution() else null,
-                    if (valid != null) validHousehold() else null,
-                    if (locked != null) lockedHousehold() else null,
+                    if (filters.postProcessing != null) postProcessingNecessary() else null,
+                    if (filters.costContribution != null) pendingCostContribution() else null,
+                    if (filters.valid != null) validHousehold() else null,
+                    if (filters.locked != null) lockedHousehold() else null,
+                    if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
                 ).mapNotNull { it },
             ),
         )
@@ -516,10 +518,25 @@ class HouseholdService(
         return if (!validUntil.isBefore(LocalDate.now())) "Gültig" else "Ungültig"
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Not read-only: Stammdatenblatt/ID card generation is one of the sensitive-handful reads
+     * recorded in `audit_log` (see issue #3180), and [AuditLogWriter.record]'s write only takes
+     * effect for a transaction that actually commits as one - see [AuditLogWriter]'s `beforeCommit`.
+     */
+    @Transactional
     fun generatePdf(householdId: Long, type: HouseholdPdfType): HouseholdPdfResult? {
         val household = householdRepository.findByHouseholdId(householdId)
         if (household != null) {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = "Household",
+                    entityId = household.id,
+                    businessKey = household.householdId.toString(),
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+
             val filenamePrefix: String
             val bytes: ByteArray
 
@@ -532,6 +549,11 @@ class HouseholdService(
                 HouseholdPdfType.IDCARD -> {
                     filenamePrefix = "ausweis"
                     bytes = householdPdfService.generateIdCardPdf(household)
+                }
+
+                HouseholdPdfType.PRIVACY_NOTICE -> {
+                    filenamePrefix = "datenschutzerklaerung"
+                    bytes = householdPdfService.generatePrivacyNoticePdf(household)
                 }
             }
 
@@ -553,6 +575,16 @@ class HouseholdService(
         }
         return null
     }
+
+    /**
+     * The blank counterpart to [generatePdf]'s `PRIVACY_NOTICE` type - no household is read, so
+     * unlike that method this is neither `@Transactional` nor audit-logged: there is nothing here
+     * that is anyone's personal data.
+     */
+    fun generatePrivacyNoticeTemplatePdf(): HouseholdPdfResult = HouseholdPdfResult(
+        filename = "datenschutzerklaerung-vorlage.pdf",
+        bytes = householdPdfService.generatePrivacyNoticeTemplatePdf(),
+    )
 
     @Transactional
     fun deleteHouseholdByHouseholdId(householdId: Long) {
@@ -662,6 +694,20 @@ data class HouseholdSearchResult(
     val currentPage: Int,
     val totalPages: Int,
     val pageSize: Int,
+)
+
+/**
+ * The boolean filter chips on the customer search screen - bundled into one parameter object so
+ * [HouseholdService.getHouseholds] stays under SonarQube's parameter-count limit (kotlin:S107) as
+ * the filter list keeps growing. `null` on any field means "not applied", same as before.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdSearchFilters(
+    val postProcessing: Boolean? = null,
+    val costContribution: Boolean? = null,
+    val valid: Boolean? = null,
+    val locked: Boolean? = null,
+    val missingPrivacyNotice: Boolean? = null,
 )
 
 @ExcludeFromTestCoverage

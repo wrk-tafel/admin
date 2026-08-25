@@ -110,11 +110,14 @@
       }
     </button>
     <mat-menu #printMenu="matMenu">
-      <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">Nur
+      <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">
         Stammdaten
       </button>
-      <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">Nur
+      <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">
         Ausweis
+      </button>
+      <button mat-menu-item testid="printPrivacyNoticeButton" (click)="printPrivacyNotice()">
+        Datenschutzerklärung
       </button>
     </mat-menu>
 

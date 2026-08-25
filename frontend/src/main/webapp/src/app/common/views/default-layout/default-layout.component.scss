@@ -19,6 +19,19 @@ mat-sidenav {
   }
 }
 
+// Tailwind wraps a `hover:` utility in `@media (hover: hover)` by default, to avoid a tap leaving a
+// touchscreen element stuck looking "hovered". That media feature is meant to ask "does the
+// *primary* pointer support hovering", but on a fair number of real Windows laptops (touchscreen
+// present but a mouse/trackpad is what is actually being used) it evaluates to false anyway, and the
+// `hover:bg-[var(--tafel-sidenav-hover-background)]` utility this sidebar used to carry then never
+// applies at all - the sidebar shows no hover feedback for anyone on such a device, mouse or not.
+// An unconditional rule sidesteps that media check entirely; per the CSS cascade-layers spec (see
+// the `mat-sidenav` rule above) this unlayered declaration wins over Tailwind's layered one
+// regardless of which of them the browser would otherwise prefer.
+.tafel-sidenav-hoverable:hover {
+  background-color: var(--tafel-sidenav-hover-background);
+}
+
 // .mat-drawer-container (mat-sidenav-container) also sets its own unlayered
 // background-color: var(--mat-sidenav-content-background-color, --mat-sys-background), which otherwise
 // paints the whole content area (behind the header and router-outlet) in Material's default off-white

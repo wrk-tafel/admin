@@ -254,6 +254,41 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `missingPrivacyNoticeDocument matches only households with no PRIVACY_NOTICE document`() {
+        val tag = "Findme${generateRandomLong()}"
+        val withDocument = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = withDocument,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${withDocument.householdId}/signed.pdf",
+            ),
+        )
+        val withOtherDocument = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = withOtherDocument,
+                documentType = DocumentType.PROOF_OF_INCOME,
+                fileName = "income.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${withOtherDocument.householdId}/income.pdf",
+            ),
+        )
+        val withoutDocument = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.missingPrivacyNoticeDocument().and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id })
+            .contains(withOtherDocument.id, withoutDocument.id)
+            .doesNotContain(withDocument.id)
+    }
+
+    @Test
     fun `orderBySearchRelevance sorts the verbatim match before the merely similar one`() {
         val tag = distinctiveNumber()
         val fuzzyHit = persistHousehold(customizeMainPerson = { lastname = "Findmr$tag" })

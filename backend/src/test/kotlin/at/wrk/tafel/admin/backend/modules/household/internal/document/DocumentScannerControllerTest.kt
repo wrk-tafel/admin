@@ -1,9 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,6 +20,9 @@ internal class DocumentScannerControllerTest {
 
     @RelaxedMockK
     private lateinit var scannerFileService: ScannerFileService
+
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
 
     @InjectMockKs
     private lateinit var controller: DocumentScannerController
@@ -52,5 +60,13 @@ internal class DocumentScannerControllerTest {
         assertThat(response.headers.contentDisposition.filename).isEqualTo("scan1.png")
         assertThat(response.headers.contentDisposition.type).isEqualTo("inline")
         assertThat(response.headers.contentType?.toString()).isEqualTo("image/png")
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo(AuditScope.SCANNER_FILE_ENTITY_TYPE)
+        assertThat(entrySlot.captured.entityId).isNull()
+        assertThat(entrySlot.captured.businessKey).isEqualTo("scan1.png")
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
     }
 }

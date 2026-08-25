@@ -46,7 +46,8 @@ export enum PushNotificationType {
   ROUTE_AT_LAST_STOP = 'ROUTE_AT_LAST_STOP',
   FOOD_COLLECTION_COMPLETED = 'FOOD_COLLECTION_COMPLETED',
   USER_LOCKED_OUT = 'USER_LOCKED_OUT',
-  REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED'
+  REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED',
+  EXCESSIVE_READ_ACCESS = 'EXCESSIVE_READ_ACCESS'
 }
 
 export const pushNotificationTypeLabel: { [key in PushNotificationType]: string } = {
@@ -59,7 +60,8 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.ROUTE_AT_LAST_STOP]: 'Route beim letzten Stopp',
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Warenerfassung abgeschlossen',
   [PushNotificationType.USER_LOCKED_OUT]: 'Benutzer gesperrt',
-  [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet'
+  [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet',
+  [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ungewöhnlich viele Zugriffe'
 };
 
 /**
@@ -76,7 +78,8 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.ROUTE_AT_LAST_STOP]: 'Eine Route ist beim letzten Stopp und kommt bald zurück.',
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Für alle aktiven Routen wurden die Waren erfasst.',
   [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
-  [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine E-Mail konnte auch nach mehreren Versuchen nicht versendet werden.'
+  [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine E-Mail konnte auch nach mehreren Versuchen nicht versendet werden.',
+  [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ein Benutzer hat innerhalb einer Stunde mehr sensible Datensätze abgerufen als üblich.'
 };
 
 /**
@@ -121,7 +124,8 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
     title: 'Technisches',
     types: [
       PushNotificationType.REPORT_MAIL_FAILED,
-      PushNotificationType.USER_LOCKED_OUT
+      PushNotificationType.USER_LOCKED_OUT,
+      PushNotificationType.EXCESSIVE_READ_ACCESS
     ]
   }
 ];

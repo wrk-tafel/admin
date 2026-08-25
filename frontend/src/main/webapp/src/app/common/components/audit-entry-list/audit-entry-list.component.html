@@ -42,7 +42,9 @@
             </div>
           </div>
 
-          @if (entry.changes.length === 0) {
+          @if (entry.operation === 'READ') {
+            <!-- A read never changed anything - there is no diff to show, and none was recorded. -->
+          } @else if (entry.changes.length === 0) {
             <div class="text-slate-600" [attr.testid]="'audit-entry-' + i + '-nochanges'">Keine Feldänderungen erfasst</div>
           } @else {
             <!-- tabindex: the table scrolls sideways on a narrow screen, and a region that can only

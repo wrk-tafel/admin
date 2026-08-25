@@ -37,6 +37,23 @@ object AuditScope {
     const val USER_LOGIN_ENTITY_TYPE = "UserLogin"
 
     /**
+     * A scanner-folder file's content viewed before it is imported as a document - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentScannerController]. Not
+     * yet attached to a household at that point (import is what does that), so - unlike the "Document"
+     * type an imported/uploaded file is audited under afterwards - this has no household-scoped
+     * business key and, like [USER_LOGIN_ENTITY_TYPE], no [auditedEntities] map entry.
+     */
+    const val SCANNER_FILE_ENTITY_TYPE = "ScannerFile"
+
+    /**
+     * The Kundenliste PDF generated for the households assigned to a distribution - see
+     * [at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService.generateHouseholdListPdf].
+     * Spans every household in the distribution rather than one, so - like [SCANNER_FILE_ENTITY_TYPE] -
+     * it is neither household-scoped nor backed by an [auditedEntities] map entry.
+     */
+    const val DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE = "DistributionHouseholdList"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -114,7 +131,10 @@ object AuditScope {
     val householdScopedEntityTypes: Set<String> =
         auditedEntities.values.filter { it.householdScoped }.map { it.entityType }.toSet()
 
-    val allEntityTypes: List<String> = (auditedEntities.values.map { it.entityType } + USER_LOGIN_ENTITY_TYPE).sorted()
+    val allEntityTypes: List<String> = (
+        auditedEntities.values.map { it.entityType } +
+            listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE)
+        ).sorted()
 
     /**
      * Takes the *mapped* class (`EntityPersister.getMappedClass()`), never `entity.javaClass`: a

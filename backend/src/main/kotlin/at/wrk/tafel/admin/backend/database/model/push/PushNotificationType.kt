@@ -41,4 +41,11 @@ enum class PushNotificationType {
      * in `push_type_preferences`, so renaming it would silently opt every subscriber back out.
      */
     REPORT_MAIL_FAILED,
+
+    /**
+     * One user read more sensitive records (document downloads, PDF exports) than the configured
+     * threshold within the trailing hour - GDPR gap G11's breach-detection threshold, see
+     * `ExcessiveReadAccessDetectionService`.
+     */
+    EXCESSIVE_READ_ACCESS,
 }

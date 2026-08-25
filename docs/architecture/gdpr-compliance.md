@@ -20,13 +20,14 @@ Two things to be clear about before reading on:
 
 | Store | Whose | What | How long it stays |
 |---|---|---|---|
-| `households` | customers | address, phone, e-mail, validity, lock state and reason, pending cost contribution, single-parent flag | until someone deletes the household by hand |
-| `persons` | customers and every household member, children included | name, birth date, gender, nationality, employer, monthly income, family-allowance flag | same |
-| `household_notes` | customers | free text written by staff, no restriction on content | same |
-| `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same |
-| `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | forever — no cleanup exists |
+| `households` | customers | address, phone, e-mail, validity, lock state and reason, pending cost contribution, single-parent flag | until someone deletes the household by hand, or `validUntil` has been in the past for longer than `tafeladmin.householdDeletion.retentionYears` (`HouseholdRetentionService`, 7 years by default) |
+| `persons` | customers and every household member, children included | name, birth date, gender, nationality, employer, monthly income, family-allowance flag | same as `households` (cascades on delete) |
+| `household_notes` | customers | free text written by staff, no restriction on content | same as `households` (cascades on delete) |
+| `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
+| `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
-| `users`, `user_authorities`, `employees` | staff | username, Argon2 password hash, permissions, personnel number, name | until the account is deleted |
+| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 7 years by default) - never for an `ADMINISTRATOR` account, see G13 |
+| `employees` | staff | personnel number, name | until deleted by hand, or referenced by nothing else at all (no user account, household, note, food collection or route stop completion) and untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 7 years by default) - see G13 |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
@@ -96,49 +97,59 @@ Worth recording, because it is the part that does not need work:
 
 ## 4. Gaps
 
-Ordered by how exposed they leave the operator, not by how hard they are to fix. G12 is the one
+Ordered by how exposed they leave the operator, not by how hard they are to fix. G12 and G13 are the
 exception — appended after the original review rather than re-ranked into it, so the existing G1–G11
 numbering (and the issues already filed against it) stays stable.
 
-### G1 Nothing about a customer ever expires
+### G1 A household is now deleted once it has been expired long enough
 
 **Art. 5(1)(e), Art. 17(1)(a).** Personal data must be kept no longer than necessary, and must be
 erased once the purpose is gone.
 
-A household stays in the database in full — names, address, income, ID scans, every distribution it
-ever attended — until a member of staff opens it and presses delete. `valid_until` passing changes
-nothing; it only takes the household out of the eligible set. There is no retention setting, no
-scheduled job, and no screen that surfaces "these 300 households have been expired for four years".
-The only stores with a retention rule are the technical ones (audit, outbox, login attempts).
+`HouseholdRetentionService` runs nightly and deletes every household whose `valid_until` is further
+in the past than `tafeladmin.householdDeletion.retentionYears` (7 years by default — the Austrian
+bookkeeping retention period for records touching cost contributions, UGB/BAO Section 132, chosen
+as a defensible floor rather than a final legal-basis answer). Deletion goes through the same
+`HouseholdService.deleteHouseholdByHouseholdId` a staff member's manual delete uses, which cascades
+to persons and documents (removing the files on disk too) while the database cascades
+`household_notes` and `distributions_households` on the same delete — so master data, documents and
+attendance history are all one retention window rather than three, and the year-end statistics
+aggregates (frozen at distribution close, ADR-0020) are unaffected. `tafeladmin.householdDeletion.enabled`
+is a kill switch independent of the window, and both are read per use so an operator can change
+either on a running deployment.
 
-In practice this means the oldest personal data in the system is as old as the system, and nobody
-can say how much of it is still needed.
+What remains open: the window is a floor picked without a documented legal-basis decision (see G2),
+and there is no report of what the job is about to delete before it runs — an operator watching a
+database this old accumulate its first deletions has only the job's log line
+(`Deleted N household(s)...`) to go on.
 
-**Smallest useful step:** decide a retention period per data class with the operator (master data,
-documents, attendance history are three different answers), then add the cleanup the way
-`AuditRetentionService` is built — a configurable window, a nightly job, and a log line. A report of
-what *would* be deleted, shipped before the deletion itself, is the cheap way to make the first run
-safe.
-
-### G2 There is no privacy notice and no record of a legal basis
+### G2 A privacy notice now exists as a printable consent form, signed on paper
 
 **Art. 13, Art. 5(1)(a), Art. 30(1).** Data subjects must be informed at collection; the controller
 must be able to state the legal basis for each processing.
 
-Nothing in the repository mentions Datenschutz, DSGVO or consent — not in the UI, not on the
-Stammdatenblatt the customer receives, not in the user guide. `HouseholdEntity` has no field
-recording a legal basis, a consent, its date, or its withdrawal. When a customer asks "what did I
-agree to and when", the application cannot answer, and staff have nothing to hand out.
+`pdf-templates/customer-pdf/includes/privacy-notice.xsl` (issue #3177) renders a "Datenschutzerklärung
+und Einwilligung" sheet covering what is collected, the legal basis (Einwilligung, Art. 6(1)(a)),
+retention (matching `HouseholdRetentionService`'s actual 7-year window), data-subject rights and a
+complaints/contact address — with a signature line. It is downloadable per household from
+customer-detail's "Daten ausdrucken" menu, and reference-less (no household to sign yet) from the
+customer search screen and the global quick search (Strg+K), for a walk-in before a case record
+exists. The operator settled on consent as the basis: the signed sheet is handed to the customer at
+intake, and its upload back into that household's documents (`DocumentType.PRIVACY_NOTICE`) is the
+whole record — there is deliberately no stored consent field anywhere in the application, so there
+is nothing to go stale when a consent is withdrawn or a form is never returned. The customer search
+screen's "Datenschutzerklärung fehlt" filter surfaces exactly that: households with no such document
+uploaded.
 
-Whether *consent* is even the right basis here is the operator's call — for a food bank, Art. 6(1)(e)
-or (f) with a documented legitimate-interest assessment is often the better fit, and consent is
-awkward precisely because refusing it would cost the person the aid. Either way the application
-currently records nothing.
+Controller identity, DPO contact and the rights/complaints wording are taken from the organisation's
+own published privacy notice; the purpose, legal-basis and retention paragraphs are written
+specifically for this intake flow, since that page has no section covering Team-Österreich-
+Tafel/aid-recipient data at all (see the template file's own header comment for the source and date
+checked).
 
-**Smallest useful step:** get the notice text from the operator, print it on the Stammdatenblatt
-(`pdf-templates/customer-pdf/masterdata-document.xsl`) and link it in the shell. Only add a stored
-consent field if the operator settles on consent as the basis — a field nobody maintains is worse
-than none.
+What remains open: this was drafted against the organisation's public website text rather than
+routed through a documented legal/DPO sign-off process, and nothing in the application tracks
+*whether* that sign-off happened — see issue #3185.
 
 ### G3 The support form mails free text that can name a customer
 
@@ -320,6 +331,50 @@ the customer side.
 together with G5 as one shared plan. Tracked in
 [#3363](https://github.com/wrk-tafel/admin/issues/3363).
 
+### G13 A system user or employee account now expires too, mirroring G1
+
+**Art. 5(1)(e), Art. 17(1)(a).** Same obligation as G1, for the other data subject who gets a login:
+personal data must be kept no longer than necessary, and must be erased once the purpose is gone. A
+`users` row - and the `employees` row behind it - otherwise stayed in the database, permissions and
+all, until an administrator opened it and pressed delete; nothing expired it on its own the way G1's
+`HouseholdRetentionService` now does for a household.
+
+Unlike a household, neither entity has a field that encodes "no longer relevant" the way
+`validUntil` does, which is why this needed its own decision rather than reusing G1's job outright:
+
+- **`users`** (`UserRetentionService`) treats `lastLogin` as the trigger, directly, rather than an
+  inferred proxy - falling back to `createdAt` for an account that has never logged in at all, so a
+  forgotten never-used account still ages out. This applies regardless of `enabled`: a still-enabled
+  account nobody has used in the window is exactly what this job is for. **An `ADMINISTRATOR` account
+  is never a candidate, full stop, regardless of `enabled` or age** - stricter than `UserController`'s
+  manual safeguards, which only ever protect the *last* enabled one. Deletion goes through
+  `TafelUserDetailsManager.deleteUser`, the same method the manual `DELETE /api/users/{userId}`
+  endpoint uses, and defaults to 7 years - unified with `householdDeletion.retentionYears` and
+  `employeeDeletion.retentionTime` as one consistent retention floor across the application, even
+  though unlike `householdDeletion.retentionYears` (a bookkeeping-law period) there is no single
+  statute this particular window has to clear.
+- **`employees`** (`EmployeeRetentionService`) is deliberately a separate job: an employee is a shared
+  record other modules reference by a plain, non-cascading FK (household issuer, household notes, food
+  collection driver/co-driver, route stop completion recorder) that already tolerates a missing
+  employee by design - `EmployeeService.deleteEmployee` lets a staff member delete one by hand at any
+  time, showing "Mitarbeiter gelöscht" wherever such a reference is displayed, and only refuses when a
+  user account is still linked. This job is *stricter* than that manual delete: it only ever considers
+  an employee referenced by **nothing** - not just no linked user account, but none of `households`,
+  `household_notes`, `food_collections` (driver or co-driver) or `routes_stops_completions` either -
+  since silently blanking a reference on a record that is itself well within its own retention window
+  would erase part of a still-live case file rather than an abandoned one. Measured from `updated_at`,
+  defaulting to 7 years - the same unified floor as `userDeletion.retentionTime` and
+  `householdDeletion.retentionYears`, even though an employee this job ever actually reaches is, by
+  definition, not the issuer/driver/recorder of anything still on record, so no bookkeeping period
+  specifically applies to it.
+
+Both jobs are configurable and switchable per deployment
+(`tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*`, read per use), run nightly after
+`HouseholdRetentionService` (06:00) at 06:15/06:30, and claim their candidates with `FOR UPDATE SKIP
+LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both windows are floors picked
+without a documented legal-basis decision (see G2), and there is no report of what either job is about
+to delete before it runs.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -365,15 +420,16 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 1 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | [#3174](https://github.com/wrk-tafel/admin/issues/3174) | hours | rotation + retention in `application.yml` |
 | 2 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | [#3175](https://github.com/wrk-tafel/admin/issues/3175) | hours | a visible rule at the note field, upload dialog and user guide |
 | 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | hours | a line in the dialog, plus retention on the support mailbox |
-| 4 | [G2](#g2-there-is-no-privacy-notice-and-no-record-of-a-legal-basis) no privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | days, mostly the operator's | notice text on the Stammdatenblatt and in the shell |
-| 5 | [G1](#g1-nothing-about-a-customer-ever-expires) no retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | days, needs a decision first | agree the periods, then a nightly job modelled on `AuditRetentionService` |
+| 4 | [G2](#g2-a-privacy-notice-now-exists-as-a-printable-consent-form-signed-on-paper) privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | done | printable consent form, per-household and reference-less |
+| 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | days | one endpoint returning the full household record + documents |
 | 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
 | 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3181](https://github.com/wrk-tafel/admin/issues/3181), [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
 | 9 | [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
+| 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 
-G3, G9 and G4 are worth doing regardless of what the operator decides. Everything from G2 downwards
-depends on answers that come from outside this repository — which makes
+G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1 and G13 are done. Of
+what remains, most depends on answers that come from outside this repository — which makes
 [§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G5 and G12 are
 the exception to that dependency: both are answerable from inside the repository today, and
 [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) is a concrete design for both.

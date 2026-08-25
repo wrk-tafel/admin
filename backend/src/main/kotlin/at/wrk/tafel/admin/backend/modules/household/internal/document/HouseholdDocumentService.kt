@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.household.internal.document
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
@@ -27,6 +29,7 @@ class HouseholdDocumentService(
     private val scannerFileService: ScannerFileService,
     private val documentScannerWatcherService: DocumentScannerWatcherService,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val auditLogWriter: AuditLogWriter,
 ) {
 
     companion object {
@@ -120,10 +123,26 @@ class HouseholdDocumentService(
     @Transactional(readOnly = true)
     fun getDocuments(householdId: Long): List<DocumentItem> = documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(householdId).map { mapToItem(it) }
 
-    @Transactional(readOnly = true)
+    /**
+     * Not read-only: a download is one of the sensitive-handful reads recorded in `audit_log` (see
+     * issue #3180), and [AuditLogWriter.record]'s write only takes effect for a transaction that
+     * actually commits as one - see [AuditLogWriter]'s `beforeCommit`.
+     */
+    @Transactional
     fun getDocumentFile(householdId: Long, documentId: Long): DocumentFileResult {
         val document = findDocument(householdId, documentId)
         val bytes = documentStorageService.read(document.storagePath)
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = "Document",
+                entityId = document.id,
+                businessKey = document.household.householdId.toString(),
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+
         return DocumentFileResult(
             fileName = document.fileName,
             contentType = document.contentType,
@@ -183,6 +202,7 @@ class HouseholdDocumentService(
     private fun germanLabel(documentType: DocumentType): String = when (documentType) {
         DocumentType.PROOF_OF_INCOME -> "Einkommensnachweis"
         DocumentType.ID -> "Ausweis"
+        DocumentType.PRIVACY_NOTICE -> "Datenschutzerklaerung"
         DocumentType.OTHER -> "Sonstiges"
     }
 
