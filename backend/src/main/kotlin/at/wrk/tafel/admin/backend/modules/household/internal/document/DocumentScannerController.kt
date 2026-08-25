@@ -17,7 +17,7 @@ import java.io.ByteArrayInputStream
 
 @RestController
 @RequestMapping("/api/document-scanner-files")
-@PreAuthorize("hasAuthority('CUSTOMER')")
+@PreAuthorize("hasAuthority('CUSTOMER_DOCUMENTS')")
 class DocumentScannerController(
     private val scannerFileService: ScannerFileService,
     private val auditLogWriter: AuditLogWriter,

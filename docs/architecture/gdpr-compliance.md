@@ -229,24 +229,30 @@ handful (document download, Stammdatenblatt/Kundenliste generation) would not.
 document download and the two PDF endpoints. The retention window and the existing
 Änderungsprotokoll screen carry it from there.
 
-### G7 One permission grants every customer's complete file
+### G7 The documents tab now requires its own permission, separate from CUSTOMER
 
 **Art. 5(1)(c), Art. 32(1)(b).**
 
-`CUSTOMER` is a single flag, and it grants read and write on every household, every note, every
+`CUSTOMER` used to be a single flag granting read and write on every household, every note, every
 income figure and every uploaded ID scan — `HouseholdNoteController`, `HouseholdDocumentController`
-and `DocumentScannerController` require it once at class level, `HouseholdController` on each of its
-methods that isn't behind one of the narrower customer permissions. Check-in staff who only need
-to confirm that a number is valid hold the same access as the person doing the income assessment.
-`ADMINISTRATOR` expands to everything by design.
+and `DocumentScannerController` required it once at class level, `HouseholdController` on each of
+its methods that isn't behind one of the narrower customer permissions. Check-in staff who only
+need to confirm that a number is valid held the same access as the person doing the income
+assessment. `ADMINISTRATOR` still expands to everything by design.
 
-This may well be proportionate for a team of this size — but it is a decision nobody has recorded,
-and combined with [G6](#g6-read-access-to-a-case-file-is-not-recorded) there is neither a limit nor a
-trace.
+`HouseholdDocumentController` and `DocumentScannerController` — the ID scans, proofs of income and
+the not-yet-imported scanner-folder files behind them, the most sensitive artefacts the application
+stores — now require a separate `CUSTOMER_DOCUMENTS` permission instead (`UserPermissions.kt`), and
+the customer detail screen's "Dokumente" tab is hidden without it, the same pattern the "Verlauf"
+tab already used for `AUDIT_LOG`. See [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md)
+for the full decision and its consequences, and issue #3181.
 
-**Smallest useful step:** write down who holds `CUSTOMER` today and why, then decide whether the
-documents tab in particular deserves its own permission. That one split is cheap and covers the most
-sensitive artefacts in the system.
+What remains open: `HouseholdController`'s own endpoints (household master data, income, cost
+contribution) are still behind the single broader `CUSTOMER`, and — unchanged by this — nobody has
+written down who holds `CUSTOMER` or `CUSTOMER_DOCUMENTS` today and why; that write-up is the
+operator's, tracked with the rest of [§6](#6-what-this-repository-cannot-answer) in #3185. Combined
+with [G6](#g6-read-access-to-a-case-file-is-not-recorded), there is still no trace of who actually
+read a given case file, only a limit on who could.
 
 ### G8 Documents and database rows are stored unencrypted by the application
 
@@ -427,12 +433,13 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
 | 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
-| 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3181](https://github.com/wrk-tafel/admin/issues/3181), [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
+| 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
 | 9 | [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
+| 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
 
-G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1, G13 and G5 are done. Of
-what remains, most depends on answers that come from outside this repository — which makes
+G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1, G13, G5 and G7 are
+done. Of what remains, most depends on answers that come from outside this repository — which makes
 [§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G12 is the
 exception to that dependency: it is answerable from inside the repository today, and
 [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) — written for G5 and G12 together — is a

@@ -668,6 +668,21 @@ describe('Customer Detail', () => {
         });
       });
     });
+
+    it('hides the tab from a user without the CUSTOMER_DOCUMENTS permission', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+
+        // e2etest2 holds CUSTOMER and nothing else, so it can open the customer but must not see
+        // its ID scans / proofs of income - those are a separate, narrower level of access
+        // (GDPR G7, issue #3181).
+        cy.loginE2ETest2();
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('customerIdText').should('have.text', String(customerId));
+        cy.byTestId('documents-tab-label').should('not.exist');
+      });
+    });
   });
 
   describe('cost contribution debt', () => {

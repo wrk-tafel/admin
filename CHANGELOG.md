@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - In der Kundenansicht können unter "Weitere Aktionen" jetzt die vollständigen Kundendaten (Stammdaten, weitere Personen, Notizen, Teilnahme-Historie) als JSON-Datei sowie alle hochgeladenen Dokumente gesammelt als ZIP-Datei heruntergeladen werden, für die Beantwortung einer DSGVO-Auskunftsanfrage.
+- Der Dokumente-Tab in der Kundenansicht (Ausweise, Einkommensnachweise) benötigt jetzt die eigene Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung; bestehende Benutzer:innen mit Kundenverwaltung erhalten die neue Berechtigung automatisch mit.
 
 ## [1.12.0] - 2026-08-25
 - Beim Erfassen einer Notiz und beim Hochladen eines Dokuments erinnert jetzt ein Hinweis daran, nur für die Anspruchsprüfung notwendige Angaben zu erfassen - keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.

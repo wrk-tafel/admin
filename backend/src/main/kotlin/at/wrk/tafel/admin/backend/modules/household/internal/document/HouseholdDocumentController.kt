@@ -20,7 +20,7 @@ import java.io.ByteArrayInputStream
 
 @RestController
 @RequestMapping("/api/households/{householdId}/documents")
-@PreAuthorize("hasAuthority('CUSTOMER')")
+@PreAuthorize("hasAuthority('CUSTOMER_DOCUMENTS')")
 class HouseholdDocumentController(
     private val service: HouseholdDocumentService,
 ) {

@@ -83,6 +83,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2006, NOW(), NOW(), 200, 'CUSTOMERS_ABOVE_LIMIT');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2007, NOW(), NOW(), 200, 'CUSTOMERS_OVERVIEW');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2008, NOW(), NOW(), 200, 'CUSTOMER_DOCUMENTS');
 
 -- user: admin
 -- pwd: 12345
@@ -120,6 +122,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3013, NOW(), NOW(), 300, 'ADMINISTRATOR');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3014, NOW(), NOW(), 300, 'AUDIT_LOG');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3015, NOW(), NOW(), 300, 'CUSTOMER_DOCUMENTS');
 
 -- user: scanner1
 -- pwd: 12345
@@ -163,7 +167,8 @@ VALUES (700, NOW(), NOW(), 'checkin1',
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
 
--- user e2etest2 for cypress tests
+-- user e2etest2 for cypress tests - deliberately holds only CUSTOMER, nothing else, to exercise
+-- what a user is *not* shown (e.g. the audit "Verlauf" tab, the documents tab)
 -- pwd: e2etest
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
 VALUES (800, NOW(), NOW(), '0800', 'E2E', 'Test 2');

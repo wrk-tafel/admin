@@ -91,20 +91,21 @@ describe('User Create', () => {
       const personnelNumber = 'test-personnelNumber-' + userRandomId;
       fillUserForm(username, personnelNumber);
 
-      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 14 ausgewählt');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 15 ausgewählt');
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').should('contain.text', 'Alle auswählen').click();
 
       cy.byTestId('permission-checkbox-CHECKIN').find('input').should('be.checked');
       cy.byTestId('permission-checkbox-DISTRIBUTION_LCM').find('input').should('be.checked');
       cy.byTestId('permission-checkbox-CUSTOMER').find('input').should('be.checked');
+      cy.byTestId('permission-checkbox-CUSTOMER_DOCUMENTS').find('input').should('be.checked');
       cy.byTestId('permission-checkbox-SCANNER').find('input').should('be.checked');
-      cy.byTestId('permissionsSelectedCount').should('contain.text', '4 von 14 ausgewählt');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '5 von 15 ausgewählt');
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').should('contain.text', 'Alle abwählen');
 
       // toggling again deselects the whole group
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').click();
       cy.byTestId('permission-checkbox-CHECKIN').find('input').should('not.be.checked');
-      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 14 ausgewählt');
+      cy.byTestId('permissionsSelectedCount').should('contain.text', '0 von 15 ausgewählt');
 
       // re-select the group so the created user has permissions to verify on the detail page
       cy.byTestId('permission-group-toggle-Ausgabe & Betrieb').click();
@@ -115,6 +116,7 @@ describe('User Create', () => {
         cy.byTestId('permission-chip-CHECKIN').should('contain.text', 'Anmeldung');
         cy.byTestId('permission-chip-DISTRIBUTION_LCM').should('contain.text', 'Ausgabe-Ablauf');
         cy.byTestId('permission-chip-CUSTOMER').should('contain.text', 'Kundenverwaltung');
+        cy.byTestId('permission-chip-CUSTOMER_DOCUMENTS').should('contain.text', 'Kunden-Dokumente');
         cy.byTestId('permission-chip-SCANNER').should('contain.text', 'Scanner');
       });
     });

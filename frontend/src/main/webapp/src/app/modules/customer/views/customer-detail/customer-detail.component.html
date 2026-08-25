@@ -438,54 +438,59 @@
           }
         </div>
       </mat-tab>
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
-        </ng-template>
-        <div>
-          <div [class]="(customerDocuments()?.length ?? 0) === 0
-            ? 'flex justify-center'
-            : 'grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4'">
-            @if ((customerDocuments()?.length ?? 0) > 0) {
-              <div>
-                <div class="grid grid-cols-1 gap-2">
-                  @for (doc of customerDocuments(); track doc.id; let i = $index) {
-                    <mat-card>
-                      <mat-card-content class="!flex !flex-col md:!flex-row md:!items-center !justify-between gap-2 !py-2">
-                        <div class="min-w-0">
-                          <div class="font-bold truncate" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
-                          <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
-                          <div [attr.testid]="'document-' + i + '-metaText'" class="flex flex-col md:flex-row md:gap-2">
-                            <span [attr.testid]="'document-' + i + '-metaText-date'">{{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm:ss' }}</span>
-                            @if (doc.uploadedBy) {
-                              <span [attr.testid]="'document-' + i + '-metaText-user'">{{ doc.uploadedBy }}</span>
-                            }
+      <!-- The documents tab holds the most sensitive artefacts on a household (ID scans, proofs of
+           income) - separate permission from the rest of this screen on purpose (GDPR G7,
+           issue #3181). -->
+      @if (hasDocumentsPermission()) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
+          </ng-template>
+          <div>
+            <div [class]="(customerDocuments()?.length ?? 0) === 0
+              ? 'flex justify-center'
+              : 'grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4'">
+              @if ((customerDocuments()?.length ?? 0) > 0) {
+                <div>
+                  <div class="grid grid-cols-1 gap-2">
+                    @for (doc of customerDocuments(); track doc.id; let i = $index) {
+                      <mat-card>
+                        <mat-card-content class="!flex !flex-col md:!flex-row md:!items-center !justify-between gap-2 !py-2">
+                          <div class="min-w-0">
+                            <div class="font-bold truncate" [attr.testid]="'document-' + i + '-fileNameText'">{{ doc.fileName }}</div>
+                            <div [attr.testid]="'document-' + i + '-typeText'">{{ documentTypeLabel[doc.documentType] }}</div>
+                            <div [attr.testid]="'document-' + i + '-metaText'" class="flex flex-col md:flex-row md:gap-2">
+                              <span [attr.testid]="'document-' + i + '-metaText-date'">{{ doc.uploadedAt | date : 'dd.MM.yyyy HH:mm:ss' }}</span>
+                              @if (doc.uploadedBy) {
+                                <span [attr.testid]="'document-' + i + '-metaText-user'">{{ doc.uploadedBy }}</span>
+                              }
+                            </div>
                           </div>
-                        </div>
-                        <div class="flex gap-2 shrink-0 justify-end">
-                          <!-- the file name belongs in the name: these are cards, so there is no row
-                               context that would tell one card's buttons from the next one's -->
-                          <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
-                                  matTooltip="Dokument herunterladen" [attr.aria-label]="'Dokument ' + doc.fileName + ' herunterladen'">
-                            <mat-icon svgIcon="download"></mat-icon>
-                          </button>
-                          <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
-                                  matTooltip="Dokument löschen" [attr.aria-label]="'Dokument ' + doc.fileName + ' löschen'">
-                            <mat-icon svgIcon="delete"></mat-icon>
-                          </button>
-                        </div>
-                      </mat-card-content>
-                    </mat-card>
-                  }
+                          <div class="flex gap-2 shrink-0 justify-end">
+                            <!-- the file name belongs in the name: these are cards, so there is no row
+                                 context that would tell one card's buttons from the next one's -->
+                            <button type="button" [attr.testid]="'document-' + i + '-downloadButton'" matButton="filled" (click)="downloadDocument(doc)"
+                                    matTooltip="Dokument herunterladen" [attr.aria-label]="'Dokument ' + doc.fileName + ' herunterladen'">
+                              <mat-icon svgIcon="download"></mat-icon>
+                            </button>
+                            <button type="button" [attr.testid]="'document-' + i + '-deleteButton'" matButton="filled" class="button-danger" (click)="openDeleteDocumentDialog(doc)"
+                                    matTooltip="Dokument löschen" [attr.aria-label]="'Dokument ' + doc.fileName + ' löschen'">
+                              <mat-icon svgIcon="delete"></mat-icon>
+                            </button>
+                          </div>
+                        </mat-card-content>
+                      </mat-card>
+                    }
+                  </div>
                 </div>
+              }
+              <div [class]="(customerDocuments()?.length ?? 0) === 0 ? 'w-full lg:max-w-md' : ''">
+                <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
               </div>
-            }
-            <div [class]="(customerDocuments()?.length ?? 0) === 0 ? 'w-full lg:max-w-md' : ''">
-              <tafel-upload-document-panel (upload)="onDocumentUpload($event)"></tafel-upload-document-panel>
             </div>
           </div>
-        </div>
-      </mat-tab>
+        </mat-tab>
+      }
       <!-- Seeing a customer's current data and seeing every change ever made to it are separate
            levels of access, so the tab only exists for whoever may read the audit trail. -->
       @if (hasAuditPermission()) {
