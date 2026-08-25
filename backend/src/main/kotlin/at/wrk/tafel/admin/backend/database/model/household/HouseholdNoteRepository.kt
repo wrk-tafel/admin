@@ -14,6 +14,14 @@ interface HouseholdNoteRepository : JpaRepository<HouseholdNoteEntity, Long> {
         pageRequest: PageRequest,
     ): Page<HouseholdNoteEntity>
 
+    /**
+     * The unpaged counterpart to the paged overload above - every note for a household, not one
+     * page of them. Used by [at.wrk.tafel.admin.backend.modules.household.internal.note.HouseholdNoteService.getAllNotes]
+     * for the GDPR data export (issue #3179), where a page-size cap would silently truncate the
+     * record.
+     */
+    fun findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId: Long): List<HouseholdNoteEntity>
+
     @Query("select count(n) from HouseholdNote n where n.household.id in :sourceEntityIds")
     fun countByHouseholdEntityIdIn(@Param("sourceEntityIds") sourceEntityIds: Collection<Long>): Int
 

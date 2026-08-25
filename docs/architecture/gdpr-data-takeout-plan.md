@@ -4,9 +4,10 @@ Written for [issue #3362](https://github.com/wrk-tafel/admin/issues/3362), which
 with a suggestion" rather than code. This is that plan — nothing here is decided, and turning any
 section below into working code needs its own issue, same convention as the rest of
 [`gdpr-compliance.md`](gdpr-compliance.md). It ties together two gaps from that review:
-[G5](gdpr-compliance.md#g5-a-data-subject-request-cannot-be-answered-from-the-application)
-(customers, [#3179](https://github.com/wrk-tafel/admin/issues/3179)) and
-[G12](gdpr-compliance.md#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either)
+[G5](gdpr-compliance.md#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
+(customers, [#3179](https://github.com/wrk-tafel/admin/issues/3179), done - see
+[§7](#7-suggested-breakdown-into-issues)) and
+[G12](gdpr-compliance.md#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application)
 (staff, [#3363](https://github.com/wrk-tafel/admin/issues/3363), added alongside this plan) — the two
 data subjects this application holds data about get one shared design instead of two independent
 ones.
@@ -122,6 +123,12 @@ household or user being exported, with the actor resolved normally (the caller i
 definition here, unlike `LoginAuditService`'s special case). One enum value and one small service,
 reused by both the customer and staff endpoint.
 
+G6 ([#3180](https://github.com/wrk-tafel/admin/issues/3180)) landed before #3179 did and already
+added `AuditOperation.READ` for exactly this shape of entry (a household PDF export is one of the
+examples in its own KDoc). #3179 reused that value instead of adding the `EXPORT` proposed above,
+directly from `HouseholdExportService` - no separate export-audit service either, the same
+`AuditLogWriter.record` call `HouseholdService.generatePdf` already made.
+
 ## 6. Compatibility with a future erasure feature
 
 Three things above are worth keeping in mind specifically because deletion is coming later, even
@@ -151,7 +158,8 @@ there is no equivalent for staff accounts at all. None of that is this plan's to
 ## 7. Suggested breakdown into issues
 
 - [#3179](https://github.com/wrk-tafel/admin/issues/3179) (G5) — implement
-  [§2](#2-proposed-design--customer-takeout): the two household export endpoints.
+  [§2](#2-proposed-design--customer-takeout): the two household export endpoints. **Done** -
+  `HouseholdExportService`/`HouseholdController`.
 - [#3363](https://github.com/wrk-tafel/admin/issues/3363) (G12, staff) — implement
   [§3](#3-proposed-design--staff-takeout): the self-service export endpoint.
 - [§5](#5-recording-the-export-itself)'s audit write is small enough to land inside each of the two

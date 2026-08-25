@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdExportService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdSearchFilters
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
@@ -26,6 +27,7 @@ class HouseholdController(
     private val householdService: HouseholdService,
     private val householdDuplicationService: HouseholdDuplicationService,
     private val householdMergeService: HouseholdMergeService,
+    private val householdExportService: HouseholdExportService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -161,6 +163,48 @@ class HouseholdController(
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
         } ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+    }
+
+    /**
+     * The GDPR Art. 15/20 data takeout (issue #3179) - household, persons, notes and distribution
+     * attendance history as one downloadable JSON file. See [exportDocuments] for the household's
+     * uploaded documents, kept as a separate download on purpose (see
+     * `docs/architecture/gdpr-data-takeout-plan.md`).
+     */
+    @GetMapping("/{householdId}/export", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun exportHousehold(@PathVariable householdId: Long): ResponseEntity<InputStreamResource> {
+        val result = householdExportService.exportHousehold(householdId)
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
+    }
+
+    /**
+     * The document half of the GDPR data takeout - every file uploaded for this household, as a ZIP.
+     * See [exportHousehold].
+     */
+    @GetMapping("/{householdId}/export/documents", produces = ["application/zip"])
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun exportDocuments(@PathVariable householdId: Long): ResponseEntity<InputStreamResource> {
+        val result = householdExportService.exportDocuments(householdId)
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.valueOf("application/zip"))
+            .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
     }
 
     /**

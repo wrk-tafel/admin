@@ -39,6 +39,9 @@ class HouseholdControllerTest {
     @RelaxedMockK
     private lateinit var householdMergeService: HouseholdMergeService
 
+    @RelaxedMockK
+    private lateinit var householdExportService: HouseholdExportService
+
     @InjectMockKs
     private lateinit var controller: HouseholdController
 
@@ -500,6 +503,66 @@ class HouseholdControllerTest {
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.body.detail).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
+    }
+
+    @Test
+    fun `export household - no result`() {
+        every { householdExportService.exportHousehold(any()) } returns null
+
+        val exception = assertThrows<NotFoundException> { controller.exportHousehold(123) }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
+    }
+
+    @Test
+    fun `export household - result mapped`() {
+        val testFilename = "datenexport-123-mustermann-max.json"
+        every { householdExportService.exportHousehold(any()) } returns HouseholdExportFileResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.exportHousehold(123)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_JSON_VALUE)
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `export documents - no result`() {
+        every { householdExportService.exportDocuments(any()) } returns null
+
+        val exception = assertThrows<NotFoundException> { controller.exportDocuments(123) }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
+    }
+
+    @Test
+    fun `export documents - result mapped`() {
+        val testFilename = "dokumente-123-mustermann-max.zip"
+        every { householdExportService.exportDocuments(any()) } returns HouseholdExportFileResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.exportDocuments(123)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
 
     @Test

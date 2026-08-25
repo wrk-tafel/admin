@@ -170,6 +170,9 @@ export class CustomerDetailComponent {
   /** Which PDF is currently being generated, so the triggering print action can show a busy state. */
   readonly printing = signal<'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE' | null>(null);
 
+  /** Which GDPR data-takeout download is currently running, so the triggering action can show a busy state. */
+  readonly exporting = signal<'DATA' | 'DOCUMENTS' | null>(null);
+
   readonly validityState = computed(() => computeCustomerValidityState(this.customerData()?.validUntil));
   readonly validityColor = computed(() => customerValidityStateColor(this.validityState()));
   readonly validityText = computed(() => customerValidityStateText(this.validityState()));
@@ -220,7 +223,7 @@ export class CustomerDetailComponent {
   printMasterdata() {
     this.printing.set('MASTERDATA');
     this.customerApiService.generatePdf(this.customerData().id!, 'MASTERDATA').subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.printing.set(null),
       complete: () => this.printing.set(null)
     });
@@ -229,7 +232,7 @@ export class CustomerDetailComponent {
   printIdCard() {
     this.printing.set('IDCARD');
     this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD').subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.printing.set(null),
       complete: () => this.printing.set(null)
     });
@@ -239,9 +242,29 @@ export class CustomerDetailComponent {
   printPrivacyNotice() {
     this.printing.set('PRIVACY_NOTICE');
     this.customerApiService.generatePdf(this.customerData().id!, 'PRIVACY_NOTICE').subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.printing.set(null),
       complete: () => this.printing.set(null)
+    });
+  }
+
+  /** Downloads the GDPR Art. 15/20 data takeout (issue #3179): household, persons, notes and attendance history as JSON. */
+  exportData() {
+    this.exporting.set('DATA');
+    this.customerApiService.exportData(this.customerData().id!).subscribe({
+      next: (response) => this.processFileResponse(response),
+      error: () => this.exporting.set(null),
+      complete: () => this.exporting.set(null)
+    });
+  }
+
+  /** Downloads every document uploaded for this customer as a ZIP - the other half of the GDPR data takeout. */
+  exportDocuments() {
+    this.exporting.set('DOCUMENTS');
+    this.customerApiService.exportDocuments(this.customerData().id!).subscribe({
+      next: (response) => this.processFileResponse(response),
+      error: () => this.exporting.set(null),
+      complete: () => this.exporting.set(null)
     });
   }
 
@@ -552,7 +575,7 @@ export class CustomerDetailComponent {
     this.customerNotes.set(response.items);
   }
 
-  private processPdfResponse(response: HttpResponse<Blob>) {
+  private processFileResponse(response: HttpResponse<Blob>) {
     const contentDisposition = response.headers.get('content-disposition')!;
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
     this.fileHelperService.downloadFile(filename, response.body!);

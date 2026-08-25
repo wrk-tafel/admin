@@ -106,9 +106,9 @@ a row that's about to be orphan-removed on the same flush.
 ## Components
 
 ### `HouseholdController` (`/api/households`)
-REST endpoint for household CRUD, validation, PDF generation, above-cost-limit listing, duplicate
-search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUPLICATES` /
-`CUSTOMERS_ABOVE_LIMIT` for the respective sub-features). Notable behavior:
+REST endpoint for household CRUD, validation, PDF generation, the GDPR data takeout, above-cost-limit
+listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER` (or
+`CUSTOMER_DUPLICATES` / `CUSTOMERS_ABOVE_LIMIT` for the respective sub-features). Notable behavior:
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
@@ -362,6 +362,28 @@ the authoring employee and a timestamp. Simple create/list (paginated, 5 per pag
 no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
 timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
 frontend needs the id as a stable list key.
+
+### `HouseholdExportService` (`internal`)
+The GDPR Art. 15/20 data takeout (G5, issue #3179, see
+`docs/architecture/gdpr-data-takeout-plan.md`), exposed as two `HouseholdController` endpoints
+mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
+- `GET /{householdId}/export` - household, persons, notes (via `HouseholdNoteService.getAllNotes`,
+  the unpaged counterpart to `getNotes` - a page-size cap would silently truncate the record) and
+  distribution attendance history (`DistributionHouseholdRepository.findAllByHouseholdEntityIds`),
+  serialized to one downloadable JSON file.
+- `GET /{householdId}/export/documents` - every uploaded document, read via `DocumentStorageService`
+  and streamed back as one ZIP (`java.util.zip.ZipOutputStream`), deduplicating same-named documents
+  so a second `ausweis.jpg` doesn't silently overwrite the first inside the archive.
+
+Split into two downloads rather than one combined archive so a requester who only wants the record
+(the common case) doesn't pay for zipping files already on hand. Neither method stores anything - the
+file is built on request and never written to disk or a table. Both record an `AuditOperation.READ`
+entry (`entityType = "Household"`, see issue #3180) the same way `generatePdf` does, and both are
+deliberately not `readOnly` transactions for the same reason: `AuditLogWriter.record`'s write only
+takes effect for a transaction that actually commits. Deliberately excludes `audit_log` entries - see
+the takeout plan's §4 for why that's left an open question rather than answered here. Shares
+`buildHouseholdFilename` (`internal/HouseholdFilenames.kt`) with `HouseholdService.generatePdf` so the
+two filename schemes don't drift.
 
 ### `HouseholdRetentionService` (`internal`)
 GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that

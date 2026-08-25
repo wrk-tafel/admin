@@ -195,22 +195,25 @@ and nothing enforces or even mentions that assumption to the person typing.
 and in the user guide chapter for the Kunden screen. Field-level restriction is not realistic; a
 short, visible rule is.
 
-### G5 A data-subject request cannot be answered from the application
+### G5 A customer data-subject request can now be answered from the application
 
 **Art. 15, Art. 20.**
 
-A customer asking for a copy of everything held about them would need: master data, all household
-members, notes, the list and content of uploaded documents, attendance history, and — arguably — the
-audit entries about them. The application offers the Stammdatenblatt PDF, which covers the first
-part. Everything else has to be assembled by hand from the UI, or by querying the database directly.
-There is no "export this household" action and no machine-readable format.
+`HouseholdExportService` (issue #3179, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md))
+serves two downloads behind the same `CUSTOMER` permission as the rest of a household's data, from
+customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household,
+persons, notes (via the unpaged `HouseholdNoteService.getAllNotes`, so a page-size cap can't silently
+truncate the record) and distribution attendance history, as one JSON file — and
+`GET /households/{householdId}/export/documents` — every uploaded document as a ZIP. Split into two
+downloads rather than one combined archive so a requester who only wants the record (the common case)
+isn't charged for zipping files already on hand. Neither endpoint stores anything; the file is built
+on request and never written to disk or a table. Both are recorded in the audit trail as an
+`AuditOperation.READ` entry against the household (G6/#3180), the same way `generatePdf` already was.
 
-The same gap makes it impossible to tell a requester what was erased and what remains.
-
-**Smallest useful step:** see
-[`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) for a concrete endpoint design — written
-together with [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either)
-below as one shared plan, since both gaps are the same question for a different data subject.
+What remains open: `audit_log` entries about the household are deliberately excluded from the export —
+left as an unanswered permission-boundary question in the takeout plan's §4 rather than folded in by
+omission. [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application), the
+same question for staff instead of customers, is still open.
 
 ### G6 Read access to a case file is not recorded
 
@@ -312,16 +315,16 @@ impossible to discharge with any accuracy.
 threshold ("more than N documents downloaded by one user in an hour") reusing the existing push
 channel covers the realistic case.
 
-### G12 A staff data-subject request cannot be answered from the application either
+### G12 A staff data-subject request still cannot be answered from the application
 
 **Art. 15, Art. 20.**
 
-The same gap as [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application), for the
-other data subject this application holds data about: `users`, `user_authorities` and the linked
-`employees` row. A staff member asking "what do you have on me" gets nothing from the application
-either — `UserController`'s only self-service reads are `/api/users/info` (username and permissions,
-for the shell) and password/push-device management; nothing surfaces a personnel number, the full
-authority list or login history in one place, and there is no export.
+The same question [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
+answered, for the other data subject this application holds data about: `users`, `user_authorities`
+and the linked `employees` row. A staff member asking "what do you have on me" gets nothing from the
+application — `UserController`'s only self-service reads are `/api/users/info` (username and
+permissions, for the shell) and password/push-device management; nothing surfaces a personnel number,
+the full authority list or login history in one place, and there is no export.
 
 Added alongside [#3362](https://github.com/wrk-tafel/admin/issues/3362), which asked for a takeout
 plan covering "either customers or internal employees" — the original review (#3124) only considered
@@ -422,14 +425,15 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | hours | a line in the dialog, plus retention on the support mailbox |
 | 4 | [G2](#g2-a-privacy-notice-now-exists-as-a-printable-consent-form-signed-on-paper) privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | done | printable consent form, per-household and reference-less |
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
-| 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | days | one endpoint returning the full household record + documents |
+| 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
 | 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
 | 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3181](https://github.com/wrk-tafel/admin/issues/3181), [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
-| 9 | [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
+| 9 | [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 
-G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1 and G13 are done. Of
+G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1, G13 and G5 are done. Of
 what remains, most depends on answers that come from outside this repository — which makes
-[§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G5 and G12 are
-the exception to that dependency: both are answerable from inside the repository today, and
-[`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) is a concrete design for both.
+[§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G12 is the
+exception to that dependency: it is answerable from inside the repository today, and
+[`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) — written for G5 and G12 together — is a
+concrete design for it too.

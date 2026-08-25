@@ -174,6 +174,29 @@ internal class HouseholdNoteServiceTest {
     }
 
     @Test
+    fun `get all notes - maps every note, unpaged`() {
+        val householdId = 123L
+        val noteEntities = listOf(
+            HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 2").apply {
+                this.id = 2
+                this.employee = testUserEntity.employee
+                this.createdAt = LocalDateTime.now().minusDays(1)
+            },
+            HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
+                this.id = 1
+                this.employee = testUserEntity.employee
+                this.createdAt = LocalDateTime.now().minusDays(2)
+            },
+        )
+        every { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId) } returns noteEntities
+
+        val result = service.getAllNotes(householdId)
+
+        assertThat(result).extracting("note").containsExactly("note 2", "note 1")
+        verify { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId) }
+    }
+
+    @Test
     fun `get notes - author is shown as deleted once the linked employee was deleted`() {
         val householdId = 123L
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {

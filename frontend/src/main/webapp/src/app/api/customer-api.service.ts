@@ -85,6 +85,20 @@ export class CustomerApiService {
     return this.http.get('/households/privacy-notice-template', {responseType: 'blob', observe: 'response'});
   }
 
+  /**
+   * The GDPR Art. 15/20 data takeout (issue #3179): household, persons, notes and distribution
+   * attendance history as one downloadable JSON file. See {@link exportDocuments} for the uploaded
+   * documents, which come as a separate download on purpose.
+   */
+  exportData(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get('/households/' + id + '/export', {responseType: 'blob', observe: 'response'});
+  }
+
+  /** The document half of the GDPR data takeout - every file uploaded for this household, as a ZIP. */
+  exportDocuments(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get('/households/' + id + '/export/documents', {responseType: 'blob', observe: 'response'});
+  }
+
   searchCustomer(
     searchInput?: string | null,
     postProcessing?: boolean | null,
