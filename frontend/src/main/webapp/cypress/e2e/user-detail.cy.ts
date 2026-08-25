@@ -1,3 +1,4 @@
+import * as path from 'path';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {testUserPassword, UserData} from '../support/commands';
 
@@ -110,6 +111,27 @@ describe('User Detail', () => {
     cy.byTestId('editUserButton').click();
 
     cy.url().should('include', '/benutzer/bearbeiten/100');
+  });
+
+  // The GDPR Art. 15/20 data takeout (issue #3363), admin-triggered on someone else's behalf.
+  it('export user data (GDPR takeout) and downloads a PDF', () => {
+    cy.visit('/benutzer/detail/300');
+
+    cy.byTestId('exportUserButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-admin.pdf');
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
+
+    // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180).
+    cy.visit('/aenderungsprotokoll');
+    cy.byTestId('audit-filter-entityType').click();
+    cy.get('mat-option').contains('Benutzer').click();
+
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Benutzer');
   });
 
   it('delete user', () => {

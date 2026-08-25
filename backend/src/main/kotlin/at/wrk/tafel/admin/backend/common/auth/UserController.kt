@@ -7,6 +7,8 @@ import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
+import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
@@ -17,8 +19,11 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -26,6 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 
 @RestController
@@ -36,6 +42,7 @@ class UserController(
     private val tafelPasswordGenerator: TafelPasswordGenerator,
     private val tafelAdminProperties: TafelAdminProperties,
     private val loginAttemptService: LoginAttemptService,
+    private val userExportService: UserExportService,
 ) {
 
     companion object {
@@ -52,6 +59,44 @@ class UserController(
         )
 
         return ResponseEntity.ok(userInfo)
+    }
+
+    /**
+     * The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363, see
+     * `docs/architecture/gdpr-data-takeout-plan.md` §3) - a PDF, same shape as the household export.
+     * Self-service, same as [getUserInfo] - no `USER_MANAGEMENT` needed, since the class-level
+     * `isAuthenticated()` already covers it.
+     */
+    @GetMapping("/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun exportUser(): ResponseEntity<InputStreamResource> {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val result = userExportService.exportUserByUsername(authenticatedUser.username!!)
+            ?: throw NotFoundException("Benutzer nicht gefunden!")
+        return exportResponse(result)
+    }
+
+    /**
+     * The same takeout as [exportUser], admin-triggered for someone else's account - an HR-style
+     * request made on a staff member's behalf, or after they've left. Behind `USER_MANAGEMENT`,
+     * reachable from a user's detail screen.
+     */
+    @GetMapping("/{userId}/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun exportUserById(@PathVariable userId: Long): ResponseEntity<InputStreamResource> {
+        val result = userExportService.exportUserById(userId)
+            ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
+        return exportResponse(result)
+    }
+
+    private fun exportResponse(result: UserExportFileResult): ResponseEntity<InputStreamResource> {
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
     }
 
     @GetMapping("/generate-password")

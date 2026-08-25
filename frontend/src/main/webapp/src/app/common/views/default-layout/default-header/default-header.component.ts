@@ -1,5 +1,6 @@
 import {Component, computed, DestroyRef, inject, output} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {HttpResponse} from '@angular/common/http';
 import {RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
@@ -10,8 +11,10 @@ import {MatIcon} from '@angular/material/icon';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
+import {UserApiService} from '../../../../api/user-api.service';
 import {SupportContextService} from '../../../support/support-context.service';
 import {ScreenshotService} from '../../../support/screenshot.service';
+import {FileHelperService} from '../../../util/file-helper.service';
 import {TafelToastrService} from '../../../components/tafel-toastr/tafel-toastr.service';
 import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dialog.component';
 import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
@@ -25,6 +28,7 @@ import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
 import notificationsIcon from '@material-symbols/svg-400/outlined/notifications-fill.svg';
 import bookIcon from '@material-symbols/svg-400/outlined/book-fill.svg';
 import keyIcon from '@material-symbols/svg-400/outlined/key-fill.svg';
+import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
@@ -50,8 +54,10 @@ export class DefaultHeaderComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly supportApiService = inject(SupportApiService);
+  private readonly userApiService = inject(UserApiService);
   private readonly supportContextService = inject(SupportContextService);
   private readonly screenshotService = inject(ScreenshotService);
+  private readonly fileHelperService = inject(FileHelperService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly configApiService = inject(ConfigApiService);
@@ -102,6 +108,7 @@ export class DefaultHeaderComponent {
       notifications: notificationsIcon,
       book: bookIcon,
       key: keyIcon,
+      download: downloadIcon,
       lock: lockIcon,
       link: linkIcon,
       link_off: linkOffIcon
@@ -124,6 +131,20 @@ export class DefaultHeaderComponent {
 
   public logout() {
     this.authenticationService.logout().subscribe();
+  }
+
+  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a downloadable PDF. */
+  public exportUserData() {
+    this.userApiService.exportUser().subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.toastr.error('Datenexport fehlgeschlagen!')
+    });
+  }
+
+  private processPdfResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition')!;
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   /**

@@ -7,10 +7,10 @@ section below into working code needs its own issue, same convention as the rest
 [G5](gdpr-compliance.md#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
 (customers, [#3179](https://github.com/wrk-tafel/admin/issues/3179), done - see
 [§7](#7-suggested-breakdown-into-issues)) and
-[G12](gdpr-compliance.md#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application)
-(staff, [#3363](https://github.com/wrk-tafel/admin/issues/3363), added alongside this plan) — the two
-data subjects this application holds data about get one shared design instead of two independent
-ones.
+[G12](gdpr-compliance.md#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application)
+(staff, [#3363](https://github.com/wrk-tafel/admin/issues/3363), done - see
+[§7](#7-suggested-breakdown-into-issues)) — the two data subjects this application holds data about
+get one shared design instead of two independent ones.
 
 **Erasure is deliberately out of scope.** #3362 also asked to "consider that later on the GDPR
 deletion will be added" — read as: don't build it now, but don't design the takeout in a way that
@@ -29,7 +29,7 @@ instead of re-deriving it:
 rows, and — see [§4](#4-open-questions) — arguably its `audit_log` entries.
 
 **A staff member**: their `users` row (username, enabled state, `passwordChangeRequired`,
-`lastLogin` — never the Argon2 hash, see [§3](#3-proposed-design--staff-takeout)), their
+`lastLogin` — never the Argon2 hash, see [§3](#3-design--staff-takeout)), their
 `user_authorities`, the linked `employees` row (personnel number, name), and — same open question —
 their `audit_log` entries and `AuditScope.USER_LOGIN_ENTITY_TYPE` login history.
 
@@ -54,29 +54,28 @@ ignore the rest of the archive's contents.
 Stays behind `CUSTOMER` — the permission already granted read of every field the endpoint returns, so
 this needed no new permission, only the one new endpoint.
 
-## 3. Proposed design — staff takeout
+## 3. Design — staff takeout
 
-No G5 equivalent exists for staff today (see G12, added by this plan) — `UserController`'s only
-self-service reads are `/api/users/info` (username/permissions, for the shell) and password/push
-device management; nothing surfaces a personnel number, the full authority list or login history
-in one place.
+Mirrors the household export's own shape: `UserExportService` (issue #3363) renders a PDF through
+the same `PDFService`/XSL-FO pipeline - master data (username, employee personnel number/name,
+`enabled`, `lastLogin`) and every assigned permission. **Never the password hash** - Art. 15 is about
+data concerning the subject, not about handing back security material, and a hash is useless to the
+subject anyway. Recorded in the audit trail as a single `AuditOperation.READ` entry against the user
+(G6/#3180), the same way the household export is.
 
-Proposed default: **self-service**, not admin-triggered —
+Reachable two ways, both served by the same `UserExportService`:
 
 - `GET /api/users/export` behind `isAuthenticated()` (matching `/api/users/info`'s self-only
-  pattern), returning the caller's own `UserExportResponse`: username, employee (personnel number,
-  name), authorities, `enabled`/`lastLogin`. **Never the password hash** — Art. 15 is about data
-  concerning the subject, not about handing back security material, and a hash is useless to the
-  subject anyway.
+  pattern) - self-service, from the user menu's **Meine Daten exportieren** entry.
+- `GET /api/users/{userId}/export` behind `USER_MANAGEMENT` - admin-triggered, from a user's detail
+  screen's **Daten exportieren (PDF)** button, for an HR-style request made on someone's behalf, or
+  after they've left.
 
-This differs from the household design on purpose: a customer's takeout is normally requested
-in person or by mail and acted on by staff, so an operator-triggered endpoint matches how the
-request actually arrives (see [§4](#4-open-questions)). A staff member is already authenticated
-against their own account, so self-service is the natural default rather than routing every "what do
-you have on me" through `USER_MANAGEMENT`. An admin-triggered `GET /api/users/{id}/export` behind
-`USER_MANAGEMENT` is a plausible addition (an HR-style request made on someone's behalf, or after
-they've left) but isn't proposed as part of the first cut — add it only if that need actually shows
-up.
+This differs from the household design in one respect on purpose: a customer's takeout is normally
+requested in person or by mail and acted on by staff, so an operator-triggered endpoint is the
+*only* way in (see [§4](#4-open-questions)). A staff member is already authenticated against their
+own account, so self-service is the default entry point here, with the admin-triggered endpoint
+covering the same "on someone's behalf" need the household design has no equivalent gap for.
 
 ## 4. Open questions
 
@@ -157,13 +156,14 @@ there is no equivalent for staff accounts at all. None of that is this plan's to
   [§2](#2-design--customer-takeout): the household export endpoint. **Done** -
   `HouseholdExportService`/`HouseholdController`.
 - [#3363](https://github.com/wrk-tafel/admin/issues/3363) (G12, staff) — implement
-  [§3](#3-proposed-design--staff-takeout): the self-service export endpoint.
+  [§3](#3-design--staff-takeout): the self-service and admin-triggered export endpoints. **Done** -
+  `UserExportService`/`UserController`.
 - [§5](#5-recording-the-export-itself)'s audit write is small enough to land inside each of the two
   issues above rather than as its own — the `AuditOperation.EXPORT` value only needs to exist once.
 
 Recommended order: customer export first — it's the concrete case both #3362 and G5 were written
-against, and it's the larger of the two (the combined PDF/document ZIP, versus a single JSON
-response for staff).
+against, and it's the larger of the two (the combined PDF/document ZIP, versus a single PDF for
+staff).
 
 ## References
 

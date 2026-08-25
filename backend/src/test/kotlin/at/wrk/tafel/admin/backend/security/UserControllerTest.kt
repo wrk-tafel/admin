@@ -27,6 +27,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -48,6 +49,9 @@ class UserControllerTest {
 
     @RelaxedMockK
     private lateinit var loginAttemptService: LoginAttemptService
+
+    @RelaxedMockK
+    private lateinit var userExportService: UserExportService
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -89,6 +93,74 @@ class UserControllerTest {
         assertThat(response.body?.permissions).isEqualTo(testUserPermissions.map { it.key })
 
         SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `export user`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+
+        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        every { userExportService.exportUserByUsername(testUser.username) } returns UserExportFileResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.exportUser()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
+
+        SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `export user - not found`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+
+        every { userExportService.exportUserByUsername(testUser.username) } returns null
+
+        val exception = assertThrows<NotFoundException> { controller.exportUser() }
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Benutzer nicht gefunden!")
+
+        SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `export user by id`() {
+        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        every { userExportService.exportUserById(1) } returns UserExportFileResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.exportUserById(1)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `export user by id - not found`() {
+        every { userExportService.exportUserById(1) } returns null
+
+        val exception = assertThrows<NotFoundException> { controller.exportUserById(1) }
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 1) nicht gefunden!")
     }
 
     @Test

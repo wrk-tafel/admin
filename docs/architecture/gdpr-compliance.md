@@ -212,8 +212,8 @@ is recorded in the audit trail as a single `AuditOperation.READ` entry against t
 
 What remains open: `audit_log` entries about the household are deliberately excluded from the export —
 left as an unanswered permission-boundary question in the takeout plan's §4 rather than folded in by
-omission. [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application), the
-same question for staff instead of customers, is still open.
+omission. [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application), the
+same question for staff instead of customers, leaves the same question open for the same reason.
 
 ### G6 A small, targeted set of reads is now recorded
 
@@ -334,24 +334,32 @@ What remains open: this covers one realistic case — a single account reading a
 every way a breach could look, and whether a fixed threshold is the right long-term answer (versus,
 say, per-role baselines) is a judgement call rather than a settled one.
 
-### G12 A staff data-subject request still cannot be answered from the application
+### G12 A staff data-subject request can now be answered from the application
 
 **Art. 15, Art. 20.**
 
 The same question [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
 answered, for the other data subject this application holds data about: `users`, `user_authorities`
-and the linked `employees` row. A staff member asking "what do you have on me" gets nothing from the
-application — `UserController`'s only self-service reads are `/api/users/info` (username and
-permissions, for the shell) and password/push-device management; nothing surfaces a personnel number,
-the full authority list or login history in one place, and there is no export.
+and the linked `employees` row. A staff member asking "what do you have on me" used to get nothing
+from the application — `UserController`'s only self-service reads were `/api/users/info` (username
+and permissions, for the shell) and password/push-device management; nothing surfaced a personnel
+number, the full authority list or login history in one place, and there was no export.
+
+`UserExportService` (issue #3363, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3)
+serves a PDF - the same `PDFService`/XSL-FO pipeline as the household export - with master data
+(username, employee personnel number/name, `enabled`, `lastLogin`) and every assigned permission.
+Never the password hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against
+the user (G6/#3180), the same way G5's export is. Reachable two ways: `GET /api/users/export` behind
+`isAuthenticated()` (matching `/api/users/info`'s self-only pattern), from the user menu's "Meine
+Daten exportieren" entry; and `GET /api/users/{userId}/export` behind `USER_MANAGEMENT`, from a
+user's detail screen's "Daten exportieren (PDF)" button, for a request made on someone's behalf.
 
 Added alongside [#3362](https://github.com/wrk-tafel/admin/issues/3362), which asked for a takeout
 plan covering "either customers or internal employees" — the original review (#3124) only considered
 the customer side.
 
-**Smallest useful step:** see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md), written
-together with G5 as one shared plan. Tracked in
-[#3363](https://github.com/wrk-tafel/admin/issues/3363).
+What remains open: same as G5, `audit_log` entries about the user are deliberately excluded from the
+export — left as an unanswered permission-boundary question in the takeout plan's §4.
 
 ### G13 A system user or employee account now expires too, mirroring G1
 
@@ -447,15 +455,12 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
 | 7 | [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | done | `AuditOperation.READ` on document download, PDF/Kundenliste generation and the G5 export |
 | 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) | [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183) | structural | each needs a decision with the operator before code |
-| 9 | [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
+| 9 | [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export for staff | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | done | `GET /api/users/export`, `UserExportService` |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 | 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 
 G3 and G4 are worth doing regardless of what the operator decides; G9 no longer needs G6's answer
-first but is otherwise unchanged. G2, G1, G13, G5, G6, G7 and G11 are done. Of what remains, most
-depends on answers that come from outside this repository — which makes
-[§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G12 is the
-exception to that dependency: it is answerable from inside the repository today, and
-[`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) — written for G5 and G12 together — is a
-concrete design for it too.
+first but is otherwise unchanged. G2, G1, G13, G5, G6, G7, G11 and G12 are done. Of what remains
+(G8, G10), both depend on answers that come from outside this repository — which makes
+[§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code.

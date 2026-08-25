@@ -6,6 +6,10 @@
     <button testid="changeUserStateButton" matButton="filled" [matMenuTriggerFor]="userStateMenu">
       Benutzer-Status ändern ▾
     </button>
+    <!-- The GDPR Art. 15/20 data takeout (issue #3363), admin-triggered on this user's behalf. -->
+    <button testid="exportUserButton" matButton="filled" (click)="exportUserData()">
+      Daten exportieren (PDF)
+    </button>
     <mat-menu #userStateMenu="matMenu">
       @if (currentUserData().enabled) {
         <button mat-menu-item testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button>

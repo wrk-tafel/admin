@@ -3,8 +3,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { DefaultHeaderComponent } from './default-header.component';
 import { AuthenticationService } from '../../../security/authentication.service';
-import { of, Subject } from 'rxjs';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { of, Subject, throwError } from 'rxjs';
+import { HttpHeaders, HttpResponse, provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../state/global-state.service';
 import { signal } from '@angular/core';
@@ -12,9 +12,11 @@ import { provideRouter, Router, TitleStrategy } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { SupportApiService, SupportClientContext } from '../../../../api/support-api.service';
+import { UserApiService } from '../../../../api/user-api.service';
 import { TafelToastrService } from '../../../components/tafel-toastr/tafel-toastr.service';
 import { SupportContextService } from '../../../support/support-context.service';
 import { ScreenshotService } from '../../../support/screenshot.service';
+import { FileHelperService } from '../../../util/file-helper.service';
 import { ConfigApiService } from '../../../../api/config-api.service';
 import { DistributionItem } from '../../../../api/distribution-api.service';
 import { TafelTitleStrategy } from '../../../util/tafel-title-strategy';
@@ -36,6 +38,8 @@ describe('DefaultHeaderComponent', () => {
     let authenticationService: MockedObject<AuthenticationService>;
     let globalStateService: MockedObject<GlobalStateService>;
     let supportApiService: MockedObject<SupportApiService>;
+    let userApiService: MockedObject<UserApiService>;
+    let fileHelperService: MockedObject<FileHelperService>;
     let toastrService: MockedObject<TafelToastrService>;
     let dialog: MockedObject<MatDialog>;
     let supportContextService: MockedObject<SupportContextService>;
@@ -81,9 +85,22 @@ describe('DefaultHeaderComponent', () => {
                     }
                 },
                 {
+                    provide: UserApiService,
+                    useValue: {
+                        exportUser: vi.fn().mockName('UserApiService.exportUser')
+                    }
+                },
+                {
+                    provide: FileHelperService,
+                    useValue: {
+                        downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
+                    }
+                },
+                {
                     provide: TafelToastrService,
                     useValue: {
-                        success: vi.fn().mockName('TafelToastrService.success')
+                        success: vi.fn().mockName('TafelToastrService.success'),
+                        error: vi.fn().mockName('TafelToastrService.error')
                     }
                 },
                 {
@@ -111,6 +128,8 @@ describe('DefaultHeaderComponent', () => {
         authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
         supportApiService = TestBed.inject(SupportApiService) as MockedObject<SupportApiService>;
+        userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
+        fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
         toastrService = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
         dialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
         supportContextService = TestBed.inject(SupportContextService) as MockedObject<SupportContextService>;
@@ -161,6 +180,34 @@ describe('DefaultHeaderComponent', () => {
         component.logout();
 
         expect(authenticationService.logout).toHaveBeenCalled();
+    });
+
+    it('exports the caller\'s own data as a downloadable PDF', () => {
+        const response = new HttpResponse({
+            status: 200,
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-mmuster.pdf'}),
+            body: new Blob()
+        });
+        userApiService.exportUser.mockReturnValueOnce(of(response));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        component.exportUserData();
+
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-mmuster.pdf', response.body);
+    });
+
+    it('shows an error toast when the data export fails', () => {
+        userApiService.exportUser.mockReturnValueOnce(throwError(() => new Error('failed')));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        component.exportUserData();
+
+        expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
+        expect(toastrService.error).toHaveBeenCalled();
     });
 
     it('open support dialog and submit sends the support request with the technical context', async () => {
